@@ -107,7 +107,13 @@ misspecification are not identifiable from a response profile alone and are
 routed to abstention.
 
 No public dataset can decide these questions. None carries a known
-assumed-versus-realized covariance, and none is event-paired across the factors
+assumed-versus-realized covariance --- simulation tools that \emph{synthesise}
+correlated multichannel noise from a specified spectrum are open and recent
+(\cite{pytessim}; Wire-Cell's per-band colorer
+matrices~\cite{wirecell}, on the measured coherent-noise model
+of~\cite{microboone2017noise}), but none reports the realized covariance of the
+ensemble it drew, which is what makes $\kappa(\hat\Sigma^{-1}\Sigma)$ a measured
+lever rather than a nominal setting --- and none is event-paired across the factors
 a causal claim must vary: the released NuBench sets are independent
 per-geometry productions, and TIDMAD's own authors disclaim the scientific
 meaning of its denoising score. The study therefore produces its own evidence
@@ -462,7 +468,13 @@ synthetic arm uses a noise-aware linear control and a generator that
 constructs PSD/cross-spectral density models, samples seeded frequency-domain
 coefficients with real-signal symmetry, and adds declared artifacts; the
 generator reports both the implied and the realized covariance of every
-ensemble. The inverse-PSD-weighted training objective makes the encoder's
+ensemble. The synthesis itself is not claimed as novel: \texttt{pytessim} draws
+from a cross-spectral density by per-frequency Cholesky
+factorisation~\cite{pytessim}, and Wire-Cell colours per frequency band with
+user-supplied matrices $A$ satisfying $AA^{\top}\approx\Sigma$~\cite{wirecell}.
+Reporting the \emph{realized} covariance of the drawn ensemble, so that
+$\hat\Sigma\neq\Sigma$ is measured rather than nominal, is what neither does and
+what this tier requires. The inverse-PSD-weighted training objective makes the encoder's
 assumed covariance $\hat\Sigma$ a literal property of the loss, so
 $\hat\Sigma\neq\Sigma$ is a controlled experimental lever, swept through
 the condition number $\kappa(\hat\Sigma^{-1}\Sigma)$. Every theoretical
@@ -717,6 +729,22 @@ Simulation.'' Comput.\ Phys.\ Commun.\ (2024).
 \bibitem{paper1} D. Wong. ``Noise Covariance Defines Reconstruction
 Geometry: Optimal Filtering, Weighted Subspaces, and Tied Linear
 Autoencoders.'' Preprint (2026).
+\bibitem{pytessim} TESSERACT Collaboration. ``\texttt{pytessim}: simulation of
+TES datastreams including noise, LEE, and signals.'' MIT-licensed software,
+first public release 2026-05-18.
+\href{https://github.com/spice-herald/pytessim}{github.com/spice-herald/pytessim}.
+Multichannel noise sampled from a PSD or cross-spectral density by
+per-frequency Cholesky factorisation (\texttt{core/noise/Noise\_Factory.py}).
+\bibitem{wirecell} Wire-Cell Team. ``Wire-Cell Toolkit.'' LGPL-licensed
+software. \href{https://github.com/WireCell/wire-cell-toolkit}{github.com/WireCell/wire-cell-toolkit}.
+\texttt{gen/src/CorrelatedAddNoise.cxx} (added 2026-02-04) colours per frequency
+band with user-supplied matrices $A$ satisfying $AA^{\top}\approx$ the
+correlation matrix; \texttt{CoherentAddNoise} with \texttt{GroupNoiseModel}
+gives shared-private block structure.
+\bibitem{microboone2017noise} MicroBooNE Collaboration. ``Noise
+Characterization and Filtering in the MicroBooNE Liquid Argon TPC.''
+JINST 12, P08003 (2017).
+\href{https://arxiv.org/abs/1705.07341}{arXiv:1705.07341}.
 \bibitem{panda2} S. Young, C. Jes\'us-Valls, K. Terao. ``Panda Diplomacy:
 Foundation Model Pre-training across Particle Imaging Detectors for High
 Energy and Nuclear Physics.''

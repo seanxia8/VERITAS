@@ -23,3 +23,9 @@
 2406.04378	testbeds	fry2024_tidmad	TIDMAD dark-matter denoising benchmark
 2304.14526	testbeds	lazar2023_prometheus	Prometheus neutrino-telescope simulation
 2411.09864	testbeds	douglas2025_representation_shift	Douglas et al., representation-shift preprint (v3)
+1705.07341	prior_art	microboone2017_noise	MicroBooNE noise characterization and filtering, JINST 12 (2017) P08003 — the measured coherent (cross-channel) LArTPC noise model behind Wire-Cell
+2307.11877	testbeds	hertel2023_herald	HeRALD superfluid-helium detector concept, first demonstration — the detector HeST simulates
+2602.24129	testbeds	alterkait2026_lucid	Alterkait et al., LUCiD: end-to-end differentiable calibration and reconstruction for optical particle detectors — the waveform-level water-Cherenkov arm (NOTE: repo has no licence as of 2026-09-05)
+https://github.com/spice-herald/pytessim	software	pytessim	pytessim (MIT, first public 2026-05-18) — samples multichannel noise from a PSD or CSD by per-frequency Cholesky. No arXiv paper; cite the repository.
+https://github.com/WireCell/wire-cell-toolkit	software	wirecell_correlatedaddnoise	Wire-Cell CorrelatedAddNoise (LGPL, 2026-02-04) — per-band colorer matrices A with A A^T ~ correlation matrix, from a user JSON file; CoherentAddNoise + GroupNoiseModel give shared-private structure. No arXiv paper; cite the repository.
+https://github.com/spice-herald/HeST	software	hest	HeST (MIT) — superfluid-helium yields and quasiparticle-evaporation simulation; emits per-sensor arrival times, no noise model. Candidate Tier-2b dark-matter arm.

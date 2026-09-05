@@ -12,12 +12,15 @@ licence; nothing here is a publisher-typeset copy.
 ## Fetching the PDFs
 
 The manifest is [`papers.tsv`](papers.tsv) — tab-separated
-`arxiv_id <TAB> folder <TAB> filename_stem <TAB> title`. Everything in it is on
-arXiv, so one loop fetches the set:
+`arxiv_id <TAB> folder <TAB> filename_stem <TAB> title`. Rows in the `software`
+folder carry a repository URL in place of an arXiv id, because the artifact being
+cited is code with no paper; the loop skips them. Everything else is on arXiv, so
+one loop fetches the set:
 
 ```bash
 cd reference/papers
 while IFS=$'\t' read -r id dir name _; do
+  case "$id" in http*) continue ;; esac   # software rows: a URL, not a paper
   out="$dir/${id}_${name}.pdf"
   if [ -s "$out" ]; then continue; fi
   echo "fetching $id"
@@ -35,7 +38,9 @@ requests, which is what arXiv asks of scripted clients.
 folder, so the loop will skip it.
 
 To add a paper: append a row to `papers.tsv`, re-run the loop, and add the
-matching `references.bib` entry.
+matching `references.bib` entry. To add a piece of software with no paper, use
+the `software` folder and put its repository URL in the first column; record the
+commit or release you actually read, because that is what the claim is about.
 
 ---
 
@@ -129,9 +134,27 @@ Ordered by how well each holds up under **both** referee pools.
    displacement is the wrong-metric statistic; the consequence-relevant quantity is
    displacement in the `Sigma^-1` metric pulled back through the output Jacobian, and
    their rank agreement degrades with the condition number of `Sigma_hat^-1 Sigma`.
-   Requires a known assumed *and* realized covariance — which `src/noise_module/`
-   provides and no public ML benchmark does. Untouched in either literature, and it
-   is an ML-methods result rather than an application, which is what MLST asks for.
+   It needs an ensemble in which the assumed covariance `Sigma_hat` is a property of
+   the training objective *and* the realized covariance `Sigma` of the drawn ensemble
+   is reported — which is what `src/noise_module/` supplies.
+
+   **Do not claim the synthesis as the novelty.** Drawing correlated multichannel
+   noise from a specified spectrum is published, open, and recent: `pytessim`
+   (spice-herald, MIT, first public 2026-05-18) interpolates a CSD, takes a
+   per-frequency Cholesky factor and colours white Fourier coefficients with it; and
+   Wire-Cell's `CorrelatedAddNoise` (LGPL, 2026-02-04) colours per frequency band with
+   user-supplied matrices `A` satisfying `A A^T ~ correlation matrix`, loaded from a
+   JSON file — its `CoherentAddNoise` + `GroupNoiseModel` are a shared-private block
+   structure by another name, sitting on a *measured* LArTPC coherent-noise model
+   (`1705.07341`). A referee from the LArTPC world finds `CorrelatedAddNoise` in ten
+   minutes, so cite it first, in the paper's own voice.
+
+   What survives, stated narrowly: **no public package reports the realized covariance
+   of the ensemble it drew**, and no public ML benchmark carries an assumed-versus-
+   realized pair at all. That is what turns `kappa(Sigma_hat^-1 Sigma)` from a nominal
+   setting into a measured experimental lever — and the lever, not the generator, is
+   the contribution. It remains an ML-methods result rather than an application, which
+   is what MLST asks for.
 2. ⭐ **The output-null dissociation** (audit §6.2). A perturbation family where alarm
    and consequence are decoupled *by construction*, so the claim becomes a falsifiable
    statement about metric choice with a predicted sign and an unambiguous null.
@@ -151,3 +174,16 @@ Ordered by how well each holds up under **both** referee pools.
 Work paragraph naming Roschewitz / Lee / Podkopaev & Ramdas / Zhang / Rabanser and the
 CMS DQM line with one sentence each on what this study does that they do not, and lead
 with items 1-2.
+
+---
+
+## Software cited as prior art
+
+No paper exists for these; the repository *is* the artifact, so record the commit
+you read. Full reading notes in `docs/SIM_TESTBED_SURVEY_2026-09-05.md`.
+
+| repo | what it does | licence | relevance |
+|---|---|---|---|
+| `spice-herald/pytessim` | `core/noise/Noise_Factory.py`: CSD → per-frequency `np.linalg.cholesky` → coloured multichannel noise | MIT | Closest prior art to `multichannel_noise`. Does not report the realized covariance; hardcoded to two channels. |
+| `WireCell/wire-cell-toolkit` | `gen/src/CorrelatedAddNoise.cxx` (per-band colorer matrices from user JSON), `CoherentAddNoise` + `GroupNoiseModel` (shared-private blocks), `NoiseTools.h`, `Spectrum.h` (alias-fold, resampling) | LGPL | The strongest prior art against §6.3's framing, and a cheap cross-validation target — same mathematics, independent implementation. |
+| `spice-herald/HeST` | superfluid-helium yields + quasiparticle evaporation; per-sensor arrival times, **no noise model** | MIT | Candidate Tier-2b dark-matter arm; pairs with `src/qp_simulator/` and `src/noise_module/`. |

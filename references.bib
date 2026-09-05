@@ -211,3 +211,53 @@
   archivePrefix = {arXiv},
   note   = {preprint}
 }
+
+@article{microboone2017noise,
+  title         = {Noise Characterization and Filtering in the {MicroBooNE} Liquid Argon {TPC}},
+  author        = {{MicroBooNE Collaboration}},
+  journal       = {Journal of Instrumentation},
+  volume        = {12},
+  number        = {08},
+  pages         = {P08003},
+  year          = {2017},
+  doi           = {10.1088/1748-0221/12/08/P08003},
+  eprint        = {1705.07341},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/1705.07341},
+  note          = {Measured coherent (cross-channel) noise model underlying Wire-Cell's correlated-noise generators}
+}
+
+@misc{wirecell,
+  title        = {Wire-Cell Toolkit: {\texttt{CorrelatedAddNoise}}, {\texttt{CoherentAddNoise}} and {\texttt{GroupNoiseModel}}},
+  author       = {{Wire-Cell Team}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/WireCell/wire-cell-toolkit}},
+  note         = {LGPL. \texttt{gen/src/CorrelatedAddNoise.cxx}, added 2026-02-04: per-band colorer matrices $A$ with $AA^{\top}\approx$ correlation matrix, loaded from a user-supplied JSON file}
+}
+
+@misc{pytessim,
+  title        = {\texttt{pytessim}: simulation of {TES} datastreams including noise and low-energy excess},
+  author       = {{TESSERACT Collaboration}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/spice-herald/pytessim}},
+  note         = {MIT. \texttt{core/noise/Noise\_Factory.py}, first public 2026-05-18: multichannel noise sampled from a PSD or cross-spectral density by per-frequency Cholesky factorisation}
+}
+
+@misc{hest,
+  title        = {\texttt{HeST}: superfluid-helium yields and quasiparticle-evaporation simulation},
+  author       = {Rischbieter, Greg and {SPICE/HeRALD Collaboration}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/spice-herald/HeST}},
+  note         = {MIT}
+}
+
+@article{hertel2023herald,
+  title         = {Direct Detection of Sub-{GeV} Dark Matter Using a Superfluid {$^4$He} Target: Demonstration of the {HeRALD} Detector Concept},
+  author        = {{SPICE/HeRALD Collaboration}},
+  journal       = {Physical Review D},
+  year          = {2023},
+  eprint        = {2307.11877},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2307.11877}
+}
+
