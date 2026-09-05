@@ -86,6 +86,7 @@ this repository.
 | `docs/archive/OPEN_DECISIONS.md` | Researched resolutions of the open technical decisions (archived; superseded by `EXPERIMENT_DESIGN.md`) |
 | `docs/archive/REVISION_PLAN.md` | Earlier shared execution plan (migrated 2026-08-23; archived, superseded by `IMPLEMENTATION_PLAN.md`) |
 | `docs/archive/PERSONAL_RESEARCH_GUIDE.md` | Private working record and review log — **not for the shared view** |
+| `docs/EXPERIMENT_PLAN_ARMS_2026-09-05.md` | Arm-level plan: LUCiD, HeST and TIDMAD — why each, how driven, what each may prove, and the `noise_module_lucid` build |
 | `reference/papers/` | Prior-art and testbed PDFs, with the novelty analysis (`papers.tsv` is the manifest; the README has the fetch loop) |
 | `latex/paper3_proposal.tex` | Source for the collaboration concept note (five pages since the 2026-09-02 mechanism section) |
 | `latex/paper3_proposal.pdf` | Compiled proposal |

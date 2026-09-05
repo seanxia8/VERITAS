@@ -1,5 +1,10 @@
 # ORACLE experiment design — the agreed solution
 
+> **Refined 5 September 2026** by `EXPERIMENT_PLAN_ARMS_2026-09-05.md`, which
+> retargets the realism tier onto LUCiD (waveform-level, licence-gated; Prometheus
+> stays as fallback and keeps the frozen-public-model role) and adds a dark-matter
+> arm on HeST. The tier logic, claim ladder and release posture below are unchanged.
+
 _31 August 2026. The canonical short version. **Buildable form:
 `IMPLEMENTATION_PLAN.md` (work packages, interfaces, acceptance criteria,
 gates); reviewer instructions: `REVIEW_PROMPTS.md`.** Full derivations,

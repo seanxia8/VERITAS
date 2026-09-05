@@ -70,9 +70,20 @@ threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor sta
       reimplementation, clean-twin matching validated on the toy set (WP9).
 - [ ] Subject adapters for Tier 2/3 following the `Subject` interface in
       `experiments/oracle/oracle_cov/subjects.py` (`represent`, `outputs`, `jac_recon`, `jac_output`).
-- [ ] `reference/papers/`: fetch 2609.00611 PDF (row added to `papers.tsv`).
+- [x] `reference/papers/`: 2609.00611 (Panda V2) and 2602.24129 (LUCiD) PDFs filed under
+      `testbeds/`; `papers.tsv` gains the LUCiD row plus 1705.07341, 2307.11877 and three
+      `software` rows (pytessim, wire-cell, HeST). See `docs/SIM_TESTBED_SURVEY_2026-09-05.md`.
+- [ ] `reference/papers/`: fetch the two new PDFs — `1705.07341` (MicroBooNE noise) and
+      `2307.11877` (HeRALD). arXiv returns 403 from the local VM; run the README loop
+      from a machine with ordinary internet access.
+- [ ] Pilot HeST (half a day): `HeRALD_v1` vs `HeRALD_v1_monolithic` on one NR event at a
+      fixed seed; confirm the arrival-time lists feed `qp_simulator` unchanged.
 
 ## Collaboration
+- [ ] Email the LUCiD authors (Terao, Alterkait) asking for a permissive licence — gate A0
+      in `docs/EXPERIMENT_PLAN_ARMS_2026-09-05.md`. No LUCiD work starts before it lands.
+- [ ] Email Greg Rischbieter (rischbie@umich.edu): HeST's LICENSE is MIT text with the
+      unedited PyPA copyright line — gate B0, same doc.
 - [ ] Send Junjie the dev update + the two runbooks; agree the Tier-2 family list and the
       angular-error consequence before the bridge table is frozen.
 - [ ] Panda V2 weights: watch for the release; until then DynEdge remains the Tier-2 subject.
