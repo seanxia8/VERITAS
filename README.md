@@ -79,15 +79,16 @@ this repository.
 | `docs/IMPLEMENTATION_PLAN.md` | Work packages, interfaces, acceptance criteria, gates |
 | `docs/REVIEW_PROMPTS.md` | Reviewer prompts (§A before implementation, §B per milestone); reviews land in `docs/reviews/` |
 | `docs/archive/` | Superseded documents: audit, open decisions, revision plan, dataset-production plan, novelty review, package docs (`noise_module/`, `reconstruction_model.md`, `tidmad.md`) |
-| `reference/` | Selected external training notes and legacy helper scripts |
+| `reference/papers/` | Prior-art and testbed PDFs, with the novelty analysis (`papers.tsv` is the manifest; the README has the fetch loop) |
 | `scripts/nubench/` | NuBench feasibility scripts (migrated 2026-08-17, post-audit) |
 | `results/` | Checked-in feasibility results with audit caveats |
 | `docs/archive/PAPER3_AUDIT.md` | Adversarial audit of the proposal, repo and plan (2026-08-17; archived) |
 | `docs/archive/OPEN_DECISIONS.md` | Researched resolutions of the open technical decisions (archived; superseded by `EXPERIMENT_DESIGN.md`) |
 | `docs/archive/REVISION_PLAN.md` | Earlier shared execution plan (migrated 2026-08-23; archived, superseded by `IMPLEMENTATION_PLAN.md`) |
 | `docs/archive/PERSONAL_RESEARCH_GUIDE.md` | Private working record and review log — **not for the shared view** |
+| `docs/LATENT_MONITORING_PLAN_2026-09-05.md` | The controlled-variable plan: factor ↔ determinant ↔ latent signature ↔ adjustment; subject architecture; per-arm cells; LUCiD integration; the HeST fork and its TES noise budget |
+| `archive/` | Code, scripts and notes off the active path (`archive/README.md` says what and why) |
 | `docs/EXPERIMENT_PLAN_ARMS_2026-09-05.md` | Arm-level plan: LUCiD, HeST and TIDMAD — why each, how driven, what each may prove, and the `noise_module_lucid` build |
-| `reference/papers/` | Prior-art and testbed PDFs, with the novelty analysis (`papers.tsv` is the manifest; the README has the fetch loop) |
 | `latex/paper3_proposal.tex` | Source for the collaboration concept note (five pages since the 2026-09-02 mechanism section) |
 | `latex/paper3_proposal.pdf` | Compiled proposal |
 | `latex/figures/` | Proposal figures |

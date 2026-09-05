@@ -1,3 +1,8 @@
+> **Archived 2026-09-05.** Both blocking defects this handoff describes are fixed on
+> `dev` — §1.1 by `68df9d3` (LeptonInjector monoenergetic branch) and §1.2 by
+> `35c0df1` (`--n-events`). §2 (host survey, glibc/Conan `b2`, inode quota) remains
+> the environment reference until it is folded into `src/prometheus_simulation/README.md`.
+
 # Handoff — apply two fixes, build the environment, generate the event set
 
 _Continuation of `AGENT_PROMPT.md`. Read that first for the experimental design;

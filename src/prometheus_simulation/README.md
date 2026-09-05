@@ -217,6 +217,8 @@ tests/              11 tests: geometry, h5 vertex surgery, readout, recon
 notebooks/          geometry_survey.ipynb
 fetch_prometheus.sh clone + pin upstream (LGPL-2.1) into external/ [gitignored]
 AGENT_PROMPT.md     hand this to a remote agent to run production
+(build notes for a new host — glibc, Conan b2, inode quota —
+ are in docs/archive/prometheus_HANDOFF_PROMPT_2026-09.md §2)
 external/, runs/    gitignored
 ```
 
