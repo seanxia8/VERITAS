@@ -57,6 +57,7 @@ from .reference_budget import (
     BudgetGrid,
     write_reference_asd,
 )
+from .tes_budget import HERALD_V1_PLACEHOLDER, TESNoiseBudget
 from .utils import to_jsonable
 from .spectral_models import (
     BandLimited,
@@ -89,6 +90,7 @@ __all__ = [
     "CompositeSpectrum",
     "CONFIG_SCHEMA_VERSION",
     "fit_reference_pulse",
+    "HERALD_V1_PLACEHOLDER",
     "inband_resample_psd_density",
     "Line",
     "load_al2o3_athermal_composite",
@@ -115,6 +117,7 @@ __all__ = [
     "synthetic_resample_psd_density",
     "TemporalNoiseConfig",
     "TemporalNoiseWrapper",
+    "TESNoiseBudget",
     "to_jsonable",
     "validate_artifacts",
     "validate_csd_ensemble",

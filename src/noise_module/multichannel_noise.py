@@ -32,6 +32,7 @@ class MultiChannelNoiseGenerator:
         "latent_strength_range": [0.1, 0.4],
         "private_strength_range": [0.8, 1.2],
         "normalize_channel_variance": False,
+        "freeze_channel_structure": False,
     }
 
     def __init__(
@@ -58,6 +59,62 @@ class MultiChannelNoiseGenerator:
         self.config = self.config_model.to_dict()
         self.seed = seed
         self.rng = resolve_rng(rng=rng, seed=seed)
+        #: Per-(mode, C, n_latent) cache of the channel structure — gains,
+        #: private strengths, mixing weights. Filled on first use when
+        #: ``freeze_channel_structure`` is true, or set explicitly with
+        #: :meth:`set_channel_structure`; otherwise every call redraws it and
+        #: therefore implies a different covariance (see WP-N1 in
+        #: ``docs/LATENT_MONITORING_PLAN_2026-09-05.md``).
+        self._channel_structure: dict[tuple[str, int, int], dict[str, np.ndarray]] = {}
+
+    # ------------------------------------------------------------------ N1
+    @property
+    def freeze_channel_structure(self) -> bool:
+        return bool(self.config.get("freeze_channel_structure", False))
+
+    def channel_structure(self, mode: str, C: int, n_latent: int = 1) -> dict[str, np.ndarray] | None:
+        """Return the cached structure for ``(mode, C, n_latent)`` or ``None``."""
+        return self._channel_structure.get((mode, int(C), int(n_latent)))
+
+    def set_channel_structure(self, mode: str, C: int, n_latent: int = 1, **arrays: np.ndarray) -> None:
+        """Pin the per-channel structure explicitly so the implied covariance is fixed.
+
+        ``shared_private`` takes ``gains`` and ``private_strengths`` (shape ``(C,)``);
+        ``lowrank`` takes ``weights`` and ``latent_strengths`` (``(C, n_latent)``) and
+        ``private_strengths`` (``(C,)``). Setting a structure implies freezing it.
+        """
+        required = {
+            "shared_private": {"gains": (C,), "private_strengths": (C,)},
+            "lowrank": {"weights": (C, n_latent), "latent_strengths": (C, n_latent), "private_strengths": (C,)},
+        }
+        if mode not in required:
+            raise ValueError(f"No channel structure for mode {mode!r}.")
+        structure: dict[str, np.ndarray] = {}
+        for name, shape in required[mode].items():
+            if name not in arrays:
+                raise ValueError(f"set_channel_structure({mode!r}) needs {name!r}.")
+            value = np.asarray(arrays[name], dtype=float)
+            if value.shape != shape:
+                raise ValueError(f"{name} must have shape {shape}, got {value.shape}.")
+            if not np.all(np.isfinite(value)):
+                raise ValueError(f"{name} must be finite.")
+            structure[name] = value
+        self._channel_structure[(mode, int(C), int(n_latent))] = structure
+        self.config["freeze_channel_structure"] = True
+
+    def reset_channel_structure(self) -> None:
+        """Drop every cached structure; the next call redraws."""
+        self._channel_structure.clear()
+
+    def _resolve_structure(self, mode: str, C: int, n_latent: int, draw) -> dict[str, np.ndarray]:
+        key = (mode, int(C), int(n_latent))
+        cached = self._channel_structure.get(key)
+        if cached is not None:
+            return cached
+        structure = draw()
+        if self.freeze_channel_structure:
+            self._channel_structure[key] = structure
+        return structure
 
     def generate_independent(
         self,
@@ -99,12 +156,17 @@ class MultiChannelNoiseGenerator:
         if not np.isfinite(corr_strength) or not 0.0 <= corr_strength < 1.0:
             raise ValueError("corr_strength must be finite and lie in [0, 1).")
         shared = self._make_base_generator().generate_noise(N)
-        gains = 1.0 + self.rng.normal(0.0, self.config.get("channel_gain_jitter", 0.05), size=C)
-        private_strengths = sample_range(
-            self.rng,
-            self.config.get("private_strength_range", [0.8, 1.2]),
-            size=C,
-        )
+
+        def _draw() -> dict[str, np.ndarray]:
+            return {
+                "gains": 1.0 + self.rng.normal(0.0, self.config.get("channel_gain_jitter", 0.05), size=C),
+                "private_strengths": sample_range(
+                    self.rng, self.config.get("private_strength_range", [0.8, 1.2]), size=C
+                ),
+            }
+
+        structure = self._resolve_structure("shared_private", C, 1, _draw)
+        gains, private_strengths = structure["gains"], structure["private_strengths"]
 
         private = self._make_base_generator().generate_ensemble(C, N)
         shared_weight = gains * np.sqrt(corr_strength)
@@ -130,6 +192,7 @@ class MultiChannelNoiseGenerator:
                 "mean_offdiag_corr": mean_offdiag_corrcoef(X),
                 "gains": gains,
                 "private_strengths": private_strengths,
+                "channel_structure_frozen": self.freeze_channel_structure,
                 "implied_covariance": covariance,
                 "implied_correlation": self._covariance_to_correlation(covariance),
                 "realized_covariance": np.cov(X),
@@ -149,17 +212,22 @@ class MultiChannelNoiseGenerator:
         """Generate channels from a low-rank latent colored-process model."""
         n_latent = max(int(n_latent), 1)
         latent = self._make_base_generator().generate_ensemble(n_latent, N)
-        weights = self.rng.normal(0.0, 1.0, size=(C, n_latent))
-        latent_strengths = sample_range(
-            self.rng,
-            self.config.get("latent_strength_range", [0.1, 0.4]),
-            size=(C, n_latent),
-        )
-        private_strengths = sample_range(
-            self.rng,
-            self.config.get("private_strength_range", [0.8, 1.2]),
-            size=C,
-        )
+
+        def _draw() -> dict[str, np.ndarray]:
+            return {
+                "weights": self.rng.normal(0.0, 1.0, size=(C, n_latent)),
+                "latent_strengths": sample_range(
+                    self.rng, self.config.get("latent_strength_range", [0.1, 0.4]), size=(C, n_latent)
+                ),
+                "private_strengths": sample_range(
+                    self.rng, self.config.get("private_strength_range", [0.8, 1.2]), size=C
+                ),
+            }
+
+        structure = self._resolve_structure("lowrank", C, n_latent, _draw)
+        weights = structure["weights"]
+        latent_strengths = structure["latent_strengths"]
+        private_strengths = structure["private_strengths"]
 
         private = self._make_base_generator().generate_ensemble(C, N)
         mixing = weights * latent_strengths
@@ -181,6 +249,7 @@ class MultiChannelNoiseGenerator:
                 "mean_offdiag_corr": mean_offdiag_corrcoef(X),
                 "mixing_matrix": mixing,
                 "private_strengths": private_strengths,
+                "channel_structure_frozen": self.freeze_channel_structure,
                 "implied_covariance": covariance,
                 "implied_correlation": self._covariance_to_correlation(covariance),
                 "realized_covariance": np.cov(X),

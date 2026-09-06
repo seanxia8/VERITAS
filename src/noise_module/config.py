@@ -365,8 +365,12 @@ class MultiChannelConfig(ConfigModel):
     latent_strength_range: tuple[float, float] = (0.1, 0.4)
     private_strength_range: tuple[float, float] = (0.8, 1.2)
     normalize_channel_variance: bool = False
+    #: Draw gains / private strengths / mixing weights once per (mode, C) and
+    #: reuse them, so one implied covariance spans many records (WP-N1).
+    freeze_channel_structure: bool = False
 
     def __post_init__(self) -> None:
+        self.freeze_channel_structure = bool(self.freeze_channel_structure)
         if self.mode not in {"independent", "shared_private", "lowrank"}:
             raise ValueError("Unsupported multichannel mode.")
         self.n_channels = _integer("n_channels", self.n_channels, minimum=1)
