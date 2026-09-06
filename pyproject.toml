@@ -7,6 +7,8 @@ dependencies = []
 
 [tool.uv.workspace]
 members = [
+    "src/herald_simulation",
+    "src/latent_monitor",
     "src/noise_module",
     "src/prometheus_simulation",
     "src/qp_simulator",

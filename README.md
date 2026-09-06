@@ -69,6 +69,9 @@ this repository.
 | Path | Purpose |
 | --- | --- |
 | `src/noise_module/` | Validated stationary/nonstationary/multichannel noise and PSD simulation (numpy/scipy only) |
+| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors, per-event Δz statistics, the pre-registered attribution lookup, adjustments; linear and transformer subjects (`docs/LATENT_MONITORING_PLAN_2026-09-05.md` §§2–4) |
+| `src/herald_simulation/` | HeST → `qp_simulator` → `noise_module`: the paired superfluid-helium dark-matter arm (plan §7); HeST pinned and unpatched via `fetch_hest.sh` |
+| `results/latent_monitor_tier1/` | The §1 table on the linear subject: 13 match / 1 documented / 0 mismatch, plus re-whitening, patching and stage-refit outcomes |
 | `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only) |
 | `src/reconstruction_model/` | DELight transformer reconstruction model + architecture catalog |
 | `src/tidmad_transformer/` | TIDMAD band-frame STFT denoising arm (backbone from `reconstruction_model`, vendored Paper-1 benchmark helpers) |

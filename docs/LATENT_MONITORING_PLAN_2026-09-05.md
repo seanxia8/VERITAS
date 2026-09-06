@@ -1,5 +1,9 @@
 # Controlled-variable latent monitoring — architecture, diagnosis, adjustment, and the per-arm build
 
+> **Implemented 6 September 2026** — `src/latent_monitor/` (§§2–4), `src/herald_simulation/`
+> (§7), `noise_module.tes_budget`, WP-N1. Results and the corrections the table forced
+> are in `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md`; read §1 of this plan with that note.
+
 _5 September 2026. The 控制变量 plan: hold everything fixed, move **one** of
 three factors — geometry **G**, noise **Σ**, event type **E** — and watch the
 frozen model's latent space. This document answers four questions: which

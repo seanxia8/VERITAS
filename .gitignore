@@ -71,5 +71,6 @@ docs/_to_delete/
 # simulation outputs. Fetch the clone with
 #   bash src/prometheus_simulation/fetch_prometheus.sh
 src/prometheus_simulation/external
+src/herald_simulation/external
 src/prometheus_simulation/runs/
 runs/

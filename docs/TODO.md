@@ -76,8 +76,14 @@ threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor sta
 - [ ] `reference/papers/`: fetch the two new PDFs — `1705.07341` (MicroBooNE noise) and
       `2307.11877` (HeRALD). arXiv returns 403 from the local VM; run the README loop
       from a machine with ordinary internet access.
-- [ ] Pilot HeST (half a day): `HeRALD_v1` vs `HeRALD_v1_monolithic` on one NR event at a
-      fixed seed; confirm the arrival-time lists feed `qp_simulator` unchanged.
+- [x] Pilot HeST — done in `src/herald_simulation/` (2026-09-06): paired initial population
+      verified across three geometries; full chain to noisy traces runs; 14 cells, tests green.
+- [ ] `latent_monitor`: run the §1 table on a *trained* `TransformerSubject` (GPU); the CPU
+      smoke test only proves the protocol runs. Then the transformer's own G-row repair.
+- [ ] `herald_simulation`: replace the `HERALD_V1_PLACEHOLDER` constants with values read from
+      arXiv:2307.11877 (`provenance` → `from_paper`); open the two HeST upstream PRs.
+- [ ] Fold `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` into the plan: the N-vs-S discriminator
+      is noise-only records; `event_in_span` is a row; re-whitening is the GLS re-derivation.
 
 ## Collaboration
 - [ ] Email the LUCiD authors (Terao, Alterkait) asking for a permissive licence — gate A0
