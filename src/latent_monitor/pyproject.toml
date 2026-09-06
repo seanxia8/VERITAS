@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "latent-monitor"
+version = "0.1.0"
+description = "Controlled-variable latent-space monitoring: projectors, per-event displacement statistics, attribution lookup, adjustments (docs/LATENT_MONITORING_PLAN_2026-09-05.md)"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "scipy>=1.10", "noise-module"]
+
+[project.optional-dependencies]
+torch = ["torch>=2.0"]
+
+[tool.setuptools]
+packages = ["latent_monitor"]
+
+[tool.setuptools.package-dir]
+latent_monitor = "."
+
+[tool.uv.sources]
+noise-module = { workspace = true }

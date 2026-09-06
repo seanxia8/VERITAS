@@ -109,6 +109,10 @@ class AbsolutePositionalEmbedding(nn.Module):
         super().__init__()
         # (1, N, d_model)
         self.pos_embed = nn.Parameter(torch.empty(1, max_patches, d_model))
+        # torch.empty is uninitialised memory; every other model in this package draws its
+        # learned embeddings N(0, 0.02) right here. Without this, a fresh init_weights() model
+        # starts from garbage (observed: |pos_embed| ~ 1e31 / inf on CPU) and training diverges.
+        nn.init.normal_(self.pos_embed, mean=0.0, std=0.02)
 
     def forward(self, x):
         return x + self.pos_embed[:, : x.size(1), :]
