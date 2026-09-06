@@ -75,7 +75,7 @@ this repository.
 | `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only) |
 | `src/reconstruction_model/` | DELight transformer reconstruction model + architecture catalog |
 | `src/tidmad_transformer/` | TIDMAD band-frame STFT denoising arm (backbone from `reconstruction_model`, vendored Paper-1 benchmark helpers) |
-| `notebooks/` | Smoke/inference notebooks and the noise-module tutorials |
+| `notebooks/` | Smoke/inference notebooks, the noise-module tutorials, and the two executed HeRALD/LUCiD walk-throughs (`one_event_herald_lucid.ipynb`, `noise_models_herald_lucid.ipynb`) |
 | `scripts/` | Local/Condor training helpers and smoke tests |
 | `containers/` | Runtime container image definition |
 | `docs/EXPERIMENT_DESIGN.md` | The agreed three-tier design (canonical short version) |
@@ -176,6 +176,26 @@ The noise-module tutorials live in
 [`notebooks/noise_module_tutorial.ipynb`](notebooks/noise_module_tutorial.ipynb) and
 [`notebooks/noise_psd_1mhz_resampling_tutorial.ipynb`](notebooks/noise_psd_1mhz_resampling_tutorial.ipynb);
 they import the installed package directly (no repository-path probing).
+
+Two further notebooks, checked in **with their outputs**, drive the real
+simulators end to end:
+
+* [`notebooks/one_event_herald_lucid.ipynb`](notebooks/one_event_herald_lucid.ipynb) —
+  one HeRALD event through HeST → `qp_simulator` → `noise_module` and one
+  water-Cherenkov event through LUCiD, then changes one factor at a time
+  (physics, geometry, noise, structural) and shows what each does.
+* [`notebooks/noise_models_herald_lucid.ipynb`](notebooks/noise_models_herald_lucid.ipynb) —
+  what noise each arm simulates, term by term (TES thermal-fluctuation,
+  Johnson, SQUID, lines; PMT counting statistics, front-end electronics,
+  crate coherence, the alias fold), what it looks like and why.
+
+Re-running them needs the two external simulators, neither of which is
+vendored: `src/herald_simulation/fetch_hest.sh` fetches the pinned HeST
+commit into `src/herald_simulation/external/`, and a LUCiD clone is found
+through `LUCID_PATH` (default `external/LUCiD` at the repository root).
+Run from `notebooks/` with `JAX_PLATFORMS=cpu`; the builders
+`notebooks/_build_nb1.py` and `_build_nb2.py` regenerate the notebook
+sources.
 
 ## Build the proposal
 
