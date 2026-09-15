@@ -2,7 +2,7 @@
 # Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
 """WP-N1: a frozen channel structure makes one implied covariance span many records.
 
-Motivation (docs/LATENT_MONITORING_PLAN_2026-09-05.md, arms plan §7.3b): the
+Motivation (docs/EXPERIMENT_DESIGN.md §II.7.3b): the
 per-channel gains and private strengths used to be redrawn inside every
 ``generate()`` call, so pooling records across calls mixed several
 covariances and kappa(Sigma_hat^-1 Sigma) plateaued instead of converging.

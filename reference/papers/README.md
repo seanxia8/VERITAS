@@ -180,7 +180,7 @@ with items 1-2.
 ## Software cited as prior art
 
 No paper exists for these; the repository *is* the artifact, so record the commit
-you read. Full reading notes in `docs/SIM_TESTBED_SURVEY_2026-09-05.md`.
+you read. Full reading notes in `docs/archive/SIM_TESTBED_SURVEY_2026-09-05.md`.
 
 | repo | what it does | licence | relevance |
 |---|---|---|---|

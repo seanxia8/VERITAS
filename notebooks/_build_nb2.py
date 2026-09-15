@@ -273,13 +273,20 @@ That single number decides what can be modelled:
 
 | term | physics | representable on 512 ns? | component |
 |---|---|---|---|
-| **amplifier white floor** | thermal + shot noise of the front-end transistor, referred to input | yes — dominant | `white` |
-| **front-end bandwidth** | the amplifier/cable low-pass, ~250 MHz | yes | `rolloff` (lowpass) |
-| **flicker (1/f)** | transistor 1/f; only ~2 decades in band | weakly | `powerlaw −1` |
-| **clock / switching pickup** | the ADC clock and DC-DC converters and their harmonics, tens of MHz | **yes — the real coherent line source** | `line` |
-| **cable-reflection ringing** | impedance mismatch → a damped resonance ~150 MHz | yes | `resonance` |
+| **amplifier white floor** | thermal + shot noise of the front-end transistor, referred to input | yes — dominant | `white` (private) |
+| **front-end bandwidth** | the amplifier/cable low-pass, ~250 MHz — a *transfer function* on the floor | yes | `rolloff` inside `filtered` |
+| **flicker (1/f)** | transistor 1/f; only ~2 decades in band | weakly | `powerlaw −1` inside `filtered` (private) |
+| **clock / switching pickup** | the ADC clock and its harmonics, tens of MHz — common to a board | **yes — the real coherent line source** | `line` × 3 (shared) |
+| **base / connector ringing** | impedance mismatch → a resonant bump ~150 MHz in the *response* | yes | `peaking` inside `filtered` |
+| **cable reflection** | a long cable → a comb of period v/2L (~3 MHz for 30 m) | only with a longer window | `reflection` inside `filtered` |
 | **50 Hz mains** | the loudest line in the TES record | **no** — 2.6 × 10⁻⁵ of one bin | — |
 | **drift, 1/f below MHz** | | no — needs a longer `window_ns` or decimation | `temporal_noise`, `psd_resampling` |
+
+Two rules, learned the hard way (V1 of this preset broke both; see `docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md`):
+**a bandwidth is a filter, not a source** — summing a low-pass term with the white floor leaves the floor flat to
+Nyquist, so the roll-off and the ringing multiply the floor via `filtered`; and **coherence belongs to a term,
+not to the crate** — the clock is common to a board, the amplifier's thermal noise is not, so the crate is
+built as `spectral_shared_private` with the lines shared and the floor private (§B3).
 
 Units first: LUCiD's bin holds photoelectrons. A PSD in pe²/Hz means nothing physically, so the notebook
 convolves each PMT's histogram with a **single-photoelectron voltage template** (2 ns rise, 8 ns fall, 4 mV per
@@ -287,44 +294,48 @@ pe) before adding noise in mV. The noise level (0.8 mV rms) is a placeholder lik
 
 code(r'''FS_L, N_L = 1e9, 512
 fL = rfftfreq(N_L, d=1 / FS_L)
-PMT_FRONTEND_V1 = dict(
-    noise_type="composite", sampling_frequency=FS_L, noise_power=0.8 ** 2, power_definition="variance", composite_psd_scaling="normalize",
-    components=[
-        {"type": "white",     "scale": 1.0,  "name": "amplifier_floor"},
-        {"type": "rolloff",   "scale": 1.0,  "corner_hz": 2.5e8, "order": 2.0, "kind": "lowpass", "name": "frontend_bandwidth"},
-        {"type": "powerlaw",  "scale": 0.05, "exponent": -1.0, "reference_hz": 1e7, "name": "flicker"},
-        {"type": "line",      "scale": 6.0,  "frequency_hz": 6.25e7, "width_hz": 4e6, "name": "clock_pickup"},
-        {"type": "resonance", "scale": 0.5,  "center_hz": 1.5e8, "half_width_hz": 2e7, "name": "cable_ringing"},
-    ])
-g = NoiseGenerator(PMT_FRONTEND_V1, seed=0)
+sys.path.insert(0, str(ORACLE / "notebooks"))
+from pmt_frontend_v2 import PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE, GROUP, crate_preset, kappa
+g = NoiseGenerator(PMT_FRONTEND_V2, seed=0)
 _, S_total, meta = g.build_psd_density(N_L, return_metadata=True)
-# component spectra, drawn one at a time (density normalisation, absolute so shapes are comparable)
+contrib = meta["component_contributions"]
+factor = 0.8 ** 2 / sum(c["integrated_power"] for c in contrib)       # the composite 'normalize' factor
+# component spectra on the SAME scale as the total (absolute shapes × the global factor), and their power shares
 fig, ax = plt.subplots(1, 2, figsize=(13, 4))
-for i, c in enumerate(PMT_FRONTEND_V1["components"]):
-    _, S_c = NoiseGenerator({**PMT_FRONTEND_V1, "composite_psd_scaling": "absolute", "components": [c]}).build_psd_density(N_L)
-    ax[0].loglog(fL[1:] / 1e6, S_c[1:], color=PAL[i], label=c["name"])
-ax[0].set_xlabel("frequency [MHz]"); ax[0].set_ylabel("relative PSD"); ax[0].set_title("B2 · PMT front-end terms (df = 1.95 MHz)"); ax[0].legend(frameon=False, fontsize=8)
+for i, c in enumerate(PMT_FRONTEND_V2["components"]):
+    _, S_c = NoiseGenerator({**PMT_FRONTEND_V2, "composite_psd_scaling": "absolute", "components": [c]}).build_psd_density(N_L)
+    share = contrib[i]["integrated_power_after_global_scaling"] / 0.8 ** 2
+    kind = "shared" if c in PMT_SHARED else "private"
+    ax[0].loglog(fL[1:] / 1e6, S_c[1:] * factor, color=PAL[i], label=f"{c['name']} ({kind}, {share:.1%})")
+ax[0].loglog(fL[1:] / 1e6, S_total[1:], color="#0b0b0b", lw=2.0, label="total (0.8 mV rms)")
+ax[0].set_xlabel("frequency [MHz]"); ax[0].set_ylabel("PSD [mV²/Hz]"); ax[0].set_title("B2 · PMT front-end terms, V2 (df = 1.95 MHz)"); ax[0].legend(frameon=False, fontsize=7)
 tns = np.arange(N_L)
-for i, c in enumerate(PMT_FRONTEND_V1["components"]):
-    x = NoiseGenerator({**PMT_FRONTEND_V1, "components": [c]}, seed=i).generate_noise(N_L)
+for i, c in enumerate(PMT_FRONTEND_V2["components"]):
+    x = NoiseGenerator({**PMT_FRONTEND_V2, "components": [c]}, seed=i).generate_noise(N_L)
     ax[1].plot(tns, x + 4 * i, color=PAL[i], lw=0.7)
     ax[1].text(N_L + 5, 4 * i, c["name"], fontsize=7, color="#52514e", va="center")
-ax[1].set_xlim(0, N_L + 120); ax[1].set_yticks([]); ax[1].set_xlabel("time [ns]"); ax[1].set_title("B2 · each term alone, normalised to 0.8 mV rms (offset)")
+ax[1].set_xlim(0, N_L + 140); ax[1].set_yticks([]); ax[1].set_xlabel("time [ns]"); ax[1].set_title("B2 · each term alone, normalised to 0.8 mV rms (offset)")
 plt.tight_layout()
+print(f"S(500 MHz)/S(2 MHz) = {S_total[-1] / S_total[1]:.2f}  (V1, with the additive low-pass, was 0.53)")
 print("50 Hz on this grid:", 50 / fL[1], "of one bin — not representable; the first line the record can hold is at", fL[1] / 1e6, "MHz")''')
 
-md(r"""What the time-domain panel shows: the white floor is featureless grass; the band-limited term is the same
-grass with the sharpest wiggles removed (nothing faster than ~4 ns survives the 250 MHz roll-off); flicker on
-a 512 ns record is nearly indistinguishable from white — there is not enough record for 1/f to develop; the
-clock pickup is a clean 16 ns sinusoid (62.5 MHz); the cable ringing is a decaying 6.7 ns oscillation that
-keeps restarting.
+md(r"""What the time-domain panel shows: the amplifier floor is grass with the sharpest wiggles removed (nothing
+faster than ~4 ns survives the 250 MHz roll-off, and the 150 MHz ringing puts a faint 6.7 ns texture on it);
+flicker on a 512 ns record is nearly indistinguishable from the floor — there is not enough record for 1/f to
+develop; the clock pickup is a clean 16 ns sinusoid (62.5 MHz) and its harmonics are the same at 8 and 5.3 ns.
 
 ### B3. Between channels — crates, not cold stages
 
 Coherent noise in a PMT array comes from **shared electronics**: PMTs on the same HV supply, front-end
-board or digitiser crate share the same clock pickup and ripple. So the natural covariance unit is the
-*crate* (or string), not the whole detector: 16–64 channels, `shared_private` within a crate, independent
-across crates. The dark noise, by contrast, is independent per PMT — a Poisson process, not a covariance.
+board or digitiser crate share the same clock pickup and ripple — but *not* each other's amplifier thermal
+noise. So the natural covariance unit is the *crate* (or string), not the whole detector: 16–64 channels,
+`spectral_shared_private` within a crate (the clock lines are the shared process, floor and flicker are
+private), independent across crates. The implied cross-spectral density is
+S(f) = S_shared(f)·ggᵀ + S_private(f)·diag(p²): the correlation between two PMTs is a *function of
+frequency*, ≈ 0.9 at the clock line and ≈ 0 on the floor, and Σ is not Kronecker-separable. (V1 used
+`shared_private` with one PSD and a flat 0.3, which made the thermal floor 30 % coherent and the clock only
+30 % coherent — the wrong way round.) The dark noise, by contrast, is independent per PMT — a Poisson
+process, not a covariance.
 
 The estimator warning from the arms plan is concrete here: with 64 channels and only 512 samples, N/C = 8,
 and the realised covariance of a matched cell already has κ ≈ 5–7 against its own implied one (≈ 25 once the
@@ -332,30 +343,38 @@ channels are strongly coherent, because the common mode then dominates a badly e
 covariance change on a PMT array you must lengthen the window (`window_ns` ≥ 16–32 µs) or the alarm reads
 the estimator's noise, not the detector's.""")
 
-code(r'''GROUP = 64
-def crate(corr, seed=0, n=N_L):
-    gen = MultiChannelNoiseGenerator(PMT_FRONTEND_V1, {"mode": "shared_private", "n_channels": GROUP, "corr_strength": corr,
-                                                       "freeze_channel_structure": True, "normalize_channel_variance": False}, seed=seed)
+code(r'''from copy import deepcopy
+from scipy.signal import csd as scipy_csd, welch
+def crate(preset=None, seed=0, n=N_L, C=GROUP):
+    base, cfg = crate_preset() if preset is None else preset
+    gen = MultiChannelNoiseGenerator(base, {**cfg, "n_channels": C}, seed=seed)
     return gen.generate(n, return_metadata=True)
+# the implied rho_ij(f) against a Welch estimate on a long record: coherence lives where the shared term lives
+X2, m2 = crate(seed=7, n=1 << 16, C=2)
+f_rho, rho = MultiChannelNoiseGenerator.implied_correlation_spectrum(m2, 0, 1)
+fw, s01 = scipy_csd(X2[0], X2[1], fs=FS_L, nperseg=N_L); _, s00 = welch(X2[0], fs=FS_L, nperseg=N_L); _, s11 = welch(X2[1], fs=FS_L, nperseg=N_L)
 fig, ax = plt.subplots(1, 3, figsize=(15, 3.8))
-for j, corr in enumerate([0.0, 0.3, 0.7]):
-    X, m = crate(corr)
-    im = ax[j].imshow(np.corrcoef(X), vmin=-1, vmax=1, cmap="RdBu_r"); ax[j].grid(False)
-    k = np.linalg.cond(np.linalg.solve(m["implied_covariance"], m["realized_covariance"]))
-    ax[j].set_title(f"one crate, coherence {corr}: κ floor {k:.1f} at N/C = 8", fontsize=9)
+ax[0].semilogx(f_rho[1:] / 1e6, rho[1:], color="#0b0b0b", label="implied ρ_ij(f)"); ax[0].semilogx(fw[1:] / 1e6, np.real(s01[1:]) / np.sqrt(s00[1:] * s11[1:]), color=PAL[3], lw=0.9, label="realized (Welch, 65 µs)")
+ax[0].set_xlim(1.9, 520); ax[0].set_xlabel("frequency [MHz]"); ax[0].set_ylabel("ρ between two PMTs"); ax[0].set_title("B3 · coherence is a function of frequency"); ax[0].legend(frameon=False, fontsize=7)
+# the time-domain correlation matrix of one crate, reference vs a broadband common mode (an intervention, not the default)
+shared_cm = deepcopy(PMT_SHARED) + [{"type": "white", "scale": 0.43, "name": "broadband_common_mode"}]
+for j, (name, preset) in enumerate([("reference", None), ("broadband common mode", crate_preset(shared=shared_cm))]):
+    X, m = crate(preset)
+    im = ax[j + 1].imshow(np.corrcoef(X), vmin=-1, vmax=1, cmap="RdBu_r"); ax[j + 1].grid(False)
+    ax[j + 1].set_title(f"one crate, {name}: κ floor {kappa(m):.1f} at N/C = 8", fontsize=9)
 plt.colorbar(im, ax=ax[2], fraction=0.046); plt.tight_layout()
-X_long, m_long = crate(0.3, n=32768)
-print("same crate, 32 768-sample window (32.8 µs, N/C = 512): κ floor =", round(np.linalg.cond(np.linalg.solve(m_long['implied_covariance'], m_long['realized_covariance'])), 2))''')
+_, m_long = crate(n=32768)
+print("same crate, 32 768-sample window (32.8 µs, N/C = 512): κ floor =", round(kappa(m_long), 2))''')
 
 md(r"""### B4. The digitiser contract — the alias fold
 
 One acquisition-side change is unique to a sampled system: **decimation without an anti-alias filter**.
 If a 1 GHz stream is read out at 250 MHz by keeping every fourth sample, everything above 125 MHz — the
-cable ring, the top of the amplifier band — folds back into the passband. Nothing was added; the *contract*
+ringing bump, the top of the amplifier band — folds back into the passband. Nothing was added; the *contract*
 changed. `noise_module.psd_resampling.alias_fold_psd_density` gives the folded spectrum in closed form,
 which makes this the cleanest N family there is: the prediction is exact.""")
 
-code(r'''x = NoiseGenerator(PMT_FRONTEND_V1, seed=5).generate_ensemble(256, N_L)              # 256 random triggers
+code(r'''x = NoiseGenerator(PMT_FRONTEND_V2, seed=5).generate_ensemble(256, N_L)              # 256 random triggers
 psd_1g = np.mean(np.abs(rfft(x, axis=-1)) ** 2, axis=0) * 2 / (FS_L * N_L)
 xd = x[:, ::4]; fD = rfftfreq(xd.shape[1], d=4 / FS_L)
 psd_dec = np.mean(np.abs(rfft(xd, axis=-1)) ** 2, axis=0) * 2 / (FS_L / 4 * xd.shape[1])
@@ -379,11 +398,11 @@ md(r"""---
 | noise class | physical origin | HeRALD (TES @ 250 kHz, 65 ms) | Cherenkov PMT (@ 1 GHz, 512 ns) | simulated by |
 |---|---|---|---|---|
 | **thermal, fundamental** | energy exchange with the bath | TFN — dominant, low-pass at 1/2πτ_eff | (amplifier thermal noise is folded into the white floor) | `TESNoiseBudget` / `white` |
-| **electronic, resistive** | Johnson noise of resistors | TES Johnson (feedback-suppressed), shunt Johnson | amplifier white floor | `white`, `rolloff` |
+| **electronic, resistive** | Johnson noise of resistors | TES Johnson (feedback-suppressed), shunt Johnson | amplifier white floor | `white` |
 | **electronic, amplifier** | SQUID flux noise / transistor 1/f | SQUID white + 1/f, knee ~100 Hz | flicker — barely in band | `white` + `powerlaw −1` |
-| **bandwidth** | readout time constants | responsivity roll-off (also shapes the signal) | front-end low-pass ~250 MHz | `rolloff` |
-| **environmental lines** | mains, vibration, clocks | 50 Hz + harmonics, 31/73 Hz microphonics — **in band** | ADC clock/switching at tens of MHz; 50 Hz **not representable** | `line`, `resonance` |
-| **shared between channels** | common cold stage / wiring; common crate / HV | bath fluctuation, loom pickup — `shared_private`, `lowrank` | crate coherence — `shared_private` per 16–64 PMTs | `MultiChannelNoiseGenerator` |
+| **bandwidth** | readout time constants | responsivity roll-off (also shapes the signal) | front-end low-pass ~250 MHz, ringing — as a *filter* on the floor | `filtered` (`rolloff`, `peaking`) |
+| **environmental lines** | mains, vibration, clocks | 50 Hz + harmonics, 31/73 Hz microphonics — **in band** | ADC clock + harmonics at tens of MHz; 50 Hz **not representable** | `line` |
+| **shared between channels** | common cold stage / wiring; common crate / HV | bath fluctuation, loom pickup — `shared_private`, `lowrank` | crate coherence — `spectral_shared_private` per 16–64 PMTs: lines shared, floor private | `MultiChannelNoiseGenerator` |
 | **counting statistics** | quantisation of the signal carrier | (quasiparticle Poisson statistics are in HeST's transport) | QE Bernoulli, SPE gain, TTS, dark counts — **inside LUCiD** | HeST / LUCiD |
 | **non-stationary, sparse** | LEE bursts, glitches, drift | `artifact_injector`, `temporal_noise` (declared families, not Σ) | glitches; drift only with a long window | `noise_module` |
 | **background** | real unwanted events | radioactivity, LEE as *events* | dark counts as *events*, radioactivity | simulated as events, never as noise |

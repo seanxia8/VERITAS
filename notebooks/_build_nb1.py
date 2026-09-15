@@ -11,8 +11,8 @@ md(r"""# One event, two detectors — HeRALD (superfluid helium) and a water-Che
 
 This notebook really imports the two simulation stacks, pushes **one event** through each, and then moves
 **one thing at a time** — the physics of the event, the detector geometry, the noise — and shows what
-changed and why. It is the hands-on companion to `docs/LATENT_MONITORING_PLAN_2026-09-05.md` §5 (the
-one-factor-per-cell discipline) and `docs/EXPERIMENT_PLAN_ARMS_2026-09-05.md` §§3–4.
+changed and why. It is the hands-on companion to `docs/EXPERIMENT_DESIGN.md` §III.5 (the
+one-factor-per-cell discipline) and `docs/EXPERIMENT_DESIGN.md` §§II.3–II.4.
 
 | arm | what simulates the physics | what makes the trace | what adds the noise |
 |---|---|---|---|
@@ -413,11 +413,16 @@ all**. That is the hole `noise_module` fills, and doing it honestly takes three 
 
 1. **Units bridge.** Convolve each PMT's pe-histogram with a single-photoelectron *voltage* pulse
    (2 ns rise, 8 ns fall, 4 mV per pe) — now the trace is in mV and a PSD in mV²/Hz means something.
-2. **A PMT front-end spectral preset** on the 1 GHz grid: white amplifier floor, a front-end bandwidth
-   roll-off at 250 MHz, a weak 1/f term, a **clock/switching pickup line** at 62.5 MHz, and cable-reflection
-   ringing at 150 MHz. All of these are existing `noise_module` components — the preset is pure configuration.
-3. **Channel structure.** Coherent pickup in a real tank is per crate: we group PMTs into 64-channel
-   "crates" and give each group shared-private noise.
+2. **A PMT front-end spectral preset** on the 1 GHz grid (`notebooks/pmt_frontend_v2.py`): a white
+   amplifier floor and a weak 1/f term, both *multiplied* by the front end's transfer function — a 250 MHz
+   low-pass and a base/connector ringing bump at 150 MHz (`filtered` components: a bandwidth is a filter on
+   the floor, not a second source) — plus the **ADC clock pickup** at 62.5 MHz with its harmonics. All of
+   these are `noise_module` components — the preset is pure configuration.
+3. **Channel structure.** Coherent pickup in a real tank is per crate and per *term*: PMTs on one board
+   share the clock, not each other's amplifier thermal noise. We group PMTs into 64-channel "crates" and
+   give each group `spectral_shared_private` noise — the clock lines are the shared process, floor and
+   flicker are private — so the coherence between two PMTs is ≈ 0.9 at the clock line and ≈ 0 on the floor,
+   a function of frequency rather than a flat number.
 
 Notice what is *absent*: 50 Hz mains. On a 512 ns record the frequency resolution is 1.95 MHz — a 50 Hz line
 is 2.6 × 10⁻⁵ of one bin above DC and cannot be represented. On the HeRALD record it was the loudest line.
@@ -425,67 +430,46 @@ Same physics, opposite grid.""")
 
 code(r'''FS_L, N_L = 1e9, wf_ref.shape[1]
 tns = np.arange(N_L) / FS_L * 1e9
-
-# 1. units bridge: pe histogram -> mV via an SPE voltage template (two-exponential, unit area scaled to 4 mV·ns... peak-normalised to 4 mV)
-def spe_template(fs=FS_L, tau_rise_ns=2.0, tau_fall_ns=8.0, mv_per_pe=4.0, length_ns=60):
-    t = np.arange(int(length_ns * fs / 1e9)) / fs * 1e9
-    p = (1 - np.exp(-t / tau_rise_ns)) * np.exp(-t / tau_fall_ns)
-    return mv_per_pe * p / p.max()
-spe = spe_template()
-def to_mv(wf_pe):
-    return np.stack([np.convolve(row, spe)[: wf_pe.shape[1]] for row in wf_pe])
+sys.path.insert(0, str(ORACLE / "notebooks"))
+# The units bridge (pe histogram -> mV via an SPE voltage template), the PMT front-end preset and the
+# crate-wise noise live in notebooks/pmt_frontend_v2.py — one copy for both notebooks, no package (gate A0).
+from pmt_frontend_v2 import (PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE, GROUP,
+                             spe_template, to_mv, crate_preset, add_pmt_noise, kappa)
+spe = spe_template()                      # 2 ns rise, 8 ns fall, 4 mV per pe (placeholder)
 sig_mv = to_mv(wf_ref)
 
-# 2. the PMT front-end preset (all existing components; density normalisation, total variance set below)
-PMT_FRONTEND_V1 = dict(
-    noise_type="composite", sampling_frequency=FS_L, noise_power=(0.8) ** 2,   # 0.8 mV rms baseline noise
-    power_definition="variance", composite_psd_scaling="normalize",
-    components=[
-        {"type": "white",     "scale": 1.0,  "name": "amplifier_floor"},
-        {"type": "rolloff",   "scale": 1.0,  "corner_hz": 2.5e8, "order": 2.0, "kind": "lowpass", "name": "frontend_bandwidth"},
-        {"type": "powerlaw",  "scale": 0.05, "exponent": -1.0, "reference_hz": 1e7, "name": "flicker"},
-        {"type": "line",      "scale": 6.0,  "frequency_hz": 6.25e7, "width_hz": 4e6, "name": "clock_pickup"},
-        {"type": "resonance", "scale": 0.5,  "center_hz": 1.5e8, "half_width_hz": 2e7, "name": "cable_ringing"},
-    ])
-
-# 3. channel groups = crates of 64 PMTs (by PMT index; a real detector would use the cabling map)
-GROUP = 64
-def add_pmt_noise(sig_mv, preset, corr_strength=0.3, seed=0):
-    C, N = sig_mv.shape
-    out = sig_mv.copy(); groups = []
-    for g0 in range(0, C, GROUP):
-        c = min(GROUP, C - g0)
-        gen = MultiChannelNoiseGenerator(preset, {"mode": "shared_private", "n_channels": c, "corr_strength": corr_strength,
-                                                  "freeze_channel_structure": True, "normalize_channel_variance": False}, seed=seed + g0)
-        noise, m = gen.generate(N, return_metadata=True)
-        out[g0:g0 + c] += noise; groups.append(m)
-    return out, groups
-
-trace_ref, groups_ref = add_pmt_noise(sig_mv, PMT_FRONTEND_V1)
+# V2 (11 Sep 2026): the front-end bandwidth and the base ringing are TRANSFER FUNCTIONS that multiply the
+# amplifier floor (`filtered` components), and the crate is `spectral_shared_private`: the ADC clock and its
+# harmonics are the shared process, the floor and flicker are private, so the coherence between two PMTs is
+# a function of frequency (~0.9 at the clock line, ~0 on the floor) instead of a flat corr_strength.
+print("private:", [c["name"] for c in PMT_PRIVATE], " shared:", [c["name"] for c in PMT_SHARED], " crate =", GROUP, "PMTs")
+trace_ref, groups_ref = add_pmt_noise(sig_mv)
 fig, ax = plt.subplots(1, 2, figsize=(13, 3.6))
 ax[0].plot(tns, trace_ref[hot], color="#b8b8b3", lw=0.7, label="signal + front-end noise")
 ax[0].plot(tns, sig_mv[hot], color=PAL[0], label="signal (SPE template ⊗ pe histogram)")
 ax[0].set_xlim(0, 120); ax[0].set_xlabel("time [ns]"); ax[0].set_ylabel("mV"); ax[0].set_title(f"B4 · PMT #{hot}: voltage trace"); ax[0].legend(frameon=False, fontsize=8)
 fL = rfftfreq(N_L, d=1 / FS_L)
-_, S_pmt = NoiseGenerator(PMT_FRONTEND_V1).build_psd_density(N_L)
-ax[1].loglog(fL[1:] / 1e6, S_pmt[1:], color=PAL[0]); ax[1].set_xlabel("frequency [MHz]"); ax[1].set_ylabel("PSD [mV²/Hz]"); ax[1].set_title("B4 · PMT_FRONTEND_V1 (df = 1.95 MHz)")
-for fx, lab in [(62.5, "clock"), (150, "cable ring"), (250, "bandwidth")]: ax[1].axvline(fx, color="#9a9a95", lw=0.6, ls=":"); ax[1].text(fx * 1.05, S_pmt[1:].max() * 0.5, lab, fontsize=7, color="#52514e")
+_, S_pmt = NoiseGenerator(PMT_FRONTEND_V2).build_psd_density(N_L)
+ax[1].loglog(fL[1:] / 1e6, S_pmt[1:], color=PAL[0]); ax[1].set_xlabel("frequency [MHz]"); ax[1].set_ylabel("PSD [mV²/Hz]"); ax[1].set_title("B4 · PMT_FRONTEND_V2 (df = 1.95 MHz)")
+for fx, lab in [(62.5, "clock"), (150, "ringing"), (250, "bandwidth")]: ax[1].axvline(fx, color="#9a9a95", lw=0.6, ls=":"); ax[1].text(fx * 1.05, S_pmt[1:].max() * 0.5, lab, fontsize=7, color="#52514e")
 plt.tight_layout()
 print("first bin above DC:", fL[1] / 1e6, "MHz  →  50 Hz is", 50 / fL[1], "of a bin: not representable on this record")''')
 
 md(r"""### B5. Move the noise only — three Σ-cells on the same LUCiD event""")
 
 code(r'''from copy import deepcopy
-def variant(scale_line=None, corr=0.3, decimate=None):
-    p = deepcopy(PMT_FRONTEND_V1)
-    if scale_line: p["components"][3]["scale"] *= scale_line
-    return p, corr
+def variant(scale_clock=1.0, shared_white=0.0):
+    """A Σ-cell = (base_config, crate_config). Private power is held fixed, so a louder clock ADDS power."""
+    shared = deepcopy(PMT_SHARED); shared[0]["scale"] *= scale_clock
+    if shared_white:      # broadband common mode (HV ripple / ground loop): the V1 situation, now an intervention
+        shared.append({"type": "white", "scale": shared_white, "name": "broadband_common_mode"})
+    return crate_preset(shared=shared)
 
-sigma_cells_L = {"reference": variant(), "clock line ×5": variant(scale_line=5.0), "group coherence 0.3→0.7": variant(corr=0.7)}
+sigma_cells_L = {"reference": variant(), "clock line ×5": variant(scale_clock=5.0), "broadband common mode (30 %)": variant(shared_white=0.43)}
 fig, ax = plt.subplots(1, 3, figsize=(15, 3.8))
 Sref_c = None
-for i, (name, (preset, corr)) in enumerate(sigma_cells_L.items()):
-    nz, groups = add_pmt_noise(np.zeros_like(sig_mv), preset, corr_strength=corr, seed=1)     # random triggers
+for i, (name, preset) in enumerate(sigma_cells_L.items()):
+    nz, groups = add_pmt_noise(np.zeros_like(sig_mv), preset, seed=1)     # random triggers
     psd = np.mean(np.abs(rfft(nz[:GROUP], axis=-1)) ** 2, axis=0) * 2 / (FS_L * N_L)
     ax[0].loglog(fL[1:] / 1e6, psd[1:], color=PAL[i], lw=1.0, label=name)
     Cc = np.corrcoef(nz[:GROUP]); offd = Cc[np.triu_indices(GROUP, 1)].mean()
@@ -496,16 +480,16 @@ for i, (name, (preset, corr)) in enumerate(sigma_cells_L.items()):
     print(f"{name:26s} mean off-diag corr (crate 0) = {offd:5.3f}   κ_channel={k['kappa_channel']:5.2f}  κ_temporal={k['kappa_temporal']:6.2f}")
 ax[0].set_xlabel("frequency [MHz]"); ax[0].set_ylabel("noise-only PSD [mV²/Hz]"); ax[0].set_title("B5 · random-trigger spectra, crate 0"); ax[0].legend(frameon=False, fontsize=7)
 # alias fold: decimate 1 GHz -> 250 MHz without an anti-alias filter (a digitiser-contract change)
-nz_ref, _ = add_pmt_noise(np.zeros_like(sig_mv), PMT_FRONTEND_V1, seed=1)
+nz_ref, _ = add_pmt_noise(np.zeros_like(sig_mv), seed=1)
 dec = nz_ref[:, ::4]; fD = rfftfreq(dec.shape[1], d=4 / FS_L)
 psd_dec = np.mean(np.abs(rfft(dec[:GROUP], axis=-1)) ** 2, axis=0) * 2 / (FS_L / 4 * dec.shape[1])
 psd_ref = np.mean(np.abs(rfft(nz_ref[:GROUP], axis=-1)) ** 2, axis=0) * 2 / (FS_L * N_L)
 ax[1].loglog(fL[1:] / 1e6, psd_ref[1:], color=PAL[0], label="1 GHz"); ax[1].loglog(fD[1:] / 1e6, psd_dec[1:], color=PAL[1], label="decimated ×4, no anti-alias")
 ax[1].set_xlabel("frequency [MHz]"); ax[1].set_title("B5 · alias fold: >125 MHz content folds down"); ax[1].legend(frameon=False, fontsize=7)
-tr_hi, _ = add_pmt_noise(sig_mv, sigma_cells_L["group coherence 0.3→0.7"][0], corr_strength=0.7, seed=1)
+tr_hi, _ = add_pmt_noise(sig_mv, sigma_cells_L["broadband common mode (30 %)"], seed=1)
 for j, c in enumerate(range(hot, hot + 3)):
     ax[2].plot(tns, tr_hi[c] + 12 * j, color=PAL[j], lw=0.7)
-ax[2].set_xlim(0, 120); ax[2].set_xlabel("time [ns]"); ax[2].set_title("B5 · three neighbouring PMTs at coherence 0.7 (offset)"); ax[2].set_yticks([])
+ax[2].set_xlim(0, 120); ax[2].set_xlabel("time [ns]"); ax[2].set_title("B5 · three neighbouring PMTs with a broadband common mode (offset)"); ax[2].set_yticks([])
 plt.tight_layout()''')
 
 md(r"""Read the κ values against the reference row again: on a **512-sample** record with **64 channels** the
@@ -519,11 +503,13 @@ How to read the three LUCiD noise cells:
 * **Clock line ×5** — one narrow spike at 62.5 MHz grows; the rest of the spectrum and the channel correlation
   do not move. In the time domain it is a faint 16 ns ripple on every trace in the crate. This is the
   water-Cherenkov analogue of HeRALD's `mains_up`: a *line*, at a frequency the record can actually resolve.
-* **Group coherence 0.3 → 0.7** — the per-channel spectrum is unchanged, but neighbouring PMTs now wiggle
-  together (right panel): the correlation matrix within a crate fills in. κ_channel moves, κ_temporal does
-  not — the same split as `bath_corr_up` in Part A.
+* **Broadband common mode (30 %)** — a white term is added to the *shared* process (HV ripple, a ground
+  loop): the per-channel spectrum barely changes shape, but neighbouring PMTs now wiggle together across
+  the whole band (right panel) and the correlation matrix within a crate fills in. κ_channel moves,
+  κ_temporal does not — the same split as `bath_corr_up` in Part A. (This is exactly the structure V1's
+  flat `corr_strength = 0.3` imposed on every cell; in V2 it is an intervention, not the reference.)
 * **Alias fold** — decimating 1 GHz → 250 MHz without an anti-alias filter folds everything above 125 MHz
-  (the cable ring, the top of the amplifier band) back into the passband. Nothing was added; the *digitiser
+  (the ringing bump, the top of the amplifier band) back into the passband. Nothing was added; the *digitiser
   contract* changed, and the realised in-band spectrum is predicted in closed form by
   `noise_module.psd_resampling.alias_fold_psd_density`. It is the cleanest acquisition-side N family the
   arms plan names.

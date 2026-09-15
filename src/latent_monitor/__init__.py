@@ -3,7 +3,7 @@
 #
 # Part of the ORACLE study. If you use this package in published work,
 # please cite it: see CITATION.cff at the repository root.
-"""Controlled-variable latent-space monitoring (docs/LATENT_MONITORING_PLAN_2026-09-05.md)."""
+"""Controlled-variable latent-space monitoring (docs/EXPERIMENT_DESIGN.md Part III)."""
 
 from .adjust import activation_patch, damage_patch, refit_stage, rewhiten
 from .designed import DesignedCell, DesignedFamily

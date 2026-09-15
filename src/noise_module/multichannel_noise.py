@@ -64,7 +64,7 @@ class MultiChannelNoiseGenerator:
         #: ``freeze_channel_structure`` is true, or set explicitly with
         #: :meth:`set_channel_structure`; otherwise every call redraws it and
         #: therefore implies a different covariance (see WP-N1 in
-        #: ``docs/LATENT_MONITORING_PLAN_2026-09-05.md``).
+        #: ``docs/EXPERIMENT_DESIGN.md`` §II.7.3b).
         self._channel_structure: dict[tuple[str, int, int], dict[str, np.ndarray]] = {}
 
     # ------------------------------------------------------------------ N1
@@ -85,6 +85,7 @@ class MultiChannelNoiseGenerator:
         """
         required = {
             "shared_private": {"gains": (C,), "private_strengths": (C,)},
+            "spectral_shared_private": {"gains": (C,), "private_strengths": (C,)},
             "lowrank": {"weights": (C, n_latent), "latent_strengths": (C, n_latent), "private_strengths": (C,)},
         }
         if mode not in required:
@@ -201,6 +202,146 @@ class MultiChannelNoiseGenerator:
                 **covariance_meta,
             }
         return X
+
+    # ------------------------------------------------- frequency-dependent coherence
+    def _spectral_pair(self, N: int) -> tuple[NoiseGenerator, NoiseGenerator, dict[str, Any]]:
+        """Build the shared and private single-channel generators.
+
+        Both composites are evaluated *absolutely* on the requested grid so the
+        component scales fix their relative level; the base ``noise_power`` is
+        then split between them in that ratio, so a unit-gain, unit-strength
+        channel has expected variance ``noise_power`` exactly as in
+        ``shared_private``.
+        """
+        shared_components = self.config.get("shared_components")
+        private_components = self.config.get("private_components")
+        if not shared_components or not private_components:
+            raise ValueError("spectral_shared_private needs shared_components and private_components.")
+        fs = float(self.base_config["sampling_frequency"])
+        df = fs / N
+
+        def absolute(components: list[dict[str, Any]]) -> tuple[NoiseGenerator, float]:
+            cfg = {**self.base_config, "noise_type": "composite", "components": deepcopy(components),
+                   "composite_psd_scaling": "absolute"}
+            gen = NoiseGenerator(cfg, seed=0)
+            _, density = gen.build_psd_density(N)
+            return gen, float(np.sum(density[1:]) * df)
+
+        _, integral_shared = absolute(shared_components)
+        _, integral_private = absolute(private_components)
+        total = integral_shared + integral_private
+        if total <= 0.0:
+            raise ValueError("shared + private components have zero spectral support.")
+        power = float(self.base_config["noise_power"])
+        power_shared = power * integral_shared / total
+        power_private = power * integral_private / total
+
+        def normalized(components: list[dict[str, Any]], allotted: float) -> NoiseGenerator:
+            cfg = {**self.base_config, "noise_type": "composite", "components": deepcopy(components),
+                   "composite_psd_scaling": "normalize", "noise_power": allotted}
+            return NoiseGenerator(cfg, rng=spawn_rng(self.rng))
+
+        gen_shared = normalized(shared_components, power_shared)
+        gen_private = normalized(private_components, power_private)
+        frequencies, density_shared = gen_shared.build_psd_density(N)
+        _, density_private = gen_private.build_psd_density(N)
+        spectra = {
+            "frequencies": frequencies,
+            "shared_psd": density_shared,
+            "private_psd": density_private,
+            "shared_power": power_shared,
+            "private_power": power_private,
+            "shared_fraction": power_shared / power if power > 0.0 else 0.0,
+        }
+        return gen_shared, gen_private, spectra
+
+    def generate_spectral_shared_private(
+        self,
+        C: int,
+        N: int,
+        return_metadata: bool = False,
+    ) -> np.ndarray | tuple[np.ndarray, dict[str, Any]]:
+        """One shared process and ``C`` private processes with *different* PSDs.
+
+        ``X_i(t) = g_i * s(t) + p_i * n_i(t)`` with ``s ~ S_shared(f)`` and
+        ``n_i ~ S_private(f)`` independent. The implied cross-spectral density
+        is ``S(f) = S_shared(f) g g^T + S_private(f) diag(p^2)``, so the
+        pairwise correlation spectrum
+        ``rho_ij(f) = S_shared g_i g_j / sqrt((S_shared g_i^2 + S_private p_i^2)(...))``
+        is a function of frequency: ~1 where only the shared term has power
+        (a clock line common to a crate), ~0 where only the private term does
+        (an amplifier's own thermal floor). ``shared_private`` is the special
+        case ``S_shared = c S, S_private = (1 - c) S`` with a flat ``rho = c``.
+        Not Kronecker-separable unless the two PSDs are proportional.
+
+        Channel structure (gains, private strengths) is drawn as in
+        ``shared_private`` and shares its freezing contract (WP-N1).
+        """
+        gen_shared, gen_private, spectra = self._spectral_pair(N)
+        shared = gen_shared.generate_noise(N)
+
+        def _draw() -> dict[str, np.ndarray]:
+            return {
+                "gains": 1.0 + self.rng.normal(0.0, self.config.get("channel_gain_jitter", 0.05), size=C),
+                "private_strengths": sample_range(
+                    self.rng, self.config.get("private_strength_range", [0.8, 1.2]), size=C
+                ),
+            }
+
+        structure = self._resolve_structure("spectral_shared_private", C, 1, _draw)
+        gains, private_strengths = structure["gains"], structure["private_strengths"]
+        private = gen_private.generate_ensemble(C, N)
+        X = gains[:, None] * shared[None, :] + private_strengths[:, None] * private
+
+        if self.config.get("normalize_channel_variance", True):
+            X = self._normalize_channels(X)
+
+        if return_metadata:
+            covariance = (
+                spectra["shared_power"] * np.outer(gains, gains)
+                + spectra["private_power"] * np.diag(private_strengths**2)
+            )
+            covariance, covariance_meta = self._covariance_after_normalization(covariance, N)
+            return X, {
+                "metadata_schema_version": CONFIG_SCHEMA_VERSION,
+                "mode": "spectral_shared_private",
+                "n_channels": C,
+                "shared_fraction": spectra["shared_fraction"],
+                "mean_offdiag_corr": mean_offdiag_corrcoef(X),
+                "gains": gains,
+                "private_strengths": private_strengths,
+                "channel_structure_frozen": self.freeze_channel_structure,
+                "implied_covariance": covariance,
+                "implied_correlation": self._covariance_to_correlation(covariance),
+                "implied_spectra": spectra,
+                "realized_covariance": np.cov(X),
+                "realized_correlation": np.corrcoef(X),
+                "per_realization_normalization": bool(self.config.get("normalize_channel_variance")),
+                "kronecker_separable": False,
+                **covariance_meta,
+            }
+        return X
+
+    @staticmethod
+    def implied_correlation_spectrum(
+        metadata: dict[str, Any], i: int = 0, j: int = 1
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """``rho_ij(f)`` for a ``spectral_shared_private`` record from its metadata."""
+        spectra = metadata["implied_spectra"]
+        g, p = metadata["gains"], metadata["private_strengths"]
+        s_sh, s_pr = spectra["shared_psd"], spectra["private_psd"]
+        num = s_sh * g[i] * g[j]
+        den = np.sqrt((s_sh * g[i] ** 2 + s_pr * p[i] ** 2) * (s_sh * g[j] ** 2 + s_pr * p[j] ** 2))
+        with np.errstate(invalid="ignore", divide="ignore"):
+            rho = np.where(den > 0.0, num / den, 0.0)
+        return spectra["frequencies"], rho
+
+    def implied_csd(self, C: int, N: int, metadata: dict[str, Any]) -> np.ndarray:
+        """Dense ``(F, C, C)`` implied cross-spectral density (small C only)."""
+        spectra = metadata["implied_spectra"]
+        g, p = metadata["gains"], metadata["private_strengths"]
+        s_sh, s_pr = spectra["shared_psd"], spectra["private_psd"]
+        return s_sh[:, None, None] * np.outer(g, g)[None] + s_pr[:, None, None] * np.diag(p**2)[None]
 
     def generate_lowrank_correlated(
         self,
@@ -531,6 +672,8 @@ class MultiChannelNoiseGenerator:
                 corr_strength=float(self.config.get("corr_strength", 0.3)),
                 return_metadata=return_metadata,
             )
+        if mode == "spectral_shared_private":
+            return self.generate_spectral_shared_private(C, N, return_metadata=return_metadata)
         if mode == "lowrank":
             return self.generate_lowrank_correlated(
                 C,

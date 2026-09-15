@@ -5,7 +5,7 @@
 # please cite it: see CITATION.cff at the repository root.
 """The ``Subject`` protocol: what a frozen model must expose to be monitored.
 
-This is the interface named in ``docs/LATENT_MONITORING_PLAN_2026-09-05.md``
+This is the interface named in ``docs/EXPERIMENT_DESIGN.md`` §III.2.2
 §2.2 and compatible with ``oracle_cov.subjects.Subject`` (``represent``,
 ``outputs``, ``jac_recon``, ``jac_output``), extended with the six named hook
 points and the whitening layer as a first-class, replaceable parameter.

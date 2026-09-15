@@ -1,9 +1,9 @@
-# Paper 3 / ORACLE — TODO (as of 2026-09-03, branch `dev`)
+# Paper 3 / ORACLE — TODO (as of 2026-09-03, branch `dev`; doc paths updated 2026-09-10 — the canonical design is `docs/EXPERIMENT_DESIGN.md`)
 
 Stage: proposal has its mechanism section (`0793eba`); Tier-1 implementation lives in the
 experiment repository with dev-scale results; nothing here is pre-registered or citable yet.
 
-## Theme adjustment 2026-09-03 (`docs/THEME_ADJUSTMENT_2026-09-03.md`)
+## Theme adjustment 2026-09-03 (`docs/archive/THEME_ADJUSTMENT_2026-09-03.md`)
 Paper 3 is the main paper: *what determines which representation a detector model learns, and
 what it lets a physicist reconstruct*.  Done today in the proposal: new title, abstract opening,
 "The question" paragraph in §1 with Panda as the foil, mechanism §3 attributed to Paper 1
@@ -18,7 +18,7 @@ breadth sentence in §5.  Build 6 pp.
       `TIER2_RUNBOOK.md` (NuBench labels) and `TIER3_RUNBOOK.md` (injected amplitude).
 
 ## Proposal (`latex/paper3_proposal.tex`)
-- [ ] Fold the three Tier-1 findings of `docs/DEV_UPDATE_2026-09-03.md` into §3 and §4:
+- [ ] Fold the three Tier-1 findings of `docs/archive/DEV_UPDATE_2026-09-03.md` into §3 and §4:
       (i) three-signature N/S table (covariance N: variance in T_S; signal-deforming N: mean
       shift like S; S along excited vs unexcited coordinates); (ii) abstention = feature-space
       novelty, not classifier margin; (iii) Tier-1 consequence = whitened reconstruction error,
@@ -54,7 +54,7 @@ threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor sta
       along-T_S^⊥ displacement, abstention risk–coverage AUC, ρ(A,K)) — fill from the
       confirmatory Tier-1 output.
 
-## Novelty positioning (2026-09-03 search; see `docs/NOVELTY_CHECK_2026-09-03.md`)
+## Novelty positioning (2026-09-03 search; see `docs/archive/NOVELTY_CHECK_2026-09-03.md`)
 - [ ] Re-run the search before submission: "frozen representation" + "covariance shift" +
       detector; Panda follow-ups; NuBench follow-ups; any "diagnostics of foundation models in
       physics" paper. Update the positioning paragraph if a mechanism-level diagnostic appears.
@@ -66,13 +66,17 @@ threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor sta
 - [ ] Fill the Tier-1 → Tier-2 bridge table (§6) with a row per ORACLE-Paired family.
 
 ## Packages here
+- [ ] `latent_monitor.estimators`: make the representation class a parameter of `LinearSubject`
+      (OF / CW-PCA / tied AE / NFPA) and run L1-a/L1-b of `docs/EXPERIMENT_DESIGN.md` §IV.4 on the Tier-1
+      cells; the modules and `tests/test_estimators.py` are in place (2026-09-10), the experiments are
+      tentative and not pre-registered.
 - [ ] `src/prometheus_simulation`: Prometheus adapter (`prometheus_io`), NuBench response
       reimplementation, clean-twin matching validated on the toy set (WP9).
 - [ ] Subject adapters for Tier 2/3 following the `Subject` interface in
       `experiments/oracle/oracle_cov/subjects.py` (`represent`, `outputs`, `jac_recon`, `jac_output`).
 - [x] `reference/papers/`: 2609.00611 (Panda V2) and 2602.24129 (LUCiD) PDFs filed under
       `testbeds/`; `papers.tsv` gains the LUCiD row plus 1705.07341, 2307.11877 and three
-      `software` rows (pytessim, wire-cell, HeST). See `docs/SIM_TESTBED_SURVEY_2026-09-05.md`.
+      `software` rows (pytessim, wire-cell, HeST). See `docs/archive/SIM_TESTBED_SURVEY_2026-09-05.md`.
 - [ ] `reference/papers/`: fetch the two new PDFs — `1705.07341` (MicroBooNE noise) and
       `2307.11877` (HeRALD). arXiv returns 403 from the local VM; run the README loop
       from a machine with ordinary internet access.
@@ -82,12 +86,12 @@ threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor sta
       smoke test only proves the protocol runs. Then the transformer's own G-row repair.
 - [ ] `herald_simulation`: replace the `HERALD_V1_PLACEHOLDER` constants with values read from
       arXiv:2307.11877 (`provenance` → `from_paper`); open the two HeST upstream PRs.
-- [ ] Fold `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` into the plan: the N-vs-S discriminator
-      is noise-only records; `event_in_span` is a row; re-whitening is the GLS re-derivation.
+- [x] Fold `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` into the plan — done 2026-09-10 in
+      `docs/EXPERIMENT_DESIGN.md` §III.1 (▸ rows): noise-only discriminator, `event_in_span`, GLS re-derivation.
 
 ## Collaboration
 - [ ] Email the LUCiD authors (Terao, Alterkait) asking for a permissive licence — gate A0
-      in `docs/EXPERIMENT_PLAN_ARMS_2026-09-05.md`. No LUCiD work starts before it lands.
+      in `docs/EXPERIMENT_DESIGN.md` §II.3.2. No LUCiD work starts before it lands.
 - [ ] Email Greg Rischbieter (rischbie@umich.edu): HeST's LICENSE is MIT text with the
       unedited PyPA copyright line — gate B0, same doc.
 - [ ] Send Junjie the dev update + the two runbooks; agree the Tier-2 family list and the

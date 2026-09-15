@@ -1,6 +1,6 @@
 # `latent_monitor` — controlled-variable latent monitoring
 
-Implements `docs/LATENT_MONITORING_PLAN_2026-09-05.md` §§2–4: the `Subject`
+Implements `docs/EXPERIMENT_DESIGN.md` §§III.2–III.4: the `Subject`
 protocol, the reference-cell projectors, per-event Δz statistics against
 paired twins, the pre-registered attribution lookup, abstention, and the
 adjustments that follow from a diagnosis. Follows the `oracle_cov`
@@ -9,7 +9,7 @@ so it can be lifted into `noise-weighted-subspace-reconstruction` later.
 
 ```bash
 PYTHONPATH=src python -m latent_monitor.run_table --out results/latent_monitor_tier1
-PYTHONPATH=src python -m pytest src/latent_monitor/tests -q      # 35 tests, ~20 s CPU
+PYTHONPATH=src python -m pytest src/latent_monitor/tests -q      # 39 tests (1 skipped without torch), ~25 s CPU
 ```
 
 ## What is in here
@@ -27,6 +27,7 @@ PYTHONPATH=src python -m pytest src/latent_monitor/tests -q      # 35 tests, ~20
 | `designed.py` | the output-null / output-aligned dissociation, exact for a linear decoder |
 | `adjust.py` | `rewhiten`, `activation_patch`, `damage_patch`, `refit_stage` |
 | `run_table.py` | the whole §1 table + adjustments → `table.json`, `table.md`, `adjustments.json` |
+| `estimators/` | the four linear representation classes of Paper 1 — `of.py`, `cw_pca.py`, `tied_linear_ae.py`, `nfpa.py` — plus `identification.py` (tangent-basis gauge fix); copied from the Paper 1 experiment repository, see `estimators/README.md` and `docs/EXPERIMENT_DESIGN.md` §IV |
 
 ## The discriminator the lookup rests on
 

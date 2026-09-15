@@ -1,6 +1,6 @@
 # Results — the §1 table on the linear subject, Tier-1 cells (6 September 2026)
 
-_Implements `LATENT_MONITORING_PLAN_2026-09-05.md` WPs N1, L0, S1, H0, H1. Code:
+_Implements `docs/EXPERIMENT_DESIGN.md` §III.8 WPs N1, L0, S1, H0, H1. Code:
 `src/latent_monitor/`, `src/herald_simulation/`, `noise_module.tes_budget`,
 `MultiChannelNoiseGenerator.freeze_channel_structure`. Numbers below are from
 `results/latent_monitor_tier1/table.md` (C=8, N=256, k=6, seed 0) and were

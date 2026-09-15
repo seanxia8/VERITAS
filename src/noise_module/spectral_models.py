@@ -152,6 +152,91 @@ class Line(SpectralComponent):
 
 
 @dataclass
+class Peaking(SpectralComponent):
+    """Resonant *transfer function* ``|H|^2 = 1 + gain * L(f)``, a unit-gain
+    response with a Lorentzian bump at ``center_hz`` (ringing of a base,
+    connector or amplifier stage).
+
+    Meant to be used as a filter inside :class:`Filtered`; as a standalone
+    additive component it is a white term with a bump, which is rarely what a
+    budget means.
+    """
+
+    center_hz: float = 1.0
+    half_width_hz: float = 1.0
+    gain: float = 1.0
+
+    def shape(self, frequencies: np.ndarray) -> np.ndarray:
+        if self.center_hz < 0.0 or self.half_width_hz <= 0.0 or self.gain < 0.0:
+            raise ValueError("Peaking needs center_hz >= 0, half_width_hz > 0, gain >= 0.")
+        f = np.asarray(frequencies, dtype=float)
+        return 1.0 + self.gain / (1.0 + ((f - self.center_hz) / self.half_width_hz) ** 2)
+
+
+@dataclass
+class Reflection(SpectralComponent):
+    """Cable-reflection *transfer function* ``|1 + r exp(-2 pi i f tau)|^2``:
+    a comb of period ``1 / delay_s`` (round-trip delay ``tau``), amplitude set by
+    the reflection coefficient ``r``. Use inside :class:`Filtered`.
+    """
+
+    delay_s: float = 1.0
+    reflection: float = 0.1
+
+    def shape(self, frequencies: np.ndarray) -> np.ndarray:
+        if self.delay_s <= 0.0 or not 0.0 <= self.reflection < 1.0:
+            raise ValueError("Reflection needs delay_s > 0 and 0 <= reflection < 1.")
+        f = np.asarray(frequencies, dtype=float)
+        r = self.reflection
+        return 1.0 + r * r + 2.0 * r * np.cos(2.0 * np.pi * f * self.delay_s)
+
+
+@dataclass
+class Filtered(SpectralComponent):
+    """A source spectrum shaped by one or more transfer functions.
+
+    ``density(f) = scale * source.scale * source.shape(f) * prod_k filter_k.scale * filter_k.shape(f)``
+
+    ``source`` and every entry of ``filters`` are component configs (or
+    instances). Their ``shape`` is read as ``|H_k(f)|^2``; ``RollOff``
+    (lowpass / highpass), :class:`Peaking` and :class:`Reflection` are the
+    intended filters, but any component works. This is the *multiplicative*
+    operator the additive :class:`CompositeSpectrum` lacks: a front-end
+    bandwidth belongs here, as a filter on the amplifier floor, not as a
+    second additive term (which would leave the floor flat to Nyquist).
+    """
+
+    source: Any = None
+    filters: list = None  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        if self.source is None:
+            raise ValueError("Filtered requires a source component.")
+        self.source = self.source if isinstance(self.source, SpectralComponent) else component_from_config(self.source)
+        raw = self.filters or []
+        if not isinstance(raw, (list, tuple)):
+            raise ValueError("Filtered.filters must be a list of component configs.")
+        self.filters = [c if isinstance(c, SpectralComponent) else component_from_config(c) for c in raw]
+        if isinstance(self.source, Filtered) or any(isinstance(c, Filtered) for c in self.filters):
+            raise ValueError("Filtered components do not nest; flatten the filter list instead.")
+
+    def shape(self, frequencies: np.ndarray) -> np.ndarray:
+        f = np.asarray(frequencies, dtype=float)
+        out = self.source.scale * np.asarray(self.source.shape(f), dtype=float)
+        for component in self.filters:
+            out = out * (component.scale * np.asarray(component.shape(f), dtype=float))
+        return out
+
+    def describe(self) -> dict[str, Any]:
+        return {
+            "source": {"name": self.source.label, "type": self.source.__class__.__name__, "scale": float(self.source.scale)},
+            "filters": [
+                {"name": c.label, "type": c.__class__.__name__, "scale": float(c.scale)} for c in self.filters
+            ],
+        }
+
+
+@dataclass
 class CompositeSpectrum:
     components: list[SpectralComponent]
 
@@ -173,15 +258,17 @@ class CompositeSpectrum:
         for component in self.components:
             density = component.evaluate(frequencies, df, zero_dc=zero_dc)
             total += density
-            metadata.append(
-                {
-                    "name": component.label,
-                    "type": component.__class__.__name__,
-                    "integrated_power": float(np.sum(density) * df),
-                    "normalization": component.normalization,
-                    "scale": float(component.scale),
-                }
-            )
+            entry = {
+                "name": component.label,
+                "type": component.__class__.__name__,
+                "integrated_power": float(np.sum(density) * df),
+                "normalization": component.normalization,
+                "scale": float(component.scale),
+            }
+            describe = getattr(component, "describe", None)
+            if callable(describe):
+                entry["detail"] = describe()
+            metadata.append(entry)
         return total, metadata
 
 
@@ -196,6 +283,9 @@ _COMPONENT_TYPES = {
     "rolloff": RollOff,
     "roll_off": RollOff,
     "line": Line,
+    "peaking": Peaking,
+    "reflection": Reflection,
+    "filtered": Filtered,
 }
 
 

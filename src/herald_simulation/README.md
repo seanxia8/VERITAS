@@ -1,7 +1,7 @@
 # `herald_simulation` — HeST → `qp_simulator` → `noise_module`
 
 The paired superfluid-helium dark-matter arm of
-`docs/LATENT_MONITORING_PLAN_2026-09-05.md` §7. Three of the four links already
+`docs/EXPERIMENT_DESIGN.md` §III.7. Three of the four links already
 existed; this package is the glue, the cells, and the provenance.
 
 ```

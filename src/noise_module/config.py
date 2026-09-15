@@ -368,11 +368,25 @@ class MultiChannelConfig(ConfigModel):
     #: Draw gains / private strengths / mixing weights once per (mode, C) and
     #: reuse them, so one implied covariance spans many records (WP-N1).
     freeze_channel_structure: bool = False
+    #: ``spectral_shared_private`` only: the shared (common-mode) and private
+    #: (per-channel) processes get their *own* component lists, so the
+    #: cross-channel coherence is a function of frequency instead of the
+    #: scalar ``corr_strength``. Relative level = component scales (absolute);
+    #: the base ``noise_power`` sets the per-channel total (shared + private).
+    shared_components: list[dict[str, Any]] | None = None
+    private_components: list[dict[str, Any]] | None = None
 
     def __post_init__(self) -> None:
         self.freeze_channel_structure = bool(self.freeze_channel_structure)
-        if self.mode not in {"independent", "shared_private", "lowrank"}:
+        if self.mode not in {"independent", "shared_private", "lowrank", "spectral_shared_private"}:
             raise ValueError("Unsupported multichannel mode.")
+        if self.mode == "spectral_shared_private":
+            for name in ("shared_components", "private_components"):
+                value = getattr(self, name)
+                if not isinstance(value, list) or not value:
+                    raise ValueError(f"mode 'spectral_shared_private' needs a non-empty {name} list.")
+                if not all(isinstance(item, dict) and "type" in item for item in value):
+                    raise ValueError(f"{name} entries must be component dicts with a 'type'.")
         self.n_channels = _integer("n_channels", self.n_channels, minimum=1)
         self.n_latent = _integer("n_latent", self.n_latent, minimum=1)
         self.corr_strength = _finite("corr_strength", self.corr_strength)

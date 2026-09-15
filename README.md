@@ -69,7 +69,7 @@ this repository.
 | Path | Purpose |
 | --- | --- |
 | `src/noise_module/` | Validated stationary/nonstationary/multichannel noise and PSD simulation (numpy/scipy only) |
-| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors, per-event Δz statistics, the pre-registered attribution lookup, adjustments; linear and transformer subjects (`docs/LATENT_MONITORING_PLAN_2026-09-05.md` §§2–4) |
+| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors, per-event Δz statistics, the pre-registered attribution lookup, adjustments; linear and transformer subjects (`docs/EXPERIMENT_DESIGN.md` §§III.2–III.4); `estimators/` holds the four linear classes of Paper 1 (OF, CW-PCA, tied linear AE, NFPA) as subject stages (§IV) |
 | `src/herald_simulation/` | HeST → `qp_simulator` → `noise_module`: the paired superfluid-helium dark-matter arm (plan §7); HeST pinned and unpatched via `fetch_hest.sh` |
 | `results/latent_monitor_tier1/` | The §1 table on the linear subject: 13 match / 1 documented / 0 mismatch, plus re-whitening, patching and stage-refit outcomes |
 | `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only) |
@@ -78,10 +78,11 @@ this repository.
 | `notebooks/` | Smoke/inference notebooks, the noise-module tutorials, and the two executed HeRALD/LUCiD walk-throughs (`one_event_herald_lucid.ipynb`, `noise_models_herald_lucid.ipynb`) |
 | `scripts/` | Local/Condor training helpers and smoke tests |
 | `containers/` | Runtime container image definition |
-| `docs/EXPERIMENT_DESIGN.md` | The agreed three-tier design (canonical short version) |
+| `docs/EXPERIMENT_DESIGN.md` | **The canonical design** (10 Sep 2026): Part I the three-tier study; Part II the arms (LUCiD, HeST, TIDMAD, `noise_module_lucid`); Part III the controlled-variable protocol, corrected by the 6 Sep results; Part IV the four linear subject classes (tentative) |
+| `docs/TESTBEDS.md` | Canonical testbed inventory: simulations and real datasets that serve and do not, what is implemented, and the structured autoencoder target |
 | `docs/IMPLEMENTATION_PLAN.md` | Work packages, interfaces, acceptance criteria, gates |
 | `docs/REVIEW_PROMPTS.md` | Reviewer prompts (§A before implementation, §B per milestone); reviews land in `docs/reviews/` |
-| `docs/archive/` | Superseded documents: audit, open decisions, revision plan, dataset-production plan, novelty review, package docs (`noise_module/`, `reconstruction_model.md`, `tidmad.md`) |
+| `docs/archive/` | Superseded documents, indexed in `docs/archive/README.md`: the 5 Sep arms and latent-monitoring plans and testbed survey (merged into `EXPERIMENT_DESIGN.md` / `TESTBEDS.md`), the 3 Sep theme/novelty/dev notes, audit, open decisions, revision plan, dataset-production plan, novelty review, package docs |
 | `reference/papers/` | Prior-art and testbed PDFs, with the novelty analysis (`papers.tsv` is the manifest; the README has the fetch loop) |
 | `scripts/nubench/` | NuBench feasibility scripts (migrated 2026-08-17, post-audit) |
 | `results/` | Checked-in feasibility results with audit caveats |
@@ -89,9 +90,7 @@ this repository.
 | `docs/archive/OPEN_DECISIONS.md` | Researched resolutions of the open technical decisions (archived; superseded by `EXPERIMENT_DESIGN.md`) |
 | `docs/archive/REVISION_PLAN.md` | Earlier shared execution plan (migrated 2026-08-23; archived, superseded by `IMPLEMENTATION_PLAN.md`) |
 | `docs/archive/PERSONAL_RESEARCH_GUIDE.md` | Private working record and review log — **not for the shared view** |
-| `docs/LATENT_MONITORING_PLAN_2026-09-05.md` | The controlled-variable plan: factor ↔ determinant ↔ latent signature ↔ adjustment; subject architecture; per-arm cells; LUCiD integration; the HeST fork and its TES noise budget |
 | `archive/` | Code, scripts and notes off the active path (`archive/README.md` says what and why) |
-| `docs/EXPERIMENT_PLAN_ARMS_2026-09-05.md` | Arm-level plan: LUCiD, HeST and TIDMAD — why each, how driven, what each may prove, and the `noise_module_lucid` build |
 | `latex/paper3_proposal.tex` | Source for the collaboration concept note (five pages since the 2026-09-02 mechanism section) |
 | `latex/paper3_proposal.pdf` | Compiled proposal |
 | `latex/figures/` | Proposal figures |

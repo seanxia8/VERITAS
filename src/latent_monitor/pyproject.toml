@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "latent-monitor"
 version = "0.1.0"
-description = "Controlled-variable latent-space monitoring: projectors, per-event displacement statistics, attribution lookup, adjustments (docs/LATENT_MONITORING_PLAN_2026-09-05.md)"
+description = "Controlled-variable latent-space monitoring: projectors, per-event displacement statistics, attribution lookup, adjustments (docs/EXPERIMENT_DESIGN.md Part III)"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24", "scipy>=1.10", "noise-module"]
 
@@ -13,10 +13,11 @@ dependencies = ["numpy>=1.24", "scipy>=1.10", "noise-module"]
 torch = ["torch>=2.0"]
 
 [tool.setuptools]
-packages = ["latent_monitor"]
+packages = ["latent_monitor", "latent_monitor.estimators"]
 
 [tool.setuptools.package-dir]
 latent_monitor = "."
+"latent_monitor.estimators" = "estimators"
 
 [tool.uv.sources]
 noise-module = { workspace = true }
