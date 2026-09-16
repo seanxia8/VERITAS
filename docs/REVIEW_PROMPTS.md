@@ -4,6 +4,19 @@ Two prompts for an independent reviewing agent (or a human). §A runs before
 implementation starts; §B runs after each milestone and before the paper cites
 anything. Both are written to be pasted verbatim. Neither reviewer edits files.
 
+_Synchronised 16 September 2026 (pass 2) with the two-claim protocol
+(`EXPERIMENT_DESIGN.md` Part V, `PREREGISTRATION.md` §1). The paper makes two
+claims: **Claim 1** ΔF1 of `full_intermediate` over `generic_rich` on the hard
+matched set (capacity-matched and hook-drop controls, abstention evaluated
+empirically, joint decision table); **Claim 2** paired ΔAUROC for K ≥ κ_m of the
+task-sensitive score over the committed generic score across held-out cells with
+the cell as the outer resampling unit. Old C0–C5 labels are supporting analyses.
+A pooled alarm–consequence *correlation* remains a finding; a paired all-cell
+*ranking* with quadrants, breakdowns and the positive controls beside it is the
+protocol. Reviewers should not recreate the old contradiction by demanding
+severity-stratified conditioning as the primary, and should treat any
+"done" status as a claim to verify against the status vocabulary in `TODO.md`._
+
 The reviewer's job is adversarial: assume the plan or the code is wrong until
 shown otherwise, and be specific about *where*. Praise is not a finding.
 
@@ -20,7 +33,10 @@ any code is written. You do not edit files. You report findings.
 Read, in this order, in the repository you are given:
   docs/EXPERIMENT_DESIGN.md
   docs/IMPLEMENTATION_PLAN.md
-  docs/PREREGISTRATION.md            (if present; if absent, that is finding #1)
+  docs/PREREGISTRATION.md            (an UNFROZEN DRAFT since 16 Sep 2026; if it claims a
+                                      hash or "frozen" without protocol/frozen/<part>.json
+                                      matching it, that is finding #1)
+  docs/reviews/2026-09-16_R0_reconciliation.md   (namespace map, resolved contradictions)
   docs/archive/NOVELTY_REVIEW.md     (the agreed claim wording, §5)
   docs/archive/OPEN_DECISIONS.md     (D1–D8)
   docs/archive/PAPER3_AUDIT.md
@@ -29,10 +45,12 @@ Read, in this order, in the repository you are given:
 Check each of the following. For every check, either state "no issue found" in
 one line or report findings.
 
-1. TRACEABILITY. Every claim C1–C5 maps to at least one experiment with a
-   numeric endpoint, a threshold, and an analysis, and every experiment maps
-   back to a claim. Quote any claim with no endpoint and any experiment with
-   no claim.
+1. TRACEABILITY. Exactly two claims exist. Each maps to one primary estimand
+   with a declared interval rule and a refutation condition; every supporting
+   analysis is labelled as such and carries no success threshold that reads
+   like a claim. Quote any sentence that promotes a supporting analysis to a
+   claim, and any use of J_yᵀ Σ⁻¹ J_y or of resolvability rank as training
+   support.
 
 2. FALSIFIABILITY. For each experiment, state in one sentence what result would
    REFUTE the associated claim. If you cannot, the experiment is not a test.
@@ -43,15 +61,32 @@ one line or report findings.
    the cause? Is the content-matched design specified precisely enough
    (features, caliper, replacement policy, what happens to unmatched events)?
    For the geometry axis, is the medium confounded with layout? For the
-   alarm–consequence claim, is the pooled correlation avoided (severity
-   stratification) and is the designed dissociation actually decoupling the
-   two quantities by construction, or only by hope?
+   alarm–harm claim (C4): is the primary endpoint the all-cell ranking over
+   *every* held-out cell (no conditioning on the alarm), with a declared cell
+   weighting, the four-quadrant matrix with counts, the missed-harm rate at
+   the alert budget and the false rejection of valid rare events? Are the
+   family/severity breakdowns and the designed dissociation reported beside
+   it (a pooled ranking alone cannot establish the mechanism; a pooled
+   *correlation* is not an endpoint)? Is the designed dissociation actually
+   decoupling the two quantities by construction — norm matched in the alarm
+   metric being challenged, realised physical loss measured, linearisation
+   error reported, unavailable null spaces skipped explicitly — and is a
+   monitor built from the same head labelled a positive control rather than
+   transfer evidence? Is the noise-only (random-trigger) information in the
+   *generic* arm wherever the acquisition supplies it, with a noise-only
+   ablation, so that an attribution gain cannot be credited to internal
+   representations by omission?
 
 4. LEAKAGE. Where could information cross from confirmatory to development, or
    from perturbed to clean reference, or from U (undeclared) families into
    calibration? Check Metric.fit sees clean data only; check U never enters
    conformal calibration; check held-out seeds/severities/families are
-   actually held out and listed.
+   actually held out and listed. Check the feature-availability manifest:
+   does every alarm-time arm consume only alarm-time features (no paired
+   twin, truth, realised covariance or intervention label), and are
+   noise-only records marked privileged where the acquisition does not
+   supply them? Are splits by event group, with every geometry/replay/
+   corruption variant of an event in one partition?
 
 5. STATISTICS. Are resampling units correct (event groups and perturbation
    seeds, not pulses or windows sharing events)? Is the false-alert budget
@@ -148,8 +183,27 @@ D. STATISTICS CODE
       tiny synthetic case with known truth and check CI coverage.
    2. Read the FAR calibration. Is it computed on held-out clean windows, per
       arm, with the same windows? Is realised FAR reported with its CI?
-   3. Read the conditional-on-alarm AUROC. Does it refuse to pool across
-      severities? Is the 2×2 matrix's κ_m the pre-registered one?
+   3. Read the Claim-2 code (`latent_monitor.protocol.consequence`). Is the
+      primary the *paired* ΔAUROC of the task-sensitive score over the
+      committed generic score with no conditioning on the alarm, the generic
+      score committed before any evaluation label, and the interval's outer
+      unit the cell (descriptive below 10 cells)? Does the report keep all
+      four quadrants with counts at a cell-level threshold, the missed-harm
+      rate, the valid-rare *cell* rejection (and the window estimator) and
+      the breakdowns? Is the conditional triage secondary with the number of
+      cells dropped? Is κ_m *declared* — and does a `pending` or
+      `provisional_dev` κ_m, a dirty tree, an unfrozen environment/data/model
+      hash or a wrong destination make confirmatory mode refuse (run
+      `require_run_dependencies`)? Is K an independent physical endpoint
+      against evaluation-only truth, baseline-normalised on the same events?
+   5. Read the Claim-1 code (`protocol.arms`, `protocol.features`,
+      `protocol.matching`, `protocol.abstention`). Does `intermediate_only`
+      contain any whitened-input, final-z, pre-output or output duplicate?
+      Is there a capacity-matched control and a hook-drop control? Is the
+      classifier fitted on `attribution_train`, never on `reference_fit`? Is
+      the hard set built by declared matching with retention reported? Is
+      abstention calibrated on clean windows only, with unknown families in
+      evaluation only? Does the joint decision table exist?
    4. Read the equivalence-margin logic for ΔF1. Is the three-way reading
       (benefit / equivalence / inconclusive) implemented, not just the p-value?
 
@@ -222,7 +276,19 @@ appears:
   a confirmatory path.
 - A metric that "falls back" to a simpler metric silently.
 - A baseline calibrated on different windows, or not calibrated at all.
-- A pooled alarm–consequence correlation reported without severity strata.
+- A pooled alarm–consequence *correlation* reported as an endpoint, or an
+  all-cell ranking reported without its breakdowns, the four-quadrant matrix
+  and the positive controls; an absolute AUROC presented where the paired
+  difference is the claim; a conditional-on-alarm number presented as
+  primary; a κ_m invented to make a config pass; an interval over event
+  groups presented as inference about held-out interventions.
+- An "intermediate" arm that contains input, final-embedding or output
+  duplicates; a gain reported without the capacity-matched control; a status
+  word ("done", "implemented") that does not say *interface / unit-tested /
+  development smoke / trained-model / transfer / confirmatory*.
+- An alarm-time arm that consumes a paired twin, truth, the realised
+  covariance or the intervention label; a noise-only statistic credited to
+  internal representations without the ablation.
 - A prediction table edited after the confirmatory run (check git history).
 - Cost or latency numbers with no machine name, repetition count or percentile.
 - A claim of "validation by adaptation" without a preceding activation-patching

@@ -1,0 +1,1528 @@
+{
+  "STATUS": "DEVELOPMENT SMOKE \u2014 NOT CITABLE. Exercises the amended protocol chain on the linear subject at toy size.",
+  "provenance": {
+    "mode": "dev",
+    "citable": false,
+    "config_hash": "434eb52d874147e3",
+    "config": {
+      "n_channels": 6,
+      "n_samples": 128,
+      "latent_dim": 5,
+      "n_groups": 120,
+      "n_noise_per_window": 2,
+      "seed": 0,
+      "fractions": {
+        "reference_fit": 0.4,
+        "development": 0.2,
+        "calibration": 0.15,
+        "evaluation": 0.25
+      },
+      "held_out_families": [
+        "line_pickup",
+        "double_pulse"
+      ],
+      "far_budget": 0.01,
+      "designed_norm": 3.0,
+      "tuning_grid": [
+        0.001,
+        0.01,
+        0.1,
+        1.0,
+        10.0
+      ],
+      "margins": {
+        "benefit_min_delta": 0.1,
+        "equivalence_half_width": 0.05
+      },
+      "n_boot": 100
+    },
+    "git_commit": "f24430a-dirty",
+    "seeds": [
+      0
+    ],
+    "latent_monitor_version": "0.1.0",
+    "numpy_version": "2.5.3",
+    "python": "3.12.14",
+    "machine": "claude",
+    "platform": "Linux-6.8.0-138-generic-aarch64-with-glibc2.35",
+    "elapsed_s": 4.7,
+    "subject": "LinearSubject",
+    "cells": [
+      "reference",
+      "sigma_cov:corr_up",
+      "sigma_cov:corr_down",
+      "sigma_cov:bandwidth_down",
+      "sigma_cov:line_pickup",
+      "sigma_struct:gain_drift",
+      "sigma_struct:channel_loss",
+      "sigma_struct:timing_jitter",
+      "geometry:3ch",
+      "geometry:12ch",
+      "event:glitch",
+      "event_in_span:oscillation",
+      "event_in_span:double_pulse"
+    ]
+  },
+  "gates": {
+    "mode": "dev",
+    "freezes": {},
+    "warnings": [
+      "freeze part 'core' is missing (protocol/frozen/core.json)"
+    ],
+    "citable": false
+  },
+  "manifest": {
+    "arm": "tier1",
+    "acquisition": {
+      "supplies_noise_only_records": true,
+      "noise_only_source": "random-trigger records from the same generator, structural N applied"
+    },
+    "features": {
+      "in_rms": {
+        "name": "in_rms",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_kurtosis": {
+        "name": "in_kurtosis",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_spectral_centroid": {
+        "name": "in_spectral_centroid",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_spectral_flatness": {
+        "name": "in_spectral_flatness",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_channel_rms_spread": {
+        "name": "in_channel_rms_spread",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_peak_abs": {
+        "name": "in_peak_abs",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "out_0": {
+        "name": "out_0",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "out_1": {
+        "name": "out_1",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "out_2": {
+        "name": "out_2",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "unc_recon_energy": {
+        "name": "unc_recon_energy",
+        "availability": "alarm_time",
+        "source": "raw-domain reconstruction residual energy",
+        "operational": true,
+        "group": "uncertainty",
+        "note": "the linear subject has no predictive uncertainty; this is the declared proxy"
+      },
+      "z_0": {
+        "name": "z_0",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_1": {
+        "name": "z_1",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_2": {
+        "name": "z_2",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_3": {
+        "name": "z_3",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_4": {
+        "name": "z_4",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_mahalanobis": {
+        "name": "z_mahalanobis",
+        "availability": "alarm_time",
+        "source": "z against the reference-fitted mean/cov",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "no_var_ratio": {
+        "name": "no_var_ratio",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_psd_dev_smooth": {
+        "name": "no_psd_dev_smooth",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_psd_dev_line": {
+        "name": "no_psd_dev_line",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_chan_corr_shift": {
+        "name": "no_chan_corr_shift",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "lw_whitened_maha": {
+        "name": "lw_whitened_maha",
+        "availability": "alarm_time",
+        "source": "hooked stage vs reference-fitted mean/cov",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_channel_maha": {
+        "name": "lw_channel_maha",
+        "availability": "alarm_time",
+        "source": "hooked stage vs reference-fitted mean/cov",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_token_maha": {
+        "name": "lw_token_maha",
+        "availability": "alarm_time",
+        "source": "hooked stage vs reference-fitted mean/cov",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_z_maha": {
+        "name": "lw_z_maha",
+        "availability": "alarm_time",
+        "source": "hooked stage vs reference-fitted mean/cov",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_pre_output_maha": {
+        "name": "lw_pre_output_maha",
+        "availability": "alarm_time",
+        "source": "hooked stage vs reference-fitted mean/cov",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_output_maha": {
+        "name": "lw_output_maha",
+        "availability": "alarm_time",
+        "source": "hooked stage vs reference-fitted mean/cov",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_energy_out": {
+        "name": "lw_energy_out",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_energy_null": {
+        "name": "lw_energy_null",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_energy_exc": {
+        "name": "lw_energy_exc",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_energy_unexc": {
+        "name": "lw_energy_unexc",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "lw_out_of_span": {
+        "name": "lw_out_of_span",
+        "availability": "alarm_time",
+        "source": "residual energy / (residual + in-span) of the observed window",
+        "operational": true,
+        "group": "layerwise",
+        "note": ""
+      },
+      "twin_dz": {
+        "name": "twin_dz",
+        "availability": "evaluation_only",
+        "source": "paired clean twin (replay of the same event)",
+        "operational": true,
+        "group": "replay",
+        "note": "every \u0394z statistic of statistics.cell_statistics; a development diagnostic, not an alarm-time feature"
+      },
+      "truth_targets": {
+        "name": "truth_targets",
+        "availability": "evaluation_only",
+        "source": "planted (amplitude, t0, tau_t)",
+        "operational": true,
+        "group": "truth",
+        "note": ""
+      },
+      "sigma_realized": {
+        "name": "sigma_realized",
+        "availability": "evaluation_only",
+        "source": "generator implied/realised covariance",
+        "operational": true,
+        "group": "truth",
+        "note": "operational monitors use sigma_hat (reference_fit); \u03ba_cond is an evaluation quantity"
+      },
+      "intervention_label": {
+        "name": "intervention_label",
+        "availability": "evaluation_only",
+        "source": "cell origin/family/severity",
+        "operational": true,
+        "group": "truth",
+        "note": ""
+      },
+      "task_metric_delayed": {
+        "name": "task_metric_delayed",
+        "availability": "delayed_label",
+        "source": "labelled task metric arriving after the alarm",
+        "operational": true,
+        "group": "delayed",
+        "note": ""
+      },
+      "sigma_hat": {
+        "name": "sigma_hat",
+        "availability": "reference_fit",
+        "source": "assumed covariance in the whitening layer",
+        "operational": true,
+        "group": "reference",
+        "note": ""
+      }
+    }
+  },
+  "arm_contract_status": {
+    "input_only": {
+      "arm": "input_only",
+      "n_features": 6,
+      "status": "operational",
+      "privileged_features": []
+    },
+    "output_uncertainty": {
+      "arm": "output_uncertainty",
+      "n_features": 4,
+      "status": "operational",
+      "privileged_features": []
+    },
+    "final_embedding": {
+      "arm": "final_embedding",
+      "n_features": 6,
+      "status": "operational",
+      "privileged_features": []
+    },
+    "all_generic": {
+      "arm": "all_generic",
+      "n_features": 20,
+      "status": "operational",
+      "privileged_features": []
+    },
+    "full_layerwise": {
+      "arm": "full_layerwise",
+      "n_features": 31,
+      "status": "operational",
+      "privileged_features": []
+    },
+    "noise_only": {
+      "arm": "noise_only",
+      "n_features": 4,
+      "status": "operational",
+      "privileged_features": []
+    },
+    "all_generic_no_noise": {
+      "arm": "all_generic_no_noise",
+      "n_features": 16,
+      "status": "operational",
+      "privileged_features": []
+    }
+  },
+  "split": {
+    "partitions": {
+      "reference_fit": [
+        1,
+        4,
+        5,
+        8,
+        9,
+        10,
+        11,
+        13,
+        16,
+        19,
+        20,
+        22,
+        23,
+        25,
+        27,
+        34,
+        36,
+        37,
+        39,
+        44,
+        50,
+        52,
+        53,
+        55,
+        66,
+        67,
+        72,
+        74,
+        75,
+        81,
+        83,
+        84,
+        87,
+        88,
+        92,
+        97,
+        98,
+        99,
+        100,
+        101,
+        105,
+        107,
+        109,
+        110,
+        111,
+        113,
+        114,
+        117
+      ],
+      "development": [
+        2,
+        3,
+        6,
+        15,
+        17,
+        18,
+        21,
+        24,
+        28,
+        30,
+        35,
+        42,
+        43,
+        57,
+        64,
+        65,
+        68,
+        71,
+        80,
+        82,
+        86,
+        90,
+        93,
+        94
+      ],
+      "calibration": [
+        0,
+        26,
+        40,
+        45,
+        47,
+        49,
+        51,
+        60,
+        61,
+        62,
+        70,
+        85,
+        91,
+        96,
+        102,
+        104,
+        112,
+        115
+      ],
+      "evaluation": [
+        7,
+        12,
+        14,
+        29,
+        31,
+        32,
+        33,
+        38,
+        41,
+        46,
+        48,
+        54,
+        56,
+        58,
+        59,
+        63,
+        69,
+        73,
+        76,
+        77,
+        78,
+        79,
+        89,
+        95,
+        103,
+        106,
+        108,
+        116,
+        118,
+        119
+      ]
+    },
+    "held_out_families": [
+      "line_pickup",
+      "double_pulse"
+    ],
+    "held_out_severities": [],
+    "held_out_seeds": [],
+    "seed": 0,
+    "meta": {}
+  },
+  "partition_counts": {
+    "calibration": 252,
+    "development": 336,
+    "evaluation": 480,
+    "excluded": 180,
+    "reference_fit": 672
+  },
+  "far_calibration": {
+    "budget": 0.01,
+    "n_clean_calibration_windows": 18,
+    "empirical_resolution": 0.05555555555555555,
+    "resolvable": false,
+    "note": "a 1% FAR needs \u2265 100 clean calibration windows for one-step resolution and many more for precision (plan \u00a78.3 R5); this smoke uses the empirical (1 \u2212 FAR) quantile of the clean calibration windows and reports that it is unresolved"
+  },
+  "alarm_thresholds": {
+    "final_embedding": 2.349070267405915,
+    "layerwise": 3.923019536273036
+  },
+  "C2": {
+    "input_only": {
+      "f1_eval": 0.7732426303854876,
+      "f1_dev": 0.9168994688176273,
+      "lambda": 1.0,
+      "status": "operational",
+      "n_features": 6,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 0.5251661918328585,
+      "f1_in_family_heldout_events": 0.8444444444444446
+    },
+    "output_uncertainty": {
+      "f1_eval": 0.7886794254945737,
+      "f1_dev": 0.7575757575757576,
+      "lambda": 0.01,
+      "status": "operational",
+      "n_features": 4,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 0.898989898989899,
+      "f1_in_family_heldout_events": 0.7474937965260544
+    },
+    "final_embedding": {
+      "f1_eval": 0.7253148263644688,
+      "f1_dev": 0.6527777777777778,
+      "lambda": 0.001,
+      "status": "operational",
+      "n_features": 6,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 0.899888765294772,
+      "f1_in_family_heldout_events": 0.6439923712650986
+    },
+    "all_generic": {
+      "f1_eval": 0.9354226020892686,
+      "f1_dev": 0.9465999165623696,
+      "lambda": 0.001,
+      "status": "operational",
+      "n_features": 20,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 1.0,
+      "f1_in_family_heldout_events": 0.9123993558776167
+    },
+    "full_layerwise": {
+      "f1_eval": 0.8915513323693451,
+      "f1_dev": 0.8885816692268305,
+      "lambda": 1.0,
+      "status": "operational",
+      "n_features": 31,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 0.983328702417338,
+      "f1_in_family_heldout_events": 0.8568872987477638
+    },
+    "noise_only": {
+      "f1_eval": 0.8461538461538461,
+      "f1_dev": 0.811257333121928,
+      "lambda": 0.01,
+      "status": "operational",
+      "n_features": 4,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 0.9666295884315907,
+      "f1_in_family_heldout_events": 0.8074454428754814
+    },
+    "all_generic_no_noise": {
+      "f1_eval": 0.8399324986661041,
+      "f1_dev": 0.9137615312856303,
+      "lambda": 0.01,
+      "status": "operational",
+      "n_features": 16,
+      "n_train": 384,
+      "n_eval": 300,
+      "f1_heldout_family": 0.9166435120866907,
+      "f1_in_family_heldout_events": 0.8099841653471123
+    },
+    "delta_primary": {
+      "point": -0.0438712697199235,
+      "low": -0.1098814730132558,
+      "high": 0.010675770998526443,
+      "n_boot_effective": 100,
+      "n_groups": 30,
+      "n_seeds": null,
+      "units": "event_group",
+      "reading": "inconclusive",
+      "contrast": "full_layerwise \u2212 all_generic (incl. operational noise-only)"
+    },
+    "delta_noise_only_ablation": {
+      "point": 0.09549010342316455,
+      "low": 0.04720493252141143,
+      "high": 0.1623250368242006,
+      "n_boot_effective": 100,
+      "n_groups": 30,
+      "n_seeds": null,
+      "units": "event_group",
+      "reading": "inconclusive",
+      "contrast": "all_generic \u2212 all_generic_no_noise: what the noise-only statistics add"
+    },
+    "delta_layerwise_vs_no_noise": {
+      "point": 0.05161883370324105,
+      "low": 0.012529589147460923,
+      "high": 0.10025538732949953,
+      "n_boot_effective": 100,
+      "n_groups": 30,
+      "n_seeds": null,
+      "units": "event_group",
+      "reading": "inconclusive",
+      "contrast": "full_layerwise \u2212 all_generic_no_noise: an unfair comparison shown only to expose the source of any gain"
+    },
+    "note": "macro-F1 over {N, S}; G, constructed and clean windows are excluded from the classifier; the arms were fitted on reference_fit groups, tuned on development groups, scored once on evaluation groups; held-out families entered no fit, tuning or calibration"
+  },
+  "C4": {
+    "kappa_m": {
+      "value": 1.1,
+      "status": "provisional_dev",
+      "units": "ratio of amplitude |error| to the reference mean",
+      "source": "proposal \u00a74 C4: 'provisionally a 10% degradation for the waveform amplitude task' \u2014 development only",
+      "arm": "tier1"
+    },
+    "K_definition": {
+      "K_phys": "mean |\u0177_amplitude \u2212 amplitude_truth| over the cell's evaluation windows, divided by the same quantity on clean calibration windows (independent physical endpoint; truth is evaluation-only)",
+      "K_diag": "raw-domain reconstruction residual energy (diagnostic; shares the objective's weighting; reported per window, never the sole demonstration)",
+      "zero_baseline": "ref_amp_err > 0 is asserted; a zero baseline would make K undefined and the endpoint reported as undefined"
+    },
+    "cell_alarm": "median per-window alarm in the cell divided by the calibration (1 \u2212 FAR) threshold; strong alarm \u21d4 \u2265 1",
+    "weighting": "uniform_cell (declared); a 'declared' scheme takes per-cell weights from the pre-registration",
+    "final_embedding": {
+      "alarm_threshold_per_window": 2.349070267405915,
+      "cells": {
+        "event:glitch": {
+          "K": 0.9832950541077372,
+          "alarm": 0.9101172102227678,
+          "n": 30,
+          "origin": "S_support",
+          "contract": "S",
+          "family": "glitch"
+        },
+        "event_in_span:double_pulse": {
+          "K": 4.302556767158241,
+          "alarm": 2.0502995734672926,
+          "n": 30,
+          "origin": "S_in_span",
+          "contract": "S",
+          "family": "double_pulse"
+        },
+        "event_in_span:oscillation": {
+          "K": 1.0081887378928835,
+          "alarm": 0.8257887196022055,
+          "n": 30,
+          "origin": "S_in_span",
+          "contract": "S",
+          "family": "oscillation"
+        },
+        "geometry:12ch": {
+          "K": 1.3980664165095005,
+          "alarm": 0.7792292459530724,
+          "n": 30,
+          "origin": "G",
+          "contract": "G",
+          "family": "12ch"
+        },
+        "geometry:3ch": {
+          "K": 1.426636072253649,
+          "alarm": 0.9335453867265069,
+          "n": 30,
+          "origin": "G",
+          "contract": "G",
+          "family": "3ch"
+        },
+        "sigma_cov:bandwidth_down": {
+          "K": 0.972598420475979,
+          "alarm": 0.6729720762752465,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "bandwidth_down"
+        },
+        "sigma_cov:corr_down": {
+          "K": 0.9592472042840168,
+          "alarm": 0.6098037476197994,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "corr_down"
+        },
+        "sigma_cov:corr_up": {
+          "K": 0.9844026296554448,
+          "alarm": 0.7574279458277632,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "corr_up"
+        },
+        "sigma_cov:line_pickup": {
+          "K": 0.9741227582000428,
+          "alarm": 0.6517812949408831,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "line_pickup"
+        },
+        "sigma_struct:channel_loss": {
+          "K": 1.2249292908199092,
+          "alarm": 0.7568974253783363,
+          "n": 30,
+          "origin": "N_struct",
+          "contract": "N",
+          "family": "channel_loss"
+        },
+        "sigma_struct:gain_drift": {
+          "K": 0.9941632239499536,
+          "alarm": 0.6660312043130078,
+          "n": 30,
+          "origin": "N_struct",
+          "contract": "N",
+          "family": "gain_drift"
+        },
+        "sigma_struct:timing_jitter": {
+          "K": 0.998098949895546,
+          "alarm": 0.4432369547259167,
+          "n": 30,
+          "origin": "N_struct",
+          "contract": "N",
+          "family": "timing_jitter"
+        }
+      },
+      "primary_all_cell": {
+        "auroc": 0.84375,
+        "n_pos": 4,
+        "n_neg": 8,
+        "undefined_reason": null,
+        "auprc": 0.7928571428571428,
+        "auprc_prevalence": 0.3333333333333333,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 12,
+        "ci_event_group_bootstrap": {
+          "point": 0.84375,
+          "low": 0.3948611111111111,
+          "high": 0.9440624999999999,
+          "n_boot_effective": 100,
+          "n_groups": 30,
+          "n_seeds": null,
+          "units": "event_group"
+        }
+      },
+      "matrix": {
+        "low_alarm_benign": {
+          "n": 8,
+          "weight": 8.0
+        },
+        "low_alarm_harmful": {
+          "n": 3,
+          "weight": 3.0
+        },
+        "strong_alarm_benign": {
+          "n": 0,
+          "weight": 0.0
+        },
+        "strong_alarm_harmful": {
+          "n": 1,
+          "weight": 1.0
+        },
+        "undefined": {
+          "n": 0,
+          "weight": 0.0
+        },
+        "alarm_threshold": 1.0
+      },
+      "missed_harm_at_budget": {
+        "missed_harm_rate": 0.75,
+        "n_harmful": 4,
+        "undefined_reason": null
+      },
+      "valid_rare_event_rejection": {
+        "valid_rare_rejection_rate": 0.0,
+        "n_valid_rare_benign": 2,
+        "undefined_reason": null
+      },
+      "secondary_conditional_triage": {
+        "auroc": null,
+        "n_pos": 1,
+        "n_neg": 0,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "conditional_harm_risk": 1.0,
+        "n_dropped_by_conditioning": 11,
+        "n_dropped_harmful": 3
+      },
+      "breakdown_by_contract": {
+        "G": {
+          "auroc": null,
+          "n_pos": 2,
+          "n_neg": 0,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 1.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 2
+        },
+        "N": {
+          "auroc": 0.8333333333333334,
+          "n_pos": 1,
+          "n_neg": 6,
+          "undefined_reason": null,
+          "auprc": 0.5,
+          "auprc_prevalence": 0.14285714285714285,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 7
+        },
+        "S": {
+          "auroc": 1.0,
+          "n_pos": 1,
+          "n_neg": 2,
+          "undefined_reason": null,
+          "auprc": 1.0,
+          "auprc_prevalence": 0.3333333333333333,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 3
+        }
+      },
+      "breakdown_by_origin": {
+        "G": {
+          "auroc": null,
+          "n_pos": 2,
+          "n_neg": 0,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 1.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 2
+        },
+        "N_cov": {
+          "auroc": null,
+          "n_pos": 0,
+          "n_neg": 4,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 0.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 4
+        },
+        "N_struct": {
+          "auroc": 1.0,
+          "n_pos": 1,
+          "n_neg": 2,
+          "undefined_reason": null,
+          "auprc": 1.0,
+          "auprc_prevalence": 0.3333333333333333,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 3
+        },
+        "S_in_span": {
+          "auroc": 1.0,
+          "n_pos": 1,
+          "n_neg": 1,
+          "undefined_reason": null,
+          "auprc": 1.0,
+          "auprc_prevalence": 0.5,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 2
+        },
+        "S_support": {
+          "auroc": null,
+          "n_pos": 0,
+          "n_neg": 1,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 0.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 1
+        }
+      },
+      "supporting_window_level": {
+        "auroc": 0.4191613062840178,
+        "n_pos": 188,
+        "n_neg": 172,
+        "undefined_reason": null
+      }
+    },
+    "layerwise": {
+      "alarm_threshold_per_window": 3.923019536273036,
+      "cells": {
+        "event:glitch": {
+          "K": 0.9832950541077372,
+          "alarm": 1.530177859074644,
+          "n": 30,
+          "origin": "S_support",
+          "contract": "S",
+          "family": "glitch"
+        },
+        "event_in_span:double_pulse": {
+          "K": 4.302556767158241,
+          "alarm": 1.5205797860974508,
+          "n": 30,
+          "origin": "S_in_span",
+          "contract": "S",
+          "family": "double_pulse"
+        },
+        "event_in_span:oscillation": {
+          "K": 1.0081887378928835,
+          "alarm": 1.0216426429604826,
+          "n": 30,
+          "origin": "S_in_span",
+          "contract": "S",
+          "family": "oscillation"
+        },
+        "geometry:12ch": {
+          "K": 1.3980664165095005,
+          "alarm": 0.7701157683475258,
+          "n": 30,
+          "origin": "G",
+          "contract": "G",
+          "family": "12ch"
+        },
+        "geometry:3ch": {
+          "K": 1.426636072253649,
+          "alarm": 1.3336618749859073,
+          "n": 30,
+          "origin": "G",
+          "contract": "G",
+          "family": "3ch"
+        },
+        "sigma_cov:bandwidth_down": {
+          "K": 0.972598420475979,
+          "alarm": 0.9316942089031558,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "bandwidth_down"
+        },
+        "sigma_cov:corr_down": {
+          "K": 0.9592472042840168,
+          "alarm": 0.6522147997026382,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "corr_down"
+        },
+        "sigma_cov:corr_up": {
+          "K": 0.9844026296554448,
+          "alarm": 1.138732599328304,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "corr_up"
+        },
+        "sigma_cov:line_pickup": {
+          "K": 0.9741227582000428,
+          "alarm": 0.8758351269898268,
+          "n": 30,
+          "origin": "N_cov",
+          "contract": "N",
+          "family": "line_pickup"
+        },
+        "sigma_struct:channel_loss": {
+          "K": 1.2249292908199092,
+          "alarm": 0.8176672299603944,
+          "n": 30,
+          "origin": "N_struct",
+          "contract": "N",
+          "family": "channel_loss"
+        },
+        "sigma_struct:gain_drift": {
+          "K": 0.9941632239499536,
+          "alarm": 0.9169649642450093,
+          "n": 30,
+          "origin": "N_struct",
+          "contract": "N",
+          "family": "gain_drift"
+        },
+        "sigma_struct:timing_jitter": {
+          "K": 0.998098949895546,
+          "alarm": 0.542858943199223,
+          "n": 30,
+          "origin": "N_struct",
+          "contract": "N",
+          "family": "timing_jitter"
+        }
+      },
+      "primary_all_cell": {
+        "auroc": 0.5625,
+        "n_pos": 4,
+        "n_neg": 8,
+        "undefined_reason": null,
+        "auprc": 0.475,
+        "auprc_prevalence": 0.3333333333333333,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 12,
+        "ci_event_group_bootstrap": {
+          "point": 0.5625,
+          "low": 0.2897222222222222,
+          "high": 0.8227272727272712,
+          "n_boot_effective": 100,
+          "n_groups": 30,
+          "n_seeds": null,
+          "units": "event_group"
+        }
+      },
+      "matrix": {
+        "low_alarm_benign": {
+          "n": 5,
+          "weight": 5.0
+        },
+        "low_alarm_harmful": {
+          "n": 2,
+          "weight": 2.0
+        },
+        "strong_alarm_benign": {
+          "n": 3,
+          "weight": 3.0
+        },
+        "strong_alarm_harmful": {
+          "n": 2,
+          "weight": 2.0
+        },
+        "undefined": {
+          "n": 0,
+          "weight": 0.0
+        },
+        "alarm_threshold": 1.0
+      },
+      "missed_harm_at_budget": {
+        "missed_harm_rate": 0.5,
+        "n_harmful": 4,
+        "undefined_reason": null
+      },
+      "valid_rare_event_rejection": {
+        "valid_rare_rejection_rate": 1.0,
+        "n_valid_rare_benign": 2,
+        "undefined_reason": null
+      },
+      "secondary_conditional_triage": {
+        "auroc": 0.6666666666666666,
+        "n_pos": 2,
+        "n_neg": 3,
+        "undefined_reason": null,
+        "conditional_harm_risk": 0.4,
+        "n_dropped_by_conditioning": 7,
+        "n_dropped_harmful": 2
+      },
+      "breakdown_by_contract": {
+        "G": {
+          "auroc": null,
+          "n_pos": 2,
+          "n_neg": 0,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 1.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 2
+        },
+        "N": {
+          "auroc": 0.3333333333333333,
+          "n_pos": 1,
+          "n_neg": 6,
+          "undefined_reason": null,
+          "auprc": 0.2,
+          "auprc_prevalence": 0.14285714285714285,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 7
+        },
+        "S": {
+          "auroc": 0.5,
+          "n_pos": 1,
+          "n_neg": 2,
+          "undefined_reason": null,
+          "auprc": 0.5,
+          "auprc_prevalence": 0.3333333333333333,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 3
+        }
+      },
+      "breakdown_by_origin": {
+        "G": {
+          "auroc": null,
+          "n_pos": 2,
+          "n_neg": 0,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 1.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 2
+        },
+        "N_cov": {
+          "auroc": null,
+          "n_pos": 0,
+          "n_neg": 4,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 0.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 4
+        },
+        "N_struct": {
+          "auroc": 0.5,
+          "n_pos": 1,
+          "n_neg": 2,
+          "undefined_reason": null,
+          "auprc": 0.5,
+          "auprc_prevalence": 0.3333333333333333,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 3
+        },
+        "S_in_span": {
+          "auroc": 1.0,
+          "n_pos": 1,
+          "n_neg": 1,
+          "undefined_reason": null,
+          "auprc": 1.0,
+          "auprc_prevalence": 0.5,
+          "auprc_undefined_reason": null,
+          "n_undefined": 0,
+          "n_cells": 2
+        },
+        "S_support": {
+          "auroc": null,
+          "n_pos": 0,
+          "n_neg": 1,
+          "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+          "auprc": null,
+          "auprc_prevalence": 0.0,
+          "auprc_undefined_reason": "one class is empty",
+          "n_undefined": 0,
+          "n_cells": 1
+        }
+      },
+      "supporting_window_level": {
+        "auroc": 0.4784450766947056,
+        "n_pos": 188,
+        "n_neg": 172,
+        "undefined_reason": null
+      }
+    }
+  },
+  "designed": {
+    "note": "constructed from the frozen head; a positive control, not transfer evidence. Realised consequence is measured, not predicted; linearisation error is reported.",
+    "skipped": [],
+    "euclidean": {
+      "output_null": {
+        "consequence_ratio_amp": 0.9999999999999998,
+        "consequence_ratio_targets": {
+          "amplitude": 0.9999999999999996,
+          "t0": 1.0000000000000004,
+          "tau_t": 1.0000000000000002
+        },
+        "alarm_euclid_mean": 2.9999999999999996,
+        "alarm_null_mahalanobis_mean": 7.383450182378951,
+        "linearization": {
+          "kind": "output_null",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "subspace_rank": 2,
+          "rel_err_dz": 1.7626086254801253e-15,
+          "rel_err_dy": 1.8006480497894165e-15,
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 4.585497228005034e-16,
+          "predicted_dy_norm": 4.601001048586186e-17
+        }
+      },
+      "output_aligned": {
+        "consequence_ratio_amp": 1.0410628862142421,
+        "consequence_ratio_targets": {
+          "amplitude": 1.0410628862142421,
+          "t0": 1.935837429485615,
+          "tau_t": 0.9778582133775631
+        },
+        "alarm_euclid_mean": 3.000000000000001,
+        "alarm_null_mahalanobis_mean": 31.241546653540436,
+        "linearization": {
+          "kind": "output_aligned",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "subspace_rank": 3,
+          "rel_err_dz": 1.4518393216346972e-15,
+          "rel_err_dy": 1.5983767514337379e-15,
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.24034889199971404,
+          "predicted_dy_norm": 0.24034889199971404
+        }
+      },
+      "random": {
+        "consequence_ratio_amp": 0.9802737696596244,
+        "consequence_ratio_targets": {
+          "amplitude": 0.9802737696596244,
+          "t0": 1.8650179231623594,
+          "tau_t": 1.032537197359332
+        },
+        "alarm_euclid_mean": 3.0000000000000004,
+        "alarm_null_mahalanobis_mean": 20.854653354182386,
+        "linearization": {
+          "kind": "random",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "subspace_rank": 5,
+          "rel_err_dz": 1.6172735575267725e-15,
+          "rel_err_dy": 1.1567912440179372e-15,
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.13484040722153787,
+          "predicted_dy_norm": 0.1348404072215379
+        }
+      }
+    },
+    "null_mahalanobis": {
+      "output_null": {
+        "consequence_ratio_amp": 1.0000000000000002,
+        "consequence_ratio_targets": {
+          "amplitude": 1.0000000000000002,
+          "t0": 0.9999999999999994,
+          "tau_t": 0.9999999999999998
+        },
+        "alarm_euclid_mean": 1.4169777135220203,
+        "alarm_null_mahalanobis_mean": 3.0000000000000084,
+        "linearization": {
+          "kind": "output_null",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "subspace_rank": 2,
+          "rel_err_dz": 2.4733025942348133e-15,
+          "rel_err_dy": 3.0067058321896774e-15,
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 4.638029849299627e-16,
+          "predicted_dy_norm": 2.265266629743839e-17
+        }
+      },
+      "output_aligned": {
+        "consequence_ratio_amp": 0.9892885440270753,
+        "consequence_ratio_targets": {
+          "amplitude": 0.9892885440270753,
+          "t0": 1.1056924265799235,
+          "tau_t": 0.9834579474819559
+        },
+        "alarm_euclid_mean": 0.4868618260654076,
+        "alarm_null_mahalanobis_mean": 2.999999999999983,
+        "linearization": {
+          "kind": "output_aligned",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "subspace_rank": 3,
+          "rel_err_dz": 5.5354681912833445e-15,
+          "rel_err_dy": 5.307803510836643e-15,
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.03436308778170247,
+          "predicted_dy_norm": 0.03436308778170254
+        }
+      },
+      "random": {
+        "consequence_ratio_amp": 1.0022683424884347,
+        "consequence_ratio_targets": {
+          "amplitude": 1.0022683424884347,
+          "t0": 1.0110934092631796,
+          "tau_t": 0.9992856652586534
+        },
+        "alarm_euclid_mean": 0.6586327260685445,
+        "alarm_null_mahalanobis_mean": 3.000000000000002,
+        "linearization": {
+          "kind": "random",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "subspace_rank": 5,
+          "rel_err_dz": 5.793989035167421e-15,
+          "rel_err_dy": 5.342576259768055e-15,
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.027573250967323656,
+          "predicted_dy_norm": 0.02757325096732362
+        }
+      }
+    }
+  },
+  "labels": {
+    "reference": {
+      "cell": "reference",
+      "origin": "clean",
+      "family": "reference",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "none",
+      "contract": "clean"
+    },
+    "sigma_cov:corr_up": {
+      "cell": "sigma_cov:corr_up",
+      "origin": "N_cov",
+      "family": "corr_up",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:corr_down": {
+      "cell": "sigma_cov:corr_down",
+      "origin": "N_cov",
+      "family": "corr_down",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:bandwidth_down": {
+      "cell": "sigma_cov:bandwidth_down",
+      "origin": "N_cov",
+      "family": "bandwidth_down",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:line_pickup": {
+      "cell": "sigma_cov:line_pickup",
+      "origin": "N_cov",
+      "family": "line_pickup",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_struct:gain_drift": {
+      "cell": "sigma_struct:gain_drift",
+      "origin": "N_struct",
+      "family": "gain_drift",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "sigma_struct:channel_loss": {
+      "cell": "sigma_struct:channel_loss",
+      "origin": "N_struct",
+      "family": "channel_loss",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "sigma_struct:timing_jitter": {
+      "cell": "sigma_struct:timing_jitter",
+      "origin": "N_struct",
+      "family": "timing_jitter",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "geometry:3ch": {
+      "cell": "geometry:3ch",
+      "origin": "G",
+      "family": "3ch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "geometry",
+      "contract": "G"
+    },
+    "geometry:12ch": {
+      "cell": "geometry:12ch",
+      "origin": "G",
+      "family": "12ch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "geometry",
+      "contract": "G"
+    },
+    "event:glitch": {
+      "cell": "event:glitch",
+      "origin": "S_support",
+      "family": "glitch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event",
+      "contract": "S"
+    },
+    "event_in_span:oscillation": {
+      "cell": "event_in_span:oscillation",
+      "origin": "S_in_span",
+      "family": "oscillation",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event_in_span",
+      "contract": "S"
+    },
+    "event_in_span:double_pulse": {
+      "cell": "event_in_span:double_pulse",
+      "origin": "S_in_span",
+      "family": "double_pulse",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event_in_span",
+      "contract": "S"
+    },
+    "designed:output_null": {
+      "cell": "designed:output_null",
+      "origin": "constructed",
+      "family": "output_null",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "designed",
+      "contract": "constructed"
+    },
+    "designed:output_aligned": {
+      "cell": "designed:output_aligned",
+      "origin": "constructed",
+      "family": "output_aligned",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "designed",
+      "contract": "constructed"
+    },
+    "designed:random": {
+      "cell": "designed:random",
+      "origin": "constructed",
+      "family": "random",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "designed",
+      "contract": "constructed"
+    }
+  }
+}

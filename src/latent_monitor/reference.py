@@ -7,8 +7,24 @@
 
 Four projectors, all from the frozen subject at the reference cell:
 
-    P_out / P_null   row space of J_o = ∂y/∂z and its complement
-    P_exc / P_unexc  eigenvectors of the pullback Fisher I = J_gᵀ Σ̂⁻¹ J_g above / below a rank threshold
+    P_out / P_null         row space of J_y = ∂y/∂z (the *task* map; physics-output units) and its complement
+    P_resolved / P_weak    eigenvectors of the measurement metric M_recon = J̃_gᵀ J̃_g above / below a
+                           rank threshold, where J̃_g = Σ̂^{-1/2} ∂g/∂z is the *whitened reconstruction*
+                           Jacobian ``Subject.jac_recon`` (so M_recon is the Gaussian Fisher information
+                           of z under Σ̂ — a standard result, see ``task_metric.py``)
+
+**Naming (16 Sep, M2).** ``P_resolved`` / ``P_weak`` separate representation
+directions the measurement resolves well from those it resolves weakly *at the
+reference point*. They say nothing by themselves about which directions the
+training distribution excited; that is a separate estimator
+(``latent_monitor.support``). The legacy attribute names ``P_exc`` / ``P_unexc``
+and ``fisher_rank`` are kept as aliases so the 6 Sep artifacts and tests still
+read; new code and reports use the new names.
+
+**Dimensions (M1).** M_recon lives on z and is unit-free (whitened residual per
+sample); the task metric M_task = J_yᵀ W_y J_y is a different object with W_y in
+physics-output units (``task_metric.TaskMetric``). ``J_yᵀ Σ⁻¹ J_y`` is not formed
+anywhere: Σ is a measurement-space covariance and J_y maps to outputs.
 
 plus the null distributions every later statistic is measured against —
 reference-vs-reference paired twins (independent noise realisations of the
@@ -70,14 +86,14 @@ class ReferenceCell:
     null_dz_cov: np.ndarray                 # (k, k)  covariance of ref-vs-ref twin Δz
     P_out: np.ndarray
     P_null: np.ndarray
-    P_exc: np.ndarray
-    P_unexc: np.ndarray
-    fisher_eigvals: np.ndarray
-    fisher_rank: int
+    P_exc: np.ndarray                       # legacy name for P_resolved (see module docstring)
+    P_unexc: np.ndarray                     # legacy name for P_weak
+    fisher_eigvals: np.ndarray              # eigenvalues of M_recon, descending
+    fisher_rank: int                        # legacy name for resolved_rank
     fisher_rank_threshold: float
     k_out: int
-    noise_z_var: np.ndarray                 # (k,) variance of z on noise-only records, per excited direction
-    exc_basis: np.ndarray                   # (k, k) columns = Fisher eigenvectors (excited first)
+    noise_z_var: np.ndarray                 # (k,) variance of z on noise-only records, per M_recon eigen-direction
+    exc_basis: np.ndarray                   # (k, k) columns = M_recon eigenvectors (well-resolved first)
     noise_residual_psd: np.ndarray          # (N//2+1,) whitened-residual PSD on noise records, channel-averaged
     noise_residual_chan_cov: np.ndarray     # (C, C) whitened-residual channel covariance on noise records
     null_stage: dict[str, dict[str, np.ndarray]]   # per hook: {"mean_std": (D,), "second_std": (D2,) or None}
@@ -98,6 +114,30 @@ class ReferenceCell:
     @property
     def latent_dim(self) -> int:
         return int(self.z_mean.shape[0])
+
+    # -- current names (M2); the dataclass fields keep the legacy spelling for old artifacts ----------
+    @property
+    def P_resolved(self) -> np.ndarray:
+        """Projector onto the directions M_recon resolves above the rank threshold."""
+        return self.P_exc
+
+    @property
+    def P_weak(self) -> np.ndarray:
+        """Projector onto the weakly resolved complement (rank-deficient directions of M_recon)."""
+        return self.P_unexc
+
+    @property
+    def resolved_rank(self) -> int:
+        return self.fisher_rank
+
+    @property
+    def M_recon(self) -> np.ndarray:
+        """Measurement metric on z: J̃_gᵀ J̃_g, reconstructed from the stored eigen-decomposition."""
+        return (self.exc_basis * self.fisher_eigvals) @ self.exc_basis.T
+
+    @property
+    def resolved_basis(self) -> np.ndarray:
+        return self.exc_basis
 
     # -- Mahalanobis in the reference z-metric (abstention) --------------
     def mahalanobis(self, z: np.ndarray) -> np.ndarray:
@@ -163,7 +203,7 @@ def fit_reference(
     P_out = _projector(Vt[:k_out].T)
     P_null = np.eye(k) - P_out
     J_g = np.asarray(subject.jac_recon(z_mean, geometry), dtype=float)    # (C·N, k), already whitened
-    fisher = J_g.T @ J_g
+    fisher = J_g.T @ J_g                                                  # M_recon (Gaussian Fisher info of z under Σ̂)
     ev, V = np.linalg.eigh(fisher)
     order = np.argsort(ev)[::-1]
     ev, V = ev[order], V[:, order]

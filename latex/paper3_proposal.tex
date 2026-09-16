@@ -35,47 +35,44 @@
 Measurement Geometry, Training Support, and Consequence-Aware Diagnosis}\\[-0.12em]
 \normalsize Collaboration concept note (formerly \emph{Consequence-aware failure diagnostics for learned particle-reconstruction representations})}
 \author{Dowling Wong}
-\date{3 September 2026}
+\date{16 September 2026 (two-claim revision)}
 
 \begin{document}
 \maketitle
 \vspace{-1.9em}
 
 \begin{abstract}
-What determines which representation a detector model learns, and what does
-that representation let a physicist reconstruct? For a calibrated readout the
-representation is determined by three things --- the metric the measurement
-fixes, the class the architecture fixes, and the latent support the training
-excites~\cite{paper1}. A frozen model therefore carries a contract, and its
-failures are the determinants moving: the realised covariance departing from
-the assumed one, or clean physics arriving outside the excited support. We
-turn that into a testable programme on frozen public models. A monitor on a
-deployed reconstruction model must answer two questions that average accuracy
-does not: which declared mechanism caused an alarm, and what scientific
-consequence followed. We propose a replay-based diagnosis of frozen
-representations under controlled interventions, organised as three tiers with
-one direction of travel --- mechanism, realism, real data. A controlled
-waveform simulator in which both the assumed covariance $\hat\Sigma$ entering
-the training objective and the realized covariance $\Sigma$ are known supplies
-the mechanism tier: there we test the prediction that an unweighted
-representation displacement is the wrong-metric statistic --- the
-consequence-relevant quantity is displacement in the $\Sigma^{-1}$-whitened
-metric pulled back through the output Jacobian --- using perturbation families
-that dissociate alarm from consequence by construction. A paired
-neutrino-telescope production (one seeded injection replayed through two
-detector geometries, with content-matched acquisition/physics cells and
-undeclared abstention families) supplies the realism tier, testing the
-mechanism tier's failure predictions out of sample on a frozen public model.
-The public TIDMAD benchmark supplies the real-data check: one compact
-transformer trained under two covariance assumptions on identical data.
-Layerwise evidence is compared against input tests, MMD, classifier two-sample
-tests, embedding distance, uncertainty, and output-only monitoring at a
-matched false-alert budget, with abstention on families the study never
-declared. On every tier, linear probes from the hooked representation to the
-physical variables the tier defines ask whether the representation is
-organised by physics and whether that organisation survives each failure; the
-consequence is reported in physical units --- amplitude, angular resolution,
-exclusion limit --- on three physically different measurement systems.
+A frozen reconstruction model deployed on a physics detector carries a
+contract: an assumed noise covariance and a training distribution. When either
+moves, a monitor must say which declared mechanism moved and whether the
+physics result is harmed. This note proposes a study that makes exactly two
+claims and tests both against a strong, committed generic monitor with
+identical alarm-time information. \emph{Claim 1:} on declared,
+alarm-time-observable interventions, statistics of a model's intermediate
+representations add acquisition-versus-valid-physics attribution information
+beyond a generic arm that already holds input quality, outputs, uncertainty,
+the final embedding, noise-only quality statistics and the same
+reference-distance transforms --- measured as a paired macro-F1 difference on
+a hard, signature-matched evaluation set with capacity-matched and hook-drop
+controls, and with abstention on undeclared families evaluated empirically.
+\emph{Claim 2:} a predeclared task-sensitive representation score, the length
+of a window's deviation in the metric $J_y^{\top}W_yJ_y$ pulled back from
+declared physics outputs, ranks scientific harm on held-out physical
+intervention cells better than the committed generic score --- measured as a
+paired AUROC difference for $K\ge\kappa_m$ with the cell as the resampling
+unit. The measurement metric $\tilde J_g^{\top}\tilde J_g$ (the Gaussian
+Fisher information under the assumed covariance) and the task metric are kept
+apart; resolvability is not read as training support, which is estimated and
+validated separately; acquisition and support signatures are stated as
+conditional hypotheses that the development table already partly contradicts.
+The evidence ladder is deliberately short: a controlled waveform simulator in
+which the assumed and realized covariance are both known, run on a trained
+nonlinear subject, plus one independent transfer arm selected by readiness and
+licence gates; TIDMAD is an external check if its physical endpoint is
+defensible. A negative result --- intermediate hooks do not justify their
+cost --- is reportable if the positive controls, precision and baseline
+design pass. No result in this note is claimed; the protocol prototype, its
+tests and a non-citable development smoke exist, and no protocol is frozen.
 \end{abstract}
 
 \section{Gap and contribution}
@@ -141,6 +138,33 @@ here, on a frozen public model. The artifact is a
 reproducible experiment suite---configurations, adapters, hooks, replay
 scripts, and reports---not a maintained software product.
 
+\textbf{Contribution, and what would refute it.} Relative to the shift
+literature the study adds a setting and two paired tests, not a monitor.
+Failing Loudly~\cite{rabanser2019} established that two-sample tests on a
+pre-trained classifier's representation detect shift well and that a domain
+classifier characterizes it; shift malignancy there is classification
+accuracy. Zhang et al.~\cite{zhang2023} attribute a performance change to
+shifted mechanisms with labelled target data. Unlabelled performance
+estimation~\cite{guillory2021,garg2022} predicts a classifier's aggregate
+target accuracy from confidences under stated assumptions on the shift.
+Conformal methods~\cite{angelopoulos2021} give marginal coverage under
+exchangeability and no guarantee against arbitrary unknown shifts. What this
+study can establish beyond these is narrow and checkable: on a frozen physics
+reconstruction model under declared interventions with a known assumed
+covariance, (i)~whether strictly internal representation statistics add
+attribution information beyond a generic arm holding the same alarm-time
+side information and the same distance transforms (Claim~1), and
+(ii)~whether a task-sensitive representation score orders held-out
+intervention cells by a physics loss against evaluation-only truth better
+than a committed generic score, including harm that arrives without a strong
+alarm (Claim~2). Claim~1 is refuted by equivalence or detriment on the hard
+contrasts, or by a gain the ablations assign to input/output transformations,
+noise-only records, feature count or event identity; Claim~2 by a paired
+interval that includes zero without meeting the equivalence rule, by
+systematic low-alarm/high-harm failures, or by a gain that vanishes on
+held-out physical families. We do not claim a first or an exhaustive search;
+the components are established and cited as such.
+
 \textbf{Position relative to learned-geometry reconstruction.} The subjects
 of this study are models that \emph{learn} the geometry of the measurement:
 distance-weighted graph networks that place every sensor in a learned
@@ -152,11 +176,12 @@ representation can resolve once the acquisition or the physics moves; recent
 benchmarks of physics foundation models report regime-dependent scores across
 distribution shifts without a mechanism~\cite{fmbench}. The learned
 resolvability weight of object condensation is the closest relative of the
-Fisher-rank diagnostic of Section~\ref{sec:mechanism}, which computes the same
-quantity for a \emph{frozen} model from its Jacobian and the assumed
-covariance, with no training signal. Nothing here proposes a new
-reconstruction architecture; the contribution is the contract, the mechanism,
-and the designed data on which the contract can be falsified.
+resolvability diagnostic of Section~\ref{sec:mechanism} (the rank of
+$M_{\mathrm{recon}}$), which computes a related quantity for a \emph{frozen}
+model from its reconstruction Jacobian and the assumed covariance, with no
+training signal. Nothing here proposes a new reconstruction architecture; the
+contribution is the two paired tests and the designed data on which they can
+fail.
 
 \textbf{Identifiability limit.} Diagonalizing a covariance yields decorrelated
 statistical modes, not labeled physical sources: $\Sigma=\Sigma_1+\Sigma_2$
@@ -199,83 +224,94 @@ S a prediction rather than a label. That distinction is what matters operational
 physically valid events, whereas rejecting N removes measurements that violate
 the declared acquisition contract.
 
-\section{Mechanism: what a frozen representation can resolve}
+\section{Two metrics, and what a frozen representation can resolve}
 \label{sec:mechanism}
 
-Write the declared forward model as $x=g(z)+n$, $n\sim\mathcal N(0,\Sigma)$,
-with $z\in\mathbb R^m$ the physical latent variables (energy, direction,
-vertex, multiplicity, \ldots) and $J_g(z)=\partial g/\partial z$. Three
-first-order statements --- the first two are Propositions~7.2--7.3 of the
-companion paper~\cite{paper1}, restated here in the form the monitors use;
-the third is this study's --- each decided on the controlled tier where $g$,
-$\Sigma$ and $z$ are all known, turn the N and S labels into predictions.
+Write the declared forward model as $x=g(r)+n$, $n\sim\mathcal N(0,\Sigma)$,
+where $x\in\mathbb R^{CN}$ is the sampled measurement, $r\in\mathbb R^{d}$ the
+representation being monitored (for the analytic subject, the pooled latent
+$z$; for a network, any hooked stage), $g$ the reconstruction back into
+measurement space and $y=h(r)\in\mathbb R^{t}$ the map to the declared physics
+outputs (amplitude, arrival time, shape). Two pullback metrics live on $r$, and
+they are different objects.
 
-\textbf{Consequence is distance in the pullback metric.} For fixed $\Sigma$
-the Fisher information of $z$ is exactly
-$I(z)=J_g(z)^{\!\top}\Sigma^{-1}J_g(z)$: the Gaussian likelihood pulls the
-$\Sigma^{-1}$ inner product back onto latent space, and
-$\delta z^{\top}I(z)\,\delta z$ measures a latent perturbation in
-detector-distinguishability units --- how far it moves the observation relative
-to what the noise can resolve~\cite{paper1}. The same construction through a
-frozen model's output map $h$ gives $J_h^{\top}\Sigma^{-1}J_h$ on any
-intermediate representation. An unweighted Euclidean displacement in
-representation space is therefore the wrong-metric statistic; the
-consequence-relevant alarm is the displacement in the $\Sigma^{-1}$-whitened
-metric pulled back through the output Jacobian (the \emph{pullback-whitened}
-statistic of Tier~1), and its $\Sigma$-free surrogate is the projection of the
-displacement onto the leading right-singular directions of the output Jacobian
-(the \emph{Jacobian-projected} statistic used on Tier~2). The output-null and
-output-aligned arms of Section~\ref{sec:claims} are built from the same
-Jacobian, which is why their predicted sign is a consequence of this metric
-and not a free parameter.
+\textbf{Measurement metric.} Under the assumed covariance $\hat\Sigma$ the
+Fisher information of $r$ is $I(r)=J_g^{\top}\hat\Sigma^{-1}J_g$ with
+$J_g=\partial g/\partial r$ --- the standard Gaussian-model
+result~\cite{kay1993}; in whitened coordinates
+$\tilde J_g=\hat\Sigma^{-1/2}J_g$ it is $M_{\mathrm{recon}}=\tilde
+J_g^{\top}\tilde J_g$, unit-free (whitened residual per sample), local to the
+reference point, and dependent on the \emph{assumed} covariance --- the
+operational one --- never the realized $\Sigma$. Its eigen-directions above a
+rank threshold are the directions the measurement \emph{resolves}; those below
+are weakly resolved and, where $\operatorname{rank}M_{\mathrm{recon}}<d$, not
+locally identifiable at all. That is a local identifiability statement. It is
+not a statement about which directions the training distribution excited, and
+this paper no longer reads it as one.
 
-\textbf{Support shift lives in the unexcited tangent complement.} Training
-varies only the latent coordinates $S\subseteq\{1,\dots,m\}$ that the
-simulation or calibration procedure excites. In the population limit the
-reconstruction objective supplies first-order identifying information only
-along $T_S(z)=\operatorname{span}\{\Sigma^{-1/2}\partial g/\partial z_j : j\in S\}$;
-the complementary directions are never tested by the loss --- exactly in the
-linear case, and locally for nonlinear $g$ by the same Jacobian argument.
-Whatever the frozen model does along $T_S^{\perp}$ was selected by its
-architecture and initialization, not by the data. A support shift --- clean
-events whose latent coordinates move into strata the training never excited
---- therefore produces a whitened observation displacement
-$\Sigma^{-1/2}\big(g(z')-g(z)\big)$ whose leading component lies in
-$T_S^{\perp}$, where the model's Jacobian carries no trained sensitivity. Where
-$\operatorname{rank} I(z)<m$ the latent variables are not even locally
-identifiable at $z$, for any decoder capacity; strata in which this rank drops
-are declared abstention regions, not attribution failures.
+\textbf{Task metric.} With $J_y=\partial y/\partial r$ and a declared
+positive semi-definite weight $W_y$ in physics-output units (a diagonal of
+inverse squared resolution requirements, or a one-hot selecting the
+consequence target), $M_{\mathrm{task}}=J_y^{\top}W_yJ_y$ measures how far a
+representation displacement moves the declared outputs. $\Sigma$ does not
+enter: $J_y$ maps to outputs, not to measurements, so an expression of the
+form $J_y^{\top}\Sigma^{-1}J_y$ is dimensionally invalid and is not used.
+The task-sensitive score of Claim~2 is the length
+$\|r-\bar r\|_{M_{\mathrm{task}}}$ of a window's deviation from the reference
+mean, standardized on clean windows. Neither metric measures realized
+scientific harm; Claim~2 tests that connection empirically.
 
-\textbf{Acquisition shift lives in the excited span.} An acquisition violation
-changes the noise, $\Sigma\to\Sigma'$ or $\Sigma+\Sigma_{\mathrm{art}}$, and
-leaves $g$ unchanged. Its signature is a whitened residual whose per-direction
-variance departs from unity by the spectrum of $\hat\Sigma^{-1}\Sigma'$, spread
-over the directions the training did excite, because that is where the
-encoder's assumed $\hat\Sigma$ was doing work. This is the mechanistic
-asymmetry the monitors are designed to read: N moves the residual \emph{within}
-$T_S$; S moves the representation \emph{along} $T_S^{\perp}$. A generic
-input-shift statistic records only that something moved.
+\textbf{Training support is estimated, not inferred from rank.} Whether a
+window lies where the training distribution placed mass is estimated by a
+separate score on the reference representation --- a shrinkage Mahalanobis
+distance combined with a $k$-nearest-neighbour distance, each standardized by
+its clean reference quantile --- validated before use on constructed
+in-support and out-of-support controls, and used only when that control
+passes a declared floor. Valid rare physics can therefore be
+\emph{in-support-but-rare} or \emph{outside estimated support}; the
+development table already contains both kinds (Section~\ref{sec:testbeds}).
 
-\textbf{Layerwise monitors.} For stage maps $r_{\ell+1}=\phi_\ell(r_\ell)$ with
-Jacobian $A_\ell(x)=\partial\phi_\ell/\partial r_\ell$, let $Q_{\ell,k}(x)$ be
-an orthonormal basis of the top-$k$ right-singular vectors of $A_\ell(x)$. Two
-gauge-safe statistics are recorded per stage: the dominant-subspace alignment
-$a_{\ell,k}(x,x')=k^{-1}\|Q_{\ell,k}(x)^{\top}Q_{\ell,k}(x')\|_F^{2}$, equal to
-one for identical subspaces and decreasing as they rotate, reported within and
-across event strata; and, for each declared factor $h$, a contrastive
-direction $v_{\ell,h}\propto\mathbb E[r_\ell\mid h{+}\Delta h]-\mathbb E[r_\ell\mid h]$
-built from matched interventions, whose alignment with the clean-stratum
-dominant subspace is the attribution feature. Both depend on subspaces and
-input--output sensitivities, never on raw coordinates, so they are invariant
-under the reparameterizations a trained network is free to choose. Together
-they are the layerwise sensitivity profile of C2. The prediction frozen on
-Tier~1 before any Tier-2 run is that N-family cells rotate $Q_{\ell,k}$ at the
-stages nearest the input and place $v_{\ell,\mathrm N}$ inside the clean
-dominant subspace, whereas S-family cells leave early-stage alignment near one
-and place $v_{\ell,\mathrm S}$ outside it. Activation interventions
-$r_\ell\mapsto r_\ell+\alpha v_{\ell,h}$ then test whether a candidate
-direction causally moves the intended physics coordinate, which is the
-patching check that precedes any repair experiment.
+\textbf{Conditional signatures, not a dichotomy.} The earlier reading that
+acquisition shift stays in the excited span while support shift lives in its
+complement is contradicted by the development table: gain drift, channel loss
+and timing jitter --- acquisition changes by contract --- produce
+representation shifts with out-of-span fractions near one, and in-span rare
+physics moves the representation a great deal while leaving every
+noise-only statistic at its reference. The mechanism section therefore states
+conditional signatures, each a hypothesis the attribution arms test:
+(i)~a covariance-only acquisition change ($\hat\Sigma\neq\Sigma$, $g$
+unchanged) changes noise-only residual statistics --- whitened variance,
+residual spectrum, residual channel correlation on random-trigger records ---
+without a consistent representation mean shift; (ii)~a structural acquisition
+change (gain, channel loss, jitter) can produce both a representation shift
+and a residual shift; (iii)~valid rare physics leaves the noise-only
+statistics at their reference and moves the representation either inside the
+resolved span (head-limited) or outside estimated support; (iv)~origin and
+harm are separate axes. The signatures do not prove causal origin outside the
+declared intervention design; the classifier of Claim~1 tests whether their
+collection, computed from intermediate hooks, adds information beyond the
+generic arm that already sees (i)--(iii) at the input, output and final
+embedding.
+
+\textbf{Invariance, stated exactly.} Every reported statistic is labelled with
+the group under which it is invariant. Reference Mahalanobis distances with
+shrinkage are invariant to orthogonal maps and isotropic rescaling of a hook,
+not to shear; energy splits in reference projectors are invariant to
+orthogonal maps and isotropic scale; the task length is a pullback and is
+invariant to any invertible reparameterization under which $J_y$ transforms
+covariantly. Singular subspaces of stage Jacobians are invariant to orthogonal
+basis changes only. Each statement is a unit test with an orthogonal, a
+scaling and a shear control; where a dependence exists it is reported as a
+limitation, not hidden behind ``gauge-safe''.
+
+\textbf{Companion-paper dependency, bounded.} The companion
+preprint~\cite{paper1} develops the covariance-weighted linear classes and
+the excited-support argument. Nothing central here rests on it: the
+measurement metric is the textbook Fisher information~\cite{kay1993}, the
+task metric is defined above, and the support and signature statements are
+empirical hypotheses tested by this study. Where the companion result is
+cited it is cited as a preprint, with its proposition numbering left
+unstated until the posted version is fixed.
 
 \begin{figure}[!t]
 \centering
@@ -291,12 +327,12 @@ patching check that precedes any repair experiment.
   \node[sub, right=10pt of rL] (h) {output $h$};
   \draw[arr] (x)--(r1); \draw[arr] (r1)--(r2); \draw[arr] (r2)--(rL); \draw[arr] (rL)--(h);
   \node[draw, dashed, rounded corners=2pt, inner sep=3pt, fit=(r1)(rL), label={[font=\scriptsize]above:frozen subject, hooked stages}] (frz) {};
-  \node[mon, below=9pt of r1, xshift=-8pt] (a) {$a_{\ell,k}$\\ alignment};
-  \node[mon, right=6pt of a] (v) {$v_{\ell,h}$\\ contrast};
-  \node[mon, right=6pt of v] (pb) {$J_h^{\top}\Sigma^{-1}J_h$\\ pullback};
-  \node[mon, right=6pt of pb] (fr) {rank $I(z)$\\ Fisher};
+  \node[mon, below=9pt of r1, xshift=-8pt] (a) {hook\\ distances};
+  \node[mon, right=6pt of a] (v) {support\\ novelty};
+  \node[mon, right=6pt of v] (pb) {$J_y^{\top}W_yJ_y$\\ task metric};
+  \node[mon, right=6pt of pb] (fr) {$\tilde J_g^{\top}\tilde J_g$\\ resolvability};
   \draw[arr] (r1.south) -- (a.north); \draw[arr] (rL.south) -- (v.north);
-  \draw[arr] (h.south) -- (pb.north); \draw[arr] (h.south) -- (fr.north);
+  \draw[arr] (h.south) -- (pb.north); \draw[arr] (rL.south) -- (fr.north);
   \node[dec, below=9pt of v, xshift=-4pt] (alarm) {alarm $A$};
   \node[dec, right=6pt of alarm] (attr) {attribute N $\mid$ S};
   \node[dec, right=6pt of attr] (abst) {abstain};
@@ -307,126 +343,151 @@ patching check that precedes any repair experiment.
   \draw[arr, dashed] (attr.east) -- (abst.west);
 \end{tikzpicture}
 \vspace{-0.4em}
-\caption{Monitor stack on a frozen subject. Hooked stages feed two gauge-safe
-layerwise statistics (alignment $a_{\ell,k}$, contrastive direction
-$v_{\ell,h}$); the output map feeds the pullback metric and the Fisher rank.
-Alarm, N/S attribution, abstention, and the consequence measure $K$ are
-separate endpoints with separate false-alert budgets, and every arrow is a
-pre-registered prediction on Tier~1 before Tier~2 runs.}
+\caption{Monitor stack on a frozen subject. Hooked stages feed the
+intermediate-hook statistics (reference distances of pooled stage means and
+second moments, reference principal coordinates); the output map feeds the
+task metric $M_{\mathrm{task}}$ and, through the reconstruction, the
+measurement metric $M_{\mathrm{recon}}$. Alarm, N/S attribution, abstention
+and the harm measure $K$ are separate endpoints; abstention is a support
+novelty with a clean-window conformal threshold.}
 \label{fig:stack}
 \vspace{-0.6em}
 \end{figure}
 
-\section{Claims}
+\section{Two claims}
 \label{sec:claims}
 
-\textbf{C0---Physical-variable organisation.} On every tier, ridge probes
-from each hooked representation to the physical variables that tier defines
-(Tier~1: amplitude, rise and decay time, the planted latent; Tier~2: energy,
-zenith, azimuth, vertex; Tier~3: the injected amplitude) are fitted on clean
-training windows and scored on held-out events; per variable we report probe
-$R^2$ and the effective number of representation axes it occupies. The
-determinants predict the pattern: $R^2$ is high only for variables whose
-directions lie in the excited span; N-family cells degrade the probes of
-excited variables while their axes stay put; S-family cells expose variables
-whose probes were never there. C0 is the Panda-style probe~\cite{panda2}
-carried into the contract, and it is the endpoint that says whether ``the
-latent space contains physics'' is a property of the recipe or a consequence
-of the determinants.
+The study makes exactly two primary scientific claims, each with one
+predeclared paired estimand. Everything else in this note --- detection power,
+monitoring cost, physical-variable probes, the designed perturbation
+controls, resolvability and patching analyses --- is a supporting analysis or
+a positive control, reported where useful and never numbered as a claim.
 
-\textbf{C1---Detection.} At a 1\% false-alert rate on nominal, non-overlapping
-windows, the best monitoring signature detects at least 80\% of held-out abrupt
-and gradual N/S shifts within five windows, and is non-inferior to the
-strongest eligible baseline by a five-point power margin. Delay is primary in
-\emph{windows}.
+\textbf{Claim 1 --- incremental attribution value.} On declared,
+alarm-time-observable interventions, do intermediate representations improve
+acquisition-versus-valid-physics attribution beyond a strong generic monitor
+that already receives every operational input-quality, output, uncertainty,
+final-embedding and noise-only feature \emph{and the same reference-distance
+transforms}? The estimand is the paired difference on a frozen \emph{hard}
+evaluation set of N and S windows with overlapping generic signatures,
+\[
+\Delta\mathrm{F1}_{\mathrm{attr}}=\mathrm{F1}(\texttt{full\_intermediate})-\mathrm{F1}(\texttt{generic\_rich}),
+\]
+macro-F1 over $\{$N,S$\}$,
+where \texttt{generic\_rich} is the committed generic arm and
+\texttt{full\_intermediate} adds only information genuinely absent from it:
+statistics of strictly internal hooks, with no whitened-input, final-embedding,
+pre-output or output duplicate. Controls: a generic arm with matched feature
+count (a quadratic expansion of its own scalars), hook-drop arms, and the
+internal hooks alone. Provisional reading, unfrozen until justified against
+achievable precision: benefit needs a 95\% interval above zero and a point
+estimate of at least $0.10$; equivalence needs the whole interval inside
+$\pm0.05$; a set below a declared minimum size yields no reading. Required
+supporting results: inclusive and hard-matched results with retained
+fractions; confusion matrices; family and held-out-severity results;
+noise-only and capacity ablations; operational versus privileged variants;
+selective risk and retained coverage under abstention; and a joint operational
+table over clean, N, S, mixture and unknown windows, so that a good
+conditional N/S classifier is not mistaken for a deployed decision rule.
+\emph{Refutation:} equivalence or detriment on the hard contrasts, or a gain
+attributable to extra input/output transformations, noise-only records,
+feature count, event identity or unavailable side information.
 
-\textbf{C2---Attribution with abstention.} Two endpoint families are
-co-primary. The operational family is macro-F1 over $\{$N,S$\}$ on held-out
-cases, with N+S mixtures scored by multi-label F1. The mechanism family is
-standardized displacement, neighbour retention, subspace principal angle, and
-the layerwise sensitivity profile, each normalized by clean within-stratum
-dispersion.
-
-A split-conformal nonconformity score~\cite{angelopoulos2021} is used to
-\emph{abstain} on cases that do not resemble the declared training families.
-Unseen-family detection is evaluated by AUROC, while attribution quality under
-abstention is reported through selective risk and macro-F1 as functions of
-retained coverage~\cite{geifman2017}. The selective endpoint is risk--coverage
-AUC, with N/S macro-F1 at $80\%$ retained coverage reported alongside it.
-Detection of the unknown and attribution among the known are thus not scored as
-if they were the same quantity.
-
-The paired difference $\Delta\mathrm{F1}$ between the full layerwise and
-all-generic arms is reported with a 95\% confidence interval, and read three
-ways. A practically meaningful benefit requires the interval to exclude zero
-\emph{and} the point estimate to reach $0.10$ macro-F1; equivalence is supported
-if the interval lies within a predeclared $\pm0.05$ margin; otherwise the result
-is inconclusive. This lets a strong generic baseline produce a meaningful
-negative result --- internal hooks may not justify their cost.
-A mechanism metric is promoted from development to the frozen confirmatory set
-only if it responds monotonically to the positive-control severity and adds
-separation beyond the generic arm; otherwise it remains descriptive.
-
-\textbf{C3---Cost.} Ten-percent event sampling plus fixed-size sketches yields
-p95 replay-path latency overhead $<10\%$, $\geq10\times$ less representation
-storage, and $\leq5$ points of power or F1 loss relative to full capture.
-
-\textbf{C4---Is an alarm informative about scientific consequence?} Let $A$
-be the monitor's alarm magnitude and $K$ the
-downstream scientific loss for the same intervention cell. High consequence is
-$K\geq\kappa_m$, where $\kappa_m$ is a testbed-specific scientific tolerance
-frozen before evaluation --- provisionally a 10\% degradation for the waveform
-amplitude task, and for angular or clustering metrics a physically meaningful
-change in resolution, efficiency, purity, or ARI rather than a generic
-percentage.
+\textbf{Claim 2 --- incremental harm ranking.} Does a predeclared
+task-sensitive representation score rank scientific harm better than the
+committed generic score on held-out, physically generated intervention
+cells? With $K$ an independent physical endpoint (amplitude error against
+evaluation-only truth on the waveform tier; angular error on a
+neutrino-telescope subject), harm $K\ge\kappa_m$, and both scores fixed
+without evaluation labels,
+\[
+\Delta\mathrm{AUROC}_{\mathrm{harm}}=A_{K\ge\kappa_m}(\text{task})-A_{K\ge\kappa_m}(\text{generic}),
+\]
+with $A_{K\ge\kappa_m}(\cdot)$ the AUROC of a score for harm over all
+held-out cells under a frozen cell weighting. The generic score is
+committed in advance as the maximum of clean-calibrated reference distances of
+the whitened input, the outputs and the final embedding; the task-sensitive
+score is the clean-calibrated task length of Section~\ref{sec:mechanism}.
+Selecting the better of several generic scores after evaluation is
+prohibited. The interval resamples the unit the claim generalizes over ---
+the intervention cell --- with event groups nested inside and model seeds as
+declared; with too few cells the interval is reported as descriptive and no
+confirmatory inference is made. Required supporting results: both absolute
+AUROCs, AUPRC with prevalence, the four alarm--harm quadrants with counts at a
+cell-level threshold calibrated on clean windows, the missed-harm rate at the
+alert budget, false rejection of benign valid-rare cells, family and severity
+breakdowns; the conditional strong-alarm triage is secondary and reports how
+many cells the conditioning dropped. $\kappa_m$ must be declared from a
+scientific requirement before evaluation; it is \emph{pending} on every arm,
+development runs use a provisional 10\% amplitude degradation and say so, and
+the confirmatory runner refuses while any $\kappa_m$ is pending or any
+freeze, environment, data or model hash is missing. \emph{Refutation:} a
+paired interval including zero without meeting a predeclared equivalence
+rule, systematic low-alarm/high-harm failures, or a gain that disappears on
+held-out physical families.
 
 \begin{center}
 \scriptsize
-\captionof{table}{C4 alarm--consequence matrix and endpoints.}
+\captionof{table}{Claim 2: alarm--harm quadrants and endpoints (cell level).}
 \begin{tabularx}{\columnwidth}{@{}p{0.62in}YY@{}}
 \toprule
 \mbox{} & $K<\kappa_m$ & $K\geq\kappa_m$ \\
 \midrule
-Low alarm & quiet/benign & missed consequence \\
-Strong alarm & harmless alarm & detected consequence \\
+Low alarm & quiet/benign & missed harm \\
+Strong alarm & harmless alarm & detected harm \\
 \midrule
-Endpoints & \multicolumn{2}{Y}{Primary: among strong-alarm cells,
-AUROC/AUPRC for $K\geq\kappa_m$ and conditional high-consequence risk; also
-the low-alarm/high-consequence rate. Secondary: within-family $\rho(A,K)$ and
-the high-alarm/low-consequence rate.} \\
+\multicolumn{3}{@{}p{\columnwidth}@{}}{\textbf{Primary:} paired
+$\Delta\mathrm{AUROC}_{\mathrm{harm}}$ over all held-out cells, cell-outer
+resampling. \textbf{Supporting:} absolute AUROCs; AUPRC with prevalence;
+missed-harm rate at the budget; benign valid-rare cell rejection (and the
+window-level estimator); breakdowns; conditional strong-alarm triage with the
+number of cells dropped. All four quadrants are reported with counts.} \\
 \bottomrule
 \end{tabularx}
 \label{tab:c4}
 \vspace{-0.3em}
 \end{center}
 
-The \emph{controlled simulator} decides this, because the generator supplies
-both the assumed $\hat\Sigma$ used by the encoder and the realized $\Sigma$,
-permitting a controlled test of whether alarms correspond to degradation in the
-correct likelihood-weighted residual. The public TIDMAD score is a development
-consequence only: its authors state it lacks direct relevance to fundamental
-science, so the TIDMAD arm's confirmatory consequence is a relative
-exclusion-limit comparison on a frozen science-file subset. C4 is primary on
-the waveform track and secondary on the point-cloud testbed, where consequence
-is downstream reconstruction error and no exact covariance exists. We state
-that asymmetry rather than implying symmetric coverage.
+\textbf{Supporting analyses.} \emph{Detection}: power at a 1\% false-alert
+rate on non-overlapping clean windows and delay in windows, with a binomial
+interval on the realized rate --- a hundred clean windows resolve 1\% in
+one-percent steps only, so calibration counts are an output of a development
+precision study. \emph{Cost}: latency and storage of sampling and sketching
+against full capture, measured on a named machine. \emph{Probes}: ridge
+probes from hooked representations to the tier's physical variables, reported
+descriptively; probe accuracy is never read as a physical axis.
+\emph{Designed controls}: output-null, output-aligned, random and
+task-specific aligned/null families, constructed from the frozen head and
+therefore positive controls for any monitor built from that head; exact only
+for the tied linear subject, refused for nonlinear subjects until a
+constrained local inverse with an input-validity check exists; norm matched in
+the alarm metric being challenged; realized physical loss reported per
+output, with the local-linear error. \emph{Resolvability and patching}: the
+rank of $M_{\mathrm{recon}}$ and activation patching are mechanistic
+diagnostics; uniform recovery at every stage, which the linear subject
+shows, is not localization.
 
-\textbf{Dissociation design.} Because alarm magnitude and consequence are both
-monotone in intervention severity, a pooled alarm--consequence correlation is
-mechanically positive and evidentially empty. C4 is therefore evaluated within
-severity strata, and the design includes two perturbation families that
-decouple the quantities by construction: an \emph{output-null} arm (latent
-displacement along the local output Jacobian's null space; large alarm,
-$\approx$\,zero consequence) and a norm-matched \emph{output-aligned} arm
-(same displacement magnitude along the leading right-singular directions;
-large consequence). A monitor that ranks by unweighted Euclidean displacement
-fails this pair by construction; the pullback-whitened alarm of
-Section~\ref{sec:mechanism} passes, because the two arms differ precisely in
-their length under $J_h^{\top}\Sigma^{-1}J_h$. This converts C4 from a correlation into a designed test with a
-predicted sign and gives every magnitude-only baseline a failure mode it
-cannot escape.
+\textbf{Abstention.} Abstention is a feature-novelty rule: the support score
+of Section~\ref{sec:mechanism} with a threshold set by split-conformal
+calibration on clean calibration windows~\cite{angelopoulos2021}. Under
+exchangeability of those windows with deployment \emph{clean} windows the
+retained fraction of clean windows is at least $1-\alpha$ in expectation; the
+rule guarantees nothing about arbitrary unknown families, so unknown-family
+detection is measured empirically (AUROC), together with the risk--coverage
+curve and its area, retained coverage at the threshold, and retained-known
+macro-F1 with counts~\cite{geifman2017}. Unknown families appear only in the
+evaluation partition. Retained coverage is a reporting point, not a threshold
+tuned on confirmatory labels.
+
+\textbf{Identifiability and origin.} All attribution is over declared
+intervention families under a stated simulator; observing a response profile
+does not identify the cause of an unknown real shift, and such windows are
+routed to abstention. Origin (N, S, geometry, mixture, unknown) and harm
+(benign, harmful) are scored as separate axes: a clean rare event can be
+harmful and a mild corruption benign.
 
 \section{Testbeds and monitoring design}
+\label{sec:testbeds}
 
 The three tiers are three physically different measurement systems ---
 cryogenic-style waveforms with a calibrated covariance, neutrino-telescope
@@ -436,7 +497,7 @@ regimes, not across architectures.
 
 \textbf{Tier 2 --- neutrino-telescope point clouds (realism:
 ORACLE-Paired).} One primary public configuration with a released checkpoint.
-The layerwise arm hooks all four DynEdge convolution blocks plus the
+The intermediate arm hooks all four DynEdge convolution blocks plus the
 post-processing and readout stages, not only the 128-dimensional pre-head
 event representation. The data are our own production: the released NuBench
 datasets are independent per-geometry productions and share no latent events,
@@ -461,7 +522,8 @@ pair supports only a distribution-level medium comparison, and is labelled as
 such. No assumed covariance exists in this tier --- deliberately: it tests,
 out of sample, the monitor-failure predictions pre-registered on Tier 1, and
 it is where the one alarm computable \emph{without} knowing $\Sigma$ (the
-Jacobian-projected displacement) earns its deployability claim.
+task length in $M_{\mathrm{task}}$, which needs only $J_y$) earns its
+deployability claim.
 
 \textbf{Tier 1 --- controlled waveforms (mechanism: ORACLE-Cov).} The
 synthetic arm uses a noise-aware linear control and a generator that
@@ -479,7 +541,21 @@ assumed covariance $\hat\Sigma$ a literal property of the loss, so
 $\hat\Sigma\neq\Sigma$ is a controlled experimental lever, swept through
 the condition number $\kappa(\hat\Sigma^{-1}\Sigma)$. Every theoretical
 claim is decided here, and the power analysis that sizes the other tiers runs
-here, because only here is the null exactly simulable.
+here, because only here is the null exactly simulable. Development runs on an
+analytic linear subject (September 2026; not results of the study) shape the
+arms above: noise-only statistics alone separate covariance-type acquisition
+changes from physics changes, covariance mismatches of condition number
+5--12 produce large alarms with little consequence on that subject, in-span
+rare physics raises the consequence while leaving every noise-only statistic at
+its reference, structural acquisition changes move the representation with
+out-of-span fractions near one, and activation patching is flat --- so stage
+localization is a question for the nonlinear subject, and any attribution
+gain of an intermediate arm must be shown to exceed what the generic arm with
+noise-only records and the same distance transforms already gives. A first
+development smoke of the two-claim protocol on the linear subject (16
+September 2026; non-citable, toy size) found no reading on its 20-window hard
+set, a small inclusive gain that a capacity-matched generic arm largely
+absorbed, and a Claim-2 difference whose cell-outer interval included zero.
 
 \textbf{Tier 3 --- TIDMAD (real data).} The public TIDMAD~\cite{tidmad} arm
 uses a $\sim0.6$M-parameter two-stage domain transformer, comparing otherwise
@@ -491,23 +567,49 @@ exclusion-limit comparison. This compact transformer is a diagnostic subject,
 not a foundation model; a larger pretrained model is only a later gated
 comparison.
 
-\textbf{Monitoring comparison.} Each window records input-quality summaries,
-named-layer moments or sketches, outputs, uncertainty, delayed task metrics,
-and calibration. A regularized logistic classifier is fitted with identical
-splits to five arms: input only; output/uncertainty; final embedding only; all
-generic-monitor outputs; and the full layerwise signature (the alignment and contrastive-direction
-statistics of Section~\ref{sec:mechanism} at every hooked stage). The fourth
-is the honest strong baseline, committed to in advance. Eligible baselines ---
-corrected univariate input tests, RBF-MMD~\cite{gretton2012}, a classifier
-two-sample test~\cite{lopezpaz2017}, embedding mean/covariance distance, output
-tests, uncertainty/entropy --- receive identical windows and false-alert
-budgets. Clean miscalibration is a model result, not automatically a software
-bug~\cite{guo2017}; latent displacement is normalized by clean within-class
-dispersion. Held-out severities, seeds, support strata, mixtures, and one
-unseen family prevent perturbation lookup; windows and thresholds are frozen
-after development; intervals resample event groups and perturbation seeds
-separately; null results require a passed positive control, adequate precision,
-and a predeclared equivalence margin.
+\textbf{Monitoring comparison.} Every arm consumes only features available at
+alarm time, built through a typed input object that carries the observed
+window, its random-trigger records and the geometry --- and nothing else ---
+so that truth, the paired replay, the realized covariance and the intervention
+label are not arguments of any alarm-time builder; every feature carries its
+source tags and an arm is scored only from a locked, tag-checked batch. (A
+builder that lies about a tag is not caught; code review remains part of the
+contract.) One regularized logistic classifier, one tuning grid and one set
+of partitions serve every arm. Partitions are five, split by event group so
+that every geometry, replay and corruption variant of an event stays
+together: reference fitting (clean subject, projectors, nulls --- never
+supervised examples), attribution training, development (tuning), clean
+calibration (false-alert budget, conformal threshold) and evaluation, scored
+once. Held-out families, severities and seeds are declared and scored on
+evaluation groups only; undeclared families enter no fit, tuning or
+calibration. The primary arms are \texttt{generic\_rich} (input quality,
+outputs, an uncertainty proxy, the final embedding, operational noise-only
+statistics, and reference distances of the whitened input, the outputs, the
+pre-output, the energy split of the final embedding, the out-of-span fraction
+and the support novelty), \texttt{intermediate\_only} (reference distances of
+the pooled mean and second moment of each internal hook and its reference
+principal coordinates) and \texttt{full\_intermediate}; controls are a
+capacity-matched generic arm and hook-drop arms. Noise-only statistics are
+operational only where the acquisition supplies random-trigger records (the
+controlled simulator, the HeST arm and TIDMAD's no-injection files do;
+hit-level Prometheus output does not, and such an arm is reported as
+privileged). Reference distances use Ledoit--Wolf shrinkage~\cite{ledoitwolf2004} and, where a hook's
+dimension exceeds a fifth of the reference count, a reference-fitted PCA; each
+is mapped to a common clean-null scale before any combination, and their
+stability across reference sample size and rescaling is tested --- at the
+reference sizes of a development smoke they are not stable, which the report
+states. Hard contrasts are built by 1:1 matching of S to N windows inside a
+declared caliper on standardized generic signatures, with retained fractions
+and overlap failures reported; matching is a declared conditional design, not
+a causal identification. Eligible baselines --- corrected univariate input
+tests, RBF-MMD~\cite{gretton2012}, a classifier two-sample
+test~\cite{lopezpaz2017}, embedding mean/covariance distance, output tests,
+uncertainty/entropy --- receive identical windows and false-alert budgets.
+Clean miscalibration is a model result, not automatically a software
+bug~\cite{guo2017}. Intervals resample event groups for window-level
+estimands and intervention cells for cell-level ones, with model seeds as a
+declared level; null results require a passed positive control, adequate
+precision and a predeclared equivalence margin.
 
 \textbf{Reporting standard.} Every learned arm and baseline is reported with
 its parameter count, training cost, and inference time and memory per event,
@@ -554,62 +656,66 @@ table with the values used.
 
 \begin{center}
 \scriptsize
-\captionof{table}{Core experiment matrix. C0--C3 run on both testbeds; C4 is
-primary on waveforms.}
+\captionof{table}{Experiment matrix. The two claims run on the trained
+Tier-1 subject and one transfer arm; the rest are supporting analyses.}
 \begin{tabularx}{\columnwidth}{@{}p{0.16in}p{0.95in}Y@{}}
 \toprule
-ID & Test & Primary endpoints \\
+ID & Test & Endpoints \\
 \midrule
-E0 & Clean replay; deliberate E faults & Reference discrepancy; gate
-sensitivity/specificity \\
-E0b & Physical-variable probes (C0) & Probe $R^2$ and axis participation per
-variable; predicted pattern across clean / N / S cells \\
-E1 & Held-out abrupt/gradual N/S & Power at 1\% false alert; AUROC/AUPRC;
-delay in windows \\
-E2 & N/S attribution, mixtures, unseen family & Macro/multi-label F1 over
-$\{$N,S$\}$; paired CI vs generic arm; unknown AUROC \\
-E3 & Capture vs sample/sketch & p50/p95 latency; bytes/event; power/F1 loss \\
-E4 & Alarm vs consequence (C4) & $\rho(A,K)$; AUROC for $K\geq\kappa_m$;
-off-diagonal rates \\
-E5 & Paired-geometry transfer & Pre-registered Tier-1 failure predictions
-tested once on ORACLE-Paired under the same metric names (bridge table:
-within-$T_S$ residual variance under N, along-$T_S^{\perp}$ displacement under
-S, abstention AUROC, $\rho(A,K)$); layer-profile stability across geometries \\
+E0 & Clean replay; deliberate evaluation-contract faults (EF) & Reference
+discrepancy; gate sensitivity/specificity (gate, not a claim) \\
+A1 & Claim 1: hard-matched N/S attribution, primary arms and controls,
+abstention, joint decision table & $\Delta\mathrm{F1}_{\mathrm{attr}}$ with
+interval; ablations; unknown AUROC; risk--coverage; joint table \\
+A2 & Claim 2: harm ranking on held-out cells & $\Delta\mathrm{AUROC}_{\mathrm{harm}}$
+with cell-outer interval; quadrants; missed harm; valid-rare rejection \\
+S1 & Detection power and delay at 1\% FAR & power, delay, realized FAR with
+binomial interval (supporting) \\
+S2 & Designed and task-specific controls & realized per-output loss at matched
+norm; local-linear error (positive control) \\
+S3 & Probes, resolvability, patching & probe $R^2$; rank of
+$M_{\mathrm{recon}}$; patched-$K$ recovery (mechanistic, descriptive) \\
+S4 & Capture vs sample/sketch & p50/p95 latency; bytes/event; loss (supporting) \\
+T1 & Transfer: the two claims repeated once on one held-out physical arm &
+same estimands, predeclared; failures reported as failures \\
 \bottomrule
 \end{tabularx}
 \label{tab:experiments}
 \vspace{-0.5em}
 \end{center}
 
-\section{Staged joint roadmap}
+\section{Evidence ladder and roadmap}
 
 \begin{tcolorbox}[colback=black!3,colframe=black!35,boxrule=0.4pt,
   left=4pt,right=4pt,top=3pt,bottom=3pt,arc=1pt]
 \footnotesize
-\textbf{Phase 0 (now): mechanism tier.} The output-null/output-aligned
-dissociation and the $\kappa(\hat\Sigma^{-1}\Sigma)$ sweep run on the
-controlled simulator today --- no external dependency, first citable result,
-and the power analysis that sizes every later phase. Monitor-failure
-predictions are frozen here before any Tier-2 run.
+\textbf{Minimum viable paper.} (1)~The two claims on the controlled waveform
+tier with a \emph{trained nonlinear} subject; (2)~the two claims repeated once
+on one independent transfer arm chosen by readiness, licence and physical-$K$
+gates (HeST $\to$ our readout is built; LUCiD is licence-gated; Prometheus is
+the fallback with a frozen public model and angular error as $K$); (3)~the
+paired comparisons with their failures and limitations. TIDMAD is an external
+check if its relative exclusion-limit endpoint survives scrutiny.
 
-\textbf{Phase 1 (B): paired detector geometry.} Generate common latent events
-by Prometheus re-simulation (one seeded injection, two geometries at a common
-site/depth) under one declared acquisition intervention; the released NuBench
-sets are not event-paired, so the interim released-data contrast (Hexagon
-water vs.\ ice) is reported only as a distribution-level consistency
-comparison, never a causal layout claim.
+\textbf{Phase A --- theory and schema gate (this revision).} Two metrics
+separated; resolvability renamed; support estimated; conditional signatures;
+invariance controls; protocol layer hardened; development smoke. No trained
+campaign starts before adversarial review of this phase.
 
-\textbf{Phase 2 (A): Panda scale transfer.} On one frozen public Panda
-checkpoint (pip-installable, auto-downloading data; the cross-modality Panda~V2
-backbone~\cite{panda2} once its weights are released; SPINE remains the later
-domain-specific extension), test one physically justified perturbation and one
-point-representation metric against the released reconstruction endpoints.
+\textbf{Phase B --- precision and feasibility (development only).}
+Calibration size for the false-alert budget; outer-unit counts for Claim~2;
+model-seed variability; matched-contrast overlap. Unachievable precision
+changes the claim or the design before any freeze.
 
-\textbf{Phase 3 (A$\oplus$B): target experiment.} If both pilots pass, compare
-physics-supported geometry/acquisition interventions with matched non-physical
-representation changes at the same displacement magnitude. This is the
-unifying attribution test, not an assumption that every learned coordinate is
-meaningful.
+\textbf{Phase C --- scientific evidence.} The trained Tier-1 subject in
+development mode; if controls and hard contrasts pass, exactly one transfer
+arm; freeze only after thresholds, hold-outs, cell weights, scores, margins,
+counts and dependency hashes are agreed.
+
+\textbf{Future work, not this paper.} Additional geometries, the linear
+estimator classes as probes of physical axes, sampling-cost optimization,
+Panda/SPINE transfer, and stage localization, unless one of them directly
+resolves a claim.
 \end{tcolorbox}
 
 \textbf{Relation to chained-model uncertainty propagation.} Douglas et
@@ -632,12 +738,19 @@ adapt is the headline of surgical fine-tuning~\cite{lee2023surgical}, and
 localization-then-edit validation is known to be a weak inference~%
 \cite{hase2023}, which is why any later repair experiment here is preceded by
 an activation-patching causal check rather than resting on adaptation gains.
-What none of these supply, and what this study tests, is (i) a consequence
-variable that is a physics observable under a known measurement covariance
-rather than classification accuracy, (ii) the conditional-on-alarm
-alarm--consequence endpoint of Table~\ref{tab:c4} with designed
-alarm/consequence dissociations, and (iii) any monitoring result at all for
-learned neutrino-telescope reconstruction.
+Unlabelled performance estimation~\cite{guillory2021,garg2022} predicts a
+classifier's aggregate accuracy on a shifted distribution from confidences,
+under assumptions on the shift that its authors state cannot be verified from
+unlabelled data alone. What none of these supply, and what this study tests,
+is (i) a consequence variable that is a physics observable under a known
+measurement covariance rather than classification accuracy, (ii) the paired
+all-cell alarm--harm comparison of Table~\ref{tab:c4}, including harm that
+arrives without a strong alarm, with designed dissociations as positive
+controls, and (iii) an attribution comparison whose generic arm already
+holds the acquisition's own noise-only statistics and the same distance
+transforms as the intermediate arm. We are not
+aware of a monitoring result for learned neutrino-telescope reconstruction and
+do not claim the absence of one.
 
 \section{Collaboration}
 
@@ -711,6 +824,13 @@ Deployed Model and Detecting Harmful Distribution Shifts.'' ICLR (2022).
 \bibitem{rabanser2019} S. Rabanser, S. G\"unnemann, Z. Lipton. ``Failing
 Loudly: An Empirical Study of Methods for Detecting Dataset Shift.'' NeurIPS
 (2019).
+\bibitem{guillory2021} D. Guillory, V. Shankar, S. Ebrahimi, T. Darrell,
+L. Schmidt. ``Predicting with Confidence on Unseen Distributions.'' ICCV
+(2021). \href{https://arxiv.org/abs/2107.03315}{arXiv:2107.03315}.
+\bibitem{garg2022} S. Garg, S. Balakrishnan, Z.~C. Lipton, B. Neyshabur,
+H. Sedghi. ``Leveraging Unlabeled Data to Predict Out-of-Distribution
+Performance.'' ICLR (2022).
+\href{https://arxiv.org/abs/2201.04234}{arXiv:2201.04234}.
 \bibitem{zhang2023} H. Zhang, H. Singh, M. Ghassemi, S. Joshi. ```Why Did the
 Model Fail?': Attributing Model Performance Changes to Distribution Shifts.''
 ICML (2023). \href{https://arxiv.org/abs/2210.10769}{arXiv:2210.10769}.
@@ -726,9 +846,17 @@ Localization vs.\ Knowledge Editing in Language Models.'' NeurIPS (2023).
 S. Giner, C.~A. Arg\"uelles. ``Prometheus: An Open-Source Neutrino Telescope
 Simulation.'' Comput.\ Phys.\ Commun.\ (2024).
 \href{https://arxiv.org/abs/2304.14526}{arXiv:2304.14526}.
+\bibitem{kay1993} S.~M. Kay. \emph{Fundamentals of Statistical Signal
+Processing: Estimation Theory.} Prentice Hall (1993), ch.~3 (the Cram\'er--Rao
+bound and Fisher information for the Gaussian model).
+\bibitem{ledoitwolf2004} O. Ledoit and M. Wolf. ``A well-conditioned estimator
+for large-dimensional covariance matrices.'' J. Multivariate Anal. 88 (2004),
+365--411.
 \bibitem{paper1} D. Wong. ``Noise Covariance Defines Reconstruction
 Geometry: Optimal Filtering, Weighted Subspaces, and Tied Linear
-Autoencoders.'' Preprint (2026).
+Autoencoders.'' Preprint (2026), unpublished at the time of writing; cited for
+the covariance-weighted linear classes only, no central result of this note
+depends on it.
 \bibitem{pytessim} TESSERACT Collaboration. ``\texttt{pytessim}: simulation of
 TES datastreams including noise, LEE, and signals.'' MIT-licensed software,
 first public release 2026-05-18.

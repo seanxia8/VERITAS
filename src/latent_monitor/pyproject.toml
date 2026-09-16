@@ -13,11 +13,12 @@ dependencies = ["numpy>=1.24", "scipy>=1.10", "noise-module"]
 torch = ["torch>=2.0"]
 
 [tool.setuptools]
-packages = ["latent_monitor", "latent_monitor.estimators"]
+packages = ["latent_monitor", "latent_monitor.estimators", "latent_monitor.protocol"]
 
 [tool.setuptools.package-dir]
 latent_monitor = "."
 "latent_monitor.estimators" = "estimators"
+"latent_monitor.protocol" = "protocol"
 
 [tool.uv.sources]
 noise-module = { workspace = true }

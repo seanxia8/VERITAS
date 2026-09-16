@@ -1,13 +1,10 @@
 # ORACLE experiment design — the canonical document
 
-_10 September 2026, branch `dev`; **consolidated 16 September 2026 as a two-claim
-study** (`TWO_CLAIM_REVISION_PLAN.md`). Every section below states the *current*
-definition; there is no precedence rule between parts. Where an earlier
-formulation is kept for the record it is marked as such. Thresholds and endpoints
-are collected in the unfrozen draft `PREREGISTRATION.md`; the reconciliation of
-the first pass is in `reviews/2026-09-16_R0_reconciliation.md` and the pass-1
-text is archived as `archive/EXPERIMENT_DESIGN_2026-09-16_pass1.md`.
-**This is the one design document.** It merges
+_10 September 2026, branch `dev`; **amended 16 September 2026** (Part V — the MLST
+revision: information contract, event-group splits, origin/harm, the all-cell C4
+endpoint, κ_m pending; the amended thresholds and endpoints are collected in the
+unfrozen draft `PREREGISTRATION.md`, the reconciliation in
+`reviews/2026-09-16_R0_reconciliation.md`). **This is the one design document.** It merges
 the agreed three-tier design (31 Aug), the arm-level plan (5 Sep) and the
 controlled-variable latent-monitoring plan (5 Sep, verified 6 Sep) into one
 file, and adds the four linear representation classes of Paper 1 as a tentative
@@ -42,7 +39,7 @@ used by `TODO.md`). `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` — the table o
 - **Part II — The arms** (from the arms plan, 5 Sep): why LUCiD, HeST, TIDMAD; how each is driven; what each may prove; the `noise_module_lucid` build; gates and descope.
 - **Part III — The controlled-variable protocol** (from the latent-monitoring plan, 5 Sep, corrected by the 6 Sep results): the factor → determinant → signature → adjustment table; subject architecture; projectors, statistics and the lookup; adjustments; per-arm cells; LUCiD integration; the HeST fork; work packages; risks.
 - **Part IV — The linear subject classes: tentative plan** (new, 10 Sep): OF → CW-PCA/EMPCA → tied linear AE → NFPA, their latent identifiability, how they slot into the protocol, and the experiments proposed.
-- **Part V — The two-claim protocol** (16 Sep): the two claims and their estimands, the two metrics, training support, conditional signatures, the information contract, splits, arms, abstention, Claim-2 scores and resampling, what the development artifacts are evidence of, and the results structure. Parts I–IV are consistent with it; the evidence ladder is in §I.4.
+- **Part V — The MLST revision amendments** (16 Sep): the scientific chain as a hypothesis, the alarm-time information contract, origin versus harm, the amended C2 and C4 endpoints, what the 6 Sep table is evidence of, and the results structure. Where Part V and an earlier part disagree, Part V governs.
 - **Appendix A** — programme status and document map. **Appendix B** — section mapping for old citations.
 
 ---
@@ -51,18 +48,15 @@ used by `TODO.md`). `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` — the table o
 
 ## I.1 The story in one paragraph
 
-The paper makes **two claims**, each a paired comparison against a committed
-generic monitor with identical alarm-time information (Part V). **Claim 1:**
-statistics of a frozen model's *intermediate* representations add
-acquisition-versus-valid-physics attribution information beyond a generic arm
-that already holds input quality, outputs, uncertainty, the final embedding,
-noise-only quality statistics and the same reference-distance transforms.
-**Claim 2:** a predeclared task-sensitive representation score — the length of
-a window's deviation in the task metric M_task = J_yᵀ W_y J_y pulled back from
-declared physics outputs — ranks scientific harm on held-out physical
-intervention cells better than the committed generic score. Both are
-hypotheses with refutation conditions; a negative result is reportable. No
-public dataset can test this, because none has a known
+The paper's **hypothesis** (▸ 16 Sep: a hypothesis with conditions, not a
+result — Part V) is that a monitoring alarm on a frozen reconstruction model
+ranks scientific consequence *when* it is computed in the metric the
+measurement implies — an unweighted representation displacement is the
+wrong-metric statistic, and the consequence-relevant quantity is displacement
+in the Σ⁻¹-whitened metric pulled back through the output Jacobian — and that
+frozen representations add attribution information *beyond* acquisition-quality
+and input/output monitors only under conditions the study must find. No public
+dataset can test this, because none has a known
 assumed-versus-realized covariance, and none is event-paired across the factors
 being varied. So the study produces its own data — in a controlled simulator
 and in two physics simulations with independently written upstream physics —
@@ -83,16 +77,13 @@ freeze".
 `src/noise_module/`. The encoder is trained under an explicit assumed
 covariance Σ̂ (the inverse-PSD-weighted objective makes the assumption
 literal) and deployed under a realized Σ that `MultiChannelNoiseGenerator`
-reports exactly. Strata: matched (Σ̂ = Σ); a κ_cond(Σ̂⁻¹Σ) sweep; the designed
-families (output-null, output-aligned, random, task-aligned, task-null —
-positive controls, exact for the linear subject only); clean. The two claims
-are run here first, on a *trained nonlinear* subject; the development
-precision study that sizes calibration counts and outer units runs here
-because only here is the null exactly simulable. **Status:** the §III.1
-signature table is verified on the linear subject under paired replay
-(development evidence of the signatures, `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md`);
-the two-claim protocol has run only as a non-citable development smoke
-(`results/latent_monitor_smoke_dev_2026-09-16_pass2/`).
+reports exactly. Strata: matched (Σ̂ = Σ); a κ(Σ̂⁻¹Σ) sweep; output-null
+perturbations (large alarm, ≈zero consequence); norm-matched output-aligned
+perturbations (same alarm, large consequence); random; clean. Everything
+theoretical is proved here: the whitening result, the designed C4 dissociation
+with its predicted sign, and the D6 power analysis that sizes every other arm.
+**Status:** the §III.1 table is verified on the linear subject (13/14 cells,
+`RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md`).
 
 **Tier 2 — realism, now three arms (Part II).** The 31 Aug design had one
 realism arm, a Prometheus production (ORACLE-Paired). The 5 Sep plan kept the
@@ -128,28 +119,29 @@ every claim.
 
 ## I.3 Claims × tiers and arms
 
-Two claims, each a paired comparison; the arms of Part II are the substrates.
-The **minimum viable paper** is the bold column plus one transfer arm; every
-other arm is supporting or future work (§I.4).
+One claim ladder, the proposal's (`IMPLEMENTATION_PLAN.md` WP0), with the
+arms of Part II filled in. **The bolded row is the paper.** Read left to right
+it is: proved, transferred to a geometry, transferred to a second readout
+physics, survived real noise.
 
-| | **Tier 1 ORACLE-Cov, trained nonlinear subject** | one transfer arm (B · HeST built; A · LUCiD licence-gated; Prometheus/DynEdge fallback) | C · TIDMAD | other arms |
-|---|---|---|---|---|
-| **Claim 1** — ΔF1_attr = F1{N,S}(full_intermediate) − F1{N,S}(generic_rich) on the hard matched set; capacity-matched and hook-drop controls; abstention on undeclared families evaluated empirically; joint clean/N/S/mixture/unknown table | **primary** | repeated once, predeclared | external check only if noise-only records and a physical K are defensible | future work |
-| **Claim 2** — ΔAUROC_harm = A_{K≥κ_m}(task-sensitive) − A_{K≥κ_m}(generic, committed) over held-out cells, cell-outer resampling; quadrants, missed harm, valid-rare rejection | **primary** (K = amplitude error vs evaluation-only truth) | repeated once (K declared per arm: whitened trace error + amplitude on B; angular error on Prometheus) | K_rel on the frozen file subset, if it survives | future work |
-| supporting: detection at 1 % FAR, cost, probes, designed controls, resolvability, patching | reported | replication only | — | — |
+| claim | Tier 1 ORACLE-Cov | A · LUCiD | B · HeST | C · TIDMAD | Prometheus |
+|---|---|---|---|---|---|
+| C1 detection @1% FAR | controlled families, power sizing (cov_D) | waveform-level, in geometry | second readout physics | — | E1 on frozen DynEdge, matched cells |
+| C2 incremental attribution — primary ΔF1 of the full-layerwise arm over the all-generic arm *including operational noise-only statistics* (▸ 16 Sep); N vs matched-clean and N vs S as the cell designs, **with abstention on U** | cov_C: full control, held-out U | material-axis S; U held out; geometry transfer of the layer profile | ER/NR S; WIMP U | — | E2: matched cells, U1–U4 (E5) |
+| C3 cost (capture vs sample/sketch) | cov_C on the compact transformer | — | — | — | E3 on DynEdge |
+| **C4 alarm ranks scientific harm — primary: AUROC for K ≥ κ_m across *all* held-out cells (▸ 16 Sep; conditional-on-alarm triage is secondary)** | **designed**: output-null vs output-aligned — realised-K prediction registered; κ_cond sweep (cov_A, cov_B); all-cell ranking over the Σ, structural, G and S cells | **transfer test of the registered κ_cond prediction** | **designed granularity dissociation, 24 → 1** | **external validity**: `K_rel` across the two Σ̂ trainings (T1) | **observational**: E4, all-cell AUROC on angular error with family/severity breakdowns; conditional triage secondary |
+| C5 stage localization, by activation patching only | cov_E | replication | replication | — | replication on E2's consequential cells |
 
-The 3 Sep "C0" (physical-variable organisation) is now the *probes* supporting
-analysis; Part IV's linear classes are its instruments and are future work
-unless one of them resolves a claim. Junjie must see and agree the title and
-the two-claim framing before anything is frozen (`TODO.md`).
+The 3 Sep theme adjustment added **C0** (physical-variable organisation of the
+latent) to the proposal; Part IV is where C0 gets its linear-subject
+instruments. Junjie must see and agree the new title and C0 before anything is
+frozen (`TODO.md`).
 
 ## I.4 Sequencing
 
-1. Tier 1 now: Phase A (theory and schema — done 16 Sep, pending adversarial
-   review), Phase B (development precision study: calibration size, outer-unit
-   counts, model-seed variability, matched-contrast overlap), then Phase C —
-   the two claims on the *trained* nonlinear subject in development mode
-   (§III.8, `TWO_CLAIM_REVISION_PLAN.md` §6).
+1. Tier 1 now (includes the D6 null simulation — the only place it can run).
+   The linear-subject table is done; the *trained* transformer table is the
+   next experiment (§III.8).
 2. Realism arms in the order of §II.8: arm B pilot and build (done) →
    `noise_module_lucid` only after gate A0 → arm A → arm C (WP10) → bridge →
    confirmatory. Tier 2 Prometheus *production* is not gated by anything; its
@@ -195,7 +187,7 @@ for the realism arms come from them.
 | Standardized displacement, k-NN retention, principal angles | `latent_monitor.statistics`, `estimators.principal_angles`; parts in `scripts/nubench/` | 1, 2, 3 |
 | **Σ⁻¹-whitened displacement** | `latent_monitor.whitening.KroneckerWhitener` + `statistics` — trivial once Σ is known | **1, A, B** (needs Σ) |
 | **Jacobian-projected displacement** | `latent_monitor.reference` (P_out/P_null from J_o) — the one monitor computable *without* knowing Σ | all |
-| **Designed perturbation generators** (output-null / aligned / random, task-aligned / task-null) | `latent_monitor.designed` — exact for the tied linear subject; refused for nonlinear subjects (no local inverse implemented) | 1 (positive controls) |
+| **Output-null / output-aligned perturbation generators** | `latent_monitor.designed` — exact for a linear decoder; SVD of the local Jacobian otherwise | 1 (designed C4), realism arms (replication) |
 | Baselines: corrected univariate KS, RBF-MMD, classifier two-sample test, embedding mean/covariance distance, output and uncertainty tests | **reuse** — `alibi-detect`; cite, do not reimplement | all |
 | Five-arm attribution classifier (input / output+uncertainty / final embedding / all-generic / full layerwise) | reuse — scikit-learn regularized logistic regression, identical splits | all |
 | Conformal abstention, risk–coverage AUC | Mahalanobis in the reference-cell z-metric + Fisher-rank (§III.3.4); `MAPIE` or ~50 lines of split conformal for the baseline | 1, 2 |
@@ -230,11 +222,7 @@ real datasets that serve and do not, verified 10 Sep). The programme uses:
 
 _From the 5 Sep arms plan. Everything marked ✅ was executed on this machine at
 the time and the output is quoted; status notes marked **[10 Sep]** are from
-`TESTBEDS.md`. **[16 Sep]** The arms are unchanged; what each may *prove* is
-restated in the two-claim language of Part V: "Claim 1" replaces the old C2,
-"Claim 2" the old C4, and detection (old C1), cost (C3), probes (C0) and
-patching (C5) are supporting analyses. Exactly one transfer arm enters the
-minimum viable paper (§I.3); the others are future work._
+`TESTBEDS.md`._
 
 ## II.0 What changed on 5 Sep, and what did not
 
@@ -261,7 +249,7 @@ did not add arms; it **retargeted two of them**:
 | event pairing | exact (photon dict is an argument) | exact ✅ measured, tested | n/a |
 | noise source | `noise_module_lucid` (new preset) | `noise_module` + `qp_simulator` | nobody's — it is real |
 | upstream physics author | Tufts/SLAC | SPICE/HeRALD | the ABRACADABRA-style DAQ |
-| what it would carry | Claims 1 and 2 at waveform level in a real geometry | Claim 2 under a granularity change (24 → 1); Claim 1 in a second readout physics | external check of Claim 2 if K_rel survives |
+| headline claim it carries | C1, C2, C4 at waveform level in a real geometry | C4 dissociation under a granularity change | external validity of C4 |
 | blocker | **no licence** (A0, re-checked open 10 Sep) | licence copyright line (B0, re-checked open 10 Sep) | `K_rel` must survive |
 | status **[10 Sep]** | notebook only (`notebooks/one_event_herald_lucid.ipynb` Part B) | **built**: `src/herald_simulation/`, 14 cells, tests green, constants placeholder | code exists, needs data + GPU |
 | cost | 8–12 d after licence | done; ~1 d to replace placeholders | 3 d (WP10, exists) |
@@ -390,9 +378,10 @@ costs nothing. Particle type is a setup-time SIREN string and only `muon` and
 
 | claim | arm A's contribution | why it is arm A and not another |
 |---|---|---|
-| **Claim 1** (attribution) | N from `noise_module_lucid` knobs + LUCiD's own acquisition knobs (QE, dark rate, TTS); S from the material axis and PhotonSim particle types; U held out | the material axis gives an S-family that is unambiguously *physics*, not acquisition; the only arm with both a real geometry and a sampled trace |
-| **Claim 2** (harm ranking) | the paired ΔAUROC repeated once with a declared K (open decision §II.9) | Tier 1 runs the claims first; arm A would show they are not an artifact of the synthetic substrate |
-| supporting | detection at 1 % FAR on waveforms; patching replication | no new mechanism |
+| **C1** detection @1% FAR | on waveforms, in a real detector geometry, across a granularity change | the only arm with both a real geometry and a sampled trace |
+| **C2** attribution N vs S, abstention on U | N from `noise_module_lucid` knobs + LUCiD's own acquisition knobs (QE, dark rate, TTS); S from the material axis and PhotonSim particle types; U held out | the material axis gives an S-family that is unambiguously *physics*, not acquisition |
+| **C4** alarm ranks consequence | **the transfer test**: the κ-sweep prediction registered on Tier 1 is re-run here, in a geometry, with a different readout physics | this is the whole point of the arm — Tier 1 proves it, arm A shows it is not an artifact of the synthetic substrate |
+| **C5** stage localization | replication only, by activation patching | no new mechanism |
 
 Arm A does **not** carry: the whitening lemma itself (Tier 1), the frozen-public-model
 claim (Prometheus/DynEdge), or a physics consequence variable in the NuBench sense —
@@ -508,9 +497,9 @@ hash and positions, budget with provenance states, trace config).
 
 | claim | contribution |
 |---|---|
-| **Claim 2** (headline for this arm) | the paired harm ranking under a *granularity* change: 24 channels → 1 channel on the identical helium cell, with K declared (whitened trace error and the amplitude readout). With C=1 the multichannel covariance mechanism is vacuous by construction; with C=24 it is not. |
-| **Claim 1** | repeated once in a second readout physics; N families from `noise_module` knobs and HeST's surface probabilities, S families from ER/NR and the four yield channels, U from a WIMP spectrum held out |
-| supporting | detection, patching replication |
+| **C4 (headline for this arm)** | the designed dissociation under a *granularity* change: 24 channels → 1 channel on the identical helium cell. With C=1 the multichannel covariance claim is vacuous by construction; with C=24 it is not. A designed contrast with a predicted sign, not an observation. |
+| **C1, C2** | replication in a second readout physics; N families from `noise_module` knobs and HeST's surface probabilities, S families from ER/NR and the four yield channels, U from a WIMP spectrum held out |
+| **C5** | replication only |
 
 Arm B does **not** carry a physics consequence variable of external provenance. Its
 consequence is whitened reconstruction error on the trace — the variable the
@@ -717,36 +706,33 @@ noise **Σ**, event type **E** — and watch the frozen model's latent space. Wh
 architecture, how to drive it, how to tell *which part* of the latent space moved,
 what to adjust once you know; then how each arm is used under that protocol._
 
-## III.1 The design in one table — conditional signatures
+## III.1 The design in one table
 
-The proposal's mechanism section states two metrics (M_recon = J̃_gᵀ J̃_g, the
-measurement metric; M_task = J_yᵀ W_y J_y, the task metric) and treats training
-support as a *separately estimated* quantity, not as the complement of the
-resolved span (`task_metric.py`, `support.py`). The table below is the current
-statement of what each moved factor is expected to do; every row is a
-**conditional hypothesis** the arms of Part V test, and two rows were corrected
-by the 6 Sep development table (▸). The old "N lives in the excited span, S in
-its complement" dichotomy is withdrawn: structural N moves the representation
-with out-of-span fractions near one, and in-span S moves it a great deal while
-every noise-only statistic stays at reference.
+The proposal's §3 says a frozen model's representation is fixed by three
+determinants — the **metric** Σ⁻¹ the measurement fixes, the **class** 𝓕 the
+architecture fixes, and the **support** T_S the training excites. The
+controlled-variable design is that table read backwards: each factor we move is
+one determinant, each determinant has a predicted latent signature, and each
+signature names its own repair. The table below is the 5 Sep prediction with the
+6 Sep corrections written in; the corrections are marked ▸.
 
-| factor moved | expected signature (conditional) | observed on the linear subject (6 Sep, paired replay) | adjustment that follows |
+| factor moved | determinant | where it shows in the latent space | the adjustment that follows |
 |---|---|---|---|
-| **Σ** — covariance-type (Σ̂ ≠ Σ: correlation, bandwidth, line, alias fold) | noise-only residual statistics (z-variance ratio, residual PSD, residual channel correlation on random-trigger records) move; **no consistent mean shift** in the representation; magnitude tracks κ_cond | ▸ confirmed on 4/4 cells; consequence cost small (0.82–1.12) — the alarm is where κ_cond shows | re-estimate Σ from noise-only records, set Σ̂ ← Σ, re-derive the encoder as the GLS projection onto the same raw signal basis (a bare layer swap ×4–5 consequence) |
-| **Σ** — structural N (gain drift, channel loss) | mean shift in the representation *and* noise-only statistics move; layer profile peaks at the per-channel stage; **out-of-span fraction can be near one** | ▸ confirmed; out-of-span 0.95–0.98 | activation-patch S1 first (flat on the linear subject); stage refit |
-| **Σ** — timing jitter | ▸ documented: jitter that decorrelates a *shared* cross-channel component is a covariance change in the representation (noise-only variance 0.55, no consistent mean shift) — N by contract, Σ-covariance in signature | as predicted after correction | as covariance-type |
-| **G** — geometry | mean shift concentrated at the geometry-embedding stage, small at pooled z *if* the aggregation is geometry-invariant — a prediction about nonlinear subjects | ▸ on the linear subject a granularity change is a gain on z; repaired through the head or the channel stage, not the pooling weights | refit head / LoRA on P+S2 for nonlinear subjects |
-| **S** — supported-but-rare physics (in span: oscillation, double pulse) | z moves a lot; residual and every noise-only statistic at reference; support novelty may or may not flag it; consequence can rise sharply | ▸ confirmed: out-of-span 0.02–0.17, consequence up to 4.6× — representation intact, head not | recalibrate or extend the output head; not abstention |
-| **S** — outside estimated support (glitch) | displacement in the residual (out-of-span fraction high); support novelty on z may **not** see it (▸ the pass-2 smoke: z-novelty AUROC ≈ 0.5, residual-based novelty needed) | ▸ out-of-span 0.84; Fisher-rank drop | abstain; extend the training support with data |
-| designed families (positive controls) | large alarm with ≈0 consequence (output-null), matched alarm with consequence (output-aligned); task-aligned moves the declared K, task-null spares it | ▸ exact on the linear subject; refused for nonlinear subjects | none — controls |
+| **Σ** — covariance-type (Σ̂ ≠ Σ: correlation, bandwidth, line, alias fold) | metric Σ⁻¹ | **no mean shift**; the noise-only z-variance ratio, residual PSD or residual channel correlation departs from its calibrated null, scaled by the eigenvalues of Σ̂⁻¹Σ; magnitude tracks κ(Σ̂⁻¹Σ) | re-estimate Σ from noise-only records or residuals, set Σ̂ ← Σ in layer W, and ▸ **re-derive the encoder as the GLS projection onto the same raw signal basis** (the whitening lemma; a bare layer swap multiplied the consequence by ~4–5). No gradient step; decoder and head untouched |
+| **Σ** — structural N (gain drift, channel loss) | metric, seen through the channel stage | a **mean** shift in the output-aligned subspace — looks like E in the mean — *and* the noise-only statistics move; layer profile peaks at the per-channel stage | activation-patch stage S1 first; if consequence recovers, LoRA on the per-channel encoder only |
+| **Σ** — timing jitter ▸ | metric | ▸ **documented, not a mismatch**: jitter that decorrelates a *shared* cross-channel component is a covariance change in the latent (noise-only variance 0.55, no consistent mean shift) — N by contract, Σ-covariance in the signature | as covariance-type |
+| **G** — geometry | class 𝓕, through the geometry embedding | mean shift concentrated at the **geometry-embedding stage**, *small* at the pooled z if the aggregation is geometry-invariant — that smallness is itself the prediction under test | LoRA on the geometry embedding + pooling only; ▸ **on the linear subject a granularity change is a gain on z and repairs through the output head or the channel stage, not the pooling weights** — so the G-row repair is a prediction about nonlinear subjects |
+| **E** — supported-but-rare physics (in span: oscillation, double pulse) ▸ | support T_S, inside | ▸ **its own row**: z moves a lot, the residual and every noise-only statistic stay at reference, out-of-span fraction low (0.02–0.17), consequence rises (up to 4.6×) — the representation is intact, the head is not | recalibrate or extend the output head; cheaper than abstaining and different in kind from a support shift |
+| **E** — outside training support (glitch, WIMP spectrum) | support T_S, outside | displacement in the **unexcited complement** T_S^⊥; out-of-span fraction high (0.84); Fisher-rank drop | **no weight adjustment is valid** — abstain, then extend the training support with data (outside T_S the representation is fixed by architecture and initialisation, not data — Paper 1 §7.4b) |
+| designed output-null family | — | large Euclidean ‖Δz‖, ≈0 output change; ▸ recognised by isotropy (random per-event directions, large per-event alarm, small mean shift) | none — the control that separates alarm from consequence |
 
-**Two working rules survive.** (1) The noise-only (random-trigger) statistics
-separate acquisition changes from physics changes on this subject — but they
-are an *acquisition-quality feature of the generic arm* wherever the
-acquisition supplies random triggers, not evidence for internal
-representations (Part V). (2) Patching is flat on the linear subject: no stage
-creates damage there, so stage localisation is a question for nonlinear
-subjects and uniform recovery is never read as localisation.
+▸ **The N-vs-S discriminator is noise-only records.** Every Σ-type cell moves at
+least one noise-only statistic off its null; every event-type cell leaves all three
+at exactly their reference value (variance ratio 1.000, PSD and channel-correlation
+deviation 0.000). A random trigger cannot see physics. The lookup (§III.3.3) is built
+on this. ▸ **Patching is flat on the linear subject**: substituting the clean stage
+into the perturbed pass recovers 100 % at every stage; the linear subject has no
+stage that creates damage, so C5 is a transformer question.
 
 ## III.2 Architecture
 
@@ -819,15 +805,11 @@ can be projected, per event; a distributional MMD cannot.
 | projector | built from | separates |
 |---|---|---|
 | **P_out / P_null** | row space of `J_o` (SVD, top-k right singular vectors) vs its orthogonal complement | output-aligned (consequential) vs output-null (harmless) directions of z |
-| **P_resolved / P_weak** (legacy names `P_exc / P_unexc`) | eigenvectors of the measurement metric `M_recon = J̃_gᵀ J̃_g` (J̃_g = Σ̂^{-1/2} ∂g/∂z, the Gaussian Fisher information under the *assumed* Σ̂) above vs below a rank threshold | directions the measurement resolves well vs weakly at the reference point — a local identifiability statement, **not** training support, which `support.SupportEstimator` estimates separately and validates on constructed controls |
+| **P_exc / P_unexc** | eigenvectors of the pullback Fisher `I(z) = J_gᵀ Σ̂⁻¹ J_g` above vs below a rank threshold | excited support T_S vs its complement |
 | **Π_ℓ** | per hook ℓ | the layer profile |
 
 `k` and the rank threshold are fixed on the reference cell and pre-registered; they
-are not tuned per family (`latent_monitor.reference.fit_reference`). The task
-metric `M_task = J_yᵀ W_y J_y` (`latent_monitor.task_metric.TaskMetric`, W_y in
-physics-output units, one-hot on the declared consequence target or diag(1/σ²)
-from declared resolutions) is a different object: Σ never enters it, and the
-expression J_yᵀ Σ⁻¹ J_y is not formed anywhere.
+are not tuned per family (`latent_monitor.reference.fit_reference`).
 
 ### III.3.2 The statistics, per cell
 
@@ -838,14 +820,15 @@ the **noise-only statistics** — z-variance ratio along the excited directions,
 smoothed and single-bin residual PSD deviation, residual channel-correlation
 deviation — computed on random-trigger records; the **out-of-span fraction** of the
 paired change; **Fisher rank** at the perturbed cell vs reference; the **layer
-profile** `‖Π_ℓ Δh‖` across the six hooks; **consequence** K (the physical
-endpoint |ŷ − truth|, evaluation-only; the legacy `consequence_auroc_given_alarm`
-— top-10 % alarm within one cell, harm = worse than the twin — is kept for the
-6 Sep artifact only); abstention rate. Every Δz statistic here is computed
-against the paired clean twin — replay-side information, `evaluation_only` in
-the manifest. These statistics are a **development diagnostic of the
-signatures**; the alarm-time features the claims are scored on are
-`latent_monitor.protocol.features` (Part V.3).
+profile** `‖Π_ℓ Δh‖` across the six hooks; **consequence** K (▸ 16 Sep: the
+physical endpoint |ŷ − truth|, evaluation-only; the legacy
+`consequence_auroc_given_alarm` — top-10 % alarm within one cell, harm = worse
+than the twin — is a documented secondary; the C4 primary is the all-cell
+ranking of `latent_monitor.protocol.consequence`, Part V); abstention rate.
+▸ Every Δz statistic here is computed against the paired clean twin — replay-side
+information, `evaluation_only` in the manifest. The alarm-time counterparts
+(per-hook Mahalanobis, energy splits about the reference mean, out-of-span from
+the residual, noise-only features) are `latent_monitor.protocol.features`.
 Thresholds are calibrated once on the reference null (q99) and never re-tuned
 (6 Sep: mean-shift 5.44, per-event alarm 4.53, z-variance band 0.85–1.15, smoothed
 PSD deviation 0.17, single-bin 0.29, channel-correlation 0.13).
@@ -869,31 +852,27 @@ elif out-of-span fraction low and consequence up                         -> E in
 else                                                                     -> abstain (undeclared)
 ```
 
-The lookup is a **development diagnostic** of the signature table: it reads
-replay-side statistics and says which determinant a cell's signature points to.
-It is not the Claim-1 endpoint. Claim 1 is scored by the comparison arms under
-the alarm-time contract (`latent_monitor.protocol.arms`, Part V.4), in which the
-noise-only statistics the lookup rests on are acquisition-quality features of
-the **generic** arm wherever the acquisition supplies random triggers. That the
-lookup separates Σ-type cells by them is evidence about the signature, not about
-internal representations.
+The five-arm attribution classifier and the alibi-detect baselines (MMD, C2ST, KS,
+embedding-mean distance) are run **beside** this, not instead of it: they answer "did
+something change"; the lookup answers "which determinant". ▸ 16 Sep: the C2
+*endpoint* is the five-arm comparison under the alarm-time contract
+(`latent_monitor.protocol.arms`), and **the noise-only statistics the lookup rests
+on are acquisition-quality features of the all-generic arm** where the acquisition
+supplies random triggers. That the lookup separates Σ-type cells by them is
+evidence about the signature, not about internal representations; the noise-only
+ablation arm assigns any attribution gain to its source.
 
 ### III.3.4 Abstention
 
-Abstention is a **feature-novelty rule**, implemented end to end in
-`latent_monitor.protocol.abstention`: the novelty score is the larger of the
-clean-calibrated training-support novelty of z (`support.SupportEstimator`,
-validated on constructed in/out-of-support controls before use) and the
-clean-calibrated out-of-span fraction from the residual (a support move can sit
-in the residual rather than in z — the glitch family does); the threshold is
-set by split-conformal calibration on **clean calibration windows only**, which
-under exchangeability of clean windows retains ≥ 1 − α of them in expectation
-and guarantees nothing about unknown families. Unknown-family detection is
-therefore measured (AUROC), with the risk–coverage curve and its AUC, retained
-coverage at the threshold and retained-known macro-F1 with counts. Undeclared
-families appear only in the evaluation partition. An earlier development result
-(conformal on classifier margin, AUROC 0.25; z-Mahalanobis 0.71) motivated the
-feature-space choice.
+Conformal on classifier margin does not detect undeclared families (Tier-1 dev:
+AUROC 0.25); a feature-space Mahalanobis nonconformity in the reference-cell z-metric
+does (0.71). Use the Mahalanobis rule, and the Fisher-rank criterion as a second,
+mechanism-derived abstention trigger. ▸ 16 Sep: abstention is defined through
+*feature novelty*; a split-conformal calibration sets its threshold and holds only
+under exchangeability of the calibration and deployment *clean* windows — it does
+**not** guarantee rejection of arbitrary unknown families. Unknown-family detection
+is evaluated empirically (AUROC, risk–coverage AUC, retained coverage), and retained
+coverage is a reporting point, not a threshold tuned on confirmatory labels.
 
 ## III.4 Adjustment — what to change once you know which part
 
@@ -964,7 +943,7 @@ block-diagonal by group. A Σ cell realises a *different* Σ while W keeps Σ̂,
 | dark rate | LUCiD's own `dark_rate_khz` | structural | mean shift at S1, sparse |
 | channel loss | mask PMTs | structural | mean shift at P (tokens vanish) |
 
-The first three are Σ̂ ≠ Σ in the strict sense and carry the κ_cond prediction (a supporting mechanism check, not Claim 2); the
+The first three are Σ̂ ≠ Σ in the strict sense and carry the C4 κ prediction; the
 last three are N by contract but mean-shift in the latent, and the table must say so.
 
 **Channel groups.** `string_id` for string telescopes; for cylinders, angular sector ×
@@ -1061,7 +1040,7 @@ before the transformer because that is where the table is provable.
 - **HeRALD constants are placeholders.** Two provenance states, `placeholder` and
   `from_paper`; the paper reports which.
 - **The κ mismatch costs a linear subject little in consequence** (6 Sep: κ ≈ 5–12
-  cost almost nothing; the alarm is where κ_cond shows). Claim 2 therefore rests on
+  cost almost nothing; the alarm is where κ shows). The C4 claim therefore rests on
   the designed dissociation and on the nonlinear subjects, and the paper must not
   imply that re-whitening rescues a large consequence on the linear subject.
 
@@ -1173,132 +1152,119 @@ NFPA held-out risk, TIDMAD held-out test) are cited, not reproduced here.
 
 ---
 
-# Part V — The two-claim protocol (16 September 2026)
+# Part V — The MLST revision amendments (16 September 2026)
 
-_The current protocol. Code: `src/latent_monitor/protocol/`, `task_metric.py`,
-`support.py`, `designed.py`; thresholds and endpoints: `PREREGISTRATION.md`
-(unfrozen draft); plan: `TWO_CLAIM_REVISION_PLAN.md`; implementation status:
-`REVISION_REPORT_2026-09-16_pass2.md`. Nothing here is frozen._
+_Implements `IMPLEMENTATION_PLAN.md` §8 R1–R5 in the design. Code:
+`src/latent_monitor/protocol/`; thresholds and endpoints: `PREREGISTRATION.md`
+(unfrozen draft); reconciliation and contradictions:
+`reviews/2026-09-16_R0_reconciliation.md`. Where this part and an earlier part
+disagree, this part governs; the earlier text is left in place as evidence of
+what changed._
 
-## V.1 The two claims
+## V.1 The chain, as a hypothesis
 
-**Claim 1 — incremental attribution value.** On declared, alarm-time-observable
-interventions, do intermediate representations improve N-versus-S attribution
-beyond a strong generic monitor that already receives every operational
-input-quality, output, uncertainty, final-embedding and noise-only feature and
-the same reference-distance transforms? Estimand: on a frozen *hard* evaluation
-set (S windows 1:1-matched to N windows inside a declared caliper on
-standardised generic signatures), ΔF1_attr = macro-F1{N,S}(`full_intermediate`)
-− macro-F1{N,S}(`generic_rich`). Reading (unfrozen): benefit = 95 % interval
-above 0 and point ≥ 0.10; equivalence = interval within ±0.05; no reading below
-a declared minimum set size or with a degenerate interval. Refutation:
-equivalence or detriment on the hard contrasts, or a gain the ablations assign
-to input/output transforms, noise-only records, feature count, event identity
-or unavailable side information.
+Scientific decision → competing explanations → added value of representations →
+controlled mechanism → independent consequence → transfer and limitations.
 
-**Claim 2 — incremental scientific-harm ranking.** Does a predeclared
-task-sensitive representation score rank scientific harm better than the
-committed generic score on held-out physical intervention cells? Estimand:
-ΔAUROC_harm = A_{K≥κ_m}(task-sensitive) − A_{K≥κ_m}(generic, committed) over
-all held-out cells under a frozen cell weighting, with the cell as the outer
-resampling unit. Both scores are fixed without evaluation labels: generic =
-max of the clean-calibrated reference distances of the whitened input, the
-outputs and the final embedding; task-sensitive = clean-calibrated ‖z − z̄‖ in
-M_task with W_y one-hot on the declared consequence target. Selecting among
-generic scores after evaluation is prohibited. Refutation: an interval including
-zero without meeting the equivalence rule, systematic low-alarm/high-harm
-failures, or a gain that vanishes on held-out physical families.
+1. **Decision.** A physicist with a frozen reconstruction model must decide,
+   per window, whether to keep the result, correct the acquisition model, or
+   abstain — and whether an alarm matters for the physics.
+2. **Competing explanations.** An alarm can come from corrupted acquisition
+   (N), from valid but under-supported physics (S), from a geometry change
+   (G), or from nothing consequential at all. Generic monitors (input quality,
+   outputs, uncertainty, the final embedding, and — where the acquisition
+   supplies random triggers — noise-only quality statistics) already separate
+   several of these. Any claim for internal representations is a claim of
+   *incremental* information over that strong generic arm at the same
+   false-alert budget with the same side information.
+3. **Added value of representations** is therefore C2's primary endpoint: the
+   paired ΔF1 between the full-layerwise arm and the all-generic arm, read
+   three ways. The prediction is *conditional*: layerwise information helps
+   where the generic statistics are ambiguous (structural N versus in-span S
+   share a mean-shift signature; a mild Σ change moves noise-only statistics
+   but not the outputs) and adds nothing where a noise-only statistic already
+   decides. What would refute it: equivalence of ΔF1 within ±0.05 on every
+   difficult contrast (overlapping multiplicity, signal strength, generic shift
+   score), or a positive ΔF1 that the noise-only ablation assigns entirely to
+   the random-trigger records.
+4. **Controlled mechanism.** The output-null / output-aligned / random families
+   are constructed from the frozen head and decouple alarm from consequence by
+   construction; a monitor that uses the same head separates them by
+   construction. The falsifiable content is the *realised* physical loss:
+   ≈ 0 on null, large on aligned, at matched norm in the metric being
+   challenged — and the local-linear approximation error, measured.
+5. **Independent consequence.** C4's primary endpoint is whether the alarm
+   orders *all* held-out cells by scientific harm (K ≥ κ_m, K an independent
+   physical endpoint), with missed harm and false rejection of valid rare events
+   reported; the strong-alarm triage is secondary. What would refute it: an
+   all-cell AUROC whose interval includes 0.5 for every alarm, or a
+   missed-harm rate at the alert budget that the breakdowns trace to a whole
+   family (the 6 Sep in-span S cells are exactly such a candidate: large K,
+   noise-only statistics at reference).
+6. **Transfer and limitations.** Physically supported interventions on an arm
+   the mechanism tier never saw are the transfer test; the designed families
+   are not. Attribution is over declared families only; unknown real causes
+   are routed to abstention, and abstention has no guarantee beyond
+   exchangeability of clean windows.
 
-Everything else — detection, cost, probes, the designed controls, resolvability,
-patching — is a supporting analysis or positive control.
+## V.2 Information contract
 
-## V.2 Two metrics, support, signatures, invariance
+`latent_monitor.protocol.availability`: every feature carries the phase at
+which it exists (`reference_fit`, `alarm_time`, `delayed_label`,
+`evaluation_only`); an alarm-time arm consumes `alarm_time` features only, and
+the contract raises otherwise. The paired-twin Δz statistics of §III.3.2, the
+planted truth, the realised Σ and the intervention label are
+`evaluation_only`. Noise-only records are operational only where the
+acquisition supplies them (Tier 1, arm B, TIDMAD: yes; Prometheus: no —
+privileged, reported as such). Generic and layerwise arms receive the same
+manifest, calibration windows, tuning grid and side information
+(`protocol.arms`); the ablations `noise_only` and `all_generic_no_noise` assign
+gains to their source.
 
-M_recon = J̃_gᵀ J̃_g on z (unit-free, local, assumed Σ̂) is the Gaussian Fisher
-information (Kay 1993); its rank deficiency is local non-identifiability, not
-absence of training support. M_task = J_yᵀ W_y J_y is in physics-output units
-and never contains Σ. Training support is a separate estimator (shrinkage
-Mahalanobis ∨ kNN distance on the reference z, standardised by clean quantiles),
-validated on constructed controls before use (`support.validate_support_estimator`).
-Signatures are conditional (§III.1). Invariance is stated per statistic and
-tested with orthogonal, isotropic-scale and shear controls (`tests/test_spine.py`):
-shrunk reference distances are orthogonal- and scale-invariant, not
-shear-invariant; energy splits likewise; the task length is invariant to any
-invertible reparameterisation under which J_y transforms covariantly. The
-companion preprint carries no central result of this paper.
+## V.3 Splits, origin, harm
 
-## V.3 Information contract
+Event groups are the unit; all geometry, replay and corruption variants of an
+event share one partition (`protocol.splits`); reference fit, development,
+calibration and evaluation are four separate partitions; held-out families,
+severities and seeds are declared in `PREREGISTRATION.md` §3 and scored only on
+evaluation groups; undeclared families never enter fitting, tuning or
+calibration. Origin and harm are separate labels (`protocol.labels`); **EF**
+(evaluation-contract fault) and **EV** (event variation) replace the two old
+uses of "E" in new schemas, and κ_cond / κ_m replace the two uses of κ.
 
-Phases `reference_fit → alarm_time → delayed_label → evaluation_only`
-(`protocol.availability`). Two layers: the manifest (names carry a phase; an arm
-naming a feature outside `alarm_time` is refused) and the data flow (alarm-time
-features are built only through `AlarmTimeInputs`, which carries the observed
-window, its random-trigger records and the geometry and has no truth, twin,
-label or realised-Σ field; every feature carries source tags and an arm is
-scored only from a locked, tag-checked `FeatureBatch`). Residual limitation: a
-builder that lies about a tag is not caught; the adversarial test documents
-this and code review stays part of the contract. Noise-only records are
-operational only where the acquisition supplies them (Tier 1, arm B, TIDMAD:
-yes; Prometheus: no — privileged).
+## V.4 Amended endpoints
 
-## V.4 Splits, arms, abstention
+Collected in `PREREGISTRATION.md` §1 and §4. In short: C2 primary = ΔF1
+(full layerwise − all generic incl. operational noise-only), margins 0.10 /
+±0.05; C4 primary = all-cell AUROC for K ≥ κ_m with a declared cell weighting;
+secondaries = AUPRC with prevalence, missed harm at the alert budget,
+valid-rare-event rejection, conditional triage with the count of cells
+dropped, family/severity breakdowns, the designed dissociation. K per arm is an
+independent physical endpoint (Tier 1: the amplitude error against the planted
+truth; Prometheus: angular error) beside the diagnostic weighted residual, which
+is never the sole demonstration. **κ_m is pending on every arm**; development
+runs use the proposal's provisional 10 % and say so; confirmatory mode refuses.
 
-Five partitions by event group (`protocol.splits`): `reference_fit` (clean
-subject/reference/null fitting — never supervised examples), `attribution_train`,
-`development` (tuning), `calibration` (clean windows: FAR budget, conformal
-threshold, null calibration of scores), `evaluation` (scored once). Held-out
-families/severities/seeds and undeclared families score only on evaluation
-groups. Arms (`protocol.arms`; one classifier, one grid): primary `generic_rich`,
-`intermediate_only` (channel and token hooks: reference distances of the pooled
-mean and second moment plus reference principal coordinates; no input, final z,
-pre-output or output), `full_intermediate`; controls `generic_rich_matched`
-(quadratic expansion to equal feature count), `full_intermediate_drop_channel`,
-`full_intermediate_drop_token`; the pass-1 arms are development diagnostics.
-Reference distances use Ledoit–Wolf shrinkage and a reference-fitted PCA when the
-hook dimension exceeds n_ref/5, and are mapped to a common clean-null scale
-before combination (`protocol.features`); their ordering is *not* stable at
-n_ref ≲ 100 (measured), which the trained run must size for. Abstention:
-§III.3.4. Joint operational table: detect (committed generic score ≥ the
-clean (1 − FAR) quantile) → abstain (novelty above the conformal threshold) →
-attribute, per category clean/N/S/mixture/unknown (`protocol.matching`).
+## V.5 What the 6 September table is evidence of
 
-## V.5 Claim-2 machinery
+`RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` (13 match / 1 documented) shows
+that the predicted *signatures* appear on the linear subject under replay:
+paired Δz, cell-level noise-only aggregates, thresholds at the reference q99,
+60 evaluation events, no held-out family, no group split, no 1 % FAR
+calibration. It is development evidence for §III.1; it is not alarm-time
+attribution, not a confirmatory C2 result, and not a C4 result (the κ cells
+show large alarms with consequence 0.82–1.12; the designed pair shows the
+constructed sign; patching is flat). The 16 Sep CPU smoke
+(`results/latent_monitor_smoke_dev/`) exercises the amended chain end to end
+at toy size and is likewise not citable.
 
-`protocol.consequence`: `HarmThreshold` (declared / provisional_dev / pending);
-`paired_delta_auroc`; the four quadrants with counts at a **cell-level**
-threshold from a pseudo-cell bootstrap of clean windows; missed harm at the
-budget; benign valid-rare **cell** rejection and the window-level estimator;
-breakdowns; conditional triage as secondary with the number of cells dropped;
-`bootstrap_hierarchical` with the cell (or family / perturbation seed) as outer
-unit, event groups nested, model seeds outermost when present — **descriptive
-only below 10 outer units**; `far_precision` with a binomial interval. K per arm
-is an independent physical endpoint, baseline-normalised by the same events
-through the clean reference cell; κ_m is pending everywhere.
+## V.6 Results structure for the manuscript
 
-## V.6 What the development artifacts are evidence of
-
-- `results/latent_monitor_tier1/` (6 Sep): the signature table under paired
-  replay on the linear subject — development evidence of the signatures; not
-  alarm-time attribution, not a Claim-1 or Claim-2 result.
-- `results/latent_monitor_smoke_dev/` (16 Sep, pass 1): the first protocol
-  smoke; its layerwise attribution delta was negative/inconclusive and its
-  layerwise harm AUROC weak; preserved as recorded.
-- `results/latent_monitor_smoke_dev_2026-09-16_pass2/`: the two-claim chain end
-  to end at toy size — 20 hard-matched windows (no reading), an inclusive gain
-  largely absorbed by the capacity-matched control, hook-drop arms identical to
-  the full arm (the token hook duplicates the channel hook on the linear
-  subject), unknown-family AUROC 0.60, a whole-chain correct-decision rate of
-  0.07 (the committed generic detector rarely fires at the toy-size 1 % budget),
-  and a Claim-2 ΔAUROC of +0.17 whose cell-outer interval includes zero. None of
-  it is evidence; all of it is preserved.
-
-## V.7 Results structure for the manuscript
-
-(1) protocol and information availability; (2) Claim 1: generic_rich versus
-full_intermediate on the hard set with controls, ablations, abstention and the
-joint table; (3) positive controls; (4) Claim 2: paired harm ranking with
-quadrants and breakdowns; (5) the transfer arm; (6) failures, limitations,
-bounded cost. Empty sections are plans; no figure or number is fabricated.
+(1) protocol and information availability; (2) generic/noise-only versus
+layerwise attribution; (3) norm-matched mechanism control; (4) all-cell
+consequence results and the alarm–harm matrix; (5) independent transfer;
+(6) failures, abstention and bounded cost. Empty sections are plans; no
+figure or number is fabricated to fill one.
 
 ---
 
@@ -1308,17 +1274,15 @@ bounded cost. Empty sections are plans; no figure or number is fabricated.
 |---|---|---|---|
 | Tier 1 — ORACLE-Cov | `noise_module` synthetic | linear-subject table done (13/14); trained-transformer table pending | whitening lemma; κ sweep; designed dissociation |
 | Arm B — HeST → `qp_simulator` → `noise_module` | simulated TES, 1–24 ch, 250 kHz | **built**, 14 cells, tests green; constants placeholder; gate B0 open | granularity dissociation 24 → 1; second readout physics |
-| Arm A — LUCiD + `noise_module` | simulated PMT, ~2 400 ch, 1 GHz | **notebook only**; gate A0 open | a possible transfer arm for both claims in a real geometry; future work unless selected |
+| Arm A — LUCiD + `noise_module` | simulated PMT, ~2 400 ch, 1 GHz | **notebook only**; gate A0 open | transfer of the κ prediction into a real geometry; waveform-level C1/C2 |
 | Prometheus / DynEdge | hit-level | built, licence-clean | frozen public model; angular-error consequence; fallback for A |
 | Arm C — TIDMAD | real SQUID | code exists, needs data + GPU | external validity |
-| linear subject classes (Part IV) | Tier 1, arm B | modules copied and tested; experiments tentative | probes (supporting) on linear subjects; future work |
-| protocol layer (Part V, `latent_monitor.protocol`, `task_metric`, `support`) | all arms | **interfaces implemented and unit-tested 16 Sep (pass 2)**: typed feature builder + tag-checked batches, five partitions, primary/control/diagnostic arms, abstention chain, hard matching, joint table, Claim-2 scores + paired ΔAUROC + cell-outer resampling, run-dependency gate; 45 protocol/spine tests; one non-citable development smoke; no trained-model evidence; no freeze | the two claims; fail-closed confirmatory mode |
+| linear subject classes (Part IV) | Tier 1, arm B | modules copied and tested; experiments tentative | C0 on linear subjects; readability of the latent |
+| protocol layer (Part V, `latent_monitor.protocol`) | all arms | **built 16 Sep**: manifest + alarm-time contract, group splits, arms + ablations, all-cell C4, mode/gates, CPU smoke; 19 tests; no freeze exists | information contract; amended C2/C4 endpoints; fail-closed confirmatory mode |
 
 **Document map.** Live: this file; `TESTBEDS.md`; `IMPLEMENTATION_PLAN.md`;
-`TWO_CLAIM_REVISION_PLAN.md`; `PREREGISTRATION.md` (unfrozen draft);
-`RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md`; `REVISION_REPORT_2026-09-16.md`
-(pass 1) and `REVISION_REPORT_2026-09-16_pass2.md`; `REVIEW_PROMPTS.md`;
-`TODO.md`; `reviews/`. Archived under `docs/archive/` with a README index: the three merged
+`PREREGISTRATION.md` (unfrozen draft); `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md`;
+`REVISION_REPORT_2026-09-16.md`; `REVIEW_PROMPTS.md`; `TODO.md`; `reviews/`. Archived under `docs/archive/` with a README index: the three merged
 plans, the testbed survey, the 3 Sep theme/novelty/dev notes and their reviewer
 prompt, and the pre-31-Aug material.
 

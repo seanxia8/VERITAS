@@ -1,5 +1,14 @@
 # ORACLE implementation plan
 
+**Revision work queued 16 September 2026:** see [§8 — MLST revision](#8-mlst-revision-plan--16-september-2026)
+for the current revision sequence and [the implementation-agent prompt](IMPLEMENTATION_PROMPT_MLST.md).
+Section 8 is a proposed amendment programme, not a protocol freeze; the canonical
+scientific design remains `EXPERIMENT_DESIGN.md` until the amendments are implemented.
+**First implementation pass done the same day** (§8.5; `REVISION_REPORT_2026-09-16.md`):
+the amendments are in `EXPERIMENT_DESIGN.md` Part V, the unfrozen draft
+`PREREGISTRATION.md`, and `src/latent_monitor/protocol/`. No freeze exists;
+no scientific claim is validated by it.
+
 _31 August 2026. The buildable version of `EXPERIMENT_DESIGN.md`. That document
 says what the study is; this one says what gets written, in what order, with
 what interfaces, and what "done" means for each piece. Review it with
@@ -71,6 +80,14 @@ Every rule below is enforced by something a reviewer can check, not by intent.
 ---
 
 ## 1. Target repository layout
+
+_Annotation, 16 Sep 2026: `src/oracle_diag/` and `experiments/` were never
+created. The diagnostics layer was built as `src/latent_monitor/` (hooks,
+projectors, statistics, lookup, designed contrasts, adjustments; `EXPERIMENT_DESIGN.md`
+Part III) and, since 16 Sep, `src/latent_monitor/protocol/` (WP0/WP4/WP5/WP6/WP7
+pieces: availability manifest, splits, arms, all-cell C4, mode/freeze, smoke). The
+WP names below are kept; read `oracle_diag.<x>` as `latent_monitor.<x>` where one
+exists._
 
 ```
 src/
@@ -459,7 +476,9 @@ claims can take.
    inference path is a confound on K. The CPU-vs-GPU test runs before E4, and
    if the offset persists it must be shown stable across severity strata.
 3. **The proposal's Phase 2 must change from SPINE to Panda** to match D3
-   (`paper3_proposal.tex` still says "SPINE/Graph-SPICE transfer").
+   (`paper3_proposal.tex` still says "SPINE/Graph-SPICE transfer"). _[16 Sep:
+   stale — the proposal reads "Panda scale transfer … SPINE remains the later
+   domain-specific extension"; done.]_
 4. **Deployability is claimed narrowly.** Tier 2 shows transfer to a testbed
    and model the mechanism tier never saw, on declared families; it does not
    show deployability against undeclared real shifts. The abstention endpoint
@@ -469,3 +488,277 @@ claims can take.
    values and two declared assumptions (TTS window, noise rate); nothing is
    read from NuBench files. Record this in the dataset README, and still ask
    GraphNeT for a licence on their artifacts.
+
+---
+
+## 8. MLST revision plan — 16 September 2026
+
+### 8.1 Purpose and current evidence
+
+Turn the research review into a coherent manuscript and an executable test of
+the incremental scientific value of representation monitoring. This section
+extends the existing work packages; it does not replace the canonical design
+or create a second experiment programme. Baseline checkout: `f24430a`.
+
+Working thesis, to be tested rather than asserted as a result:
+
+> Under declared acquisition and training-support interventions, determine
+> when frozen representations add information beyond acquisition-quality and
+> input/output monitors, and whether that information improves identification
+> of scientifically consequential reconstruction failures.
+
+The earlier conversational review read an older checkout. In this checkout,
+`src/latent_monitor/`, the designed contrasts, linear estimators, subject
+interfaces, HeST integration, and Tier-1 development results already exist.
+Audit and extend them rather than recreating them. In particular:
+
+- The 6 September report finds that noise-only statistics distinguish several
+  acquisition and event interventions. These belong in the strong generic
+  baseline; attributing its success to internal representations is invalid.
+- The report records large covariance-mismatch alarms with little consequence,
+  and flat activation-patching results on the linear subject. Preserve these
+  findings and their limitations.
+- The reported 13/14 table is development evidence, not confirmation of the
+  paper's general claims. Trained-transformer and public-data results remain
+  subject to their actual gates.
+- The proposal, canonical design and TODO disagree about C4 conditioning and
+  claim priority. Resolve these explicitly before writing new runners.
+
+### 8.2 Claim hierarchy and scope
+
+Keep existing claim IDs for traceability. Make **C2 incremental attribution**
+and **C4 scientific consequence** the two central questions, each with one
+declared primary endpoint. C1 is a detection prerequisite; C3 is supporting
+cost evidence. C0 physical-variable organisation and C5 patching/localization
+are supporting mechanistic analyses unless independently justified as core.
+Do not infer physical axes from probe accuracy alone or stage localization
+from uniform recovery at all patched stages.
+
+Minimum evidence package: controlled waveform mechanism study, one feasible
+realism validation, and a bounded public-data check if accessible. Choose the
+realism arm using existing readiness and licence/parity gates; do not silently
+replace the current HeST/LUCiD/Prometheus sequence with the older NuBench-only
+recommendation. Document which conclusions are lost when an arm is deferred.
+Additional architectures, geometry campaigns, SPINE/Panda transfer, and broad
+efficiency optimization are outside this revision's critical path. Preserve
+existing work as optional rather than deleting it.
+
+### 8.3 Ordered revision packages
+
+#### R0 — Reconcile the current state (extends WP0)
+
+Read the live documents, implementation, existing reviews and actual result
+artifacts. Produce a compact status/traceability table linking each claim to
+its endpoint, code, evidence level, unresolved gate and next action. Record
+contradictions and their resolutions in a dated note under `docs/reviews/`.
+
+Explicitly map namespaces: proposal **E** means evaluation-contract fault,
+whereas the controlled-variable table also uses **E** for event/physics
+variation. Use unambiguous labels in new schemas and reporting; preserve old
+artifact identifiers through a documented mapping. Likewise distinguish the
+covariance condition number κ from the scientific harm threshold κ_m.
+
+Acceptance: no implemented component is called missing without inspection;
+no development result is upgraded to confirmatory; no unresolved collaborator
+decision is represented as approved. Drafting and local development proceed
+without treating a pending freeze decision as a blocker to all work.
+
+#### R1 — Revise the scientific narrative and prior-art positioning (WP0)
+
+Update `EXPERIMENT_DESIGN.md` Part I and the proposal together. Present:
+scientific decision → competing explanations → added value of representations
+→ controlled mechanism → independent consequence → transfer and limitations.
+Replace unconditional language such as an alarm "can be made to rank"
+consequence with a hypothesis and its conditions until evidence supports it.
+
+Verify and discuss the following primary sources, using the existing local
+paper collection first where available:
+
+- MLST scope: https://publishingsupport.iopscience.iop.org/journals/machine-learning-science-and-technology/about-machine-learning-science-technology/
+- Rabanser et al., *Failing Loudly*: https://arxiv.org/abs/1810.11953
+- Zhang et al., *Why did the Model Fail?*: https://proceedings.mlr.press/v202/zhang23ai.html
+- Guillory et al., *Predicting with Confidence on Unseen Distributions*: https://arxiv.org/abs/2107.03315
+- Garg et al., *Leveraging Unlabeled Data to Predict Out-of-Distribution Performance*: https://arxiv.org/abs/2201.04234
+- Angelopoulos and Bates, conformal prediction: https://arxiv.org/abs/2107.07511
+
+Integrate with the existing physics references and Paper-1 boundary. Novelty
+must exceed observing that distribution distance and damage can disagree.
+Do not claim a first or an exhaustive literature search without evidence.
+
+Acceptance: a short contribution paragraph names what the experiment can
+establish beyond these works and states what observation would refute it.
+
+#### R2 — Freeze-ready attribution design and information contract (WP1–WP4)
+
+Specify and implement, where absent:
+
+1. A feature-availability manifest distinguishing reference fitting,
+   development labels, alarm-time measurements, delayed-label monitoring,
+   and evaluation-only truth. Noise-only records are operational features
+   only when the acquisition actually supplies them; otherwise label the
+   corresponding arm privileged/oracle and report a feasible alternative.
+2. Identical data, calibration windows, tuning budgets and available side
+   information for generic and layerwise comparisons. The generic arm must
+   include available noise-only quality statistics. Add a noise-only ablation
+   so attribution gains can be assigned to their actual source.
+3. Difficult N/S contrasts with overlapping multiplicity, signal strength,
+   or generic shift score, alongside the inclusive population. Declare
+   matching variables, dev-chosen calipers, overlap failures and retained
+   fraction. Do not hide unmatched cases or interpret matching as a universal
+   causal identification result.
+4. Group splits by underlying event/injection identity: all geometries,
+   replays and corruption variants stay together. Separate reference fit,
+   development/tuning, clean calibration and final evaluation. Hold out
+   intervention types, severity ranges and seeds as declared; unknown-family
+   examples do not enter tuning or calibration.
+5. Separate origin (N/S/mixture/unknown) from harm (benign/harmful). Include
+   clean rare harmful events and mild benign corruption where supported.
+6. Define abstention through feature novelty and report risk–coverage curves,
+   unknown-family detection and retained coverage. State the exchangeability
+   assumptions; ordinary split conformal does not guarantee unknown-shift
+   rejection. Retained coverage is a reporting point, not a threshold tuned
+   on confirmatory labels.
+
+Acceptance: tests fail on overlapping event groups and evaluation-only feature
+leakage; a tiny deterministic fixture exercises all five comparison arms and
+the noise-only ablation, with provenance. Distinguish declared conditional
+attribution from identifying unknown real causes.
+
+#### R3 — Make C4 test scientific harm across the full evaluation set (WP2–WP4)
+
+Recommend **AUROC for K ≥ κ_m across all held-out intervention cells** as the
+single primary ranking endpoint. Define the cell sampling/weighting scheme in
+advance; report AUPRC with prevalence, missed-harm rate at the alert budget,
+and false rejection of valid rare events as secondary endpoints. Conditional
+strong-alarm analysis remains secondary alarm triage. Add family/severity
+breakdowns and the designed dissociation to expose severity confounding;
+pooled association alone does not establish the mechanism.
+
+Define K, baseline subtraction or normalization, units, uncertainty and κ_m
+per arm. Prefer an independent physical endpoint (amplitude bias/resolution,
+signal recovery, angular error) alongside the diagnostic weighted residual.
+Do not use the same weighted training objective as the sole demonstration of
+scientific advantage. Harm probabilities, if implemented, require calibration
+evaluation; a ranking score need not be described as a probability.
+
+Operational metrics use the assumed/reference covariance; realized covariance
+and truth belong to oracle controls or evaluation. Distinguish exact Gaussian
+full-covariance likelihoods, diagonal inverse-PSD approximations and quadratic
+diagnostics under non-Gaussian noise. Compare per-cell realized weighting with
+a fixed reference or physical metric so a changing denominator cannot conceal
+damage. Specify zero-baseline and undefined-class metric behavior.
+
+Acceptance: a fixture with harmful low-alarm cells changes the primary result
+and missed-harm rate; no conditioning silently drops those cells. Reports
+retain all four alarm–harm quadrants, cell counts and independent resampling
+units. Pick κ_m from scientific requirements or mark it pending; inventing a
+number to make a config pass is not acceptable.
+
+#### R4 — Strengthen the existing mechanism test (WP2/WP6)
+
+Audit `latent_monitor/designed.py` and existing projector/Jacobian code first.
+Use norm-matched task-aligned, task-null and random perturbations in the same
+declared coordinate system. Specify which frozen head defines sensitivity,
+the null-space/rank requirement, how scaling is chosen without evaluation
+labels, and the local-linear regime. Check actual output/physical loss, not
+only the Jacobian prediction; quantify nonlinear approximation failure.
+
+Norm must be matched in the reference alarm metric being challenged. A
+task-aware monitor built using the head is expected to separate constructed
+directions; this is a positive control, not independent evidence of transfer.
+Make physically supported interventions on a held-out arm the transfer test.
+
+Acceptance: deterministic linear controls recover the analytic null/aligned
+answers; unavailable null spaces produce explicit skips, not fake nulls;
+nonlinear evidence is labelled smoke, development or trained evaluation
+accurately. Existing covariance-alarm/low-consequence findings stay visible.
+
+#### R5 — Statistical gates, reporting and reproducibility (WP3/WP7)
+
+Use a development-only power/precision study to choose independent calibration
+and evaluation counts. A hundred clean windows gives only 1%-step empirical
+FAR resolution and is not by itself precise validation of a 1% FAR. State
+per-window versus run-level error and the dependence assumptions for delay.
+Account for monitor selection and multiple layer tests in calibration.
+
+Resample the actual independent event groups, perturbation seeds and model
+seeds, respecting crossed versus nested structure. Give each primary endpoint
+an interval and a prespecified inference rule; distinguish equivalence,
+superiority and inconclusive evidence. Do not promote metrics because they
+outperformed baselines on the evaluation set. Retain existing versioned
+protocol hashes, manifest hashes, model/data provenance and dev/confirmatory
+separation. If preregistration is external, record the dependency explicitly
+and provide an unfrozen local draft/interface; never fabricate its hash.
+
+Acceptance: one bounded CPU development smoke generates a traceable report;
+confirmatory execution fails closed on missing required freezes or gates.
+External data/GPU/licence blockers have exact prerequisites and commands.
+
+#### R6 — Synchronize the manuscript and hand off (WP0/WP7)
+
+Synchronize the proposal, canonical design, this plan, TODO, README and reviewer
+prompts. Keep current section and claim IDs usable or add explicit mappings.
+Update review instructions that currently prohibit pooled C4 analysis without
+distinguishing primary operational ranking from mechanism/stratified checks.
+
+Proposed results structure: (1) protocol and information availability;
+(2) generic/noise-only versus layerwise attribution; (3) norm-matched mechanism
+control; (4) all-cell consequence results and alarm–harm matrix; (5) independent
+transfer; (6) failures, abstention and bounded cost. Empty results are plans,
+never fabricated plots or numerical claims.
+
+Acceptance: relevant tests pass, links resolve, LaTeX builds with citations and
+references resolved if the toolchain is available, and rendered pages are
+visually inspected. Report unavailable checks honestly. Deliver a changed-file
+summary, evidence/status table, test commands/results and remaining decisions.
+
+### 8.4 Execution boundary and definition of done
+
+**First implementation pass:** R0–R1, protocol amendments R2–R5, the smallest
+missing reusable code/tests needed for one CPU development smoke, and R6.
+Reuse completed components. Do not launch full training, large downloads,
+confirmatory campaigns, publication, outreach or collaboration messages as
+part of this handoff. This boundary makes the revision reviewable without
+confusing implementation completion with scientific validation.
+
+**Later evidence pass:** after the relevant gates and scientific decisions
+are resolved, run the trained-subject comparison, selected realism transfer,
+and public-data check. These remain outstanding even if the implementation
+pass succeeds. Collaborator agreement required for a protocol freeze remains
+a pending milestone, not a reason to stop reversible draft implementation.
+
+Done means the revised claim → protocol → code → report chain is internally
+consistent and locally executable, with every unrun scientific claim clearly
+labelled. It does not mean MLST acceptance is established.
+
+### 8.5 Status of the first implementation pass (16 September 2026)
+
+| package | status | where |
+|---|---|---|
+| R0 reconcile | **done** — traceability table, EF/EV and κ_cond/κ_m namespace, 14 contradictions with resolutions | `reviews/2026-09-16_R0_reconciliation.md` |
+| R1 narrative + prior art | **done** — six sources verified (four from `reference/papers/`, two on the web); contribution paragraph with refutation conditions; "can be made to rank" replaced by a conditional hypothesis | `EXPERIMENT_DESIGN.md` §I.1, Part V.1; `latex/paper3_proposal.tex` §1, §4, §6 |
+| R2 information contract, splits, origin/harm, abstention | **done (protocol + code + tests)** — manifest and alarm-time contract; group splits with declared hold-outs; five arms + two ablations; origin/harm labels; abstention assumptions stated | `PREREGISTRATION.md` §2–§4; `latent_monitor/protocol/{availability,splits,arms,labels,features}.py`; `tests/test_protocol.py` |
+| R3 all-cell C4 | **done (code + tests)**; κ_m **pending** on every arm (dev uses the proposal's provisional 10 %) | `protocol/consequence.py`; `PREREGISTRATION.md` §1, §4 |
+| R4 designed control | **done** — norm matching in a declared metric, explicit `NullSpaceUnavailable`, `linearization_check`, reproducible seeds (the old seed stream depended on the process hash salt) | `latent_monitor/designed.py`; `tests/test_designed_and_smoke.py` |
+| R5 gates, smoke | **done** — `dev`/`confirmatory` with fail-closed freeze/threshold checks; provenance; one CPU smoke (~7 s, 56 kB) | `protocol/mode.py`, `protocol/smoke.py`; `results/latent_monitor_smoke_dev/` |
+| R6 synchronise | **done** — proposal rebuilt (7 pages, references resolved), design, plan, TODO, README, review prompts, self-review | this file; `REVISION_REPORT_2026-09-16.md`; `reviews/2026-09-16_mlst_revision_self_review.md` |
+
+Not done and not started, by design (§8.4): trained-transformer comparison,
+any realism-arm run, public-data check, full FAR/power study, freeze of any
+part, collaborator messages.
+
+### 8.6 Second pass — the two-claim revision (16 September 2026, same day)
+
+The independent review of §8.5 (`TWO_CLAIM_REVISION_PLAN.md`) found the paper
+still too broad and several statements unsupported. The second local pass
+(`REVISION_REPORT_2026-09-16_pass2.md`) narrowed the manuscript to **two
+claims**, corrected the mathematical spine (M1–M5) and repaired the protocol
+implementation (I1–I13). Status is stated in the vocabulary *interface
+implemented / unit-tested control / development smoke / trained-model evidence /
+transfer evidence / confirmatory*: everything in this pass is at the first three
+levels; nothing is at the last three. Items §8.5 had marked "done" that were
+in fact declarative or absent — abstention, scientific resampling, difficult
+contrasts, full information-contract enforcement — are now implemented as
+interfaces with unit tests and one development smoke, not more. The next gate
+is the Phase-B precision study, then the trained-subject run in development
+mode.

@@ -6,6 +6,7 @@ Kept as evidence, cited from the live documents, never edited. The live design i
 
 | file | date | what it was | superseded by |
 |---|---|---|---|
+| `EXPERIMENT_DESIGN_2026-09-16_pass1.md` | 16 Sep (pass 1) | the canonical design as it stood after the first MLST revision pass: the six-claim ladder with a Part V that "governed" earlier text | `EXPERIMENT_DESIGN.md` (two-claim consolidation, same day); kept because the pass-1 state was never committed |
 | `EXPERIMENT_PLAN_ARMS_2026-09-05.md` | 5 Sep | arm-level plan: LUCiD, HeST, TIDMAD; `noise_module_lucid` build; gates, descope | `EXPERIMENT_DESIGN.md` Part II (§II.n keeps this file's §n) |
 | `LATENT_MONITORING_PLAN_2026-09-05.md` | 5 Sep | controlled-variable plan: factor → determinant → signature → adjustment; subject architecture; per-arm cells; LUCiD integration; HeST fork | `EXPERIMENT_DESIGN.md` Part III (§III.n keeps this file's §n; corrected by the 6 Sep results) |
 | `SIM_TESTBED_SURVEY_2026-09-05.md` | 5 Sep | LUCiD / ldmx-sw / HeST survey with measured evidence | `TESTBEDS.md` (inventory); this file remains the evidence |

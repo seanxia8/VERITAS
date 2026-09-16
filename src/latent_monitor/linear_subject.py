@@ -46,6 +46,8 @@ from .whitening import KroneckerWhitener
 
 @dataclass
 class LinearSubject:
+    #: the designed construction x + W⁻¹ g(δ) is an exact local inverse of this encoder (designed.py)
+    is_linear: bool = field(default=True, init=False, repr=False)
     whitener: KroneckerWhitener
     A: np.ndarray                     # (k, N) encoder
     D: np.ndarray                     # (N, k) decoder in whitened coordinates

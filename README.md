@@ -9,9 +9,14 @@ questions that ordinary distribution-shift detection does not answer:
 2. Does the magnitude of a monitoring alarm track the downstream scientific
    damage caused by that shift?
 
-The project is currently a **proposal with a validated development pilot**, not
-a completed study or a production monitoring library. The main deliverable is
-the concept note in [`latex/paper3_proposal.pdf`](latex/paper3_proposal.pdf).
+The project is currently a **two-claim proposal with a protocol prototype and
+development-mode pilots**, not a completed study or a production monitoring
+library: no protocol is frozen, no result is confirmatory, there is no
+trained-model or transfer evidence, and no scientific claim is validated by the
+code passing its tests. The main deliverable is the concept note in
+[`latex/paper3_proposal.pdf`](latex/paper3_proposal.pdf) (two-claim revision,
+16 Sep 2026; `docs/REVISION_REPORT_2026-09-16_pass2.md` says what changed and
+what remains).
 
 ## Study design
 
@@ -31,14 +36,30 @@ scientific consequence. They compare layerwise representation monitoring with
 input, output, uncertainty, MMD, classifier two-sample, and embedding baselines
 under the same false-alert budget.
 
-Two complementary testbeds are planned:
+The paper makes exactly two claims (`docs/PREREGISTRATION.md`, unfrozen
+draft): **Claim 1** — do *intermediate* representations add N-versus-S
+attribution information beyond a capacity-matched strong generic monitor with
+identical alarm-time side information (paired ΔF1 on a hard, signature-matched
+evaluation set, with capacity-matched and hook-drop controls and abstention on
+undeclared families evaluated empirically); **Claim 2** — does a predeclared
+task-sensitive representation score (the length of a window's deviation in the
+task metric J_yᵀ W_y J_y) rank scientific harm on held-out physical
+intervention cells better than a committed generic score (paired ΔAUROC for
+K ≥ κ_m with the cell as the resampling unit; κ_m is pending on every arm).
+Detection, cost, probes, designed controls, resolvability and patching are
+supporting analyses. Origin (N/S/G/mixture/unknown) and harm (benign/harmful)
+are separate labels; the proposal's "E" is an evaluation-contract fault (EF),
+the controlled-variable table's "E" is event variation (EV).
 
-- **NuBench neutrino-telescope point clouds** provide a realistic frozen graph
-  neural network and a 128-dimensional pre-head event representation.
-- **Controlled waveforms** combine the public TIDMAD benchmark with the local
-  noise simulator. The TIDMAD arm compares MSE and inverse-PSD-weighted training
-  in a compact two-stage transformer; the simulator keeps assumed and realized
-  covariance known.
+Three tiers, one direction of travel (`docs/EXPERIMENT_DESIGN.md`):
+
+- **Tier 1 — controlled waveforms** (`src/noise_module/`, `src/latent_monitor/`):
+  assumed and realized covariance both known; the mechanism tier.
+- **Tier 2 — realism arms**: HeST → `qp_simulator` → `noise_module` (built),
+  LUCiD + `noise_module` (licence-gated), Prometheus/DynEdge (frozen public
+  model; fallback).
+- **Tier 3 — TIDMAD real data**: one compact transformer trained under MSE and
+  inverse-PSD objectives on identical real electronics noise.
 
 ## What has been run
 
@@ -57,6 +78,15 @@ direction model:
   standardized embedding displacement rises from 0.000 to 0.149, and 10-nearest
   neighbour retention falls from 1.000 to 0.393.
 
+On Tier 1 the linear-subject table (`results/latent_monitor_tier1/`, 6 Sep) shows
+the predicted signatures under paired replay — development evidence of the
+signatures, not alarm-time attribution — and two protocol smokes
+(`results/latent_monitor_smoke_dev/`, pass 1, whose layerwise attribution delta
+was negative/inconclusive and whose layerwise harm AUROC was weak;
+`results/latent_monitor_smoke_dev_2026-09-16_pass2/`, the two-claim chain at toy
+size) exercise the protocol end to end. All three are labelled development
+output and none is evidence for either claim.
+
 These results establish that the perturbation and embedding hook are useful for
 protocol development. They **do not validate the proposal's scientific claims**:
 the 256-event sample is deliberately enriched for high-multiplicity events, and
@@ -69,7 +99,12 @@ this repository.
 | Path | Purpose |
 | --- | --- |
 | `src/noise_module/` | Validated stationary/nonstationary/multichannel noise and PSD simulation (numpy/scipy only) |
-| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors, per-event Δz statistics, the pre-registered attribution lookup, adjustments; linear and transformer subjects (`docs/EXPERIMENT_DESIGN.md` §§III.2–III.4); `estimators/` holds the four linear classes of Paper 1 (OF, CW-PCA, tied linear AE, NFPA) as subject stages (§IV) |
+| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors (`P_resolved/P_weak`; legacy `P_exc/P_unexc`), per-event Δz statistics, the development lookup, adjustments; linear and transformer subjects (`docs/EXPERIMENT_DESIGN.md` §§III.2–III.4); `task_metric.py` (M_recon vs M_task), `support.py` (validated training-support estimator), `designed.py` (positive controls, linear-only); `estimators/` holds the four linear classes of Paper 1 (future-work probes); `protocol/` is the two-claim protocol layer (Part V): typed alarm-time feature builder with source-tagged batches, five event-group partitions, primary/control/diagnostic arms, abstention chain, hard matching and the joint decision table, Claim-2 scores with paired ΔAUROC and cell-outer resampling, dev/confirmatory gates with run-dependency verification, and the CPU smoke |
+| `results/latent_monitor_smoke_dev/` | The pass-1 protocol smoke (16 Sep) — development output, not citable, preserved as recorded |
+| `results/latent_monitor_smoke_dev_2026-09-16_pass2/` | The two-claim protocol smoke — development output, not citable; regenerate with `PYTHONPATH=src python -m latent_monitor.protocol.smoke --out <new dated dir>` |
+| `docs/TWO_CLAIM_REVISION_PLAN.md` | The two-claim revision and implementation-repair plan (M1–M5, I1–I13, D1–D4) |
+| `docs/PREREGISTRATION.md` | The `core` protocol part — **unfrozen draft**; `protocol/frozen/` does not exist, so confirmatory mode refuses |
+| `docs/REVISION_REPORT_2026-09-16.md`, `docs/REVISION_REPORT_2026-09-16_pass2.md` | The pass-1 and pass-2 revision reports: what changed, what was tested, which audit findings are fixed or blocked, the next gate |
 | `src/herald_simulation/` | HeST → `qp_simulator` → `noise_module`: the paired superfluid-helium dark-matter arm (plan §7); HeST pinned and unpatched via `fetch_hest.sh` |
 | `results/latent_monitor_tier1/` | The §1 table on the linear subject: 13 match / 1 documented / 0 mismatch, plus re-whitening, patching and stage-refit outcomes |
 | `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only) |
@@ -78,10 +113,10 @@ this repository.
 | `notebooks/` | Smoke/inference notebooks, the noise-module tutorials, and the two executed HeRALD/LUCiD walk-throughs (`one_event_herald_lucid.ipynb`, `noise_models_herald_lucid.ipynb`) |
 | `scripts/` | Local/Condor training helpers and smoke tests |
 | `containers/` | Runtime container image definition |
-| `docs/EXPERIMENT_DESIGN.md` | **The canonical design** (10 Sep 2026): Part I the three-tier study; Part II the arms (LUCiD, HeST, TIDMAD, `noise_module_lucid`); Part III the controlled-variable protocol, corrected by the 6 Sep results; Part IV the four linear subject classes (tentative) |
+| `docs/EXPERIMENT_DESIGN.md` | **The canonical design** (10 Sep 2026, consolidated 16 Sep as a two-claim study): Part I the study and the evidence ladder; Part II the arms; Part III the controlled-variable protocol with conditional signatures; Part IV the linear subject classes (future-work probes); Part V the two-claim protocol — one current definition throughout, no precedence rules |
 | `docs/TESTBEDS.md` | Canonical testbed inventory: simulations and real datasets that serve and do not, what is implemented, and the structured autoencoder target |
 | `docs/IMPLEMENTATION_PLAN.md` | Work packages, interfaces, acceptance criteria, gates |
-| `docs/REVIEW_PROMPTS.md` | Reviewer prompts (§A before implementation, §B per milestone); reviews land in `docs/reviews/` |
+| `docs/REVIEW_PROMPTS.md` | Reviewer prompts (§A before implementation, §B per milestone), synchronised with the amended C4 endpoint; reviews land in `docs/reviews/` |
 | `docs/archive/` | Superseded documents, indexed in `docs/archive/README.md`: the 5 Sep arms and latent-monitoring plans and testbed survey (merged into `EXPERIMENT_DESIGN.md` / `TESTBEDS.md`), the 3 Sep theme/novelty/dev notes, audit, open decisions, revision plan, dataset-production plan, novelty review, package docs |
 | `reference/papers/` | Prior-art and testbed PDFs, with the novelty analysis (`papers.tsv` is the manifest; the README has the fetch loop) |
 | `scripts/nubench/` | NuBench feasibility scripts (migrated 2026-08-17, post-audit) |
@@ -129,6 +164,14 @@ The noise package needs nothing external and runs anywhere:
 
 ```bash
 uv run pytest src/noise_module/tests
+```
+
+`latent_monitor` (numpy/scipy only, torch optional) and its protocol layer:
+
+```bash
+PYTHONPATH=src python -m pytest src/latent_monitor/tests -q        # 84 passed, 1 skipped without torch, ~25 s
+PYTHONPATH=src python -m latent_monitor.protocol.smoke --out results/latent_monitor_smoke_dev_<date>   # ~10 s CPU, dev only, NOT CITABLE
+PYTHONPATH=src python -m latent_monitor.protocol.smoke --mode confirmatory   # refuses: no freeze, κ_m provisional, dirty tree, no data/model hash
 ```
 
 The `tidmad` suite needs torch, and on a Linux GPU node `uv run pytest

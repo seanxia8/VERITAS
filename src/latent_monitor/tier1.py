@@ -273,5 +273,13 @@ def event_cells(ref: Cell) -> list[Cell]:
     ]
 
 
+def mixture_cells(ref: Cell, seed: int = 3) -> list[Cell]:
+    """N + S at once: structural gain drift applied to the in-span oscillation family (origin ``mixture``)."""
+    rng = np.random.default_rng(seed)
+    drift = 1.0 + rng.normal(0.0, 0.15, size=ref.geometry.n_channels)
+    return [replace(ref, gain_drift=drift, family=replace(ref.family, extra="oscillation", label="oscillation+gain_drift"),
+                    label="mixture:oscillation+gain_drift", moved="mixture")]
+
+
 def all_cells(ref: Cell) -> list[Cell]:
     return sigma_covariance_cells(ref) + sigma_structural_cells(ref) + geometry_cells(ref) + event_cells(ref)

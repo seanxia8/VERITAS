@@ -1,7 +1,38 @@
-# Paper 3 / ORACLE — TODO (as of 2026-09-03, branch `dev`; doc paths updated 2026-09-10 — the canonical design is `docs/EXPERIMENT_DESIGN.md`)
+# Paper 3 / ORACLE — TODO (as of 2026-09-16 pass 2, branch `dev`; the canonical design is `docs/EXPERIMENT_DESIGN.md`, two-claim)
 
-Stage: proposal has its mechanism section (`0793eba`); Tier-1 implementation lives in the
-experiment repository with dev-scale results; nothing here is pre-registered or citable yet.
+Stage: the proposal makes two claims (16 Sep, 8 pp); the protocol layer in
+`src/latent_monitor/protocol/` has its interfaces implemented and unit-tested, with
+one non-citable development smoke; `docs/PREREGISTRATION.md` is an **unfrozen
+draft**; there is no trained-model evidence, no transfer evidence, no
+confirmatory result.
+
+Status vocabulary used below: *interface implemented* · *unit-tested control* ·
+*development smoke* · *trained-model evidence* · *transfer evidence* · *confirmatory*.
+
+## Two-claim revision (2026-09-16 pass 2; `docs/TWO_CLAIM_REVISION_PLAN.md`, `docs/REVISION_REPORT_2026-09-16_pass2.md`)
+- [x] M1–M5 in code and text: M_recon vs M_task (`task_metric.py`), resolved/weak rename with legacy
+      aliases, support estimator with validation (`support.py`), conditional signatures, invariance
+      controls (`tests/test_spine.py`), companion dependency bounded — *unit-tested control*.
+- [x] I1 abstention chain (conformal on clean calibration, unknown AUROC, risk–coverage, retained-known F1)
+      — *interface implemented, unit-tested control, development smoke*; unknown AUROC 0.60 at toy size.
+- [x] I2 typed builder + source-tagged batches + adversarial test — *unit-tested*; residual limitation documented.
+- [x] I3 `generic_rich` / `intermediate_only` / `full_intermediate`, capacity-matched and hook-drop controls — *development smoke*.
+- [x] I4 committed generic score, task-sensitive score, paired ΔAUROC — *development smoke*.
+- [x] I5 hierarchical bootstrap with the cell as outer unit; refuses inference below 10 outer units — *unit-tested*.
+- [x] I6 `attribution_train` partition; `reference_fit` never trained on — *unit-tested*.
+- [x] I7 hard matching with retention reporting; joint decision table — *development smoke* (20 hard windows: no reading).
+- [x] I8 designed families linear-only; `task_aligned` / `task_null` — *unit-tested control*.
+- [x] I9–I13 metric edge cases, shrinkage/calibration/stability, run-dependency gate, cell/window terminology,
+      FAR precision — *unit-tested*; the stability test records that reference distances are unstable at n_ref ≲ 100.
+- [ ] **Phase B precision study** (not run): calibration count, reference-fit count, outer-unit counts,
+      model-seed variability, matched-contrast overlap. Decides whether the margins are achievable.
+- [ ] **κ_m per arm** from a scientific requirement (`PREREGISTRATION.md` §5) — pending; never invented.
+- [ ] Claim-2 acceptance point estimate and equivalence rule; held-out severities/seeds; run-level FAR budget.
+- [ ] **Phase C**: the two claims on the *trained* `TransformerSubject` in development mode (GPU; gated command in
+      `REVISION_REPORT_2026-09-16_pass2.md` §6); then exactly one transfer arm.
+- [ ] Nonlinear designed perturbations: a constrained local inverse through the encoder Jacobian with an
+      input-validity check — or keep the controls linear-only in the paper.
+- [ ] Freeze `core` only after `PREREGISTRATION.md` §8 is settled and collaborators agree — never before.
 
 ## Theme adjustment 2026-09-03 (`docs/archive/THEME_ADJUSTMENT_2026-09-03.md`)
 Paper 3 is the main paper: *what determines which representation a detector model learns, and
@@ -9,24 +40,23 @@ what it lets a physicist reconstruct*.  Done today in the proposal: new title, a
 "The question" paragraph in §1 with Panda as the foil, mechanism §3 attributed to Paper 1
 Props. 7.2–7.3, new claim **C0** (physical-variable organisation), E0b row, measurement-system
 breadth sentence in §5.  Build 6 pp.
-- [ ] **Junjie must see and agree** the new title and C0 before anything is frozen; the
-      failure-diagnostics content is unchanged, the framing is not.
-- [ ] Fold the three Tier-1 findings (below) and the P3-E0b dev result into §3–§4.
+- [ ] **Junjie must see and agree** the title and the two-claim framing (C0 is now a supporting probe
+      analysis) before anything is frozen.
+- [x] Fold the three Tier-1 findings (below) into §4–§5 (16 Sep); the P3-E0b dev result is still not in the proposal.
 - [ ] Consequence in physical units per tier stated in one table (amplitude RMSE; angular
       resolution; exclusion limit) — the closing box of the chain.
 - [ ] C0 into `PREREGISTRATION.md` §4 (experiment repo) with the acceptance rule; probe step into
       `TIER2_RUNBOOK.md` (NuBench labels) and `TIER3_RUNBOOK.md` (injected amplitude).
 
 ## Proposal (`latex/paper3_proposal.tex`)
-- [ ] Fold the three Tier-1 findings of `docs/archive/DEV_UPDATE_2026-09-03.md` into §3 and §4:
-      (i) three-signature N/S table (covariance N: variance in T_S; signal-deforming N: mean
-      shift like S; S along excited vs unexcited coordinates); (ii) abstention = feature-space
-      novelty, not classifier margin; (iii) Tier-1 consequence = whitened reconstruction error,
-      C4 primary = pooled ranking + designed dissociation, not within-(family, severity) strata.
-- [ ] State where the designed dissociation is constructible (stages with a Jacobian null
-      space) and that the pullback monitor uses the *assumed* covariance.
-- [ ] Choose the one claim to lead with (recommendation: N-vs-S mechanism + C4) and trim C1/C3
-      to supporting; C3 as written fails at 10 % sampling on Tier 1.
+- [x] Fold the Tier-1 findings into §4–§5 (16 Sep): noise-only discriminator in the generic arm,
+      abstention = feature novelty with the exchangeability caveat, K = independent physical
+      endpoint beside the diagnostic residual, C4 primary = all-cell ranking + breakdowns +
+      designed dissociation (conditional triage secondary).
+- [x] Designed dissociation: constructible only where the head has a null space (explicit skip
+      otherwise); the pullback monitor uses the *assumed* covariance — stated in §4 (16 Sep).
+- [x] C2 and C4 central with one primary endpoint each; C1/C3 supporting, C0/C5 mechanistic
+      (16 Sep). C3 as written still fails at 10 % sampling on Tier 1 — unchanged, out of this pass.
 - [ ] Bibliography: `paper1` gets the arXiv id once posted; add Lu 2008 / Allen 2014 only if §3
       cites the separable class.
 - [x] Rebuild and check the page count — now six after the 2026-09-03 additions (positioning
@@ -59,9 +89,9 @@ threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor sta
       detector; Panda follow-ups; NuBench follow-ups; any "diagnostics of foundation models in
       physics" paper. Update the positioning paragraph if a mechanism-level diagnostic appears.
 
-## Pre-registration (in the experiment repo, `docs/plans/oracle/PREREGISTRATION.md`)
-- [ ] Freeze `core` (endpoints, thresholds, families, margins) — write `FROZEN: <commit>`;
-      confirmatory runners refuse to start without it.
+## Pre-registration (`docs/PREREGISTRATION.md` here — unfrozen draft; the experiment-repo copy is superseded)
+- [ ] Freeze `core` (endpoints, thresholds, families, margins) with `protocol.mode.freeze_part`;
+      confirmatory runners already refuse to start without `protocol/frozen/core.json`.
 - [ ] Raise clean windows to ≥ 100 per seed before any confirmatory run (FAR resolution).
 - [ ] Fill the Tier-1 → Tier-2 bridge table (§6) with a row per ORACLE-Paired family.
 

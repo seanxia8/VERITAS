@@ -9,7 +9,8 @@ so it can be lifted into `noise-weighted-subspace-reconstruction` later.
 
 ```bash
 PYTHONPATH=src python -m latent_monitor.run_table --out results/latent_monitor_tier1
-PYTHONPATH=src python -m pytest src/latent_monitor/tests -q      # 39 tests (1 skipped without torch), ~25 s CPU
+PYTHONPATH=src python -m pytest src/latent_monitor/tests -q      # 85 tests (1 skipped without torch), ~25 s CPU
+PYTHONPATH=src python -m latent_monitor.protocol.smoke --out results/latent_monitor_smoke_dev_<date>   # the two-claim CPU smoke (dev only, NOT CITABLE)
 ```
 
 ## What is in here
@@ -21,13 +22,27 @@ PYTHONPATH=src python -m pytest src/latent_monitor/tests -q      # 39 tests (1 s
 | `linear_subject.py` | the analytic subject: PCA encoder, geometry-weighted pooling, decoder, least-squares head; `with_sigma_hat` is the whitening lemma as an adjustment (GLS re-derivation, decoder untouched); `refit_stage` = stage-restricted LoRA |
 | `torch_subject.py` | S1: the compact transformer wrapped as a `Subject` — whitening in front, an explicit position embedding (zero at init), a ridge *probe* decoder, autograd `jac_output`, exact self-patching of pooled hooks |
 | `tier1.py` | paired Tier-1 cells from `noise_module`: reference; Σ-covariance (corr ↑/↓, bandwidth, line); Σ-structural (gain drift, channel loss, jitter); geometry (½C, 2C on the same box); event (out-of-span glitch; in-span oscillation, double pulse). Every cell also carries noise-only records |
-| `reference.py` | `fit_reference`: P_out/P_null from J_o, P_exc/P_unexc from the pullback Fisher, null distributions from ref-vs-ref twins and noise-record halves |
+| `reference.py` | `fit_reference`: P_out/P_null from J_y, `P_resolved/P_weak` from the measurement metric M_recon = J̃_gᵀ J̃_g (legacy names `P_exc/P_unexc` kept), null distributions from ref-vs-ref twins and noise-record halves |
+| `task_metric.py` | M_recon (measurement, unit-free, assumed Σ̂) versus M_task = J_yᵀ W_y J_y (physics-output units, no Σ); the task length of Claim 2; `InvarianceReport` |
+| `support.py` | training-support novelty (Ledoit–Wolf Mahalanobis ∨ kNN on reference z), validated on constructed controls before abstention may use it |
 | `statistics.py` | per-cell statistics: mean-shift norm (null metric), per-event alarm, energy splits, noise-only z-variance ratio, residual PSD (smoothed and single-bin) and channel-correlation shifts, out-of-span fraction, layer profile, consequence, conditional-on-alarm AUROC, abstention rate |
 | `lookup.py` | `calibrate` (thresholds fixed once from the reference null) and `attribute` — the rule order *is* the decision procedure |
-| `designed.py` | the output-null / output-aligned dissociation, exact for a linear decoder |
+| `designed.py` | positive controls: output-null / output-aligned / random and the task-specific `task_aligned` / `task_null` (from M_task); exact for the tied linear subject and **refused** for nonlinear subjects (`NonlinearSubjectUnsupported`); norm matched in a declared metric; `NullSpaceUnavailable` is an explicit skip; `linearization_check` |
+| `protocol/` | the two-claim protocol (`docs/EXPERIMENT_DESIGN.md` Part V, `docs/PREREGISTRATION.md`): `labels` (origin vs harm, EF/EV), `availability` (manifest + typed `AlarmTimeInputs` + source-tagged `FeatureBatch` + contract), `splits` (five event-group partitions), `features` (typed alarm-time builder; shrunk/PCA reference distances; `NullCalibrator`), `arms` (primary/control/diagnostic arms, one classifier, one grid; macro-F1 policy), `consequence` (paired ΔAUROC, quadrants, cell threshold, valid-rare cell/window rejection, hierarchical bootstrap, FAR precision), `abstention` (conformal on clean calibration, unknown AUROC, risk–coverage), `matching` (hard contrasts, joint decision table), `mode` (dev/confirmatory, freeze + run-dependency gates, provenance), `smoke` |
 | `adjust.py` | `rewhiten`, `activation_patch`, `damage_patch`, `refit_stage` |
 | `run_table.py` | the whole §1 table + adjustments → `table.json`, `table.md`, `adjustments.json` |
 | `estimators/` | the four linear representation classes of Paper 1 — `of.py`, `cw_pca.py`, `tied_linear_ae.py`, `nfpa.py` — plus `identification.py` (tangent-basis gauge fix); copied from the Paper 1 experiment repository, see `estimators/README.md` and `docs/EXPERIMENT_DESIGN.md` §IV |
+
+## What the 6 Sep table is, and is not (16 Sep)
+
+Every Δz statistic in `statistics.py` is computed against the paired clean
+twin and the noise-only statistics are cell-level aggregates — replay-side
+information, `evaluation_only` in `protocol.availability`. The table is
+development evidence of the *signatures*, not alarm-time attribution and not
+a C2/C4 result. Alarm-time features live in `protocol.features`; the noise-only
+statistics are acquisition-quality features of the **generic** arm wherever the
+acquisition supplies random triggers, and the `noise_only` ablation assigns any
+attribution gain to its source.
 
 ## The discriminator the lookup rests on
 

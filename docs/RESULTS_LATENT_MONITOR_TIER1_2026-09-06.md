@@ -6,6 +6,16 @@ _Implements `docs/EXPERIMENT_DESIGN.md` §III.8 WPs N1, L0, S1, H0, H1. Code:
 `results/latent_monitor_tier1/table.md` (C=8, N=256, k=6, seed 0) and were
 reproduced at seeds 1–3 and at C=6/N=128 and C=16/N=512._
 
+_Evidence level (added 16 Sep 2026, `EXPERIMENT_DESIGN.md` §V.5): development.
+Every Δz statistic is against the paired clean twin and the noise-only
+statistics are cell-level aggregates — replay-side information. No event-group
+split, no held-out family, no 1 % FAR calibration, one model seed. The table is
+evidence that the predicted signatures appear on the linear subject; it is not
+alarm-time attribution and not a C2 or C4 result. The designed rows were
+generated with a seed stream that depended on the process hash salt (fixed 16
+Sep); their random directions are therefore not bit-reproducible, their kind
+and sign are._
+
 ## The table holds: 13 match, 1 documented, 0 mismatch
 
 | cell | attributed | mean-shift | noise-only z-var | out-of-span | layer peak | consequence |
