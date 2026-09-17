@@ -66,6 +66,7 @@ from .consequence import (
     harm_labels,
     missed_harm_rate_at_budget,
     paired_delta_auroc,
+    supporting_intermediate_cubic,
     valid_rare_cell_rejection,
     valid_rare_event_rejection,
     valid_rare_window_rejection,
@@ -99,6 +100,7 @@ __all__ = [
     "assert_disjoint", "assign_partitions", "bootstrap_groups", "breakdown", "cell_weights",
     "conditional_triage", "harm_labels", "label_from_legacy", "missed_harm_rate_at_budget",
     "provenance", "require_gates", "split_event_groups", "tier1_manifest",
+    "supporting_intermediate_cubic",
     "valid_rare_event_rejection", "weighted_auroc",
 ]
 LEAKAGE = LeakageError

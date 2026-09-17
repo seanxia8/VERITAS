@@ -16,7 +16,12 @@ trained-model or transfer evidence, and no scientific claim is validated by the
 code passing its tests. The main deliverable is the concept note in
 [`latex/paper3_proposal.pdf`](latex/paper3_proposal.pdf) (two-claim revision,
 16 Sep 2026; `docs/REVISION_REPORT_2026-09-16_pass2.md` says what changed and
-what remains).
+what remains). A bounded 17 Sep pass added the first non-Gaussian rung of the
+Fisher-cumulant tower (the connected third cumulant of the whitened residual and
+the pooled hooks, Bal et al. `arXiv:2605.03063v2`) as **supporting** machinery,
+with a cubic companion of the task length, a Tier-1 signature row and a
+design-only candidate nonlinear subject; it changes no claim or estimand
+(`docs/REVISION_REPORT_2026-09-17_cumulant.md`).
 
 ## Study design
 
@@ -84,8 +89,12 @@ signatures, not alarm-time attribution — and two protocol smokes
 (`results/latent_monitor_smoke_dev/`, pass 1, whose layerwise attribution delta
 was negative/inconclusive and whose layerwise harm AUROC was weak;
 `results/latent_monitor_smoke_dev_2026-09-16_pass2/`, the two-claim chain at toy
-size) exercise the protocol end to end. All three are labelled development
-output and none is evidence for either claim.
+size; `results/latent_monitor_smoke_dev_2026-09-17_cumulant/`, the same chain
+with the third-cumulant features and the supporting cubic score) exercise the
+protocol end to end, and `results/latent_monitor_sig_c3_2026-09-17/` is the
+development Tier-1 signature row for the residual third cumulant (a development
+negative for the glitch / sparse-burst separation at the tested size). All are
+labelled development output and none is evidence for either claim.
 
 These results establish that the perturbation and embedding hook are useful for
 protocol development. They **do not validate the proposal's scientific claims**:
@@ -99,12 +108,14 @@ this repository.
 | Path | Purpose |
 | --- | --- |
 | `src/noise_module/` | Validated stationary/nonstationary/multichannel noise and PSD simulation (numpy/scipy only) |
-| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors (`P_resolved/P_weak`; legacy `P_exc/P_unexc`), per-event Δz statistics, the development lookup, adjustments; linear and transformer subjects (`docs/EXPERIMENT_DESIGN.md` §§III.2–III.4); `task_metric.py` (M_recon vs M_task), `support.py` (validated training-support estimator), `designed.py` (positive controls, linear-only); `estimators/` holds the four linear classes of Paper 1 (future-work probes); `protocol/` is the two-claim protocol layer (Part V): typed alarm-time feature builder with source-tagged batches, five event-group partitions, primary/control/diagnostic arms, abstention chain, hard matching and the joint decision table, Claim-2 scores with paired ΔAUROC and cell-outer resampling, dev/confirmatory gates with run-dependency verification, and the CPU smoke |
+| `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors (`P_resolved/P_weak`; legacy `P_exc/P_unexc`), per-event Δz statistics, the development lookup, adjustments; linear and transformer subjects (`docs/EXPERIMENT_DESIGN.md` §§III.2–III.4); `task_metric.py` (M_recon vs M_task), `support.py` (validated training-support estimator), `designed.py` (positive controls, linear-only); `cumulant.py` (connected third/fourth cumulant estimators, D7) and `hypergraph_subject.py` (the design-only frozen-propagator candidate nonlinear subject, D10); `estimators/` holds the four linear classes of Paper 1 (future-work probes); `protocol/` is the two-claim protocol layer (Part V): typed alarm-time feature builder with source-tagged batches, five event-group partitions, primary/control/diagnostic arms, abstention chain, hard matching and the joint decision table, Claim-2 scores with paired ΔAUROC and cell-outer resampling, dev/confirmatory gates with run-dependency verification, and the CPU smoke |
 | `results/latent_monitor_smoke_dev/` | The pass-1 protocol smoke (16 Sep) — development output, not citable, preserved as recorded |
 | `results/latent_monitor_smoke_dev_2026-09-16_pass2/` | The two-claim protocol smoke — development output, not citable; regenerate with `PYTHONPATH=src python -m latent_monitor.protocol.smoke --out <new dated dir>` |
+| `results/latent_monitor_smoke_dev_2026-09-17_cumulant/` | The two-claim smoke with the D7/D8 features — development output, not citable |
+| `results/latent_monitor_sig_c3_2026-09-17/` | The Tier-1 signature row for the residual third cumulant — development output, not citable; run with `PYTHONPATH=src python -m latent_monitor.run_cumulant_signature --out <dir>` |
 | `docs/TWO_CLAIM_REVISION_PLAN.md` | The two-claim revision and implementation-repair plan (M1–M5, I1–I13, D1–D4) |
 | `docs/PREREGISTRATION.md` | The `core` protocol part — **unfrozen draft**; `protocol/frozen/` does not exist, so confirmatory mode refuses |
-| `docs/REVISION_REPORT_2026-09-16.md`, `docs/REVISION_REPORT_2026-09-16_pass2.md` | The pass-1 and pass-2 revision reports: what changed, what was tested, which audit findings are fixed or blocked, the next gate |
+| `docs/REVISION_REPORT_2026-09-16.md`, `docs/REVISION_REPORT_2026-09-16_pass2.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md` | The pass-1 and pass-2 revision reports and the 17 Sep Fisher-cumulant integration report: what changed, what was tested, which blocks are ticked or deferred, the next gate |
 | `src/herald_simulation/` | HeST → `qp_simulator` → `noise_module`: the paired superfluid-helium dark-matter arm (plan §7); HeST pinned and unpatched via `fetch_hest.sh` |
 | `results/latent_monitor_tier1/` | The §1 table on the linear subject: 13 match / 1 documented / 0 mismatch, plus re-whitening, patching and stage-refit outcomes |
 | `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only) |
@@ -169,8 +180,9 @@ uv run pytest src/noise_module/tests
 `latent_monitor` (numpy/scipy only, torch optional) and its protocol layer:
 
 ```bash
-PYTHONPATH=src python -m pytest src/latent_monitor/tests -q        # 84 passed, 1 skipped without torch, ~25 s
+PYTHONPATH=src python -m pytest src/latent_monitor/tests -q        # 94 passed, 1 skipped without torch, ~15 s
 PYTHONPATH=src python -m latent_monitor.protocol.smoke --out results/latent_monitor_smoke_dev_<date>   # ~10 s CPU, dev only, NOT CITABLE
+PYTHONPATH=src python -m latent_monitor.run_cumulant_signature --out results/latent_monitor_sig_c3_<date>   # Tier-1 D7 signature row, dev only, NOT CITABLE
 PYTHONPATH=src python -m latent_monitor.protocol.smoke --mode confirmatory   # refuses: no freeze, κ_m provisional, dirty tree, no data/model hash
 ```
 

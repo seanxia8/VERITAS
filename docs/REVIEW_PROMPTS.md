@@ -17,6 +17,18 @@ protocol. Reviewers should not recreate the old contradiction by demanding
 severity-stratified conditioning as the primary, and should treat any
 "done" status as a claim to verify against the status vocabulary in `TODO.md`._
 
+_Synchronised 17 September 2026 with the Fisher-cumulant integration
+(`docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`):
+**D7** the whitened-residual and pooled-hook third cumulant ride on both arm
+sides, with the chart rule (`reading = "cumulant"` on the linear subject,
+`"deviation"` otherwise) recorded in `AlarmTimeReference.to_dict`; **D8** the
+aligned cubic task score is a supporting intermediate score only, never the
+Claim-2 primary and never in `GENERIC_COMMITTED`; **D10** the frozen-propagator
+hypergraph subject is a design-only candidate nonlinear subject (interface
+implemented, unit-tested, no training). **D9** is deferred and is not
+implemented. The two claims, their estimands, the splits and the information
+contract are unchanged._
+
 The reviewer's job is adversarial: assume the plan or the code is wrong until
 shown otherwise, and be specific about *where*. Praise is not a finding.
 
@@ -286,6 +298,11 @@ appears:
   duplicates; a gain reported without the capacity-matched control; a status
   word ("done", "implemented") that does not say *interface / unit-tested /
   development smoke / trained-model / transfer / confirmatory*.
+- A cumulant computed on a nonlinear latent and called a cumulant (the
+  manifest must read `deviation` there); a third-moment feature present on one
+  arm side only; the supporting cubic score entering ΔAUROC_harm or
+  `GENERIC_COMMITTED`; the design-only hypergraph subject described as trained
+  or as a result.
 - An alarm-time arm that consumes a paired twin, truth, the realised
   covariance or the intervention label; a noise-only statistic credited to
   internal representations without the ablation.

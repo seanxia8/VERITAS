@@ -260,14 +260,30 @@ def tier1_manifest(*, supplies_noise_only_records: bool = True, latent_dim: int 
         m.add(Feature(f"gr_z_energy_{p}", "alarm_time", "energy split of z − z̄ in the reference projectors", group="generic_rich"))
     m.add(Feature("gr_out_of_span", "alarm_time", "residual energy / (residual + in-span) of the observed window", group="generic_rich"))
     m.add(Feature("gr_support_novelty", "alarm_time", "training-support novelty of z (support.SupportEstimator)", group="generic_rich"))
+    # generic_rich: whitened-residual third-cumulant scalars (D7). The reading (cumulant vs deviation) is recorded in
+    # AlarmTimeReference.to_dict; the whitened residual under the Gaussian reference is a natural chart, so these are cumulants.
+    for i in range(n_pcs):
+        m.add(Feature(f"gr_resid_c3_pc_{i}", "alarm_time",
+                      "per-coordinate third central moment of the whitened residual on reference residual PC "
+                      f"{i} (cumulant; D7)", group="generic_rich"))
+    m.add(Feature("gr_resid_c3_norm", "alarm_time",
+                  "Frobenius deviation of the whitened-residual third-moment tensor from the reference tensor (D7)",
+                  group="generic_rich"))
+    m.add(Feature("gr_resid_c3_maha", "alarm_time",
+                  "reference-null Mahalanobis of the compressed whitened-residual third-moment object (D7)",
+                  group="generic_rich"))
     # intermediate_only: strictly internal hooks (channel, token) — no input, no final z, no output
     for h in ("channel", "token"):
         m.add(Feature(f"im_{h}_mean_maha", "alarm_time", f"pooled {h} mean vs reference null (shrunk, calibrated)", group="intermediate"))
         m.add(Feature(f"im_{h}_second_maha", "alarm_time", f"pooled {h} channel second moment vs reference null", group="intermediate"))
+        m.add(Feature(f"im_{h}_third_maha", "alarm_time",
+                      f"pooled {h} channel third moment vs reference null; reading cumulant on a linear subject, "
+                      "deviation from the reference third moment otherwise (D7)", group="intermediate"))
         for i in range(n_pcs):
             m.add(Feature(f"im_{h}_pc_{i}", "alarm_time", f"pooled {h} mean projected on reference PC {i}", group="intermediate"))
-    # capacity control: quadratic expansion of generic_rich scalars, truncated to the intermediate feature count
-    n_im = 2 * (2 + n_pcs)
+    # capacity control: quadratic expansion of generic_rich scalars (including the residual cumulant scalars),
+    # truncated to the intermediate feature count so generic_rich_matched stays count-matched to full_intermediate
+    n_im = 2 * (3 + n_pcs)
     for i in range(n_im):
         m.add(Feature(f"gq_{i}", "alarm_time", "quadratic expansion of generic_rich scalars (capacity control)", group="generic_quadratic"))
     # legacy layerwise (pass-1 development diagnostic; contaminated with input/output duplicates by design of the old arm)

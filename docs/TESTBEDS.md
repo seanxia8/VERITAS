@@ -240,6 +240,32 @@ projector, which is both cheaper and pre-registrable.
 | type | particle species (μ / e / π⁰ via PhotonSim), material (water / WbLS) | ER vs NR **at fixed energy only** (§1.2); photon channels needed otherwise |
 | amplitude | photons / pe per event | quasiparticle yield |
 
+### 2.6 Candidate third subject — frozen-propagator hypergraph (D10, design and interface only)
+
+Alongside the transformer, the study records a second **nonlinear** subject
+(`latent_monitor/hypergraph_subject.py`) whose latent stays readable because
+every propagator weight has a provenance:
+
+- **vertices = channels** (TES/QP channels on arm B; band-frames on TIDMAD);
+- **P2** from the measured noise covariance — the noise-Laplacian PE of the
+  companion paper (cited by the name *Prop. stationary-pe* only); adjacency is
+  the partial-correlation (precision) matrix and the propagator is the
+  symmetric normalised Laplacian `L = I − D^{−1/2} A D^{−1/2}` (Eq. 4.3);
+- **P3** from the measured third noise cumulant, with the sign carried as an
+  **edge attribute** and `|w|` entering the order-3 Laplacian;
+- **P2 and P3 are frozen from the reference cell**; only a small readout is
+  trainable. The optional trainable correction is QUIVER's zero-initialised
+  residual multiplicative gate (`arXiv:2606.02785` Eq. 8: `x → (1 + αΘ)x`,
+  α = 0 at init), so the subject is exactly the tied linear AE at step 0.
+
+P3 vanishes identically for Gaussian noise, so the subject is non-trivial only
+on non-Gaussian cells — which is where the whitened-residual cumulant statistic
+of `EXPERIMENT_DESIGN.md` §V.2 is also non-trivial. This is **one of two
+nonlinear subjects; both are to be reported and neither is chosen by result**.
+It is **gated on the trained Tier-1 run**: this pass builds the `Subject`
+interface and the Eq. 4.3 / Gaussian-zero Laplacian tests, with no training run,
+no GPU run and no result.
+
 ---
 
 ## 3. Other simulations that would serve — and those that would not

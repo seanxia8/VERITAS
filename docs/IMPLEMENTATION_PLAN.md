@@ -762,3 +762,35 @@ contrasts, full information-contract enforcement — are now implemented as
 interfaces with unit tests and one development smoke, not more. The next gate
 is the Phase-B precision study, then the trained-subject run in development
 mode.
+
+### 8.7 Third pass — Fisher-cumulant integration (17 September 2026)
+
+`ARITRA_CUMULANT_INTEGRATION_2026-09-17.md` adds the first non-Gaussian rung of
+the Fisher-cumulant tower as **supporting** machinery; `REVISION_REPORT_2026-09-17_cumulant.md`
+records it. It changes no claim, estimand, split, hard-matching rule or
+information-contract phase. Blocks, in the pass's own vocabulary:
+
+- **D7 (ticked, completed)** — connected third cumulant of the whitened
+  residual and of the pooled channel hooks: `latent_monitor/cumulant.py`; the
+  third return of `reference.pooled_stage`; `hook_third_nulls` /
+  `resid_cumulant` in `AlarmTimeReference`; features `gr_resid_c3_*` and
+  `im_{hook}_third_maha`; the quadratic capacity control re-truncated so
+  `generic_rich_matched` is again count-matched to `full_intermediate`. Chart
+  rule enforced and recorded (`cumulant` on the linear subject, `deviation`
+  otherwise). Status: *interface implemented, unit-tested control, development
+  smoke*; the Tier-1 signature row is a *development* negative at the tested
+  size.
+- **D8 (ticked, completed)** — `TaskMetric.cubic_aligned`, `raw_task_cubic`,
+  and `consequence.supporting_intermediate_cubic`: a supporting intermediate
+  score only. Status: *unit-tested control, development smoke*.
+- **D9 (deferred)** — the R(3) hook-selection diagnostic is not implemented and
+  is not mentioned as implemented.
+- **D10 (ticked, design and interface only)** — `latent_monitor/hypergraph_subject.py`:
+  the `Subject` interface, frozen P2/P3 from `noise_module` cumulants, the
+  QUIVER zero-initialised gate, and unit tests for the Eq. 4.3 normalisation and
+  the Gaussian-zero P3. Status: *interface implemented, unit-tested control*;
+  **no training, no GPU run, no result**, gated on the trained Tier-1 run.
+
+The next gate is unchanged: the Phase-B precision study must now also size
+`n_ref` and `n_pcs` for the enlarged third-moment feature set; then κ_m and the
+trained-subject run.

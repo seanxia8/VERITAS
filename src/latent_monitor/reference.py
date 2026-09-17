@@ -54,23 +54,31 @@ def _smooth(v: np.ndarray, width: int) -> np.ndarray:
     return np.convolve(pad, k, mode="valid")
 
 
-def pooled_stage(rep: dict[str, np.ndarray], hook: str) -> tuple[np.ndarray, np.ndarray | None]:
-    """(per-event mean over channels, per-event channel second moment) for a hook.
+def pooled_stage(rep: dict[str, np.ndarray], hook: str) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None]:
+    """(per-event mean over channels, channel second moment, channel third moment) for a hook.
 
-    Non-per-channel hooks return (value, None). Per-channel hooks are pooled so
-    that cells with different channel counts remain comparable.
+    Non-per-channel hooks return (value, None, None). Per-channel hooks are
+    pooled so that cells with different channel counts remain comparable. The
+    third return is the order-3 companion of the pooled channel covariance: the
+    per-window third central moment over the channel ensemble, flattened
+    ``(n, D**3)``. It is the raw material of the reference-chart third cumulant;
+    the chart rule (cumulant vs deviation) is applied by the caller, not here.
+    The whitened hook has no third return: its ``(C, N)`` tensor would be
+    ``N**3``-large and it enters no arm feature (only the reduced residual
+    cumulant does).
     """
     v = np.asarray(rep[hook], dtype=float)
     if hook not in PER_CHANNEL_HOOKS:
-        return v.reshape(v.shape[0], -1), None
+        return v.reshape(v.shape[0], -1), None, None
     if hook == "whitened":
         # (n, C, N): pool to the per-event channel mean trace; second moment = mean per-channel power
-        return v.mean(axis=1), (v**2).mean(axis=(1, 2))[:, None]
-    # (n, C, D): mean over channels and the flattened channel covariance
+        return v.mean(axis=1), (v**2).mean(axis=(1, 2))[:, None], None
+    # (n, C, D): mean over channels, the flattened channel covariance, and the pooled third moment
     mean = v.mean(axis=1)
     centred = v - mean[:, None, :]
     cov = np.einsum("bci,bcj->bij", centred, centred) / max(v.shape[1] - 1, 1)
-    return mean, cov.reshape(v.shape[0], -1)
+    third = np.einsum("bci,bcj,bck->bijk", centred, centred, centred) / max(v.shape[1], 1)
+    return mean, cov.reshape(v.shape[0], -1), third.reshape(v.shape[0], -1)
 
 
 def whitened_residual(subject: Subject, rep: dict[str, np.ndarray], geometry: Geometry) -> np.ndarray:
@@ -225,8 +233,8 @@ def fit_reference(
     # stage nulls
     null_stage: dict[str, dict[str, np.ndarray]] = {}
     for hook in HOOKS:
-        m0, s0 = pooled_stage(rep0, hook)
-        m1, s1 = pooled_stage(rep1, hook)
+        m0, s0, _ = pooled_stage(rep0, hook)
+        m1, s1, _ = pooled_stage(rep1, hook)
         entry = {"mean_std": (m1 - m0).std(axis=0) + 1e-12}
         entry["second_std"] = None if s0 is None else (s1 - s0).std(axis=0) + 1e-12
         null_stage[hook] = entry

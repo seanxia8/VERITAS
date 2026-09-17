@@ -207,8 +207,8 @@ def cell_statistics(
     # --- layer profile
     layer_profile: dict[str, dict[str, float]] = {}
     for hook in HOOKS:
-        mc, sc = pooled_stage(rep_c, hook)
-        mt, st = pooled_stage(rep_t, hook)
+        mc, sc, _ = pooled_stage(rep_c, hook)
+        mt, st, _ = pooled_stage(rep_t, hook)
         null = ref.null_stage[hook]
         if mc.shape == mt.shape:
             dm = (mc - mt).mean(axis=0) / null["mean_std"] * np.sqrt(n)

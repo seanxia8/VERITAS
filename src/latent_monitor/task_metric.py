@@ -93,6 +93,38 @@ class TaskMetric:
         d = np.atleast_2d(np.asarray(delta, dtype=float))
         return np.sqrt(np.maximum(np.einsum("bi,ij,bj->b", d, self.M, d), 0.0))
 
+    def whitening(self) -> np.ndarray:
+        """Symmetric ``M_task^{1/2}`` (zeros in its null space) — the ``M_task``-whitened chart.
+
+        Coordinates ``y = A (r - r̄)`` satisfy ``‖y‖² = (r-r̄)ᵀ M_task (r-r̄)``
+        (the task length) and the task metric becomes the identity there, so a
+        third cumulant estimated on reference-fit ``y`` is the object the aligned
+        cubic score contracts against (``ARITRA_CUMULANT_INTEGRATION_2026-09-17.md``
+        §2.2).
+        """
+        w, V = np.linalg.eigh(0.5 * (self.M + self.M.T))
+        tol = 1e-10 * max(float(w.max()), 1e-300)
+        root = np.zeros_like(w)
+        pos = w > tol
+        root[pos] = w[pos] ** 0.5
+        return (V * root) @ V.T
+
+    def cubic_aligned(self, delta: np.ndarray, I3: np.ndarray) -> np.ndarray:
+        """Aligned cubic score ``Δ_a Δ_b Δ_c Î3_abc`` for one or many ``delta`` ``(…, d)``.
+
+        ``I3`` is the connected third cumulant ``(d, d, d)`` estimated on
+        reference-fit vectors in the same (``M_task``-whitened) chart as
+        ``delta``. The reading is task-aligned skewness: harm carried by an
+        asymmetric excursion. It is a supporting intermediate score only — it
+        never enters :data:`ΔAUROC_harm <latent_monitor.protocol.consequence.
+        paired_delta_auroc>` or the committed generic score.
+        """
+        d = np.atleast_2d(np.asarray(delta, dtype=float))
+        I3 = np.asarray(I3, dtype=float)
+        if I3.shape != (d.shape[1], d.shape[1], d.shape[1]):
+            raise ValueError(f"I3 must be ({d.shape[1]},) thrice, got {I3.shape}")
+        return np.einsum("na,nb,nc,abc->n", d, d, d, I3)
+
     def aligned_direction(self) -> np.ndarray:
         """Unit vector in r along which the weighted outputs move fastest (top eigenvector of M_task)."""
         w, V = np.linalg.eigh(0.5 * (self.M + self.M.T))

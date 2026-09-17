@@ -184,6 +184,24 @@ linear classes in `src/latent_monitor/estimators/`), and DynEdge, ParticleNeT,
 GRIT and DeepIce from GraphNeT for the Prometheus arm. Nothing to download or
 invent; `TESTBEDS.md` §2 says what the transformer subject must expose.
 
+**A candidate third (nonlinear) subject — D10, design and interface only.** The
+**frozen-propagator hypergraph subject** (`latent_monitor/hypergraph_subject.py`)
+is recorded as a second nonlinear subject alongside the transformer: vertices
+are channels; the order-2 propagator P2 is the noise-Laplacian PE from the
+measured noise covariance (the companion paper's *Prop. stationary-pe*, cited by
+name only); the order-3 propagator P3 is built from the measured third noise
+cumulant, with the sign carried as an **edge attribute** and `|w|` in the
+Laplacian (Eq. 4.3 normalisation); P2 and P3 are **frozen from the reference
+cell** and only a small readout is trainable, with QUIVER's zero-initialised
+residual gate (`arXiv:2606.02785` Eq. 8: `x → (1 + αΘ)x`, α = 0 at init) as the
+optional trainable correction on top of the tied linear AE. P3 vanishes
+identically for Gaussian noise, so the subject is non-trivial only on
+non-Gaussian cells — exactly where the residual-cumulant statistic is also
+non-trivial. It is **one of two nonlinear subjects, both to be reported, neither
+chosen by result**, and it is **gated on the trained Tier-1 run**. Only the
+interface and its Laplacian tests are built in this pass; there is no training
+run and no result.
+
 The **diagnostics are protocol code, not models**, and most of it is standard
 machinery to be reused and cited. The three bold rows are small in code and are
 the paper; build them first, on Tier 1, because the pre-registered predictions
@@ -196,6 +214,7 @@ for the realism arms come from them.
 | **Σ⁻¹-whitened displacement** | `latent_monitor.whitening.KroneckerWhitener` + `statistics` — trivial once Σ is known | **1, A, B** (needs Σ) |
 | **Jacobian-projected displacement** | `latent_monitor.reference` (P_out/P_null from J_o) — the one monitor computable *without* knowing Σ | all |
 | **Designed perturbation generators** (output-null / aligned / random, task-aligned / task-null) | `latent_monitor.designed` — exact for the tied linear subject; refused for nonlinear subjects (no local inverse implemented) | 1 (positive controls) |
+| Frozen-propagator hypergraph subject (D10 candidate nonlinear subject) | `latent_monitor/hypergraph_subject.py` — `Subject` interface, frozen P2/P3 from `noise_module` cumulants, untrained readout; **interface implemented, unit-tested control, no training** | 1 (gated on the trained Tier-1 run) |
 | Baselines: corrected univariate KS, RBF-MMD, classifier two-sample test, embedding mean/covariance distance, output and uncertainty tests | **reuse** — `alibi-detect`; cite, do not reimplement | all |
 | Five-arm attribution classifier (input / output+uncertainty / final embedding / all-generic / full layerwise) | reuse — scikit-learn regularized logistic regression, identical splits | all |
 | Conformal abstention, risk–coverage AUC | Mahalanobis in the reference-cell z-metric + Fisher-rank (§III.3.4); `MAPIE` or ~50 lines of split conformal for the baseline | 1, 2 |
@@ -739,6 +758,21 @@ every noise-only statistic stays at reference.
 | **S** — supported-but-rare physics (in span: oscillation, double pulse) | z moves a lot; residual and every noise-only statistic at reference; support novelty may or may not flag it; consequence can rise sharply | ▸ confirmed: out-of-span 0.02–0.17, consequence up to 4.6× — representation intact, head not | recalibrate or extend the output head; not abstention |
 | **S** — outside estimated support (glitch) | displacement in the residual (out-of-span fraction high); support novelty on z may **not** see it (▸ the pass-2 smoke: z-novelty AUROC ≈ 0.5, residual-based novelty needed) | ▸ out-of-span 0.84; Fisher-rank drop | abstain; extend the training support with data |
 | designed families (positive controls) | large alarm with ≈0 consequence (output-null), matched alarm with consequence (output-aligned); task-aligned moves the declared K, task-null spares it | ▸ exact on the linear subject; refused for nonlinear subjects | none — controls |
+| **residual higher cumulant** (D7; supporting) | in the natural chart a covariance-type N (Gaussian) leaves the connected third cumulant of the whitened residual at reference — after re-whitening with the realised Σ, an evaluation-only quantity; non-Gaussian/impulsive structure moves it; in-span S leaves it at reference | ▸ development row, 17 Sep (`results/latent_monitor_sig_c3_2026-09-17/`): 4/4 covariance cells at reference after re-whitening (no false positives), all in-span/geometry rows and the linear-Gaussian structural rows (gain drift at reference, channel loss moving) as predicted; the glitch event and the non-Gaussian sparse-burst family did **not** exceed the reference window-bootstrap band at n_eval = 60, n_pcs = 3 — a development negative for the separator at that size | none yet; the Phase-B precision study must size n_ref and n_pcs (a third-moment tensor is noisier than a second) |
+
+**The residual-cumulant row (D7, 17 September).** A covariance-type N changes
+the quadratic Fisher tensor I⁽²⁾; re-whitening with the realised Σ returns the
+whitened residual to the reference chart, so its connected third cumulant
+returns to reference. Non-Gaussian structure (impulsive bursts, a glitch, a
+skewed noise family) does not. The reading is exact only in a natural chart:
+the whitened residual under the Gaussian reference is one; the pooled latent is
+one on the linear subject (`reading: "cumulant"`); on any other subject the same
+number is a *deviation from the reference cell's own third moment* and is named
+as such in the manifest (`reading: "deviation"`, `AlarmTimeReference.to_dict`).
+The Tier-1 test is run under paired replay on the existing families plus the
+non-Gaussian sparse-burst family and reported in the 6 Sep match format; the
+17 September outcome is recorded in the row above and is a development negative
+at the tested size, not a refutation.
 
 **Two working rules survive.** (1) The noise-only (random-trigger) statistics
 separate acquisition changes from physics changes on this subject — but they
@@ -1227,6 +1261,26 @@ shear-invariant; energy splits likewise; the task length is invariant to any
 invertible reparameterisation under which J_y transforms covariantly. The
 companion preprint carries no central result of this paper.
 
+**The first non-Gaussian rung (D7).** `M_recon` is the quadratic rung of a local
+KL expansion; in the natural (exponential-family) coordinates of a reference
+chart its higher rungs are the connected cumulants of the whitened residual
+(Bal et al. 2026, `arXiv:2605.03063v2`: Thm 1, Cor 2, App A). The study reports
+the first such rung — the connected third cumulant, with the fourth-order
+companion computed but wired into no arm — as a **supporting** statistic of the
+§III.1 signature table: per window, the per-coordinate third central moments in
+the reference PCA basis (`n_pcs` coordinates) plus one Frobenius-deviation
+scalar, compressed as declared. The chart rule is enforced in code and recorded
+in `AlarmTimeReference.to_dict`: `reading = "cumulant"` on the linear subject
+(and the whitened residual under the Gaussian reference is a natural chart
+regardless), `reading = "deviation"` from the reference cell's own third moment
+on any other subject. The transform rides on **both** arm sides or neither
+(D7): the residual-cumulant scalars enter `generic_rich`, the pooled channel
+third moment enters the intermediate group as `im_{hook}_third_maha` for the
+channel and token hooks, and the quadratic capacity control is re-truncated so
+`generic_rich_matched` again has the feature count of `full_intermediate`
+(`tests/test_cumulant.py`). It is not a third claim; a negative Tier-1 outcome
+is reported as recorded.
+
 ## V.3 Information contract
 
 Phases `reference_fit → alarm_time → delayed_label → evaluation_only`
@@ -1250,10 +1304,15 @@ threshold, null calibration of scores), `evaluation` (scored once). Held-out
 families/severities/seeds and undeclared families score only on evaluation
 groups. Arms (`protocol.arms`; one classifier, one grid): primary `generic_rich`,
 `intermediate_only` (channel and token hooks: reference distances of the pooled
-mean and second moment plus reference principal coordinates; no input, final z,
-pre-output or output), `full_intermediate`; controls `generic_rich_matched`
-(quadratic expansion to equal feature count), `full_intermediate_drop_channel`,
-`full_intermediate_drop_token`; the pass-1 arms are development diagnostics.
+mean, the pooled channel second moment and the pooled channel third moment
+(`im_{hook}_third_maha`, D7) plus reference principal coordinates; no input,
+final z, pre-output or output), `full_intermediate`; controls
+`generic_rich_matched` (quadratic expansion, now including the residual-cumulant
+scalars, truncated to the intermediate feature count so it stays count-matched),
+`full_intermediate_drop_channel`, `full_intermediate_drop_token`; the pass-1 arms
+are development diagnostics. `generic_rich` also carries the whitened-residual
+third-cumulant scalars `gr_resid_c3_{pc_i,norm,maha}` (D7), so a third-moment
+transform is never present on one arm side only.
 Reference distances use Ledoit–Wolf shrinkage and a reference-fitted PCA when the
 hook dimension exceeds n_ref/5, and are mapped to a common clean-null scale
 before combination (`protocol.features`); their ordering is *not* stable at
@@ -1275,6 +1334,15 @@ only below 10 outer units**; `far_precision` with a binomial interval. K per arm
 is an independent physical endpoint, baseline-normalised by the same events
 through the clean reference cell; κ_m is pending everywhere.
 
+**Supporting intermediate score (D8).** The task length has an aligned cubic
+companion, `raw_task_cubic` = `Δ_a Δ_b Δ_c Î3_abc` with `Î3` the connected third
+cumulant estimated on `reference_fit` `z` in the `M_task`-whitened chart
+(`TaskMetric.cubic_aligned`; the reading is exact on the linear subject). It is
+calibrated on clean `calibration` windows like every other score and reported
+only as a **supporting** intermediate score beside the task length
+(`consequence.supporting_intermediate_cubic`), with no threshold; it never enters
+the Claim-2 primary `ΔAUROC_harm` and never enters `GENERIC_COMMITTED`.
+
 ## V.6 What the development artifacts are evidence of
 
 - `results/latent_monitor_tier1/` (6 Sep): the signature table under paired
@@ -1291,6 +1359,14 @@ through the clean reference cell; κ_m is pending everywhere.
   0.07 (the committed generic detector rarely fires at the toy-size 1 % budget),
   and a Claim-2 ΔAUROC of +0.17 whose cell-outer interval includes zero. None of
   it is evidence; all of it is preserved.
+- `results/latent_monitor_smoke_dev_2026-09-17_cumulant/` (17 Sep): the same
+  chain with the D7 third-cumulant features and the D8 supporting cubic score
+  present, `generic_rich_matched` again count-matched to `full_intermediate`
+  (46 / 46), chart reading `cumulant` on the linear subject; development only.
+- `results/latent_monitor_sig_c3_2026-09-17/` (17 Sep): the D7 signature row on
+  the linear subject — 4/4 covariance cells at reference after re-whitening and
+  all in-span/geometry rows as predicted; a development negative for the
+  glitch / sparse-burst separation at n_eval 60, n_pcs 3. Non-citable.
 
 ## V.7 Results structure for the manuscript
 

@@ -62,7 +62,7 @@ from .availability import AlarmTimeInputs, FeatureBatch, tier1_manifest
 from .consequence import (MIN_OUTER_UNITS_FOR_INFERENCE, HarmThreshold, alarm_harm_matrix, all_cell_ranking, bootstrap_groups,
                           bootstrap_hierarchical, breakdown, cell_aggregate, cell_alarm_threshold, cell_weights,
                           conditional_triage, far_precision, harm_labels, missed_harm_rate_at_budget, paired_delta_auroc,
-                          valid_rare_cell_rejection, valid_rare_window_rejection)
+                          supporting_intermediate_cubic, valid_rare_cell_rejection, valid_rare_window_rejection)
 from .features import GENERIC_COMMITTED, INTERMEDIATE_COMMITTED, AlarmTimeReference, NullCalibrator, build_alarm_time_features
 from .labels import label_from_legacy
 from .matching import hard_match, joint_decision_table
@@ -167,9 +167,10 @@ def run_smoke(out: Path, *, n_channels: int = 6, n_samples: int = 128, latent_di
     clean_cal = (cell_of == "reference") & (part == "calibration")
     clean_eval = (cell_of == "reference") & (part == "evaluation")
     n_cal = int(clean_cal.sum())
-    cal = NullCalibrator().fit(batch.subset(clean_cal), list(GENERIC_COMMITTED) + list(INTERMEDIATE_COMMITTED) + ["raw_task_sensitive", "gr_support_novelty"])
+    cal = NullCalibrator().fit(batch.subset(clean_cal), list(GENERIC_COMMITTED) + list(INTERMEDIATE_COMMITTED) + ["raw_task_sensitive", "raw_task_cubic", "gr_support_novelty"])
     score_generic = cal.combine_max(batch, GENERIC_COMMITTED)                  # committed generic monitor (detector and Claim-2 baseline)
     score_task = cal.calibrate("raw_task_sensitive", batch["raw_task_sensitive"])  # task-sensitive representation score
+    score_cubic = cal.calibrate("raw_task_cubic", batch["raw_task_cubic"])      # supporting intermediate score (D8)
     score_intermediate = cal.combine_max(batch, INTERMEDIATE_COMMITTED)         # supporting
     # abstention novelty: the larger of the calibrated z-support novelty and the calibrated out-of-span fraction
     # (a support move can sit in the residual rather than in z — the glitch family does; declared, unfrozen)
@@ -284,6 +285,7 @@ def run_smoke(out: Path, *, n_channels: int = 6, n_samples: int = 128, latent_di
     cells_arr, K_cell = cell_aggregate(K_amp[ev_c2] / ref_amp, cell_of[ev_c2], "mean")
     _, s_gen = cell_aggregate(score_generic[ev_c2], cell_of[ev_c2], CELL_AGGREGATE)
     _, s_task = cell_aggregate(score_task[ev_c2], cell_of[ev_c2], CELL_AGGREGATE)
+    _, s_cubic = cell_aggregate(score_cubic[ev_c2], cell_of[ev_c2], CELL_AGGREGATE)
     _, s_int = cell_aggregate(score_intermediate[ev_c2], cell_of[ev_c2], CELL_AGGREGATE)
     harm = harm_labels(K_cell, kappa_m)
     w = cell_weights([{"weight": 1.0} for _ in cells_arr], "uniform_cell")
@@ -318,6 +320,12 @@ def run_smoke(out: Path, *, n_channels: int = 6, n_samples: int = 128, latent_di
     c2["secondary_intermediate_delta"] = paired_delta_auroc(s_int, s_gen, harm, w)
     c2["absolute"] = {"generic_committed": all_cell_ranking(s_gen, harm, w), "task_sensitive": all_cell_ranking(s_task, harm, w),
                       "intermediate_supporting": all_cell_ranking(s_int, harm, w)}
+    # supporting intermediate score (D8): the aligned cubic companion of the task length. Reported, never primary.
+    c2["supporting_intermediate_scores"] = {
+        "task_length": {**all_cell_ranking(s_task, harm, w), "role": "supporting; the quadratic task-sensitive score"},
+        "cubic": supporting_intermediate_cubic(s_cubic, harm, w),
+        "scores": {"task_length": "clean-calibrated ‖z − z̄‖_{M_task}",
+                   "cubic": "clean-calibrated raw_task_cubic = Δ_a Δ_b Δ_c Î3_abc on the M_task-whitened chart, I3 fitted on reference_fit z"}}
     c2["cell_threshold"] = thr_cell
     for name, s in (("generic_committed", s_gen), ("task_sensitive", s_task)):
         c2[f"quadrants_{name}"] = alarm_harm_matrix(s, harm, thr_cell["threshold"], w)
@@ -328,8 +336,8 @@ def run_smoke(out: Path, *, n_channels: int = 6, n_samples: int = 128, latent_di
     benign_vr_cells = set(cells_arr[valid_rare & (harm == "benign")].tolist())
     c2["valid_rare_window_rejection_generic"] = valid_rare_window_rejection(score_generic[ev_c2], window_thr, np.isin(cell_of[ev_c2], list(benign_vr_cells)))
     c2["cells"] = {str(c): {"origin": str(o), "contract": str(k), "K": float(K), "harm": str(h), "generic": float(a), "task": float(t),
-                            "intermediate": float(i), "held_out_family": bool(hf)}
-                   for c, o, k, K, h, a, t, i, hf in zip(cells_arr, origins_c, contracts_c, K_cell, harm, s_gen, s_task, s_int, heldout_c)}
+                            "cubic": float(cb), "intermediate": float(i), "held_out_family": bool(hf)}
+                   for c, o, k, K, h, a, t, cb, i, hf in zip(cells_arr, origins_c, contracts_c, K_cell, harm, s_gen, s_task, s_cubic, s_int, heldout_c)}
 
     # ---------------------------------------------------------------- 7. designed and task-specific controls (linear only)
     des: dict[str, Any] = {"note": "constructed from the frozen head; positive controls, linear subject only (NonlinearSubjectUnsupported otherwise); "
@@ -440,7 +448,10 @@ def render_markdown(r: dict[str, Any]) -> str:
     si = c2["secondary_intermediate_delta"]
     if c2["primary_delta"].get("undefined_reason"):
         L.append(f"Primary undefined: {c2['primary_delta']['undefined_reason']}.")
-    L += [f"Supporting: intermediate score ΔAUROC {_f(si['delta_auroc'])}; conditional triage (generic) AUROC {_f(c2['conditional_triage_generic_committed']['auroc'])}, "
+    L += [f"Supporting: intermediate score ΔAUROC {_f(si['delta_auroc'])}; "
+          f"cubic intermediate score (D8) absolute AUROC {_f(c2['supporting_intermediate_scores']['cubic']['auroc'])} "
+          f"(task length {_f(c2['supporting_intermediate_scores']['task_length']['auroc'])}); "
+          f"conditional triage (generic) AUROC {_f(c2['conditional_triage_generic_committed']['auroc'])}, "
           f"dropped {c2['conditional_triage_generic_committed']['n_dropped_by_conditioning']} cells ({c2['conditional_triage_generic_committed']['n_dropped_harmful']} harmful).",
           f"Cell threshold {_f(c2['cell_threshold']['threshold'])} (pseudo-cell bootstrap of {c2['cell_threshold']['n_clean_windows']} clean windows, cell size {c2['cell_threshold']['cell_size']}); "
           f"missed harm at budget: generic {_f(c2['missed_harm_generic_committed']['missed_harm_rate'])}, task {_f(c2['missed_harm_task_sensitive']['missed_harm_rate'])}; "
@@ -450,9 +461,9 @@ def render_markdown(r: dict[str, Any]) -> str:
         m = c2[f"quadrants_{name}"]
         L += [f"| {name} | K < κ_m | K ≥ κ_m |", "|---|---:|---:|", f"| low alarm | {m['low_alarm_benign']['n']} | {m['low_alarm_harmful']['n']} |",
               f"| strong alarm | {m['strong_alarm_benign']['n']} | {m['strong_alarm_harmful']['n']} |", ""]
-    L += ["| cell | origin | K_phys | harm | generic | task | intermediate | held-out |", "|---|---|---:|---|---:|---:|---:|---|"]
+    L += ["| cell | origin | K_phys | harm | generic | task | cubic | intermediate | held-out |", "|---|---|---:|---|---:|---:|---:|---:|---|"]
     for name, cc in c2["cells"].items():
-        L.append(f"| {name} | {cc['origin']} | {cc['K']:.2f} | {cc['harm']} | {cc['generic']:.2f} | {cc['task']:.2f} | {cc['intermediate']:.2f} | {cc['held_out_family']} |")
+        L.append(f"| {name} | {cc['origin']} | {cc['K']:.2f} | {cc['harm']} | {cc['generic']:.2f} | {cc['task']:.2f} | {cc['cubic']:.2f} | {cc['intermediate']:.2f} | {cc['held_out_family']} |")
     L += ["", "## Designed and task-specific controls (linear subject; positive controls)", "",
           "| match metric | family | consequence ratio (amp, t0, τ) | declared-K ratio | lin. err Δy |", "|---|---|---|---:|---:|"]
     for metric in ("euclidean", "null_mahalanobis"):

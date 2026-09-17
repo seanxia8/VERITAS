@@ -249,6 +249,21 @@ locally identifiable at all. That is a local identifiability statement. It is
 not a statement about which directions the training distribution excited, and
 this paper no longer reads it as one.
 
+\textbf{The first non-Gaussian rung.} $M_{\mathrm{recon}}$ is the quadratic rung
+of a local expansion. In the natural (exponential-family) coordinates of a
+reference chart the Kullback--Leibler divergence between nearby members is a
+series whose $n$-th coefficient is the $n$-th Fisher tensor, and that tensor is
+the connected cumulant of the whitened residual; the quadratic truncation is
+exact exactly when the higher cumulants vanish~\cite{bal2026triality}
+(Thm.~1, Cor.~2, App.~A). The exact cumulant reading holds only in such a
+chart --- the whitened residual under the Gaussian reference is one, and the
+pooled latent is one on the linear subject; off that chart the same number is a
+deviation from the reference cell's own third moment and is named so. The study
+reports the first such rung (the connected third cumulant of the whitened
+residual, with the fourth-order companion computed but not used) as a supporting
+statistic of the N/S signatures; it is not a third claim and changes no
+estimand.
+
 \textbf{Task metric.} With $J_y=\partial y/\partial r$ and a declared
 positive semi-definite weight $W_y$ in physics-output units (a diagonal of
 inverse squared resolution requirements, or a one-hot selecting the
@@ -462,7 +477,11 @@ therefore positive controls for any monitor built from that head; exact only
 for the tied linear subject, refused for nonlinear subjects until a
 constrained local inverse with an input-validity check exists; norm matched in
 the alarm metric being challenged; realized physical loss reported per
-output, with the local-linear error. \emph{Resolvability and patching}: the
+output, with the local-linear error. The capacity-matched control is the same
+argument form as the paired-seed, zero-initialised-gate evidence design
+of~\cite{bal2026quiver}: an augmented arm earns any gain under identical splits
+against a capacity-matched baseline, so a difference is read as information
+rather than capacity. \emph{Resolvability and patching}: the
 rank of $M_{\mathrm{recon}}$ and activation patching are mechanistic
 diagnostics; uniform recovery at every stage, which the linear subject
 shows, is not localization.
@@ -852,6 +871,15 @@ bound and Fisher information for the Gaussian model).
 \bibitem{ledoitwolf2004} O. Ledoit and M. Wolf. ``A well-conditioned estimator
 for large-dimensional covariance matrices.'' J. Multivariate Anal. 88 (2004),
 365--411.
+\bibitem{bal2026triality} A. Bal, M. Klute, B. Maier, M. Spannowsky. ``From
+Information Geometry to Jet Substructure: A Triality of Cumulant Tensors, Energy
+Correlators, and Hypergraphs.'' \href{https://arxiv.org/abs/2605.03063}{arXiv:2605.03063}
+v2 (2026). The local KL expansion, its connected-cumulant coefficients, and the
+chart caveat (Thm.~1, Cor.~2, App.~A).
+\bibitem{bal2026quiver} A. Bal, M. Binder, M. Klute, B. Maier, M. Spannowsky.
+``QUIVER: Quantum-Informed Views for Enhanced Representations in Large ML
+Models.'' \href{https://arxiv.org/abs/2606.02785}{arXiv:2606.02785} (2026).
+Cited only for its paired-seed, zero-initialised-gate evidence design.
 \bibitem{paper1} D. Wong. ``Noise Covariance Defines Reconstruction
 Geometry: Optimal Filtering, Weighted Subspaces, and Tied Linear
 Autoencoders.'' Preprint (2026), unpublished at the time of writing; cited for

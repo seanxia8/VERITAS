@@ -82,6 +82,12 @@ def test_cpu_smoke_runs_end_to_end_with_provenance_and_gates(tmp_path):
     assert set(r["partition_counts"]) >= {"reference_fit", "attribution_train", "development", "calibration", "evaluation"}
     for a in ("generic_rich", "full_intermediate"):
         assert r["claim1"]["arms"][a]["n_train"] == r["claim1"]["arms"]["generic_rich"]["n_train"]
+    # D7 arm symmetry at the smoke's size, and the D8 supporting cubic score reported beside the task length
+    assert r["claim1"]["arms"]["generic_rich_matched"]["n_features"] == r["claim1"]["arms"]["full_intermediate"]["n_features"]
+    assert r["alarm_time_reference"]["reading"] == "cumulant"
+    cubic = r["claim2"]["supporting_intermediate_scores"]["cubic"]
+    assert cubic["primary_estimate"] is False and cubic["role"].startswith("supporting intermediate score")
+    assert "task_length" in r["claim2"]["supporting_intermediate_scores"]
     # abstention chain and joint table exist; unknown windows appear only in evaluation
     assert r["abstention"]["counts"]["n_unknown"] > 0 and r["joint_decision_table"]["per_category"]["unknown"]["n"] > 0
     assert r["labels"]["event:glitch"]["origin"] == "unknown" and r["labels"]["event:glitch"]["declared"] is False

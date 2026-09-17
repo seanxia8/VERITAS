@@ -34,6 +34,26 @@ Status vocabulary used below: *interface implemented* · *unit-tested control* �
       input-validity check — or keep the controls linear-only in the paper.
 - [ ] Freeze `core` only after `PREREGISTRATION.md` §8 is settled and collaborators agree — never before.
 
+## Fisher-cumulant integration (2026-09-17; `docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`)
+- [x] **D7** whitened-residual + pooled-hook third cumulant: `latent_monitor/cumulant.py`, the third return of
+      `pooled_stage`, `hook_third_nulls` / `resid_cumulant`, `gr_resid_c3_*`, `im_{hook}_third_maha`, the quadratic
+      capacity control re-truncated to the intermediate count, and the chart rule (`cumulant` / `deviation`) recorded
+      in `AlarmTimeReference.to_dict` — *interface implemented, unit-tested control, development smoke*.
+- [x] **D8** cubic task score: `TaskMetric.cubic_aligned`, `raw_task_cubic`, `consequence.supporting_intermediate_cubic`
+      — *unit-tested control, development smoke*; supporting only, never the Claim-2 primary or `GENERIC_COMMITTED`.
+- [ ] **D9** R(3) hook-selection diagnostic — **deferred**, not implemented and not mentioned as implemented.
+- [x] **D10** frozen-propagator hypergraph subject (`latent_monitor/hypergraph_subject.py`) — *interface implemented,
+      unit-tested control* (Eq. 4.3 normalisation, P3 Gaussian-zero); **no training, no GPU run, no result**; one of
+      two nonlinear subjects, both reported, neither chosen by result; sits below Phase B, gated on the trained run.
+- [x] Tier-1 signature row for the residual third cumulant (`results/latent_monitor_sig_c3_2026-09-17/`) — *development*,
+      non-citable: 4/4 covariance cells at reference after re-whitening, no false positives, and a development negative
+      for the glitch / sparse-burst separation at n_eval 60, n_pcs 3.
+- [x] New development smoke (`results/latent_monitor_smoke_dev_2026-09-17_cumulant/`) — non-citable; the 16 September
+      artifacts are preserved unchanged.
+- [ ] Phase-B precision study must size `n_ref` and `n_pcs` for the enlarged third-moment feature set (a third moment
+      is noisier than a second; the 17 Sep signature row is the first evidence of that).
+
+
 ## Theme adjustment 2026-09-03 (`docs/archive/THEME_ADJUSTMENT_2026-09-03.md`)
 Paper 3 is the main paper: *what determines which representation a detector model learns, and
 what it lets a physicist reconstruct*.  Done today in the proposal: new title, abstract opening,

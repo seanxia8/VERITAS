@@ -191,6 +191,22 @@ def paired_delta_auroc(score_task: np.ndarray, score_generic: np.ndarray, harm: 
             "n_pos": a["n_pos"], "n_neg": a["n_neg"], "undefined_reason": a["undefined_reason"] or g["undefined_reason"], "level": "cell"}
 
 
+def supporting_intermediate_cubic(score_cubic: np.ndarray, harm: np.ndarray, weights: np.ndarray | None = None) -> dict:
+    """The aligned cubic score as a **supporting** intermediate score only (D8).
+
+    ``score_cubic`` is the clean-calibration-calibrated ``raw_task_cubic`` =
+    ``Δ_a Δ_b Δ_c Î3_abc`` on the ``M_task``-whitened chart. This reports its
+    absolute all-cell ranking beside the task length; it is never combined into
+    the Claim-2 primary (:func:`paired_delta_auroc`) or the committed generic
+    score. It carries no threshold and no success rule.
+    """
+    out = all_cell_ranking(score_cubic, harm, weights)
+    out.update({"role": "supporting intermediate score (aligned cubic companion of the task length)",
+                "primary_estimate": False,
+                "reading": "task-aligned skewness; descriptive only, no threshold, never the Claim-2 primary"})
+    return out
+
+
 def missed_harm_rate_at_budget(alarm: np.ndarray, harm: np.ndarray, alarm_threshold: float, weights: np.ndarray | None = None) -> dict:
     """Fraction of harmful cells *below* the alert threshold."""
     m = alarm_harm_matrix(alarm, harm, alarm_threshold, weights)
