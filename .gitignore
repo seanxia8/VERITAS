@@ -29,6 +29,9 @@ training_checkpoints/
 checkpoints/
 runs/
 
+# Raw research API dumps (regenerable; see sources/README.md)
+sources/raw/
+
 # Checkpoint files
 *.pt
 *.pth

@@ -60,11 +60,19 @@ Three tiers, one direction of travel (`docs/EXPERIMENT_DESIGN.md`):
 
 - **Tier 1 — controlled waveforms** (`src/noise_module/`, `src/latent_monitor/`):
   assumed and realized covariance both known; the mechanism tier.
-- **Tier 2 — realism arms**: HeST → `qp_simulator` → `noise_module` (built),
-  LUCiD + `noise_module` (licence-gated), Prometheus/DynEdge (frozen public
-  model; fallback).
+- **Tier 2 — realism arms**: NuRadioMC/NuRadioReco (licensed, pure Python; the
+  event list is generated independently of the detector, so the same event
+  replays through different detector JSONs exactly; a native coherent-noise
+  foil; independent direction/energy reconstruction) replaces the demoted HeST
+  arm as arm B; LUCiD + `noise_module` (licence-gated), Prometheus/DynEdge
+  (frozen public model; fallback).
 - **Tier 3 — TIDMAD real data**: one compact transformer trained under MSE and
   inverse-PSD objectives on identical real electronics noise.
+- **Tier 3b — collider domain transfer (CMS/ATLAS, future work, documented
+  only)**: layout-variable open simulation (Delphes cards, Key4hep/DD4hep
+  detector concepts) plus ATLAS/CMS open data; a G-transfer and
+  representation-diagnostics arm, not claim-bearing
+  (`docs/COLLIDER_ARM_2026-09-18.md`).
 
 ## What has been run
 
@@ -116,16 +124,23 @@ this repository.
 | `docs/TWO_CLAIM_REVISION_PLAN.md` | The two-claim revision and implementation-repair plan (M1–M5, I1–I13, D1–D4) |
 | `docs/PREREGISTRATION.md` | The `core` protocol part — **unfrozen draft**; `protocol/frozen/` does not exist, so confirmatory mode refuses |
 | `docs/REVISION_REPORT_2026-09-16.md`, `docs/REVISION_REPORT_2026-09-16_pass2.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md` | The pass-1 and pass-2 revision reports and the 17 Sep Fisher-cumulant integration report: what changed, what was tested, which blocks are ticked or deferred, the next gate |
-| `src/herald_simulation/` | HeST → `qp_simulator` → `noise_module`: the paired superfluid-helium dark-matter arm (plan §7); HeST pinned and unpatched via `fetch_hest.sh` |
+| `src/herald_simulation/` | **Demoted to an optional case study (18 Sep):** HeST → `qp_simulator` → `noise_module`; it is no longer Tier-2 arm B (now NuRadioMC). Retained as a regression fixture; HeST pinned and unpatched via `fetch_hest.sh` |
 | `results/latent_monitor_tier1/` | The §1 table on the linear subject: 13 match / 1 documented / 0 mismatch, plus re-whitening, patching and stage-refit outcomes |
-| `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only) |
+| `src/qp_simulator/` | Minimal standalone quasi-particle (QP) trace simulator (numpy only); used by the demoted HeST arm |
 | `src/reconstruction_model/` | DELight transformer reconstruction model + architecture catalog |
 | `src/tidmad_transformer/` | TIDMAD band-frame STFT denoising arm (backbone from `reconstruction_model`, vendored Paper-1 benchmark helpers) |
-| `notebooks/` | Smoke/inference notebooks, the noise-module tutorials, and the two executed HeRALD/LUCiD walk-throughs (`one_event_herald_lucid.ipynb`, `noise_models_herald_lucid.ipynb`) |
+| `notebooks/` | Smoke/inference notebooks, the noise-module tutorials, and the two HeRALD/LUCiD walk-throughs (`one_event_herald_lucid.ipynb`, `noise_models_herald_lucid.ipynb`; regenerated 18 Sep as source-only, outputs cleared pending a LUCiD re-run) |
 | `scripts/` | Local/Condor training helpers and smoke tests |
 | `containers/` | Runtime container image definition |
 | `docs/EXPERIMENT_DESIGN.md` | **The canonical design** (10 Sep 2026, consolidated 16 Sep as a two-claim study): Part I the study and the evidence ladder; Part II the arms; Part III the controlled-variable protocol with conditional signatures; Part IV the linear subject classes (future-work probes); Part V the two-claim protocol — one current definition throughout, no precedence rules |
 | `docs/TESTBEDS.md` | Canonical testbed inventory: simulations and real datasets that serve and do not, what is implemented, and the structured autoencoder target |
+| `docs/COLLIDER_ARM_2026-09-18.md` | Tier-3b future-work collider domain-transfer arm (CMS/ATLAS): Delphes cards, Key4hep/DD4hep detector concepts, open datasets, and the representation-transfer prior work to cite; G-transfer only, not claim-bearing |
+| `docs/DATASET_STRATEGY_2026-09-16.md` | Dataset/simulator strategy memo: admission criteria, NuRadioMC vs LUCiD, GWOSC/PyCBC real-noise transfer, candidate comparison |
+| `docs/INDEX.md` | Index of `docs/` — where to start and the role of every document |
+| `docs/noise_module_lucid.md` | The LUCiD front-end noise module explained (`src/noise_module_lucid/`) |
+| `src/noise_module_lucid/` | LUCiD front-end noise adapter on `noise_module`: V2 + long-window presets, pe→mV units bridge, crate/sector grouping, declared N families, tests |
+| `TODO.md` | Root **testbed/experiment** TODO board (LUCiD, FASER, XLZD, CMS+ATLAS, …); the paper/protocol board is `docs/TODO.md` |
+| `sources/` | Research notes and raw API dumps for testbed/prior-art research (`sources/README.md`) |
 | `docs/IMPLEMENTATION_PLAN.md` | Work packages, interfaces, acceptance criteria, gates |
 | `docs/REVIEW_PROMPTS.md` | Reviewer prompts (§A before implementation, §B per milestone), synchronised with the amended C4 endpoint; reviews land in `docs/reviews/` |
 | `docs/archive/` | Superseded documents, indexed in `docs/archive/README.md`: the 5 Sep arms and latent-monitoring plans and testbed survey (merged into `EXPERIMENT_DESIGN.md` / `TESTBEDS.md`), the 3 Sep theme/novelty/dev notes, audit, open decisions, revision plan, dataset-production plan, novelty review, package docs |

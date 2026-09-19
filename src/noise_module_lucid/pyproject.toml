@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noise-module-lucid"
+dynamic = ["version"]
+description = "LUCiD front-end noise presets, units bridge and adapter on top of modular-noise-simulator"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Dowling Wong", email = "wangdowling@gmail.com" },
+]
+keywords = [
+    "noise simulation",
+    "PMT front end",
+    "water Cherenkov",
+    "correlated noise",
+    "detector physics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "modular-noise-simulator",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["noise_module_lucid"]
+
+[tool.setuptools.package-dir]
+noise_module_lucid = "."
+
+[tool.setuptools.dynamic]
+version = { attr = "noise_module_lucid.__version__" }
+
+[tool.setuptools.license-files]
+paths = ["LICENSE"]

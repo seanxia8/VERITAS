@@ -23,8 +23,8 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "notebooks"))
 
 from noise_module import MultiChannelNoiseGenerator, NoiseGenerator  # noqa: E402
-from pmt_frontend_v2 import (FS_L, GROUP, PMT_CRATE_V2, PMT_FRONTEND_V2, PMT_PRIVATE, PMT_SHARED,  # noqa: E402
-                             RMS_MV, kappa)
+from noise_module_lucid import (FS_L, GROUP, PMT_CRATE_V2, PMT_FRONTEND_V2, PMT_PRIVATE,  # noqa: E402
+                                PMT_SHARED, RMS_MV, kappa)
 
 N = 512                                   # LUCiD default window: 512 ns at 1 ns
 f = rfftfreq(N, 1 / FS_L)

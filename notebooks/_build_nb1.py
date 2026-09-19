@@ -1,4 +1,6 @@
 """Builder for notebooks/one_event_herald_lucid.ipynb (run once; the notebook is the artifact)."""
+from pathlib import Path
+
 import nbformat as nbf
 
 nb = nbf.v4.new_notebook()
@@ -413,7 +415,8 @@ all**. That is the hole `noise_module` fills, and doing it honestly takes three 
 
 1. **Units bridge.** Convolve each PMT's pe-histogram with a single-photoelectron *voltage* pulse
    (2 ns rise, 8 ns fall, 4 mV per pe) — now the trace is in mV and a PSD in mV²/Hz means something.
-2. **A PMT front-end spectral preset** on the 1 GHz grid (`notebooks/pmt_frontend_v2.py`): a white
+2. **A PMT front-end spectral preset** on the 1 GHz grid (`src/noise_module_lucid/`,
+   explained in `docs/noise_module_lucid.md`): a white
    amplifier floor and a weak 1/f term, both *multiplied* by the front end's transfer function — a 250 MHz
    low-pass and a base/connector ringing bump at 150 MHz (`filtered` components: a bandwidth is a filter on
    the floor, not a second source) — plus the **ADC clock pickup** at 62.5 MHz with its harmonics. All of
@@ -430,11 +433,10 @@ Same physics, opposite grid.""")
 
 code(r'''FS_L, N_L = 1e9, wf_ref.shape[1]
 tns = np.arange(N_L) / FS_L * 1e9
-sys.path.insert(0, str(ORACLE / "notebooks"))
 # The units bridge (pe histogram -> mV via an SPE voltage template), the PMT front-end preset and the
-# crate-wise noise live in notebooks/pmt_frontend_v2.py — one copy for both notebooks, no package (gate A0).
-from pmt_frontend_v2 import (PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE, GROUP,
-                             spe_template, to_mv, crate_preset, add_pmt_noise, kappa)
+# crate-wise noise live in src/noise_module_lucid/ (see docs/noise_module_lucid.md), shared by both notebooks.
+from noise_module_lucid import (PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE, GROUP,
+                                spe_template, to_mv, crate_preset, add_pmt_noise, kappa)
 spe = spe_template()                      # 2 ns rise, 8 ns fall, 4 mV per pe (placeholder)
 sig_mv = to_mv(wf_ref)
 
@@ -531,5 +533,5 @@ term and says what it is physically.""")
 nb["cells"] = C
 nb["metadata"] = {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
                   "language_info": {"name": "python"}}
-nbf.write(nb, "/home/claude/oracle/notebooks/one_event_herald_lucid.ipynb")
+nbf.write(nb, str(Path(__file__).resolve().parent / "one_event_herald_lucid.ipynb"))
 print("written")

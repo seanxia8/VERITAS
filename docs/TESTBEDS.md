@@ -9,6 +9,14 @@ readable on all of them. It supersedes the candidate lists scattered across
 (which remain the evidence files and are cited, not restated). Every "✅" below
 was checked on this machine or on the upstream repository today._
 
+> **[18 Sep 2026] Arm B retarget.** The programme's Tier-2 arm B is now
+> **NuRadioMC / NuRadioReco** (in-ice radio neutrino detection), replacing the
+> HeST → `qp_simulator` → `noise_module` arm, which is demoted to an optional
+> case study. The canonical arm definition is `EXPERIMENT_DESIGN.md` §II.4 and
+> the integration §III.7; §1, §1.2, §2.6, §4.1 and §5 below are updated to match.
+> The NuRadioMC comparison row in §3.1 and the analysis in
+> `DATASET_STRATEGY_2026-09-16.md` §5 are the evidence.
+
 ---
 
 ## 0. The requirement, in one paragraph
@@ -30,18 +38,18 @@ configuration variation.
 
 ## 1. First stage: the two simulations
 
-| | **Arm A — LUCiD + `noise_module`** | **Arm B — HeST → `qp_simulator` → `noise_module`** |
+| | **Arm A — LUCiD + `noise_module`** | **Arm B — NuRadioMC / NuRadioReco** |
 |---|---|---|
-| domain | water-Cherenkov PMT array (neutrino) | superfluid-⁴He calorimeter with TES/CPD sensors (dark matter; DELight's target material) |
-| upstream physics (not ours) | LUCiD, JAX photon transport, `hit_mode='waveform'` → `(n_sensors, n_bins)` photoelectrons at 1 ns | HeST: `GetQuanta(E, "ER"\|"NR")` yields → `GetEvaporationSignal(detector, …)` per-sensor quasiparticle arrival times |
-| trace (ours) | SPE voltage template ⊗ pe histogram → mV | `QPSimulator`: single-QP template (50 µs rise, 3 ms decay), 250 kHz × 16 384 samples |
-| noise (ours) | `PMT_FRONTEND_V2` (`notebooks/pmt_frontend_v2.py`, 11 Sep): private = (amplifier white floor + weak 1/f) × \|H_fe\|² (250 MHz low-pass) × \|H_ring\|² (150 MHz bump) via `filtered`; shared per 64-PMT crate = 62.5 MHz clock + harmonics; `spectral_shared_private`, so ρ_ij(f) ≈ 0.9 at the clock and ≈ 0 on the floor. V1 (additive roll-off, flat 0.3 coherence) retired — `docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md` | `noise_module.tes_budget.HERALD_V1_PLACEHOLDER`: TFN, TES + shunt Johnson, SQUID white + 1/f, 50 Hz mains + harmonics, vibration lines; shared-private per cell |
-| physics axis | source type/intensity (built-in isotropic flasher; PhotonSim μ/e/π⁰ files; SIREN μ/e gun), material at fixed geometry (water / WbLS) | ER vs NR at fixed energy; energy; vertex; WIMP recoil spectrum (held-out U) |
-| geometry axis | one JSON file: `detector_type ∈ {cylinder, sphere, box, string}`, radius/height, `n_sensors` (target, not guarantee); 16 shipped configs | `make_cell(cell_radius_cm, fill_height_cm, sensor_pitch_cm, array_map)` from HeST primitives; shipped `HeRALD_v1` (24), `_monolithic` (1), `UMass_splitCPD` (2), `UMass_monolithic`, `LBNL` |
-| pairing | exact — the photon source and PRNG key are arguments; set `apply_translation=False` for differently sized detectors | exact and **tested** — `QP_propagation` draws the whole initial population before geometry is touched; `event_id` seeds it (`tests/test_pairing.py`) |
-| Σ̂ / Σ / κ reported | yes, per crate (`MultiChannelNoiseGenerator` metadata) | yes, per cell (`add_noise` → `kappa_floor` in `truth.parquet`) |
-| **implemented?** | **notebook only** — Part B of `notebooks/one_event_herald_lucid.ipynb` and `notebooks/noise_models_herald_lucid.ipynb`; deliberately no `src/lucid_simulation` package | **yes** — `src/herald_simulation/` (14 cells, `simulate.py`, `tests/`, provenance), Part A of the same two notebooks |
-| gate | **A0 — LUCiD has no licence.** ✅ Re-checked today: no `LICENSE` file, no `license` field in `pyproject.toml`, README still "under construction"; last upstream commit 2026-08-21 | **B0 — HeST's `LICENSE` is MIT text whose copyright line is still the unedited PyPA sample.** ✅ Re-checked today; last upstream commit 2026-03-09 |
+| domain | water-Cherenkov PMT array (neutrino) | in-ice / in-air radio neutrino detection (RNO-G, ARIANNA, ARA) |
+| upstream physics (not ours) | LUCiD, JAX photon transport, `hit_mode='waveform'` → `(n_sensors, n_bins)` photoelectrons at 1 ns | NuRadioMC: neutrino interaction + Askaryan emission + radio ray tracing; NuRadioReco detector/electronics/trigger; event list pre-generated to HDF5 **independently of the detector** |
+| trace (ours) | SPE voltage template ⊗ pe histogram → mV | NuRadioReco per-channel **voltage traces** at a configurable sampling rate — no project-authored trace model |
+| noise (ours) | `PMT_FRONTEND_V2` (`src/noise_module_lucid/`, explained in `docs/noise_module_lucid.md`): private = (amplifier white floor + weak 1/f) × \|H_fe\|² (250 MHz low-pass) × \|H_ring\|² (150 MHz bump) via `filtered`; shared per 64-PMT crate = 62.5 MHz clock + harmonics; `spectral_shared_private`, so ρ_ij(f) ≈ 0.9 at the clock and ≈ 0 on the floor. V1 (additive roll-off, flat 0.3 coherence) retired — `docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md` | native `channelGenericNoiseAdder` (thermal) + `channelGalacticNoiseAdder` (coherent), switchable off; or `noise_module` for the controlled Σ̂/Σ lever. Native noise does **not** report realized covariance |
+| physics axis | source type/intensity (built-in isotropic flasher; PhotonSim μ/e/π⁰ files; SIREN μ/e gun), material at fixed geometry (water / WbLS) | flavour, energy, vertex, direction, CC/NC, inelasticity; Askaryan model; emitter/pulser held out (U) |
+| geometry axis | one JSON file: `detector_type ∈ {cylinder, sphere, box, string}`, radius/height, `n_sensors` (target, not guarantee); 16 shipped configs | JSON station/channel description: position, orientation, antenna type, cable delay, sampling; a layout change is a one-file change |
+| pairing | exact — the photon source and PRNG key are arguments; set `apply_translation=False` for differently sized detectors | exact — event list + `config['seed']` seed everything downstream, so identical truth replays through any detector JSON |
+| Σ̂ / Σ / κ reported | yes, per crate (`MultiChannelNoiseGenerator` metadata) | controlled mode only: Σ̂, Σ, κ, κ_floor per station/module group; native mode reports neither |
+| **implemented?** | **notebook only** — Part B of `notebooks/one_event_herald_lucid.ipynb` and `notebooks/noise_models_herald_lucid.ipynb`; deliberately no `src/lucid_simulation` package | **not yet** — surveyed and recommended (`DATASET_STRATEGY_2026-09-16.md` §5; `reviews/MEMO_PHYSICAL_LATENT_TESTBEDS_2026-09-11.md`); pilot and adapter to build |
+| gate | **A0 — LUCiD has no licence.** ✅ Re-checked today: no `LICENSE` file, no `license` field in `pyproject.toml`, README still "under construction"; last upstream commit 2026-08-21 | **none** — GPL-3.0, pure Python, active multi-institution development; produced datasets are not covered by the licence |
 
 ### 1.1 Arm A status in detail — what exists, what does not
 
@@ -58,10 +66,11 @@ in `one_event_herald_lucid.ipynb`; 9/9, 8 figures in
   PMTs), **noise** (clock line ×5; crate coherence 0.3 → 0.7; alias fold from
   decimating 1 GHz → 250 MHz without an anti-alias filter).
 - The units bridge (`spe_template`, `to_mv`), the preset `PMT_FRONTEND_V2` and
-  the crate-wise `add_pmt_noise` live in `notebooks/pmt_frontend_v2.py` (a helper next
-  to the notebooks, not a package). The executed `.ipynb` outputs still show V1
-  until the notebooks are re-run against a LUCiD clone; the builders
-  (`_build_nb1.py`, `_build_nb2.py`) are on V2.
+  the crate-wise `add_pmt_noise` now live in the **`src/noise_module_lucid/`
+  package** (`docs/noise_module_lucid.md`); `notebooks/pmt_frontend_v2.py` is a
+  deprecated shim. The builders (`_build_nb1.py`, `_build_nb2.py`) import the
+  package; the `.ipynb` outputs were regenerated as source-only and must be
+  re-run against a LUCiD clone to show V2 numbers.
 - The measured constraint that shapes the arm: on a 512-sample, 64-channel crate
   the matched-cell κ floor is ≈ 5 (N/C = 8), so covariance cells need
   `window_ns` ≥ 16–32 µs, and a crate — not the whole tank — is the covariance
@@ -70,8 +79,8 @@ in `one_event_herald_lucid.ipynb`; 9/9, 8 figures in
 **Does not exist (and must not, until A0 lands):** the `noise_module_lucid`
 package planned in `docs/EXPERIMENT_DESIGN.md` §II.7.5 (`presets.py`,
 `units.py`, `adapter.py`, `grouping.py`, `interventions.py`, tests, provenance
-record); the N-family interventions as code; a `Cell` list mirroring
-`herald_simulation.simulate.all_cells`; the geometry *scan* (`n_sensors`
+record); the N-family interventions as code; a `Cell` list in the arm's own
+`simulate` module; the geometry *scan* (`n_sensors`
 2000…20000). Effort once gated: ~8 days (arms plan §7.7).
 
 **To re-run the notebook on this machine:** `git clone
@@ -80,36 +89,46 @@ the working tree today) and `pip install jax jaxlib flax optax h5py ipython`.
 The notebook was executed elsewhere and carries its outputs; nothing from
 LUCiD is vendored.
 
-### 1.2 Arm B status in detail — what exists, what is placeholder
+### 1.2 Arm B status in detail — what exists, what is to build
 
-**Exists:** the full chain and its harness. `herald_simulation.simulate`
-builds the reference cell (HeRALD_v1, 24 CPDs, ER 1 keV, `TES_HERALD_V1`) and
-thirteen one-factor cells — geometry (24 → 1, 2-sensor split CPD),
-Σ-covariance (bath correlation ↑, low-rank pickup modes, SQUID 1/f knee ×10,
-mains ×8), Σ-structural (sensor loss, gain drift, timing jitter applied to
-signal *and* noise), event (NR at the same energy; ER at ½× and 2×), and one
-undeclared family (WIMP spectrum, 500 MeV). Every cell reuses the same
-`event_id` list; output is `truth.parquet` + `traces.npy (n, C, N)` +
-`provenance.json` (HeST commit, geometry hash and positions, budget with
-provenance states, trace config). Cost: a 1 keV NR is ~9×10⁵ quasiparticles ≈
-17 s single-core; `--qp-fraction` thins for development and records the
-rescaling.
+**Exists (upstream):** NuRadioMC/NuRadioReco is licensed (GPL-3.0), pure Python,
+pip-installable, actively maintained, with packaged releases, docs, tests and a
+multi-institution development history. The pipeline generates a neutrino event
+list separately from detector simulation, saves it to HDF5 with energy, flavour,
+interaction, vertex and direction, and replays it through a JSON detector
+description; NuRadioReco produces per-channel voltage traces and trigger
+objects, and supplies a likelihood reconstruction endpoint (direction, energy,
+trigger efficiency). Native thermal (`channelGenericNoiseAdder`) and coherent
+Galactic (`channelGalacticNoiseAdder`) noise adders are switchable.
 
-**Placeholder:** every constant in `HERALD_V1_PLACEHOLDER` except the two time
-constants carries provenance state `placeholder`; they must be read from
-arXiv:2307.11877 (`from_paper`) before any dataset is released.
+**To build (in this repository):** a thin `src/nuradio_simulation/` adapter that
+wraps the upstream packages (never edits them): `detector.py` (JSON load,
+station/module grouping, `geometry_hash`), `events.py` (HDF5 event-list
+read/write — the pairing key), `simulate.py` (one run per cell), `noise.py`
+(native adders, or `noise_module` + `MultiChannelNoiseGenerator` → Σ̂, Σ, κ,
+κ_floor), `interventions.py` (N-covariance, N-structural), `strata.py` (S
+cells), `export.py` (traces + truth + trigger + provenance). Cost: a 3-day pilot
+(four cells, 1 000–5 000 events) then ~1 week for the adapter, per
+`DATASET_STRATEGY_2026-09-16.md` §10.
 
-**Two physics limitations to state honestly in the paper:**
+**Two limitations to state honestly in the paper:**
 
-- **ER/NR is degenerate with energy in a quasiparticle-only readout.** At 1 keV
-  HeST gives 900 k QP for NR and 420 k for ER; the trace sees only the yield
-  and the arrival-time distribution. So "signal type" in arm B is a
-  *fixed-energy* contrast unless the photon channels (IR, singlet UV, triplet)
-  are also transported to a trace. `events.quanta` records all four yields;
-  `qp_simulator` transports only the quasiparticles. Adding a photon channel is
-  the one physics extension that would make type recognition non-degenerate.
-- **No background model.** HeST simulates a deposit, not a rate; families are
-  designed, not sampled from a background.
+- **The native noise does not report realized covariance.** NuRadioMC's noise is
+  a real, documented model, but the package does not return the realized Σ of
+  the ensemble it drew — the same gap as `pytessim` and Wire-Cell. The κ lever
+  is therefore available only in controlled mode, where `noise_module` supplies
+  Σ̂ and the measured Σ; native-noise cells are labelled as a foil and carry no
+  covariance claim.
+- **Arms A and B share the neutrino-detector domain.** Two simulated
+  neutrino-detector chains agree by construction; independence comes from arm C
+  (real noise) and Tier 1, not from adding a second simulation.
+
+**Demoted:** the HeST → `qp_simulator` → `noise_module` chain remains in
+`src/herald_simulation/` as an optional case study/regression fixture. It was
+demoted because it stops at per-sensor quasiparticle arrival times, so the
+trace, electronics, noise and harm proxy were all project-authored, and because
+ER/NR is degenerate with energy in a quasiparticle-only readout (1 keV: 900 k QP
+for NR, 420 k for ER).
 
 ---
 
@@ -233,12 +252,12 @@ projector, which is both cheaper and pre-registrable.
 
 ### 2.5 Per-arm meaning of "position", "shape", "type"
 
-| | LUCiD | HeRALD |
+| | LUCiD | NuRadioMC |
 |---|---|---|
-| position | vertex / flasher position from first-light timing and charge pattern over PMTs | vertex (x, y, z) from the per-CPD share and the arrival-time distribution — weak along z, strong in the array plane |
-| shape | ring vs blob timing structure; time-of-first-light per PMT | arrival-time distribution ⊗ single-QP template; nearly type-independent |
-| type | particle species (μ / e / π⁰ via PhotonSim), material (water / WbLS) | ER vs NR **at fixed energy only** (§1.2); photon channels needed otherwise |
-| amplitude | photons / pe per event | quasiparticle yield |
+| position | vertex / flasher position from first-light timing and charge pattern over PMTs | shower vertex and direction from per-antenna arrival times (inter-channel delays) and the amplitude pattern |
+| shape | ring vs blob timing structure; time-of-first-light per PMT | Askaryan pulse × antenna response with per-channel delay/dispersion; EM vs hadronic elongation |
+| type | particle species (μ / e / π⁰ via PhotonSim), material (water / WbLS) | neutrino flavour, CC/NC, inelasticity; EM vs hadronic shower |
+| amplitude | photons / pe per event | shower energy (integrated signal power) |
 
 ### 2.6 Candidate third subject — frozen-propagator hypergraph (D10, design and interface only)
 
@@ -246,7 +265,7 @@ Alongside the transformer, the study records a second **nonlinear** subject
 (`latent_monitor/hypergraph_subject.py`) whose latent stays readable because
 every propagator weight has a provenance:
 
-- **vertices = channels** (TES/QP channels on arm B; band-frames on TIDMAD);
+- **vertices = channels** (radio antennas on arm B; band-frames on TIDMAD);
 - **P2** from the measured noise covariance — the noise-Laplacian PE of the
   companion paper (cited by the name *Prop. stationary-pe* only); adjacency is
   the partial-correlation (precision) matrix and the propagator is the
@@ -312,6 +331,11 @@ Prometheus is read at the vendored commit `8c19938` (28 Aug 2026); "bridge" mean
 window, convolve with an SPE template, add `noise_module` per crate. ✅ = feasible as the
 programme defines it; ⚠ = feasible with a stated limitation; ✘ = not feasible._
 
+_[18 Sep 2026] The HeST column and the reading below are historical (11 Sep); arm B
+is now NuRadioMC/NuRadioReco (§1.2, `EXPERIMENT_DESIGN.md` §II.4). The comparison
+is kept because it still shows why Prometheus is an arm-A fallback, not an arm-B
+one._
+
 | recognised factor | **Prometheus alone** (hits / sparse FADC) | **Prometheus + bridge + `noise_module`** | **LUCiD + `noise_module` V2** (arm A) | **HeST → `qp_simulator` → `noise_module`** (arm B) |
 |---|---|---|---|---|
 | **geometry** | ✅ `.geo` text file, 6 shipped (ORCA, ARCA, IceCube, GVD, P-ONE, TRIDENT); exact pairing by replaying one injection file | ✅ same | ✅ one JSON file, 16 configs; exact pairing by PRNG key (`apply_translation=False`) | ✅ `make_cell(...)`, 24 → 1 on the identical cell; pairing tested |
@@ -334,6 +358,29 @@ caveat to state in either case: a dense 1–3.3 ns trace from a KM3NeT/IceCube-s
 hypothetical readout, so the arm would carry waveform-level claims under a declared digitiser
 contract, exactly as arm A does.
 
+### 3.4 Collider layout-transfer resources (CMS/ATLAS, Tier 3b future work)
+
+_Added 18 Sep 2026. Full memo: `COLLIDER_ARM_2026-09-18.md`; design
+`EXPERIMENT_DESIGN.md` §II.10. **G-transfer only** — no controllable acquisition
+contract, no paired N counterfactual; not claim-bearing._
+
+| resource | same physics, different layout | pairing | licence / state |
+|---|---|---|---|
+| **Delphes detector cards** (`github.com/delphes/delphes/cards`) | yes — one HepMC/Pythia sample through `delphes_card_ATLAS.tcl`, `_CMS.tcl`, `CMS_PhaseII`, `HLLHC`, `CLICdet_Stage1/2/3`, `ILD`, `IDEA`, `FCCeeDetWithSiTracking`, `CEPC`, `MuonCollider`, `LHCb` | exact (same HepMC) | GPL-3.0, active; reco level |
+| **Key4hep / DD4hep detector concepts** (CLICdet, CLD, IDEA, SiD, ILD) | yes — same e+e- physics, different GEANT4 geometries | exact (same generator) | Apache-2.0, open; full sim |
+| **CMSSW / Athena** (CMS Phase-2, ATLAS ITk) | yes — same pp physics, upgraded layouts | exact if self-simulated | open source, collaboration-gated |
+| **ATLAS Open Data** | 2025 beta (record 93910); 65 TB for research (2024); event-generation batch (record 160000) | no | open; https://opendata.atlas.cern/ |
+| **CERN Open Data — CMS** | 2010–2015 pp, sim + real | no | CC0/CC-BY; `opendata.cern.ch/api/records` |
+| **TrackML / Open Data Detector + ACTS** | point-cloud tracking with a generic DD4hep detector | n/a | open |
+
+Prior work to cite: `arXiv:2606.14373` (MLPF latents feed downstream tasks — Claim 1
+precedent), `2604.12364` (jet→neutrino FM transfer), `2512.00187` (cross-geometry
+shower transfer), `2305.11531` (GAAMs), `2503.00131` (MLPF CLICdet→CLD),
+`2609.00611` (Panda V2), `2510.24066` (OmniLearned), `2605.29283` (fmbench),
+`2608.15166` (DANTE detector domain shift), `2608.18190` (nuisance vs physics
+shift). Prior art to position against: `2501.13789` (CMS ML DQM), `2309.10157` /
+`2407.20278` (CMS ECAL autoencoder AD).
+
 ---
 
 ## 4. Real-experiment datasets that would serve
@@ -347,7 +394,7 @@ variation inside the release · **D** permissive licence + DOI.
 
 | # | dataset | what it is | T | N | L | V | D | why it serves | catch |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | **CRESST-II/III pulse-shape data** (ORIGINS Dark Matter Data Center; arXiv:2508.03078) | 68 TES detectors, runs 33–35, 979 k train + 78 k test records, raw voltage traces downsampled to 512 samples (from 8 192 / 16 384 at 25 kHz), **random-trigger noise traces included and flagged**, `detectors.csv` per channel, four released models | ✔ | ✔ | ~ binary clean/artifact | ✔ 68 detectors, 3 runs, 2 record lengths | ? licence and DOI not stated | **the closest real analogue of arm B**: TES traces, per-detector noise records (Σ per detector, unchosen), detector-to-detector variation is a real "geometry" axis; DELight-relevant | 16–32× downsampling limits the spectral band; no particle-type label; confirm licence/DOI with the DMDC before use |
+| 1 | **CRESST-II/III pulse-shape data** (ORIGINS Dark Matter Data Center; arXiv:2508.03078) | 68 TES detectors, runs 33–35, 979 k train + 78 k test records, raw voltage traces downsampled to 512 samples (from 8 192 / 16 384 at 25 kHz), **random-trigger noise traces included and flagged**, `detectors.csv` per channel, four released models | ✔ | ✔ | ~ binary clean/artifact | ✔ 68 detectors, 3 runs, 2 record lengths | ? licence and DOI not stated | **the closest real analogue of the retired HeST arm**: TES traces, per-detector noise records (Σ per detector, unchosen), detector-to-detector variation is a real "geometry" axis; DELight-relevant | 16–32× downsampling limits the spectral band; no particle-type label; confirm licence/DOI with the DMDC before use |
 | 2 | **LIGO/Virgo GWOSC strain + auxiliary channels + Gravity Spy + GWTC PSDs** | strain O1–O4b (4/16 kHz, CC BY 4.0, DOIs e.g. O4b 10.7935/8emv-ag54); **auxiliary multi-channel releases** (O3: 40 H1 + 46 L1 channels, 13 TB; GW170814: ~500 channels/site); Gravity Spy glitch classes (22/24) with GPS times (10.5281/zenodo.5649212); per-event PSDs inside GWTC PE releases | ✔ | ✔ published ASD/PSD — the assumed covariance is literally public | ✔ glitch classes by GPS lookup | ✔ H1/L1/V1, hardware epochs O1→O4b | ✔ | the only real dataset where Σ̂ is *published* and Σ̂ ≠ Σ events are *labelled* (glitches) with ground truth; multi-channel aux data gives real cross-channel coherence | domain entry 2–3 weeks; glitch traces must be cut from bulk strain; volunteer-label file is CC BY-NC-ND |
 | 3 | **Majorana Demonstrator AI/ML release** (10.5281/zenodo.8257027; arXiv:2308.10856) | 3.19 M ²²⁸Th calibration events, raw HPGe waveforms (3 800 samples, hybrid-sampled), 56 PPC detectors in two modules, labels: energy, AvsE (single- vs multi-site), DCR (surface α), LQ; 75/20/5 splits | ✔ | ~ pre-trigger baseline only | ✔ **pulse-shape types** | ~ 56 detectors, 2 modules | ~ DOI yes, licence informal | best labelled signal-shape/type set; pairs naturally with SolidStateDetectors.jl (§3.1 #2) as its simulation twin | no noise-only runs; one data set (DS6) |
 | 4 | **Pierre Auger Open Data 2024** (10.5281/zenodo.10488964, CC BY-SA 4.0) | 81 k showers; per-PMT **FADC traces, 768 bins × 25 ns**, for SD-1500 and SD-750 stations; station positions and operational periods; FD pixels; weather; scalers | ✔ | ~ in-trace baselines only | ~ reconstructed E, X_max, zenith | ✔ two array spacings, 2004–2018 | ✔ (share-alike) | real multi-station traces with two documented station configurations | no random-trigger records; SSD/RD not included |
@@ -356,7 +403,7 @@ variation inside the release · **D** permissive licence + DOI.
 | — | **TIDMAD** (arXiv:2406.04378 v3; CC BY 4.0; 10.5281/zenodo.11458076) | already arm C: 20 train + 20 val files with injected sinusoids (ch0 reference, ch1–2 SQUID), **208 science files with no injection = noise-only**, 10 MS/s, 8-bit | ✔ | ✔ | ~ injected sinusoids only | ✘ | ✔ | unchanged role: two Σ̂ trainings on one unchosen Σ | denoising score disclaimed by its authors (D2); `K_rel` must survive |
 
 **Recommendation for the real-data side.** Keep TIDMAD as arm C. If a second
-real arm is added, **CRESST first** — it is the real twin of arm B (TES traces,
+real arm is added, **CRESST first** — it is the real twin of the retired HeST arm (TES traces,
 random-trigger noise per detector, 68 detectors as the configuration axis) and
 it is the dataset a DELight reader will recognise — with LIGO/Gravity Spy as
 the claim-bearing alternative if a *published* Σ̂ with labelled Σ̂ ≠ Σ events is
@@ -381,19 +428,20 @@ is the dataset to use the day "signal type" becomes the headline.
 | tier / arm | substrate | status today | carries |
 |---|---|---|---|
 | Tier 1 — ORACLE-Cov | `noise_module` synthetic | linear-subject table done (13/14) | the whitening lemma; κ sweep; designed dissociation |
-| **Arm B — HeST → `qp_simulator` → `noise_module`** | simulated TES, 1–24 ch, 250 kHz | **built**, 14 cells, tests green; constants placeholder; gate B0 open | granularity dissociation 24 → 1; second readout physics |
+| **Arm B — NuRadioMC / NuRadioReco** | simulated antenna voltage traces, GHz radio | surveyed and recommended (`DATASET_STRATEGY` §5); pilot not run; no licence gate | Claim 1 + Claim 2 repeated once; second readout physics; independent direction/energy K |
 | **Arm A — LUCiD + `noise_module`** | simulated PMT, ~2 400 ch, 1 GHz | **notebook only**; gate A0 open (no licence as of today) | transfer of the κ prediction into a real geometry; waveform-level C1/C2 |
 | Prometheus / DynEdge | hit-level | built, licence-clean | frozen public model; angular-error consequence; fallback for A |
 | Arm C — TIDMAD | real SQUID | code exists, needs data + GPU | external validity |
-| candidates | NuRadioMC · SSD.jl · CRESST · GWOSC/Gravity Spy · Majorana | surveyed, not started | held in reserve (§3.1, §4.1) |
+| Arm D (Tier 3b) — CMS/ATLAS collider transfer | open fast/full simulation + open data | **documented only** (`COLLIDER_ARM_2026-09-18.md`); not built | future-work G-transfer / representation diagnostics; not claim-bearing |
+| candidates | SSD.jl · CRESST · GWOSC/Gravity Spy · Majorana | surveyed, not started | held in reserve (§3.1, §4.1) |
 
 ### Actions this document implies
 
-1. Send the two gate emails (A0 to Terao/Alterkait; B0 to Rischbieter) — both
-   re-verified open today; nothing else on arm A moves before A0.
-2. Arm B: replace `HERALD_V1_PLACEHOLDER` with values from arXiv:2307.11877;
-   decide whether to transport a photon channel so ER/NR is not
-   energy-degenerate (§1.2).
+1. Send the A0 gate email (to Terao/Alterkait); nothing else on arm A moves before
+   A0. B0 is retired with the HeST arm.
+2. Arm B: run the NuRadioMC pilot (four cells, 1 000–5 000 events), then build the
+   `src/nuradio_simulation/` adapter with native and controlled noise modes; decide
+   per cell whether the headline uses native noise or `noise_module` (§1.2, §II.4).
 3. Architecture: implement §2.2 as the transformer `Subject` — cross-geometry
    paired loss, the `z_noise` branch on residuals and random triggers, the
    structured decoder — and run the §2.4 table on it; the linear subject

@@ -10,6 +10,7 @@ members = [
     "src/herald_simulation",
     "src/latent_monitor",
     "src/noise_module",
+    "src/noise_module_lucid",
     "src/prometheus_simulation",
     "src/qp_simulator",
     "src/reconstruction_model",

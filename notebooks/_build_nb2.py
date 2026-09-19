@@ -1,4 +1,6 @@
 """Builder for notebooks/noise_models_herald_lucid.ipynb."""
+from pathlib import Path
+
 import nbformat as nbf
 
 nb = nbf.v4.new_notebook()
@@ -294,8 +296,8 @@ pe) before adding noise in mV. The noise level (0.8 mV rms) is a placeholder lik
 
 code(r'''FS_L, N_L = 1e9, 512
 fL = rfftfreq(N_L, d=1 / FS_L)
-sys.path.insert(0, str(ORACLE / "notebooks"))
-from pmt_frontend_v2 import PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE, GROUP, crate_preset, kappa
+from noise_module_lucid import (PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE,
+                                GROUP, crate_preset, kappa)
 g = NoiseGenerator(PMT_FRONTEND_V2, seed=0)
 _, S_total, meta = g.build_psd_density(N_L, return_metadata=True)
 contrib = meta["component_contributions"]
@@ -414,5 +416,5 @@ literally unrepresentable in the other. Any claim about "correlated noise" has t
 
 nb["cells"] = C
 nb["metadata"] = {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"}, "language_info": {"name": "python"}}
-nbf.write(nb, "/home/claude/oracle/notebooks/noise_models_herald_lucid.ipynb")
+nbf.write(nb, str(Path(__file__).resolve().parent / "noise_models_herald_lucid.ipynb"))
 print("written")
