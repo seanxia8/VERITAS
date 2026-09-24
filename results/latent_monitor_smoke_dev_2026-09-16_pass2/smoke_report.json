@@ -1,0 +1,3060 @@
+{
+  "STATUS": "DEVELOPMENT SMOKE \u2014 NOT CITABLE. Exercises the two-claim protocol chain on the linear subject at toy size; no scientific conclusion.",
+  "provenance": {
+    "mode": "dev",
+    "citable": false,
+    "config_hash": "43cf86fcc97849ba",
+    "config": {
+      "n_channels": 6,
+      "n_samples": 128,
+      "latent_dim": 5,
+      "n_groups": 120,
+      "n_noise_per_window": 2,
+      "seed": 0,
+      "fractions": {
+        "reference_fit": 0.3,
+        "attribution_train": 0.2,
+        "development": 0.15,
+        "calibration": 0.15,
+        "evaluation": 0.2
+      },
+      "held_out_families": [
+        "line_pickup",
+        "double_pulse"
+      ],
+      "undeclared_families": [
+        "glitch"
+      ],
+      "far_budget": 0.01,
+      "abstention_alpha": 0.1,
+      "task_target": 0,
+      "cell_aggregate": "median",
+      "designed_norm": 3.0,
+      "tuning_grid": [
+        0.001,
+        0.01,
+        0.1,
+        1.0,
+        10.0
+      ],
+      "margins": {
+        "benefit_min_delta": 0.1,
+        "equivalence_half_width": 0.05
+      },
+      "n_boot": 100,
+      "min_outer_units_for_inference": 10
+    },
+    "git_commit": "f24430a-dirty",
+    "seeds": [
+      0
+    ],
+    "latent_monitor_version": "0.1.0",
+    "numpy_version": "2.5.3",
+    "python": "3.12.14",
+    "machine": "claude",
+    "platform": "Linux-6.8.0-138-generic-aarch64-with-glibc2.35",
+    "elapsed_s": 4.4,
+    "subject": "LinearSubject",
+    "cells": [
+      "reference",
+      "sigma_cov:corr_up",
+      "sigma_cov:corr_down",
+      "sigma_cov:bandwidth_down",
+      "sigma_cov:line_pickup",
+      "sigma_struct:gain_drift",
+      "sigma_struct:channel_loss",
+      "sigma_struct:timing_jitter",
+      "geometry:3ch",
+      "geometry:12ch",
+      "event:glitch",
+      "event_in_span:oscillation",
+      "event_in_span:double_pulse",
+      "mixture:oscillation+gain_drift"
+    ]
+  },
+  "gates": {
+    "mode": "dev",
+    "freezes": {},
+    "warnings": [
+      "freeze part 'core' is missing (protocol/frozen/core.json)"
+    ],
+    "citable": false
+  },
+  "run_dependencies": {
+    "mode": "dev",
+    "citable": false,
+    "warnings": [
+      "freeze part 'core' is missing (protocol/frozen/core.json)",
+      "freeze part 'counts' is missing (protocol/frozen/counts.json)",
+      "freeze part 'bridge' is missing (protocol/frozen/bridge.json)",
+      "working tree is dirty and no matching frozen source-tree hash is declared",
+      "environment lock hash is not frozen",
+      "no data manifest declared",
+      "no model / checkpoint hash declared",
+      "confirmatory results must be written under 'results/confirmatory', not results/latent_monitor_smoke_dev_2026-09-16_pass2"
+    ],
+    "git_commit": "f24430a-dirty",
+    "source_tree_sha256": "9522a0a618814fc3041dfdcabfff4aca5ab78a6311ff3e64fbb81fa9b2fc76b2",
+    "environment_sha256": "b683b32bd9ddd02863d23418daf4269fbcc81eecb912c0d409839846f3fe8c10"
+  },
+  "manifest": {
+    "arm": "tier1",
+    "acquisition": {
+      "supplies_noise_only_records": true,
+      "noise_only_source": "random-trigger records from the same generator, structural N applied"
+    },
+    "features": {
+      "in_rms": {
+        "name": "in_rms",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_kurtosis": {
+        "name": "in_kurtosis",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_spectral_centroid": {
+        "name": "in_spectral_centroid",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_spectral_flatness": {
+        "name": "in_spectral_flatness",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_channel_rms_spread": {
+        "name": "in_channel_rms_spread",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_peak_abs": {
+        "name": "in_peak_abs",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "out_0": {
+        "name": "out_0",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "out_1": {
+        "name": "out_1",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "out_2": {
+        "name": "out_2",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "unc_recon_energy": {
+        "name": "unc_recon_energy",
+        "availability": "alarm_time",
+        "source": "raw-domain reconstruction residual energy",
+        "operational": true,
+        "group": "uncertainty",
+        "note": "the linear subject has no predictive uncertainty; this is the declared proxy"
+      },
+      "z_0": {
+        "name": "z_0",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_1": {
+        "name": "z_1",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_2": {
+        "name": "z_2",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_3": {
+        "name": "z_3",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_4": {
+        "name": "z_4",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_mahalanobis": {
+        "name": "z_mahalanobis",
+        "availability": "alarm_time",
+        "source": "z against the reference-fitted mean/shrunk cov",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "no_var_ratio": {
+        "name": "no_var_ratio",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_psd_dev_smooth": {
+        "name": "no_psd_dev_smooth",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_psd_dev_line": {
+        "name": "no_psd_dev_line",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_chan_corr_shift": {
+        "name": "no_chan_corr_shift",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "gr_input_maha": {
+        "name": "gr_input_maha",
+        "availability": "alarm_time",
+        "source": "pooled whitened input vs reference null (shrunk, calibrated)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_output_maha": {
+        "name": "gr_output_maha",
+        "availability": "alarm_time",
+        "source": "output vector vs reference null",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_pre_output_maha": {
+        "name": "gr_pre_output_maha",
+        "availability": "alarm_time",
+        "source": "pre-output vs reference null",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_out": {
+        "name": "gr_z_energy_out",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_null": {
+        "name": "gr_z_energy_null",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_resolved": {
+        "name": "gr_z_energy_resolved",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_weak": {
+        "name": "gr_z_energy_weak",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_out_of_span": {
+        "name": "gr_out_of_span",
+        "availability": "alarm_time",
+        "source": "residual energy / (residual + in-span) of the observed window",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_support_novelty": {
+        "name": "gr_support_novelty",
+        "availability": "alarm_time",
+        "source": "training-support novelty of z (support.SupportEstimator)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "im_channel_mean_maha": {
+        "name": "im_channel_mean_maha",
+        "availability": "alarm_time",
+        "source": "pooled channel mean vs reference null (shrunk, calibrated)",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_second_maha": {
+        "name": "im_channel_second_maha",
+        "availability": "alarm_time",
+        "source": "pooled channel channel second moment vs reference null",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_pc_0": {
+        "name": "im_channel_pc_0",
+        "availability": "alarm_time",
+        "source": "pooled channel mean projected on reference PC 0",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_pc_1": {
+        "name": "im_channel_pc_1",
+        "availability": "alarm_time",
+        "source": "pooled channel mean projected on reference PC 1",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_pc_2": {
+        "name": "im_channel_pc_2",
+        "availability": "alarm_time",
+        "source": "pooled channel mean projected on reference PC 2",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_mean_maha": {
+        "name": "im_token_mean_maha",
+        "availability": "alarm_time",
+        "source": "pooled token mean vs reference null (shrunk, calibrated)",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_second_maha": {
+        "name": "im_token_second_maha",
+        "availability": "alarm_time",
+        "source": "pooled token channel second moment vs reference null",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_pc_0": {
+        "name": "im_token_pc_0",
+        "availability": "alarm_time",
+        "source": "pooled token mean projected on reference PC 0",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_pc_1": {
+        "name": "im_token_pc_1",
+        "availability": "alarm_time",
+        "source": "pooled token mean projected on reference PC 1",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_pc_2": {
+        "name": "im_token_pc_2",
+        "availability": "alarm_time",
+        "source": "pooled token mean projected on reference PC 2",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "gq_0": {
+        "name": "gq_0",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_1": {
+        "name": "gq_1",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_2": {
+        "name": "gq_2",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_3": {
+        "name": "gq_3",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_4": {
+        "name": "gq_4",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_5": {
+        "name": "gq_5",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_6": {
+        "name": "gq_6",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_7": {
+        "name": "gq_7",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_8": {
+        "name": "gq_8",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_9": {
+        "name": "gq_9",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "lw_whitened_maha": {
+        "name": "lw_whitened_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_channel_maha": {
+        "name": "lw_channel_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_token_maha": {
+        "name": "lw_token_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_z_maha": {
+        "name": "lw_z_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_pre_output_maha": {
+        "name": "lw_pre_output_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_output_maha": {
+        "name": "lw_output_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "twin_dz": {
+        "name": "twin_dz",
+        "availability": "evaluation_only",
+        "source": "paired clean twin (replay of the same event)",
+        "operational": true,
+        "group": "replay",
+        "note": "every \u0394z statistic of statistics.cell_statistics; a development diagnostic, not an alarm-time feature"
+      },
+      "truth_targets": {
+        "name": "truth_targets",
+        "availability": "evaluation_only",
+        "source": "planted (amplitude, t0, tau_t)",
+        "operational": true,
+        "group": "truth",
+        "note": ""
+      },
+      "sigma_realized": {
+        "name": "sigma_realized",
+        "availability": "evaluation_only",
+        "source": "generator implied/realised covariance",
+        "operational": true,
+        "group": "truth",
+        "note": "operational monitors use sigma_hat (reference_fit); \u03ba_cond is an evaluation quantity"
+      },
+      "intervention_label": {
+        "name": "intervention_label",
+        "availability": "evaluation_only",
+        "source": "cell origin/family/severity",
+        "operational": true,
+        "group": "truth",
+        "note": ""
+      },
+      "task_metric_delayed": {
+        "name": "task_metric_delayed",
+        "availability": "delayed_label",
+        "source": "labelled task metric arriving after the alarm",
+        "operational": true,
+        "group": "delayed",
+        "note": ""
+      },
+      "sigma_hat": {
+        "name": "sigma_hat",
+        "availability": "reference_fit",
+        "source": "assumed covariance in the whitening layer",
+        "operational": true,
+        "group": "reference",
+        "note": ""
+      }
+    }
+  },
+  "alarm_time_reference": {
+    "hook_mean_nulls": {
+      "whitened": {
+        "dim": 128,
+        "reduced_dim": 7,
+        "alpha": 0.11817033697315449,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "channel": {
+        "dim": 5,
+        "reduced_dim": 5,
+        "alpha": 0.10650108373949443,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "token": {
+        "dim": 9,
+        "reduced_dim": 7,
+        "alpha": 0.09551145793306859,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "z": {
+        "dim": 5,
+        "reduced_dim": 5,
+        "alpha": 0.10650108373949435,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "pre_output": {
+        "dim": 3,
+        "reduced_dim": 3,
+        "alpha": 0.08141538244218346,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "output": {
+        "dim": 3,
+        "reduced_dim": 3,
+        "alpha": 0.08141538244218345,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      }
+    },
+    "hook_second_nulls": {
+      "whitened": {
+        "dim": 1,
+        "reduced_dim": 1,
+        "alpha": 0.0
+      },
+      "channel": {
+        "dim": 25,
+        "reduced_dim": 7,
+        "alpha": 1.0
+      },
+      "token": {
+        "dim": 81,
+        "reduced_dim": 7,
+        "alpha": 1.0
+      }
+    },
+    "support": {
+      "k": 5,
+      "alpha": 0.1065010837394943,
+      "validation": {
+        "auroc_in_vs_out": 1.0,
+        "n_in": 18,
+        "n_out": 18,
+        "floor": 0.9,
+        "usable_for_abstention": true,
+        "shrinkage_alpha": 0.1065010837394943
+      }
+    },
+    "task_metric": {
+      "declaration": "one-hot on target 'amplitude'",
+      "target": 0,
+      "target_names": [
+        "amplitude",
+        "t0",
+        "tau_t"
+      ]
+    }
+  },
+  "arm_contract_status": {
+    "generic_rich": {
+      "arm": "generic_rich",
+      "n_features": 29,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "intermediate_only": {
+      "arm": "intermediate_only",
+      "n_features": 10,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_intermediate": {
+      "arm": "full_intermediate",
+      "n_features": 39,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "generic_rich_matched": {
+      "arm": "generic_rich_matched",
+      "n_features": 39,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "input_only": {
+      "arm": "input_only",
+      "n_features": 6,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "output_uncertainty": {
+      "arm": "output_uncertainty",
+      "n_features": 4,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "final_embedding": {
+      "arm": "final_embedding",
+      "n_features": 6,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "all_generic": {
+      "arm": "all_generic",
+      "n_features": 20,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "all_generic_no_noise": {
+      "arm": "all_generic_no_noise",
+      "n_features": 16,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "noise_only": {
+      "arm": "noise_only",
+      "n_features": 4,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_layerwise_legacy": {
+      "arm": "full_layerwise_legacy",
+      "n_features": 26,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_intermediate_drop_channel": {
+      "arm": "full_intermediate_drop_channel",
+      "n_features": 34,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_intermediate_drop_token": {
+      "arm": "full_intermediate_drop_token",
+      "n_features": 34,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    }
+  },
+  "split": {
+    "partitions": {
+      "reference_fit": [
+        1,
+        5,
+        8,
+        9,
+        10,
+        11,
+        13,
+        16,
+        20,
+        23,
+        27,
+        34,
+        36,
+        37,
+        39,
+        44,
+        50,
+        52,
+        67,
+        72,
+        83,
+        84,
+        87,
+        88,
+        97,
+        98,
+        99,
+        100,
+        101,
+        105,
+        107,
+        110,
+        111,
+        113,
+        114,
+        117
+      ],
+      "attribution_train": [
+        2,
+        3,
+        4,
+        15,
+        19,
+        22,
+        25,
+        30,
+        35,
+        42,
+        43,
+        53,
+        55,
+        66,
+        71,
+        74,
+        75,
+        80,
+        81,
+        82,
+        92,
+        93,
+        94,
+        109
+      ],
+      "development": [
+        0,
+        6,
+        17,
+        18,
+        21,
+        24,
+        28,
+        47,
+        57,
+        60,
+        64,
+        65,
+        68,
+        85,
+        86,
+        90,
+        91,
+        104
+      ],
+      "calibration": [
+        12,
+        26,
+        32,
+        40,
+        45,
+        46,
+        49,
+        51,
+        61,
+        62,
+        70,
+        89,
+        96,
+        102,
+        112,
+        115,
+        116,
+        118
+      ],
+      "evaluation": [
+        7,
+        14,
+        29,
+        31,
+        33,
+        38,
+        41,
+        48,
+        54,
+        56,
+        58,
+        59,
+        63,
+        69,
+        73,
+        76,
+        77,
+        78,
+        79,
+        95,
+        103,
+        106,
+        108,
+        119
+      ]
+    },
+    "held_out_families": [
+      "line_pickup",
+      "double_pulse"
+    ],
+    "held_out_severities": [],
+    "held_out_seeds": [],
+    "seed": 0,
+    "meta": {}
+  },
+  "partition_counts": {
+    "attribution_train": 264,
+    "calibration": 198,
+    "development": 198,
+    "evaluation": 336,
+    "excluded": 288,
+    "reference_fit": 396
+  },
+  "far": {
+    "n_clean_windows": 24,
+    "n_false_alerts": 3,
+    "realised_far": 0.125,
+    "ci95": [
+      0.02655931498624894,
+      0.3236113581888329
+    ],
+    "budget": 0.01,
+    "resolvable_in_one_step": false,
+    "assumption": "independent, non-overlapping clean windows (binomial); temporal dependence widens the interval",
+    "note": "a run-level false-alert rate over several monitors needs a multiplicity-adjusted budget; not computed here",
+    "calibration_windows": 18,
+    "window_threshold": 1.8485550424218955,
+    "note_smoke": "18-ish clean calibration windows are a plumbing check; the calibration count is an output of the development precision study (PREREGISTRATION \u00a76)"
+  },
+  "claim1": {
+    "classes": [
+      "N",
+      "S"
+    ],
+    "arms": {
+      "generic_rich": {
+        "role": "primary",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 29,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9320021586616298,
+        "f1_eval_inclusive": 0.8504343447060305,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.8285714285714285,
+        "confusion_inclusive": {
+          "N": {
+            "N": 158,
+            "S": 10
+          },
+          "S": {
+            "N": 12,
+            "S": 36
+          }
+        }
+      },
+      "intermediate_only": {
+        "role": "primary",
+        "status": "operational",
+        "lambda": 0.01,
+        "n_features": 10,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.5855263157894737,
+        "f1_eval_inclusive": 0.6528706183766158,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.6812144212523719,
+        "confusion_inclusive": {
+          "N": {
+            "N": 104,
+            "S": 64
+          },
+          "S": {
+            "N": 5,
+            "S": 43
+          }
+        }
+      },
+      "full_intermediate": {
+        "role": "primary",
+        "status": "operational",
+        "lambda": 0.01,
+        "n_features": 39,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9351851851851851,
+        "f1_eval_inclusive": 0.8804718217562254,
+        "f1_eval_hard": 0.797979797979798,
+        "f1_eval_heldout_families": 0.9582608695652175,
+        "confusion_inclusive": {
+          "N": {
+            "N": 154,
+            "S": 14
+          },
+          "S": {
+            "N": 5,
+            "S": 43
+          }
+        }
+      },
+      "generic_rich_matched": {
+        "role": "control",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 39,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.8926136363636363,
+        "f1_eval_inclusive": 0.7894736842105263,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.6812144212523719,
+        "confusion_inclusive": {
+          "N": {
+            "N": 156,
+            "S": 12
+          },
+          "S": {
+            "N": 18,
+            "S": 30
+          }
+        }
+      },
+      "full_intermediate_drop_channel": {
+        "role": "control",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 34,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9170506912442397,
+        "f1_eval_inclusive": 0.8794642857142857,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.8946906537955244,
+        "confusion_inclusive": {
+          "N": {
+            "N": 159,
+            "S": 9
+          },
+          "S": {
+            "N": 9,
+            "S": 39
+          }
+        }
+      },
+      "full_intermediate_drop_token": {
+        "role": "control",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 34,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9170506912442397,
+        "f1_eval_inclusive": 0.8869979996922603,
+        "f1_eval_hard": 0.8465473145780051,
+        "f1_eval_heldout_families": 0.8946906537955244,
+        "confusion_inclusive": {
+          "N": {
+            "N": 159,
+            "S": 9
+          },
+          "S": {
+            "N": 8,
+            "S": 40
+          }
+        }
+      },
+      "input_only": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 6,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.8285714285714285,
+        "f1_eval_inclusive": 0.7085177588254346,
+        "f1_eval_hard": 0.595959595959596,
+        "f1_eval_heldout_families": 0.7428571428571429,
+        "confusion_inclusive": {
+          "N": {
+            "N": 132,
+            "S": 36
+          },
+          "S": {
+            "N": 14,
+            "S": 34
+          }
+        }
+      },
+      "output_uncertainty": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 4,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.628125,
+        "f1_eval_inclusive": 0.699523052464229,
+        "f1_eval_hard": 0.5396419437340153,
+        "f1_eval_heldout_families": 0.873015873015873,
+        "confusion_inclusive": {
+          "N": {
+            "N": 120,
+            "S": 48
+          },
+          "S": {
+            "N": 8,
+            "S": 40
+          }
+        }
+      },
+      "final_embedding": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 10.0,
+        "n_features": 6,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.5159322033898306,
+        "f1_eval_inclusive": 0.6754482620454774,
+        "f1_eval_hard": 0.52,
+        "f1_eval_heldout_families": 0.8509977827050997,
+        "confusion_inclusive": {
+          "N": {
+            "N": 119,
+            "S": 49
+          },
+          "S": {
+            "N": 11,
+            "S": 37
+          }
+        }
+      },
+      "all_generic": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 20,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9476961394769614,
+        "f1_eval_inclusive": 0.8860225140712945,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.9791576204950065,
+        "confusion_inclusive": {
+          "N": {
+            "N": 155,
+            "S": 13
+          },
+          "S": {
+            "N": 5,
+            "S": 43
+          }
+        }
+      },
+      "all_generic_no_noise": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 16,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.8216981132075472,
+        "f1_eval_inclusive": 0.7782894554331845,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.8525669153137341,
+        "confusion_inclusive": {
+          "N": {
+            "N": 141,
+            "S": 27
+          },
+          "S": {
+            "N": 10,
+            "S": 38
+          }
+        }
+      },
+      "noise_only": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 4,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.693121693121693,
+        "f1_eval_inclusive": 0.8176375777112594,
+        "f1_eval_hard": 0.949874686716792,
+        "f1_eval_heldout_families": 1.0,
+        "confusion_inclusive": {
+          "N": {
+            "N": 135,
+            "S": 33
+          },
+          "S": {
+            "N": 0,
+            "S": 48
+          }
+        }
+      },
+      "full_layerwise_legacy": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 26,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9320021586616298,
+        "f1_eval_inclusive": 0.8828915662650603,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.9372549019607843,
+        "confusion_inclusive": {
+          "N": {
+            "N": 157,
+            "S": 11
+          },
+          "S": {
+            "N": 7,
+            "S": 41
+          }
+        }
+      }
+    },
+    "errors": {},
+    "primary_hard": {
+      "point": 0.0063131313131314926,
+      "low": -0.10802256091205739,
+      "high": 0.15637301587301589,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 generic_rich",
+      "set": "hard matched evaluation set (Claim-1 primary estimand)",
+      "n_windows": 20
+    },
+    "primary_inclusive": {
+      "point": 0.030037477050194883,
+      "low": -0.011944426654101956,
+      "high": 0.07553727300065377,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive",
+      "contrast": "full_intermediate \u2212 generic_rich",
+      "set": "inclusive evaluation set",
+      "n_windows": 216
+    },
+    "primary_heldout_families": {
+      "point": 0.12968944099378898,
+      "low": 0.052898766917740925,
+      "high": 0.23404538962006358,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "benefit",
+      "contrast": "full_intermediate \u2212 generic_rich",
+      "set": "held-out families",
+      "n_windows": 48
+    },
+    "control_matched_capacity": {
+      "point": 0.05373427368312289,
+      "low": 0.0,
+      "high": 0.16352641612200441,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 generic_rich_matched",
+      "set": "hard set; generic arm with matched feature count",
+      "n_windows": 20
+    },
+    "control_drop_channel": {
+      "point": 0.0063131313131314926,
+      "low": -0.10802256091205739,
+      "high": 0.15637301587301589,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 full_intermediate_drop_channel",
+      "set": "hard set; hook drop",
+      "n_windows": 20
+    },
+    "control_drop_token": {
+      "point": -0.04856751659820713,
+      "low": -0.12960884481897417,
+      "high": 0.0,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 full_intermediate_drop_token",
+      "set": "hard set; hook drop",
+      "n_windows": 20
+    },
+    "control_intermediate_alone": {
+      "point": -0.0474211423699914,
+      "low": -0.2865226530005942,
+      "high": 0.2265025946275945,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "intermediate_only \u2212 generic_rich",
+      "set": "hard set; internal hooks alone vs generic_rich",
+      "n_windows": 20
+    },
+    "diagnostic_noise_only_ablation": {
+      "point": 0.10773305863811,
+      "low": 0.07635583844459504,
+      "high": 0.1533701031892303,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "benefit",
+      "contrast": "all_generic \u2212 all_generic_no_noise",
+      "set": "pass-1 diagnostic",
+      "n_windows": 216
+    },
+    "diagnostic_legacy_layerwise": {
+      "point": -0.003130947806234241,
+      "low": -0.026586457532416848,
+      "high": 0.021196505623749102,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "equivalence",
+      "contrast": "full_layerwise_legacy \u2212 all_generic",
+      "set": "pass-1 diagnostic (contaminated arm)",
+      "n_windows": 216
+    },
+    "hard_matching": {
+      "variables": [
+        "in_rms",
+        "in_kurtosis",
+        "z_mahalanobis",
+        "gr_output_maha"
+      ],
+      "caliper": 1.0,
+      "n_S": 48,
+      "n_N": 168,
+      "n_pairs": 10,
+      "retained_fraction_S": 0.20833333333333334,
+      "retained_fraction_N": 0.05952380952380952,
+      "overlap_failures_S": 38,
+      "pair_distance_median": 0.6173231810479551,
+      "note": "1:1 nearest neighbour without replacement inside the caliper, standardised by the clean pool; a declared conditional design, not a causal identification"
+    },
+    "family_breakdown_hard": {
+      "bandwidth_down": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 0.0
+        }
+      },
+      "channel_loss": {
+        "generic_rich": {
+          "n": 4,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 4,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 4,
+          "acc": 1.0
+        }
+      },
+      "corr_down": {
+        "generic_rich": {
+          "n": 2,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 2,
+          "acc": 0.5
+        },
+        "full_intermediate": {
+          "n": 2,
+          "acc": 1.0
+        }
+      },
+      "double_pulse": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "gain_drift": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "line_pickup": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "oscillation": {
+        "generic_rich": {
+          "n": 9,
+          "acc": 0.5555555555555556
+        },
+        "intermediate_only": {
+          "n": 9,
+          "acc": 0.5555555555555556
+        },
+        "full_intermediate": {
+          "n": 9,
+          "acc": 0.6666666666666666
+        }
+      },
+      "timing_jitter": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      }
+    },
+    "hierarchical_family_outer_hard": {
+      "point": 0.0063131313131314926,
+      "n_boot": 100,
+      "n_boot_effective": 88,
+      "n_failed": 12,
+      "n_outer": 8,
+      "n_inner_groups": 15,
+      "n_model_seeds": null,
+      "units": "outer (cell/family/seed) \u2283 event_group (nested)",
+      "min_outer_for_inference": 10,
+      "low": -0.19999999999999996,
+      "high": 0.14221321183975985,
+      "inference": "descriptive only \u2014 8 outer units < 10; confirmatory inference about held-out interventions is impossible at this size"
+    },
+    "note": "macro-F1 over {N, S}; arms fitted on attribution_train, tuned on development, scored once on evaluation; reference_fit groups are never supervised examples; held-out and undeclared families entered no fit, tuning or calibration; the Claim-1 primary estimand is on the hard matched set"
+  },
+  "abstention": {
+    "conformal": {
+      "alpha": 0.1,
+      "threshold": 1.9379315108528297,
+      "n_calibration": 18,
+      "finite_sample_clean_retention_bound": 0.8473684210526315,
+      "score": "calibrated support novelty (gr_support_novelty)",
+      "note": "split conformal on clean calibration windows; guarantee holds only under exchangeability of clean windows and does not cover unknown families"
+    },
+    "unknown_auroc": {
+      "auroc": 0.6043595679012346,
+      "n_pos": 24,
+      "n_neg": 216,
+      "undefined_reason": null
+    },
+    "coverage_at_threshold": 0.7833333333333333,
+    "clean_retention_at_threshold": 0.875,
+    "risk_coverage": {
+      "coverage": [
+        0.004166666666666667,
+        0.008333333333333333,
+        0.0125,
+        0.016666666666666666,
+        0.020833333333333332,
+        0.025,
+        0.029166666666666667,
+        0.03333333333333333,
+        0.0375,
+        0.041666666666666664,
+        0.04583333333333333,
+        0.05,
+        0.05416666666666667,
+        0.058333333333333334,
+        0.0625,
+        0.06666666666666667,
+        0.07083333333333333,
+        0.075,
+        0.07916666666666666,
+        0.08333333333333333,
+        0.0875,
+        0.09166666666666666,
+        0.09583333333333334,
+        0.1,
+        0.10416666666666667,
+        0.10833333333333334,
+        0.1125,
+        0.11666666666666667,
+        0.12083333333333333,
+        0.125,
+        0.12916666666666668,
+        0.13333333333333333,
+        0.1375,
+        0.14166666666666666,
+        0.14583333333333334,
+        0.15,
+        0.15416666666666667,
+        0.15833333333333333,
+        0.1625,
+        0.16666666666666666,
+        0.17083333333333334,
+        0.175,
+        0.17916666666666667,
+        0.18333333333333332,
+        0.1875,
+        0.19166666666666668,
+        0.19583333333333333,
+        0.2,
+        0.20416666666666666,
+        0.20833333333333334,
+        0.2125,
+        0.21666666666666667,
+        0.22083333333333333,
+        0.225,
+        0.22916666666666666,
+        0.23333333333333334,
+        0.2375,
+        0.24166666666666667,
+        0.24583333333333332,
+        0.25,
+        0.25416666666666665,
+        0.25833333333333336,
+        0.2625,
+        0.26666666666666666,
+        0.2708333333333333,
+        0.275,
+        0.2791666666666667,
+        0.2833333333333333,
+        0.2875,
+        0.2916666666666667,
+        0.29583333333333334,
+        0.3,
+        0.30416666666666664,
+        0.30833333333333335,
+        0.3125,
+        0.31666666666666665,
+        0.32083333333333336,
+        0.325,
+        0.32916666666666666,
+        0.3333333333333333,
+        0.3375,
+        0.3416666666666667,
+        0.3458333333333333,
+        0.35,
+        0.3541666666666667,
+        0.35833333333333334,
+        0.3625,
+        0.36666666666666664,
+        0.37083333333333335,
+        0.375,
+        0.37916666666666665,
+        0.38333333333333336,
+        0.3875,
+        0.39166666666666666,
+        0.3958333333333333,
+        0.4,
+        0.4041666666666667,
+        0.4083333333333333,
+        0.4125,
+        0.4166666666666667,
+        0.42083333333333334,
+        0.425,
+        0.42916666666666664,
+        0.43333333333333335,
+        0.4375,
+        0.44166666666666665,
+        0.44583333333333336,
+        0.45,
+        0.45416666666666666,
+        0.4583333333333333,
+        0.4625,
+        0.4666666666666667,
+        0.4708333333333333,
+        0.475,
+        0.4791666666666667,
+        0.48333333333333334,
+        0.4875,
+        0.49166666666666664,
+        0.49583333333333335,
+        0.5,
+        0.5041666666666667,
+        0.5083333333333333,
+        0.5125,
+        0.5166666666666667,
+        0.5208333333333334,
+        0.525,
+        0.5291666666666667,
+        0.5333333333333333,
+        0.5375,
+        0.5416666666666666,
+        0.5458333333333333,
+        0.55,
+        0.5541666666666667,
+        0.5583333333333333,
+        0.5625,
+        0.5666666666666667,
+        0.5708333333333333,
+        0.575,
+        0.5791666666666667,
+        0.5833333333333334,
+        0.5875,
+        0.5916666666666667,
+        0.5958333333333333,
+        0.6,
+        0.6041666666666666,
+        0.6083333333333333,
+        0.6125,
+        0.6166666666666667,
+        0.6208333333333333,
+        0.625,
+        0.6291666666666667,
+        0.6333333333333333,
+        0.6375,
+        0.6416666666666667,
+        0.6458333333333334,
+        0.65,
+        0.6541666666666667,
+        0.6583333333333333,
+        0.6625,
+        0.6666666666666666,
+        0.6708333333333333,
+        0.675,
+        0.6791666666666667,
+        0.6833333333333333,
+        0.6875,
+        0.6916666666666667,
+        0.6958333333333333,
+        0.7,
+        0.7041666666666667,
+        0.7083333333333334,
+        0.7125,
+        0.7166666666666667,
+        0.7208333333333333,
+        0.725,
+        0.7291666666666666,
+        0.7333333333333333,
+        0.7375,
+        0.7416666666666667,
+        0.7458333333333333,
+        0.75,
+        0.7541666666666667,
+        0.7583333333333333,
+        0.7625,
+        0.7666666666666667,
+        0.7708333333333334,
+        0.775,
+        0.7791666666666667,
+        0.7833333333333333,
+        0.7875,
+        0.7916666666666666,
+        0.7958333333333333,
+        0.8,
+        0.8041666666666667,
+        0.8083333333333333,
+        0.8125,
+        0.8166666666666667,
+        0.8208333333333333,
+        0.825,
+        0.8291666666666667,
+        0.8333333333333334,
+        0.8375,
+        0.8416666666666667,
+        0.8458333333333333,
+        0.85,
+        0.8541666666666666,
+        0.8583333333333333,
+        0.8625,
+        0.8666666666666667,
+        0.8708333333333333,
+        0.875,
+        0.8791666666666667,
+        0.8833333333333333,
+        0.8875,
+        0.8916666666666667,
+        0.8958333333333334,
+        0.9,
+        0.9041666666666667,
+        0.9083333333333333,
+        0.9125,
+        0.9166666666666666,
+        0.9208333333333333,
+        0.925,
+        0.9291666666666667,
+        0.9333333333333333,
+        0.9375,
+        0.9416666666666667,
+        0.9458333333333333,
+        0.95,
+        0.9541666666666667,
+        0.9583333333333334,
+        0.9625,
+        0.9666666666666667,
+        0.9708333333333333,
+        0.975,
+        0.9791666666666666,
+        0.9833333333333333,
+        0.9875,
+        0.9916666666666667,
+        0.9958333333333333,
+        1.0
+      ],
+      "risk": [
+        0.0,
+        0.0,
+        0.3333333333333333,
+        0.25,
+        0.2,
+        0.16666666666666666,
+        0.14285714285714285,
+        0.125,
+        0.1111111111111111,
+        0.1,
+        0.09090909090909091,
+        0.08333333333333333,
+        0.15384615384615385,
+        0.14285714285714285,
+        0.13333333333333333,
+        0.125,
+        0.11764705882352941,
+        0.1111111111111111,
+        0.10526315789473684,
+        0.1,
+        0.09523809523809523,
+        0.13636363636363635,
+        0.13043478260869565,
+        0.125,
+        0.12,
+        0.11538461538461539,
+        0.1111111111111111,
+        0.10714285714285714,
+        0.10344827586206896,
+        0.1,
+        0.0967741935483871,
+        0.09375,
+        0.09090909090909091,
+        0.08823529411764706,
+        0.08571428571428572,
+        0.1111111111111111,
+        0.10810810810810811,
+        0.10526315789473684,
+        0.10256410256410256,
+        0.1,
+        0.0975609756097561,
+        0.09523809523809523,
+        0.09302325581395349,
+        0.09090909090909091,
+        0.08888888888888889,
+        0.08695652173913043,
+        0.10638297872340426,
+        0.10416666666666667,
+        0.10204081632653061,
+        0.1,
+        0.09803921568627451,
+        0.09615384615384616,
+        0.09433962264150944,
+        0.09259259259259259,
+        0.09090909090909091,
+        0.08928571428571429,
+        0.08771929824561403,
+        0.08620689655172414,
+        0.1016949152542373,
+        0.11666666666666667,
+        0.13114754098360656,
+        0.12903225806451613,
+        0.12698412698412698,
+        0.125,
+        0.12307692307692308,
+        0.12121212121212122,
+        0.11940298507462686,
+        0.11764705882352941,
+        0.13043478260869565,
+        0.12857142857142856,
+        0.1267605633802817,
+        0.125,
+        0.1232876712328767,
+        0.12162162162162163,
+        0.12,
+        0.11842105263157894,
+        0.11688311688311688,
+        0.11538461538461539,
+        0.11392405063291139,
+        0.1125,
+        0.1111111111111111,
+        0.10975609756097561,
+        0.10843373493975904,
+        0.10714285714285714,
+        0.11764705882352941,
+        0.11627906976744186,
+        0.11494252873563218,
+        0.11363636363636363,
+        0.12359550561797752,
+        0.12222222222222222,
+        0.12087912087912088,
+        0.11956521739130435,
+        0.11827956989247312,
+        0.1276595744680851,
+        0.12631578947368421,
+        0.13541666666666666,
+        0.14432989690721648,
+        0.14285714285714285,
+        0.15151515151515152,
+        0.15,
+        0.1485148514851485,
+        0.1568627450980392,
+        0.1553398058252427,
+        0.15384615384615385,
+        0.1523809523809524,
+        0.1509433962264151,
+        0.14953271028037382,
+        0.14814814814814814,
+        0.14678899082568808,
+        0.14545454545454545,
+        0.14414414414414414,
+        0.14285714285714285,
+        0.1504424778761062,
+        0.15789473684210525,
+        0.16521739130434782,
+        0.16379310344827586,
+        0.1623931623931624,
+        0.16101694915254236,
+        0.15966386554621848,
+        0.15833333333333333,
+        0.15702479338842976,
+        0.1557377049180328,
+        0.15447154471544716,
+        0.1532258064516129,
+        0.152,
+        0.15079365079365079,
+        0.14960629921259844,
+        0.15625,
+        0.16279069767441862,
+        0.16153846153846155,
+        0.16030534351145037,
+        0.1590909090909091,
+        0.15789473684210525,
+        0.15671641791044777,
+        0.15555555555555556,
+        0.15441176470588236,
+        0.15328467153284672,
+        0.15217391304347827,
+        0.1510791366906475,
+        0.15,
+        0.15602836879432624,
+        0.15492957746478872,
+        0.15384615384615385,
+        0.1527777777777778,
+        0.15172413793103448,
+        0.1506849315068493,
+        0.14965986394557823,
+        0.14864864864864866,
+        0.1476510067114094,
+        0.14666666666666667,
+        0.1456953642384106,
+        0.14473684210526316,
+        0.1437908496732026,
+        0.14285714285714285,
+        0.14193548387096774,
+        0.14743589743589744,
+        0.1464968152866242,
+        0.14556962025316456,
+        0.14465408805031446,
+        0.14375,
+        0.14285714285714285,
+        0.1419753086419753,
+        0.1411042944785276,
+        0.14634146341463414,
+        0.14545454545454545,
+        0.14457831325301204,
+        0.1437125748502994,
+        0.14285714285714285,
+        0.14201183431952663,
+        0.1411764705882353,
+        0.14035087719298245,
+        0.13953488372093023,
+        0.13872832369942195,
+        0.13793103448275862,
+        0.13714285714285715,
+        0.13636363636363635,
+        0.14124293785310735,
+        0.14606741573033707,
+        0.15083798882681565,
+        0.15555555555555556,
+        0.16022099447513813,
+        0.16483516483516483,
+        0.16939890710382513,
+        0.17391304347826086,
+        0.1783783783783784,
+        0.1827956989247312,
+        0.18716577540106952,
+        0.18617021276595744,
+        0.18518518518518517,
+        0.18421052631578946,
+        0.18324607329842932,
+        0.18229166666666666,
+        0.18134715025906736,
+        0.18041237113402062,
+        0.1794871794871795,
+        0.17857142857142858,
+        0.17766497461928935,
+        0.17676767676767677,
+        0.18090452261306533,
+        0.18,
+        0.18407960199004975,
+        0.18811881188118812,
+        0.18719211822660098,
+        0.18627450980392157,
+        0.18536585365853658,
+        0.18446601941747573,
+        0.18357487922705315,
+        0.18269230769230768,
+        0.18181818181818182,
+        0.18095238095238095,
+        0.1848341232227488,
+        0.18396226415094338,
+        0.18309859154929578,
+        0.1822429906542056,
+        0.1813953488372093,
+        0.18055555555555555,
+        0.17972350230414746,
+        0.17889908256880735,
+        0.1780821917808219,
+        0.18181818181818182,
+        0.18099547511312217,
+        0.18018018018018017,
+        0.17937219730941703,
+        0.17857142857142858,
+        0.17777777777777778,
+        0.18141592920353983,
+        0.18502202643171806,
+        0.18421052631578946,
+        0.18340611353711792,
+        0.1826086956521739,
+        0.18181818181818182,
+        0.1810344827586207,
+        0.18454935622317598,
+        0.18376068376068377,
+        0.1829787234042553,
+        0.18220338983050846,
+        0.18143459915611815,
+        0.18067226890756302,
+        0.1799163179916318,
+        0.17916666666666667
+      ],
+      "risk_coverage_auc": 0.14304992527704713,
+      "points": {
+        "0.5": {
+          "coverage": 0.5,
+          "risk": 0.15833333333333333,
+          "n_retained": 120,
+          "n_retained_known": 111,
+          "n_retained_unknown": 9,
+          "retained_known_macro_f1": 0.7821821036106751,
+          "undefined_reason": null
+        },
+        "0.8": {
+          "coverage": 0.8,
+          "risk": 0.18229166666666666,
+          "n_retained": 192,
+          "n_retained_known": 172,
+          "n_retained_unknown": 20,
+          "retained_known_macro_f1": 0.8273439068460149,
+          "undefined_reason": null
+        },
+        "0.9": {
+          "coverage": 0.9,
+          "risk": 0.18055555555555555,
+          "n_retained": 216,
+          "n_retained_known": 194,
+          "n_retained_unknown": 22,
+          "retained_known_macro_f1": 0.8466545775793928,
+          "undefined_reason": null
+        },
+        "1.0": {
+          "coverage": 1.0,
+          "risk": 0.17916666666666667,
+          "n_retained": 240,
+          "n_retained_known": 216,
+          "n_retained_unknown": 24,
+          "retained_known_macro_f1": 0.8804718217562254,
+          "undefined_reason": null
+        }
+      },
+      "n": 240
+    },
+    "counts": {
+      "n_eval": 240,
+      "n_unknown": 24,
+      "n_abstained": 52,
+      "n_unknown_abstained": 4,
+      "n_known_abstained": 48,
+      "n_unknown_retained": 20
+    },
+    "support_estimator_validation": {
+      "auroc_in_vs_out": 1.0,
+      "n_in": 18,
+      "n_out": 18,
+      "floor": 0.9,
+      "usable_for_abstention": true,
+      "shrinkage_alpha": 0.1065010837394943
+    }
+  },
+  "joint_decision_table": {
+    "alarm_threshold_window": 1.8485550424218955,
+    "per_category": {
+      "clean": {
+        "n": 24,
+        "decisions": {
+          "quiet": 21,
+          "abstain": 3,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.875,
+        "correct_decisions": [
+          "quiet"
+        ]
+      },
+      "N": {
+        "n": 168,
+        "decisions": {
+          "quiet": 152,
+          "abstain": 16,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.0,
+        "correct_decisions": [
+          "N"
+        ]
+      },
+      "S": {
+        "n": 48,
+        "decisions": {
+          "quiet": 21,
+          "abstain": 27,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.0,
+        "correct_decisions": [
+          "S"
+        ]
+      },
+      "mixture": {
+        "n": 24,
+        "decisions": {
+          "quiet": 20,
+          "abstain": 4,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.0,
+        "correct_decisions": [
+          "N",
+          "S"
+        ]
+      },
+      "unknown": {
+        "n": 24,
+        "decisions": {
+          "quiet": 20,
+          "abstain": 4,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.16666666666666666,
+        "correct_decisions": [
+          "abstain"
+        ]
+      }
+    },
+    "overall_correct_rate": 0.0744047619047619,
+    "note": "whole-chain decision rule; conditional N/S macro-F1 is not this table",
+    "n_G_windows_not_tabulated": 48
+  },
+  "claim2": {
+    "kappa_m": {
+      "value": 1.1,
+      "status": "provisional_dev",
+      "units": "ratio of amplitude |error| to the clean calibration mean",
+      "source": "proposal (16 Sep): 'provisional 10% amplitude degradation' \u2014 development only; PREREGISTRATION \u00a74 PENDING",
+      "arm": "tier1",
+      "level": "cell"
+    },
+    "level": "cell (windows aggregated by median)",
+    "K_definition": "K_phys = mean |\u0177_amplitude \u2212 amplitude_truth| over the cell's evaluation windows / the same quantity on the clean reference cell's evaluation windows (the same events; truth is evaluation-only). Cell-level K uses the mean; cell-level scores use the declared aggregate",
+    "scores": {
+      "generic_committed": "max of clean-calibrated ['gr_input_maha', 'gr_output_maha', 'z_mahalanobis'] \u2014 committed before any evaluation label",
+      "task_sensitive": "clean-calibrated \u2016z \u2212 z\u0304\u2016 in M_task = J_y\u1d40 W_y J_y with W_y one-hot on the amplitude output",
+      "intermediate_supporting": "max of clean-calibrated ['im_channel_mean_maha', 'im_token_mean_maha'] (supporting, not primary)"
+    },
+    "weighting": "uniform_cell (declared, unfrozen)",
+    "primary_delta": {
+      "delta_auroc": 0.16666666666666663,
+      "auroc_task_sensitive": 1.0,
+      "auroc_generic_committed": 0.8333333333333334,
+      "n_pos": 4,
+      "n_neg": 9,
+      "undefined_reason": null,
+      "level": "cell",
+      "ci_hierarchical_outer_cell": {
+        "point": 0.16666666666666663,
+        "n_boot": 100,
+        "n_boot_effective": 100,
+        "n_failed": 0,
+        "n_outer": 13,
+        "n_inner_groups": 24,
+        "n_model_seeds": null,
+        "units": "outer (cell/family/seed) \u2283 event_group (nested)",
+        "min_outer_for_inference": 10,
+        "low": -0.4525,
+        "high": 0.2894444444444443,
+        "inference": "outer-unit bootstrap; supports a statement about interventions drawn like these"
+      },
+      "ci_event_groups_only_legacy": {
+        "point": 0.16666666666666663,
+        "low": -0.4955357142857143,
+        "high": 0.41145833333333337,
+        "n_boot": 100,
+        "n_boot_effective": 96,
+        "n_failed": 4,
+        "n_groups": 24,
+        "n_seeds": null,
+        "units": "event_group",
+        "inference": "event-sampling only (conditional on the fixed cells)"
+      },
+      "set": "all intervention cells (development families, in-family held-out events, plus the two held-out families and the unknown)"
+    },
+    "primary_delta_heldout_families_only": {
+      "delta_auroc": 0.0,
+      "auroc_task_sensitive": 1.0,
+      "auroc_generic_committed": 1.0,
+      "n_pos": 1,
+      "n_neg": 1,
+      "undefined_reason": null,
+      "level": "cell",
+      "n_cells": 2,
+      "note": "the Claim-2 estimand set proper \u2014 2 held-out cells: descriptive only; below MIN_OUTER_UNITS_FOR_INFERENCE"
+    },
+    "secondary_intermediate_delta": {
+      "delta_auroc": 0.04166666666666663,
+      "auroc_task_sensitive": 0.875,
+      "auroc_generic_committed": 0.8333333333333334,
+      "n_pos": 4,
+      "n_neg": 9,
+      "undefined_reason": null,
+      "level": "cell"
+    },
+    "absolute": {
+      "generic_committed": {
+        "auroc": 0.8333333333333334,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 0.7678571428571428,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell"
+      },
+      "task_sensitive": {
+        "auroc": 1.0,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell"
+      },
+      "intermediate_supporting": {
+        "auroc": 0.875,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 0.7928571428571429,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell"
+      }
+    },
+    "cell_threshold": {
+      "threshold": 0.6357102214403225,
+      "far": 0.01,
+      "aggregate": "median",
+      "cell_size": 24,
+      "n_clean_windows": 18,
+      "n_draws": 2000,
+      "note": "pseudo-cell bootstrap of clean windows; the underlying window count bounds the resolution \u2014 1/18 = 0.056 per window",
+      "resolvable": false
+    },
+    "quadrants_generic_committed": {
+      "low_alarm_benign": {
+        "n": 6,
+        "weight": 6.0
+      },
+      "low_alarm_harmful": {
+        "n": 1,
+        "weight": 1.0
+      },
+      "strong_alarm_benign": {
+        "n": 3,
+        "weight": 3.0
+      },
+      "strong_alarm_harmful": {
+        "n": 3,
+        "weight": 3.0
+      },
+      "undefined": {
+        "n": 0,
+        "weight": 0.0
+      },
+      "alarm_threshold": 0.6357102214403225,
+      "level": "cell"
+    },
+    "missed_harm_generic_committed": {
+      "missed_harm_rate": 0.25,
+      "n_harmful": 4,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "valid_rare_cell_rejection_generic_committed": {
+      "valid_rare_rejection_rate": 1.0,
+      "n_valid_rare_benign": 1,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "conditional_triage_generic_committed": {
+      "auroc": 0.6666666666666666,
+      "n_pos": 3,
+      "n_neg": 3,
+      "undefined_reason": null,
+      "conditional_harm_risk": 0.5,
+      "n_dropped_by_conditioning": 7,
+      "n_dropped_harmful": 1,
+      "level": "cell"
+    },
+    "breakdown_contract_generic_committed": {
+      "G": {
+        "auroc": null,
+        "n_pos": 2,
+        "n_neg": 0,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 1.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "N": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 6,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.14285714285714285,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 7,
+        "level": "cell"
+      },
+      "S": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 1,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.5,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "U": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      },
+      "mixture": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      }
+    },
+    "quadrants_task_sensitive": {
+      "low_alarm_benign": {
+        "n": 9,
+        "weight": 9.0
+      },
+      "low_alarm_harmful": {
+        "n": 3,
+        "weight": 3.0
+      },
+      "strong_alarm_benign": {
+        "n": 0,
+        "weight": 0.0
+      },
+      "strong_alarm_harmful": {
+        "n": 1,
+        "weight": 1.0
+      },
+      "undefined": {
+        "n": 0,
+        "weight": 0.0
+      },
+      "alarm_threshold": 0.6357102214403225,
+      "level": "cell"
+    },
+    "missed_harm_task_sensitive": {
+      "missed_harm_rate": 0.75,
+      "n_harmful": 4,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "valid_rare_cell_rejection_task_sensitive": {
+      "valid_rare_rejection_rate": 0.0,
+      "n_valid_rare_benign": 1,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "conditional_triage_task_sensitive": {
+      "auroc": null,
+      "n_pos": 1,
+      "n_neg": 0,
+      "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+      "conditional_harm_risk": 1.0,
+      "n_dropped_by_conditioning": 12,
+      "n_dropped_harmful": 3,
+      "level": "cell"
+    },
+    "breakdown_contract_task_sensitive": {
+      "G": {
+        "auroc": null,
+        "n_pos": 2,
+        "n_neg": 0,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 1.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "N": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 6,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.14285714285714285,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 7,
+        "level": "cell"
+      },
+      "S": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 1,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.5,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "U": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      },
+      "mixture": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      }
+    },
+    "valid_rare_window_rejection_generic": {
+      "valid_rare_window_rejection_rate": 0.16666666666666666,
+      "n_windows": 24,
+      "level": "window",
+      "undefined_reason": null
+    },
+    "cells": {
+      "event:glitch": {
+        "origin": "unknown",
+        "contract": "U",
+        "K": 1.0525565545309503,
+        "harm": "benign",
+        "generic": 0.9835552608044087,
+        "task": -0.26699412540495254,
+        "intermediate": 0.5549229427026537,
+        "held_out_family": false
+      },
+      "event_in_span:double_pulse": {
+        "origin": "S_in_span",
+        "contract": "S",
+        "K": 4.314293637147035,
+        "harm": "harmful",
+        "generic": 3.62315785928016,
+        "task": 3.083824302873871,
+        "intermediate": 3.6792448409693015,
+        "held_out_family": true
+      },
+      "event_in_span:oscillation": {
+        "origin": "S_in_span",
+        "contract": "S",
+        "K": 1.082765607984034,
+        "harm": "benign",
+        "generic": 1.11895838106256,
+        "task": 0.13231285227617132,
+        "intermediate": 0.8079662039226126,
+        "held_out_family": false
+      },
+      "geometry:12ch": {
+        "origin": "G",
+        "contract": "G",
+        "K": 1.3281981970219627,
+        "harm": "harmful",
+        "generic": 0.7271789251849439,
+        "task": 0.5549229427026537,
+        "intermediate": 0.6357102214403225,
+        "held_out_family": false
+      },
+      "geometry:3ch": {
+        "origin": "G",
+        "contract": "G",
+        "K": 1.4661555148263297,
+        "harm": "harmful",
+        "generic": 1.4121875789061638,
+        "task": 0.4109585340538031,
+        "intermediate": 1.2655729799843618,
+        "held_out_family": false
+      },
+      "mixture:oscillation+gain_drift": {
+        "origin": "mixture",
+        "contract": "mixture",
+        "K": 1.0484474031309525,
+        "harm": "benign",
+        "generic": 0.8079662039226126,
+        "task": 0.19965348884056194,
+        "intermediate": 0.6357102214403225,
+        "held_out_family": false
+      },
+      "sigma_cov:bandwidth_down": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 1.0010341858341474,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "intermediate": -0.2695185520737674,
+        "held_out_family": false
+      },
+      "sigma_cov:corr_down": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 0.9897054293327058,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "intermediate": -0.3368591886381581,
+        "held_out_family": false
+      },
+      "sigma_cov:corr_up": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 1.0070980473321802,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "intermediate": -0.13231285227617118,
+        "held_out_family": false
+      },
+      "sigma_cov:line_pickup": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 1.0074681793598357,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.13231285227617132,
+        "intermediate": -0.34361789748941246,
+        "held_out_family": true
+      },
+      "sigma_struct:channel_loss": {
+        "origin": "N_struct",
+        "contract": "N",
+        "K": 1.1566197994720915,
+        "harm": "harmful",
+        "generic": 0.5549229427026537,
+        "task": 0.5549229427026537,
+        "intermediate": 0.33685918863815817,
+        "held_out_family": false
+      },
+      "sigma_struct:gain_drift": {
+        "origin": "N_struct",
+        "contract": "N",
+        "K": 0.9839188733460112,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "intermediate": -0.2695185520737674,
+        "held_out_family": false
+      },
+      "sigma_struct:timing_jitter": {
+        "origin": "N_struct",
+        "contract": "N",
+        "K": 0.9909211623148155,
+        "harm": "benign",
+        "generic": 0.13231285227617132,
+        "task": 0.13231285227617132,
+        "intermediate": -1.11895838106256,
+        "held_out_family": false
+      }
+    }
+  },
+  "designed": {
+    "note": "constructed from the frozen head; positive controls, linear subject only (NonlinearSubjectUnsupported otherwise); realised consequence measured per output; linearisation error reported",
+    "euclidean": {
+      "output_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9999999999999997,
+          "t0": 0.9999999999999998,
+          "tau_t": 1.0000000000000002
+        },
+        "consequence_ratio_declared_K": 0.9999999999999997,
+        "linearization": {
+          "kind": "output_null",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 2,
+          "rel_err_dz": 2.2517721114020677e-15,
+          "rel_err_dy": 1.7395906240939659e-15,
+          "realised_dy_per_output": [
+            5.181040781584064e-16,
+            1.61907524424502e-17,
+            6.3606527452482924e-18
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 5.272050339356937e-16,
+          "predicted_dy_norm": 4.964521999216975e-17
+        }
+      },
+      "output_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9694536438262684,
+          "t0": 1.8382620540967687,
+          "tau_t": 1.0495262691095097
+        },
+        "consequence_ratio_declared_K": 0.9694536438262684,
+        "linearization": {
+          "kind": "output_aligned",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 3,
+          "rel_err_dz": 1.8336700591725792e-15,
+          "rel_err_dy": 1.899465906735198e-15,
+          "realised_dy_per_output": [
+            0.23744267403847164,
+            0.0178684439919525,
+            0.003636895290600836
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.24024870560396408,
+          "predicted_dy_norm": 0.24024870560396383
+        }
+      },
+      "random": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9481835302577151,
+          "t0": 2.05637585518728,
+          "tau_t": 1.104966380120735
+        },
+        "consequence_ratio_declared_K": 0.9481835302577151,
+        "linearization": {
+          "kind": "random",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 5,
+          "rel_err_dz": 1.983725227130968e-15,
+          "rel_err_dy": 1.4294598981641276e-15,
+          "realised_dy_per_output": [
+            0.17175889279278223,
+            0.016080902823890523,
+            0.001994129273918542
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.17422804457712657,
+          "predicted_dy_norm": 0.17422804457712635
+        }
+      },
+      "task_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9700770336642801,
+          "t0": 1.1640754080351703,
+          "tau_t": 0.9913233970410227
+        },
+        "consequence_ratio_declared_K": 0.9700770336642801,
+        "linearization": {
+          "kind": "task_aligned",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 1,
+          "rel_err_dz": 1.4288556269014132e-15,
+          "rel_err_dy": 1.7575846071671206e-15,
+          "realised_dy_per_output": [
+            0.4423366590135986,
+            0.004834073788387974,
+            0.0011402025014993794
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.44236454224818766,
+          "predicted_dy_norm": 0.4423645422481875
+        }
+      },
+      "task_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9999999999999997,
+          "t0": 1.8069432336127722,
+          "tau_t": 1.0556497536964715
+        },
+        "consequence_ratio_declared_K": 0.9999999999999997,
+        "linearization": {
+          "kind": "task_null",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 4,
+          "rel_err_dz": 1.9610787962468323e-15,
+          "rel_err_dy": 1.987501391542313e-15,
+          "realised_dy_per_output": [
+            6.846375318521799e-16,
+            0.014235448837145503,
+            0.002659772272391853
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.015189103076291685,
+          "predicted_dy_norm": 0.015189103076291663
+        }
+      }
+    },
+    "null_mahalanobis": {
+      "output_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 1.0,
+          "t0": 1.0,
+          "tau_t": 1.0
+        },
+        "consequence_ratio_declared_K": 1.0,
+        "linearization": {
+          "kind": "output_null",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 2,
+          "rel_err_dz": 3.600465166413374e-15,
+          "rel_err_dy": 3.4498059313764115e-15,
+          "realised_dy_per_output": [
+            3.3306690738754696e-16,
+            9.25185853854297e-18,
+            4.625929269271485e-18
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 3.3846216204012144e-16,
+          "predicted_dy_norm": 1.980828039529063e-17
+        }
+      },
+      "output_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 1.0147992917738635,
+          "t0": 1.0344410717166004,
+          "tau_t": 1.0207053428381268
+        },
+        "consequence_ratio_declared_K": 1.0147992917738635,
+        "linearization": {
+          "kind": "output_aligned",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 3,
+          "rel_err_dz": 5.111160704143553e-15,
+          "rel_err_dy": 5.987445484402952e-15,
+          "realised_dy_per_output": [
+            0.03779781095524104,
+            0.0032263214618784334,
+            0.0006656204493410613
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.03830056121067615,
+          "predicted_dy_norm": 0.03830056121067616
+        }
+      },
+      "random": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9912243700008068,
+          "t0": 1.214876001680897,
+          "tau_t": 1.0186478106907269
+        },
+        "consequence_ratio_declared_K": 0.9912243700008068,
+        "linearization": {
+          "kind": "random",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 5,
+          "rel_err_dz": 4.454450191917406e-15,
+          "rel_err_dy": 4.2300757063594845e-15,
+          "realised_dy_per_output": [
+            0.02987341154332307,
+            0.004910830439483251,
+            0.00036901653972927555
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.030869474507357924,
+          "predicted_dy_norm": 0.030869474507357872
+        }
+      },
+      "task_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9815925645675866,
+          "t0": 1.0033562432036192,
+          "tau_t": 0.9993431507771003
+        },
+        "consequence_ratio_declared_K": 0.9815925645675866,
+        "linearization": {
+          "kind": "task_aligned",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 1,
+          "rel_err_dz": 1.6388347018765932e-14,
+          "rel_err_dy": 1.7045682223455553e-14,
+          "realised_dy_per_output": [
+            0.033486433815953086,
+            0.0003659563110533619,
+            8.631732149079994e-05
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.03348854467443749,
+          "predicted_dy_norm": 0.0334885446744377
+        }
+      },
+      "task_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 1.0000000000000004,
+          "t0": 1.0768010647951427,
+          "tau_t": 1.0064229895099335
+        },
+        "consequence_ratio_declared_K": 1.0000000000000004,
+        "linearization": {
+          "kind": "task_null",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 4,
+          "rel_err_dz": 3.3109313533652547e-15,
+          "rel_err_dy": 3.725205738877556e-15,
+          "realised_dy_per_output": [
+            3.1456319031046104e-16,
+            0.004103626974247737,
+            0.0005607573123473821
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.004234372508921666,
+          "predicted_dy_norm": 0.004234372508921658
+        }
+      }
+    }
+  },
+  "labels": {
+    "reference": {
+      "cell": "reference",
+      "origin": "clean",
+      "family": "reference",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "none",
+      "contract": "clean"
+    },
+    "sigma_cov:corr_up": {
+      "cell": "sigma_cov:corr_up",
+      "origin": "N_cov",
+      "family": "corr_up",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:corr_down": {
+      "cell": "sigma_cov:corr_down",
+      "origin": "N_cov",
+      "family": "corr_down",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:bandwidth_down": {
+      "cell": "sigma_cov:bandwidth_down",
+      "origin": "N_cov",
+      "family": "bandwidth_down",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:line_pickup": {
+      "cell": "sigma_cov:line_pickup",
+      "origin": "N_cov",
+      "family": "line_pickup",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_struct:gain_drift": {
+      "cell": "sigma_struct:gain_drift",
+      "origin": "N_struct",
+      "family": "gain_drift",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "sigma_struct:channel_loss": {
+      "cell": "sigma_struct:channel_loss",
+      "origin": "N_struct",
+      "family": "channel_loss",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "sigma_struct:timing_jitter": {
+      "cell": "sigma_struct:timing_jitter",
+      "origin": "N_struct",
+      "family": "timing_jitter",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "geometry:3ch": {
+      "cell": "geometry:3ch",
+      "origin": "G",
+      "family": "3ch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "geometry",
+      "contract": "G"
+    },
+    "geometry:12ch": {
+      "cell": "geometry:12ch",
+      "origin": "G",
+      "family": "12ch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "geometry",
+      "contract": "G"
+    },
+    "event:glitch": {
+      "cell": "event:glitch",
+      "origin": "unknown",
+      "family": "glitch",
+      "declared": false,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event",
+      "contract": "U"
+    },
+    "event_in_span:oscillation": {
+      "cell": "event_in_span:oscillation",
+      "origin": "S_in_span",
+      "family": "oscillation",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event_in_span",
+      "contract": "S"
+    },
+    "event_in_span:double_pulse": {
+      "cell": "event_in_span:double_pulse",
+      "origin": "S_in_span",
+      "family": "double_pulse",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event_in_span",
+      "contract": "S"
+    },
+    "mixture:oscillation+gain_drift": {
+      "cell": "mixture:oscillation+gain_drift",
+      "origin": "mixture",
+      "family": "oscillation+gain_drift",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "mixture",
+      "contract": "mixture"
+    }
+  }
+}

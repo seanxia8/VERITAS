@@ -1,8 +1,14 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
+#
+# Part of the modular noise simulator written for the ORACLE study.
+# If you use this module in published work, please cite it: see CITATION.cff
+# at the repository root.
 from __future__ import annotations
 
 import numpy as np
 
-from noise_module.psd_resampling import (
+from noise_module.resampling.psd import (
     alias_fold_psd_density,
     inband_resample_psd_density,
     load_psd_density,

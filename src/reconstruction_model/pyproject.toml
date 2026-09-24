@@ -22,7 +22,6 @@ dependencies = [
 packages = [
     "reconstruction_model",
     "reconstruction_model.models",
-    "reconstruction_model.legacy",
 ]
 
 [tool.setuptools.package-dir]

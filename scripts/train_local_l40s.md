@@ -27,7 +27,7 @@ Train the full locally mounted dataset with the heavier triangular-pairwise
 variant:
 
 ```bash
-./scripts/train_triangular_local_l40s.sh full-pilot
+./scripts/train_triangular_local_l40s.sh full-pilot (archived 2026-09-05 → `archive/scripts/delight_training_2026-08/`)
 ./scripts/train_triangular_local_l40s.sh full
 ```
 

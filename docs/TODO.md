@@ -1,0 +1,149 @@
+# Paper 3 / ORACLE — TODO (as of 2026-09-16 pass 2, branch `dev`; the canonical design is `docs/EXPERIMENT_DESIGN.md`, two-claim)
+
+Stage: the proposal makes two claims (16 Sep, 8 pp); the protocol layer in
+`src/latent_monitor/protocol/` has its interfaces implemented and unit-tested, with
+one non-citable development smoke; `docs/PREREGISTRATION.md` is an **unfrozen
+draft**; there is no trained-model evidence, no transfer evidence, no
+confirmatory result.
+
+Status vocabulary used below: *interface implemented* · *unit-tested control* ·
+*development smoke* · *trained-model evidence* · *transfer evidence* · *confirmatory*.
+
+## Two-claim revision (2026-09-16 pass 2; `docs/TWO_CLAIM_REVISION_PLAN.md`, `docs/REVISION_REPORT_2026-09-16_pass2.md`)
+- [x] M1–M5 in code and text: M_recon vs M_task (`task_metric.py`), resolved/weak rename with legacy
+      aliases, support estimator with validation (`support.py`), conditional signatures, invariance
+      controls (`tests/test_spine.py`), companion dependency bounded — *unit-tested control*.
+- [x] I1 abstention chain (conformal on clean calibration, unknown AUROC, risk–coverage, retained-known F1)
+      — *interface implemented, unit-tested control, development smoke*; unknown AUROC 0.60 at toy size.
+- [x] I2 typed builder + source-tagged batches + adversarial test — *unit-tested*; residual limitation documented.
+- [x] I3 `generic_rich` / `intermediate_only` / `full_intermediate`, capacity-matched and hook-drop controls — *development smoke*.
+- [x] I4 committed generic score, task-sensitive score, paired ΔAUROC — *development smoke*.
+- [x] I5 hierarchical bootstrap with the cell as outer unit; refuses inference below 10 outer units — *unit-tested*.
+- [x] I6 `attribution_train` partition; `reference_fit` never trained on — *unit-tested*.
+- [x] I7 hard matching with retention reporting; joint decision table — *development smoke* (20 hard windows: no reading).
+- [x] I8 designed families linear-only; `task_aligned` / `task_null` — *unit-tested control*.
+- [x] I9–I13 metric edge cases, shrinkage/calibration/stability, run-dependency gate, cell/window terminology,
+      FAR precision — *unit-tested*; the stability test records that reference distances are unstable at n_ref ≲ 100.
+- [ ] **Phase B precision study** (not run): calibration count, reference-fit count, outer-unit counts,
+      model-seed variability, matched-contrast overlap. Decides whether the margins are achievable.
+- [ ] **κ_m per arm** from a scientific requirement (`PREREGISTRATION.md` §5) — pending; never invented.
+- [ ] Claim-2 acceptance point estimate and equivalence rule; held-out severities/seeds; run-level FAR budget.
+- [ ] **Phase C**: the two claims on the *trained* `TransformerSubject` in development mode (GPU; gated command in
+      `REVISION_REPORT_2026-09-16_pass2.md` §6); then exactly one transfer arm.
+- [ ] Nonlinear designed perturbations: a constrained local inverse through the encoder Jacobian with an
+      input-validity check — or keep the controls linear-only in the paper.
+- [ ] Freeze `core` only after `PREREGISTRATION.md` §8 is settled and collaborators agree — never before.
+
+## Fisher-cumulant integration (2026-09-17; `docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`)
+- [x] **D7** whitened-residual + pooled-hook third cumulant: `latent_monitor/cumulant.py`, the third return of
+      `pooled_stage`, `hook_third_nulls` / `resid_cumulant`, `gr_resid_c3_*`, `im_{hook}_third_maha`, the quadratic
+      capacity control re-truncated to the intermediate count, and the chart rule (`cumulant` / `deviation`) recorded
+      in `AlarmTimeReference.to_dict` — *interface implemented, unit-tested control, development smoke*.
+- [x] **D8** cubic task score: `TaskMetric.cubic_aligned`, `raw_task_cubic`, `consequence.supporting_intermediate_cubic`
+      — *unit-tested control, development smoke*; supporting only, never the Claim-2 primary or `GENERIC_COMMITTED`.
+- [ ] **D9** R(3) hook-selection diagnostic — **deferred**, not implemented and not mentioned as implemented.
+- [x] **D10** frozen-propagator hypergraph subject (`latent_monitor/hypergraph_subject.py`) — *interface implemented,
+      unit-tested control* (Eq. 4.3 normalisation, P3 Gaussian-zero); **no training, no GPU run, no result**; one of
+      two nonlinear subjects, both reported, neither chosen by result; sits below Phase B, gated on the trained run.
+- [x] Tier-1 signature row for the residual third cumulant (`results/latent_monitor_sig_c3_2026-09-17/`) — *development*,
+      non-citable: 4/4 covariance cells at reference after re-whitening, no false positives, and a development negative
+      for the glitch / sparse-burst separation at n_eval 60, n_pcs 3.
+- [x] New development smoke (`results/latent_monitor_smoke_dev_2026-09-17_cumulant/`) — non-citable; the 16 September
+      artifacts are preserved unchanged.
+- [ ] Phase-B precision study must size `n_ref` and `n_pcs` for the enlarged third-moment feature set (a third moment
+      is noisier than a second; the 17 Sep signature row is the first evidence of that).
+
+
+## Theme adjustment 2026-09-03 (`docs/archive/THEME_ADJUSTMENT_2026-09-03.md`)
+Paper 3 is the main paper: *what determines which representation a detector model learns, and
+what it lets a physicist reconstruct*.  Done today in the proposal: new title, abstract opening,
+"The question" paragraph in §1 with Panda as the foil, mechanism §3 attributed to Paper 1
+Props. 7.2–7.3, new claim **C0** (physical-variable organisation), E0b row, measurement-system
+breadth sentence in §5.  Build 6 pp.
+- [ ] **Junjie must see and agree** the title and the two-claim framing (C0 is now a supporting probe
+      analysis) before anything is frozen.
+- [x] Fold the three Tier-1 findings (below) into §4–§5 (16 Sep); the P3-E0b dev result is still not in the proposal.
+- [ ] Consequence in physical units per tier stated in one table (amplitude RMSE; angular
+      resolution; exclusion limit) — the closing box of the chain.
+- [ ] C0 into `PREREGISTRATION.md` §4 (experiment repo) with the acceptance rule; probe step into
+      `TIER2_RUNBOOK.md` (NuBench labels) and `TIER3_RUNBOOK.md` (injected amplitude).
+
+## Proposal (`latex/paper3_proposal.tex`)
+- [x] Fold the Tier-1 findings into §4–§5 (16 Sep): noise-only discriminator in the generic arm,
+      abstention = feature novelty with the exchangeability caveat, K = independent physical
+      endpoint beside the diagnostic residual, C4 primary = all-cell ranking + breakdowns +
+      designed dissociation (conditional triage secondary).
+- [x] Designed dissociation: constructible only where the head has a null space (explicit skip
+      otherwise); the pullback monitor uses the *assumed* covariance — stated in §4 (16 Sep).
+- [x] C2 and C4 central with one primary endpoint each; C1/C3 supporting, C0/C5 mechanistic
+      (16 Sep). C3 as written still fails at 10 % sampling on Tier 1 — unchanged, out of this pass.
+- [ ] Bibliography: `paper1` gets the arXiv id once posted; add Lu 2008 / Allen 2014 only if §3
+      cites the separable class.
+- [x] Rebuild and check the page count — now six after the 2026-09-03 additions (positioning
+      paragraph, reporting standard, bridge sentence in E5, monitor-stack figure); README updated.
+- [ ] If a five-page limit applies for the collaboration note, drop the `fig:testbeds` panel (b)
+      or compress §7 roadmap — do not cut the reporting standard or the mechanism section.
+
+## Method standard adopted from Kieseler (2026-09-03; notes in the experiment repo
+`docs/background/KIESELER_METHOD_NOTES_2026-09.md`)
+Done today in the proposal: "Position relative to learned-geometry reconstruction" (GravNet,
+object condensation, Panda, the bias-aware physics-FM benchmark 2605.29283) in §1; "Reporting
+standard" paragraph in §5 (parameter-matched arms, resource row, inclusive + stratum metrics,
+threshold curves, extrapolation arm, hyperparameter table); Figure 1 monitor stack.
+- [ ] `PREREGISTRATION.md`: add the reporting standard as hard fields — per arm `n_params`,
+      `train_cost`, `infer_ms_per_event`, `mem_mb`; per endpoint inclusive + stratum; per
+      threshold a curve; one hyperparameter table.
+- [ ] Tier-1 `mlp_ae` vs `cwpca` vs `nfpa`: match parameter counts (review C1) before any
+      confirmatory run; report the resource row.
+- [ ] Tier 2: baseline is the *published* NuBench DynEdge configuration, not a reimplementation;
+      any in-project re-emulation of the detector response is validated against the released
+      per-geometry numbers (parity gate in `TIER2_RUNBOOK.md`).
+- [ ] Extrapolation arm on Tier 1: monitors calibrated on severities ≤ s_max, evaluated at
+      2 s_max and at the unseen family — report as its own row, not pooled.
+- [ ] Bridge table with identical metric names on both tiers (within-T_S residual variance,
+      along-T_S^⊥ displacement, abstention risk–coverage AUC, ρ(A,K)) — fill from the
+      confirmatory Tier-1 output.
+
+## Novelty positioning (2026-09-03 search; see `docs/archive/NOVELTY_CHECK_2026-09-03.md`)
+- [ ] Re-run the search before submission: "frozen representation" + "covariance shift" +
+      detector; Panda follow-ups; NuBench follow-ups; any "diagnostics of foundation models in
+      physics" paper. Update the positioning paragraph if a mechanism-level diagnostic appears.
+
+## Pre-registration (`docs/PREREGISTRATION.md` here — unfrozen draft; the experiment-repo copy is superseded)
+- [ ] Freeze `core` (endpoints, thresholds, families, margins) with `protocol.mode.freeze_part`;
+      confirmatory runners already refuse to start without `protocol/frozen/core.json`.
+- [ ] Raise clean windows to ≥ 100 per seed before any confirmatory run (FAR resolution).
+- [ ] Fill the Tier-1 → Tier-2 bridge table (§6) with a row per ORACLE-Paired family.
+
+## Packages here
+- [ ] `latent_monitor.estimators`: make the representation class a parameter of `LinearSubject`
+      (OF / CW-PCA / tied AE / NFPA) and run L1-a/L1-b of `docs/EXPERIMENT_DESIGN.md` §IV.4 on the Tier-1
+      cells; the modules and `tests/test_estimators.py` are in place (2026-09-10), the experiments are
+      tentative and not pre-registered.
+- [ ] `src/prometheus_simulation`: Prometheus adapter (`prometheus_io`), NuBench response
+      reimplementation, clean-twin matching validated on the toy set (WP9).
+- [ ] Subject adapters for Tier 2/3 following the `Subject` interface in
+      `experiments/oracle/oracle_cov/subjects.py` (`represent`, `outputs`, `jac_recon`, `jac_output`).
+- [x] `reference/papers/`: 2609.00611 (Panda V2) and 2602.24129 (LUCiD) PDFs filed under
+      `testbeds/`; `papers.tsv` gains the LUCiD row plus 1705.07341, 2307.11877 and three
+      `software` rows (pytessim, wire-cell, HeST). See `docs/archive/SIM_TESTBED_SURVEY_2026-09-05.md`.
+- [ ] `reference/papers/`: fetch the two new PDFs — `1705.07341` (MicroBooNE noise) and
+      `2307.11877` (HeRALD). arXiv returns 403 from the local VM; run the README loop
+      from a machine with ordinary internet access.
+- [x] Pilot HeST — done in `src/herald_simulation/` (2026-09-06): paired initial population
+      verified across three geometries; full chain to noisy traces runs; 14 cells, tests green.
+- [ ] `latent_monitor`: run the §1 table on a *trained* `TransformerSubject` (GPU); the CPU
+      smoke test only proves the protocol runs. Then the transformer's own G-row repair.
+- [ ] `herald_simulation`: replace the `HERALD_V1_PLACEHOLDER` constants with values read from
+      arXiv:2307.11877 (`provenance` → `from_paper`); open the two HeST upstream PRs.
+- [x] Fold `RESULTS_LATENT_MONITOR_TIER1_2026-09-06.md` into the plan — done 2026-09-10 in
+      `docs/EXPERIMENT_DESIGN.md` §III.1 (▸ rows): noise-only discriminator, `event_in_span`, GLS re-derivation.
+
+## Collaboration
+- [ ] Email the LUCiD authors (Terao, Alterkait) asking for a permissive licence — gate A0
+      in `docs/EXPERIMENT_DESIGN.md` §II.3.2. No LUCiD work starts before it lands.
+- [ ] Email Greg Rischbieter (rischbie@umich.edu): HeST's LICENSE is MIT text with the
+      unedited PyPA copyright line — gate B0, same doc.
+- [ ] Send Junjie the dev update + the two runbooks; agree the Tier-2 family list and the
+      angular-error consequence before the bridge table is frozen.
+- [ ] Panda V2 weights: watch for the release; until then DynEdge remains the Tier-2 subject.

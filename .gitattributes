@@ -1,0 +1,7 @@
+# PDFs are committed on purpose (see reference/papers/README.md). Mark them
+# binary so git never line-diffs one: 2602.24129 was staged as 46,531 text
+# insertions because it carries no NUL byte in its first 8 kB.
+*.pdf binary
+*.png binary
+*.npy binary
+*.parquet binary

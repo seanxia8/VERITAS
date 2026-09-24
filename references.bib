@@ -119,3 +119,169 @@
   doi           = {10.18653/v1/D19-1275},
   url           = {https://aclanthology.org/D19-1275/}
 }
+
+% ---- Added 2026-08-17: prior-art positioning (docs/PAPER3_AUDIT.md §3) ----
+
+@inproceedings{roschewitz2025shiftid,
+  title     = {Automatic Dataset Shift Identification to Support Safe Deployment of Medical Imaging {AI}},
+  author    = {Roschewitz, M{\'e}lanie and Mehta, Raghav and Jones, Charles and Glocker, Ben},
+  booktitle = {Medical Image Computing and Computer Assisted Intervention (MICCAI)},
+  year      = {2025},
+  eprint    = {2411.07940},
+  archivePrefix = {arXiv}
+}
+
+@article{castro2020causality,
+  title   = {Causality Matters in Medical Imaging},
+  author  = {Castro, Daniel C. and Walker, Ian and Glocker, Ben},
+  journal = {Nature Communications},
+  volume  = {11},
+  pages   = {3673},
+  year    = {2020}
+}
+
+@inproceedings{podkopaev2022harmful,
+  title     = {Tracking the Risk of a Deployed Model and Detecting Harmful Distribution Shifts},
+  author    = {Podkopaev, Aleksandr and Ramdas, Aaditya},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2022},
+  eprint    = {2110.06177},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{rabanser2019failing,
+  title     = {Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift},
+  author    = {Rabanser, Stephan and G{\"u}nnemann, Stephan and Lipton, Zachary C.},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2019},
+  eprint    = {1810.11953},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhang2023whyfail,
+  title     = {``Why Did the Model Fail?'': Attributing Model Performance Changes to Distribution Shifts},
+  author    = {Zhang, Haoran and Singh, Harvineet and Ghassemi, Marzyeh and Joshi, Shalmali},
+  booktitle = {International Conference on Machine Learning (ICML)},
+  year      = {2023},
+  eprint    = {2210.10769},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{lee2023surgical,
+  title     = {Surgical Fine-Tuning Improves Adaptation to Distribution Shifts},
+  author    = {Lee, Yoonho and Chen, Annie S. and Tajwar, Fahim and Kumar, Ananya and Yao, Huaxiu and Liang, Percy and Finn, Chelsea},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2023},
+  eprint    = {2210.11466},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hase2023localization,
+  title     = {Does Localization Inform Editing? Surprising Differences in Causality-Based Localization vs. Knowledge Editing in Language Models},
+  author    = {Hase, Peter and Bansal, Mohit and Kim, Been and Ghandeharioun, Asma},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2023},
+  eprint    = {2301.04213},
+  archivePrefix = {arXiv}
+}
+
+@article{lazar2024prometheus,
+  title   = {Prometheus: An Open-Source Neutrino Telescope Simulation},
+  author  = {Lazar, Jeffrey and Meighen-Berger, Stephan and Haack, Christian and Kim, David and Giner, Santiago and Arg{\"u}elles, Carlos A.},
+  journal = {Computer Physics Communications},
+  year    = {2024},
+  eprint  = {2304.14526},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{fry2025tidmad,
+  title     = {{TIDMAD}: Time-Series Dataset for Discovering Dark Matter with {AI} Denoising},
+  author    = {Fry, Jessica and Fu, Xinyi and Fu, Zhenghao and Pappas, Kaliro{\"e} and Winslow, Lindley and Li, Aobo},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track},
+  year      = {2025},
+  eprint    = {2406.04378},
+  archivePrefix = {arXiv}
+}
+
+@misc{young2025panda,
+  title  = {Panda: Self-distillation of Reusable Sensor-level Representations for High Energy Physics},
+  author = {Young, Samuel and Terao, Kazuhiro},
+  year   = {2025},
+  eprint = {2512.01324},
+  archivePrefix = {arXiv},
+  note   = {preprint}
+}
+
+@article{microboone2017noise,
+  title         = {Noise Characterization and Filtering in the {MicroBooNE} Liquid Argon {TPC}},
+  author        = {{MicroBooNE Collaboration}},
+  journal       = {Journal of Instrumentation},
+  volume        = {12},
+  number        = {08},
+  pages         = {P08003},
+  year          = {2017},
+  doi           = {10.1088/1748-0221/12/08/P08003},
+  eprint        = {1705.07341},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/1705.07341},
+  note          = {Measured coherent (cross-channel) noise model underlying Wire-Cell's correlated-noise generators}
+}
+
+@misc{wirecell,
+  title        = {Wire-Cell Toolkit: {\texttt{CorrelatedAddNoise}}, {\texttt{CoherentAddNoise}} and {\texttt{GroupNoiseModel}}},
+  author       = {{Wire-Cell Team}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/WireCell/wire-cell-toolkit}},
+  note         = {LGPL. \texttt{gen/src/CorrelatedAddNoise.cxx}, added 2026-02-04: per-band colorer matrices $A$ with $AA^{\top}\approx$ correlation matrix, loaded from a user-supplied JSON file}
+}
+
+@misc{pytessim,
+  title        = {\texttt{pytessim}: simulation of {TES} datastreams including noise and low-energy excess},
+  author       = {{TESSERACT Collaboration}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/spice-herald/pytessim}},
+  note         = {MIT. \texttt{core/noise/Noise\_Factory.py}, first public 2026-05-18: multichannel noise sampled from a PSD or cross-spectral density by per-frequency Cholesky factorisation}
+}
+
+@misc{hest,
+  title        = {\texttt{HeST}: superfluid-helium yields and quasiparticle-evaporation simulation},
+  author       = {Rischbieter, Greg and {SPICE/HeRALD Collaboration}},
+  year         = {2026},
+  howpublished = {\url{https://github.com/spice-herald/HeST}},
+  note         = {MIT}
+}
+
+@article{hertel2023herald,
+  title         = {Direct Detection of Sub-{GeV} Dark Matter Using a Superfluid {$^4$He} Target: Demonstration of the {HeRALD} Detector Concept},
+  author        = {{SPICE/HeRALD Collaboration}},
+  journal       = {Physical Review D},
+  year          = {2023},
+  eprint        = {2307.11877},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2307.11877}
+}
+
+
+@article{bal2026triality,
+  title         = {From Information Geometry to Jet Substructure: A Triality of Cumulant Tensors, Energy Correlators, and Hypergraphs},
+  author        = {Bal, Aritra and Klute, Markus and Maier, Benedikt and Spannowsky, Michael},
+  journal       = {arXiv preprint arXiv:2605.03063},
+  year          = {2026},
+  eprint        = {2605.03063},
+  archivePrefix = {arXiv},
+  primaryClass  = {hep-ph},
+  note          = {v2, 7 May 2026: connected cumulant tensors as the higher rungs of the local KL expansion in natural exponential-family coordinates; the exact cumulant reading is special to that chart},
+  url           = {https://arxiv.org/abs/2605.03063}
+}
+
+@article{bal2026quiver,
+  title         = {{QUIVER}: Quantum-Informed Views for Enhanced Representations in Large ML Models},
+  author        = {Bal, Aritra and Binder, Michael and Klute, Markus and Maier, Benedikt and Spannowsky, Michael},
+  journal       = {arXiv preprint arXiv:2606.02785},
+  year          = {2026},
+  eprint        = {2606.02785},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  note          = {1 June 2026. The paired-seed, zero-initialised residual-gate evidence design is cited as precedent for the capacity-matched control; the quantum content plays no role here},
+  url           = {https://arxiv.org/abs/2606.02785}
+}

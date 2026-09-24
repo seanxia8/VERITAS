@@ -1,0 +1,336 @@
+{
+  "rewhiten": {
+    "sigma_cov:corr_up": {
+      "kappa_correction": {
+        "kappa_channel": 4.087722781598911,
+        "kappa_temporal": 1.106827888698857,
+        "kappa": 4.524405575943342
+      },
+      "z_var_ratio_mean_before": 1.6648915504387842,
+      "z_var_ratio_mean_after": 1.0,
+      "psd_dev_before": 0.4527198263624931,
+      "psd_dev_after": 0.0,
+      "consequence_ratio_before": [
+        1.012738929693293,
+        1.1202208754444558,
+        1.013503569045987
+      ],
+      "consequence_ratio_after": [
+        1.0183926725514634,
+        1.0970557115567303,
+        1.02141727482617
+      ]
+    },
+    "sigma_cov:corr_down": {
+      "kappa_correction": {
+        "kappa_channel": 4.653743943580711,
+        "kappa_temporal": 1.0624063881973065,
+        "kappa": 4.944167294694672
+      },
+      "z_var_ratio_mean_before": 0.3238792530695095,
+      "z_var_ratio_mean_after": 1.0,
+      "psd_dev_before": 0.45353115713917336,
+      "psd_dev_after": 0.0,
+      "consequence_ratio_before": [
+        0.9882176967775329,
+        0.8169421718109688,
+        0.9864119753690471
+      ],
+      "consequence_ratio_after": [
+        0.989326462571417,
+        0.8112889700638347,
+        0.9877797025162781
+      ]
+    },
+    "sigma_cov:bandwidth_down": {
+      "kappa_correction": {
+        "kappa_channel": 1.052806305640672,
+        "kappa_temporal": 1.8403502558626508,
+        "kappa": 1.9375323539596228
+      },
+      "z_var_ratio_mean_before": 1.0946795884199583,
+      "z_var_ratio_mean_after": 1.0,
+      "psd_dev_before": 0.4347254394753155,
+      "psd_dev_after": 0.0,
+      "consequence_ratio_before": [
+        1.002792827750088,
+        1.0642064964269102,
+        1.0010659030633515
+      ],
+      "consequence_ratio_after": [
+        1.0085443115081718,
+        1.063237802245954,
+        1.0103067583476981
+      ]
+    },
+    "sigma_cov:line_pickup": {
+      "kappa_correction": {
+        "kappa_channel": 1.0803764378092227,
+        "kappa_temporal": 6.91690058367753,
+        "kappa": 7.472856413274063
+      },
+      "z_var_ratio_mean_before": 0.9105552022201021,
+      "z_var_ratio_mean_after": 1.0,
+      "psd_dev_before": 4.770311110640478,
+      "psd_dev_after": 0.0,
+      "consequence_ratio_before": [
+        0.9859318530104824,
+        0.9299489846552048,
+        0.9900363206671001
+      ],
+      "consequence_ratio_after": [
+        0.9905555445751442,
+        0.925335985307872,
+        0.9888913624385542
+      ]
+    }
+  },
+  "activation_patch": {
+    "sigma_struct:gain_drift": {
+      "unpatched": {
+        "consequence": 0.18450260262219792,
+        "recovery": 0.0
+      },
+      "clean": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "whitened": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "channel": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "token": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "z": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      }
+    },
+    "sigma_struct:channel_loss": {
+      "unpatched": {
+        "consequence": 0.29032094869886726,
+        "recovery": 0.0
+      },
+      "clean": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "whitened": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "channel": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "token": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "z": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      }
+    },
+    "sigma_struct:timing_jitter": {
+      "unpatched": {
+        "consequence": 0.17271398190206058,
+        "recovery": 0.0
+      },
+      "clean": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "whitened": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "channel": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "token": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      },
+      "z": {
+        "consequence": 0.17677381646710305,
+        "recovery": 1.0
+      }
+    }
+  },
+  "damage_patch": {
+    "sigma_struct:gain_drift": {
+      "whitened": {
+        "consequence": 0.18450260262219792,
+        "transmitted": 1.0
+      },
+      "channel": {
+        "consequence": 0.18450260262219792,
+        "transmitted": 1.0
+      },
+      "token": {
+        "consequence": 0.18450260262219792,
+        "transmitted": 1.0
+      },
+      "z": {
+        "consequence": 0.18450260262219792,
+        "transmitted": 1.0
+      }
+    },
+    "sigma_struct:channel_loss": {
+      "whitened": {
+        "consequence": 0.29032094869886726,
+        "transmitted": 1.0
+      },
+      "channel": {
+        "consequence": 0.29032094869886726,
+        "transmitted": 1.0
+      },
+      "token": {
+        "consequence": 0.29032094869886726,
+        "transmitted": 1.0
+      },
+      "z": {
+        "consequence": 0.29032094869886726,
+        "transmitted": 1.0
+      }
+    },
+    "sigma_struct:timing_jitter": {
+      "whitened": {
+        "consequence": 0.17271398190206058,
+        "transmitted": 1.0
+      },
+      "channel": {
+        "consequence": 0.17271398190206058,
+        "transmitted": 1.0
+      },
+      "token": {
+        "consequence": 0.17271398190206058,
+        "transmitted": 1.0
+      },
+      "z": {
+        "consequence": 0.17271398190206058,
+        "transmitted": 1.0
+      }
+    }
+  },
+  "refit_stage": {
+    "sigma_struct:gain_drift": {
+      "before": [
+        1.0452242031788466,
+        0.9906123371147161,
+        0.9943352357326712
+      ],
+      "channel": [
+        0.9721928111861521,
+        0.9057384215842946,
+        0.9620172968206124
+      ],
+      "token": [
+        1.0018601548019148,
+        1.034943659520039,
+        0.9985077186164909
+      ],
+      "output": [
+        0.9974078772495633,
+        1.0098433640086633,
+        0.9965777887883243
+      ]
+    },
+    "sigma_struct:channel_loss": {
+      "before": [
+        1.6541551133881005,
+        1.3218033717150435,
+        1.172083685879322
+      ],
+      "channel": [
+        0.937768221772181,
+        0.9708754315077988,
+        0.933401165656749
+      ],
+      "token": [
+        0.9951885546055215,
+        1.0575110468918707,
+        0.9796857181747979
+      ],
+      "output": [
+        0.9978971178649859,
+        1.0267179457088726,
+        0.9930761127580207
+      ]
+    },
+    "sigma_struct:timing_jitter": {
+      "before": [
+        0.976776067011659,
+        0.9847752983781511,
+        0.9866450477772769
+      ],
+      "channel": [
+        1.003166552998043,
+        0.8854213869176649,
+        1.0100558760927159
+      ],
+      "token": [
+        0.9800113727977567,
+        1.0454515443754933,
+        0.9899686872976733
+      ],
+      "output": [
+        0.9785313856632947,
+        0.8973614400461699,
+        0.9959582203732109
+      ]
+    },
+    "geometry:4ch": {
+      "before": [
+        1.8067770624039425,
+        1.544147858409621,
+        1.4163521068232603
+      ],
+      "token": [
+        1.8055177066411479,
+        1.8855861835583738,
+        1.3959406177878069
+      ],
+      "channel": [
+        0.9861285330459458,
+        0.9980110378821172,
+        0.9755065922937272
+      ],
+      "output": [
+        0.9942952390203018,
+        0.985911813728422,
+        0.9934723043099063
+      ]
+    },
+    "geometry:16ch": {
+      "before": [
+        1.624950593491367,
+        1.2164696931415402,
+        1.1471114989069913
+      ],
+      "token": [
+        1.553237566734775,
+        1.2219805212082795,
+        1.122701509350237
+      ],
+      "channel": [
+        1.0067980548965165,
+        0.9298061059697201,
+        1.0170578193907056
+      ],
+      "output": [
+        0.9855300484979608,
+        0.9644732867296882,
+        0.9856638254542781
+      ]
+    }
+  }
+}

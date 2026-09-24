@@ -1,0 +1,1651 @@
+{
+  "latent_monitor_version": "0.1.0",
+  "config": {
+    "n_channels": 8,
+    "n_samples": 256,
+    "latent_dim": 6,
+    "n_fit": 200,
+    "n_eval": 60,
+    "n_noise": 100,
+    "designed_norm": 3.0,
+    "seed": 0
+  },
+  "subject": {
+    "kind": "LinearSubject",
+    "singular_values": [
+      1773.8287466752752,
+      87.58851355686484,
+      63.631172056119794,
+      57.19769595693728,
+      56.298395130252736,
+      55.96880517582734,
+      55.585112186013475,
+      55.38704707386376,
+      54.98140925464058,
+      54.83398571224517
+    ],
+    "n_train": 200,
+    "explained": 0.8864891367301391
+  },
+  "reference": {
+    "fisher_rank": 6,
+    "k_out": 3,
+    "consequence_ref": [
+      0.5151655660303363,
+      0.0069137679261162144,
+      0.008242115444856523
+    ],
+    "null_mean_shift_quantiles": {
+      "q50": 3.4944676849140732,
+      "q90": 4.548267414849464,
+      "q95": 5.059800823590235,
+      "q99": 5.444354869508133
+    },
+    "null_dz_norm_quantiles": {
+      "q50": 2.1821778828457186,
+      "q90": 3.2707246935764345,
+      "q95": 3.6500561545202026,
+      "q99": 4.529548748023824
+    }
+  },
+  "thresholds": {
+    "mean_shift_norm": 5.444354869508133,
+    "dz_norm": 4.529548748023824,
+    "var_ratio_low": 0.85,
+    "var_ratio_high": 1.15,
+    "psd_ratio_dev": 0.17317685101950234,
+    "psd_line_dev": 0.29279373748804854,
+    "chan_corr_shift": 0.12492652668154347,
+    "out_of_span": 0.5,
+    "consequence_ratio_null": 0.1,
+    "isotropy": 0.5,
+    "z_small_factor": 0.5
+  },
+  "rows": [
+    {
+      "cell": "sigma_cov:corr_up",
+      "moved": "sigma_cov",
+      "expected": "sigma_cov",
+      "attributed": "sigma_cov",
+      "status": "match",
+      "reason": "noise-only statistics off their null with no consistent mean shift",
+      "adjustment": "re-estimate \u03a3 from noise-only records and replace \u03a3\u0302 in the whitening layer; no gradient step",
+      "statistics": {
+        "label": "sigma_cov:corr_up",
+        "moved": "sigma_cov",
+        "n": 60,
+        "mean_shift_norm": 0.69,
+        "dz_energy": {
+          "out": 0.34,
+          "null": 0.66,
+          "exc": 1.0,
+          "unexc": 0.0
+        },
+        "dz_energy_event": {
+          "out": 0.437,
+          "null": 0.563,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 0.6391,
+        "z_var_ratio_mean": 1.665,
+        "z_var_ratio_max": 1.746,
+        "z_var_ratio_min": 1.536,
+        "residual_psd_participation": 0.999,
+        "psd_dev_smooth": 0.453,
+        "psd_dev_line": 0.463,
+        "residual_chan_corr_shift": 2.011,
+        "residual_norm_ratio": 0.588,
+        "residual_coherence": 0.016,
+        "residual_shift_ratio": 0.063,
+        "residual_shift_z": -267.88,
+        "out_of_span_fraction": 0.997,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 69.11,
+          "channel": 2.43,
+          "token": 1.47,
+          "z": 0.27,
+          "pre_output": 0.15,
+          "output": 0.15
+        },
+        "consequence_ratio": [
+          1.013,
+          1.12,
+          1.014
+        ],
+        "consequence_auroc_given_alarm": 0.75,
+        "alarm_rate": 0.083
+      },
+      "evidence": {
+        "mean_shift_norm": 0.689887399762678,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": false,
+        "alarm": false,
+        "dz_norm_mean": 0.6391239838865572,
+        "isotropy": 0.13935336895516712,
+        "z_var_ratio_mean": 1.6648915504387842,
+        "z_var_off": true,
+        "psd_off": true,
+        "chan_off": true,
+        "var_off": true,
+        "out_of_span_fraction": 0.9973416855970689,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 0.33974375505592547,
+          "null": 0.6602562449440746,
+          "exc": 1.0,
+          "unexc": 4.212894441339377e-17
+        },
+        "dz_energy_event": {
+          "out": 0.4366300043722758,
+          "null": 0.5633699956277242,
+          "exc": 1.0000000000000002,
+          "unexc": -1.7571483188471427e-16
+        },
+        "consequence_ratio": [
+          1.012738929693293,
+          1.1202208754444558,
+          1.013503569045987
+        ]
+      }
+    },
+    {
+      "cell": "sigma_cov:corr_down",
+      "moved": "sigma_cov",
+      "expected": "sigma_cov",
+      "attributed": "sigma_cov",
+      "status": "match",
+      "reason": "noise-only statistics off their null with no consistent mean shift",
+      "adjustment": "re-estimate \u03a3 from noise-only records and replace \u03a3\u0302 in the whitening layer; no gradient step",
+      "statistics": {
+        "label": "sigma_cov:corr_down",
+        "moved": "sigma_cov",
+        "n": 60,
+        "mean_shift_norm": 1.15,
+        "dz_energy": {
+          "out": 0.48,
+          "null": 0.52,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.431,
+          "null": 0.569,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 1.033,
+        "z_var_ratio_mean": 0.324,
+        "z_var_ratio_max": 0.365,
+        "z_var_ratio_min": 0.285,
+        "residual_psd_participation": 0.998,
+        "psd_dev_smooth": 0.454,
+        "psd_dev_line": 0.467,
+        "residual_chan_corr_shift": 0.805,
+        "residual_norm_ratio": 1.412,
+        "residual_coherence": 0.016,
+        "residual_shift_ratio": 0.051,
+        "residual_shift_z": -271.27,
+        "out_of_span_fraction": 0.991,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 69.01,
+          "channel": 2.46,
+          "token": 1.5,
+          "z": 0.45,
+          "pre_output": 0.29,
+          "output": 0.29
+        },
+        "consequence_ratio": [
+          0.988,
+          0.817,
+          0.986
+        ],
+        "consequence_auroc_given_alarm": 0.25,
+        "alarm_rate": 0.017
+      },
+      "evidence": {
+        "mean_shift_norm": 1.15016592236155,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": false,
+        "alarm": false,
+        "dz_norm_mean": 1.0329948588337254,
+        "isotropy": 0.1437430020290998,
+        "z_var_ratio_mean": 0.3238792530695095,
+        "z_var_off": true,
+        "psd_off": true,
+        "chan_off": true,
+        "var_off": true,
+        "out_of_span_fraction": 0.9913427898254088,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 0.4799231761507488,
+          "null": 0.5200768238492514,
+          "exc": 1.0000000000000002,
+          "unexc": -5.767125676617823e-17
+        },
+        "dz_energy_event": {
+          "out": 0.43077451829082786,
+          "null": 0.569225481709172,
+          "exc": 1.0,
+          "unexc": -1.9685964174708174e-16
+        },
+        "consequence_ratio": [
+          0.9882176967775329,
+          0.8169421718109688,
+          0.9864119753690471
+        ]
+      }
+    },
+    {
+      "cell": "sigma_cov:bandwidth_down",
+      "moved": "sigma_cov",
+      "expected": "sigma_cov",
+      "attributed": "sigma_cov",
+      "status": "match",
+      "reason": "noise-only statistics off their null with no consistent mean shift",
+      "adjustment": "re-estimate \u03a3 from noise-only records and replace \u03a3\u0302 in the whitening layer; no gradient step",
+      "statistics": {
+        "label": "sigma_cov:bandwidth_down",
+        "moved": "sigma_cov",
+        "n": 60,
+        "mean_shift_norm": 0.324,
+        "dz_energy": {
+          "out": 0.93,
+          "null": 0.07,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.637,
+          "null": 0.363,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 0.1966,
+        "z_var_ratio_mean": 1.095,
+        "z_var_ratio_max": 1.184,
+        "z_var_ratio_min": 1.025,
+        "residual_psd_participation": 0.705,
+        "psd_dev_smooth": 0.435,
+        "psd_dev_line": 0.438,
+        "residual_chan_corr_shift": 0.009,
+        "residual_norm_ratio": 0.997,
+        "residual_coherence": 0.017,
+        "residual_shift_ratio": 0.003,
+        "residual_shift_z": -285.1,
+        "out_of_span_fraction": 0.996,
+        "fisher_rank": 6,
+        "layer_peak": "channel",
+        "layer_profile": {
+          "whitened": 0.36,
+          "channel": 0.72,
+          "token": 0.44,
+          "z": 0.13,
+          "pre_output": 0.11,
+          "output": 0.11
+        },
+        "consequence_ratio": [
+          1.003,
+          1.064,
+          1.001
+        ],
+        "consequence_auroc_given_alarm": 0.667,
+        "alarm_rate": 0.017
+      },
+      "evidence": {
+        "mean_shift_norm": 0.3242900800036497,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": false,
+        "alarm": false,
+        "dz_norm_mean": 0.19659015917999667,
+        "isotropy": 0.21295913020828408,
+        "z_var_ratio_mean": 1.0946795884199583,
+        "z_var_off": false,
+        "psd_off": true,
+        "chan_off": false,
+        "var_off": true,
+        "out_of_span_fraction": 0.9955765679506694,
+        "layer_peak": "channel",
+        "dz_energy": {
+          "out": 0.9299626858449896,
+          "null": 0.0700373141550104,
+          "exc": 1.0000000000000007,
+          "unexc": -6.349914010208848e-16
+        },
+        "dz_energy_event": {
+          "out": 0.6365809590108247,
+          "null": 0.36341904098917527,
+          "exc": 1.0000000000000002,
+          "unexc": -3.606418250875817e-16
+        },
+        "consequence_ratio": [
+          1.002792827750088,
+          1.0642064964269102,
+          1.0010659030633515
+        ]
+      }
+    },
+    {
+      "cell": "sigma_cov:line_pickup",
+      "moved": "sigma_cov",
+      "expected": "sigma_cov",
+      "attributed": "sigma_cov",
+      "status": "match",
+      "reason": "noise-only statistics off their null with no consistent mean shift",
+      "adjustment": "re-estimate \u03a3 from noise-only records and replace \u03a3\u0302 in the whitening layer; no gradient step",
+      "statistics": {
+        "label": "sigma_cov:line_pickup",
+        "moved": "sigma_cov",
+        "n": 60,
+        "mean_shift_norm": 0.356,
+        "dz_energy": {
+          "out": 0.662,
+          "null": 0.338,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.441,
+          "null": 0.559,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 0.4671,
+        "z_var_ratio_mean": 0.911,
+        "z_var_ratio_max": 1.092,
+        "z_var_ratio_min": 0.791,
+        "residual_psd_participation": 0.17,
+        "psd_dev_smooth": 4.77,
+        "psd_dev_line": 7.02,
+        "residual_chan_corr_shift": 0.048,
+        "residual_norm_ratio": 0.913,
+        "residual_coherence": 0.016,
+        "residual_shift_ratio": 0.042,
+        "residual_shift_z": -273.9,
+        "out_of_span_fraction": 0.998,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 14.77,
+          "channel": 0.84,
+          "token": 0.53,
+          "z": 0.14,
+          "pre_output": 0.15,
+          "output": 0.15
+        },
+        "consequence_ratio": [
+          0.986,
+          0.93,
+          0.99
+        ],
+        "consequence_auroc_given_alarm": 0.6,
+        "alarm_rate": 0.017
+      },
+      "evidence": {
+        "mean_shift_norm": 0.3560552540540231,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": false,
+        "alarm": false,
+        "dz_norm_mean": 0.46707775182789274,
+        "isotropy": 0.09841302751588492,
+        "z_var_ratio_mean": 0.9105552022201021,
+        "z_var_off": false,
+        "psd_off": true,
+        "chan_off": false,
+        "var_off": true,
+        "out_of_span_fraction": 0.9975546057426008,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 0.6621018457005875,
+          "null": 0.33789815429941267,
+          "exc": 1.0,
+          "unexc": -2.3344902432585863e-17
+        },
+        "dz_energy_event": {
+          "out": 0.4407135602524824,
+          "null": 0.5592864397475176,
+          "exc": 1.0000000000000002,
+          "unexc": -1.117972455529405e-16
+        },
+        "consequence_ratio": [
+          0.9859318530104824,
+          0.9299489846552048,
+          0.9900363206671001
+        ]
+      }
+    },
+    {
+      "cell": "sigma_struct:gain_drift",
+      "moved": "sigma_struct",
+      "expected": "sigma_struct",
+      "attributed": "sigma_struct",
+      "status": "match",
+      "reason": "consistent mean shift together with a noise-only change (acquisition-side)",
+      "adjustment": "activation-patch the per-channel stage first; if consequence recovers, LoRA on S1 only",
+      "statistics": {
+        "label": "sigma_struct:gain_drift",
+        "moved": "sigma_struct",
+        "n": 60,
+        "mean_shift_norm": 648.668,
+        "dz_energy": {
+          "out": 0.981,
+          "null": 0.019,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.979,
+          "null": 0.021,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 83.7434,
+        "z_var_ratio_mean": 0.881,
+        "z_var_ratio_max": 0.901,
+        "z_var_ratio_min": 0.864,
+        "residual_psd_participation": 0.955,
+        "psd_dev_smooth": 0.081,
+        "psd_dev_line": 0.106,
+        "residual_chan_corr_shift": 0.377,
+        "residual_norm_ratio": 2.694,
+        "residual_coherence": 0.919,
+        "residual_shift_ratio": 0.969,
+        "residual_shift_z": -8.83,
+        "out_of_span_fraction": 0.982,
+        "fisher_rank": 6,
+        "layer_peak": "channel",
+        "layer_profile": {
+          "whitened": 123.79,
+          "channel": 1991.99,
+          "token": 1219.28,
+          "z": 228.45,
+          "pre_output": 6.26,
+          "output": 6.26
+        },
+        "consequence_ratio": [
+          1.045,
+          0.991,
+          0.994
+        ],
+        "consequence_auroc_given_alarm": 0.444,
+        "alarm_rate": 0.0
+      },
+      "evidence": {
+        "mean_shift_norm": 648.6677268586645,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 83.74336790896842,
+        "isotropy": 0.9999913489972336,
+        "z_var_ratio_mean": 0.8812609892894252,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": true,
+        "var_off": true,
+        "out_of_span_fraction": 0.9820229891426199,
+        "layer_peak": "channel",
+        "dz_energy": {
+          "out": 0.9809254647515558,
+          "null": 0.019074535248443845,
+          "exc": 1.0000000000000004,
+          "unexc": -4.324043302082703e-16
+        },
+        "dz_energy_event": {
+          "out": 0.9793664890569624,
+          "null": 0.02063351094303732,
+          "exc": 1.0000000000000002,
+          "unexc": -4.3394109068291206e-16
+        },
+        "consequence_ratio": [
+          1.0452242031788466,
+          0.9906123371147161,
+          0.9943352357326712
+        ]
+      }
+    },
+    {
+      "cell": "sigma_struct:channel_loss",
+      "moved": "sigma_struct",
+      "expected": "sigma_struct",
+      "attributed": "sigma_struct",
+      "status": "match",
+      "reason": "consistent mean shift together with a noise-only change (acquisition-side)",
+      "adjustment": "activation-patch the per-channel stage first; if consequence recovers, LoRA on S1 only",
+      "statistics": {
+        "label": "sigma_struct:channel_loss",
+        "moved": "sigma_struct",
+        "n": 60,
+        "mean_shift_norm": 2604.456,
+        "dz_energy": {
+          "out": 0.981,
+          "null": 0.019,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.979,
+          "null": 0.021,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 336.2364,
+        "z_var_ratio_mean": 0.561,
+        "z_var_ratio_max": 0.58,
+        "z_var_ratio_min": 0.539,
+        "residual_psd_participation": 0.97,
+        "psd_dev_smooth": 0.145,
+        "psd_dev_line": 0.178,
+        "residual_chan_corr_shift": 2.787,
+        "residual_norm_ratio": 10.601,
+        "residual_coherence": 0.921,
+        "residual_shift_ratio": 5.785,
+        "residual_shift_z": 1368.3,
+        "out_of_span_fraction": 0.953,
+        "fisher_rank": 6,
+        "layer_peak": "channel",
+        "layer_profile": {
+          "whitened": 1038.23,
+          "channel": 10991.7,
+          "token": 6686.89,
+          "z": 917.17,
+          "pre_output": 25.07,
+          "output": 25.07
+        },
+        "consequence_ratio": [
+          1.654,
+          1.322,
+          1.172
+        ],
+        "consequence_auroc_given_alarm": 1.0,
+        "alarm_rate": 0.0
+      },
+      "evidence": {
+        "mean_shift_norm": 2604.45604766664,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 336.236445833726,
+        "isotropy": 0.9999922201107123,
+        "z_var_ratio_mean": 0.5608655444942945,
+        "z_var_off": true,
+        "psd_off": false,
+        "chan_off": true,
+        "var_off": true,
+        "out_of_span_fraction": 0.9529065355568691,
+        "layer_peak": "channel",
+        "dz_energy": {
+          "out": 0.9805442202089615,
+          "null": 0.019455779791038543,
+          "exc": 1.0000000000000004,
+          "unexc": -4.310095713374119e-16
+        },
+        "dz_energy_event": {
+          "out": 0.9791323397925631,
+          "null": 0.020867660207436935,
+          "exc": 1.0000000000000002,
+          "unexc": -4.3277970344187705e-16
+        },
+        "consequence_ratio": [
+          1.6541551133881005,
+          1.3218033717150435,
+          1.172083685879322
+        ]
+      }
+    },
+    {
+      "cell": "sigma_struct:timing_jitter",
+      "moved": "sigma_struct",
+      "expected": "sigma_struct",
+      "attributed": "sigma_cov",
+      "status": "documented",
+      "reason": "noise-only statistics off their null with no consistent mean shift",
+      "adjustment": "re-estimate \u03a3 from noise-only records and replace \u03a3\u0302 in the whitening layer; no gradient step",
+      "statistics": {
+        "label": "sigma_struct:timing_jitter",
+        "moved": "sigma_struct",
+        "n": 60,
+        "mean_shift_norm": 1.434,
+        "dz_energy": {
+          "out": 0.198,
+          "null": 0.802,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.307,
+          "null": 0.693,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 1.5392,
+        "z_var_ratio_mean": 0.545,
+        "z_var_ratio_max": 0.698,
+        "z_var_ratio_min": 0.43,
+        "residual_psd_participation": 0.911,
+        "psd_dev_smooth": 0.571,
+        "psd_dev_line": 0.658,
+        "residual_chan_corr_shift": 1.418,
+        "residual_norm_ratio": 1.426,
+        "residual_coherence": 0.02,
+        "residual_shift_ratio": 1.105,
+        "residual_shift_z": 30.12,
+        "out_of_span_fraction": 0.999,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 70.95,
+          "channel": 8.63,
+          "token": 5.6,
+          "z": 0.51,
+          "pre_output": 0.21,
+          "output": 0.21
+        },
+        "consequence_ratio": [
+          0.977,
+          0.985,
+          0.987
+        ],
+        "consequence_auroc_given_alarm": 0.0,
+        "alarm_rate": 0.017
+      },
+      "evidence": {
+        "mean_shift_norm": 1.434407995196616,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": false,
+        "alarm": false,
+        "dz_norm_mean": 1.5392408234548798,
+        "isotropy": 0.12030688965646252,
+        "z_var_ratio_mean": 0.544849682577432,
+        "z_var_off": true,
+        "psd_off": true,
+        "chan_off": true,
+        "var_off": true,
+        "out_of_span_fraction": 0.9990722347161359,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 0.19759320856674858,
+          "null": 0.8024067914332513,
+          "exc": 1.0,
+          "unexc": -4.5226192954818123e-17
+        },
+        "dz_energy_event": {
+          "out": 0.3073853136085424,
+          "null": 0.6926146863914577,
+          "exc": 1.0,
+          "unexc": -6.917216602798896e-19
+        },
+        "consequence_ratio": [
+          0.976776067011659,
+          0.9847752983781511,
+          0.9866450477772769
+        ]
+      }
+    },
+    {
+      "cell": "geometry:4ch",
+      "moved": "geometry",
+      "expected": "geometry",
+      "attributed": "geometry",
+      "status": "match",
+      "reason": "shift concentrated at the token stage and small at pooled z",
+      "adjustment": "LoRA / refit the geometry embedding and pooling only; W, S1, decoder frozen",
+      "statistics": {
+        "label": "geometry:4ch",
+        "moved": "geometry",
+        "n": 60,
+        "mean_shift_norm": 2949.653,
+        "dz_energy": {
+          "out": 0.981,
+          "null": 0.019,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.978,
+          "null": 0.022,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 380.8041,
+        "z_var_ratio_mean": 0.895,
+        "z_var_ratio_max": 1.074,
+        "z_var_ratio_min": 0.674,
+        "residual_psd_participation": 0.603,
+        "psd_dev_smooth": 0.109,
+        "psd_dev_line": 0.191,
+        "residual_chan_corr_shift": NaN,
+        "residual_norm_ratio": 0.499,
+        "residual_coherence": 0.019,
+        "residual_shift_ratio": 0.048,
+        "residual_shift_z": -96.21,
+        "out_of_span_fraction": 0.116,
+        "fisher_rank": 6,
+        "layer_peak": "token",
+        "layer_profile": {
+          "whitened": 879.45,
+          "channel": 1039.54,
+          "token": 2937757900901.22,
+          "z": 1038.65,
+          "pre_output": 28.32,
+          "output": 28.32
+        },
+        "consequence_ratio": [
+          1.807,
+          1.544,
+          1.416
+        ],
+        "consequence_auroc_given_alarm": null,
+        "alarm_rate": 0.483
+      },
+      "evidence": {
+        "mean_shift_norm": 2949.653132999996,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 380.80406421826245,
+        "isotropy": 0.9999856036769027,
+        "z_var_ratio_mean": 0.8949742003096284,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 0.11642027984013065,
+        "layer_peak": "token",
+        "dz_energy": {
+          "out": 0.9807000488215986,
+          "null": 0.019299951178401685,
+          "exc": 1.0000000000000002,
+          "unexc": -4.327645068778675e-16
+        },
+        "dz_energy_event": {
+          "out": 0.9776535044098668,
+          "null": 0.02234649559013312,
+          "exc": 1.0000000000000002,
+          "unexc": -4.3274702922405844e-16
+        },
+        "consequence_ratio": [
+          1.8067770624039425,
+          1.544147858409621,
+          1.4163521068232603
+        ]
+      }
+    },
+    {
+      "cell": "geometry:16ch",
+      "moved": "geometry",
+      "expected": "geometry",
+      "attributed": "geometry",
+      "status": "match",
+      "reason": "shift concentrated at the token stage and small at pooled z",
+      "adjustment": "LoRA / refit the geometry embedding and pooling only; W, S1, decoder frozen",
+      "statistics": {
+        "label": "geometry:16ch",
+        "moved": "geometry",
+        "n": 60,
+        "mean_shift_norm": 2545.486,
+        "dz_energy": {
+          "out": 0.981,
+          "null": 0.019,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.979,
+          "null": 0.021,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 328.6238,
+        "z_var_ratio_mean": 0.915,
+        "z_var_ratio_max": 0.977,
+        "z_var_ratio_min": 0.779,
+        "residual_psd_participation": 0.676,
+        "psd_dev_smooth": 0.042,
+        "psd_dev_line": 0.118,
+        "residual_chan_corr_shift": NaN,
+        "residual_norm_ratio": 2.446,
+        "residual_coherence": 0.019,
+        "residual_shift_ratio": 0.016,
+        "residual_shift_z": -99.49,
+        "out_of_span_fraction": 0.055,
+        "fisher_rank": 6,
+        "layer_peak": "token",
+        "layer_profile": {
+          "whitened": 532.0,
+          "channel": 926.49,
+          "token": 928354317248.22,
+          "z": 896.41,
+          "pre_output": 24.5,
+          "output": 24.5
+        },
+        "consequence_ratio": [
+          1.625,
+          1.216,
+          1.147
+        ],
+        "consequence_auroc_given_alarm": 1.0,
+        "alarm_rate": 0.0
+      },
+      "evidence": {
+        "mean_shift_norm": 2545.48577127233,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 328.62375540790623,
+        "isotropy": 0.999991006727293,
+        "z_var_ratio_mean": 0.9154098851642725,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 0.055255577329905416,
+        "layer_peak": "token",
+        "dz_energy": {
+          "out": 0.9807466764613613,
+          "null": 0.01925332353863914,
+          "exc": 1.0000000000000004,
+          "unexc": -4.326726139500841e-16
+        },
+        "dz_energy_event": {
+          "out": 0.9790954031767206,
+          "null": 0.020904596823279338,
+          "exc": 1.0000000000000002,
+          "unexc": -4.3433442675186817e-16
+        },
+        "consequence_ratio": [
+          1.624950593491367,
+          1.2164696931415402,
+          1.1471114989069913
+        ]
+      }
+    },
+    {
+      "cell": "event:glitch",
+      "moved": "event",
+      "expected": "event",
+      "attributed": "event",
+      "status": "match",
+      "reason": "consistent shift with the noise model unchanged and most of its energy outside the excited span",
+      "adjustment": "abstain; extend the training support with data \u2014 no weight adjustment is valid",
+      "statistics": {
+        "label": "event:glitch",
+        "moved": "event",
+        "n": 60,
+        "mean_shift_norm": 601.882,
+        "dz_energy": {
+          "out": 0.986,
+          "null": 0.014,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.949,
+          "null": 0.051,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 77.7175,
+        "z_var_ratio_mean": 1.0,
+        "z_var_ratio_max": 1.0,
+        "z_var_ratio_min": 1.0,
+        "residual_psd_participation": 1.0,
+        "psd_dev_smooth": 0.0,
+        "psd_dev_line": 0.0,
+        "residual_chan_corr_shift": 0.0,
+        "residual_norm_ratio": 1.17,
+        "residual_coherence": 0.017,
+        "residual_shift_ratio": 0.086,
+        "residual_shift_z": -261.39,
+        "out_of_span_fraction": 0.842,
+        "fisher_rank": 6,
+        "layer_peak": "channel",
+        "layer_profile": {
+          "whitened": 186.69,
+          "channel": 211.88,
+          "token": 164.16,
+          "z": 211.81,
+          "pre_output": 5.76,
+          "output": 5.76
+        },
+        "consequence_ratio": [
+          1.03,
+          1.034,
+          1.097
+        ],
+        "consequence_auroc_given_alarm": 0.375,
+        "alarm_rate": 0.233
+      },
+      "evidence": {
+        "mean_shift_norm": 601.8818142958385,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 77.71747704398811,
+        "isotropy": 0.9998086795987543,
+        "z_var_ratio_mean": 1.0,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 0.8421788425150528,
+        "layer_peak": "channel",
+        "dz_energy": {
+          "out": 0.9859353401823969,
+          "null": 0.014064659817603208,
+          "exc": 1.0000000000000004,
+          "unexc": -4.349855456445693e-16
+        },
+        "dz_energy_event": {
+          "out": 0.9488516866924939,
+          "null": 0.05114831330750629,
+          "exc": 1.0000000000000002,
+          "unexc": -4.101721647894124e-16
+        },
+        "consequence_ratio": [
+          1.0298802744452893,
+          1.0337353189036598,
+          1.0967691199295342
+        ]
+      }
+    },
+    {
+      "cell": "event_in_span:oscillation",
+      "moved": "event_in_span",
+      "expected": "event_in_span",
+      "attributed": "event_in_span",
+      "status": "match",
+      "reason": "consistent shift, noise model unchanged, energy inside the excited span: supported-but-rare physics",
+      "adjustment": "the representation is intact and the head is not: recalibrate or extend the output head on labelled data from the family, else abstain",
+      "statistics": {
+        "label": "event_in_span:oscillation",
+        "moved": "event_in_span",
+        "n": 60,
+        "mean_shift_norm": 950.308,
+        "dz_energy": {
+          "out": 0.982,
+          "null": 0.018,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.893,
+          "null": 0.107,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 122.7366,
+        "z_var_ratio_mean": 1.0,
+        "z_var_ratio_max": 1.0,
+        "z_var_ratio_min": 1.0,
+        "residual_psd_participation": 1.0,
+        "psd_dev_smooth": 0.0,
+        "psd_dev_line": 0.0,
+        "residual_chan_corr_shift": 0.0,
+        "residual_norm_ratio": 1.03,
+        "residual_coherence": 0.034,
+        "residual_shift_ratio": 0.009,
+        "residual_shift_z": -283.45,
+        "out_of_span_fraction": 0.169,
+        "fisher_rank": 6,
+        "layer_peak": "channel",
+        "layer_profile": {
+          "whitened": 263.36,
+          "channel": 334.98,
+          "token": 259.53,
+          "z": 334.86,
+          "pre_output": 10.34,
+          "output": 10.34
+        },
+        "consequence_ratio": [
+          1.06,
+          1.756,
+          1.098
+        ],
+        "consequence_auroc_given_alarm": null,
+        "alarm_rate": 0.467
+      },
+      "evidence": {
+        "mean_shift_norm": 950.3079544402489,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 122.7365985566539,
+        "isotropy": 0.9995733205898996,
+        "z_var_ratio_mean": 1.0,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 0.16883370637689504,
+        "layer_peak": "channel",
+        "dz_energy": {
+          "out": 0.9816465631034877,
+          "null": 0.018353436896512244,
+          "exc": 1.0000000000000004,
+          "unexc": -3.422477172291992e-16
+        },
+        "dz_energy_event": {
+          "out": 0.8932660507636109,
+          "null": 0.10673394923638906,
+          "exc": 1.0000000000000002,
+          "unexc": -3.1989969323917893e-16
+        },
+        "consequence_ratio": [
+          1.0597406620936258,
+          1.7561788266478695,
+          1.0981932592318036
+        ]
+      }
+    },
+    {
+      "cell": "event_in_span:double_pulse",
+      "moved": "event_in_span",
+      "expected": "event_in_span",
+      "attributed": "event_in_span",
+      "status": "match",
+      "reason": "consistent shift, noise model unchanged, energy inside the excited span: supported-but-rare physics",
+      "adjustment": "the representation is intact and the head is not: recalibrate or extend the output head on labelled data from the family, else abstain",
+      "statistics": {
+        "label": "event_in_span:double_pulse",
+        "moved": "event_in_span",
+        "n": 60,
+        "mean_shift_norm": 9412.889,
+        "dz_energy": {
+          "out": 0.984,
+          "null": 0.016,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 0.984,
+          "null": 0.016,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 1215.1989,
+        "z_var_ratio_mean": 1.0,
+        "z_var_ratio_max": 1.0,
+        "z_var_ratio_min": 1.0,
+        "residual_psd_participation": 1.0,
+        "psd_dev_smooth": 0.0,
+        "psd_dev_line": 0.0,
+        "residual_chan_corr_shift": 0.0,
+        "residual_norm_ratio": 1.225,
+        "residual_coherence": 0.805,
+        "residual_shift_ratio": 0.08,
+        "residual_shift_z": -263.13,
+        "out_of_span_fraction": 0.021,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 3658.55,
+          "channel": 3313.55,
+          "token": 2566.81,
+          "z": 3311.1,
+          "pre_output": 87.92,
+          "output": 87.92
+        },
+        "consequence_ratio": [
+          4.578,
+          2.104,
+          3.877
+        ],
+        "consequence_auroc_given_alarm": null,
+        "alarm_rate": 0.867
+      },
+      "evidence": {
+        "mean_shift_norm": 9412.888704353632,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 1215.19885814208,
+        "isotropy": 0.9999998751206617,
+        "z_var_ratio_mean": 1.0,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 0.021007925843550847,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 0.983850590124492,
+          "null": 0.016149409875508263,
+          "exc": 1.0000000000000004,
+          "unexc": -4.484403031921787e-16
+        },
+        "dz_energy_event": {
+          "out": 0.9838343771416872,
+          "null": 0.016165622858312703,
+          "exc": 1.0000000000000002,
+          "unexc": -4.482751185793721e-16
+        },
+        "consequence_ratio": [
+          4.578389556684502,
+          2.103796747877644,
+          3.8771160550295725
+        ]
+      }
+    },
+    {
+      "cell": "designed:output_null",
+      "moved": "designed",
+      "expected": "output_null",
+      "attributed": "output_null",
+      "status": "match",
+      "reason": "isotropic per-event displacement in the output-null subspace, consequence unchanged",
+      "adjustment": "none \u2014 alarm without consequence; this is the control",
+      "statistics": {
+        "label": "designed:output_null",
+        "moved": "designed",
+        "n": 60,
+        "mean_shift_norm": 9.522,
+        "dz_energy": {
+          "out": 0.0,
+          "null": 1.0,
+          "exc": 1.0,
+          "unexc": 0.0
+        },
+        "dz_energy_event": {
+          "out": -0.0,
+          "null": 1.0,
+          "exc": 1.0,
+          "unexc": 0.0
+        },
+        "dz_norm_mean": 9.2574,
+        "z_var_ratio_mean": 1.0,
+        "z_var_ratio_max": 1.0,
+        "z_var_ratio_min": 1.0,
+        "residual_psd_participation": 1.0,
+        "psd_dev_smooth": 0.0,
+        "psd_dev_line": 0.0,
+        "residual_chan_corr_shift": 0.0,
+        "residual_norm_ratio": 1.0,
+        "residual_coherence": 0.025,
+        "residual_shift_ratio": 0.0,
+        "residual_shift_z": -285.97,
+        "out_of_span_fraction": 0.0,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 7.44,
+          "channel": 3.74,
+          "token": 2.9,
+          "z": 3.74,
+          "pre_output": 0.0,
+          "output": 0.0
+        },
+        "consequence_ratio": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "consequence_auroc_given_alarm": 0.4,
+        "alarm_rate": 0.933
+      },
+      "evidence": {
+        "mean_shift_norm": 9.522335199091675,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 9.257393593094557,
+        "isotropy": 0.13279420127711694,
+        "z_var_ratio_mean": 1.0,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 5.748263472515025e-29,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 1.9454575880345753e-18,
+          "null": 1.0,
+          "exc": 1.0,
+          "unexc": 7.111722553756785e-17
+        },
+        "dz_energy_event": {
+          "out": -1.3902640381918626e-17,
+          "null": 1.0,
+          "exc": 1.0,
+          "unexc": 5.1070536186512794e-17
+        },
+        "consequence_ratio": [
+          1.0000000000000002,
+          1.0000000000000004,
+          1.0000000000000002
+        ]
+      }
+    },
+    {
+      "cell": "designed:output_aligned",
+      "moved": "designed",
+      "expected": "output_aligned",
+      "attributed": "output_aligned",
+      "status": "match",
+      "reason": "isotropic per-event displacement in the output-aligned subspace, consequence rose",
+      "adjustment": "none \u2014 the norm-matched consequential partner of the output-null control",
+      "statistics": {
+        "label": "designed:output_aligned",
+        "moved": "designed",
+        "n": 60,
+        "mean_shift_norm": 10.207,
+        "dz_energy": {
+          "out": 1.0,
+          "null": -0.0,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_energy_event": {
+          "out": 1.0,
+          "null": 0.0,
+          "exc": 1.0,
+          "unexc": -0.0
+        },
+        "dz_norm_mean": 39.5163,
+        "z_var_ratio_mean": 1.0,
+        "z_var_ratio_max": 1.0,
+        "z_var_ratio_min": 1.0,
+        "residual_psd_participation": 1.0,
+        "psd_dev_smooth": 0.0,
+        "psd_dev_line": 0.0,
+        "residual_chan_corr_shift": 0.0,
+        "residual_norm_ratio": 1.0,
+        "residual_coherence": 0.023,
+        "residual_shift_ratio": 0.0,
+        "residual_shift_z": -285.97,
+        "out_of_span_fraction": 0.0,
+        "fisher_rank": 6,
+        "layer_peak": "whitened",
+        "layer_profile": {
+          "whitened": 9.72,
+          "channel": 3.23,
+          "token": 2.5,
+          "z": 3.23,
+          "pre_output": 4.73,
+          "output": 4.73
+        },
+        "consequence_ratio": [
+          1.403,
+          3.66,
+          1.452
+        ],
+        "consequence_auroc_given_alarm": 0.375,
+        "alarm_rate": 0.817
+      },
+      "evidence": {
+        "mean_shift_norm": 10.207284092566338,
+        "thr_mean_shift": 5.444354869508133,
+        "mean_shifted": true,
+        "alarm": true,
+        "dz_norm_mean": 39.516327521032366,
+        "isotropy": 0.03334709454758607,
+        "z_var_ratio_mean": 1.0,
+        "z_var_off": false,
+        "psd_off": false,
+        "chan_off": false,
+        "var_off": false,
+        "out_of_span_fraction": 5.965041867210928e-29,
+        "layer_peak": "whitened",
+        "dz_energy": {
+          "out": 1.0,
+          "null": -2.0541599359877042e-17,
+          "exc": 1.0,
+          "unexc": -2.3006424853397796e-17
+        },
+        "dz_energy_event": {
+          "out": 0.9999999999999998,
+          "null": 1.0459780225599818e-16,
+          "exc": 1.0000000000000004,
+          "unexc": -4.798249037475288e-16
+        },
+        "consequence_ratio": [
+          1.4030270897405968,
+          3.6604550838359584,
+          1.4519618151494422
+        ]
+      }
+    }
+  ],
+  "adjustments": {
+    "rewhiten": {
+      "sigma_cov:corr_up": {
+        "kappa_correction": {
+          "kappa_channel": 4.087722781598911,
+          "kappa_temporal": 1.106827888698857,
+          "kappa": 4.524405575943342
+        },
+        "z_var_ratio_mean_before": 1.6648915504387842,
+        "z_var_ratio_mean_after": 1.0,
+        "psd_dev_before": 0.4527198263624931,
+        "psd_dev_after": 0.0,
+        "consequence_ratio_before": [
+          1.012738929693293,
+          1.1202208754444558,
+          1.013503569045987
+        ],
+        "consequence_ratio_after": [
+          1.0183926725514634,
+          1.0970557115567303,
+          1.02141727482617
+        ]
+      },
+      "sigma_cov:corr_down": {
+        "kappa_correction": {
+          "kappa_channel": 4.653743943580711,
+          "kappa_temporal": 1.0624063881973065,
+          "kappa": 4.944167294694672
+        },
+        "z_var_ratio_mean_before": 0.3238792530695095,
+        "z_var_ratio_mean_after": 1.0,
+        "psd_dev_before": 0.45353115713917336,
+        "psd_dev_after": 0.0,
+        "consequence_ratio_before": [
+          0.9882176967775329,
+          0.8169421718109688,
+          0.9864119753690471
+        ],
+        "consequence_ratio_after": [
+          0.989326462571417,
+          0.8112889700638347,
+          0.9877797025162781
+        ]
+      },
+      "sigma_cov:bandwidth_down": {
+        "kappa_correction": {
+          "kappa_channel": 1.052806305640672,
+          "kappa_temporal": 1.8403502558626508,
+          "kappa": 1.9375323539596228
+        },
+        "z_var_ratio_mean_before": 1.0946795884199583,
+        "z_var_ratio_mean_after": 1.0,
+        "psd_dev_before": 0.4347254394753155,
+        "psd_dev_after": 0.0,
+        "consequence_ratio_before": [
+          1.002792827750088,
+          1.0642064964269102,
+          1.0010659030633515
+        ],
+        "consequence_ratio_after": [
+          1.0085443115081718,
+          1.063237802245954,
+          1.0103067583476981
+        ]
+      },
+      "sigma_cov:line_pickup": {
+        "kappa_correction": {
+          "kappa_channel": 1.0803764378092227,
+          "kappa_temporal": 6.91690058367753,
+          "kappa": 7.472856413274063
+        },
+        "z_var_ratio_mean_before": 0.9105552022201021,
+        "z_var_ratio_mean_after": 1.0,
+        "psd_dev_before": 4.770311110640478,
+        "psd_dev_after": 0.0,
+        "consequence_ratio_before": [
+          0.9859318530104824,
+          0.9299489846552048,
+          0.9900363206671001
+        ],
+        "consequence_ratio_after": [
+          0.9905555445751442,
+          0.925335985307872,
+          0.9888913624385542
+        ]
+      }
+    },
+    "activation_patch": {
+      "sigma_struct:gain_drift": {
+        "unpatched": {
+          "consequence": 0.18450260262219792,
+          "recovery": 0.0
+        },
+        "clean": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "whitened": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "channel": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "token": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "z": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        }
+      },
+      "sigma_struct:channel_loss": {
+        "unpatched": {
+          "consequence": 0.29032094869886726,
+          "recovery": 0.0
+        },
+        "clean": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "whitened": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "channel": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "token": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "z": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        }
+      },
+      "sigma_struct:timing_jitter": {
+        "unpatched": {
+          "consequence": 0.17271398190206058,
+          "recovery": 0.0
+        },
+        "clean": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "whitened": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "channel": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "token": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        },
+        "z": {
+          "consequence": 0.17677381646710305,
+          "recovery": 1.0
+        }
+      }
+    },
+    "damage_patch": {
+      "sigma_struct:gain_drift": {
+        "whitened": {
+          "consequence": 0.18450260262219792,
+          "transmitted": 1.0
+        },
+        "channel": {
+          "consequence": 0.18450260262219792,
+          "transmitted": 1.0
+        },
+        "token": {
+          "consequence": 0.18450260262219792,
+          "transmitted": 1.0
+        },
+        "z": {
+          "consequence": 0.18450260262219792,
+          "transmitted": 1.0
+        }
+      },
+      "sigma_struct:channel_loss": {
+        "whitened": {
+          "consequence": 0.29032094869886726,
+          "transmitted": 1.0
+        },
+        "channel": {
+          "consequence": 0.29032094869886726,
+          "transmitted": 1.0
+        },
+        "token": {
+          "consequence": 0.29032094869886726,
+          "transmitted": 1.0
+        },
+        "z": {
+          "consequence": 0.29032094869886726,
+          "transmitted": 1.0
+        }
+      },
+      "sigma_struct:timing_jitter": {
+        "whitened": {
+          "consequence": 0.17271398190206058,
+          "transmitted": 1.0
+        },
+        "channel": {
+          "consequence": 0.17271398190206058,
+          "transmitted": 1.0
+        },
+        "token": {
+          "consequence": 0.17271398190206058,
+          "transmitted": 1.0
+        },
+        "z": {
+          "consequence": 0.17271398190206058,
+          "transmitted": 1.0
+        }
+      }
+    },
+    "refit_stage": {
+      "sigma_struct:gain_drift": {
+        "before": [
+          1.0452242031788466,
+          0.9906123371147161,
+          0.9943352357326712
+        ],
+        "channel": [
+          0.9721928111861521,
+          0.9057384215842946,
+          0.9620172968206124
+        ],
+        "token": [
+          1.0018601548019148,
+          1.034943659520039,
+          0.9985077186164909
+        ],
+        "output": [
+          0.9974078772495633,
+          1.0098433640086633,
+          0.9965777887883243
+        ]
+      },
+      "sigma_struct:channel_loss": {
+        "before": [
+          1.6541551133881005,
+          1.3218033717150435,
+          1.172083685879322
+        ],
+        "channel": [
+          0.937768221772181,
+          0.9708754315077988,
+          0.933401165656749
+        ],
+        "token": [
+          0.9951885546055215,
+          1.0575110468918707,
+          0.9796857181747979
+        ],
+        "output": [
+          0.9978971178649859,
+          1.0267179457088726,
+          0.9930761127580207
+        ]
+      },
+      "sigma_struct:timing_jitter": {
+        "before": [
+          0.976776067011659,
+          0.9847752983781511,
+          0.9866450477772769
+        ],
+        "channel": [
+          1.003166552998043,
+          0.8854213869176649,
+          1.0100558760927159
+        ],
+        "token": [
+          0.9800113727977567,
+          1.0454515443754933,
+          0.9899686872976733
+        ],
+        "output": [
+          0.9785313856632947,
+          0.8973614400461699,
+          0.9959582203732109
+        ]
+      },
+      "geometry:4ch": {
+        "before": [
+          1.8067770624039425,
+          1.544147858409621,
+          1.4163521068232603
+        ],
+        "token": [
+          1.8055177066411479,
+          1.8855861835583738,
+          1.3959406177878069
+        ],
+        "channel": [
+          0.9861285330459458,
+          0.9980110378821172,
+          0.9755065922937272
+        ],
+        "output": [
+          0.9942952390203018,
+          0.985911813728422,
+          0.9934723043099063
+        ]
+      },
+      "geometry:16ch": {
+        "before": [
+          1.624950593491367,
+          1.2164696931415402,
+          1.1471114989069913
+        ],
+        "token": [
+          1.553237566734775,
+          1.2219805212082795,
+          1.122701509350237
+        ],
+        "channel": [
+          1.0067980548965165,
+          0.9298061059697201,
+          1.0170578193907056
+        ],
+        "output": [
+          0.9855300484979608,
+          0.9644732867296882,
+          0.9856638254542781
+        ]
+      }
+    }
+  },
+  "n_match": 13,
+  "n_documented": 1,
+  "n_mismatch": 0
+}

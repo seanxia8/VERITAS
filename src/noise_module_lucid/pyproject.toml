@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noise-module-lucid"
+dynamic = ["version"]
+description = "LUCiD-customised PMT front-end noise for the ORACLE water-Cherenkov arm (docs/EXPERIMENT_DESIGN.md §II.7)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Dowling Wong", email = "wangdowling@gmail.com" },
+]
+keywords = [
+    "noise simulation",
+    "water cherenkov",
+    "photodetector",
+    "PMT front end",
+    "LUCiD",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = ["numpy>=1.24", "scipy>=1.10", "modular-noise-simulator"]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["noise_module_lucid"]
+
+[tool.setuptools.package-dir]
+noise_module_lucid = "."
+
+[tool.setuptools.dynamic]
+version = { attr = "noise_module_lucid.__version__" }
+
+[tool.setuptools.license-files]
+paths = ["LICENSE"]
+
+[tool.uv.sources]
+modular-noise-simulator = { workspace = true }

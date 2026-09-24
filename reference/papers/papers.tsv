@@ -1,0 +1,31 @@
+2411.07940	prior_art	roschewitz2025_dataset_shift_identification	Roschewitz et al., Automatic dataset shift identification, MICCAI 2025
+2210.11466	prior_art	lee2023_surgical_finetuning	Lee et al., Surgical Fine-Tuning, ICLR 2023
+2110.06177	prior_art	podkopaev2022_harmful_shift	Podkopaev & Ramdas, Tracking risk / harmful shifts, ICLR 2022
+2210.10769	prior_art	zhang2023_why_did_the_model_fail	Zhang et al., Why did the Model Fail?, ICML 2023
+2301.04213	prior_art	hase2023_does_localization_inform_editing	Hase et al., Does Localization Inform Editing?, NeurIPS 2023
+1810.11953	prior_art	rabanser2019_failing_loudly	Rabanser et al., Failing Loudly, NeurIPS 2019
+1912.08142	prior_art	castro2020_causality_matters	Castro et al., Causality matters in medical imaging, Nat Commun 2020
+2204.05306	prior_art	yang2023_full_spectrum_ood	Yang et al., Full-Spectrum OOD Detection, IJCV 2023
+2307.15647	prior_art	lambert2023_multilayer_aggregation_ood	Lambert et al., Multi-layer Aggregation for OOD, UNSURE 2023
+2203.14960	prior_art	eyuboglu2022_domino	Eyuboglu et al., Domino slice discovery, ICLR 2022
+2107.00758	prior_art	deon2021_spotlight	d'Eon et al., Spotlight, 2021
+2201.04234	prior_art	garg2022_atc	Garg et al., Average Thresholded Confidence, ICLR 2022
+2107.03315	prior_art	guillory2021_doc	Guillory et al., Difference of Confidences, ICCV 2021
+2104.08279	prior_art	bates2023_conformal_outlier	Bates et al., Testing for outliers with conformal p-values, AoS 2023
+2201.02331	prior_art	kaur2022_idecode	Kaur et al., iDECODe, AAAI 2022
+2501.13789	prior_art	cms2025_ml_data_quality_monitoring	CMS ML data-quality monitoring
+2309.10157	prior_art	cms2023_ecal_autoencoder_dqm	CMS ECAL autoencoder anomaly detection
+2407.20278	prior_art	cms2024_ecal_autoencoder_dqm	CMS ECAL autoencoder DQM follow-up
+2105.08742	prior_art	ghosh2021_systematics_aware_training	Systematics-aware learning
+2609.00611	testbeds	young2026_panda_diplomacy	Young, Jesus-Valls & Terao, Panda Diplomacy: one pre-training recipe across LArTPC / collider TPC / water Cherenkov; V2 weights not yet released
+2512.01324	testbeds	young2025_panda	Young & Terao, Panda self-distilled sensor-level representations
+2511.13111	testbeds	nubench2026	NuBench neutrino-telescope benchmark
+2406.04378	testbeds	fry2024_tidmad	TIDMAD dark-matter denoising benchmark
+2304.14526	testbeds	lazar2023_prometheus	Prometheus neutrino-telescope simulation
+2411.09864	testbeds	douglas2025_representation_shift	Douglas et al., representation-shift preprint (v3)
+1705.07341	prior_art	microboone2017_noise	MicroBooNE noise characterization and filtering, JINST 12 (2017) P08003 — the measured coherent (cross-channel) LArTPC noise model behind Wire-Cell
+2307.11877	testbeds	hertel2023_herald	HeRALD superfluid-helium detector concept, first demonstration — the detector HeST simulates
+2602.24129	testbeds	alterkait2026_lucid	Alterkait et al., LUCiD: end-to-end differentiable calibration and reconstruction for optical particle detectors — the waveform-level water-Cherenkov arm (NOTE: repo has no licence as of 2026-09-05)
+https://github.com/spice-herald/pytessim	software	pytessim	pytessim (MIT, first public 2026-05-18) — samples multichannel noise from a PSD or CSD by per-frequency Cholesky. No arXiv paper; cite the repository.
+https://github.com/WireCell/wire-cell-toolkit	software	wirecell_correlatedaddnoise	Wire-Cell CorrelatedAddNoise (LGPL, 2026-02-04) — per-band colorer matrices A with A A^T ~ correlation matrix, from a user JSON file; CoherentAddNoise + GroupNoiseModel give shared-private structure. No arXiv paper; cite the repository.
+https://github.com/spice-herald/HeST	software	hest	HeST (MIT) — superfluid-helium yields and quasiparticle-evaporation simulation; emits per-sensor arrival times, no noise model. Candidate Tier-2b dark-matter arm.

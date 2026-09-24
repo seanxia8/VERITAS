@@ -1,8 +1,14 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
+#
+# Part of the modular noise simulator written for the ORACLE study.
+# If you use this module in published work, please cite it: see CITATION.cff
+# at the repository root.
 from __future__ import annotations
 
 import numpy as np
 
-from noise_module.fit_al2o3_athermal import (
+from noise_module.budgets.fit_al2o3_athermal import (
     build_composite,
     build_psd_artifact,
     fit_all_components,
