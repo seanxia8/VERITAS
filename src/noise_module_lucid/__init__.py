@@ -1,86 +1,133 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
-#
-# Part of the ORACLE study. If you use this package in published work, please
-# cite it: see CITATION.cff at the repository root.
-"""LUCiD front-end noise: presets, units bridge, grouping, adapter, interventions.
+"""LUCiD-customised front-end noise for the ORACLE water-Cherenkov arm.
 
-Thin adapter **on top of** :mod:`noise_module`; nothing in ``noise_module`` is
-forked and nothing here imports LUCiD, so the package builds and tests without a
-LUCiD clone (arm A is licence-gated on A0, ``docs/TESTBEDS.md`` §1.1).
+A thin package that depends on ``noise_module`` (never forks it) and adds what
+LUCiD does not simulate: the PMT front end between the anode and the digitiser.
+See ``README.md`` for the sorted instruction list and what is in scope.
 
-What it supplies
-----------------
-* :mod:`noise_module_lucid.presets` — ``PMT_FRONTEND_V2`` (512 ns / 1 GHz grid)
-  and ``PMT_FRONTEND_LONG`` (the 16–32 µs grid the κ cells need), each with a
-  provenance record and a single-channel and a crate (spectral shared/private)
-  view.
-* :mod:`noise_module_lucid.units` — the photoelectron → mV bridge (SPE template).
-* :mod:`noise_module_lucid.grouping` — the covariance unit (crate / string /
-  angular-sector × height band).
-* :mod:`noise_module_lucid.adapter` — ``add_readout_noise``: crate-wise noise on
-  a LUCiD charge waveform, returning the implied and realized covariance per
-  group.
-* :mod:`noise_module_lucid.interventions` — the declared N families, plus the
-  families documented but deliberately not modelled as covariance.
+Import either the whole package or a submodule::
 
-Explanation and physics: ``docs/noise_module_lucid.md``. Design:
-``docs/EXPERIMENT_DESIGN.md`` §II.7 and §III.6.
+    from noise_module_lucid import add_pmt_noise, PMT_FRONTEND_V2
+    from noise_module_lucid import digitiser, delay, pulses, clock, interventions
 """
+from __future__ import annotations
 
-from .adapter import add_pmt_noise, add_readout_noise, crate_noise, kappa
-from .grouping import groups_from_positions, groups_from_string_id
-from .interventions import (
-    DOCUMENTED_NOT_IMPLEMENTED,
-    N_FAMILIES,
-    add_broadband_common_mode,
-    clock_scale,
-    decimate_alias_fold,
+__version__ = "0.3.0"
+
+from . import clock, dataset, delay, digitiser, grouping, interventions, pulses, readouts, validation
+from .adapter import (
+    add_pmt_noise,
+    add_readout_noise,
+    apply_channel_gains,
+    crate_preset,
+    kappa,
+    long_window_preset,
+    matched_cell_kappa_floor,
 )
+from .clock import add_deterministic_clock, line_power
+from .delay import cable_delay, delay_samples, group_delay_s
+from .digitiser import (
+    aperture_jitter_noise,
+    high_frequency_fraction,
+    quantise,
+    sampling_jitter,
+)
+from .grouping import channel_groups
 from .presets import (
+    CLOCK_LINE_NAMES,
+    CONTRACTS,
+    FRONT_END,
+    FRONT_END_BANDWIDTH_RATIO,
+    FRONT_END_CORNER_HZ,
+    FS_L,
     GROUP,
-    PMT_CRATE_LONG,
+    LUCID_DARK_RATE_HZ,
     PMT_CRATE_V2,
-    PMT_FRONTEND_LONG,
     PMT_FRONTEND_V2,
     PMT_PRIVATE,
     PMT_SHARED,
-    PMT_SHARED_LONG,
     PROVENANCE,
     RMS_MV,
-    crate_preset,
-    preset_for,
+    SPE_BANDWIDTH_HZ,
+    SPE_LENGTH_NS,
+    SPE_MV_PER_PE,
+    SPE_TAU_FALL_NS,
+    SPE_TAU_RISE_NS,
+    long_window_components,
+    spe_bandwidth_hz,
+    spe_shape,
 )
-from .units import FS_L, charge_to_mv, spe_template, to_mv
+from .pulses import (
+    add_afterpulses,
+    add_dark_pulses,
+    add_prepulses,
+    dark_pulse_times,
+    place_pulses,
+)
+from .dataset import (
+    CellSpec,
+    EventSpec,
+    build_dataset,
+    covariance_cells,
+    intervention_matrix,
+    lucid_available,
+    lucid_commit,
+    reference_cell,
+    run_cell,
+    run_lucid_cell,
+    write_cell,
+)
+from .readouts import (
+    PMT_1GHZ,
+    READOUTS,
+    UNMODELLED,
+    Readout,
+    custom_readout,
+    get_readout,
+    register,
+)
+from .units import charge_to_mv, spe_bandwidth, spe_template, to_mv
+from .validation import (
+    bandwidth_report,
+    grouping_report,
+    grouping_sensitivity,
+    kappa_floor_sweep,
+    realized_csd_check,
+)
 
 __all__ = [
-    "add_pmt_noise",
-    "add_readout_noise",
-    "add_broadband_common_mode",
-    "charge_to_mv",
-    "clock_scale",
-    "crate_noise",
-    "crate_preset",
-    "decimate_alias_fold",
-    "DOCUMENTED_NOT_IMPLEMENTED",
-    "FS_L",
-    "GROUP",
-    "groups_from_positions",
-    "groups_from_string_id",
-    "kappa",
-    "N_FAMILIES",
-    "PMT_CRATE_LONG",
-    "PMT_CRATE_V2",
-    "PMT_FRONTEND_LONG",
-    "PMT_FRONTEND_V2",
-    "PMT_PRIVATE",
-    "PMT_SHARED",
-    "PMT_SHARED_LONG",
-    "PROVENANCE",
-    "preset_for",
-    "RMS_MV",
-    "spe_template",
-    "to_mv",
+    # submodules
+    "clock", "dataset", "delay", "digitiser", "grouping", "interventions", "pulses",
+    "readouts", "validation",
+    # readouts
+    "Readout", "READOUTS", "UNMODELLED", "PMT_1GHZ", "get_readout", "custom_readout", "register",
+    # dataset
+    "EventSpec", "CellSpec", "run_cell", "run_lucid_cell", "build_dataset", "write_cell",
+    "reference_cell", "intervention_matrix", "covariance_cells", "lucid_available", "lucid_commit",
+    # adapter
+    "add_pmt_noise", "add_readout_noise", "apply_channel_gains", "crate_preset", "kappa",
+    "long_window_preset", "matched_cell_kappa_floor",
+    # clock
+    "add_deterministic_clock", "line_power",
+    # delay
+    "cable_delay", "delay_samples", "group_delay_s",
+    # digitiser
+    "aperture_jitter_noise", "high_frequency_fraction", "quantise", "sampling_jitter",
+    # grouping
+    "channel_groups",
+    # units
+    "charge_to_mv", "spe_bandwidth", "spe_template", "to_mv",
+    # pulses
+    "add_afterpulses", "add_dark_pulses", "add_prepulses", "dark_pulse_times", "place_pulses",
+    # validation
+    "bandwidth_report", "grouping_report", "grouping_sensitivity", "kappa_floor_sweep",
+    "realized_csd_check",
+    # constants and presets
+    "CLOCK_LINE_NAMES", "CONTRACTS", "FRONT_END", "FRONT_END_BANDWIDTH_RATIO",
+    "FRONT_END_CORNER_HZ", "FS_L", "GROUP", "LUCID_DARK_RATE_HZ", "PMT_CRATE_V2",
+    "PMT_FRONTEND_V2", "PMT_PRIVATE", "PMT_SHARED", "PROVENANCE", "RMS_MV",
+    "SPE_BANDWIDTH_HZ", "SPE_LENGTH_NS", "SPE_MV_PER_PE", "SPE_TAU_FALL_NS",
+    "SPE_TAU_RISE_NS", "long_window_components", "spe_bandwidth_hz", "spe_shape",
+    "__version__",
 ]
-
-__version__ = "0.1.0"

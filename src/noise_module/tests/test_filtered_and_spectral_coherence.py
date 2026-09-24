@@ -6,7 +6,7 @@
 # at the repository root.
 """Multiplicative transfer functions (``Filtered``) and frequency-dependent
 crate coherence (``spectral_shared_private``) — the two fixes to the PMT
-front-end preset of 11 Sep 2026 (docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md)."""
+front-end preset of 11 Sep 2026 (src/noise_module_lucid/docs/LUCID_NOISE_REVIEW_2026-09-11.md)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import pytest
 from scipy.signal import csd, welch
 
 from noise_module import Filtered, MultiChannelNoiseGenerator, NoiseGenerator, Peaking, Reflection
-from noise_module.spectral_models import component_from_config
+from noise_module.spectral.models import component_from_config
 
 FS, N = 1e9, 512
 

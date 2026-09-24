@@ -6,12 +6,12 @@
 # at the repository root.
 """Closed-form noise budget for a transition-edge-sensor (TES) calorimeter channel.
 
-This is the HeRALD-shaped sibling of :class:`~noise_module.reference_budget.AthermalNoiseBudget`.
+This is the HeRALD-shaped sibling of :class:`~noise_module.budgets.reference_budget.AthermalNoiseBudget`.
 That budget is a *magnetic* calorimeter (Al2O3:Er with a SQUID readout); HeRALD
 (arXiv:2307.11877) reads its quantum-evaporation signal with a TES on Si, so
 the terms change while the spectral machinery does not. Every term below is a
 textbook form from Irwin & Hilton, *Transition-Edge Sensors* (2005), built
-from the existing :mod:`noise_module.spectral_models` components.
+from the existing :mod:`noise_module.spectral.models` components.
 
 Spectral forms (one-sided current-noise PSD referred to the SQUID input, in
 readout-units^2 / Hz):
@@ -33,7 +33,7 @@ readout-units^2 / Hz):
   1 GHz PMT digitiser, where a 512 ns record cannot represent 50 Hz at all.
   A line needs to sit at least two bins above DC to be a line rather than a
   drift: the ~1.4 Hz pulse-tube fundamental is therefore *not* a line on this
-  grid but slow drift, which belongs to :mod:`noise_module.temporal_noise`.
+  grid but slow drift, which belongs to :mod:`noise_module.temporal.wrapper`.
 * No paramagnetic-spin term: that is a magnetic-calorimeter effect.
 
 Provenance is a first-class field. Every constant carries one of three
@@ -52,7 +52,7 @@ from typing import Any
 
 import numpy as np
 
-from .spectral_models import CompositeSpectrum, Line, PowerLaw, RollOff, White
+from ..spectral.models import CompositeSpectrum, Line, PowerLaw, RollOff, White
 
 __all__ = ["TESNoiseBudget", "HERALD_V1_PLACEHOLDER", "PROVENANCE_STATES"]
 
@@ -201,7 +201,7 @@ class TESNoiseBudget:
         return CompositeSpectrum(components)
 
     def to_component_dicts(self) -> list[dict[str, Any]]:
-        """Serialisable ``components`` list for :class:`~noise_module.config.NoiseConfig`."""
+        """Serialisable ``components`` list for :class:`~noise_module.core.config.NoiseConfig`."""
         return [
             {"type": item.__class__.__name__.lower(), **asdict(item)}
             for item in self.to_composite().components

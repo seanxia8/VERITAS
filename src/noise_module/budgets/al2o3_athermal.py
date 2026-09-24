@@ -17,12 +17,12 @@ import numpy as np
 from scipy.optimize import least_squares
 from scipy.signal import welch
 
-from .NoiseGenerator import NoiseGenerator
-from .spectral_models import CompositeSpectrum, component_from_config
-from .templates import pulse_template_2
+from ..core.generator import NoiseGenerator
+from ..spectral.models import CompositeSpectrum, component_from_config
+from ..core.templates import pulse_template_2
 
 
-DATA_DIR = Path(__file__).resolve().parent / "data" / "Al2O3_Al_athermal"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "Al2O3_Al_athermal"
 FIT_FILE = DATA_DIR / "al2o3_athermal_fit.json"
 PSD_FILE = DATA_DIR / "al2o3_athermal_total_psd.npy"
 DEFAULT_SAMPLING_FREQUENCY = 1_000_000.0

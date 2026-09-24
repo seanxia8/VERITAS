@@ -62,7 +62,7 @@ amplitudes are those that reproduce the supplied curves, and are retained only
 so the regenerated tables match the reference bit for bit.
 
 Because the budget is now parameterised
-(`noise_module.reference_budget.AthermalNoiseBudget`), it can be retuned for
+(`noise_module.budgets.reference_budget.AthermalNoiseBudget`), it can be retuned for
 any comparable athermal-calorimeter channel. `AL2O3_AL_ATHERMAL` is one preset,
 not a hard-wired dataset.
 

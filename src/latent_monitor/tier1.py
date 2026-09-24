@@ -30,7 +30,7 @@ from typing import Any
 import numpy as np
 
 from noise_module import MultiChannelNoiseGenerator, NoiseGenerator
-from noise_module.templates import pulse_template_2
+from noise_module import pulse_template_2
 
 from .subject import Geometry
 from .whitening import KroneckerWhitener

@@ -8,20 +8,23 @@ it** — see [`CITATION.cff`](../../CITATION.cff) at the repository root.
 
 ## What it provides
 
-| Module | Role |
-|---|---|
-| `NoiseGenerator` | stationary Gaussian single-channel synthesis from an arbitrary one-sided PSD |
-| `multichannel_noise` | correlated channels in independent, shared-private and low-rank latent modes, returning both the implied and the realized covariance |
-| `temporal_noise` | non-stationarity, piecewise stationarity, drift, local variance change |
-| `artifact_injector` | spectral lines, glitches, bursts, sparse non-Gaussian artifacts |
-| `psd_resampling` | alias-folding and in-band resampling of PSD densities between sampling rates |
-| `validation` | stationarity, Gaussianity, CSD-ensemble and artifact checks with bootstrap intervals |
-| `spectral_models` | composable analytic PSD components (white, power law, Lorentzian, roll-off, line, band-limited) |
-| `reference_budget` | closed-form athermal-calorimeter noise budget; regenerates the reference tables |
-| `calibration`, `streaming`, `non_gaussian`, `templates` | presets, chunked generation, non-Gaussian innovations, pulse templates |
+The package is organised into subpackages; `noise_module/__init__.py` re-exports
+the public API so `from noise_module import NoiseGenerator` keeps working.
+
+| Subpackage | Module | Role |
+|---|---|---|
+| `core` | `generator` | stationary Gaussian single-channel synthesis from an arbitrary one-sided PSD |
+| `core` | `config`, `utils`, `templates`, `streaming` | config schema, RNG/array helpers, pulse/burst/glitch templates, chunked generation |
+| `spectral` | `models` | composable analytic PSD components (white, power law, Lorentzian, roll-off, line, peaking, reflection, filtered) |
+| `multichannel` | `generator` | correlated channels in independent, shared-private, spectral-shared-private and low-rank modes, returning both the implied and the realized covariance |
+| `artifacts` | `injector`, `non_gaussian` | spectral lines, glitches, bursts, sparse artifacts; non-Gaussian innovations |
+| `temporal` | `wrapper` | non-stationarity, piecewise stationarity, drift, local variance change |
+| `resampling` | `psd` | alias-folding and in-band resampling of PSD densities between sampling rates |
+| `validation` | `checks`, `calibration` | stationarity, Gaussianity, CSD-ensemble and artifact checks with bootstrap intervals; reference-dataset calibration |
+| `budgets` | `reference_budget`, `al2o3_athermal`, `fit_al2o3_athermal`, `tes_budget` | closed-form athermal-calorimeter and HeRALD TES budgets; regenerate the reference tables |
 
 Design rationale is in
-[`docs/noise_module/noise_generator_modular_design_spec.md`](../../docs/noise_module/noise_generator_modular_design_spec.md).
+[`docs/archive/noise_module/noise_generator_modular_design_spec.md`](../../docs/archive/noise_module/noise_generator_modular_design_spec.md).
 
 ## Reference data
 

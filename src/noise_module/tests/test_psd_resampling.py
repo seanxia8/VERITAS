@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from noise_module.psd_resampling import (
+from noise_module.resampling.psd import (
     alias_fold_psd_density,
     inband_resample_psd_density,
     load_psd_density,

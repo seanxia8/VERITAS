@@ -31,11 +31,11 @@ from typing import Any
 import numpy as np
 from scipy.optimize import curve_fit
 
-from . import psd_resampling as pr
-from .spectral_models import CompositeSpectrum, component_from_config
+from ..resampling import psd as pr
+from ..spectral.models import CompositeSpectrum, component_from_config
 
 
-DATA_DIR = Path(__file__).resolve().parent / "data" / "Al2O3_Al_athermal"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "Al2O3_Al_athermal"
 COMPONENT_FILES = {
     "Johnson": "Johnson_noise.dat",
     "SQUID": "SQUID_noise.dat",

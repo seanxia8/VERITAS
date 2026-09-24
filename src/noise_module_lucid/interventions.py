@@ -1,146 +1,94 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
-"""Declared LUCiD intervention families (the N contract) and what is *not* Σ.
+"""Declared acquisition-contract interventions (the N families) for LUCiD.
 
-Three kinds, kept apart because the ORACLE signature table separates them
-(``docs/EXPERIMENT_DESIGN.md`` §III.1):
+Each intervention holds everything else fixed and moves one declared
+acquisition condition. Two kinds are produced:
 
-* **covariance-type N** — the realized Σ differs from the assumed Σ̂ while the
-  transfer function is unchanged (clock amplitude, broadband common mode,
-  digitiser alias fold). These carry the κ prediction.
-* **structural N** — the transfer function or channel set changes (gain drift,
-  channel loss, cable lag, ADC/TDC aperture jitter). These move the
-  representation mean and the noise-only statistics together.
-* **background / event families** — real unwanted *events* (radon, PMT
-  pre-/after-pulse, pileup, DSNB, atmospheric ν, QE-vs-DIS). They are simulated
-  as events with a shape, never as covariance; they belong to the S/U axis.
+* **preset** interventions return a ``(base_config, crate_config)`` pair for
+  ``MultiChannelNoiseGenerator`` (a changed front-end covariance);
+* **trace** interventions transform an already-generated mV trace (a structural
+  change that does not enter ``Sigma``).
 
-``DOCUMENTED_NOT_IMPLEMENTED`` records the families named in the working note
-that are deliberately left to the event/background layer.
+The registry is deliberately small and named, so a protocol run can say which
+families it used and record it.
 """
 from __future__ import annotations
 
+from copy import deepcopy
+
 import numpy as np
 
-from .presets import FS_L, PMT_SHARED
+from .adapter import crate_preset
+from .delay import cable_delay
+from .digitiser import aperture_jitter_noise, quantise
+from .presets import PMT_SHARED
+
+#: Re-exported closed-form alias fold (decimation without anti-alias filter).
+from noise_module.resampling.psd import alias_fold_psd_density  # noqa: E402
 
 
-def clock_scale(scale: float, shared: list | None = None) -> list:
-    """Multiply the ADC-clock / switching line amplitudes by ``scale``.
-
-    A covariance-type N: the shared process grows, the private floor does not.
-    Use with :func:`noise_module_lucid.presets.crate_preset` and
-    ``keep_private_power=True`` so the added power is the line's.
-    """
-    if scale < 0:
-        raise ValueError("scale must be non-negative.")
-    shared = PMT_SHARED if shared is None else shared
-    out = []
-    for comp in shared:
-        comp = dict(comp)
-        if comp.get("type") == "line":
-            comp["scale"] = float(comp.get("scale", 1.0)) * float(scale)
-        out.append(comp)
+def _scaled(components, scale: float):
+    out = deepcopy(components)
+    for c in out:
+        c["scale"] = float(c.get("scale", 1.0)) * scale
     return out
 
 
-def add_broadband_common_mode(scale: float, shared: list | None = None) -> list:
-    """Append a white common-mode term to the shared process.
-
-    This is the V1 mistake promoted to a *declared intervention*: a frequency-flat
-    crate coherence, physically a ground/HV ripple, not the clock. Covariance-type.
-    """
-    if scale < 0:
+def clock_amplitude(scale: float):
+    """Preset: multiply the shared clock lines by ``scale`` (adds power)."""
+    if scale < 0.0:
         raise ValueError("scale must be non-negative.")
-    shared = PMT_SHARED if shared is None else shared
-    return [*shared, {"type": "white", "scale": float(scale),
-                      "name": "broadband_common_mode"}]
+    return crate_preset(shared=_scaled(PMT_SHARED, scale))
 
 
-def decimate_alias_fold(trace: np.ndarray, factor: int = 4,
-                        fs: float = FS_L) -> tuple[np.ndarray, float]:
-    """Keep every ``factor``-th sample with no anti-alias filter.
+def deterministic_clock():
+    """Preset: phase-locked clock tone instead of the Gaussian line (P1.2)."""
+    return crate_preset(clock="deterministic")
 
-    The digitiser-contract N family: nothing is added, the sampling contract
-    changes, and :func:`alias_fold_prediction` gives the folded spectrum in
-    closed form (``noise_module.psd_resampling``).
+
+def broadband_common_mode(scale: float):
+    """Preset: add a shared white term — a broadband coherent mode."""
+    if scale < 0.0:
+        raise ValueError("scale must be non-negative.")
+    shared = deepcopy(PMT_SHARED) + [{"type": "white", "scale": float(scale), "name": "broadband_common_mode"}]
+    return crate_preset(shared=shared)
+
+
+def gain_drift(trace: np.ndarray, per_channel_gain: np.ndarray) -> np.ndarray:
+    """Trace: multiply each channel by its gain (a structural N family)."""
+    trace = np.asarray(trace, dtype=float)
+    gain = np.asarray(per_channel_gain, dtype=float)
+    if gain.shape != (trace.shape[0],):
+        raise ValueError("per_channel_gain must have one entry per channel.")
+    return trace * gain[:, None]
+
+
+def decimate_no_antialias(trace: np.ndarray, factor: int) -> np.ndarray:
+    """Trace: keep every ``factor``-th sample with no anti-alias filter.
+
+    The realized spectrum is the closed-form alias fold of the input PSD; the
+    prediction is exact, which makes this the cleanest N family there is.
     """
     if factor < 1:
         raise ValueError("factor must be a positive integer.")
-    trace = np.asarray(trace, dtype=float)
-    return trace[:, ::factor], fs / factor
+    return np.asarray(trace, dtype=float)[:, ::factor]
 
 
-def alias_fold_prediction(f: np.ndarray, S: np.ndarray, fs_new: float, n_new: int):
-    """Closed-form alias fold of a one-sided density (wraps ``noise_module``)."""
-    from noise_module import alias_fold_psd_density
-
-    return alias_fold_psd_density(f, S, fs_new, n_new)
-
-
-def gain_drift_apply(trace: np.ndarray, groups: list[np.ndarray], sigma: float,
-                     rng: np.random.Generator) -> np.ndarray:
-    """Per-channel gain drift (structural N): scale each channel by N(1, sigma)."""
-    trace = np.asarray(trace, dtype=float).copy()
-    for idx in groups:
-        gains = 1.0 + rng.normal(0.0, sigma, size=len(idx))
-        trace[idx] *= gains[:, None]
-    return trace
-
-
-def channel_loss_apply(trace: np.ndarray, fraction: float,
-                       rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
-    """Zero a random ``fraction`` of channels (structural N); return masked trace."""
-    trace = np.asarray(trace, dtype=float).copy()
-    C = trace.shape[0]
-    n_drop = int(round(fraction * C))
-    dropped = rng.choice(C, size=n_drop, replace=False) if n_drop else np.array([], int)
-    trace[dropped] = 0.0
-    return trace, np.sort(dropped)
-
-
-def cable_lag_apply(trace: np.ndarray, delays_samples: np.ndarray) -> np.ndarray:
-    """Apply per-channel integer cable delays (structural N: lagged signal)."""
-    trace = np.asarray(trace, dtype=float)
-    delays = np.asarray(delays_samples, dtype=int)
-    if delays.shape != (trace.shape[0],):
-        raise ValueError("delays_samples must have one integer per channel.")
-    out = np.zeros_like(trace)
-    for i, d in enumerate(delays):
-        if d == 0:
-            out[i] = trace[i]
-        elif d > 0:
-            out[i, d:] = trace[i, :-d]
-        else:
-            out[i, :d] = trace[i, -d:]
-    return out
-
-
-#: The declared N contract, keyed by family name.
-N_FAMILIES: dict[str, dict] = {
-    "clock_line_scale": {"kind": "covariance", "apply": clock_scale,
-                         "note": "ADC clock + switching line amplitude ×k; narrow-band κ"},
-    "broadband_common_mode": {"kind": "covariance", "apply": add_broadband_common_mode,
-                              "note": "frequency-flat crate coherence; ground/HV ripple"},
-    "alias_fold": {"kind": "digitiser", "apply": decimate_alias_fold,
-                   "note": "decimate without anti-alias; exact closed-form prediction"},
-    "gain_drift": {"kind": "structural", "apply": gain_drift_apply,
-                   "note": "per-channel gain; moves the representation mean at the channel stage"},
-    "channel_loss": {"kind": "structural", "apply": channel_loss_apply,
-                     "note": "dead PMTs; mean shift at the token stage"},
-    "cable_lag": {"kind": "structural", "apply": cable_lag_apply,
-                  "note": "cable length -> lagged signal; transfer-function change"},
+#: Name -> (kind, callable). ``kind`` is "preset" or "trace".
+INTERVENTIONS = {
+    "clock_x2": ("preset", lambda: clock_amplitude(2.0)),
+    "clock_x5": ("preset", lambda: clock_amplitude(5.0)),
+    "clock_deterministic": ("preset", deterministic_clock),
+    "broadband_common_mode_30": ("preset", lambda: broadband_common_mode(0.43)),
+    "quantise_1mV": ("trace", lambda x, fs: quantise(x, 1.0)),
+    "aperture_jitter_50ps": ("trace", lambda x, fs: aperture_jitter_noise(x, 50e-12, fs)),
+    "cable_delay_10ns": ("trace", lambda x, fs: cable_delay(x, 10e-9, fs)),
+    "cable_dispersive_10ns": ("trace", lambda x, fs: cable_delay(x, 10e-9, fs, dispersion_s2=1e-17)),
+    "alias_fold_4": ("trace", lambda x, fs: decimate_no_antialias(x, 4)),
 }
 
-#: Named in the working note; simulated as events or deferred, never as Σ.
-DOCUMENTED_NOT_IMPLEMENTED: dict[str, str] = {
-    "radon_in_water": "radioactive background events (rate/spectrum/position); S/U family, not noise",
-    "pmt_pre_after_pulse": "out-of-trigger and in-gate contamination; event/pileup family",
-    "pileup_near_detector": "in-gate hit from a different event; mostly IWCD / near detector",
-    "dark_rate_fluctuation": "LUCiD models dark counts as events; the rate/electronics fluctuation is the N part",
-    "adc_tdc_aperture_jitter": "random sampling in ADC/TDC; digitiser-contract N, to add with quantisation",
-    "dsnb_signal": "diffusive supernova neutrino background as signal; physics S family",
-    "atmospheric_neutrino": "higher-energy tail leaking into the signal band (Cherenkov); background event family",
-    "qe_vs_dis": "neutrino-nucleus interaction channel; physics S family",
-    "50hz_mains": "not representable at 1 GHz/512 ns or even 32 µs; needs decimation or a >=1 s record",
-}
+
+def describe() -> dict[str, str]:
+    """Names and kinds of every declared intervention."""
+    return {name: kind for name, (kind, _) in INTERVENTIONS.items()}

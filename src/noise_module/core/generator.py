@@ -20,7 +20,7 @@ from scipy.fft import irfft, rfftfreq
 from scipy.linalg import toeplitz
 
 from .config import CONFIG_SCHEMA_VERSION, NoiseConfig
-from .spectral_models import CompositeSpectrum, component_from_config
+from ..spectral.models import CompositeSpectrum, component_from_config
 from .utils import resolve_rng
 
 

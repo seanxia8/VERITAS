@@ -20,7 +20,7 @@ from typing import Any
 import numpy as np
 from scipy.signal import resample_poly, welch
 
-from .utils import resolve_rng
+from ..core.utils import resolve_rng
 
 
 def validate_psd_density(

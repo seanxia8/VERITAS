@@ -58,7 +58,7 @@ from typing import Any
 
 import numpy as np
 
-from .spectral_models import CompositeSpectrum, PowerLaw, RollOff, White
+from ..spectral.models import CompositeSpectrum, PowerLaw, RollOff, White
 
 __all__ = [
     "AL2O3_AL_ATHERMAL",
@@ -274,7 +274,7 @@ def write_reference_asd(
 ) -> list[Path]:
     """Regenerate the reference tables for ``budget`` into ``out_dir``."""
     if out_dir is None:
-        out_dir = Path(__file__).resolve().parent / "data" / budget.name
+        out_dir = Path(__file__).resolve().parents[1] / "data" / budget.name
     return budget.write_reference_asd(out_dir)
 
 

@@ -419,7 +419,7 @@ def validate_csd_ensemble(
     config: ValidationConfig | None = None,
 ) -> ValidationResult:
     """Separately validate PSD, CSD magnitude, phase, coherence, and power."""
-    from .multichannel_noise import MultiChannelNoiseGenerator
+    from ..multichannel.generator import MultiChannelNoiseGenerator
 
     cfg = config or ValidationConfig()
     X = np.asarray(X, dtype=float)

@@ -137,8 +137,8 @@ axC.set_title("(c)  what the crate correlation looks like across frequency", loc
 fig.text(0.01, 0.005, "Evaluated from the preset dict in notebooks/_build_nb1.py with the component shapes of src/noise_module/spectral_models.py; "
          "percentages are each term's share of the 0.64 mV² total after the composite 'normalize' step. V2 numbers are placeholders like V1's.",
          fontsize=7, color=INK2)
-out = "/mnt/user-data/outputs/pmt_frontend_v1_psd.png"
-import os; os.makedirs("/mnt/user-data/outputs", exist_ok=True)
+from pathlib import Path
+out = str(Path(__file__).with_name("pmt_frontend_v1_psd.png"))
 fig.savefig(out, dpi=170, bbox_inches="tight")
 print("saved", out)
 print({k: round(float(x), 3) for k, x in frac1.items()})

@@ -15,7 +15,7 @@ from typing import Iterator
 
 import numpy as np
 
-from .NoiseGenerator import NoiseGenerator
+from .generator import NoiseGenerator
 
 
 @dataclass

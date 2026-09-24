@@ -23,3 +23,5 @@ Kept as evidence, cited from the live documents, never edited. The live design i
 | `PERSONAL_RESEARCH_GUIDE.md` | 23 Aug (migrated) | private working record and review log — **not for the shared view** | — |
 | `prometheus_HANDOFF_PROMPT_2026-09.md` | 5 Sep | Prometheus handoff prompt (both defects fixed) | `archive/README.md` at the repo root |
 | `reconstruction_model.md`, `tidmad.md`, `noise_module/` | Aug | package docs | package READMEs under `src/` |
+| `IMPLEMENTATION_PROMPT_TWO_CLAIM.md` | 16 Sep | one-shot agent implementation prompt for the two-claim revision | the revision landed; no live document cites it (archived 24 Sep 2026) |
+| `DATASET_STRATEGY_2026-09-16.md` | 16 Sep | dataset-strategy note | `TESTBEDS.md` is the live inventory; no live document cites it (archived 24 Sep 2026) |

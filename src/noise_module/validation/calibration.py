@@ -19,8 +19,8 @@ import numpy as np
 from scipy.signal import csd, find_peaks, welch
 from scipy.stats import kurtosis, skew
 
-from .NoiseGenerator import NoiseGenerator
-from .multichannel_noise import MultiChannelNoiseGenerator
+from ..core.generator import NoiseGenerator
+from ..multichannel.generator import MultiChannelNoiseGenerator
 
 
 CALIBRATION_SCHEMA_VERSION = 1

@@ -39,7 +39,17 @@ Repository = "https://github.com/seanxia8/ORACLE"
 test = ["pytest>=7.0"]
 
 [tool.setuptools]
-packages = ["noise_module"]
+packages = [
+    "noise_module",
+    "noise_module.core",
+    "noise_module.spectral",
+    "noise_module.multichannel",
+    "noise_module.artifacts",
+    "noise_module.temporal",
+    "noise_module.resampling",
+    "noise_module.validation",
+    "noise_module.budgets",
+]
 
 [tool.setuptools.package-dir]
 noise_module = "."

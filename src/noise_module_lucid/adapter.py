@@ -1,124 +1,184 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
-"""Add LUCiD front-end noise crate by crate, reporting the covariance it drew."""
+"""Crate-wise noise injection: the adapter between LUCiD and ``noise_module``.
+
+``crate_preset`` builds a ``(base_config, crate_config)`` pair for
+``MultiChannelNoiseGenerator``; ``add_pmt_noise`` adds the front-end noise to a
+mV waveform crate by crate and returns the per-crate metadata, which carries
+the implied and realized covariance. ``kappa`` reads
+``cond(Sigma_hat^-1 Sigma)`` from that metadata.
+
+The covariance unit is the *crate* (or string), not the whole detector: PMTs on
+one front-end board or digitiser share the clock pickup but not each other's
+amplifier thermal noise. ``grouping.py`` chooses the groups.
+
+Per-channel gain (24 Sep 2026 review, P1.3)
+-------------------------------------------
+The preset's ``channel_gain_jitter`` scales the **noise coupling** only; a real
+channel gain scales signal and noise together. Pass ``channel_gains`` (from
+LUCiD's ``PerPmtParams.gain``) to ``add_pmt_noise`` and the same gains are
+applied to the signal and pinned into the noise structure, so the two are
+consistent. When ``channel_gains`` is ``None`` the metadata records
+``signal_gain_applied=False`` — the jitter is then declared amplifier-only.
+
+Clock model (P1.2)
+------------------
+``clock="gaussian"`` (default) keeps the lines in the Gaussian shared process;
+``clock="deterministic"`` moves them to a phase-locked tone (``clock.py``) with
+the same power; ``clock="none"`` drops them.
+"""
 from __future__ import annotations
 
-from typing import Any
+from copy import deepcopy
 
 import numpy as np
 
-from .grouping import contiguous_groups
-from .presets import GROUP, PMT_CRATE_V2, PMT_FRONTEND_V2, preset_for
-from .units import FS_L, charge_to_mv, spe_template
+from .presets import FS_L, GROUP, PMT_CRATE_V2, PMT_FRONTEND_V2, PMT_PRIVATE, PMT_SHARED, RMS_MV
+from .grouping import channel_groups
+
+_CLOCK_MODES = ("gaussian", "deterministic", "none")
+_SHARED_PLACEHOLDER = {"type": "white", "scale": 1e-9, "name": "shared_placeholder"}
 
 
-def crate_noise(base: dict, crate: dict, n_samples: int, seed: int = 0,
-                n_channels: int | None = None) -> tuple[np.ndarray, dict]:
-    """Draw one crate of noise; return ``(noise (C, N), metadata)``."""
+def _split_lines(shared):
+    lines = [c for c in shared if c.get("type") == "line"]
+    rest = [c for c in shared if c.get("type") != "line"]
+    return lines, rest
+
+
+def crate_preset(shared=None, private=None, *, keep_private_power: bool = True, n_ref: int = 512,
+                 clock: str = "gaussian", sampling_frequency: float = FS_L,
+                 noise_power: float | None = None, **crate_overrides) -> tuple[dict, dict]:
+    """Return ``(base_config, crate_config)`` for a variant of the V2 preset.
+
+    ``shared`` / ``private`` replace the component lists. With
+    ``keep_private_power`` the per-PMT *private* power is held at its V2 value
+    and the total is re-derived, so "clock line x5" adds line power instead of
+    silently re-partitioning a fixed 0.64 mV^2 (the ``normalize`` rule would
+    otherwise do the latter, as V1 did). Integrals are taken on the ``n_ref``
+    grid; the split is then fixed by the component scales alone.
+
+    ``clock`` is ``"gaussian"`` (lines in the shared process), ``"deterministic"``
+    (lines moved to a phase-locked tone, kept in the crate config for
+    ``add_pmt_noise``) or ``"none"``.
+    """
+    from noise_module import NoiseGenerator
+
+    if clock not in _CLOCK_MODES:
+        raise ValueError(f"clock must be one of {_CLOCK_MODES}.")
+    shared = PMT_SHARED if shared is None else shared
+    private = PMT_PRIVATE if private is None else private
+    lines, shared_gaussian = _split_lines(shared)
+    if clock == "gaussian":
+        shared_gaussian = shared
+
+    def integral(components):
+        cfg = {**PMT_FRONTEND_V2, "sampling_frequency": sampling_frequency,
+               "components": components, "composite_psd_scaling": "absolute"}
+        f, s = NoiseGenerator(cfg).build_psd_density(n_ref)
+        return float(np.sum(s[1:]) * (sampling_frequency / n_ref))
+
+    power = RMS_MV**2 if noise_power is None else float(noise_power)
+    if keep_private_power:
+        i_pr0, i_sh0 = integral(PMT_PRIVATE), integral(PMT_SHARED)
+        p_private = power * i_pr0 / (i_pr0 + i_sh0)
+        i_pr, i_sh = integral(private), integral(shared_gaussian or [_SHARED_PLACEHOLDER])
+        power = p_private * (i_pr + i_sh) / i_pr
+    base = {**PMT_FRONTEND_V2, "sampling_frequency": sampling_frequency, "noise_power": power,
+            "components": [*private, *shared_gaussian]}
+    crate = {**PMT_CRATE_V2, "shared_components": shared_gaussian or [_SHARED_PLACEHOLDER],
+             "private_components": private, **crate_overrides}
+    if clock == "deterministic":
+        crate["_clock_lines"] = deepcopy(lines)
+    return base, crate
+
+
+def add_pmt_noise(sig_mv: np.ndarray, preset: tuple[dict, dict] | None = None, seed: int = 0,
+                  group: int = GROUP, positions: np.ndarray | None = None,
+                  group_method: str = "contiguous", board_ids: np.ndarray | None = None,
+                  channel_gains: np.ndarray | None = None, clock: str | None = None):
+    """Add V2 front-end noise crate by crate to a ``(C, N)`` mV waveform.
+
+    Returns ``(trace, [metadata per crate])``; each metadata carries the implied
+    and realized covariance and ``implied_spectra``. Groups come from
+    :func:`grouping.channel_groups`. ``channel_gains`` (per channel) is applied
+    to the signal and pinned into the noise; ``clock`` overrides the preset's
+    clock mode.
+    """
     from noise_module import MultiChannelNoiseGenerator
+    from noise_module.core.utils import sample_range
+    from . import clock as clock_mod
 
-    crate_cfg = dict(crate)
-    if n_channels is not None:
-        crate_cfg["n_channels"] = int(n_channels)
-    gen = MultiChannelNoiseGenerator(base, crate_cfg, seed=seed)
-    noise, meta = gen.generate(n_samples, return_metadata=True)
-    return noise, meta
+    base, crate = crate_preset() if preset is None else preset
+    crate = deepcopy(crate)
+    lines = crate.pop("_clock_lines", None)
+    clock_mode = clock or ("deterministic" if lines else "gaussian")
+    sig_mv = np.asarray(sig_mv, dtype=float)
+    if sig_mv.ndim != 2:
+        raise ValueError("sig_mv must have shape (n_channels, n_samples).")
+    C, N = sig_mv.shape
+    fs = float(base.get("sampling_frequency", FS_L))
+    gains_full = None
+    if channel_gains is not None:
+        gains_full = np.asarray(channel_gains, dtype=float)
+        if gains_full.shape != (C,):
+            raise ValueError("channel_gains must have one entry per channel.")
+    out = sig_mv * gains_full[:, None] if gains_full is not None else sig_mv.copy()
+    groups_meta = []
+    for gidx, idx in enumerate(channel_groups(C, group, positions=positions,
+                                              method=group_method, board_ids=board_ids)):
+        c = len(idx)
+        gen = MultiChannelNoiseGenerator(base, {**crate, "n_channels": c}, seed=seed + gidx)
+        if gains_full is not None:
+            strengths = sample_range(gen.rng, crate.get("private_strength_range", [0.8, 1.2]), size=c)
+            gen.set_channel_structure("spectral_shared_private", c,
+                                      gains=gains_full[idx], private_strengths=strengths)
+        noise, m = gen.generate(N, return_metadata=True)
+        out[idx] += noise
+        if clock_mode == "deterministic" and lines:
+            tone, tmeta = clock_mod.add_deterministic_clock(
+                np.zeros((c, N)), fs, components=lines,
+                rng=np.random.default_rng(seed + 10_000 + gidx), gains=m["gains"],
+                return_metadata=True)
+            out[idx] += tone
+            m = {**m, "deterministic_clock": tmeta}
+        m = {**m, "channel_indices": np.asarray(idx),
+             "signal_gain_applied": gains_full is not None}
+        groups_meta.append(m)
+    return out, groups_meta
+
+
+#: Plan-facing alias (``adapter.add_readout_noise``).
+add_readout_noise = add_pmt_noise
+
+
+def apply_channel_gains(signal: np.ndarray, gains: np.ndarray) -> np.ndarray:
+    """Multiply each channel by its gain — the per-PMT gain LUCiD also carries."""
+    signal = np.asarray(signal, dtype=float)
+    gains = np.asarray(gains, dtype=float)
+    if gains.shape != (signal.shape[0],):
+        raise ValueError("gains must have one entry per channel.")
+    return signal * gains[:, None]
+
+
+def long_window_preset(window_ns: float, **overrides) -> tuple[dict, dict]:
+    """Crate preset valid at ``df = 1/window_ns`` (adds DC-DC lines, extends 1/f)."""
+    from .presets import long_window_components
+
+    private, shared = long_window_components(window_ns)
+    return crate_preset(shared=shared, private=private, **overrides)
 
 
 def kappa(meta: dict) -> float:
-    """cond(Σ̂⁻¹ Σ) for one group's record — the matched-cell estimator floor."""
-    implied = np.asarray(meta["implied_covariance"], dtype=float)
-    realized = np.asarray(meta["realized_covariance"], dtype=float)
-    return float(np.linalg.cond(np.linalg.solve(implied, realized)))
+    """cond(Sigma_hat^-1 Sigma) for one crate record (estimator floor on a matched cell)."""
+    return float(np.linalg.cond(np.linalg.solve(meta["implied_covariance"], meta["realized_covariance"])))
 
 
-def add_readout_noise(charge_waveform: np.ndarray, groups: list[np.ndarray] | None = None,
-                      preset: tuple[dict, dict] | None = None, seed: int = 0, *,
-                      in_units: str = "pe", spe: np.ndarray | None = None,
-                      window_ns: float | None = None, group_size: int = GROUP,
-                      ) -> tuple[np.ndarray, dict[str, Any]]:
-    """Add V2/LONG front-end noise to a LUCiD waveform, crate by crate.
+def matched_cell_kappa_floor(N: int, C: int = GROUP, seed: int = 1, **crate_overrides) -> float:
+    """The matched-cell kappa floor: every value above 1.0 is estimator noise."""
+    from noise_module import MultiChannelNoiseGenerator
 
-    Parameters
-    ----------
-    charge_waveform : ``(C, N)`` array
-        LUCiD's per-sensor waveform in photoelectrons (``in_units="pe"``) or an
-        already-calibrated voltage trace in mV (``in_units="mv"``).
-    groups : list of index arrays, optional
-        The covariance units. Defaults to contiguous crates of ``group_size``.
-    preset : ``(base, crate)``, optional
-        As returned by :func:`noise_module_lucid.presets.crate_preset` or
-        :func:`preset_for`. Defaults to V2 (or the long preset when
-        ``window_ns`` is given and large).
-    in_units : ``"pe"`` or ``"mv"``
-        Whether to run the SPE convolution first.
-    window_ns : float, optional
-        LUCiD window length; used only to select the default preset and recorded
-        in provenance.
-
-    Returns
-    -------
-    trace_mv : ``(C, N)``
-    metadata : dict
-        ``{"preset", "window_ns", "in_units", "groups": [...], "covariance":
-        [...per-group metadata...], "kappa": [...], "spe_mv_per_pe": ...}``.
-    """
-    if in_units not in {"pe", "mv"}:
-        raise ValueError("in_units must be 'pe' or 'mv'.")
-    charge_waveform = np.asarray(charge_waveform, dtype=float)
-    if charge_waveform.ndim != 2:
-        raise ValueError("charge_waveform must be (C, N).")
-    C, N = charge_waveform.shape
-
-    if in_units == "pe":
-        spe = spe_template() if spe is None else np.asarray(spe, dtype=float)
-        trace = charge_to_mv(charge_waveform, spe)
-    else:
-        trace = charge_waveform.copy()
-
-    if preset is None:
-        if window_ns is not None:
-            preset = preset_for(window_ns)
-        else:
-            preset = (PMT_FRONTEND_V2, PMT_CRATE_V2)
-    base, crate = preset
-
-    if groups is None:
-        groups = contiguous_groups(C, group_size)
-    groups = [np.asarray(g, dtype=int) for g in groups]
-
-    cov_meta: list[dict] = []
-    kappas: list[float] = []
-    for g0, idx in enumerate(groups):
-        noise, m = crate_noise(base, crate, N, seed=seed + int(idx[0]),
-                               n_channels=len(idx))
-        trace[idx] += noise
-        cov_meta.append(m)
-        kappas.append(kappa(m))
-
-    metadata = {
-        "preset": base.get("noise_type", "composite"),
-        "window_ns": float(window_ns) if window_ns is not None else None,
-        "in_units": in_units,
-        "sampling_frequency": FS_L,
-        "n_channels": int(C),
-        "n_samples": int(N),
-        "groups": [g.tolist() for g in groups],
-        "covariance": cov_meta,
-        "kappa": kappas,
-        "spe_mv_per_pe": float(spe.max()) if in_units == "pe" and spe is not None else None,
-    }
-    return trace, metadata
-
-
-def add_pmt_noise(sig_mv: np.ndarray, preset: tuple[dict, dict] | None = None,
-                  seed: int = 0, group: int = GROUP):
-    """Compatibility helper: add crate-wise noise to an **mV** trace.
-
-    Returns ``(trace_mv, [per-group metadata, ...])`` — the shape the LUCiD
-    notebooks used before this package existed. Prefer
-    :func:`add_readout_noise` for new code.
-    """
-    trace, meta = add_readout_noise(sig_mv, preset=preset, seed=seed,
-                                    in_units="mv", group_size=group)
-    return trace, meta["covariance"]
+    base, crate = crate_preset(**crate_overrides)
+    gen = MultiChannelNoiseGenerator(base, {**crate, "n_channels": C}, seed=seed)
+    _, m = gen.generate(N, return_metadata=True)
+    return kappa(m)

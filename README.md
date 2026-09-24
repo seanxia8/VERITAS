@@ -115,7 +115,7 @@ this repository.
 
 | Path | Purpose |
 | --- | --- |
-| `src/noise_module/` | Validated stationary/nonstationary/multichannel noise and PSD simulation (numpy/scipy only) |
+| `src/noise_module/` | Validated noise and PSD simulation (numpy/scipy only), organised into `core` / `spectral` / `multichannel` / `artifacts` / `temporal` / `resampling` / `validation` / `budgets`; the top-level `__init__` re-exports the public API |
 | `src/latent_monitor/` | Controlled-variable latent monitoring: `Subject` protocol, reference-cell projectors (`P_resolved/P_weak`; legacy `P_exc/P_unexc`), per-event Δz statistics, the development lookup, adjustments; linear and transformer subjects (`docs/EXPERIMENT_DESIGN.md` §§III.2–III.4); `task_metric.py` (M_recon vs M_task), `support.py` (validated training-support estimator), `designed.py` (positive controls, linear-only); `cumulant.py` (connected third/fourth cumulant estimators, D7) and `hypergraph_subject.py` (the design-only frozen-propagator candidate nonlinear subject, D10); `estimators/` holds the four linear classes of Paper 1 (future-work probes); `protocol/` is the two-claim protocol layer (Part V): typed alarm-time feature builder with source-tagged batches, five event-group partitions, primary/control/diagnostic arms, abstention chain, hard matching and the joint decision table, Claim-2 scores with paired ΔAUROC and cell-outer resampling, dev/confirmatory gates with run-dependency verification, and the CPU smoke |
 | `results/latent_monitor_smoke_dev/` | The pass-1 protocol smoke (16 Sep) — development output, not citable, preserved as recorded |
 | `results/latent_monitor_smoke_dev_2026-09-16_pass2/` | The two-claim protocol smoke — development output, not citable; regenerate with `PYTHONPATH=src python -m latent_monitor.protocol.smoke --out <new dated dir>` |
@@ -138,7 +138,9 @@ this repository.
 | `docs/DATASET_STRATEGY_2026-09-16.md` | Dataset/simulator strategy memo: admission criteria, NuRadioMC vs LUCiD, GWOSC/PyCBC real-noise transfer, candidate comparison |
 | `docs/INDEX.md` | Index of `docs/` — where to start and the role of every document |
 | `docs/noise_module_lucid.md` | The LUCiD front-end noise module explained (`src/noise_module_lucid/`) |
-| `src/noise_module_lucid/` | LUCiD front-end noise adapter on `noise_module`: V2 + long-window presets, pe→mV units bridge, crate/sector grouping, declared N families, tests |
+| `docs/RUNBOOK_LUCID_2026-09-24.md` | LUCiD-arm runbook: gates → readout declaration → κ-floor re-measurement → dataset production (`python -m noise_module_lucid`) → linear-subject validation → train/freeze/interpret the compact transformer |
+| `docs/RUNBOOK_LUCID_AGENT_PROMPT_2026-09-24.md` | Hand-off prompt for an autonomous agent to execute the runbook, verify each phase, run Step 0 / Step 1 and return a structured report |
+| `src/noise_module_lucid/` | LUCiD front-end noise package on `noise_module`: V2 + long-window presets, pe→mV units bridge, crate/sector grouping, declared N families, `digitiser`/`delay`/`pulses`/`clock`, `validation` (bandwidth/CSD/κ-floor), `readouts` (registry) and `dataset` (cells, intervention matrix, truth/traces/provenance writer); depends on `noise_module`, never forks it |
 | `TODO.md` | Root **testbed/experiment** TODO board (LUCiD, FASER, XLZD, CMS+ATLAS, …); the paper/protocol board is `docs/TODO.md` |
 | `sources/` | Research notes and raw API dumps for testbed/prior-art research (`sources/README.md`) |
 | `docs/IMPLEMENTATION_PLAN.md` | Work packages, interfaces, acceptance criteria, gates |
@@ -190,6 +192,14 @@ The noise package needs nothing external and runs anywhere:
 
 ```bash
 uv run pytest src/noise_module/tests
+```
+
+`noise_module_lucid` (the LUCiD front-end package, numpy/scipy only; it does not
+import LUCiD):
+
+```bash
+PYTHONPATH=src python -m pytest src/noise_module_lucid/tests -q        # 40 passed, ~2 s
+PYTHONPATH=src python -m noise_module_lucid --help                    # the dataset driver
 ```
 
 `latent_monitor` (numpy/scipy only, torch optional) and its protocol layer:

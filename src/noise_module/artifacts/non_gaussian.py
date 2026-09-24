@@ -14,8 +14,8 @@ from typing import Any
 import numpy as np
 from scipy.stats import kurtosis, levy_stable, norm, skew
 
-from .NoiseGenerator import NoiseGenerator
-from .utils import resolve_rng
+from ..core.generator import NoiseGenerator
+from ..core.utils import resolve_rng
 
 
 class NonGaussianNoiseGenerator:

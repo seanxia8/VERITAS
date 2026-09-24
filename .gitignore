@@ -77,3 +77,8 @@ src/prometheus_simulation/external
 src/herald_simulation/external
 src/prometheus_simulation/runs/
 runs/
+
+# LUCiD clone (~270 MB). Fetch with
+#   git clone https://github.com/dowlingwong/LUCiD external/LUCiD
+# Found through LUCID_PATH (default external/LUCiD at the repository root).
+/external/

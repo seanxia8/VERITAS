@@ -13,9 +13,9 @@ from typing import Any
 
 import numpy as np
 
-from .config import CONFIG_SCHEMA_VERSION, ArtifactConfig
-from .templates import generate_burst_template, generate_glitch_template
-from .utils import resolve_rng, sample_range, spawn_rng
+from ..core.config import CONFIG_SCHEMA_VERSION, ArtifactConfig
+from ..core.templates import generate_burst_template, generate_glitch_template
+from ..core.utils import resolve_rng, sample_range, spawn_rng
 
 
 class ArtifactInjector:

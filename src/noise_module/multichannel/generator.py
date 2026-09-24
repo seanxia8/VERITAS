@@ -15,9 +15,9 @@ import numpy as np
 from scipy.fft import irfft
 from scipy.signal import csd as scipy_csd
 
-from .config import CONFIG_SCHEMA_VERSION, MultiChannelConfig, NoiseConfig
-from .NoiseGenerator import NoiseGenerator
-from .utils import match_target_std, mean_offdiag_corrcoef, resolve_rng, sample_range, spawn_rng
+from ..core.config import CONFIG_SCHEMA_VERSION, MultiChannelConfig, NoiseConfig
+from ..core.generator import NoiseGenerator
+from ..core.utils import match_target_std, mean_offdiag_corrcoef, resolve_rng, sample_range, spawn_rng
 
 
 class MultiChannelNoiseGenerator:

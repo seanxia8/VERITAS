@@ -13,7 +13,7 @@ from noise_module import (
     TemporalNoiseWrapper,
     validate_reference_noise,
 )
-from noise_module.utils import mean_offdiag_corrcoef
+from noise_module.core.utils import mean_offdiag_corrcoef
 
 
 def build_example_configs(fs: float) -> tuple[dict, dict, dict, dict]:

@@ -1,6 +1,4 @@
 """Builder for notebooks/noise_models_herald_lucid.ipynb."""
-from pathlib import Path
-
 import nbformat as nbf
 
 nb = nbf.v4.new_notebook()
@@ -47,7 +45,7 @@ plt.rcParams.update({"figure.dpi": 110, "axes.grid": True, "grid.color": "#e6e6e
 
 from noise_module import (HERALD_V1_PLACEHOLDER, MultiChannelNoiseGenerator, NoiseGenerator, TESNoiseBudget,
                           ArtifactInjector, TemporalNoiseWrapper, alias_fold_psd_density)
-from noise_module.spectral_models import CompositeSpectrum
+from noise_module.spectral.models import CompositeSpectrum
 import herald_simulation as hs
 print("noise_module ready; HeST available:", hs.available())''')
 
@@ -57,7 +55,7 @@ md(r"""---
 HeRALD (arXiv:2307.11877) reads the helium-evaporation signal with a **TES on a silicon wafer**: a
 superconducting film held on its transition, voltage-biased, its current read by a SQUID. Every noise term
 below is a textbook form from Irwin & Hilton, *Transition-Edge Sensors* (2005); the module is
-`noise_module.tes_budget.TESNoiseBudget`, and the numbers in `HERALD_V1_PLACEHOLDER` are — as the name says —
+`noise_module.budgets.tes_budget.TESNoiseBudget`, and the numbers in `HERALD_V1_PLACEHOLDER` are — as the name says —
 placeholders until read from the paper (`provenance` tells you which).
 
 The record is what `qp_simulator` produces: **2.5 × 10⁵ samples/s × 16 384 samples = 65.5 ms**, so the
@@ -195,10 +193,10 @@ two, which is exactly what a Σ-cell is designed to probe.
 
 ### A6. What the budget does not contain — and where it lives instead
 
-* **Drift** below the resolution (pulse-tube, bath temperature over seconds): `noise_module.temporal_noise`,
+* **Drift** below the resolution (pulse-tube, bath temperature over seconds): `noise_module.temporal.wrapper`,
   which modulates a stationary generator's level and shape over the record.
 * **Sparse, non-Gaussian bursts** — the *low-energy excess* (LEE) that every cryogenic experiment sees, and
-  glitches from mechanical relaxation: `noise_module.artifact_injector`, which adds declared transients. In the
+  glitches from mechanical relaxation: `noise_module.artifacts.injector`, which adds declared transients. In the
   TESSERACT `pytessim` package this is "singles vs shared LEE"; in ORACLE it is an N-vs-U family, not part of Σ.
 * **The signal-shaped part**: the TES's own responsivity roll-off applies to the *signal* too (the 50 µs rise
   / 3 ms decay of `QPSimulator`'s template) — that is why the budget's time constants are `design`, matched to
@@ -284,7 +282,7 @@ That single number decides what can be modelled:
 | **50 Hz mains** | the loudest line in the TES record | **no** — 2.6 × 10⁻⁵ of one bin | — |
 | **drift, 1/f below MHz** | | no — needs a longer `window_ns` or decimation | `temporal_noise`, `psd_resampling` |
 
-Two rules, learned the hard way (V1 of this preset broke both; see `docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md`):
+Two rules, learned the hard way (V1 of this preset broke both; see `src/noise_module_lucid/docs/LUCID_NOISE_REVIEW_2026-09-11.md`):
 **a bandwidth is a filter, not a source** — summing a low-pass term with the white floor leaves the floor flat to
 Nyquist, so the roll-off and the ringing multiply the floor via `filtered`; and **coherence belongs to a term,
 not to the crate** — the clock is common to a board, the amplifier's thermal noise is not, so the crate is
@@ -296,8 +294,7 @@ pe) before adding noise in mV. The noise level (0.8 mV rms) is a placeholder lik
 
 code(r'''FS_L, N_L = 1e9, 512
 fL = rfftfreq(N_L, d=1 / FS_L)
-from noise_module_lucid import (PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE,
-                                GROUP, crate_preset, kappa)
+from noise_module_lucid import PMT_FRONTEND_V2, PMT_CRATE_V2, PMT_SHARED, PMT_PRIVATE, GROUP, crate_preset, kappa
 g = NoiseGenerator(PMT_FRONTEND_V2, seed=0)
 _, S_total, meta = g.build_psd_density(N_L, return_metadata=True)
 contrib = meta["component_contributions"]
@@ -373,7 +370,7 @@ md(r"""### B4. The digitiser contract — the alias fold
 One acquisition-side change is unique to a sampled system: **decimation without an anti-alias filter**.
 If a 1 GHz stream is read out at 250 MHz by keeping every fourth sample, everything above 125 MHz — the
 ringing bump, the top of the amplifier band — folds back into the passband. Nothing was added; the *contract*
-changed. `noise_module.psd_resampling.alias_fold_psd_density` gives the folded spectrum in closed form,
+changed. `noise_module.resampling.psd.alias_fold_psd_density` gives the folded spectrum in closed form,
 which makes this the cleanest N family there is: the prediction is exact.""")
 
 code(r'''x = NoiseGenerator(PMT_FRONTEND_V2, seed=5).generate_ensemble(256, N_L)              # 256 random triggers
@@ -416,5 +413,5 @@ literally unrepresentable in the other. Any claim about "correlated noise" has t
 
 nb["cells"] = C
 nb["metadata"] = {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"}, "language_info": {"name": "python"}}
-nbf.write(nb, str(Path(__file__).resolve().parent / "noise_models_herald_lucid.ipynb"))
+nbf.write(nb, "/home/claude/oracle/notebooks/noise_models_herald_lucid.ipynb")
 print("written")

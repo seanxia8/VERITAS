@@ -1,60 +1,68 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Dowling Wong <wangdowling@gmail.com>
-"""The units bridge: LUCiD photoelectrons -> mV.
+"""The LUCiD units bridge: photoelectron histogram -> mV.
 
-LUCiD's waveform bin holds summed photoelectron charge, not volts. A PSD in
-pe²/Hz has no physical meaning, so each channel is convolved with a
-single-photoelectron voltage template before noise is added in mV. The
-calibration constant (mV per photoelectron) must agree with LUCiD's own gain so
-the two layers cannot silently disagree (``docs/EXPERIMENT_DESIGN.md`` §II.7.4).
+LUCiD's waveform bin holds **summed photoelectron charge per 1 ns bin**
+(``lucid/simulation/sensor_response.py:build_make_hits_waveform``), not volts.
+A PSD in pe^2/Hz means nothing physically, so before adding front-end noise in
+mV^2/Hz the charge waveform is convolved with a single-photoelectron voltage
+template. The template is the only piece of real physics in the bridge; the
+mV-per-pe amplitude is a placeholder like every level in the preset.
+
+The template constants and its power bandwidth live in :mod:`presets` so the
+front-end corner can be derived from them without a circular import.
 """
 from __future__ import annotations
 
 import numpy as np
 
-FS_L = 1.0e9                # LUCiD 1 GHz convention
-SPE_MV_PER_PE = 4.0         # placeholder (sets the SNR)
+from .presets import (
+    FS_L,
+    SPE_LENGTH_NS,
+    SPE_MV_PER_PE,
+    SPE_TAU_FALL_NS,
+    SPE_TAU_RISE_NS,
+    spe_bandwidth_hz,
+    spe_shape,
+)
+
+#: Re-exported for callers that think of the bandwidth as a units property.
+spe_bandwidth = spe_bandwidth_hz
 
 
-def spe_template(fs: float = FS_L, tau_rise_ns: float = 2.0, tau_fall_ns: float = 8.0,
-                 mv_per_pe: float = SPE_MV_PER_PE, length_ns: float = 60.0) -> np.ndarray:
-    """Two-exponential single-photoelectron voltage pulse, peak ``mv_per_pe``.
+def spe_template(
+    fs: float = FS_L,
+    tau_rise_ns: float = SPE_TAU_RISE_NS,
+    tau_fall_ns: float = SPE_TAU_FALL_NS,
+    mv_per_pe: float = SPE_MV_PER_PE,
+    length_ns: float = SPE_LENGTH_NS,
+) -> np.ndarray:
+    """A two-exponential single-photoelectron voltage pulse, peak ``mv_per_pe``.
 
-    ``p(t) = (1 - exp(-t/tau_rise)) exp(-t/tau_fall)``, normalised so its maximum
-    is ``mv_per_pe``. The integral (mV·ns per pe) is returned by
-    :func:`spe_integral`.
+    ``p(t) = (1 - exp(-t/tau_rise)) * exp(-t/tau_fall)`` sampled at ``fs`` for
+    ``length_ns``. The placeholder is a WCTE-like 3-inch PMT: 1 ns rise, 3 ns
+    fall, power -3 dB at ~51 MHz.
     """
-    if fs <= 0 or tau_rise_ns <= 0 or tau_fall_ns <= 0 or length_ns <= 0:
-        raise ValueError("fs, time constants and length_ns must be positive.")
-    t = np.arange(int(length_ns * fs / 1e9)) / fs * 1e9
-    p = (1.0 - np.exp(-t / tau_rise_ns)) * np.exp(-t / tau_fall_ns)
-    peak = p.max()
-    if peak <= 0:
-        raise ValueError("template is identically zero; check the time constants.")
-    return mv_per_pe * p / peak
+    if tau_rise_ns <= 0.0 or tau_fall_ns <= 0.0:
+        raise ValueError("SPE time constants must be positive.")
+    if fs <= 0.0 or length_ns <= 0.0:
+        raise ValueError("fs and length_ns must be positive.")
+    t_ns = np.arange(int(length_ns * fs / 1e9)) / fs * 1e9
+    return mv_per_pe * spe_shape(t_ns, tau_rise_ns, tau_fall_ns)
 
 
-def spe_integral(spe: np.ndarray, fs: float = FS_L) -> float:
-    """Integrated area of the SPE template in mV·ns per photoelectron."""
-    return float(np.sum(spe) / fs * 1e9)
+def to_mv(wf_pe: np.ndarray, spe: np.ndarray | None = None) -> np.ndarray:
+    """Convolve each row of a ``(C, N)`` photoelectron histogram with the SPE.
 
-
-def charge_to_mv(wf_pe: np.ndarray, spe: np.ndarray | None = None) -> np.ndarray:
-    """Convolve each channel's photoelectron histogram with the SPE template.
-
-    ``wf_pe`` is ``(C, N)``; the result is ``(C, N)`` in mV, truncated to the
-    input length (the tail beyond the window is dropped, matching LUCiD's
-    fixed-window convention).
+    Keeps the input length (causal, truncated convolution), so the output is in
+    mV on the same time grid as LUCiD's waveform.
     """
     wf_pe = np.asarray(wf_pe, dtype=float)
     if wf_pe.ndim != 2:
-        raise ValueError("charge_to_mv expects a (C, N) array.")
+        raise ValueError("waveform must have shape (n_channels, n_samples).")
     spe = spe_template() if spe is None else np.asarray(spe, dtype=float)
-    out = np.empty_like(wf_pe)
-    for i, row in enumerate(wf_pe):
-        out[i] = np.convolve(row, spe)[: wf_pe.shape[1]]
-    return out
+    return np.stack([np.convolve(row, spe)[: wf_pe.shape[1]] for row in wf_pe])
 
 
-#: Compatibility alias for the pre-package notebook helper name.
-to_mv = charge_to_mv
+#: Backwards-compatible name used by the plan (``units.charge_to_mV``).
+charge_to_mv = to_mv

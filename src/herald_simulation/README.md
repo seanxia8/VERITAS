@@ -57,7 +57,7 @@ the five HeST builders.
 
 ## Noise: HeRALD-shaped, placeholder constants
 
-`noise_module.tes_budget.HERALD_V1_PLACEHOLDER` — TFN with the responsivity
+`noise_module.budgets.tes_budget.HERALD_V1_PLACEHOLDER` — TFN with the responsivity
 roll-off, TES Johnson with loop-gain suppression, shunt Johnson, SQUID white +
 1/f, mains (50 Hz + harmonics) and vibration lines, no paramagnetic-spin term.
 At 2.5 × 10⁵ Hz × 16 384 samples the resolution is 15.3 Hz, so the lines ARE

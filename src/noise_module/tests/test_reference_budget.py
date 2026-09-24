@@ -20,8 +20,8 @@ import json
 import numpy as np
 import pytest
 
-from noise_module.reference_budget import AL2O3_AL_ATHERMAL, COMPONENT_FILES
-from noise_module.al2o3_athermal import FIT_FILE
+from noise_module.budgets.reference_budget import AL2O3_AL_ATHERMAL, COMPONENT_FILES
+from noise_module.budgets.al2o3_athermal import FIT_FILE
 
 BUDGET = AL2O3_AL_ATHERMAL
 

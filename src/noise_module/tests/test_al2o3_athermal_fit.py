@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from noise_module.fit_al2o3_athermal import (
+from noise_module.budgets.fit_al2o3_athermal import (
     build_composite,
     build_psd_artifact,
     fit_all_components,

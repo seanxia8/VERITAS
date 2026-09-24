@@ -16,9 +16,9 @@ import numpy as np
 from scipy.interpolate import CubicSpline, PchipInterpolator
 from scipy.signal import butter, sosfiltfilt
 
-from .config import CONFIG_SCHEMA_VERSION, TemporalNoiseConfig
-from .NoiseGenerator import NoiseGenerator
-from .utils import concatenate_with_crossfade, resolve_rng, sample_range, spawn_rng
+from ..core.config import CONFIG_SCHEMA_VERSION, TemporalNoiseConfig
+from ..core.generator import NoiseGenerator
+from ..core.utils import concatenate_with_crossfade, resolve_rng, sample_range, spawn_rng
 
 
 class TemporalNoiseWrapper:
