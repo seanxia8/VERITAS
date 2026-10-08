@@ -34,6 +34,20 @@ Status vocabulary used below: *interface implemented* · *unit-tested control* �
       input-validity check — or keep the controls linear-only in the paper.
 - [ ] Freeze `core` only after `PREREGISTRATION.md` §8 is settled and collaborators agree — never before.
 
+## Reference upgrades (2026-10-08; `docs/REFERENCE_UPGRADES_2026-10-08.md`)
+Adopted by the author 8 Oct after a coverage review of BPWM / TMS / TKV. Planning only; nothing run.
+- [x] R3 privileged-basis rule and R4 abstention reason codes written into `PREREGISTRATION.md` §2 (draft).
+- [ ] R3 unit test: function-preserving orthogonal rotation of a non-privileged hook; eigengap guard on
+      `cumulant.project_diagonal_third` charts.
+- [ ] R4: reason code U/O/B on every abstention (`protocol/abstention.py`), `P_weak`-share cut-off declared.
+- [ ] R1(a): `double_pulse` offset as a severity axis in `tier1.event_cells`; template-overlap statistic.
+- [ ] R1(b): copula option in `EventFamily.draw`; linear-subject ρ_train sweep (development, CPU).
+- [ ] **D-R1** (`PREREGISTRATION.md` §8 item 11): correlated reference family yes/no — before Phase C training.
+- [ ] R2: `Subject.jac_input`; exact v_K on the linear subject for `sigma_cov:*` cells; trained subject after Phase C.
+      Check overlap with VERITAS plan v3 WP-C first.
+- [ ] Show Junjie the Appendix B wording before editing `latex/paper3_proposal.tex`; add `elhage2022superposition`.
+- [ ] D10 conflict (`PREREGISTRATION.md` §8 item 12) — one main nonlinear subject.
+
 ## Fisher-cumulant integration (2026-09-17; `docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`)
 - [x] **D7** whitened-residual + pooled-hook third cumulant: `latent_monitor/cumulant.py`, the third return of
       `pooled_stage`, `hook_third_nulls` / `resid_cumulant`, `gr_resid_c3_*`, `im_{hook}_third_maha`, the quadratic

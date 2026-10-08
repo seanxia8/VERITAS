@@ -22,6 +22,7 @@ _18 September 2026. The map of `docs/`. If you only read three files, read
 | [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) | work packages, interfaces, acceptance criteria, gates |
 | [`TWO_CLAIM_REVISION_PLAN.md`](TWO_CLAIM_REVISION_PLAN.md) | the two-claim revision plan (M1–M5, I1–I13, D1–D4) |
 | [`PREREGISTRATION.md`](PREREGISTRATION.md) | unfrozen pre-registration draft |
+| [`REFERENCE_UPGRADES_2026-10-08.md`](REFERENCE_UPGRADES_2026-10-08.md) | Paper 3 routing of the BPWM / TMS / TKV upgrades (TR14–TR30 carried from Paper 1) and the 8 Oct adopted items R1–R4 |
 | [`DATASET_STRATEGY_2026-09-16.md`](DATASET_STRATEGY_2026-09-16.md) | dataset/simulator strategy memo (admission criteria; NuRadioMC, GWOSC, cryogenic options) |
 | [`COLLIDER_ARM_2026-09-18.md`](COLLIDER_ARM_2026-09-18.md) | Tier-3b future-work collider domain-transfer arm (CMS/ATLAS) |
 | [`noise_module_lucid.md`](noise_module_lucid.md) | the LUCiD front-end noise module explained (`src/noise_module_lucid/`) |
