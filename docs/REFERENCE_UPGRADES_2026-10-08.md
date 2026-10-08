@@ -67,9 +67,9 @@ with a fixed second-pulse offset of +0.2 record fractions. Turn its offset into 
 today (`EventFamily.draw`). Add a copula option that couples amplitude and τ_t with correlation ρ.
 - **Linear subject, now (CPU).** Sweep ρ_train ∈ {0, 0.5, 0.8, 0.95}; evaluate at ρ_test = 0 and
   −ρ_train. This is the linear-limit control.
-- **Trained subject.** Needs one decision (D-R1 below): either the reference family itself carries
-  ρ_ref = 0.8 (no extra training; the ρ_test = 0 and −0.8 cells become S cells), or arm (b)
-  stays on the linear subject only. A second trained copy is not added (shape rule).
+- **Trained subject: not run (D-R1 decided no, 9 Oct).** The reference family stays independent,
+  so arm (b) runs on the linear subject only. A small correlated-trained variant may be considered
+  only after both claims have run; a second trained copy is not added (shape rule).
 - *Declared prediction (direction only).* Amplitude harm grows with |ρ_ref − ρ_test| and with the
   Σ̂⁻¹ cosine between ∂g/∂amplitude and ∂g/∂τ_t. Magnitudes are descriptive.
 - *Support labels.* With uniform marginals, the ρ_test = 0 window lies inside the joint support but
@@ -219,13 +219,22 @@ Numbering follows the review in Appendix A.
 
 ---
 
-## 5. Decisions required
+## 5. Decisions
 
-- **D-R1.** Does the reference event family carry a correlated (amplitude, τ_t) with ρ_ref = 0.8?
-  Decide before the Phase C training run, since it changes the reference for every cell. If no,
-  R1(b) runs on the linear subject only.
-- **D10 conflict (open since 6 Oct).** `TODO.md` still says the hypergraph subject is "one of two
-  nonlinear subjects, both reported". The shape rule says one. Resolve before Phase C.
+Recorded 9 Oct 2026 (author), in `PREREGISTRATION.md` §8:
+- **D-R1: no.** The reference family stays independent; R1(b) is linear-subject only.
+- **D10: resolved.** The transformer is the one main nonlinear subject. The hypergraph subject is
+  not reported; it replaces the transformer only if that fails a trainability gate declared before
+  Phase C.
+- **Transfer arm: provisionally arm B (NuRadioMC), pending Junjie.** Prometheus is excluded
+  (privileged noise-only records). If LUCiD is chosen instead, TR21 becomes its nonlinear subject.
+- **κ_m:** Tier 1 = 1.10 as a declared convention with a {1.05, 1.10, 1.25} sensitivity curve; the
+  transfer arm's κ_m from its published resolution, with Junjie.
+- **Claim-2 rule form:** benefit = interval above 0 and ΔAUROC_harm ≥ 0.05; equivalence inside
+  ±0.05; numbers confirmed after Phase B.
+- **Severities:** straddle κ_m, one extrapolation severity per family; grids after Phase B.
+
+Still open:
 - **Junjie.** R1–R4 change the family table and the mechanism text he has seen. Show him Appendix B
   before the proposal is edited.
 

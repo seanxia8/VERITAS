@@ -198,6 +198,10 @@ linear classes in `src/latent_monitor/estimators/`), and DynEdge, ParticleNeT,
 GRIT and DeepIce from GraphNeT for the Prometheus arm. Nothing to download or
 invent; `TESTBEDS.md` §2 says what the transformer subject must expose.
 
+> **Superseded 9 Oct 2026 (`PREREGISTRATION.md` §8 items 10, 12):** the hypergraph subject is not
+> reported alongside the transformer; it replaces it only if the transformer fails a trainability
+> gate declared before Phase C.
+
 **A candidate third (nonlinear) subject — D10, design and interface only.** The
 **frozen-propagator hypergraph subject** (`latent_monitor/hypergraph_subject.py`)
 is recorded as a second nonlinear subject alongside the transformer: vertices

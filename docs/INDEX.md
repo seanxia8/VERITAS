@@ -23,6 +23,7 @@ _18 September 2026. The map of `docs/`. If you only read three files, read
 | [`TWO_CLAIM_REVISION_PLAN.md`](TWO_CLAIM_REVISION_PLAN.md) | the two-claim revision plan (M1–M5, I1–I13, D1–D4) |
 | [`PREREGISTRATION.md`](PREREGISTRATION.md) | unfrozen pre-registration draft |
 | [`REFERENCE_UPGRADES_2026-10-08.md`](REFERENCE_UPGRADES_2026-10-08.md) | Paper 3 routing of the BPWM / TMS / TKV upgrades (TR14–TR30 carried from Paper 1) and the 8 Oct adopted items R1–R4 |
+| [`RUNBOOK_REFERENCE_UPGRADES_2026-10-09.md`](RUNBOOK_REFERENCE_UPGRADES_2026-10-09.md) | runbook for WP1–WP8 (R1–R4 code, κ_m, R1(b) sweep, gate draft, note for Junjie); lead agent with subagent lanes |
 | [`DATASET_STRATEGY_2026-09-16.md`](DATASET_STRATEGY_2026-09-16.md) | dataset/simulator strategy memo (admission criteria; NuRadioMC, GWOSC, cryogenic options) |
 | [`COLLIDER_ARM_2026-09-18.md`](COLLIDER_ARM_2026-09-18.md) | Tier-3b future-work collider domain-transfer arm (CMS/ATLAS) |
 | [`noise_module_lucid.md`](noise_module_lucid.md) | the LUCiD front-end noise module explained (`src/noise_module_lucid/`) |
@@ -45,6 +46,7 @@ _18 September 2026. The map of `docs/`. If you only read three files, read
 | [`IMPLEMENTATION_PROMPT_TWO_CLAIM.md`](IMPLEMENTATION_PROMPT_TWO_CLAIM.md) | the two-claim implementation pass |
 | [`IMPLEMENTATION_PROMPT_CUMULANT.md`](IMPLEMENTATION_PROMPT_CUMULANT.md) | the cumulant integration pass |
 | [`IMPLEMENTATION_PROMPT_MLST.md`](IMPLEMENTATION_PROMPT_MLST.md) | the MLST revision pass |
+| [`AGENT_PROMPT_REFERENCE_UPGRADES_2026-10-09.md`](AGENT_PROMPT_REFERENCE_UPGRADES_2026-10-09.md) | kickoff prompt for the WP1–WP8 runbook |
 | [`REVIEW_PROMPTS.md`](REVIEW_PROMPTS.md) | reviewer prompts (§A before implementation, §B per milestone) |
 
 ## Archive

@@ -42,11 +42,19 @@ Adopted by the author 8 Oct after a coverage review of BPWM / TMS / TKV. Plannin
 - [ ] R4: reason code U/O/B on every abstention (`protocol/abstention.py`), `P_weak`-share cut-off declared.
 - [ ] R1(a): `double_pulse` offset as a severity axis in `tier1.event_cells`; template-overlap statistic.
 - [ ] R1(b): copula option in `EventFamily.draw`; linear-subject ρ_train sweep (development, CPU).
-- [ ] **D-R1** (`PREREGISTRATION.md` §8 item 11): correlated reference family yes/no — before Phase C training.
+- [x] **D-R1** decided 9 Oct: no — reference family stays independent; R1(b) linear subject only.
 - [ ] R2: `Subject.jac_input`; exact v_K on the linear subject for `sigma_cov:*` cells; trained subject after Phase C.
       Check overlap with VERITAS plan v3 WP-C first.
 - [ ] Show Junjie the Appendix B wording before editing `latex/paper3_proposal.tex`; add `elhage2022superposition`.
-- [ ] D10 conflict (`PREREGISTRATION.md` §8 item 12) — one main nonlinear subject.
+- [x] D10 conflict resolved 9 Oct: transformer is the one main nonlinear subject; hypergraph replaces it only on a
+      failed trainability gate (`PREREGISTRATION.md` §8 items 10, 12).
+- [ ] Declare the transformer trainability gate (the D10 replacement trigger) before Phase C.
+- [x] Decided 9 Oct (form): Tier-1 κ_m = 1.10 convention + {1.05, 1.10, 1.25} sensitivity; Claim-2 benefit/equivalence
+      form (≥ 0.05, ±0.05); severity principles. Numbers confirmed after Phase B.
+- [ ] Code: Tier-1 `HarmThreshold(1.10, "provisional_dev")` → `"declared"` with the convention note; sensitivity curve
+      over {1.05, 1.10, 1.25} in the Claim-2 supporting output.
+- [ ] With Junjie: confirm transfer arm (provisional: arm B NuRadioMC) and its κ_m source; then build
+      `nuradio_simulation`.
 
 ## Fisher-cumulant integration (2026-09-17; `docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`)
 - [x] **D7** whitened-residual + pooled-hook third cumulant: `latent_monitor/cumulant.py`, the third return of
@@ -59,6 +67,7 @@ Adopted by the author 8 Oct after a coverage review of BPWM / TMS / TKV. Plannin
 - [x] **D10** frozen-propagator hypergraph subject (`latent_monitor/hypergraph_subject.py`) — *interface implemented,
       unit-tested control* (Eq. 4.3 normalisation, P3 Gaussian-zero); **no training, no GPU run, no result**; one of
       two nonlinear subjects, both reported, neither chosen by result; sits below Phase B, gated on the trained run.
+      **Superseded 9 Oct:** not a reported subject; replacement-only (see Reference upgrades).
 - [x] Tier-1 signature row for the residual third cumulant (`results/latent_monitor_sig_c3_2026-09-17/`) — *development*,
       non-citable: 4/4 covariance cells at reference after re-whitening, no false positives, and a development negative
       for the glitch / sparse-burst separation at n_eval 60, n_pcs 3.

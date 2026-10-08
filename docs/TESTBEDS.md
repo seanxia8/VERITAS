@@ -261,6 +261,9 @@ projector, which is both cheaper and pre-registrable.
 
 ### 2.6 Candidate third subject — frozen-propagator hypergraph (D10, design and interface only)
 
+> **Superseded 9 Oct 2026:** replacement-only, not reported alongside the transformer
+> (`PREREGISTRATION.md` §8 items 10, 12).
+
 Alongside the transformer, the study records a second **nonlinear** subject
 (`latent_monitor/hypergraph_subject.py`) whose latent stays readable because
 every propagator weight has a provenance:
