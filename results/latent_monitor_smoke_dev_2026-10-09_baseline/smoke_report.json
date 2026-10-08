@@ -1,0 +1,3212 @@
+{
+  "STATUS": "DEVELOPMENT SMOKE \u2014 NOT CITABLE. Exercises the two-claim protocol chain on the linear subject at toy size; no scientific conclusion.",
+  "provenance": {
+    "mode": "dev",
+    "citable": false,
+    "config_hash": "43cf86fcc97849ba",
+    "config": {
+      "n_channels": 6,
+      "n_samples": 128,
+      "latent_dim": 5,
+      "n_groups": 120,
+      "n_noise_per_window": 2,
+      "seed": 0,
+      "fractions": {
+        "reference_fit": 0.3,
+        "attribution_train": 0.2,
+        "development": 0.15,
+        "calibration": 0.15,
+        "evaluation": 0.2
+      },
+      "held_out_families": [
+        "line_pickup",
+        "double_pulse"
+      ],
+      "undeclared_families": [
+        "glitch"
+      ],
+      "far_budget": 0.01,
+      "abstention_alpha": 0.1,
+      "task_target": 0,
+      "cell_aggregate": "median",
+      "designed_norm": 3.0,
+      "tuning_grid": [
+        0.001,
+        0.01,
+        0.1,
+        1.0,
+        10.0
+      ],
+      "margins": {
+        "benefit_min_delta": 0.1,
+        "equivalence_half_width": 0.05
+      },
+      "n_boot": 100,
+      "min_outer_units_for_inference": 10
+    },
+    "git_commit": "5eeb866",
+    "seeds": [
+      0
+    ],
+    "latent_monitor_version": "0.1.0",
+    "numpy_version": "2.5.3",
+    "python": "3.12.7",
+    "machine": "Dowlings-MacBook-Pro-2.local",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "elapsed_s": 3.8,
+    "subject": "LinearSubject",
+    "cells": [
+      "reference",
+      "sigma_cov:corr_up",
+      "sigma_cov:corr_down",
+      "sigma_cov:bandwidth_down",
+      "sigma_cov:line_pickup",
+      "sigma_struct:gain_drift",
+      "sigma_struct:channel_loss",
+      "sigma_struct:timing_jitter",
+      "geometry:3ch",
+      "geometry:12ch",
+      "event:glitch",
+      "event_in_span:oscillation",
+      "event_in_span:double_pulse",
+      "mixture:oscillation+gain_drift"
+    ]
+  },
+  "gates": {
+    "mode": "dev",
+    "freezes": {},
+    "warnings": [
+      "freeze part 'core' is missing (protocol/frozen/core.json)"
+    ],
+    "citable": false
+  },
+  "run_dependencies": {
+    "mode": "dev",
+    "citable": false,
+    "warnings": [
+      "freeze part 'core' is missing (protocol/frozen/core.json)",
+      "freeze part 'counts' is missing (protocol/frozen/counts.json)",
+      "freeze part 'bridge' is missing (protocol/frozen/bridge.json)",
+      "environment lock hash is not frozen",
+      "no data manifest declared",
+      "no model / checkpoint hash declared",
+      "confirmatory results must be written under 'results/confirmatory', not results/latent_monitor_smoke_dev_2026-10-09_baseline"
+    ],
+    "git_commit": "5eeb866",
+    "source_tree_sha256": "63a2dd34458ae986ac2649bf6f82bf212150977b2b2109d6f5a399efa979f129",
+    "environment_sha256": "b683b32bd9ddd02863d23418daf4269fbcc81eecb912c0d409839846f3fe8c10"
+  },
+  "manifest": {
+    "arm": "tier1",
+    "acquisition": {
+      "supplies_noise_only_records": true,
+      "noise_only_source": "random-trigger records from the same generator, structural N applied"
+    },
+    "features": {
+      "in_rms": {
+        "name": "in_rms",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_kurtosis": {
+        "name": "in_kurtosis",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_spectral_centroid": {
+        "name": "in_spectral_centroid",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_spectral_flatness": {
+        "name": "in_spectral_flatness",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_channel_rms_spread": {
+        "name": "in_channel_rms_spread",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "in_peak_abs": {
+        "name": "in_peak_abs",
+        "availability": "alarm_time",
+        "source": "raw trace",
+        "operational": true,
+        "group": "input_quality",
+        "note": ""
+      },
+      "out_0": {
+        "name": "out_0",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "out_1": {
+        "name": "out_1",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "out_2": {
+        "name": "out_2",
+        "availability": "alarm_time",
+        "source": "frozen model output",
+        "operational": true,
+        "group": "output",
+        "note": ""
+      },
+      "unc_recon_energy": {
+        "name": "unc_recon_energy",
+        "availability": "alarm_time",
+        "source": "raw-domain reconstruction residual energy",
+        "operational": true,
+        "group": "uncertainty",
+        "note": "the linear subject has no predictive uncertainty; this is the declared proxy"
+      },
+      "z_0": {
+        "name": "z_0",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_1": {
+        "name": "z_1",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_2": {
+        "name": "z_2",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_3": {
+        "name": "z_3",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_4": {
+        "name": "z_4",
+        "availability": "alarm_time",
+        "source": "pooled representation z",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "z_mahalanobis": {
+        "name": "z_mahalanobis",
+        "availability": "alarm_time",
+        "source": "z against the reference-fitted mean/shrunk cov",
+        "operational": true,
+        "group": "final_embedding",
+        "note": ""
+      },
+      "no_var_ratio": {
+        "name": "no_var_ratio",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_psd_dev_smooth": {
+        "name": "no_psd_dev_smooth",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_psd_dev_line": {
+        "name": "no_psd_dev_line",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "no_chan_corr_shift": {
+        "name": "no_chan_corr_shift",
+        "availability": "alarm_time",
+        "source": "noise-only record",
+        "operational": true,
+        "group": "noise_only",
+        "note": ""
+      },
+      "gr_input_maha": {
+        "name": "gr_input_maha",
+        "availability": "alarm_time",
+        "source": "pooled whitened input vs reference null (shrunk, calibrated)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_output_maha": {
+        "name": "gr_output_maha",
+        "availability": "alarm_time",
+        "source": "output vector vs reference null",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_pre_output_maha": {
+        "name": "gr_pre_output_maha",
+        "availability": "alarm_time",
+        "source": "pre-output vs reference null",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_out": {
+        "name": "gr_z_energy_out",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_null": {
+        "name": "gr_z_energy_null",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_resolved": {
+        "name": "gr_z_energy_resolved",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_z_energy_weak": {
+        "name": "gr_z_energy_weak",
+        "availability": "alarm_time",
+        "source": "energy split of z \u2212 z\u0304 in the reference projectors",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_out_of_span": {
+        "name": "gr_out_of_span",
+        "availability": "alarm_time",
+        "source": "residual energy / (residual + in-span) of the observed window",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_support_novelty": {
+        "name": "gr_support_novelty",
+        "availability": "alarm_time",
+        "source": "training-support novelty of z (support.SupportEstimator)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_resid_c3_pc_0": {
+        "name": "gr_resid_c3_pc_0",
+        "availability": "alarm_time",
+        "source": "per-coordinate third central moment of the whitened residual on reference residual PC 0 (cumulant; D7)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_resid_c3_pc_1": {
+        "name": "gr_resid_c3_pc_1",
+        "availability": "alarm_time",
+        "source": "per-coordinate third central moment of the whitened residual on reference residual PC 1 (cumulant; D7)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_resid_c3_pc_2": {
+        "name": "gr_resid_c3_pc_2",
+        "availability": "alarm_time",
+        "source": "per-coordinate third central moment of the whitened residual on reference residual PC 2 (cumulant; D7)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_resid_c3_norm": {
+        "name": "gr_resid_c3_norm",
+        "availability": "alarm_time",
+        "source": "Frobenius deviation of the whitened-residual third-moment tensor from the reference tensor (D7)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "gr_resid_c3_maha": {
+        "name": "gr_resid_c3_maha",
+        "availability": "alarm_time",
+        "source": "reference-null Mahalanobis of the compressed whitened-residual third-moment object (D7)",
+        "operational": true,
+        "group": "generic_rich",
+        "note": ""
+      },
+      "im_channel_mean_maha": {
+        "name": "im_channel_mean_maha",
+        "availability": "alarm_time",
+        "source": "pooled channel mean vs reference null (shrunk, calibrated)",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_second_maha": {
+        "name": "im_channel_second_maha",
+        "availability": "alarm_time",
+        "source": "pooled channel channel second moment vs reference null",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_third_maha": {
+        "name": "im_channel_third_maha",
+        "availability": "alarm_time",
+        "source": "pooled channel channel third moment vs reference null; reading cumulant on a linear subject, deviation from the reference third moment otherwise (D7)",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_pc_0": {
+        "name": "im_channel_pc_0",
+        "availability": "alarm_time",
+        "source": "pooled channel mean projected on reference PC 0",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_pc_1": {
+        "name": "im_channel_pc_1",
+        "availability": "alarm_time",
+        "source": "pooled channel mean projected on reference PC 1",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_channel_pc_2": {
+        "name": "im_channel_pc_2",
+        "availability": "alarm_time",
+        "source": "pooled channel mean projected on reference PC 2",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_mean_maha": {
+        "name": "im_token_mean_maha",
+        "availability": "alarm_time",
+        "source": "pooled token mean vs reference null (shrunk, calibrated)",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_second_maha": {
+        "name": "im_token_second_maha",
+        "availability": "alarm_time",
+        "source": "pooled token channel second moment vs reference null",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_third_maha": {
+        "name": "im_token_third_maha",
+        "availability": "alarm_time",
+        "source": "pooled token channel third moment vs reference null; reading cumulant on a linear subject, deviation from the reference third moment otherwise (D7)",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_pc_0": {
+        "name": "im_token_pc_0",
+        "availability": "alarm_time",
+        "source": "pooled token mean projected on reference PC 0",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_pc_1": {
+        "name": "im_token_pc_1",
+        "availability": "alarm_time",
+        "source": "pooled token mean projected on reference PC 1",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "im_token_pc_2": {
+        "name": "im_token_pc_2",
+        "availability": "alarm_time",
+        "source": "pooled token mean projected on reference PC 2",
+        "operational": true,
+        "group": "intermediate",
+        "note": ""
+      },
+      "gq_0": {
+        "name": "gq_0",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_1": {
+        "name": "gq_1",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_2": {
+        "name": "gq_2",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_3": {
+        "name": "gq_3",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_4": {
+        "name": "gq_4",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_5": {
+        "name": "gq_5",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_6": {
+        "name": "gq_6",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_7": {
+        "name": "gq_7",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_8": {
+        "name": "gq_8",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_9": {
+        "name": "gq_9",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_10": {
+        "name": "gq_10",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "gq_11": {
+        "name": "gq_11",
+        "availability": "alarm_time",
+        "source": "quadratic expansion of generic_rich scalars (capacity control)",
+        "operational": true,
+        "group": "generic_quadratic",
+        "note": ""
+      },
+      "lw_whitened_maha": {
+        "name": "lw_whitened_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_channel_maha": {
+        "name": "lw_channel_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_token_maha": {
+        "name": "lw_token_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_z_maha": {
+        "name": "lw_z_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_pre_output_maha": {
+        "name": "lw_pre_output_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "lw_output_maha": {
+        "name": "lw_output_maha",
+        "availability": "alarm_time",
+        "source": "pass-1 per-hook Mahalanobis (legacy diagnostic)",
+        "operational": true,
+        "group": "layerwise_legacy",
+        "note": ""
+      },
+      "twin_dz": {
+        "name": "twin_dz",
+        "availability": "evaluation_only",
+        "source": "paired clean twin (replay of the same event)",
+        "operational": true,
+        "group": "replay",
+        "note": "every \u0394z statistic of statistics.cell_statistics; a development diagnostic, not an alarm-time feature"
+      },
+      "truth_targets": {
+        "name": "truth_targets",
+        "availability": "evaluation_only",
+        "source": "planted (amplitude, t0, tau_t)",
+        "operational": true,
+        "group": "truth",
+        "note": ""
+      },
+      "sigma_realized": {
+        "name": "sigma_realized",
+        "availability": "evaluation_only",
+        "source": "generator implied/realised covariance",
+        "operational": true,
+        "group": "truth",
+        "note": "operational monitors use sigma_hat (reference_fit); \u03ba_cond is an evaluation quantity"
+      },
+      "intervention_label": {
+        "name": "intervention_label",
+        "availability": "evaluation_only",
+        "source": "cell origin/family/severity",
+        "operational": true,
+        "group": "truth",
+        "note": ""
+      },
+      "task_metric_delayed": {
+        "name": "task_metric_delayed",
+        "availability": "delayed_label",
+        "source": "labelled task metric arriving after the alarm",
+        "operational": true,
+        "group": "delayed",
+        "note": ""
+      },
+      "sigma_hat": {
+        "name": "sigma_hat",
+        "availability": "reference_fit",
+        "source": "assumed covariance in the whitening layer",
+        "operational": true,
+        "group": "reference",
+        "note": ""
+      }
+    }
+  },
+  "alarm_time_reference": {
+    "reading": "cumulant",
+    "reading_note": "connected third cumulant of the whitened residual in the natural Gaussian-reference chart (exact); pooled-hook third moments read as a cumulant on a linear subject and as a deviation from the reference cell's third moment otherwise (D7)",
+    "hook_mean_nulls": {
+      "whitened": {
+        "dim": 128,
+        "reduced_dim": 7,
+        "alpha": 0.11817033697315449,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "channel": {
+        "dim": 5,
+        "reduced_dim": 5,
+        "alpha": 0.10650108373949423,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "token": {
+        "dim": 9,
+        "reduced_dim": 7,
+        "alpha": 0.09551145793306838,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "z": {
+        "dim": 5,
+        "reduced_dim": 5,
+        "alpha": 0.10650108373949417,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "pre_output": {
+        "dim": 3,
+        "reduced_dim": 3,
+        "alpha": 0.08141538244218348,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      },
+      "output": {
+        "dim": 3,
+        "reduced_dim": 3,
+        "alpha": 0.08141538244218345,
+        "n_ref": 36,
+        "rule": "PCA to min(d, n_ref // 5) components when d > n_ref // 5; Ledoit\u2013Wolf shrinkage; fitted on reference_fit windows only"
+      }
+    },
+    "hook_second_nulls": {
+      "whitened": {
+        "dim": 1,
+        "reduced_dim": 1,
+        "alpha": 0.0
+      },
+      "channel": {
+        "dim": 25,
+        "reduced_dim": 7,
+        "alpha": 1.0
+      },
+      "token": {
+        "dim": 81,
+        "reduced_dim": 7,
+        "alpha": 1.0
+      }
+    },
+    "hook_third_nulls": {
+      "channel": {
+        "kind": "tensor",
+        "n_pcs": 3,
+        "reading": "cumulant",
+        "dim": 4,
+        "reduced_dim": 4,
+        "alpha": 0.13006228126062983,
+        "n_ref": 36,
+        "compression": "n_pcs reference-PC coordinates + one Frobenius-deviation scalar (D7)"
+      },
+      "token": {
+        "kind": "tensor",
+        "n_pcs": 3,
+        "reading": "cumulant",
+        "dim": 4,
+        "reduced_dim": 4,
+        "alpha": 0.11548853619235626,
+        "n_ref": 36,
+        "compression": "n_pcs reference-PC coordinates + one Frobenius-deviation scalar (D7)"
+      }
+    },
+    "resid_cumulant": {
+      "kind": "residual",
+      "n_pcs": 3,
+      "reading": "cumulant",
+      "dim": 4,
+      "reduced_dim": 4,
+      "alpha": 0.9197718325578765,
+      "n_ref": 36,
+      "compression": "n_pcs reference-PC coordinates + one Frobenius-deviation scalar (D7)"
+    },
+    "support": {
+      "k": 5,
+      "alpha": 0.10650108373949417,
+      "validation": {
+        "auroc_in_vs_out": 1.0,
+        "n_in": 18,
+        "n_out": 18,
+        "floor": 0.9,
+        "usable_for_abstention": true,
+        "shrinkage_alpha": 0.10650108373949417
+      }
+    },
+    "task_metric": {
+      "declaration": "one-hot on target 'amplitude'",
+      "target": 0,
+      "target_names": [
+        "amplitude",
+        "t0",
+        "tau_t"
+      ]
+    }
+  },
+  "arm_contract_status": {
+    "generic_rich": {
+      "arm": "generic_rich",
+      "n_features": 34,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "intermediate_only": {
+      "arm": "intermediate_only",
+      "n_features": 12,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_intermediate": {
+      "arm": "full_intermediate",
+      "n_features": 46,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "generic_rich_matched": {
+      "arm": "generic_rich_matched",
+      "n_features": 46,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "input_only": {
+      "arm": "input_only",
+      "n_features": 6,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "output_uncertainty": {
+      "arm": "output_uncertainty",
+      "n_features": 4,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "final_embedding": {
+      "arm": "final_embedding",
+      "n_features": 6,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "all_generic": {
+      "arm": "all_generic",
+      "n_features": 20,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "all_generic_no_noise": {
+      "arm": "all_generic_no_noise",
+      "n_features": 16,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "noise_only": {
+      "arm": "noise_only",
+      "n_features": 4,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_layerwise_legacy": {
+      "arm": "full_layerwise_legacy",
+      "n_features": 26,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_intermediate_drop_channel": {
+      "arm": "full_intermediate_drop_channel",
+      "n_features": 40,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    },
+    "full_intermediate_drop_token": {
+      "arm": "full_intermediate_drop_token",
+      "n_features": 40,
+      "status": "operational",
+      "privileged_features": [],
+      "dataflow_checked": true
+    }
+  },
+  "split": {
+    "partitions": {
+      "reference_fit": [
+        1,
+        5,
+        8,
+        9,
+        10,
+        11,
+        13,
+        16,
+        20,
+        23,
+        27,
+        34,
+        36,
+        37,
+        39,
+        44,
+        50,
+        52,
+        67,
+        72,
+        83,
+        84,
+        87,
+        88,
+        97,
+        98,
+        99,
+        100,
+        101,
+        105,
+        107,
+        110,
+        111,
+        113,
+        114,
+        117
+      ],
+      "attribution_train": [
+        2,
+        3,
+        4,
+        15,
+        19,
+        22,
+        25,
+        30,
+        35,
+        42,
+        43,
+        53,
+        55,
+        66,
+        71,
+        74,
+        75,
+        80,
+        81,
+        82,
+        92,
+        93,
+        94,
+        109
+      ],
+      "development": [
+        0,
+        6,
+        17,
+        18,
+        21,
+        24,
+        28,
+        47,
+        57,
+        60,
+        64,
+        65,
+        68,
+        85,
+        86,
+        90,
+        91,
+        104
+      ],
+      "calibration": [
+        12,
+        26,
+        32,
+        40,
+        45,
+        46,
+        49,
+        51,
+        61,
+        62,
+        70,
+        89,
+        96,
+        102,
+        112,
+        115,
+        116,
+        118
+      ],
+      "evaluation": [
+        7,
+        14,
+        29,
+        31,
+        33,
+        38,
+        41,
+        48,
+        54,
+        56,
+        58,
+        59,
+        63,
+        69,
+        73,
+        76,
+        77,
+        78,
+        79,
+        95,
+        103,
+        106,
+        108,
+        119
+      ]
+    },
+    "held_out_families": [
+      "line_pickup",
+      "double_pulse"
+    ],
+    "held_out_severities": [],
+    "held_out_seeds": [],
+    "seed": 0,
+    "meta": {}
+  },
+  "partition_counts": {
+    "attribution_train": 264,
+    "calibration": 198,
+    "development": 198,
+    "evaluation": 336,
+    "excluded": 288,
+    "reference_fit": 396
+  },
+  "far": {
+    "n_clean_windows": 24,
+    "n_false_alerts": 3,
+    "realised_far": 0.125,
+    "ci95": [
+      0.02655931498624894,
+      0.3236113581888329
+    ],
+    "budget": 0.01,
+    "resolvable_in_one_step": false,
+    "assumption": "independent, non-overlapping clean windows (binomial); temporal dependence widens the interval",
+    "note": "a run-level false-alert rate over several monitors needs a multiplicity-adjusted budget; not computed here",
+    "calibration_windows": 18,
+    "window_threshold": 1.8485550424218955,
+    "note_smoke": "18-ish clean calibration windows are a plumbing check; the calibration count is an output of the development precision study (PREREGISTRATION \u00a76)"
+  },
+  "claim1": {
+    "classes": [
+      "N",
+      "S"
+    ],
+    "arms": {
+      "generic_rich": {
+        "role": "primary",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 34,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9320021586616298,
+        "f1_eval_inclusive": 0.8660714285714286,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.873015873015873,
+        "confusion_inclusive": {
+          "N": {
+            "N": 158,
+            "S": 10
+          },
+          "S": {
+            "N": 10,
+            "S": 38
+          }
+        }
+      },
+      "intermediate_only": {
+        "role": "primary",
+        "status": "operational",
+        "lambda": 0.01,
+        "n_features": 12,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.5855263157894737,
+        "f1_eval_inclusive": 0.6528706183766158,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.6812144212523719,
+        "confusion_inclusive": {
+          "N": {
+            "N": 104,
+            "S": 64
+          },
+          "S": {
+            "N": 5,
+            "S": 43
+          }
+        }
+      },
+      "full_intermediate": {
+        "role": "primary",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 46,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9170506912442397,
+        "f1_eval_inclusive": 0.8828915662650603,
+        "f1_eval_hard": 0.8465473145780051,
+        "f1_eval_heldout_families": 0.916083916083916,
+        "confusion_inclusive": {
+          "N": {
+            "N": 157,
+            "S": 11
+          },
+          "S": {
+            "N": 7,
+            "S": 41
+          }
+        }
+      },
+      "generic_rich_matched": {
+        "role": "control",
+        "status": "operational",
+        "lambda": 0.01,
+        "n_features": 46,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9027777777777778,
+        "f1_eval_inclusive": 0.8013131601484442,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.7333333333333334,
+        "confusion_inclusive": {
+          "N": {
+            "N": 155,
+            "S": 13
+          },
+          "S": {
+            "N": 16,
+            "S": 32
+          }
+        }
+      },
+      "full_intermediate_drop_channel": {
+        "role": "control",
+        "status": "operational",
+        "lambda": 0.01,
+        "n_features": 40,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9320021586616298,
+        "f1_eval_inclusive": 0.8678899082568807,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.9582608695652175,
+        "confusion_inclusive": {
+          "N": {
+            "N": 153,
+            "S": 15
+          },
+          "S": {
+            "N": 6,
+            "S": 42
+          }
+        }
+      },
+      "full_intermediate_drop_token": {
+        "role": "control",
+        "status": "operational",
+        "lambda": 0.01,
+        "n_features": 40,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9320021586616298,
+        "f1_eval_inclusive": 0.8678899082568807,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.9582608695652175,
+        "confusion_inclusive": {
+          "N": {
+            "N": 153,
+            "S": 15
+          },
+          "S": {
+            "N": 6,
+            "S": 42
+          }
+        }
+      },
+      "input_only": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 6,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.8285714285714285,
+        "f1_eval_inclusive": 0.7085177588254346,
+        "f1_eval_hard": 0.595959595959596,
+        "f1_eval_heldout_families": 0.7428571428571429,
+        "confusion_inclusive": {
+          "N": {
+            "N": 132,
+            "S": 36
+          },
+          "S": {
+            "N": 14,
+            "S": 34
+          }
+        }
+      },
+      "output_uncertainty": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 4,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.628125,
+        "f1_eval_inclusive": 0.699523052464229,
+        "f1_eval_hard": 0.5396419437340153,
+        "f1_eval_heldout_families": 0.873015873015873,
+        "confusion_inclusive": {
+          "N": {
+            "N": 120,
+            "S": 48
+          },
+          "S": {
+            "N": 8,
+            "S": 40
+          }
+        }
+      },
+      "final_embedding": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 10.0,
+        "n_features": 6,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.5159322033898306,
+        "f1_eval_inclusive": 0.6754482620454774,
+        "f1_eval_hard": 0.52,
+        "f1_eval_heldout_families": 0.8509977827050997,
+        "confusion_inclusive": {
+          "N": {
+            "N": 119,
+            "S": 49
+          },
+          "S": {
+            "N": 11,
+            "S": 37
+          }
+        }
+      },
+      "all_generic": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 20,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9476961394769614,
+        "f1_eval_inclusive": 0.8804718217562254,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.9791576204950065,
+        "confusion_inclusive": {
+          "N": {
+            "N": 154,
+            "S": 14
+          },
+          "S": {
+            "N": 5,
+            "S": 43
+          }
+        }
+      },
+      "all_generic_no_noise": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 16,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.8216981132075472,
+        "f1_eval_inclusive": 0.7782894554331845,
+        "f1_eval_hard": 0.7442455242966751,
+        "f1_eval_heldout_families": 0.8525669153137341,
+        "confusion_inclusive": {
+          "N": {
+            "N": 141,
+            "S": 27
+          },
+          "S": {
+            "N": 10,
+            "S": 38
+          }
+        }
+      },
+      "noise_only": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 4,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.693121693121693,
+        "f1_eval_inclusive": 0.8176375777112594,
+        "f1_eval_hard": 0.949874686716792,
+        "f1_eval_heldout_families": 1.0,
+        "confusion_inclusive": {
+          "N": {
+            "N": 135,
+            "S": 33
+          },
+          "S": {
+            "N": 0,
+            "S": 48
+          }
+        }
+      },
+      "full_layerwise_legacy": {
+        "role": "diagnostic",
+        "status": "operational",
+        "lambda": 0.001,
+        "n_features": 26,
+        "converged": true,
+        "n_train": 168,
+        "n_tune": 126,
+        "n_eval": 216,
+        "f1_tune": 0.9170506912442397,
+        "f1_eval_inclusive": 0.8772396877149952,
+        "f1_eval_hard": 0.7916666666666665,
+        "f1_eval_heldout_families": 0.9372549019607843,
+        "confusion_inclusive": {
+          "N": {
+            "N": 156,
+            "S": 12
+          },
+          "S": {
+            "N": 7,
+            "S": 41
+          }
+        }
+      }
+    },
+    "errors": {},
+    "primary_hard": {
+      "point": 0.05488064791133862,
+      "low": 0.0,
+      "high": 0.16431483991446041,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 generic_rich",
+      "set": "hard matched evaluation set (Claim-1 primary estimand)",
+      "n_windows": 20
+    },
+    "primary_inclusive": {
+      "point": 0.016820137693631665,
+      "low": -0.013920081087617789,
+      "high": 0.04551163396533847,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "equivalence",
+      "contrast": "full_intermediate \u2212 generic_rich",
+      "set": "inclusive evaluation set",
+      "n_windows": 216
+    },
+    "primary_heldout_families": {
+      "point": 0.043068043068043016,
+      "low": 0.0,
+      "high": 0.09757315961791592,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive",
+      "contrast": "full_intermediate \u2212 generic_rich",
+      "set": "held-out families",
+      "n_windows": 48
+    },
+    "control_matched_capacity": {
+      "point": 0.10230179028133002,
+      "low": 0.0,
+      "high": 0.22606501285847824,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 generic_rich_matched",
+      "set": "hard set; generic arm with matched feature count",
+      "n_windows": 20
+    },
+    "control_drop_channel": {
+      "point": 0.10230179028133002,
+      "low": 0.0,
+      "high": 0.22606501285847824,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 full_intermediate_drop_channel",
+      "set": "hard set; hook drop",
+      "n_windows": 20
+    },
+    "control_drop_token": {
+      "point": 0.10230179028133002,
+      "low": 0.0,
+      "high": 0.22606501285847824,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "full_intermediate \u2212 full_intermediate_drop_token",
+      "set": "hard set; hook drop",
+      "n_windows": 20
+    },
+    "control_intermediate_alone": {
+      "point": -0.0474211423699914,
+      "low": -0.2865226530005942,
+      "high": 0.2265025946275945,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 15,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "inconclusive (n_windows 20 < 30)",
+      "contrast": "intermediate_only \u2212 generic_rich",
+      "set": "hard set; internal hooks alone vs generic_rich",
+      "n_windows": 20
+    },
+    "diagnostic_noise_only_ablation": {
+      "point": 0.1021823663230409,
+      "low": 0.06746541494197981,
+      "high": 0.14681901144102727,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "benefit",
+      "contrast": "all_generic \u2212 all_generic_no_noise",
+      "set": "pass-1 diagnostic",
+      "n_windows": 216
+    },
+    "diagnostic_legacy_layerwise": {
+      "point": -0.003232134041230239,
+      "low": -0.026576039705425873,
+      "high": 0.021096251382989598,
+      "n_boot": 100,
+      "n_boot_effective": 100,
+      "n_failed": 0,
+      "n_groups": 24,
+      "n_seeds": null,
+      "units": "event_group",
+      "inference": "event-sampling only (conditional on the fixed cells)",
+      "reading": "equivalence",
+      "contrast": "full_layerwise_legacy \u2212 all_generic",
+      "set": "pass-1 diagnostic (contaminated arm)",
+      "n_windows": 216
+    },
+    "hard_matching": {
+      "variables": [
+        "in_rms",
+        "in_kurtosis",
+        "z_mahalanobis",
+        "gr_output_maha"
+      ],
+      "caliper": 1.0,
+      "n_S": 48,
+      "n_N": 168,
+      "n_pairs": 10,
+      "retained_fraction_S": 0.20833333333333334,
+      "retained_fraction_N": 0.05952380952380952,
+      "overlap_failures_S": 38,
+      "pair_distance_median": 0.6173231810479543,
+      "note": "1:1 nearest neighbour without replacement inside the caliper, standardised by the clean pool; a declared conditional design, not a causal identification"
+    },
+    "family_breakdown_hard": {
+      "bandwidth_down": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "channel_loss": {
+        "generic_rich": {
+          "n": 4,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 4,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 4,
+          "acc": 1.0
+        }
+      },
+      "corr_down": {
+        "generic_rich": {
+          "n": 2,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 2,
+          "acc": 0.5
+        },
+        "full_intermediate": {
+          "n": 2,
+          "acc": 1.0
+        }
+      },
+      "double_pulse": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "gain_drift": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "line_pickup": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      },
+      "oscillation": {
+        "generic_rich": {
+          "n": 9,
+          "acc": 0.5555555555555556
+        },
+        "intermediate_only": {
+          "n": 9,
+          "acc": 0.5555555555555556
+        },
+        "full_intermediate": {
+          "n": 9,
+          "acc": 0.6666666666666666
+        }
+      },
+      "timing_jitter": {
+        "generic_rich": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "intermediate_only": {
+          "n": 1,
+          "acc": 1.0
+        },
+        "full_intermediate": {
+          "n": 1,
+          "acc": 1.0
+        }
+      }
+    },
+    "hierarchical_family_outer_hard": {
+      "point": 0.05488064791133862,
+      "n_boot": 100,
+      "n_boot_effective": 88,
+      "n_failed": 12,
+      "n_outer": 8,
+      "n_inner_groups": 15,
+      "n_model_seeds": null,
+      "units": "outer (cell/family/seed) \u2283 event_group (nested)",
+      "min_outer_for_inference": 10,
+      "low": 0.0,
+      "high": 0.1972826367389063,
+      "inference": "descriptive only \u2014 8 outer units < 10; confirmatory inference about held-out interventions is impossible at this size"
+    },
+    "note": "macro-F1 over {N, S}; arms fitted on attribution_train, tuned on development, scored once on evaluation; reference_fit groups are never supervised examples; held-out and undeclared families entered no fit, tuning or calibration; the Claim-1 primary estimand is on the hard matched set"
+  },
+  "abstention": {
+    "conformal": {
+      "alpha": 0.1,
+      "threshold": 1.9379315108528297,
+      "n_calibration": 18,
+      "finite_sample_clean_retention_bound": 0.8473684210526315,
+      "score": "calibrated support novelty (gr_support_novelty)",
+      "note": "split conformal on clean calibration windows; guarantee holds only under exchangeability of clean windows and does not cover unknown families"
+    },
+    "unknown_auroc": {
+      "auroc": 0.6043595679012346,
+      "n_pos": 24,
+      "n_neg": 216,
+      "undefined_reason": null
+    },
+    "coverage_at_threshold": 0.7833333333333333,
+    "clean_retention_at_threshold": 0.875,
+    "risk_coverage": {
+      "coverage": [
+        0.004166666666666667,
+        0.008333333333333333,
+        0.0125,
+        0.016666666666666666,
+        0.020833333333333332,
+        0.025,
+        0.029166666666666667,
+        0.03333333333333333,
+        0.0375,
+        0.041666666666666664,
+        0.04583333333333333,
+        0.05,
+        0.05416666666666667,
+        0.058333333333333334,
+        0.0625,
+        0.06666666666666667,
+        0.07083333333333333,
+        0.075,
+        0.07916666666666666,
+        0.08333333333333333,
+        0.0875,
+        0.09166666666666666,
+        0.09583333333333334,
+        0.1,
+        0.10416666666666667,
+        0.10833333333333334,
+        0.1125,
+        0.11666666666666667,
+        0.12083333333333333,
+        0.125,
+        0.12916666666666668,
+        0.13333333333333333,
+        0.1375,
+        0.14166666666666666,
+        0.14583333333333334,
+        0.15,
+        0.15416666666666667,
+        0.15833333333333333,
+        0.1625,
+        0.16666666666666666,
+        0.17083333333333334,
+        0.175,
+        0.17916666666666667,
+        0.18333333333333332,
+        0.1875,
+        0.19166666666666668,
+        0.19583333333333333,
+        0.2,
+        0.20416666666666666,
+        0.20833333333333334,
+        0.2125,
+        0.21666666666666667,
+        0.22083333333333333,
+        0.225,
+        0.22916666666666666,
+        0.23333333333333334,
+        0.2375,
+        0.24166666666666667,
+        0.24583333333333332,
+        0.25,
+        0.25416666666666665,
+        0.25833333333333336,
+        0.2625,
+        0.26666666666666666,
+        0.2708333333333333,
+        0.275,
+        0.2791666666666667,
+        0.2833333333333333,
+        0.2875,
+        0.2916666666666667,
+        0.29583333333333334,
+        0.3,
+        0.30416666666666664,
+        0.30833333333333335,
+        0.3125,
+        0.31666666666666665,
+        0.32083333333333336,
+        0.325,
+        0.32916666666666666,
+        0.3333333333333333,
+        0.3375,
+        0.3416666666666667,
+        0.3458333333333333,
+        0.35,
+        0.3541666666666667,
+        0.35833333333333334,
+        0.3625,
+        0.36666666666666664,
+        0.37083333333333335,
+        0.375,
+        0.37916666666666665,
+        0.38333333333333336,
+        0.3875,
+        0.39166666666666666,
+        0.3958333333333333,
+        0.4,
+        0.4041666666666667,
+        0.4083333333333333,
+        0.4125,
+        0.4166666666666667,
+        0.42083333333333334,
+        0.425,
+        0.42916666666666664,
+        0.43333333333333335,
+        0.4375,
+        0.44166666666666665,
+        0.44583333333333336,
+        0.45,
+        0.45416666666666666,
+        0.4583333333333333,
+        0.4625,
+        0.4666666666666667,
+        0.4708333333333333,
+        0.475,
+        0.4791666666666667,
+        0.48333333333333334,
+        0.4875,
+        0.49166666666666664,
+        0.49583333333333335,
+        0.5,
+        0.5041666666666667,
+        0.5083333333333333,
+        0.5125,
+        0.5166666666666667,
+        0.5208333333333334,
+        0.525,
+        0.5291666666666667,
+        0.5333333333333333,
+        0.5375,
+        0.5416666666666666,
+        0.5458333333333333,
+        0.55,
+        0.5541666666666667,
+        0.5583333333333333,
+        0.5625,
+        0.5666666666666667,
+        0.5708333333333333,
+        0.575,
+        0.5791666666666667,
+        0.5833333333333334,
+        0.5875,
+        0.5916666666666667,
+        0.5958333333333333,
+        0.6,
+        0.6041666666666666,
+        0.6083333333333333,
+        0.6125,
+        0.6166666666666667,
+        0.6208333333333333,
+        0.625,
+        0.6291666666666667,
+        0.6333333333333333,
+        0.6375,
+        0.6416666666666667,
+        0.6458333333333334,
+        0.65,
+        0.6541666666666667,
+        0.6583333333333333,
+        0.6625,
+        0.6666666666666666,
+        0.6708333333333333,
+        0.675,
+        0.6791666666666667,
+        0.6833333333333333,
+        0.6875,
+        0.6916666666666667,
+        0.6958333333333333,
+        0.7,
+        0.7041666666666667,
+        0.7083333333333334,
+        0.7125,
+        0.7166666666666667,
+        0.7208333333333333,
+        0.725,
+        0.7291666666666666,
+        0.7333333333333333,
+        0.7375,
+        0.7416666666666667,
+        0.7458333333333333,
+        0.75,
+        0.7541666666666667,
+        0.7583333333333333,
+        0.7625,
+        0.7666666666666667,
+        0.7708333333333334,
+        0.775,
+        0.7791666666666667,
+        0.7833333333333333,
+        0.7875,
+        0.7916666666666666,
+        0.7958333333333333,
+        0.8,
+        0.8041666666666667,
+        0.8083333333333333,
+        0.8125,
+        0.8166666666666667,
+        0.8208333333333333,
+        0.825,
+        0.8291666666666667,
+        0.8333333333333334,
+        0.8375,
+        0.8416666666666667,
+        0.8458333333333333,
+        0.85,
+        0.8541666666666666,
+        0.8583333333333333,
+        0.8625,
+        0.8666666666666667,
+        0.8708333333333333,
+        0.875,
+        0.8791666666666667,
+        0.8833333333333333,
+        0.8875,
+        0.8916666666666667,
+        0.8958333333333334,
+        0.9,
+        0.9041666666666667,
+        0.9083333333333333,
+        0.9125,
+        0.9166666666666666,
+        0.9208333333333333,
+        0.925,
+        0.9291666666666667,
+        0.9333333333333333,
+        0.9375,
+        0.9416666666666667,
+        0.9458333333333333,
+        0.95,
+        0.9541666666666667,
+        0.9583333333333334,
+        0.9625,
+        0.9666666666666667,
+        0.9708333333333333,
+        0.975,
+        0.9791666666666666,
+        0.9833333333333333,
+        0.9875,
+        0.9916666666666667,
+        0.9958333333333333,
+        1.0
+      ],
+      "risk": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.07692307692307693,
+        0.07142857142857142,
+        0.06666666666666667,
+        0.0625,
+        0.058823529411764705,
+        0.05555555555555555,
+        0.05263157894736842,
+        0.05,
+        0.047619047619047616,
+        0.09090909090909091,
+        0.08695652173913043,
+        0.08333333333333333,
+        0.08,
+        0.07692307692307693,
+        0.07407407407407407,
+        0.07142857142857142,
+        0.06896551724137931,
+        0.06666666666666667,
+        0.06451612903225806,
+        0.0625,
+        0.06060606060606061,
+        0.058823529411764705,
+        0.05714285714285714,
+        0.08333333333333333,
+        0.08108108108108109,
+        0.07894736842105263,
+        0.07692307692307693,
+        0.075,
+        0.07317073170731707,
+        0.07142857142857142,
+        0.06976744186046512,
+        0.06818181818181818,
+        0.06666666666666667,
+        0.06521739130434782,
+        0.06382978723404255,
+        0.0625,
+        0.061224489795918366,
+        0.06,
+        0.058823529411764705,
+        0.057692307692307696,
+        0.05660377358490566,
+        0.05555555555555555,
+        0.05454545454545454,
+        0.05357142857142857,
+        0.05263157894736842,
+        0.05172413793103448,
+        0.06779661016949153,
+        0.08333333333333333,
+        0.09836065573770492,
+        0.0967741935483871,
+        0.09523809523809523,
+        0.09375,
+        0.09230769230769231,
+        0.09090909090909091,
+        0.08955223880597014,
+        0.08823529411764706,
+        0.10144927536231885,
+        0.1,
+        0.09859154929577464,
+        0.09722222222222222,
+        0.0958904109589041,
+        0.0945945945945946,
+        0.09333333333333334,
+        0.09210526315789473,
+        0.09090909090909091,
+        0.08974358974358974,
+        0.08860759493670886,
+        0.0875,
+        0.08641975308641975,
+        0.08536585365853659,
+        0.08433734939759036,
+        0.08333333333333333,
+        0.09411764705882353,
+        0.09302325581395349,
+        0.09195402298850575,
+        0.09090909090909091,
+        0.10112359550561797,
+        0.1,
+        0.0989010989010989,
+        0.09782608695652174,
+        0.0967741935483871,
+        0.10638297872340426,
+        0.10526315789473684,
+        0.11458333333333333,
+        0.12371134020618557,
+        0.12244897959183673,
+        0.13131313131313133,
+        0.13,
+        0.12871287128712872,
+        0.13725490196078433,
+        0.13592233009708737,
+        0.1346153846153846,
+        0.13333333333333333,
+        0.1320754716981132,
+        0.1308411214953271,
+        0.12962962962962962,
+        0.12844036697247707,
+        0.12727272727272726,
+        0.12612612612612611,
+        0.125,
+        0.13274336283185842,
+        0.14035087719298245,
+        0.14782608695652175,
+        0.14655172413793102,
+        0.1452991452991453,
+        0.1440677966101695,
+        0.14285714285714285,
+        0.14166666666666666,
+        0.14049586776859505,
+        0.13934426229508196,
+        0.13821138211382114,
+        0.13709677419354838,
+        0.136,
+        0.1349206349206349,
+        0.13385826771653545,
+        0.140625,
+        0.14728682170542637,
+        0.14615384615384616,
+        0.1450381679389313,
+        0.14393939393939395,
+        0.14285714285714285,
+        0.1417910447761194,
+        0.14074074074074075,
+        0.13970588235294118,
+        0.1386861313868613,
+        0.13768115942028986,
+        0.1366906474820144,
+        0.1357142857142857,
+        0.14184397163120568,
+        0.14084507042253522,
+        0.13986013986013987,
+        0.1388888888888889,
+        0.13793103448275862,
+        0.136986301369863,
+        0.1360544217687075,
+        0.13513513513513514,
+        0.1342281879194631,
+        0.13333333333333333,
+        0.13245033112582782,
+        0.13157894736842105,
+        0.13071895424836602,
+        0.12987012987012986,
+        0.12903225806451613,
+        0.1346153846153846,
+        0.1337579617834395,
+        0.13291139240506328,
+        0.1320754716981132,
+        0.13125,
+        0.13043478260869565,
+        0.12962962962962962,
+        0.12883435582822086,
+        0.13414634146341464,
+        0.13333333333333333,
+        0.13253012048192772,
+        0.1317365269461078,
+        0.13095238095238096,
+        0.1301775147928994,
+        0.12941176470588237,
+        0.1286549707602339,
+        0.12790697674418605,
+        0.12716763005780346,
+        0.12643678160919541,
+        0.12571428571428572,
+        0.125,
+        0.12994350282485875,
+        0.1348314606741573,
+        0.13966480446927373,
+        0.14444444444444443,
+        0.14917127071823205,
+        0.15384615384615385,
+        0.15846994535519127,
+        0.16304347826086957,
+        0.16756756756756758,
+        0.17204301075268819,
+        0.17647058823529413,
+        0.17553191489361702,
+        0.1746031746031746,
+        0.1736842105263158,
+        0.17277486910994763,
+        0.171875,
+        0.17098445595854922,
+        0.17010309278350516,
+        0.16923076923076924,
+        0.1683673469387755,
+        0.16751269035532995,
+        0.16666666666666666,
+        0.1708542713567839,
+        0.17,
+        0.1691542288557214,
+        0.17326732673267325,
+        0.1724137931034483,
+        0.1715686274509804,
+        0.17073170731707318,
+        0.16990291262135923,
+        0.16908212560386474,
+        0.16826923076923078,
+        0.1674641148325359,
+        0.16666666666666666,
+        0.17061611374407584,
+        0.16981132075471697,
+        0.16901408450704225,
+        0.16822429906542055,
+        0.16744186046511628,
+        0.16666666666666666,
+        0.16589861751152074,
+        0.1651376146788991,
+        0.1643835616438356,
+        0.16818181818181818,
+        0.167420814479638,
+        0.16666666666666666,
+        0.17040358744394618,
+        0.16964285714285715,
+        0.1688888888888889,
+        0.17256637168141592,
+        0.1762114537444934,
+        0.17543859649122806,
+        0.17903930131004367,
+        0.1782608695652174,
+        0.1774891774891775,
+        0.17672413793103448,
+        0.18025751072961374,
+        0.1794871794871795,
+        0.17872340425531916,
+        0.17796610169491525,
+        0.17721518987341772,
+        0.17647058823529413,
+        0.17573221757322174,
+        0.175
+      ],
+      "risk_coverage_auc": 0.11699146182377006,
+      "points": {
+        "0.5": {
+          "coverage": 0.5,
+          "risk": 0.14166666666666666,
+          "n_retained": 120,
+          "n_retained_known": 111,
+          "n_retained_unknown": 9,
+          "retained_known_macro_f1": 0.813131313131313,
+          "undefined_reason": null
+        },
+        "0.8": {
+          "coverage": 0.8,
+          "risk": 0.171875,
+          "n_retained": 192,
+          "n_retained_known": 172,
+          "n_retained_unknown": 20,
+          "retained_known_macro_f1": 0.8453130404704254,
+          "undefined_reason": null
+        },
+        "0.9": {
+          "coverage": 0.9,
+          "risk": 0.16666666666666666,
+          "n_retained": 216,
+          "n_retained_known": 194,
+          "n_retained_unknown": 22,
+          "retained_known_macro_f1": 0.8690200617283951,
+          "undefined_reason": null
+        },
+        "1.0": {
+          "coverage": 1.0,
+          "risk": 0.175,
+          "n_retained": 240,
+          "n_retained_known": 216,
+          "n_retained_unknown": 24,
+          "retained_known_macro_f1": 0.8828915662650603,
+          "undefined_reason": null
+        }
+      },
+      "n": 240
+    },
+    "counts": {
+      "n_eval": 240,
+      "n_unknown": 24,
+      "n_abstained": 52,
+      "n_unknown_abstained": 4,
+      "n_known_abstained": 48,
+      "n_unknown_retained": 20
+    },
+    "support_estimator_validation": {
+      "auroc_in_vs_out": 1.0,
+      "n_in": 18,
+      "n_out": 18,
+      "floor": 0.9,
+      "usable_for_abstention": true,
+      "shrinkage_alpha": 0.10650108373949417
+    }
+  },
+  "joint_decision_table": {
+    "alarm_threshold_window": 1.8485550424218955,
+    "per_category": {
+      "clean": {
+        "n": 24,
+        "decisions": {
+          "quiet": 21,
+          "abstain": 3,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.875,
+        "correct_decisions": [
+          "quiet"
+        ]
+      },
+      "N": {
+        "n": 168,
+        "decisions": {
+          "quiet": 152,
+          "abstain": 16,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.0,
+        "correct_decisions": [
+          "N"
+        ]
+      },
+      "S": {
+        "n": 48,
+        "decisions": {
+          "quiet": 21,
+          "abstain": 27,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.0,
+        "correct_decisions": [
+          "S"
+        ]
+      },
+      "mixture": {
+        "n": 24,
+        "decisions": {
+          "quiet": 20,
+          "abstain": 4,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.0,
+        "correct_decisions": [
+          "N",
+          "S"
+        ]
+      },
+      "unknown": {
+        "n": 24,
+        "decisions": {
+          "quiet": 20,
+          "abstain": 4,
+          "N": 0,
+          "S": 0
+        },
+        "correct_rate": 0.16666666666666666,
+        "correct_decisions": [
+          "abstain"
+        ]
+      }
+    },
+    "overall_correct_rate": 0.0744047619047619,
+    "note": "whole-chain decision rule; conditional N/S macro-F1 is not this table",
+    "n_G_windows_not_tabulated": 48
+  },
+  "claim2": {
+    "kappa_m": {
+      "value": 1.1,
+      "status": "provisional_dev",
+      "units": "ratio of amplitude |error| to the clean calibration mean",
+      "source": "proposal (16 Sep): 'provisional 10% amplitude degradation' \u2014 development only; PREREGISTRATION \u00a74 PENDING",
+      "arm": "tier1",
+      "level": "cell"
+    },
+    "level": "cell (windows aggregated by median)",
+    "K_definition": "K_phys = mean |\u0177_amplitude \u2212 amplitude_truth| over the cell's evaluation windows / the same quantity on the clean reference cell's evaluation windows (the same events; truth is evaluation-only). Cell-level K uses the mean; cell-level scores use the declared aggregate",
+    "scores": {
+      "generic_committed": "max of clean-calibrated ['gr_input_maha', 'gr_output_maha', 'z_mahalanobis'] \u2014 committed before any evaluation label",
+      "task_sensitive": "clean-calibrated \u2016z \u2212 z\u0304\u2016 in M_task = J_y\u1d40 W_y J_y with W_y one-hot on the amplitude output",
+      "intermediate_supporting": "max of clean-calibrated ['im_channel_mean_maha', 'im_token_mean_maha'] (supporting, not primary)"
+    },
+    "weighting": "uniform_cell (declared, unfrozen)",
+    "primary_delta": {
+      "delta_auroc": 0.16666666666666663,
+      "auroc_task_sensitive": 1.0,
+      "auroc_generic_committed": 0.8333333333333334,
+      "n_pos": 4,
+      "n_neg": 9,
+      "undefined_reason": null,
+      "level": "cell",
+      "ci_hierarchical_outer_cell": {
+        "point": 0.16666666666666663,
+        "n_boot": 100,
+        "n_boot_effective": 100,
+        "n_failed": 0,
+        "n_outer": 13,
+        "n_inner_groups": 24,
+        "n_model_seeds": null,
+        "units": "outer (cell/family/seed) \u2283 event_group (nested)",
+        "min_outer_for_inference": 10,
+        "low": -0.4525,
+        "high": 0.2894444444444443,
+        "inference": "outer-unit bootstrap; supports a statement about interventions drawn like these"
+      },
+      "ci_event_groups_only_legacy": {
+        "point": 0.16666666666666663,
+        "low": -0.4955357142857143,
+        "high": 0.41145833333333337,
+        "n_boot": 100,
+        "n_boot_effective": 96,
+        "n_failed": 4,
+        "n_groups": 24,
+        "n_seeds": null,
+        "units": "event_group",
+        "inference": "event-sampling only (conditional on the fixed cells)"
+      },
+      "set": "all intervention cells (development families, in-family held-out events, plus the two held-out families and the unknown)"
+    },
+    "primary_delta_heldout_families_only": {
+      "delta_auroc": 0.0,
+      "auroc_task_sensitive": 1.0,
+      "auroc_generic_committed": 1.0,
+      "n_pos": 1,
+      "n_neg": 1,
+      "undefined_reason": null,
+      "level": "cell",
+      "n_cells": 2,
+      "note": "the Claim-2 estimand set proper \u2014 2 held-out cells: descriptive only; below MIN_OUTER_UNITS_FOR_INFERENCE"
+    },
+    "secondary_intermediate_delta": {
+      "delta_auroc": 0.04166666666666663,
+      "auroc_task_sensitive": 0.875,
+      "auroc_generic_committed": 0.8333333333333334,
+      "n_pos": 4,
+      "n_neg": 9,
+      "undefined_reason": null,
+      "level": "cell"
+    },
+    "absolute": {
+      "generic_committed": {
+        "auroc": 0.8333333333333334,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 0.7678571428571428,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell"
+      },
+      "task_sensitive": {
+        "auroc": 1.0,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell"
+      },
+      "intermediate_supporting": {
+        "auroc": 0.875,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 0.7928571428571429,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell"
+      }
+    },
+    "supporting_intermediate_scores": {
+      "task_length": {
+        "auroc": 1.0,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell",
+        "role": "supporting; the quadratic task-sensitive score"
+      },
+      "cubic": {
+        "auroc": 0.5,
+        "n_pos": 4,
+        "n_neg": 9,
+        "undefined_reason": null,
+        "auprc": 0.6394230769230769,
+        "auprc_prevalence": 0.3076923076923077,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 13,
+        "level": "cell",
+        "role": "supporting intermediate score (aligned cubic companion of the task length)",
+        "primary_estimate": false,
+        "reading": "task-aligned skewness; descriptive only, no threshold, never the Claim-2 primary"
+      },
+      "scores": {
+        "task_length": "clean-calibrated \u2016z \u2212 z\u0304\u2016_{M_task}",
+        "cubic": "clean-calibrated raw_task_cubic = \u0394_a \u0394_b \u0394_c \u00ce3_abc on the M_task-whitened chart, I3 fitted on reference_fit z"
+      }
+    },
+    "cell_threshold": {
+      "threshold": 0.6357102214403225,
+      "far": 0.01,
+      "aggregate": "median",
+      "cell_size": 24,
+      "n_clean_windows": 18,
+      "n_draws": 2000,
+      "note": "pseudo-cell bootstrap of clean windows; the underlying window count bounds the resolution \u2014 1/18 = 0.056 per window",
+      "resolvable": false
+    },
+    "quadrants_generic_committed": {
+      "low_alarm_benign": {
+        "n": 6,
+        "weight": 6.0
+      },
+      "low_alarm_harmful": {
+        "n": 1,
+        "weight": 1.0
+      },
+      "strong_alarm_benign": {
+        "n": 3,
+        "weight": 3.0
+      },
+      "strong_alarm_harmful": {
+        "n": 3,
+        "weight": 3.0
+      },
+      "undefined": {
+        "n": 0,
+        "weight": 0.0
+      },
+      "alarm_threshold": 0.6357102214403225,
+      "level": "cell"
+    },
+    "missed_harm_generic_committed": {
+      "missed_harm_rate": 0.25,
+      "n_harmful": 4,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "valid_rare_cell_rejection_generic_committed": {
+      "valid_rare_rejection_rate": 1.0,
+      "n_valid_rare_benign": 1,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "conditional_triage_generic_committed": {
+      "auroc": 0.6666666666666666,
+      "n_pos": 3,
+      "n_neg": 3,
+      "undefined_reason": null,
+      "conditional_harm_risk": 0.5,
+      "n_dropped_by_conditioning": 7,
+      "n_dropped_harmful": 1,
+      "level": "cell"
+    },
+    "breakdown_contract_generic_committed": {
+      "G": {
+        "auroc": null,
+        "n_pos": 2,
+        "n_neg": 0,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 1.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "N": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 6,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.14285714285714285,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 7,
+        "level": "cell"
+      },
+      "S": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 1,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.5,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "U": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      },
+      "mixture": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      }
+    },
+    "quadrants_task_sensitive": {
+      "low_alarm_benign": {
+        "n": 9,
+        "weight": 9.0
+      },
+      "low_alarm_harmful": {
+        "n": 3,
+        "weight": 3.0
+      },
+      "strong_alarm_benign": {
+        "n": 0,
+        "weight": 0.0
+      },
+      "strong_alarm_harmful": {
+        "n": 1,
+        "weight": 1.0
+      },
+      "undefined": {
+        "n": 0,
+        "weight": 0.0
+      },
+      "alarm_threshold": 0.6357102214403225,
+      "level": "cell"
+    },
+    "missed_harm_task_sensitive": {
+      "missed_harm_rate": 0.75,
+      "n_harmful": 4,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "valid_rare_cell_rejection_task_sensitive": {
+      "valid_rare_rejection_rate": 0.0,
+      "n_valid_rare_benign": 1,
+      "level": "cell",
+      "undefined_reason": null
+    },
+    "conditional_triage_task_sensitive": {
+      "auroc": null,
+      "n_pos": 1,
+      "n_neg": 0,
+      "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+      "conditional_harm_risk": 1.0,
+      "n_dropped_by_conditioning": 12,
+      "n_dropped_harmful": 3,
+      "level": "cell"
+    },
+    "breakdown_contract_task_sensitive": {
+      "G": {
+        "auroc": null,
+        "n_pos": 2,
+        "n_neg": 0,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 1.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "N": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 6,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.14285714285714285,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 7,
+        "level": "cell"
+      },
+      "S": {
+        "auroc": 1.0,
+        "n_pos": 1,
+        "n_neg": 1,
+        "undefined_reason": null,
+        "auprc": 1.0,
+        "auprc_prevalence": 0.5,
+        "auprc_undefined_reason": null,
+        "n_undefined": 0,
+        "n_cells": 2,
+        "level": "cell"
+      },
+      "U": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      },
+      "mixture": {
+        "auroc": null,
+        "n_pos": 0,
+        "n_neg": 1,
+        "undefined_reason": "one class is empty; the ranking endpoint is undefined for this set",
+        "auprc": null,
+        "auprc_prevalence": 0.0,
+        "auprc_undefined_reason": "one class is empty",
+        "n_undefined": 0,
+        "n_cells": 1,
+        "level": "cell"
+      }
+    },
+    "valid_rare_window_rejection_generic": {
+      "valid_rare_window_rejection_rate": 0.16666666666666666,
+      "n_windows": 24,
+      "level": "window",
+      "undefined_reason": null
+    },
+    "cells": {
+      "event:glitch": {
+        "origin": "unknown",
+        "contract": "U",
+        "K": 1.0525565545309499,
+        "harm": "benign",
+        "generic": 0.9835552608044087,
+        "task": -0.26699412540495254,
+        "cubic": 1.760345538933773,
+        "intermediate": 0.5549229427026537,
+        "held_out_family": false
+      },
+      "event_in_span:double_pulse": {
+        "origin": "S_in_span",
+        "contract": "S",
+        "K": 4.314293637147031,
+        "harm": "harmful",
+        "generic": 3.6231578592801497,
+        "task": 3.0838243028738717,
+        "cubic": 176.66616748232275,
+        "intermediate": 3.6792448409692824,
+        "held_out_family": true
+      },
+      "event_in_span:oscillation": {
+        "origin": "S_in_span",
+        "contract": "S",
+        "K": 1.082765607984034,
+        "harm": "benign",
+        "generic": 1.11895838106256,
+        "task": 0.13231285227617132,
+        "cubic": 1.11895838106256,
+        "intermediate": 0.8079662039226126,
+        "held_out_family": false
+      },
+      "geometry:12ch": {
+        "origin": "G",
+        "contract": "G",
+        "K": 1.3281981970219643,
+        "harm": "harmful",
+        "generic": 0.7271789251849439,
+        "task": 0.5549229427026537,
+        "cubic": -0.5549229427026537,
+        "intermediate": 0.6357102214403225,
+        "held_out_family": false
+      },
+      "geometry:3ch": {
+        "origin": "G",
+        "contract": "G",
+        "K": 1.4661555148263279,
+        "harm": "harmful",
+        "generic": 1.4121875789061638,
+        "task": 0.4109585340538031,
+        "cubic": 4.3780850845342245,
+        "intermediate": 1.2655729799843618,
+        "held_out_family": false
+      },
+      "mixture:oscillation+gain_drift": {
+        "origin": "mixture",
+        "contract": "mixture",
+        "K": 1.0484474031309527,
+        "harm": "benign",
+        "generic": 0.8079662039226126,
+        "task": 0.19965348884056194,
+        "cubic": 0.9177279406202757,
+        "intermediate": 0.6357102214403225,
+        "held_out_family": false
+      },
+      "sigma_cov:bandwidth_down": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 1.0010341858341476,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "cubic": 0.48082359728700874,
+        "intermediate": -0.2695185520737674,
+        "held_out_family": false
+      },
+      "sigma_cov:corr_down": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 0.9897054293327057,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "cubic": 0.48082359728700874,
+        "intermediate": -0.3368591886381581,
+        "held_out_family": false
+      },
+      "sigma_cov:corr_up": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 1.0070980473321802,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "cubic": 0.5549229427026537,
+        "intermediate": -0.13231285227617118,
+        "held_out_family": false
+      },
+      "sigma_cov:line_pickup": {
+        "origin": "N_cov",
+        "contract": "N",
+        "K": 1.0074681793598357,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.13231285227617132,
+        "cubic": 0.5549229427026537,
+        "intermediate": -0.34361789748941246,
+        "held_out_family": true
+      },
+      "sigma_struct:channel_loss": {
+        "origin": "N_struct",
+        "contract": "N",
+        "K": 1.1566197994720928,
+        "harm": "harmful",
+        "generic": 0.5549229427026537,
+        "task": 0.5549229427026537,
+        "cubic": -0.4109585340538031,
+        "intermediate": 0.33685918863815817,
+        "held_out_family": false
+      },
+      "sigma_struct:gain_drift": {
+        "origin": "N_struct",
+        "contract": "N",
+        "K": 0.9839188733460124,
+        "harm": "benign",
+        "generic": 0.26699412540495254,
+        "task": 0.19965348884056194,
+        "cubic": 0.48082359728700874,
+        "intermediate": -0.2695185520737674,
+        "held_out_family": false
+      },
+      "sigma_struct:timing_jitter": {
+        "origin": "N_struct",
+        "contract": "N",
+        "K": 0.9909211623148159,
+        "harm": "benign",
+        "generic": 0.13231285227617132,
+        "task": 0.13231285227617132,
+        "cubic": 0.4067242518713638,
+        "intermediate": -1.11895838106256,
+        "held_out_family": false
+      }
+    }
+  },
+  "designed": {
+    "note": "constructed from the frozen head; positive controls, linear subject only (NonlinearSubjectUnsupported otherwise); realised consequence measured per output; linearisation error reported",
+    "euclidean": {
+      "output_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9999999999999998,
+          "t0": 1.0000000000000002,
+          "tau_t": 0.9999999999999996
+        },
+        "consequence_ratio_declared_K": 0.9999999999999998,
+        "linearization": {
+          "kind": "output_null",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 2,
+          "rel_err_dz": 2.1632063218566498e-15,
+          "rel_err_dy": 1.485765768827692e-15,
+          "realised_dy_per_output": [
+            4.255854927729767e-16,
+            6.938893903907228e-18,
+            4.04768811061255e-18
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 4.320048612851288e-16,
+          "predicted_dy_norm": 2.79574219165339e-17
+        }
+      },
+      "output_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9694536438262682,
+          "t0": 1.8382620540967336,
+          "tau_t": 1.0495262691095097
+        },
+        "consequence_ratio_declared_K": 0.9694536438262682,
+        "linearization": {
+          "kind": "output_aligned",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 3,
+          "rel_err_dz": 2.9307536946830395e-15,
+          "rel_err_dy": 2.0639446799025695e-15,
+          "realised_dy_per_output": [
+            0.23744267403847089,
+            0.017868443991952285,
+            0.003636895290600846
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.2402487056039635,
+          "predicted_dy_norm": 0.24024870560396314
+        }
+      },
+      "random": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9481835302577136,
+          "t0": 2.0563758551872526,
+          "tau_t": 1.104966380120735
+        },
+        "consequence_ratio_declared_K": 0.9481835302577136,
+        "linearization": {
+          "kind": "random",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 5,
+          "rel_err_dz": 2.4745553783698242e-15,
+          "rel_err_dy": 1.7769072020525124e-15,
+          "realised_dy_per_output": [
+            0.17175889279278245,
+            0.016080902823890405,
+            0.0019941292739185344
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.1742280445771267,
+          "predicted_dy_norm": 0.1742280445771264
+        }
+      },
+      "task_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9700770336642804,
+          "t0": 1.1640754080351674,
+          "tau_t": 0.9913233970410223
+        },
+        "consequence_ratio_declared_K": 0.9700770336642804,
+        "linearization": {
+          "kind": "task_aligned",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 1,
+          "rel_err_dz": 1.873918212415593e-15,
+          "rel_err_dy": 1.9101942730350453e-15,
+          "realised_dy_per_output": [
+            0.4423366590135989,
+            0.00483407378838802,
+            0.0011402025014993628
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.4423645422481881,
+          "predicted_dy_norm": 0.44236454224818766
+        }
+      },
+      "task_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9999999999999997,
+          "t0": 1.8069432336127442,
+          "tau_t": 1.055649753696473
+        },
+        "consequence_ratio_declared_K": 0.9999999999999997,
+        "linearization": {
+          "kind": "task_null",
+          "match_metric": "euclidean",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 4,
+          "rel_err_dz": 2.6702358208031138e-15,
+          "rel_err_dy": 1.284823394420889e-15,
+          "realised_dy_per_output": [
+            3.885780586188048e-16,
+            0.014235448837145353,
+            0.0026597722723918494
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.015189103076291557,
+          "predicted_dy_norm": 0.015189103076291496
+        }
+      }
+    },
+    "null_mahalanobis": {
+      "output_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9999999999999998,
+          "t0": 1.0,
+          "tau_t": 0.9999999999999993
+        },
+        "consequence_ratio_declared_K": 0.9999999999999998,
+        "linearization": {
+          "kind": "output_null",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 2,
+          "rel_err_dz": 3.566546062600365e-15,
+          "rel_err_dy": 3.100104616101722e-15,
+          "realised_dy_per_output": [
+            4.070817756958907e-16,
+            4.625929269271485e-18,
+            6.3606527452482924e-18
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 4.1355426497425864e-16,
+          "predicted_dy_norm": 1.184205585159848e-17
+        }
+      },
+      "output_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 1.0147992917738637,
+          "t0": 1.0344410717165966,
+          "tau_t": 1.020705342838126
+        },
+        "consequence_ratio_declared_K": 1.0147992917738637,
+        "linearization": {
+          "kind": "output_aligned",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 3,
+          "rel_err_dz": 6.537923612047152e-15,
+          "rel_err_dy": 6.183428109571297e-15,
+          "realised_dy_per_output": [
+            0.03779781095524056,
+            0.003226321461878366,
+            0.0006656204493410497
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.03830056121067567,
+          "predicted_dy_norm": 0.038300561210675536
+        }
+      },
+      "random": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9912243700008063,
+          "t0": 1.2148760016808888,
+          "tau_t": 1.0186478106907264
+        },
+        "consequence_ratio_declared_K": 0.9912243700008063,
+        "linearization": {
+          "kind": "random",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": null,
+          "subspace_rank": 5,
+          "rel_err_dz": 6.204299774116302e-15,
+          "rel_err_dy": 5.146752141896438e-15,
+          "realised_dy_per_output": [
+            0.02987341154332294,
+            0.004910830439483152,
+            0.0003690165397292674
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.030869474507357737,
+          "predicted_dy_norm": 0.030869474507357515
+        }
+      },
+      "task_aligned": {
+        "consequence_ratio_targets": {
+          "amplitude": 0.9815925645675866,
+          "t0": 1.0033562432036192,
+          "tau_t": 0.9993431507771002
+        },
+        "consequence_ratio_declared_K": 0.9815925645675866,
+        "linearization": {
+          "kind": "task_aligned",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 1,
+          "rel_err_dz": 1.931117454867184e-14,
+          "rel_err_dy": 1.818689046511169e-14,
+          "realised_dy_per_output": [
+            0.03348643381595292,
+            0.00036595631105336657,
+            8.631732149079879e-05
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.03348854467443732,
+          "predicted_dy_norm": 0.033488544674437334
+        }
+      },
+      "task_null": {
+        "consequence_ratio_targets": {
+          "amplitude": 1.0,
+          "t0": 1.076801064795143,
+          "tau_t": 1.006422989509934
+        },
+        "consequence_ratio_declared_K": 1.0,
+        "linearization": {
+          "kind": "task_null",
+          "match_metric": "null_mahalanobis",
+          "norm": 3.0,
+          "task_target": 0,
+          "subspace_rank": 4,
+          "rel_err_dz": 4.461096457699152e-15,
+          "rel_err_dy": 3.3373996256325357e-15,
+          "realised_dy_per_output": [
+            3.1456319031046104e-16,
+            0.0041036269742476305,
+            0.0005607573123473786
+          ],
+          "rel_err_dy_normalisation": "\u2016\u0394y \u2212 J \u03b4\u2016 / (\u2016J\u2016\u2082 \u2016\u03b4\u2016)",
+          "realised_dy_norm": 0.004234372508921566,
+          "predicted_dy_norm": 0.004234372508921552
+        }
+      }
+    }
+  },
+  "labels": {
+    "reference": {
+      "cell": "reference",
+      "origin": "clean",
+      "family": "reference",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "none",
+      "contract": "clean"
+    },
+    "sigma_cov:corr_up": {
+      "cell": "sigma_cov:corr_up",
+      "origin": "N_cov",
+      "family": "corr_up",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:corr_down": {
+      "cell": "sigma_cov:corr_down",
+      "origin": "N_cov",
+      "family": "corr_down",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:bandwidth_down": {
+      "cell": "sigma_cov:bandwidth_down",
+      "origin": "N_cov",
+      "family": "bandwidth_down",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_cov:line_pickup": {
+      "cell": "sigma_cov:line_pickup",
+      "origin": "N_cov",
+      "family": "line_pickup",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_cov",
+      "contract": "N"
+    },
+    "sigma_struct:gain_drift": {
+      "cell": "sigma_struct:gain_drift",
+      "origin": "N_struct",
+      "family": "gain_drift",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "sigma_struct:channel_loss": {
+      "cell": "sigma_struct:channel_loss",
+      "origin": "N_struct",
+      "family": "channel_loss",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "sigma_struct:timing_jitter": {
+      "cell": "sigma_struct:timing_jitter",
+      "origin": "N_struct",
+      "family": "timing_jitter",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "sigma_struct",
+      "contract": "N"
+    },
+    "geometry:3ch": {
+      "cell": "geometry:3ch",
+      "origin": "G",
+      "family": "3ch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "geometry",
+      "contract": "G"
+    },
+    "geometry:12ch": {
+      "cell": "geometry:12ch",
+      "origin": "G",
+      "family": "12ch",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "geometry",
+      "contract": "G"
+    },
+    "event:glitch": {
+      "cell": "event:glitch",
+      "origin": "unknown",
+      "family": "glitch",
+      "declared": false,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event",
+      "contract": "U"
+    },
+    "event_in_span:oscillation": {
+      "cell": "event_in_span:oscillation",
+      "origin": "S_in_span",
+      "family": "oscillation",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event_in_span",
+      "contract": "S"
+    },
+    "event_in_span:double_pulse": {
+      "cell": "event_in_span:double_pulse",
+      "origin": "S_in_span",
+      "family": "double_pulse",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "event_in_span",
+      "contract": "S"
+    },
+    "mixture:oscillation+gain_drift": {
+      "cell": "mixture:oscillation+gain_drift",
+      "origin": "mixture",
+      "family": "oscillation+gain_drift",
+      "declared": true,
+      "severity": null,
+      "harm": "undefined",
+      "legacy_moved": "mixture",
+      "contract": "mixture"
+    }
+  }
+}
