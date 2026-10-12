@@ -221,6 +221,22 @@ this runbook only **appends** dated blocks/items, so a merge is a trivial concat
 
 ## 6. Final report
 
+### Outcome (12 Oct 2026, branch `rescope-n`)
+
+- **WP-A/WP-D (docs):** done — dated, append-only notes; no claim text, estimand or threshold
+  changed (`PREREGISTRATION.md` §1 untouched); §8 items 13–16 open; note for Junjie written.
+- **WP-B:** `noise_module_lucid` 0.4.0, `response.py` — 57 package tests pass (40 existing + 17 new).
+- **WP-C:** `tidmad_transformer/n_injection.py` — 11 torch-free tests pass. Not yet run on real
+  TIDMAD files (not in the repository).
+- **WP-E:** `noise_module` 145 passed; `latent_monitor` 94 passed, 1 skipped. Smoke: the 9 Oct anchor
+  does not reproduce bit-for-bit in this environment even from untouched `origin/dev` (Python 3.12 /
+  current numpy versus the author's machine: 31 differences beyond 1e-9), so the regression check was
+  run as `origin/dev` versus `rescope-n` in the **same** environment — identical on every key except
+  provenance (commit hash, dirty-tree warning, elapsed time, output path). The author should re-run
+  `scripts/compare_smoke.py` against the anchor on the original machine before merging.
+- **Review round 1:** one P0 and eleven P1 findings, all resolved (table below).
+- **Still open:** D-M, D-T, D-L, D-S (§2.2); posting the reply (Appendix C).
+
 ### Review round 1 (12 Oct, independent agent) — findings and resolution
 
 | finding | severity | resolution |
