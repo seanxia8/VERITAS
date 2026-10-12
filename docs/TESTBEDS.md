@@ -21,12 +21,15 @@ was checked on this machine or on the upstream repository today._
 > front-end electronics noise is frozen (removed by thresholds before
 > reconstruction); its N families are now detector response
 > (`noise_module_lucid/response.py`). TIDMAD (arm C) gains controlled N on the
-> noise-only records (`tidmad_transformer/n_injection.py`). For the record: the
-> DELight-relevant chain (HeST → `qp_simulator` → `noise_module`, with the Al2O3
-> athermal budget) **has** noise machinery — it was demoted on 18 Sep because it stops
-> at quasiparticle arrival times, not for lack of noise; it is revived only if Phase B
-> needs a second sub-noise arm. No new arm is added: LArTPC/JAXTPC is a candidate to
-> *replace* NuRadioMC as the transfer arm (pending Junjie); LIGO stays reserve.
+> noise-only records (`tidmad_transformer/n_injection.py`). For the record: a
+> sub-noise TES chain exists — HeST → `qp_simulator` → `noise_module` with the HeRALD
+> TES placeholder budget (`herald_simulation`) — demoted on 18 Sep because it stops at
+> quasiparticle arrival times; it is HeRALD-shaped, not a DELight simulation.
+> `noise_module` also holds the DELight-like Al2O3 athermal budget, but no simulation
+> chain uses it yet. Either is revived only if Phase B needs a second sub-noise arm.
+> No new arm is added: LArTPC/JAXTPC is a candidate to *replace* NuRadioMC as the
+> transfer arm (pending Junjie; NuRadioMC itself is surveyed, pilot not run); LIGO
+> stays reserve.
 
 ---
 

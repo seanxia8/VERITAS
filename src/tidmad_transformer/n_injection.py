@@ -25,8 +25,16 @@ Conventions
 * No torch here, and h5py only inside :func:`inject_file`.
 
 Origins follow ``latent_monitor.protocol.labels.ORIGIN``: covariance-type
-families are ``N_cov``; structural ones (gain, drift, glitches, jitter, dead
-time) are ``N_struct``. The default severity grids are development choices,
+families are ``N_cov``; structural ones (gain, drift, jitter, dead time) are
+``N_struct``. **Glitches are ``unknown``**: a DAQ glitch is physically
+acquisition corruption, but the protocol uses the glitch family as the
+*undeclared* held-out family on every arm (Tier 1 smoke, ``PREREGISTRATION.md``
+§4) — it enters no fit, tuning or calibration and is an abstention target. One
+mechanism keeps one role across arms.
+
+**Partition.** The noise-only files also supply the generic arm's operational
+noise-only statistics; files used for injection must be disjoint from the files
+those statistics are fitted on (declared before any run, D-S). The default severity grids are development choices,
 not registered (``PREREGISTRATION.md`` §8 item 3 principles: each grid ends
 with a point beyond the range a monitor would be calibrated on).
 """
@@ -161,7 +169,7 @@ def baseline_drift(x, pp_ratio: float, fs: float = FS_TIDMAD, rng=None, *,
 
 def glitches(x, rate_hz: float, fs: float = FS_TIDMAD, rng=None, *,
              amp_rms: float = 5.0, duration_samples: tuple[int, int] = (32, 256)) -> tuple[np.ndarray, dict]:
-    """N_struct: transient glitches at ``rate_hz`` with amplitude ``amp_rms`` × baseline rms.
+    """Undeclared (origin ``unknown``): transient glitches at ``rate_hz`` with amplitude ``amp_rms`` × baseline rms.
 
     Uses ``noise_module.ArtifactInjector`` (impulse / exponential decay / damped
     sine templates, homogeneous Poisson starts, truncation at the edge).
@@ -185,8 +193,12 @@ def glitches(x, rate_hz: float, fs: float = FS_TIDMAD, rng=None, *,
 def sampling_jitter(x, sigma_samples: float, fs: float = FS_TIDMAD, rng=None) -> tuple[np.ndarray, dict]:
     """N_struct: random sampling-instant error, first order: ``y = x + x'(t) δt``.
 
-    ``δt ~ N(0, sigma_samples)`` per sample (aperture/slew-rate form, valid for
-    any bandwidth; it adds noise proportional to the local slope).
+    ``δt ~ N(0, sigma_samples)`` per sample; adds noise proportional to the
+    local slope. First order is valid where ``2 π f σ ≪ 1``: for the analysed
+    band (≤ ~800 kHz = 0.08 fs) that is ≤ 0.1 at σ = 0.2 samples. Content near
+    Nyquist is under-represented (the central difference suppresses it), so the
+    added noise there is underestimated — acceptable because the subject only
+    sees the band below ~800 kHz.
     """
     x = _record(x)
     if sigma_samples < 0:
@@ -200,7 +212,9 @@ def dropout(x, fraction: float, fs: float = FS_TIDMAD, rng=None, *, n_segments: 
             zero_level: float = ZERO_LEVEL) -> tuple[np.ndarray, dict]:
     """N_struct: dead time — ``n_segments`` non-overlapping gaps covering ``fraction`` of the record.
 
-    Gaps read the analogue zero (the DAQ delivers no signal and no noise).
+    Gaps read the analogue zero (int8 0 → 128): the DAQ delivers no signal and
+    no noise. The resulting step at a gap edge is part of the corruption, not
+    an artefact to smooth away.
     """
     x = _record(x)
     if not 0.0 <= fraction < 1.0:
@@ -236,7 +250,7 @@ FAMILIES: dict[str, dict[str, Any]] = {
                     "grid": [0.8, 0.9, 1.1, 1.25]},
     "baseline_drift": {"origin": "N_struct", "fn": baseline_drift, "parameter": "pp_ratio",
                        "grid": [0.5, 1.0, 2.0, 4.0]},
-    "glitches": {"origin": "N_struct", "fn": glitches, "parameter": "rate_hz",
+    "glitches": {"origin": "unknown", "fn": glitches, "parameter": "rate_hz",
                  "grid": [10.0, 50.0, 200.0, 1000.0]},
     "sampling_jitter": {"origin": "N_struct", "fn": sampling_jitter, "parameter": "sigma_samples",
                         "grid": [0.01, 0.05, 0.1, 0.2]},
@@ -268,13 +282,14 @@ def default_cells(seed: int = 0) -> list[NCell]:
 
 
 def requantise_int8(x, *, zero_level: float = ZERO_LEVEL) -> tuple[np.ndarray, dict]:
-    """Back to the release convention: ``round(x - 128)`` clipped to int8, then ``+128``.
+    """Back to the release convention: ``round(x - 128)`` (half away from zero) clipped to int8, then ``+128``.
 
     Returns the float record as the reader would deliver it and the
     saturation fraction (samples clipped at -128 or +127).
     """
     a = np.asarray(x, dtype=float)
-    r = np.round(a - zero_level)
+    d = a - zero_level
+    r = np.sign(d) * np.floor(np.abs(d) + 0.5)               # ADC-style rounding, not banker's
     clipped = (r < -128) | (r > 127)
     q = np.clip(r, -128, 127).astype(np.int8)
     return q.astype(float) + zero_level, {"saturation_fraction": float(clipped.mean()),
@@ -306,7 +321,11 @@ def inject(record, cell: NCell, fs: float = FS_TIDMAD, *, requantise: bool = Tru
 
 
 def read_noise_only(path, dataset: str, start: int, length: int, *, shift: float = ZERO_LEVEL) -> np.ndarray:
-    """Read one window of a noise-only file's SQUID channel, shifted as upstream (``int8 + 128``)."""
+    """Read one window of a noise-only file's SQUID channel, shifted as upstream (``int8 + 128``).
+
+    Same convention as ``data.read_channel_pair``, but reads only the SQUID
+    dataset: the noise-only science files carry no injected reference to pair.
+    """
     import h5py
 
     with h5py.File(path, "r") as f:

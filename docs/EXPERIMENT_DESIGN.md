@@ -279,12 +279,14 @@ study); Part II.4, Part III.7 and the status tables are rewritten accordingly._
 > **[12 Oct 2026] Re-scope of N** (`RUNBOOK_RESCOPE_N_2026-10-12.md`, from a collaborator comment).
 > (1) Front-end **electronics** noise on arm A is frozen: hit-finding thresholds
 > remove it before reconstruction, so harm ≈ 0 and a generic monitor sees what is
-> visible — it enters no claim cell (R-1). (2) **Taxonomy rule (R-2):** N is a change
-> of the acquisition/response chain *after training*; a static spread present at
-> training time is the reference; simulation mis-modelling (angular-acceptance
-> shape, scattering, absorption, the medium) is a separate category **M**, excluded
-> from both claims (whether M gets an origin label is open, `PREREGISTRATION.md` §8
-> item 13). (3) Arm A's N families are the **detector-response** families in
+> visible — it enters no claim cell (R-1; it is N by the rule below, set aside as
+> weak). (2) **Taxonomy rule (R-2):** N is a change of the acquisition/response
+> chain *after training*; a static spread present at training time is the
+> reference. **Model versus condition:** a different *simulation model* of the
+> angular acceptance or of the medium (scattering, absorption) is a separate
+> category **M**, excluded from both claims; a *physical condition* that changes
+> after training (water-transparency drift, concentrator ageing) is N (whether M gets
+> an origin label is open, `PREREGISTRATION.md` §8 item 13). (3) Arm A's N families are the **detector-response** families in
 > `src/noise_module_lucid/response.py` (R-3, §II.3.4). (4) **Training (R-4):** one
 > training distribution, ≥ 3 (target 5) model seeds, variants applied at test time —
 > no per-variant retraining for N families (§III.2.4). (5) **TIDMAD gets controlled N**
@@ -465,9 +467,14 @@ walk (time-walk from the SPE template on a discriminator-threshold change) and
 module loss — each a change *after training* (`noise_module_lucid/response.py`,
 origin `N_struct`). LUCiD's own QE/TTS/dark-rate knobs count as N only as such
 changes; a static per-PMT spread is the reference. Angular-acceptance and medium
-variants are category M, excluded. Even so, a generic monitor may catch gain drift
-through the charge histogram, so arm A is expected to be at most a *null-expected
-control*; whether it stays at all is open (`PREREGISTRATION.md` §8 item 15).
+*model* variants are category M, excluded. These families do harm reconstruction,
+so **Claim 2 is no longer empty** on arm A; **Claim 1 may still come out null**,
+because several of them (gain drift through the charge histogram, module loss
+through hit counts) are visible to the generic arm. Arm A is therefore a
+null-expected control *for Claim 1* and a Claim-2 replication; whether it stays at
+all, given A0, is open (`PREREGISTRATION.md` §8 item 15). The §II.1 row "what it would
+carry", the §II.8 build order, and the §III.5/§III.6 Σ cells for arm A are
+superseded by this note where they name electronics families.
 
 ## II.4 Arm B — NuRadioMC / NuRadioReco (in-ice radio neutrino detection)
 
@@ -636,13 +643,21 @@ carried only the unchosen real noise. `src/tidmad_transformer/n_injection.py` co
 windows of the 208 noise-only science files with declared families: `N_cov`
 (added pink noise; an in-band line, both with a recorded PSD integral) and `N_struct`
 (gain change about the analogue zero, slow baseline drift, glitches, sampling jitter,
-dead-time dropout). Injected records are re-quantised to the release's int8
-convention with the saturation fraction recorded, and every window carries
-provenance. This **adds** declared N; the two-Σ̂ contrast above is unchanged (the
-per-Σ̂ retraining *is* that experiment, unlike the N families, which are test-time).
-Before TIDMAD can carry Claim 1 it also needs **S families** — clean rare signals,
-e.g. injected sinusoids at frequencies sparse in training (`PREREGISTRATION.md` §8
-item 16); until then the injection supports detection and Claim-2 rows only.
+dead-time dropout). Glitches are labelled `unknown`: they keep the role they have
+on every arm, the undeclared held-out family (`PREREGISTRATION.md` §4). Injected
+records are re-quantised to the release's int8 convention with the saturation
+fraction recorded, and every window carries provenance. This **adds** declared N;
+the two-Σ̂ contrast above is unchanged (the per-Σ̂ retraining *is* that experiment,
+unlike the N families, which are test-time).
+
+Two things are still missing before TIDMAD carries either claim
+(`PREREGISTRATION.md` §8 item 16): (i) **S families** — clean rare signals, e.g.
+injected sinusoids at frequencies sparse in training — for Claim 1; (ii) a **signal
+on top** of the corrupted noise-only windows, because `K_rel` is undefined on a
+noise-only window, so Claim 2 has no consequence variable there yet. And because
+the noise-only files also supply the generic arm's operational noise-only
+statistics, the files used for injection must be a **declared, disjoint partition**.
+Until then the injection supports detection rows only.
 
 ## II.6 Claims × arms
 
@@ -770,6 +785,9 @@ blocks Tier 1.
 **Order.** Tier 1 → arm B NuRadioMC pilot + adapter (3 d + ~1 wk, no gate) →
 `noise_module_lucid` (8 d, starts only after gate A0) → arm A build → arm C (WP10,
 3 d, any time after WP6) → pre-registration bridge → confirmatory runs.
+**[12 Oct 2026]** The `noise_module_lucid` electronics build is frozen (R-1) and the
+response families exist; arm A's build waits on D-L and A0. TIDMAD controlled N
+exists; its S families and partition (D-S) come before any TIDMAD claim run.
 
 **Descope order** (replaces `IMPLEMENTATION_PLAN.md` §4's list, which predates arm B):
 
@@ -1092,6 +1110,11 @@ robustness check, run last.
 | **C · TIDMAD** | real noise, MSE loss | — | the *other* loss (inverse-PSD) — Σ̂ only | — | — | needs data + GPU |
 | **Prometheus** | ORCA, DynEdge frozen | ARCA, +4 geofiles | NuBench §3.2 knobs (hit level) | S1–S5 | U1–U4 | built, licence-clean |
 
+**[12 Oct 2026]** Arm A's Σ cells above (clock line, group coherence, alias fold) are
+frozen electronics families (R-1); its N cells are now the detector-response set
+(efficiency loss, gain drift, timing drift, threshold walk, module loss), and the
+WbLS/material row is unchanged. TIDMAD gains N cells from `n_injection.py` (§II.5.4).
+
 **What each arm proves in the table.** Tier 1 proves it. LUCiD shows the same rows
 hold when the channel stage is a photon-counting PMT array in a real geometry, and
 adds the G row at scale. NuRadioMC shows the rows in a second readout physics (GHz
@@ -1101,6 +1124,10 @@ shows the Σ row on noise nobody here generated. Prometheus shows the G row on a
 nobody here trained.
 
 ## III.6 LUCiD — integrating `noise_module` (gated on A0)
+
+> **[12 Oct 2026]** The electronics Σ families in this section are frozen (R-1, §II.7
+> note); they stay documented but enter no claim cell. The claim-bearing LUCiD N is
+> the detector-response set of §II.3.4.
 
 The build is §II.7; this is the integration into the protocol.
 

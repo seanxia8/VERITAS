@@ -20,7 +20,10 @@ pulse processes live here.
 > in `response.py`: efficiency loss, gain drift, timing drift, threshold walk,
 > module loss (R-3). N means a change after training; a static per-PMT spread is
 > the reference, and angular-acceptance or medium differences are
-> mis-modelling (category M), excluded (R-2).
+> mis-modelling (category M), excluded (R-2) — a different *model* of them is M,
+> a physical drift after training would be N. Sub-sample timing drift is rendered
+> from the pe waveform (`timing_drift_to_mv`); the mV-trace form takes integer
+> shifts only.
 
 ## Where this sits in the stack
 
@@ -76,7 +79,7 @@ mixes the three layers. Sorted (full version and rationale in
 | `units.py` | V2 | SPE template, `to_mv` / `charge_to_mv`, `spe_bandwidth` |
 | `adapter.py` | V2 + P1.3/P1.4 | `crate_preset` (clock modes), `add_pmt_noise` (gains, clock, grouping), `long_window_preset`, `kappa` |
 | `grouping.py` | P1.1 | `channel_groups` — `board_map` (physical), `proximity`, `z_plane`, `contiguous` |
-| `response.py` | new (12 Oct) | **claim-bearing** detector-response N families (origin `N_struct`): `efficiency_loss_*` (binomial thinning), `gain_drift_*`, `timing_drift_*`, `threshold_walk_hits` / `leading_edge_time(s)` (time-walk from the SPE template), `module_loss_*`; `RESPONSE_FAMILIES`, `EXCLUDED` (static QE spread → reference; angular acceptance, medium → M) |
+| `response.py` | new (12 Oct) | **claim-bearing** detector-response N families (origin `N_struct`): `efficiency_loss_*` (binomial thinning), `gain_drift_*`, `timing_drift_hits` / `timing_drift_to_mv` / `timing_drift_trace` (integer only), `threshold_walk_hits` / `leading_edge_time(s)` (time-walk from the SPE template), `module_loss_*`; `RESPONSE_FAMILIES`, `EXCLUDED` (static QE spread → reference; acceptance/medium *models* → M), `FROZEN` (electronics) |
 | `interventions.py` | V2 + P0.1, frozen (R-1) | declared N families: clock (Gaussian/deterministic), common mode, gain drift, quantisation, aperture jitter, cable delay, alias fold |
 | `digitiser.py` | P0.1 | quantisation (LSB²/12), `aperture_jitter_noise` (slew-rate), guarded `sampling_jitter` |
 | `delay.py` | P2.1 | cable delay with dispersion and attenuation |
@@ -87,7 +90,7 @@ mixes the three layers. Sorted (full version and rationale in
 | `dataset.py` | new | LUCiD-arm driver: `CellSpec`/`EventSpec`, `intervention_matrix`, `covariance_cells`, `run_cell` (numpy), `run_lucid_cell` (lazy LUCiD), `write_cell` (truth/traces/provenance) |
 | `__main__.py` | new | `python -m noise_module_lucid` → the dataset driver |
 | `docs/` | moved + new | V2 review, V1/V2 figures, instruction sorting, the 24 Sep review fixes |
-| `tests/` | new | 54 unit tests (14 for `response.py`) |
+| `tests/` | new | 57 unit tests (17 for `response.py`) |
 
 The end-to-end procedure (produce the dataset → validate on the linear subject →
 train and interpret one frozen transformer) is the runbook

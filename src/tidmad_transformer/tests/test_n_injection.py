@@ -81,8 +81,11 @@ def test_drift_is_slow_and_has_declared_span():
 def test_glitch_count_follows_the_contract():
     x = _record(n=200_000)                                    # 20 ms at 10 MS/s
     counts = [glitches(x, 1000.0, FS, s)[1]["count"] for s in range(30)]
-    _, meta = glitches(x, 1000.0, FS, 0)
+    y, meta = glitches(x, 1000.0, FS, 0)
     assert meta["expected_count"] == pytest.approx(20.0)
+    # amplitude: each glitch peak is ~amp_rms x baseline rms above the local baseline
+    peaks = [np.max(np.abs((y - x)[s0:s0 + 256])) for s0 in meta["starts"]]   # max duration 256
+    assert np.median(peaks) == pytest.approx(5.0 * np.std(x), rel=0.05)
     assert np.mean(counts) == pytest.approx(20.0, rel=0.2)
     y0, m0 = glitches(x, 0.0, FS, 0)
     assert m0["count"] == 0 and np.array_equal(y0, x)
@@ -118,6 +121,8 @@ def test_requantise_round_trip_and_saturation():
     q2, meta2 = requantise_int8(np.array([ZERO_LEVEL + 300.0, ZERO_LEVEL - 300.0, ZERO_LEVEL]))
     np.testing.assert_array_equal(q2, [ZERO_LEVEL + 127, ZERO_LEVEL - 128, ZERO_LEVEL])
     assert meta2["saturation_fraction"] == pytest.approx(2 / 3)
+    q3, _ = requantise_int8(ZERO_LEVEL + np.array([0.5, 1.5, -0.5, 2.4]))
+    np.testing.assert_array_equal(q3 - ZERO_LEVEL, [1, 2, -1, 2])       # half away from zero
 
 
 def test_inject_is_deterministic_and_records_provenance():
@@ -136,7 +141,9 @@ def test_inject_is_deterministic_and_records_provenance():
 
 
 def test_registry_and_default_cells():
-    assert set(nj.describe().values()) <= {"N_cov", "N_struct"}
+    assert nj.describe() == {"added_pink_noise": "N_cov", "band_line": "N_cov", "gain_change": "N_struct",
+                             "baseline_drift": "N_struct", "glitches": "unknown",
+                             "sampling_jitter": "N_struct", "dropout": "N_struct"}
     cells = default_cells()
     assert len(cells) == sum(len(s["grid"]) for s in FAMILIES.values())
     x = _record(n=16_384)
@@ -153,7 +160,8 @@ def test_inject_file_reads_a_noise_only_window(tmp_path):
         f.create_dataset("timeseries/channel0001/timeseries", data=raw)
     y, prov = nj.inject_file(path, "timeseries/channel0001/timeseries", 1000, 8192,
                              NCell("gain_change", 1.1))
-    expected = ZERO_LEVEL + np.round(1.1 * raw[1000:9192].astype(float))
+    d = 1.1 * raw[1000:9192].astype(float)
+    expected = ZERO_LEVEL + np.sign(d) * np.floor(np.abs(d) + 0.5)
     np.testing.assert_allclose(y, np.clip(expected, 0, 255))
     assert prov["start"] == 1000 and prov["length"] == 8192 and prov["file"].endswith(".h5")
     with pytest.raises(ValueError, match="holds only"):

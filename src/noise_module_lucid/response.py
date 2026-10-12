@@ -19,17 +19,30 @@ N is a **change of the acquisition/response chain after the model was trained**.
 * A static per-PMT spread present at training time (e.g. QE varying from PMT
   to PMT) is part of the detector definition — it belongs in the reference
   cell, not in an N family.
-* Simulation mis-modelling — the angular-acceptance shape, scattering,
-  absorption, the medium — is a separate category **M**. It is not a corrupted
-  measurement; it is excluded from both claims and from fitting and
-  calibration. See :data:`EXCLUDED`.
+* **Model versus condition.** A different *simulation model* of the angular
+  acceptance or of the medium (scattering, absorption) is a separate category
+  **M**: not a corrupted measurement, excluded from both claims and from
+  fitting and calibration (:data:`EXCLUDED`). A *physical condition* that
+  changes after training — water-transparency drift, acceptance change from
+  light-concentrator ageing or a magnetic-field change — fits the N definition
+  and would be N; those families are not implemented here.
+* The front-end electronics families of ``interventions.py`` are N under R-2
+  but weak (R-1: removed by thresholds, harm ≈ 0); they are frozen
+  (:data:`FROZEN`), not excluded by the taxonomy.
+
+If the hit list includes dark hits, efficiency thinning thins them too; pass
+signal hits only if dark counts should not follow the efficiency change.
 
 The families (all origin ``N_struct``)
 --------------------------------------
 * ``efficiency_loss`` — photon-level binomial thinning (QE or collection
   efficiency drops). Changes hit counts and therefore the Poisson statistics.
-* ``gain_drift`` — charge scale only; the hit count is unchanged. Kept separate
-  from efficiency because the two signatures differ.
+* ``gain_drift`` — charge scale only. At hit level (or with a threshold in pe
+  units) the hit count is unchanged, which is what separates it from efficiency
+  loss. With a fixed-mV discriminator a gain change also moves the effective
+  threshold in pe — losing small hits and adding walk; to model that, apply
+  ``gain_drift_hits`` and then :func:`threshold_walk_hits` with the threshold
+  rescaled by ``1/gain``. The clean separation is an idealisation.
 * ``timing_drift`` — per-channel time offsets (a calibration constant moves).
 * ``threshold_walk`` — a discriminator-threshold change. A larger pulse
   crosses a fixed threshold earlier (time-walk); moving the threshold shifts
@@ -57,7 +70,6 @@ from typing import Iterable, Sequence
 
 import numpy as np
 
-from .delay import cable_delay
 from .presets import FS_L, SPE_MV_PER_PE, SPE_TAU_FALL_NS, SPE_TAU_RISE_NS
 
 # --------------------------------------------------------------------------- helpers
@@ -170,6 +182,8 @@ def gain_drift_hits(charges, pmt_ids, gain) -> np.ndarray:
     """Scale each hit's charge by its PMT's gain factor. The hit count is unchanged."""
     q = np.asarray(charges, dtype=float)
     if np.ndim(gain) == 0:
+        if float(gain) < 0:
+            raise ValueError("gain must be non-negative.")
         return q * float(gain)
     g = np.asarray(gain, dtype=float)
     if np.any(g < 0):
@@ -205,19 +219,84 @@ def timing_drift_hits(times, pmt_ids, offsets_ns) -> np.ndarray:
     return t + o[_check_ids(pmt_ids, o.shape[0])]
 
 
-def timing_drift_trace(trace: np.ndarray, offsets_s, fs: float = FS_L) -> np.ndarray:
-    """Delay each channel of a ``(C, N)`` trace by its own offset (seconds).
+def shifted_spe_template(offset_ns: float, fs: float = FS_L, *, mv_per_pe: float = SPE_MV_PER_PE,
+                         tau_rise_ns: float = SPE_TAU_RISE_NS, tau_fall_ns: float = SPE_TAU_FALL_NS,
+                         length_ns: float = 60.0) -> np.ndarray:
+    """``units.spe_template`` delayed by ``offset_ns`` (>= 0), sampled on the same grid.
 
-    Uses the phase-ramp delay of :func:`noise_module_lucid.delay.cable_delay`
-    per channel (circular; keep the event away from the window edge).
+    The continuous bi-exponential pulse is evaluated at ``t - offset`` (zero
+    before its start), with the amplitude scale of the un-shifted template
+    (sampled maximum = ``mv_per_pe``), so ``offset_ns = 0`` reproduces
+    ``spe_template`` exactly. Causal by construction.
+    """
+    if offset_ns < 0:
+        raise ValueError("offset_ns must be non-negative (fold whole samples into an integer shift).")
+    n = int(length_ns * fs / 1e9)
+    t = np.arange(n) / fs * 1e9
+
+    def p(x):
+        x = np.clip(x, 0.0, None)
+        return (1.0 - np.exp(-x / tau_rise_ns)) * np.exp(-x / tau_fall_ns)
+
+    return mv_per_pe * p(t - offset_ns) / p(t).max()
+
+
+def timing_drift_to_mv(pe_waveform: np.ndarray, offsets_ns, fs: float = FS_L, **template_kw) -> np.ndarray:
+    """Render a pe waveform ``(C, N)`` to mV with a per-channel timing offset (any sign, any size).
+
+    The sub-sample way to apply timing drift to a binned waveform: each channel
+    is convolved with the SPE template delayed by its offset (whole samples as
+    a non-circular shift of the pe bins, the remainder inside the template).
+    With zero offsets it equals ``units.to_mv``. Causal: nothing appears before
+    the shifted pulse start. Exact under the template's pulse model; the photon
+    times *within* a 1 ns bin are not recoverable, so for timing studies finer
+    than the bin, shift photon/hit times (:func:`timing_drift_hits`) before
+    binning.
+    """
+    x = np.asarray(pe_waveform, dtype=float)
+    if x.ndim != 2:
+        raise ValueError("pe_waveform must have shape (n_channels, n_bins).")
+    o = _per_channel(offsets_ns, x.shape[0], "offsets_ns")
+    dt_ns = 1e9 / fs
+    C, N = x.shape
+    out = np.empty_like(x)
+    for c in range(C):
+        k = int(np.floor(o[c] / dt_ns))
+        frac_ns = o[c] - k * dt_ns
+        row = np.zeros(N)
+        if k >= 0:
+            row[k:] = x[c, :N - k] if k < N else 0.0
+        else:
+            row[:N + k] = x[c, -k:] if -k < N else 0.0
+        tmpl = shifted_spe_template(frac_ns, fs, **template_kw)
+        out[c] = np.convolve(row, tmpl)[:N]
+    return out
+
+
+def timing_drift_trace(trace: np.ndarray, offsets_s, fs: float = FS_L, *, atol_samples: float = 1e-6) -> np.ndarray:
+    """Shift each channel of a ``(C, N)`` mV trace by an **integer** number of samples.
+
+    Sub-sample offsets are refused: an FFT phase-ramp delay of a sharp SPE
+    pulse rings (Gibbs precursors move the leading edge earlier by many ns), so
+    sub-sample drift is rendered from the pe waveform
+    (:func:`timing_drift_to_mv`) or applied to hit times (:func:`timing_drift_hits`). The shift is non-circular; vacated
+    samples are zero.
     """
     x = np.asarray(trace, dtype=float)
     if x.ndim != 2:
         raise ValueError("trace must have shape (n_channels, n_samples).")
-    o = _per_channel(offsets_s, x.shape[0], "offsets_s")
-    out = np.empty_like(x)
-    for c in range(x.shape[0]):
-        out[c] = cable_delay(x[c:c + 1], float(o[c]), fs)[0]
+    o = _per_channel(offsets_s, x.shape[0], "offsets_s") * fs
+    k = np.round(o)
+    if np.any(np.abs(o - k) > atol_samples):
+        raise ValueError("timing_drift_trace takes integer-sample offsets only; use timing_drift_to_mv "
+                         "(render from the pe waveform) or timing_drift_hits for sub-sample drift.")
+    out = np.zeros_like(x)
+    N = x.shape[1]
+    for c, s in enumerate(k.astype(int)):
+        if s >= 0:
+            out[c, s:] = x[c, :N - s] if s < N else 0.0
+        else:
+            out[c, :N + s] = x[c, -s:] if -s < N else 0.0
     return out
 
 
@@ -241,14 +320,34 @@ def _rising_edge(tau_rise_ns: float, tau_fall_ns: float, dt_ns: float):
     return t, np.maximum.accumulate(s)
 
 
+def _template_peak_gain(tau_rise_ns: float, tau_fall_ns: float, fs: float | None, length_ns: float = 60.0) -> float:
+    """Continuous peak of the pulse relative to its sampled maximum on the ``fs`` grid.
+
+    ``units.spe_template`` normalises the *sampled* maximum to ``mv_per_pe``, so
+    the continuous pulse it represents peaks slightly higher (4.17 vs 4.0 mV at
+    1 GHz for the preset). ``fs=None`` gives the analytic normalisation (1.0).
+    """
+    if fs is None:
+        return 1.0
+    t = np.arange(int(length_ns * fs / 1e9)) / fs * 1e9
+    p = (1.0 - np.exp(-t / tau_rise_ns)) * np.exp(-t / tau_fall_ns)
+    t_peak = tau_rise_ns * np.log1p(tau_fall_ns / tau_rise_ns)
+    p_peak = (1.0 - np.exp(-t_peak / tau_rise_ns)) * np.exp(-t_peak / tau_fall_ns)
+    return float(p_peak / p.max())
+
+
 def leading_edge_time(charges, threshold_mv: float, *, mv_per_pe: float = SPE_MV_PER_PE,
                       tau_rise_ns: float = SPE_TAU_RISE_NS, tau_fall_ns: float = SPE_TAU_FALL_NS,
-                      dt_ns: float = 0.005) -> np.ndarray:
-    """Walk curve: time (ns after pulse start) at which ``q * mv_per_pe * s(t)`` first reaches the threshold.
+                      dt_ns: float = 0.005, template_fs: float | None = FS_L) -> np.ndarray:
+    """Walk curve: time (ns after pulse start) at which a ``q`` pe pulse first reaches the threshold.
 
-    ``s`` is the unit-peak bi-exponential SPE shape of the preset. Returns
-    ``NaN`` where the pulse never reaches the threshold (the hit is lost).
-    Monotone: decreasing in charge, increasing in threshold.
+    The pulse is the preset's bi-exponential SPE shape. With the default
+    ``template_fs = FS_L`` its amplitude follows ``units.spe_template`` /
+    ``to_mv`` (sampled maximum = ``mv_per_pe``), so hit-level walk and the
+    crossings of a ``to_mv`` trace agree; ``template_fs=None`` uses the
+    analytic peak = ``mv_per_pe``. Returns ``NaN`` where the pulse never reaches
+    the threshold (the hit is lost). Monotone: decreasing in charge,
+    increasing in threshold.
     """
     if threshold_mv <= 0:
         raise ValueError("threshold_mv must be positive.")
@@ -256,7 +355,8 @@ def leading_edge_time(charges, threshold_mv: float, *, mv_per_pe: float = SPE_MV
         raise ValueError("mv_per_pe must be positive.")
     q = np.asarray(charges, dtype=float)
     t, s = _rising_edge(tau_rise_ns, tau_fall_ns, dt_ns)
-    level = threshold_mv / (np.where(q > 0, q, np.nan) * mv_per_pe)   # required fraction of peak
+    peak_mv = mv_per_pe * _template_peak_gain(tau_rise_ns, tau_fall_ns, template_fs)
+    level = threshold_mv / (np.where(q > 0, q, np.nan) * peak_mv)     # required fraction of peak
     out = np.full(q.shape, np.nan)
     ok = np.isfinite(level) & (level <= s[-1])
     out[ok] = np.interp(level[ok], s, t)
@@ -376,7 +476,7 @@ RESPONSE_FAMILIES: dict[str, dict] = {
         "severity": {"parameter": "gain", "grid": [0.80, 0.90, 1.10, 1.25], "scope": "per crate"},
     },
     "timing_drift": {
-        "origin": "N_struct", "forms": ("hits", "trace"),
+        "origin": "N_struct", "forms": ("hits", "pe_waveform -> mV (timing_drift_to_mv)", "mV trace (integer samples only)"),
         "description": "a per-channel timing calibration constant moves",
         "severity": {"parameter": "offset_ns", "grid": [0.5, 1.0, 2.0, 5.0], "scope": "per crate"},
     },
@@ -402,17 +502,24 @@ EXCLUDED: dict[str, dict[str, str]] = {
     },
     "angular_acceptance_model": {
         "category": "M",
-        "reason": "a different acceptance shape is simulation mis-modelling, not a corrupted "
-                  "measurement; excluded from both claims and from fitting/calibration (D-M open)",
+        "reason": "a different simulation model of the acceptance shape is mis-modelling, not a corrupted "
+                  "measurement; excluded from both claims and from fitting/calibration (D-M open). A physical "
+                  "acceptance change after training (concentrator ageing, B-field) would be N, not M",
     },
-    "medium_scattering_absorption": {
+    "medium_scattering_absorption_model": {
         "category": "M",
-        "reason": "optical-medium mis-modelling is not acquisition corruption; excluded (D-M open)",
+        "reason": "a different simulation model of the optical medium is mis-modelling; excluded (D-M open). "
+                  "A physical transparency drift after training would be N, not M",
     },
+}
+
+#: N families that the taxonomy admits but R-1 sets aside as weak.
+FROZEN: dict[str, dict[str, str]] = {
     "front_end_electronics_noise": {
-        "category": "frozen (R-1)",
-        "reason": "removed by hit-finding thresholds before reconstruction: harm ~ 0 and visible to a "
-                  "generic monitor; the interventions.INTERVENTIONS families stay but enter no claim cell",
+        "families": "interventions.INTERVENTIONS (clock, common mode, quantisation, aperture jitter, "
+                    "cable delay, alias fold)",
+        "reason": "N under R-2, but removed by hit-finding thresholds before reconstruction: harm ~ 0 and "
+                  "visible to a generic monitor; kept and tested, in no claim cell (R-1)",
     },
 }
 

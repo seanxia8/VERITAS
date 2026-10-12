@@ -57,7 +57,7 @@ Adopted by the author 8 Oct after a coverage review of BPWM / TMS / TKV. Plannin
       `nuradio_simulation`.
 
 ## Re-scope of N (2026-10-12; `docs/RUNBOOK_RESCOPE_N_2026-10-12.md`)
-From the 12 Oct collaborator comment on the LUCiD noise module. Adopted for implementation; author confirms on review.
+From the 12 Oct collaborator comment on the LUCiD noise module. Ticked = implemented on branch `rescope-n`; the author confirms each R-item on review.
 - [x] R-1 LUCiD electronics noise frozen — no claim cell (`EXPERIMENT_DESIGN.md` §II.7 note).
 - [x] R-2 taxonomy: N = change after training; static spread = reference; mis-modelling = M, excluded.
 - [x] R-3 `noise_module_lucid/response.py` (0.4.0): efficiency loss, gain drift, timing drift, threshold walk,
@@ -69,7 +69,8 @@ From the 12 Oct collaborator comment on the LUCiD noise module. Adopted for impl
 - [ ] D-M (`PREREGISTRATION.md` §8 item 13): origin label for category M — after WP1–WP3 (lane A owns `protocol/`).
 - [ ] D-T (item 14): transfer arm NuRadioMC vs JAXTPC (replace, never add) — with Junjie; `NOTE_ARM_PORTFOLIO_2026-10-12.md`.
 - [ ] D-L (item 15): does LUCiD stay as a null-expected control arm?
-- [ ] D-S (item 16): TIDMAD S families (sparse-frequency injected sinusoids) before TIDMAD can carry Claim 1.
+- [ ] D-S (item 16): TIDMAD S families (sparse-frequency injected sinusoids), signal-on-top for `K_rel`, and a file
+      partition disjoint from the generic arm's noise-only statistics — before TIDMAD carries either claim.
 - [ ] Run `n_injection.default_cells()` on a few real noise-only windows once the TIDMAD files are on the GPU box;
       record saturation fractions (development, non-citable).
 - [ ] Post the reply (runbook Appendix C) on the issue.

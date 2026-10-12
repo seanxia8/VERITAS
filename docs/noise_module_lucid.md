@@ -231,15 +231,17 @@ The claim-bearing families move to the detector response,
 | family | what moves after training | input form | signature |
 |---|---|---|---|
 | `efficiency_loss` | QE / collection efficiency | hits, integer pe counts, or the LUCiD per-PMT QE array (`scaled_qe`) | fewer hits; Poisson statistics change |
-| `gain_drift` | charge scale | hits or pe-charge waveform (before the front end) | charges scale; hit count unchanged |
-| `timing_drift` | per-channel timing calibration | hits or mV trace | per-channel time offset |
+| `gain_drift` | charge scale | hits or pe-charge waveform (before the front end) | charges scale; hit count unchanged at hit level (with a fixed-mV discriminator it also moves the effective threshold — compose with `threshold_walk`) |
+| `timing_drift` | per-channel timing calibration | hits; pe waveform rendered to mV with a delayed template (`timing_drift_to_mv`, sub-sample); mV trace for integer shifts only | per-channel time offset |
 | `threshold_walk` | discriminator threshold | hits | charge-dependent shift (small hits walk more) and lost sub-threshold hits; walk curve from the SPE template |
 | `module_loss` | crate/board dead | hits or trace | channels missing |
 
 Rule (R-2): N is a change *after training*. A static per-PMT QE spread is the
-reference; angular-acceptance shape and medium (scattering, absorption)
-differences are mis-modelling, category M, excluded from both claims
-(`response.EXCLUDED`; whether M gets its own origin label is D-M).
+reference; a different *simulation model* of the angular acceptance or of the
+medium (scattering, absorption) is mis-modelling, category M, excluded from both
+claims (`response.EXCLUDED`; whether M gets its own origin label is D-M), while a
+physical drift of transparency or acceptance after training would be N. The
+electronics families are N but frozen as weak (`response.FROZEN`).
 Thinning is refused on a charge-smeared float waveform — it must happen before
 smearing. Training protocol (R-4): train on the baseline only, ≥ 3 (target 5)
 seeds; these families are applied at test time to the frozen models.

@@ -13,15 +13,16 @@ Status vocabulary: *not started* · *reading* · *feasibility* · *design* ·
 
 ---
 
-## 1. LUCiD + customised noise module  ← top priority
+## 1. LUCiD + customised noise module  (re-scoped 12 Oct; no longer top priority)
 
 > **[12 Oct 2026] Re-scoped** (`docs/RUNBOOK_RESCOPE_N_2026-10-12.md`). The
 > front-end **electronics** work (§1.4 long-window re-parameterisation, the κ-floor
 > sweep, the electronics items of §1.5) is **frozen**: thresholds remove electronics
 > noise before reconstruction, so it carries neither claim. LUCiD N is now
 > detector response — `src/noise_module_lucid/response.py` (done: efficiency loss,
-> gain drift, timing drift, threshold walk, module loss). Angular acceptance and
-> medium (scattering, absorption) are mis-modelling (M), not N. Whether arm A stays
+> gain drift, timing drift, threshold walk, module loss). A different *model* of the
+> angular acceptance or the medium is mis-modelling (M), not N; a physical drift of
+> transparency or acceptance after training would be N. Whether arm A stays
 > as a null-expected control is open (D-L). Priority 1 is the claim path (Tier 1
 > Phase B → Phase C), not testbed breadth; §§2–4 stay feasibility-only.
 

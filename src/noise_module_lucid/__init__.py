@@ -89,6 +89,7 @@ from .readouts import (
 )
 from .response import (
     EXCLUDED,
+    FROZEN,
     RESPONSE_FAMILIES,
     describe_response,
     efficiency_loss_counts,
@@ -101,6 +102,8 @@ from .response import (
     module_loss_trace,
     threshold_walk_hits,
     timing_drift_hits,
+    timing_drift_to_mv,
+    shifted_spe_template,
     timing_drift_trace,
 )
 from .units import charge_to_mv, spe_bandwidth, spe_template, to_mv
@@ -117,10 +120,10 @@ __all__ = [
     "clock", "dataset", "delay", "digitiser", "grouping", "interventions", "pulses",
     "readouts", "response", "validation",
     # detector-response N families (12 Oct 2026 re-scope)
-    "RESPONSE_FAMILIES", "EXCLUDED", "describe_response", "efficiency_loss_counts",
+    "RESPONSE_FAMILIES", "EXCLUDED", "FROZEN", "describe_response", "efficiency_loss_counts",
     "efficiency_loss_hits", "gain_drift_hits", "gain_drift_pe", "leading_edge_time",
     "leading_edge_times", "module_loss_hits", "module_loss_trace", "threshold_walk_hits",
-    "timing_drift_hits", "timing_drift_trace",
+    "timing_drift_hits", "timing_drift_to_mv", "shifted_spe_template", "timing_drift_trace",
     # readouts
     "Readout", "READOUTS", "UNMODELLED", "PMT_1GHZ", "get_readout", "custom_readout", "register",
     # dataset

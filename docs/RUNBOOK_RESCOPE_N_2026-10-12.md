@@ -51,8 +51,8 @@ building `nuradio_simulation`, a JAXTPC or LIGO arm, reviving the HeST/DELight t
 | Module loss, gain drift, timing drift still harm optical reconstruction | **accepted** | WP-B: these become the LUCiD N families |
 | The N–S question has content where the signal sits at/below the noise floor (TIDMAD, DELight) | **accepted** | WP-C (TIDMAD); see corrections below |
 | "TIDMAD uses only real recorded noise" | **correct** | WP-C adds controlled N on the 208 noise-only files |
-| "DELight adds none" | **incorrect** | the HeST → `qp_simulator` → `noise_module` chain exists (`src/herald_simulation/`, `noise_module.budgets.al2o3_athermal`); demoted 18 Sep because it stops at quasiparticle arrival times. Revival is conditional (§2.1 R-6) |
-| (not mentioned) the sub-noise regime already has arms | **addition** | Tier-1 ORACLE-Cov (primary) and arm B NuRadioMC (provisional transfer arm: Askaryan pulses near the thermal floor, coherent Galactic noise, reconstruction on noisy traces) |
+| "DELight adds none" | **half right** (corrected in review round 1) | no DELight simulation chain exists, but a sub-noise TES chain with noise does: HeST → `qp_simulator` → `noise_module` with the HeRALD TES placeholder budget (`src/herald_simulation/`), demoted 18 Sep because it stops at quasiparticle arrival times; `noise_module.budgets.al2o3_athermal` (DELight-like) is not wired into any chain. Revival is conditional (§2.1 R-6) |
+| (not mentioned) the sub-noise regime is already in the design | **addition** | Tier-1 ORACLE-Cov (primary, built) and the planned transfer arm B NuRadioMC (Askaryan pulses near the thermal floor, coherent Galactic noise, reconstruction on noisy traces; surveyed, pilot not run) |
 | Optical N → detector response: QE, angular acceptance, gain and timing calibration | **accepted with a taxonomy split** | WP-B; angular acceptance is mis-modelling, not N (R-2) |
 | Medium mis-modelling (scattering, absorption): N or its own category? | **own category, excluded from both claims** | WP-A records it; D-M asks whether it gets an origin label |
 | Inject per-PMT QE variance / an efficiency factor | **split** | a *static* spread is part of the detector definition (reference); a *change* after training is N — and efficiency (photon thinning) is kept separate from gain (charge scale) |
@@ -74,8 +74,11 @@ building `nuradio_simulation`, a JAXTPC or LIGO arm, reviving the HeST/DELight t
   N = a change of the acquisition/response chain after the model was trained (efficiency loss,
   gain drift, timing-calibration drift, discriminator threshold change, module loss). A static
   per-PMT spread present at training time is part of the detector definition (the reference cell).
-  Simulation mis-modelling — angular acceptance shape, scattering, absorption, the medium — is a
-  separate category **M**, excluded from both claims and from fitting and calibration.
+  **Model versus condition:** a different *simulation model* of the angular acceptance or of the
+  medium (scattering, absorption) is a separate category **M**, excluded from both claims and from
+  fitting and calibration; a *physical condition* that changes after training (water-transparency
+  drift, acceptance change from concentrator ageing or a field change) is N (not implemented here).
+  The front-end electronics families are N by this rule; R-1 sets them aside as weak, not as M.
 - **R-3 — LUCiD N families** (WP-B): `efficiency_loss` (binomial photon thinning), `gain_drift`
   (charge scale, kept separate from efficiency), `timing_drift` (per-channel offsets),
   `threshold_walk` (time-walk from a discriminator threshold change), `module_loss` (a crate/board
@@ -127,8 +130,10 @@ New `src/noise_module_lucid/response.py` (MIT, no LUCiD import):
    (charge-smeared) waveform is refused: thinning must happen before charge smearing.
 2. `gain_drift_hits(charges, pmt_ids, gain)` and `gain_drift_pe(pe_waveform, gain)` — charge scale
    only; hit count unchanged (the signature that separates it from efficiency loss).
-3. `timing_drift_hits(times, pmt_ids, offsets_ns)` and `timing_drift_trace(trace, offsets_s, fs)`
-   (per-channel `cable_delay`).
+3. `timing_drift_hits(times, pmt_ids, offsets_ns)`; `timing_drift_to_mv(pe_waveform, offsets_ns)`
+   (renders the mV trace with a fractionally delayed SPE template — the sub-sample form);
+   `timing_drift_trace(trace, offsets_s, fs)` for **integer-sample** offsets only (an FFT phase ramp
+   on a sharp SPE pulse rings; corrected in review round 1).
 4. `leading_edge_time(amplitude_pe, threshold_mv, template)` (the walk curve from the SPE template,
    linear interpolation, NaN below threshold), `leading_edge_times(trace, threshold_mv, fs)`
    (first crossing per channel on a mV trace), and `threshold_walk_hits(times, charges,
@@ -156,9 +161,9 @@ reader; no torch):
 2. Families (origin in brackets): `added_coloured_noise` (N_cov — additive Gaussian noise with a
    declared PSD from `noise_module`, so Σ changes by a known amount), `band_line` (N_cov — a narrow
    line from the `noise_module` grammar), `gain_change` (N_struct), `baseline_drift` (N_struct,
-   slow random-walk/linear drift), `glitches` (N_struct, `noise_module.ArtifactInjector`),
-   `sampling_jitter` (N_struct, `noise_module_lucid.digitiser.sampling_jitter` analogue implemented
-   locally to keep the dependency one-way), `dropout` (N_struct, zeroed segments = dead time).
+   slow random-walk/linear drift), `glitches` (origin `unknown` — the undeclared held-out family on every arm; `noise_module.ArtifactInjector`),
+   `sampling_jitter` (N_struct, first-order slope form, valid in the analysed band), `dropout`
+   (N_struct, dead time at the analogue zero).
 3. `requantise_int8(x)` back to the release's integer convention with a saturation count, so an
    injected record goes through the same reader path as a real one; the saturation fraction is
    recorded (the C1 int8-saturation lesson).
@@ -216,6 +221,26 @@ this runbook only **appends** dated blocks/items, so a merge is a trivial concat
 
 ## 6. Final report
 
+### Review round 1 (12 Oct, independent agent) — findings and resolution
+
+| finding | severity | resolution |
+|---|---|---|
+| `timing_drift_trace` FFT phase ramp on a sharp SPE pulse: 0.5 ns shift of a 30 pe pulse gave a 4.4 mV precursor and moved the 1 mV edge ~15 ns early | P0 | trace form restricted to integer-sample shifts (non-circular); new `timing_drift_to_mv` renders sub-sample drift from the pe waveform with a delayed template (exact, causal; tested against the analytic pulse) |
+| electronics noise listed in `EXCLUDED` as "not N" | P1 | moved to `FROZEN`: N by R-2, set aside as weak (R-1) |
+| glitches `N_struct` on TIDMAD but the undeclared held-out family on Tier 1 | P1 | TIDMAD glitches → origin `unknown` |
+| first-order jitter claimed valid for any bandwidth | P1 | docstring states the 2πfσ ≪ 1 limit and why it holds in the analysed band |
+| M overreach: physical drifts after training are N | P1 | R-2 split into model (M) versus condition (N) everywhere |
+| stale arm-A electronics text in §§II.1, II.8, III.5, III.6 | P1 | dated superseded pointers added |
+| PREREGISTRATION item 5 LUCiD option vs items 14/15 | P1 | item 14 reconciles it |
+| "null-expected control" vs harm-bearing families | P1 | reworded: Claim 2 non-empty; Claim 1 possibly null (generic-visible) |
+| TIDMAD: partition with the generic arm's noise-only statistics; `K_rel` undefined on noise-only windows | P1 | §II.5.4 and item 16: declared disjoint partition and signal-on-top required; detection rows only until then |
+| DELight / NuRadioMC statements overstated | P1 | corrected in this runbook, TESTBEDS, NOTE, reply |
+| gain "hit count unchanged" only at hit level | P1 | stated as an idealisation; fixed-mV discriminator case documented (compose with `threshold_walk_hits`) |
+| walk normalised to the analytic peak, trace path to the sampled max | P2 | default `template_fs=FS_L` matches `to_mv`; tested against a `to_mv` trace (≤ 0.15 ns) |
+| scalar gain sign unchecked; banker's rounding in `requantise_int8`; weak tests (`hasattr`, `<=`, glitch counts only) | P2 | fixed |
+| dropout fills at 128 (a step); `inject_file` bypasses `read_channel_pair` | P2 | kept deliberately, documented (dead time reads analogue zero; noise-only files have no reference channel) |
+
+
 What was built (files, test counts), the smoke comparison output, review findings and their
 resolution, the D-items still open, and the commit list.
 
@@ -268,9 +293,10 @@ resolution, the D-items still open, and the commit list.
 ## Appendix B — assessment (12 Oct)
 
 The diagnosis is right: an electronics-noise family in an optical arm gives Claim 2 nothing to
-rank and Claim 1 an expected null. Two factual points are off — DELight has noise machinery
-(demoted, not absent), and the sub-noise regime the comment asks for is already carried by Tier 1
-and the provisional transfer arm B (NuRadioMC). Two parts of the prescription work against the
+rank and Claim 1 an expected null. Two factual points need qualifying — a sub-noise TES chain with
+noise exists (HeRALD-shaped, demoted; not a DELight simulation), and the sub-noise regime the
+comment asks for is already the primary substrate (Tier 1, built) and the regime of the planned
+transfer arm B (NuRadioMC, pilot not run). Two parts of the prescription work against the
 comment's own premise that effort is spread too thin: adding LIGO and LArTPC arms (the
 pre-registration shape is one main nonlinear subject, one linear control, one transfer arm), and
 retraining one model per LUCiD variant (that is a different study from the frozen-model claims).
@@ -286,26 +312,31 @@ reference, a change after training is N, and angular-acceptance or medium differ
 > null). The electronics part of `noise_module_lucid` is frozen as is and enters no claim cell.
 >
 > **Optical N moves to detector response**, with one taxonomy rule: N is a change of the
-> response *after* the model was trained. Concretely, five families: efficiency loss (binomial
+> response *after* the model was trained. These families do harm reconstruction, so Claim 2 has
+> something to rank; Claim 1 may still be null where they are visible to a generic monitor (gain via
+> the charge histogram, module loss via hit counts) — LUCiD would then be a useful null control. Concretely, five families: efficiency loss (binomial
 > photon thinning), gain drift (charge scale — kept separate from efficiency because the
 > signatures differ: thinning changes hit counts and Poisson statistics, gain only the charge
 > scale), per-channel timing drift, time-walk from a discriminator-threshold change (derived from
 > the SPE template by threshold crossing — this one has real harm, since timing feeds the vertex),
 > and module loss. A *static* per-PMT QE spread present at training time is part of the detector
-> definition, not N. Angular-acceptance shape and medium (scattering/absorption) differences are
-> simulation mis-modelling — a separate category, kept out of both claims.
+> definition, not N. A different *simulation model* of the angular acceptance or of the medium
+> (scattering/absorption) is mis-modelling — a separate category, kept out of both claims — while a
+> physical drift after training (water transparency, concentrator ageing) would be N.
 >
 > **Training.** We keep the frozen-model design: train on the baseline only, with ≥ 3 (target 5)
 > seeds, and apply the variants at test time. Retraining one model per variant asks how the
 > training distribution shapes the representation — interesting, but a different question from
 > the two claims; at most a supporting row.
 >
-> **Sub-noise arms.** Two corrections: DELight does have noise machinery (HeST → QP simulator →
-> `noise_module`, demoted on 18 Sep because it stops at quasiparticle arrival times, not because
-> the noise was missing), and the regime you describe is already carried by Tier 1 (controlled
-> covariance injection) and by the provisional transfer arm, NuRadioMC (Askaryan pulses near the
-> thermal floor, coherent Galactic noise, reconstruction on noisy traces). TIDMAD is a fair point —
-> we're adding controlled N injection on its 208 noise-only files.
+> **Sub-noise arms.** Two qualifications: there is no DELight simulation chain, but a sub-noise TES
+> chain with noise does exist (HeST → QP simulator → `noise_module` with the HeRALD TES budget,
+> demoted on 18 Sep because it stops at quasiparticle arrival times), and the regime you describe
+> is already the design's primary substrate (Tier 1, controlled covariance injection) and the
+> regime of the planned transfer arm, NuRadioMC (Askaryan pulses near the thermal floor, coherent
+> Galactic noise, reconstruction on noisy traces; pilot not yet run). TIDMAD is a fair point — we've
+> added controlled N injection on its 208 noise-only files; S families and a signal-on-top for the
+> consequence variable come next.
 >
 > **New arms.** Adding LIGO and LArTPC would spread effort further, which is the opposite of your
 > first point. LArTPC is physically the most convincing (coherent-noise filtering is a real
