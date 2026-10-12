@@ -23,7 +23,10 @@ Status vocabulary: *not started* · *reading* · *feasibility* · *design* ·
 > gain drift, timing drift, threshold walk, module loss). A different *model* of the
 > angular acceptance or the medium is mis-modelling (M), not N; a physical drift of
 > transparency or acceptance after training would be N. Whether arm A stays
-> as a null-expected control is open (D-L). Priority 1 is the claim path (Tier 1
+> as a null-expected control is open (D-L). **[12 Oct, later]** Response cells are wired
+> (`readout.py`, `dataset.response_cells`), K is drafted (`consequence.py`, D-K) and a toy
+> development run exists; runbook `docs/RUNBOOK_LUCID_RESPONSE_2026-10-12.md` supersedes the
+> 24 Sep one. Priority 1 is the claim path (Tier 1
 > Phase B → Phase C), not testbed breadth; §§2–4 stay feasibility-only.
 
 Reference: `docs/EXPERIMENT_DESIGN.md` §II.3, §II.7, §III.6;
@@ -39,7 +42,7 @@ new package `src/noise_module_lucid/`; explanation `docs/noise_module_lucid.md`.
       (ours to add). Summary goes in `docs/noise_module_lucid.md` §2.
 
 ### 1.2 Licence / gate A0
-- [ ] Email Kensuke Terao and Omar Alterkait: add MIT or BSD-3 (`CITATION.cff`
+- [ ] Email Kazuhiro Terao and Omar Alterkait: add MIT or BSD-3 (`CITATION.cff`
       and `CONTRIBUTING.md` exist; likely an oversight). Re-check upstream.
 - [ ] No `src/lucid_simulation` package and no LUCiD-dependent test before A0.
       The noise package itself has **no LUCiD dependency** and may be built now.

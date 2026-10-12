@@ -1,0 +1,1023 @@
+{
+  "source": "toy",
+  "non_citable": true,
+  "n_events": 200,
+  "kappa_m": {
+    "value": 1.1,
+    "status": "provisional_dev",
+    "units": "ratio of mean error to the reference on the same events",
+    "primary": "K = max(K_vertex, K_energy) (draft, D-K)"
+  },
+  "cells": [
+    {
+      "label": "reference",
+      "family": "reference",
+      "origin": "clean",
+      "severity": null,
+      "moved": [],
+      "affected_groups": [],
+      "K": 1.0,
+      "K_vertex": {
+        "K": 1.0,
+        "mean_error_cell": 0.17655812907231655,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_energy": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_energy_deadcorr": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_deadcorr": 1.0,
+      "harmful_dev": false,
+      "mean_digits": 355.95,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:efficiency_loss@0.95",
+      "family": "efficiency_loss",
+      "origin": "N_struct",
+      "severity": 0.95,
+      "moved": [
+        "survival"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 1.3284025126210663,
+      "K_vertex": {
+        "K": 1.0006557662913658,
+        "mean_error_cell": 0.1766739099418288,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.959505589152968,
+        "K_hi": 1.0438739142243723
+      },
+      "K_energy": {
+        "K": 1.3284025126210663,
+        "mean_error_cell": 0.036689397928618604,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.192461945188327,
+        "K_hi": 1.4741308000272386
+      },
+      "K_energy_deadcorr": {
+        "K": 1.3284025126210663,
+        "mean_error_cell": 0.036689397928618604,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.192461945188327,
+        "K_hi": 1.4741308000272386
+      },
+      "K_deadcorr": 1.3284025126210663,
+      "harmful_dev": true,
+      "mean_digits": 351.97,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:efficiency_loss@0.9",
+      "family": "efficiency_loss",
+      "origin": "N_struct",
+      "severity": 0.9,
+      "moved": [
+        "survival"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 2.0732283450109676,
+      "K_vertex": {
+        "K": 0.9763534538771209,
+        "mean_error_cell": 0.17238313912983877,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9338076487173919,
+        "K_hi": 1.0162861865724813
+      },
+      "K_energy": {
+        "K": 2.0732283450109676,
+        "mean_error_cell": 0.057260882168096924,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.820593221539688,
+        "K_hi": 2.35124386494558
+      },
+      "K_energy_deadcorr": {
+        "K": 2.0732283450109676,
+        "mean_error_cell": 0.057260882168096924,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.820593221539688,
+        "K_hi": 2.35124386494558
+      },
+      "K_deadcorr": 2.0732283450109676,
+      "harmful_dev": true,
+      "mean_digits": 347.93,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:efficiency_loss@0.8",
+      "family": "efficiency_loss",
+      "origin": "N_struct",
+      "severity": 0.8,
+      "moved": [
+        "survival"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 3.927009728883149,
+      "K_vertex": {
+        "K": 1.0163877328701865,
+        "mean_error_cell": 0.17945151652761357,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9704911372805429,
+        "K_hi": 1.0659509937299412
+      },
+      "K_energy": {
+        "K": 3.927009728883149,
+        "mean_error_cell": 0.1084608175938086,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 3.458553944041644,
+        "K_hi": 4.398129516417584
+      },
+      "K_energy_deadcorr": {
+        "K": 3.927009728883149,
+        "mean_error_cell": 0.1084608175938086,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 3.458553944041644,
+        "K_hi": 4.398129516417584
+      },
+      "K_deadcorr": 3.927009728883149,
+      "harmful_dev": true,
+      "mean_digits": 338.055,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:efficiency_loss@0.6",
+      "family": "efficiency_loss",
+      "origin": "N_struct",
+      "severity": 0.6,
+      "moved": [
+        "survival"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 7.828246464852721,
+      "K_vertex": {
+        "K": 1.0028430341717645,
+        "mean_error_cell": 0.17706008986657196,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9555796332983081,
+        "K_hi": 1.050143991311772
+      },
+      "K_energy": {
+        "K": 7.828246464852721,
+        "mean_error_cell": 0.2162098060666741,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 6.990063815686544,
+        "K_hi": 8.686218610491162
+      },
+      "K_energy_deadcorr": {
+        "K": 7.828246464852721,
+        "mean_error_cell": 0.2162098060666741,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 6.990063815686544,
+        "K_hi": 8.686218610491162
+      },
+      "K_deadcorr": 7.828246464852721,
+      "harmful_dev": true,
+      "mean_digits": 314.48,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:gain_drift@0.8",
+      "family": "gain_drift",
+      "origin": "N_struct",
+      "severity": 0.8,
+      "moved": [
+        "gain"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 3.9113587979780764,
+      "K_vertex": {
+        "K": 0.9895905848910894,
+        "mean_error_cell": 0.17485110699174514,
+        "mean_error_reference": 0.1766903501926391,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 0.9606693490522641,
+        "K_hi": 1.016826554341699
+      },
+      "K_energy": {
+        "K": 3.9113587979780764,
+        "mean_error_cell": 0.10802855160027587,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 3.4418514544081615,
+        "K_hi": 4.363157211767352
+      },
+      "K_energy_deadcorr": {
+        "K": 3.9113587979780764,
+        "mean_error_cell": 0.10802855160027587,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 3.4418514544081615,
+        "K_hi": 4.363157211767352
+      },
+      "K_deadcorr": 3.9113587979780764,
+      "harmful_dev": true,
+      "mean_digits": 355.64,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:gain_drift@0.9",
+      "family": "gain_drift",
+      "origin": "N_struct",
+      "severity": 0.9,
+      "moved": [
+        "gain"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 2.0426974759590157,
+      "K_vertex": {
+        "K": 0.98846448141974,
+        "mean_error_cell": 0.1735006209653029,
+        "mean_error_reference": 0.175525397448882,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 0.9676016313044107,
+        "K_hi": 1.0095647559580965
+      },
+      "K_energy": {
+        "K": 2.0426974759590157,
+        "mean_error_cell": 0.056417644374498185,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.7837808745748602,
+        "K_hi": 2.316055066316253
+      },
+      "K_energy_deadcorr": {
+        "K": 2.0426974759590157,
+        "mean_error_cell": 0.056417644374498185,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.7837808745748602,
+        "K_hi": 2.316055066316253
+      },
+      "K_deadcorr": 2.0426974759590157,
+      "harmful_dev": true,
+      "mean_digits": 355.81,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:gain_drift@1.1",
+      "family": "gain_drift",
+      "origin": "N_struct",
+      "severity": 1.1,
+      "moved": [
+        "gain"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 2.020973906641054,
+      "K_vertex": {
+        "K": 0.996111354051419,
+        "mean_error_cell": 0.1761146824254593,
+        "mean_error_reference": 0.17680220359818155,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 0.9762236814349081,
+        "K_hi": 1.0172813687907614
+      },
+      "K_energy": {
+        "K": 2.020973906641054,
+        "mean_error_cell": 0.055817657042673566,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.794995546914823,
+        "K_hi": 2.2627774514822825
+      },
+      "K_energy_deadcorr": {
+        "K": 2.020973906641054,
+        "mean_error_cell": 0.055817657042673566,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.794995546914823,
+        "K_hi": 2.2627774514822825
+      },
+      "K_deadcorr": 2.020973906641054,
+      "harmful_dev": true,
+      "mean_digits": 356.045,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:gain_drift@1.25",
+      "family": "gain_drift",
+      "origin": "N_struct",
+      "severity": 1.25,
+      "moved": [
+        "gain"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 4.887879754442367,
+      "K_vertex": {
+        "K": 0.9942309429201512,
+        "mean_error_cell": 0.17553955514778705,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9673700692014863,
+        "K_hi": 1.018862377905208
+      },
+      "K_energy": {
+        "K": 4.887879754442367,
+        "mean_error_cell": 0.13499926688947053,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 4.359364627295737,
+        "K_hi": 5.480675839177642
+      },
+      "K_energy_deadcorr": {
+        "K": 4.887879754442367,
+        "mean_error_cell": 0.13499926688947053,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 4.359364627295737,
+        "K_hi": 5.480675839177642
+      },
+      "K_deadcorr": 4.887879754442367,
+      "harmful_dev": true,
+      "mean_digits": 356.15,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:timing_drift@0.5",
+      "family": "timing_drift",
+      "origin": "N_struct",
+      "severity": 0.5,
+      "moved": [
+        "timing_offsets_ns"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 1.0219684993558926,
+      "K_vertex": {
+        "K": 1.0219684993558926,
+        "mean_error_cell": 0.18043684621711936,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.974436086069545,
+        "K_hi": 1.0694205996125983
+      },
+      "K_energy": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_energy_deadcorr": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_deadcorr": 1.0219684993558926,
+      "harmful_dev": false,
+      "mean_digits": 355.95,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:timing_drift@1",
+      "family": "timing_drift",
+      "origin": "N_struct",
+      "severity": 1.0,
+      "moved": [
+        "timing_offsets_ns"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 1.0310726066332125,
+      "K_vertex": {
+        "K": 1.0310726066332125,
+        "mean_error_cell": 0.18204425036487662,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9803815896097048,
+        "K_hi": 1.0841740635237922
+      },
+      "K_energy": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_energy_deadcorr": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_deadcorr": 1.0310726066332125,
+      "harmful_dev": false,
+      "mean_digits": 355.95,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:timing_drift@2",
+      "family": "timing_drift",
+      "origin": "N_struct",
+      "severity": 2.0,
+      "moved": [
+        "timing_offsets_ns"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 1.1706711704363413,
+      "K_vertex": {
+        "K": 1.1706711704363413,
+        "mean_error_cell": 0.20637322038521602,
+        "mean_error_reference": 0.17628624125790598,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 1.1003631474779372,
+        "K_hi": 1.2481859504128294
+      },
+      "K_energy": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_energy_deadcorr": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_deadcorr": 1.1706711704363413,
+      "harmful_dev": true,
+      "mean_digits": 355.95,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:timing_drift@5",
+      "family": "timing_drift",
+      "origin": "N_struct",
+      "severity": 5.0,
+      "moved": [
+        "timing_offsets_ns"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 2.061663773750433,
+      "K_vertex": {
+        "K": 2.061663773750433,
+        "mean_error_cell": 0.3640034986695482,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.9297158480986087,
+        "K_hi": 2.203957561913818
+      },
+      "K_energy": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_energy_deadcorr": {
+        "K": 1.0,
+        "mean_error_cell": 0.02761918739240178,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0,
+        "K_hi": 1.0
+      },
+      "K_deadcorr": 2.061663773750433,
+      "harmful_dev": true,
+      "mean_digits": 355.95,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:threshold_walk@0.35",
+      "family": "threshold_walk",
+      "origin": "N_struct",
+      "severity": 0.35,
+      "moved": [
+        "threshold_pe"
+      ],
+      "affected_groups": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "K": 1.0101449582918691,
+      "K_vertex": {
+        "K": 1.0101449582918691,
+        "mean_error_cell": 0.17834930392784565,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9665997862613046,
+        "K_hi": 1.054648827503697
+      },
+      "K_energy": {
+        "K": 1.0003710350413775,
+        "mean_error_cell": 0.027629435078738735,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9975739467216456,
+        "K_hi": 1.0031801164002625
+      },
+      "K_energy_deadcorr": {
+        "K": 1.0003710350413775,
+        "mean_error_cell": 0.027629435078738735,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9975739467216456,
+        "K_hi": 1.0031801164002625
+      },
+      "K_deadcorr": 1.0101449582918691,
+      "harmful_dev": false,
+      "mean_digits": 354.805,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:threshold_walk@0.5",
+      "family": "threshold_walk",
+      "origin": "N_struct",
+      "severity": 0.5,
+      "moved": [
+        "threshold_pe"
+      ],
+      "affected_groups": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "K": 1.0359618634987724,
+      "K_vertex": {
+        "K": 1.0359618634987724,
+        "mean_error_cell": 0.18290748840961382,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9886645279664704,
+        "K_hi": 1.078530685556009
+      },
+      "K_energy": {
+        "K": 1.003592808141929,
+        "mean_error_cell": 0.027718417833738664,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9894492709741572,
+        "K_hi": 1.0190883329529496
+      },
+      "K_energy_deadcorr": {
+        "K": 1.003592808141929,
+        "mean_error_cell": 0.027718417833738664,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9894492709741572,
+        "K_hi": 1.0190883329529496
+      },
+      "K_deadcorr": 1.0359618634987724,
+      "harmful_dev": false,
+      "mean_digits": 350.59,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:threshold_walk@0.75",
+      "family": "threshold_walk",
+      "origin": "N_struct",
+      "severity": 0.75,
+      "moved": [
+        "threshold_pe"
+      ],
+      "affected_groups": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "K": 1.1661168233251005,
+      "K_vertex": {
+        "K": 1.057897141857609,
+        "mean_error_cell": 0.18672221008525006,
+        "mean_error_reference": 0.176503180410693,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 1.0034959267379375,
+        "K_hi": 1.1177309051484594
+      },
+      "K_energy": {
+        "K": 1.1661168233251005,
+        "mean_error_cell": 0.03220719906484823,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0753362645955642,
+        "K_hi": 1.259917602302409
+      },
+      "K_energy_deadcorr": {
+        "K": 1.1661168233251005,
+        "mean_error_cell": 0.03220719906484823,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.0753362645955642,
+        "K_hi": 1.259917602302409
+      },
+      "K_deadcorr": 1.1661168233251005,
+      "harmful_dev": true,
+      "mean_digits": 331.04,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:threshold_walk@1",
+      "family": "threshold_walk",
+      "origin": "N_struct",
+      "severity": 1.0,
+      "moved": [
+        "threshold_pe"
+      ],
+      "affected_groups": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "K": 2.2713598370542334,
+      "K_vertex": {
+        "K": 1.089568002874506,
+        "mean_error_cell": 0.19123523926682406,
+        "mean_error_reference": 0.1755147349796487,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 1.0326526856985712,
+        "K_hi": 1.1439320124442318
+      },
+      "K_energy": {
+        "K": 2.2713598370542334,
+        "mean_error_cell": 0.06273311297517604,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.9784703462745648,
+        "K_hi": 2.564166617727646
+      },
+      "K_energy_deadcorr": {
+        "K": 2.2713598370542334,
+        "mean_error_cell": 0.06273311297517604,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.9784703462745648,
+        "K_hi": 2.564166617727646
+      },
+      "K_deadcorr": 2.2713598370542334,
+      "harmful_dev": true,
+      "mean_digits": 290.57,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:module_loss@1",
+      "family": "module_loss",
+      "origin": "N_struct",
+      "severity": 1.0,
+      "moved": [
+        "dead_channels"
+      ],
+      "affected_groups": [
+        0
+      ],
+      "K": 3.668765622862325,
+      "K_vertex": {
+        "K": 1.0294048214728564,
+        "mean_error_cell": 0.1814982657374039,
+        "mean_error_reference": 0.17631379021298835,
+        "n_paired": 199,
+        "n_failed_cell": 1,
+        "n_failed_reference": 0,
+        "K_lo": 0.9814863154736485,
+        "K_hi": 1.08740430943339
+      },
+      "K_energy": {
+        "K": 3.668765622862325,
+        "mean_error_cell": 0.1013283252366362,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 3.2409806197891133,
+        "K_hi": 4.149317836917705
+      },
+      "K_energy_deadcorr": {
+        "K": 1.7877100390794711,
+        "mean_error_cell": 0.049375098572613824,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.5848795344131994,
+        "K_hi": 1.9951023157869516
+      },
+      "K_deadcorr": 1.7877100390794711,
+      "harmful_dev": true,
+      "mean_digits": 313.56,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:module_loss@2",
+      "family": "module_loss",
+      "origin": "N_struct",
+      "severity": 2.0,
+      "moved": [
+        "dead_channels"
+      ],
+      "affected_groups": [
+        0,
+        4
+      ],
+      "K": 8.714791787070936,
+      "K_vertex": {
+        "K": 1.026071323644777,
+        "mean_error_cell": 0.1811612331974772,
+        "mean_error_reference": 0.17655812907231655,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 0.9710273844727421,
+        "K_hi": 1.0858386625301506
+      },
+      "K_energy": {
+        "K": 8.714791787070936,
+        "mean_error_cell": 0.24069546745287618,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 7.757032635551053,
+        "K_hi": 9.656385691877244
+      },
+      "K_energy_deadcorr": {
+        "K": 1.3017812499286228,
+        "mean_error_cell": 0.03595414028569365,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.177739474506179,
+        "K_hi": 1.4529910795979784
+      },
+      "K_deadcorr": 1.3017812499286228,
+      "harmful_dev": true,
+      "mean_digits": 264.73,
+      "energy_calibration": 0.9971485043337756
+    },
+    {
+      "label": "N_struct:module_loss@4",
+      "family": "module_loss",
+      "origin": "N_struct",
+      "severity": 4.0,
+      "moved": [
+        "dead_channels"
+      ],
+      "affected_groups": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "K": 19.54178110667826,
+      "K_vertex": {
+        "K": 1.134629535449857,
+        "mean_error_cell": 0.20021598454058012,
+        "mean_error_reference": 0.17645934490961285,
+        "n_paired": 198,
+        "n_failed_cell": 2,
+        "n_failed_reference": 0,
+        "K_lo": 1.069866549968761,
+        "K_hi": 1.205450678958974
+      },
+      "K_energy": {
+        "K": 19.54178110667826,
+        "mean_error_cell": 0.5397281143666436,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 17.534509075367875,
+        "K_hi": 21.621644304662457
+      },
+      "K_energy_deadcorr": {
+        "K": 1.6238454808165288,
+        "mean_error_cell": 0.04484929263097648,
+        "mean_error_reference": 0.02761918739240178,
+        "n_paired": 200,
+        "n_failed_cell": 0,
+        "n_failed_reference": 0,
+        "K_lo": 1.4289651910342505,
+        "K_hi": 1.8403059265707575
+      },
+      "K_deadcorr": 1.6238454808165288,
+      "harmful_dev": true,
+      "mean_digits": 165.27,
+      "energy_calibration": 0.9971485043337756
+    }
+  ],
+  "toy": {
+    "n_channels": 482,
+    "radius_m": 2.0,
+    "half_height_m": 2.0,
+    "n_photons": 800
+  }
+}

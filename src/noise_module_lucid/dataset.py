@@ -339,6 +339,193 @@ def build_dataset(out: Path, cells: Sequence[CellSpec], *, n_photons: int = 50_0
     return summary
 
 
+# --------------------------------------------------------------------------- response cells (12 Oct 2026)
+#
+# The claim-bearing LUCiD N families act on the readout chain (``readout.py``),
+# not on the front-end electronics (frozen, R-1). A response cell moves one
+# ``ReadoutParams`` field; every event is paired with the reference by photon
+# list and readout seed. The consequence K is the frozen vertex fit of
+# ``consequence.py``. Photons come from LUCiD after gate A0, or from ``toy``
+# (development only, non-citable).
+
+
+@dataclass(frozen=True)
+class ResponseCellSpec:
+    """One response cell: a family at a severity, as a change of the reference readout."""
+
+    label: str
+    family: str                         # "reference" or a key of response.RESPONSE_FAMILIES
+    severity: float | None
+    params: Any                         # readout.ReadoutParams
+    origin: str = "N_struct"            # "clean" for the reference
+    affected_groups: tuple[int, ...] = ()
+
+
+def response_cells(n_channels: int, *, group_size: int = 64, group_method: str = "contiguous",
+                   positions: np.ndarray | None = None, board_ids: np.ndarray | None = None,
+                   reference: Any = None, affected: str = "alternate",
+                   families: Sequence[str] | None = None) -> tuple[list[ResponseCellSpec], list[np.ndarray]]:
+    """Reference + every response family at every severity of its development grid.
+
+    Drifts (efficiency, gain, timing) act coherently per crate on the
+    ``affected`` crates (``"alternate"``: every other crate; ``"all"``), so they
+    are non-uniform and cannot be absorbed by a global energy or time scale.
+    ``threshold_walk`` is detector-wide; ``module_loss`` kills ``k`` crates
+    spread over the detector. Returns ``(cells, groups)``.
+    """
+    from .grouping import channel_groups
+    from .readout import ReadoutParams, with_change
+    from .response import RESPONSE_FAMILIES, dead_channels_from_groups, group_values
+
+    ref = reference or ReadoutParams()
+    groups = channel_groups(n_channels, group_size, positions=positions, method=group_method,
+                            board_ids=board_ids)
+    G = len(groups)
+    if affected == "alternate":
+        hit_groups = tuple(range(0, G, 2))
+    elif affected == "all":
+        hit_groups = tuple(range(G))
+    else:
+        raise ValueError("affected must be 'alternate' or 'all'.")
+    cells = [ResponseCellSpec("reference", "reference", None, ref, origin="clean")]
+    for fam in (families or RESPONSE_FAMILIES):
+        grid = RESPONSE_FAMILIES[fam]["severity"]["grid"]
+        for sev in grid:
+            if fam == "efficiency_loss":
+                prm, aff = with_change(ref, survival=group_values(groups, n_channels, sev, hit_groups, 1.0)), hit_groups
+            elif fam == "gain_drift":
+                prm, aff = with_change(ref, gain=group_values(groups, n_channels, sev, hit_groups, 1.0)), hit_groups
+            elif fam == "timing_drift":
+                prm, aff = with_change(ref, timing_offsets_ns=group_values(groups, n_channels, sev, hit_groups, 0.0)), hit_groups
+            elif fam == "threshold_walk":
+                prm, aff = with_change(ref, threshold_pe=float(sev)), tuple(range(G))
+            elif fam == "module_loss":
+                k = int(sev)
+                if k > G:
+                    continue
+                dead_groups = tuple(int(round(i * G / k)) % G for i in range(k))
+                prm = with_change(ref, dead_channels=tuple(int(c) for c in dead_channels_from_groups(groups, dead_groups)))
+                aff = dead_groups
+            else:
+                raise KeyError(f"no cell builder for family {fam!r}")
+            cells.append(ResponseCellSpec(f"N_struct:{fam}@{sev:g}", fam, float(sev), prm,
+                                          affected_groups=tuple(int(a) for a in aff)))
+    return cells, groups
+
+
+def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any], positions: np.ndarray,
+                        out: Path | None = None, *, fit_config: Any = None, source: str = "toy", n_boot: int = 500,
+                        lucid_commit_hash: str | None = None) -> dict[str, Any]:
+    """Run every response cell over the same events; return per-cell K and digit summaries.
+
+    ``events`` need ``event_id``, ``vertex``, ``photon_sensor``, ``photon_time``
+    and ``true_energy`` (``toy.ToyEvent`` or an adapter around LUCiD output).
+    K has two endpoints (``consequence``): vertex error and relative energy
+    error, the energy scale calibrated on the reference cell only; the draft
+    primary is ``K = max(K_vertex, K_energy)`` (D-K). The readout seed is
+    the event id, so every cell is paired with the reference event by event.
+    With ``out``, each cell is written as ``<cell>/digits.npz`` (ragged arrays
+    with offsets), ``truth`` rows and ``provenance.json``, plus ``summary.json``.
+    """
+    from .consequence import (KAPPA_M_DEV, KAPPA_M_STATUS, cell_consequence, energy_calibration, energy_error,
+                              fit_vertex, vertex_error)
+    from .readout import readout_chain
+
+    if not cells or cells[0].family != "reference":
+        raise ValueError("the first cell must be the reference.")
+    pos = np.asarray(positions, dtype=float)
+    n_channels = pos.shape[0]
+    errors: dict[str, list[float]] = {}
+    e_errors: dict[str, list[float]] = {}
+    e_errors_dc: dict[str, list[float]] = {}
+    calib: float | None = None
+    ref_label = cells[0].label
+    summary: dict[str, Any] = {"source": source, "non_citable": source != "lucid", "n_events": len(events),
+                               "kappa_m": {"value": KAPPA_M_DEV, "status": KAPPA_M_STATUS,
+                                           "units": "ratio of mean error to the reference on the same events",
+                                           "primary": "K = max(K_vertex, K_energy) (draft, D-K)"},
+                               "cells": []}
+    for cell in cells:
+        errs, rows, sens, chg, tim, offs, qtot = [], [], [], [], [], [0], []
+        digits = []
+        for ev in events:
+            d = readout_chain(ev.photon_sensor, ev.photon_time, n_channels, cell.params, seed=int(ev.event_id))
+            digits.append(d)
+            qtot.append(float(d.charge.sum()))
+        if cell is cells[0]:
+            calib = energy_calibration(qtot, [ev.true_energy for ev in events])
+            ref_digits = digits
+        eerr = [energy_error(q, ev.true_energy, calib) for q, ev in zip(qtot, events)]
+        e_errors[cell.label] = eerr
+        # known-dead-map correction (D-K item 17(c)): scale Q by the reference charge share of the
+        # alive channels, measured on the reference cell — a correction the experiment would apply.
+        dead = np.asarray(cell.params.dead_channels, dtype=int)
+        alive_share = 1.0
+        if dead.size:
+            ref_frac = [1.0 - float(np.sum(np.isin(dd.sensor, dead) * dd.charge)) / max(float(dd.charge.sum()), 1e-12)
+                        for dd in ref_digits]
+            alive_share = float(np.mean(ref_frac))
+        eerr_dc = [energy_error(q / alive_share, ev.true_energy, calib) for q, ev in zip(qtot, events)]
+        e_errors_dc[cell.label] = eerr_dc
+        for ev, d, ee, eedc in zip(events, digits, eerr, eerr_dc):
+            f = fit_vertex(pos, d.sensor, d.time, d.charge, fit_config)
+            e = vertex_error(f, ev.vertex)
+            errs.append(e)
+            rows.append({"event_id": int(ev.event_id), "cell": cell.label, "family": cell.family,
+                         "origin": cell.origin, "severity": cell.severity, "vertex_error_m": e,
+                         "energy_rel_error": ee, "energy_rel_error_deadcorr": eedc,
+                         "q_total_pe": float(d.charge.sum()),
+                         "fit_ok": f.ok, **{f"n_{k}": v for k, v in d.counts.items()},
+                         "true_x": float(ev.vertex[0]), "true_y": float(ev.vertex[1]), "true_z": float(ev.vertex[2])})
+            sens.append(d.sensor); chg.append(d.charge); tim.append(d.time); offs.append(offs[-1] + len(d))
+        errors[cell.label] = errs
+        kv = cell_consequence(errs, errors[ref_label], n_boot=n_boot)
+        ke = cell_consequence(eerr, e_errors[ref_label], n_boot=n_boot)
+        kedc = cell_consequence(eerr_dc, e_errors_dc[ref_label], n_boot=n_boot)
+        K = float(np.nanmax([kv["K"], ke["K"]])) if np.isfinite([kv["K"], ke["K"]]).any() else float("nan")
+        entry = {"label": cell.label, "family": cell.family, "origin": cell.origin, "severity": cell.severity,
+                 "moved": cell.params.moved_from(cells[0].params), "affected_groups": list(cell.affected_groups),
+                 "K": K, "K_vertex": kv, "K_energy": ke, "K_energy_deadcorr": kedc,
+                 "K_deadcorr": float(np.nanmax([kv["K"], kedc["K"]])),
+                 "harmful_dev": (bool(K >= KAPPA_M_DEV) if np.isfinite(K) else None),
+                 "mean_digits": float(np.mean([r["n_digits"] for r in rows])),
+                 "energy_calibration": calib}
+        k = {"K": K, "vertex": kv, "energy": ke}
+        summary["cells"].append(entry)
+        if out is not None:
+            d_ = Path(out) / cell.label
+            d_.mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(d_ / "digits.npz", sensor=np.concatenate(sens), charge=np.concatenate(chg),
+                                time=np.concatenate(tim), offsets=np.asarray(offs))
+            prov = {"cell": cell.label, "family": cell.family, "origin": cell.origin, "severity": cell.severity,
+                    "readout_params": cell.params.to_dict(), "moved": entry["moved"],
+                    "affected_groups": list(cell.affected_groups), "source": source,
+                    "non_citable": source != "lucid", "lucid_commit": lucid_commit_hash,
+                    "positions_hash": _sha1_array(pos), "consequence": k,
+                    "release": {"gate_A0_lucid_licence": "open"}}
+            write_cell(Path(out), cell.label, rows, np.zeros((0,)), prov)
+            (d_ / "traces.npy").unlink(missing_ok=True)          # hit-level cell: no waveform
+    if out is not None:
+        (Path(out) / "summary.json").write_text(json.dumps(summary, indent=2, default=_jsonable))
+    return summary
+
+
+def toy_response_run(out: Path | None, *, n_events: int = 100, n_photons: int = 800,
+                     families: Sequence[str] | None = None, group_size: int = 64) -> dict[str, Any]:
+    """Development run of the response matrix on the toy detector (non-citable)."""
+    from . import toy
+
+    det = toy.cylinder_detector()
+    events = [toy.point_source_event(det, e, n_photons=n_photons) for e in range(n_events)]
+    cells, _ = response_cells(det.n_channels, group_size=group_size, families=families)
+    s = run_response_matrix(cells, events, det.positions, out, source="toy")
+    s["toy"] = {"n_channels": det.n_channels, "radius_m": det.radius, "half_height_m": det.half_height,
+                "n_photons": n_photons}
+    if out is not None:
+        (Path(out) / "summary.json").write_text(json.dumps(s, indent=2, default=_jsonable))
+    return s
+
+
 def _main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -350,7 +537,19 @@ def _main(argv: list[str] | None = None) -> int:
     ap.add_argument("--covariance", action="store_true", help="also run the long-window covariance cells")
     ap.add_argument("--cov-window-ns", type=float, default=32_000.0)
     ap.add_argument("--lucid-path", default=None)
+    ap.add_argument("--response-toy", action="store_true",
+                    help="run the detector-response cells on the toy detector (development, non-citable; no LUCiD)")
+    ap.add_argument("--n-events", type=int, default=100)
+    ap.add_argument("--toy-photons", type=int, default=800)
     a = ap.parse_args(argv)
+    if a.response_toy:
+        s = toy_response_run(a.out, n_events=a.n_events, n_photons=a.toy_photons)
+        for c in s["cells"]:
+            kv, ke = c["K_vertex"], c["K_energy"]
+            print(f"  {c['label']:34s} K={c['K']:.3f}  vtx {kv['K']:.3f} [{kv.get('K_lo', float('nan')):.2f},"
+                  f"{kv.get('K_hi', float('nan')):.2f}]  E {ke['K']:.3f} [{ke.get('K_lo', float('nan')):.2f},"
+                  f"{ke.get('K_hi', float('nan')):.2f}]  digits={c['mean_digits']:.0f}  harmful={c['harmful_dev']}")
+        return 0
     if not lucid_available(a.lucid_path):
         ap.error("LUCiD clone not found; clone it to external/LUCiD or set LUCID_PATH")
     ev = EventSpec(a.event_id, "isotropic", {"position": [0.0, 0.0, 0.0], "intensity": a.n_photons})

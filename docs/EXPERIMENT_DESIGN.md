@@ -387,7 +387,7 @@ finalized". That is all-rights-reserved today, and the release posture (§I.5) m
 it a hard gate, not a footnote. **[10 Sep] re-checked: still no licence; last
 upstream commit 2026-08-21.**
 
-**Action:** one email to Kensuke Terao and Omar Alterkait asking them to add MIT or
+**Action:** one email to Kazuhiro Terao and Omar Alterkait asking them to add MIT or
 BSD-3. They maintain a `CITATION.cff` and a `CONTRIBUTING.md`, so it is almost
 certainly an oversight. Budget 1–3 weeks.
 
@@ -814,6 +814,17 @@ must say so.
   Fisher/CRB machinery (`lucid/fitting/fisher.py`, remembering its documented √12
   "honesty factor"), or keep the physics consequence variable on the Prometheus arm
   and let arm A carry only the waveform-level claims. **Decide before building.**
+  **[12 Oct 2026] Draft answer (D-K, `PREREGISTRATION.md` §8 item 17):** two frozen,
+  independent endpoints on the per-PMT digits, neither from LUCiD's `recon.py` —
+  a time-of-flight vertex fit and a reference-calibrated total-charge energy
+  (`noise_module_lucid/consequence.py`); `K = max(K_vertex, K_energy)`, each the
+  ratio to the reference on the same events; κ_m 1.10 `provisional_dev`. The toy
+  development run (`results/lucid_response_toy_dev_2026-10-12/`) shows why both are
+  needed: timing drift moves only the vertex, gain drift and efficiency loss only the
+  energy scale, threshold walk and module loss both. Caveats recorded there: the
+  gain/efficiency grids do not straddle κ_m on the toy (K_energy ≈ bias / resolution),
+  module loss depends on whether the dead-map correction is applied (D-K 17(c)), and
+  gain/efficiency harm is a global charge-scale bias any charge-sum monitor ranks. Runbook: `RUNBOOK_LUCID_RESPONSE_2026-10-12.md`.
 - **Does arm B use native noise or `noise_module` in the headline cells?** Native
   noise gives external validity but no κ sweep; controlled mode gives the measured
   lever but shares the instrument under test with Tier 1. Decide per cell before the

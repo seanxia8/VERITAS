@@ -74,6 +74,12 @@ From the 12 Oct collaborator comment on the LUCiD noise module. Ticked = impleme
 - [ ] Run `n_injection.default_cells()` on a few real noise-only windows once the TIDMAD files are on the GPU box;
       record saturation fractions (development, non-citable).
 - [ ] Post the reply (runbook Appendix C) on the issue.
+- [x] (12 Oct, later) LUCiD response cells wired into the dataset driver (`readout.py`, `dataset.response_cells` /
+      `run_response_matrix`), K drafted (`consequence.py`, D-K = item 17), toy development run
+      (`results/lucid_response_toy_dev_2026-10-12/`), new runbook `RUNBOOK_LUCID_RESPONSE_2026-10-12.md`.
+- [ ] D-K (item 17): K form and κ_m for arm A.
+- [ ] A0: send the licence email (draft in `RUNBOOK_LUCID_RESPONSE_2026-10-12.md` Appendix A); upstream re-checked
+      12 Oct (`CIDeR-ML/LUCiD` @ `eaf2e89`): still no licence.
 
 ## Fisher-cumulant integration (2026-09-17; `docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`)
 - [x] **D7** whitened-residual + pooled-hook third cumulant: `latent_monitor/cumulant.py`, the third return of

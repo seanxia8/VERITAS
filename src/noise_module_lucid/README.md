@@ -80,6 +80,9 @@ mixes the three layers. Sorted (full version and rationale in
 | `adapter.py` | V2 + P1.3/P1.4 | `crate_preset` (clock modes), `add_pmt_noise` (gains, clock, grouping), `long_window_preset`, `kappa` |
 | `grouping.py` | P1.1 | `channel_groups` — `board_map` (physical), `proximity`, `z_plane`, `contiguous` |
 | `response.py` | new (12 Oct) | **claim-bearing** detector-response N families (origin `N_struct`): `efficiency_loss_*` (binomial thinning), `gain_drift_*`, `timing_drift_hits` / `timing_drift_to_mv` / `timing_drift_trace` (integer only), `threshold_walk_hits` / `leading_edge_time(s)` (time-walk from the SPE template), `module_loss_*`; `RESPONSE_FAMILIES`, `EXCLUDED` (static QE spread → reference; acceptance/medium *models* → M), `FROZEN` (electronics) |
+| `readout.py` | new (12 Oct) | the declared readout chain photons → per-PMT digits (efficiency, digitisation, charge, gain, discriminator with calibrated walk, timing, dead channels); `ReadoutParams`, `with_change` (one parameter per cell) |
+| `consequence.py` | new (12 Oct) | consequence K: independent time-of-flight vertex fit + reference-calibrated energy; `cell_consequence` with paired bootstrap; κ_m 1.10 `provisional_dev` (D-K) |
+| `toy.py` | new (12 Oct) | **development-only** toy point-source detector (not LUCiD, non-citable) |
 | `interventions.py` | V2 + P0.1, frozen (R-1) | declared N families: clock (Gaussian/deterministic), common mode, gain drift, quantisation, aperture jitter, cable delay, alias fold |
 | `digitiser.py` | P0.1 | quantisation (LSB²/12), `aperture_jitter_noise` (slew-rate), guarded `sampling_jitter` |
 | `delay.py` | P2.1 | cable delay with dispersion and attenuation |
@@ -87,14 +90,14 @@ mixes the three layers. Sorted (full version and rationale in
 | `clock.py` | P1.2 | deterministic phase-locked clock tone with the Gaussian line's power |
 | `validation.py` | P0.3/P1.1/P2.3 | `bandwidth_report`, `realized_csd_check`, `grouping_sensitivity`, `kappa_floor_sweep` |
 | `readouts.py` | new | declared readout registry (1 GHz PMT + `custom_readout`); calibration flags; `UNMODELLED` DOM/SiPM/TES |
-| `dataset.py` | new | LUCiD-arm driver: `CellSpec`/`EventSpec`, `intervention_matrix`, `covariance_cells`, `run_cell` (numpy), `run_lucid_cell` (lazy LUCiD), `write_cell` (truth/traces/provenance) |
+| `dataset.py` | new + 12 Oct | LUCiD-arm driver (response cells: `response_cells`, `run_response_matrix`, `toy_response_run`, `--response-toy`): `CellSpec`/`EventSpec`, `intervention_matrix`, `covariance_cells`, `run_cell` (numpy), `run_lucid_cell` (lazy LUCiD), `write_cell` (truth/traces/provenance) |
 | `__main__.py` | new | `python -m noise_module_lucid` → the dataset driver |
 | `docs/` | moved + new | V2 review, V1/V2 figures, instruction sorting, the 24 Sep review fixes |
-| `tests/` | new | 57 unit tests (17 for `response.py`) |
+| `tests/` | new | 66 unit tests |
 
-The end-to-end procedure (produce the dataset → validate on the linear subject →
-train and interpret one frozen transformer) is the runbook
-[`docs/RUNBOOK_LUCID_2026-09-24.md`](../../docs/RUNBOOK_LUCID_2026-09-24.md).
+The end-to-end procedure is the runbook
+[`docs/RUNBOOK_LUCID_RESPONSE_2026-10-12.md`](../../docs/RUNBOOK_LUCID_RESPONSE_2026-10-12.md)
+(supersedes the 24 Sep electronics runbook).
 
 ## Usage
 

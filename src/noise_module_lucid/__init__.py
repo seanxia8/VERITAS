@@ -13,9 +13,9 @@ Import either the whole package or a submodule::
 """
 from __future__ import annotations
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
-from . import clock, dataset, delay, digitiser, grouping, interventions, pulses, readouts, response, validation
+from . import clock, consequence, dataset, delay, digitiser, grouping, interventions, pulses, readout, readouts, response, toy, validation
 from .adapter import (
     add_pmt_noise,
     add_readout_noise,
@@ -118,7 +118,7 @@ from .validation import (
 __all__ = [
     # submodules
     "clock", "dataset", "delay", "digitiser", "grouping", "interventions", "pulses",
-    "readouts", "response", "validation",
+    "readouts", "response", "readout", "consequence", "toy", "validation",
     # detector-response N families (12 Oct 2026 re-scope)
     "RESPONSE_FAMILIES", "EXCLUDED", "FROZEN", "describe_response", "efficiency_loss_counts",
     "efficiency_loss_hits", "gain_drift_hits", "gain_drift_pe", "leading_edge_time",

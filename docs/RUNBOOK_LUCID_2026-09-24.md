@@ -1,5 +1,9 @@
 # Runbook — LUCiD arm: simulation → dataset → frozen, interpreted representation
 
+> **Superseded 12 Oct 2026** by [`RUNBOOK_LUCID_RESPONSE_2026-10-12.md`](RUNBOOK_LUCID_RESPONSE_2026-10-12.md):
+> the electronics-noise pipeline below is frozen (R-1); the arm now uses the detector-response
+> families on per-PMT digits, with an independent consequence variable. Kept for the record.
+
 _24 Sep 2026. Scope: turn the LUCiD arm from a notebook prototype into a
 reproducible dataset, validate the monitor stack on the linear subject, then
 train and interpret one frozen nonlinear subject. Every command is run from the
