@@ -216,6 +216,34 @@ latter, as V1 did).
 
 ---
 
+## 8a. Detector-response N families (12 Oct 2026 re-scope)
+
+The 12 Oct comment (`docs/RUNBOOK_RESCOPE_N_2026-10-12.md`, Appendix A) is
+accepted on its core point: front-end electronics noise is removed by the
+hit-finding threshold before reconstruction, so its harm is close to zero
+(Claim 2 has nothing to rank) and a generic monitor sees whatever is visible
+(Claim 1 expected null). The §8 families are therefore **frozen**: kept,
+tested, in no claim cell (R-1).
+
+The claim-bearing families move to the detector response,
+`src/noise_module_lucid/response.py`, all origin `N_struct`:
+
+| family | what moves after training | input form | signature |
+|---|---|---|---|
+| `efficiency_loss` | QE / collection efficiency | hits, integer pe counts, or the LUCiD per-PMT QE array (`scaled_qe`) | fewer hits; Poisson statistics change |
+| `gain_drift` | charge scale | hits or pe-charge waveform (before the front end) | charges scale; hit count unchanged |
+| `timing_drift` | per-channel timing calibration | hits or mV trace | per-channel time offset |
+| `threshold_walk` | discriminator threshold | hits | charge-dependent shift (small hits walk more) and lost sub-threshold hits; walk curve from the SPE template |
+| `module_loss` | crate/board dead | hits or trace | channels missing |
+
+Rule (R-2): N is a change *after training*. A static per-PMT QE spread is the
+reference; angular-acceptance shape and medium (scattering, absorption)
+differences are mis-modelling, category M, excluded from both claims
+(`response.EXCLUDED`; whether M gets its own origin label is D-M).
+Thinning is refused on a charge-smeared float waveform — it must happen before
+smearing. Training protocol (R-4): train on the baseline only, ≥ 3 (target 5)
+seeds; these families are applied at test time to the frozen models.
+
 ## 9. Documented but deliberately not modelled as Σ
 
 `DOCUMENTED_NOT_IMPLEMENTED` records the families named in the working note that

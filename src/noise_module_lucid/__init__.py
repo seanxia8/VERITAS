@@ -13,9 +13,9 @@ Import either the whole package or a submodule::
 """
 from __future__ import annotations
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
-from . import clock, dataset, delay, digitiser, grouping, interventions, pulses, readouts, validation
+from . import clock, dataset, delay, digitiser, grouping, interventions, pulses, readouts, response, validation
 from .adapter import (
     add_pmt_noise,
     add_readout_noise,
@@ -87,6 +87,22 @@ from .readouts import (
     get_readout,
     register,
 )
+from .response import (
+    EXCLUDED,
+    RESPONSE_FAMILIES,
+    describe_response,
+    efficiency_loss_counts,
+    efficiency_loss_hits,
+    gain_drift_hits,
+    gain_drift_pe,
+    leading_edge_time,
+    leading_edge_times,
+    module_loss_hits,
+    module_loss_trace,
+    threshold_walk_hits,
+    timing_drift_hits,
+    timing_drift_trace,
+)
 from .units import charge_to_mv, spe_bandwidth, spe_template, to_mv
 from .validation import (
     bandwidth_report,
@@ -99,7 +115,12 @@ from .validation import (
 __all__ = [
     # submodules
     "clock", "dataset", "delay", "digitiser", "grouping", "interventions", "pulses",
-    "readouts", "validation",
+    "readouts", "response", "validation",
+    # detector-response N families (12 Oct 2026 re-scope)
+    "RESPONSE_FAMILIES", "EXCLUDED", "describe_response", "efficiency_loss_counts",
+    "efficiency_loss_hits", "gain_drift_hits", "gain_drift_pe", "leading_edge_time",
+    "leading_edge_times", "module_loss_hits", "module_loss_trace", "threshold_walk_hits",
+    "timing_drift_hits", "timing_drift_trace",
     # readouts
     "Readout", "READOUTS", "UNMODELLED", "PMT_1GHZ", "get_readout", "custom_readout", "register",
     # dataset
