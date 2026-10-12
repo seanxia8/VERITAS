@@ -56,6 +56,24 @@ Adopted by the author 8 Oct after a coverage review of BPWM / TMS / TKV. Plannin
 - [ ] With Junjie: confirm transfer arm (provisional: arm B NuRadioMC) and its κ_m source; then build
       `nuradio_simulation`.
 
+## Re-scope of N (2026-10-12; `docs/RUNBOOK_RESCOPE_N_2026-10-12.md`)
+From the 12 Oct collaborator comment on the LUCiD noise module. Adopted for implementation; author confirms on review.
+- [x] R-1 LUCiD electronics noise frozen — no claim cell (`EXPERIMENT_DESIGN.md` §II.7 note).
+- [x] R-2 taxonomy: N = change after training; static spread = reference; mis-modelling = M, excluded.
+- [x] R-3 `noise_module_lucid/response.py` (0.4.0): efficiency loss, gain drift, timing drift, threshold walk,
+      module loss — *unit-tested control*; no LUCiD import (A0 unaffected).
+- [x] R-4 training rule recorded (§III.2.4): baseline only, ≥ 3 (target 5) seeds, test-time variants.
+- [x] R-5 `tidmad_transformer/n_injection.py`: seven declared N families on noise-only records — *unit-tested control*;
+      no run on real files yet (data not in the repo).
+- [x] R-6 no new arm; corrections recorded (DELight machinery exists; Tier 1 and arm B cover the sub-noise regime).
+- [ ] D-M (`PREREGISTRATION.md` §8 item 13): origin label for category M — after WP1–WP3 (lane A owns `protocol/`).
+- [ ] D-T (item 14): transfer arm NuRadioMC vs JAXTPC (replace, never add) — with Junjie; `NOTE_ARM_PORTFOLIO_2026-10-12.md`.
+- [ ] D-L (item 15): does LUCiD stay as a null-expected control arm?
+- [ ] D-S (item 16): TIDMAD S families (sparse-frequency injected sinusoids) before TIDMAD can carry Claim 1.
+- [ ] Run `n_injection.default_cells()` on a few real noise-only windows once the TIDMAD files are on the GPU box;
+      record saturation fractions (development, non-citable).
+- [ ] Post the reply (runbook Appendix C) on the issue.
+
 ## Fisher-cumulant integration (2026-09-17; `docs/ARITRA_CUMULANT_INTEGRATION_2026-09-17.md`, `docs/REVISION_REPORT_2026-09-17_cumulant.md`)
 - [x] **D7** whitened-residual + pooled-hook third cumulant: `latent_monitor/cumulant.py`, the third return of
       `pooled_stage`, `hook_third_nulls` / `resid_cumulant`, `gr_resid_c3_*`, `im_{hook}_third_maha`, the quadratic

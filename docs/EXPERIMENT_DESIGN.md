@@ -276,6 +276,22 @@ minimum viable paper (§I.3); the others are future work. **[18 Sep]** Arm B is
 retargeted from HeST to NuRadioMC/NuRadioReco (HeST demoted to an optional case
 study); Part II.4, Part III.7 and the status tables are rewritten accordingly._
 
+> **[12 Oct 2026] Re-scope of N** (`RUNBOOK_RESCOPE_N_2026-10-12.md`, from a collaborator comment).
+> (1) Front-end **electronics** noise on arm A is frozen: hit-finding thresholds
+> remove it before reconstruction, so harm ≈ 0 and a generic monitor sees what is
+> visible — it enters no claim cell (R-1). (2) **Taxonomy rule (R-2):** N is a change
+> of the acquisition/response chain *after training*; a static spread present at
+> training time is the reference; simulation mis-modelling (angular-acceptance
+> shape, scattering, absorption, the medium) is a separate category **M**, excluded
+> from both claims (whether M gets an origin label is open, `PREREGISTRATION.md` §8
+> item 13). (3) Arm A's N families are the **detector-response** families in
+> `src/noise_module_lucid/response.py` (R-3, §II.3.4). (4) **Training (R-4):** one
+> training distribution, ≥ 3 (target 5) model seeds, variants applied at test time —
+> no per-variant retraining for N families (§III.2.4). (5) **TIDMAD gets controlled N**
+> on its noise-only records (R-5, §II.5.4). (6) **No new arm** (R-6): LArTPC/JAXTPC is a
+> replacement candidate for the transfer arm (Junjie, §8 item 14), LIGO stays future
+> work, the HeST/DELight chain is revived only if Phase B needs a second sub-noise arm.
+
 ## II.0 What changed on 5 Sep, and what did not
 
 The 31 Aug design names three testbeds — ORACLE-Cov, Prometheus/ORACLE-Paired,
@@ -441,6 +457,18 @@ its consequence variable is reconstruction error from LUCiD's own fitting layer
 (`lucid/fitting/recon.py`), which we would be defining, so it must be declared as
 such and not dressed up as an external metric (open question, §II.9).
 
+**[12 Oct 2026] Claim-1 row superseded (R-1–R-3).** Arm A's N is no longer the
+`noise_module_lucid` electronics knobs: those are frozen (harm ≈ 0, generic-visible).
+N on arm A is the detector-response set — efficiency loss (binomial thinning),
+gain drift (charge scale, kept separate from efficiency), timing drift, threshold
+walk (time-walk from the SPE template on a discriminator-threshold change) and
+module loss — each a change *after training* (`noise_module_lucid/response.py`,
+origin `N_struct`). LUCiD's own QE/TTS/dark-rate knobs count as N only as such
+changes; a static per-PMT spread is the reference. Angular-acceptance and medium
+variants are category M, excluded. Even so, a generic monitor may catch gain drift
+through the charge histogram, so arm A is expected to be at most a *null-expected
+control*; whether it stays at all is open (`PREREGISTRATION.md` §8 item 15).
+
 ## II.4 Arm B — NuRadioMC / NuRadioReco (in-ice radio neutrino detection)
 
 _Retargeted 18 September 2026 from HeST. Sources: `TESTBEDS.md` §3.1 #1,
@@ -600,11 +628,33 @@ claim, not ORACLE's *monitor-contrast* claim, but it means arm C must not be des
 as showing that the covariance-aware model reconstructs better on TIDMAD — only that
 the two Σ̂ trainings differ in the predicted direction.
 
+### II.5.4 [12 Oct 2026] Controlled N on the noise-only records (R-5)
+
+TIDMAD is the regime where the N–S question has content — the signal sits at or
+below the noise floor and no threshold step removes the noise — yet until now the arm
+carried only the unchosen real noise. `src/tidmad_transformer/n_injection.py` corrupts
+windows of the 208 noise-only science files with declared families: `N_cov`
+(added pink noise; an in-band line, both with a recorded PSD integral) and `N_struct`
+(gain change about the analogue zero, slow baseline drift, glitches, sampling jitter,
+dead-time dropout). Injected records are re-quantised to the release's int8
+convention with the saturation fraction recorded, and every window carries
+provenance. This **adds** declared N; the two-Σ̂ contrast above is unchanged (the
+per-Σ̂ retraining *is* that experiment, unlike the N families, which are test-time).
+Before TIDMAD can carry Claim 1 it also needs **S families** — clean rare signals,
+e.g. injected sinusoids at frequencies sparse in training (`PREREGISTRATION.md` §8
+item 16); until then the injection supports detection and Claim-2 rows only.
+
 ## II.6 Claims × arms
 
 Merged into §I.3.
 
 ## II.7 `noise_module_lucid` — the customised noise module (gated on A0)
+
+> **[12 Oct 2026] Electronics part frozen (R-1).** Everything in §§II.7.1–II.7.7 stays
+> correct and tested but is no longer claim-bearing: it enters no claim cell, and the
+> open physics decision of the long-window re-parameterisation is not pursued. The
+> claim-bearing LUCiD families are the detector-response set (§II.3.4,
+> `noise_module_lucid/response.py`, package 0.4.0).
 
 ### II.7.1 The finding that makes this cheap
 
@@ -916,6 +966,15 @@ sees a perturbed cell. Every perturbed cell is evaluated against its **paired cl
 twin** — the same event through the reference cell — so Δz is a **per-event vector**,
 not a distributional distance. This is what the pairing machinery buys: per-event Δz
 can be projected, per event; a distributional MMD cannot.
+
+**[12 Oct 2026] Seeds and the per-variant retraining proposal (R-4).** Train ≥ 3
+(target 5) model seeds on the reference cell; the seeds are the outermost resampling
+level (`PREREGISTRATION.md` §1). N variants are applied at test time to the frozen
+models. Training one model per variant (proposed for LUCiD on 12 Oct) asks how the
+training distribution shapes the representation — the C0 / Paper 1 question, not
+either claim — and is at most an optional supporting row. The exception is the
+deliberate per-Σ̂ retraining of the Σ̂ contrast (Tier 1, TIDMAD WP10), which is that
+experiment's lever, not an N family.
 
 ## III.3 Recognising which part of the latent space changed
 

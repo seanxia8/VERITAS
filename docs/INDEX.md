@@ -24,6 +24,8 @@ _18 September 2026. The map of `docs/`. If you only read three files, read
 | [`PREREGISTRATION.md`](PREREGISTRATION.md) | unfrozen pre-registration draft |
 | [`REFERENCE_UPGRADES_2026-10-08.md`](REFERENCE_UPGRADES_2026-10-08.md) | Paper 3 routing of the BPWM / TMS / TKV upgrades (TR14–TR30 carried from Paper 1) and the 8 Oct adopted items R1–R4 |
 | [`RUNBOOK_REFERENCE_UPGRADES_2026-10-09.md`](RUNBOOK_REFERENCE_UPGRADES_2026-10-09.md) | runbook for WP1–WP8 (R1–R4 code, κ_m, R1(b) sweep, gate draft, note for Junjie); lead agent with subagent lanes |
+| [`RUNBOOK_RESCOPE_N_2026-10-12.md`](RUNBOOK_RESCOPE_N_2026-10-12.md) | re-scoping N towards the two claims (12 Oct comment, verbatim): LUCiD electronics frozen, detector-response N, TIDMAD controlled N, training rule, arm portfolio; reply to the comment in Appendix C |
+| [`NOTE_ARM_PORTFOLIO_2026-10-12.md`](NOTE_ARM_PORTFOLIO_2026-10-12.md) | one-page note for Junjie: the re-scope, two corrections, the transfer-arm question (NuRadioMC vs JAXTPC) |
 | [`DATASET_STRATEGY_2026-09-16.md`](DATASET_STRATEGY_2026-09-16.md) | dataset/simulator strategy memo (admission criteria; NuRadioMC, GWOSC, cryogenic options) |
 | [`COLLIDER_ARM_2026-09-18.md`](COLLIDER_ARM_2026-09-18.md) | Tier-3b future-work collider domain-transfer arm (CMS/ATLAS) |
 | [`noise_module_lucid.md`](noise_module_lucid.md) | the LUCiD front-end noise module explained (`src/noise_module_lucid/`) |

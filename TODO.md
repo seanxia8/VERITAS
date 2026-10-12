@@ -15,6 +15,16 @@ Status vocabulary: *not started* · *reading* · *feasibility* · *design* ·
 
 ## 1. LUCiD + customised noise module  ← top priority
 
+> **[12 Oct 2026] Re-scoped** (`docs/RUNBOOK_RESCOPE_N_2026-10-12.md`). The
+> front-end **electronics** work (§1.4 long-window re-parameterisation, the κ-floor
+> sweep, the electronics items of §1.5) is **frozen**: thresholds remove electronics
+> noise before reconstruction, so it carries neither claim. LUCiD N is now
+> detector response — `src/noise_module_lucid/response.py` (done: efficiency loss,
+> gain drift, timing drift, threshold walk, module loss). Angular acceptance and
+> medium (scattering, absorption) are mis-modelling (M), not N. Whether arm A stays
+> as a null-expected control is open (D-L). Priority 1 is the claim path (Tier 1
+> Phase B → Phase C), not testbed breadth; §§2–4 stay feasibility-only.
+
 Reference: `docs/EXPERIMENT_DESIGN.md` §II.3, §II.7, §III.6;
 `docs/TESTBEDS.md` §1.1; `docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md`;
 new package `src/noise_module_lucid/`; explanation `docs/noise_module_lucid.md`.
@@ -160,6 +170,11 @@ Documented in `docs/COLLIDER_ARM_2026-09-18.md` (Tier 3b). Feasibility tasks:
       model, angular-error K. D5 re-inference offset must resolve first.
 
 ### 5.5 TIDMAD (自带模型 / own released model) and CRESST
+
+> **[12 Oct 2026]** Controlled N injection on the noise-only records:
+> `src/tidmad_transformer/n_injection.py` (done, unit-tested). S families still to
+> design (D-S).
+
 - [ ] TIDMAD: two-Σ̂ training contrast on real noise; `K_rel` must survive
       scrutiny. Code exists; needs data + GPU.
 - [ ] CRESST: real TES pulse data, per-detector random-trigger noise; confirm
