@@ -1,0 +1,12 @@
+{
+  "base": "84f65348a438e1b8a4594246afd3d60785518d76",
+  "events": 12,
+  "settings_per_event": 6,
+  "all_72_digit_comparisons_exact": true,
+  "intentional_differences": [
+    "lost_time_window counter added",
+    "energy calibration now independent",
+    "point fitter initial simplex fixed",
+    "failed/missing endpoints unevaluable"
+  ]
+}

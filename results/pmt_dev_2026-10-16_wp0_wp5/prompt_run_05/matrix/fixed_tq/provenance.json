@@ -1,0 +1,1779 @@
+{
+  "noise_module_lucid_version": "0.5.0",
+  "cell": "fixed_tq",
+  "family": "fixed_tq",
+  "origin": "N_struct",
+  "severity": 2,
+  "readout_params": {
+    "survival": 1.0,
+    "gain": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.03,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "timing_offsets_ns": 0.0,
+    "threshold_pe": 0.25,
+    "walk_calibration_pe": 0.25,
+    "spe_sigma": 0.3,
+    "dead_channels": [],
+    "mv_per_pe": 4.0,
+    "qe_curve": {
+      "wavelength_nm": [
+        300,
+        400,
+        600
+      ],
+      "efficiency": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "source": "synthetic_dev"
+    },
+    "collection_efficiency": 0.8,
+    "walk_curve": {
+      "curves": [
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.05,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            4.0,
+            -2
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        }
+      ]
+    },
+    "reference_walk": {
+      "curves": [
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.05,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.1,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        },
+        {
+          "coefficients_ns": [
+            2.0,
+            -1
+          ],
+          "domain_pe": [
+            0.25,
+            100
+          ]
+        }
+      ]
+    },
+    "timing_width": {
+      "charge_pe": [
+        0.25,
+        1.0,
+        5.0,
+        100.0
+      ],
+      "sigma_ns": [
+        2.5,
+        1.5,
+        0.8,
+        0.5
+      ]
+    },
+    "timing_width_factor": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.05,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "reference_offsets_ns": 0.0
+  },
+  "moved": [
+    "walk_curve"
+  ],
+  "causal_control": null,
+  "changed_fields": [],
+  "affected_groups": [],
+  "source": "toy",
+  "non_citable": true,
+  "source_kind": "toy",
+  "evidence_stage": "development",
+  "physics_review_status": "pending",
+  "protocol_freeze_id": null,
+  "calibration_sha256": "7b75d7f3f99a72001e9c65f52061b67bfa3a5b1776eaeb2c3aa829202a977874",
+  "lucid_commit": null,
+  "positions_hash": "7a00cdb5ba5e237e",
+  "consequence": {
+    "K": 1.7330016140963087,
+    "vertex": {
+      "K": 1.7330016140963087,
+      "K_complete_case": 1.7330016140963087,
+      "status": "ok",
+      "failure_rate_cell": 0.0,
+      "failure_rate_reference": 0.0,
+      "mean_error_cell": 0.2134024515042587,
+      "mean_error_reference": 0.12314036511474317,
+      "n_paired": 24,
+      "n_failed_cell": 0,
+      "n_failed_reference": 0,
+      "K_lo": 1.3865512881345166,
+      "K_hi": 2.3074016478419552
+    },
+    "energy": {
+      "K": 1.0,
+      "K_complete_case": 1.0,
+      "status": "ok",
+      "failure_rate_cell": 0.0,
+      "failure_rate_reference": 0.0,
+      "mean_error_cell": 0.048816532588265356,
+      "mean_error_reference": 0.048816532588265356,
+      "n_paired": 24,
+      "n_failed_cell": 0,
+      "n_failed_reference": 0,
+      "K_lo": 1.0,
+      "K_hi": 1.0
+    }
+  },
+  "release": {
+    "research_use": "clarified_issue_6133100584",
+    "redistribution": "not_approved"
+  }
+}

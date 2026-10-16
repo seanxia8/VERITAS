@@ -1,5 +1,8 @@
 # noise_module_lucid
 
+> **16 October 2026 update:** the historical A0 research-use block and email request below are superseded by [Junjie's clarification](https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6133100584). Research use is clarified; licence-file/redistribution status remains separate. Current response/stage and engineering status: [PMT source contract](../../docs/PMT_SOURCE_AND_STAGE_CONTRACT.md) and [PMT issue status](../../docs/PMT_ISSUE5_STATUS.md). Old toy results and threshold-walk semantics remain historical evidence.
+
+
 LUCiD-customised PMT front-end noise for the ORACLE water-Cherenkov arm
 (`docs/EXPERIMENT_DESIGN.md` §II.7, arm A). A thin package that **depends on
 `noise_module` and never forks it**: the generic spectral/multichannel machinery

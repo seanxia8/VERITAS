@@ -1,5 +1,8 @@
 # `noise_module_lucid` — the LUCiD front-end noise module
 
+> **16 October 2026 update:** the historical A0 research-use block and email request below are superseded by [Junjie's clarification](https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6133100584). Research use is clarified; licence-file/redistribution status remains separate. Current response/stage and engineering status: [PMT source contract](PMT_SOURCE_AND_STAGE_CONTRACT.md) and [PMT issue status](PMT_ISSUE5_STATUS.md). Old toy results and threshold-walk semantics remain historical evidence.
+
+
 _18 September 2026. Code: `src/noise_module_lucid/`. Design:
 `docs/EXPERIMENT_DESIGN.md` §II.7 and §III.6. Review that motivated V2:
 `docs/reviews/LUCID_NOISE_REVIEW_2026-09-11.md`. Canonical inventory:

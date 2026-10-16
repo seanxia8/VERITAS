@@ -1,5 +1,8 @@
 # Runbook — LUCiD arm with detector-response N (supersedes `RUNBOOK_LUCID_2026-09-24.md`)
 
+> **16 October 2026 update:** the historical A0 research-use block and email request below are superseded by [Junjie's clarification](https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6133100584). Research use is clarified; licence-file/redistribution status remains separate. Current response/stage and engineering status: [PMT source contract](PMT_SOURCE_AND_STAGE_CONTRACT.md) and [PMT issue status](PMT_ISSUE5_STATUS.md). Old toy results and threshold-walk semantics remain historical evidence.
+
+
 _12 October 2026. The 24 Sep runbook built the arm around front-end **electronics** noise; that
 part is frozen (`RUNBOOK_RESCOPE_N_2026-10-12.md`, R-1). This runbook carries the arm with the
 **detector-response** N families, a declared readout chain, and an independent consequence

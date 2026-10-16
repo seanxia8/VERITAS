@@ -52,7 +52,7 @@ The families (all origin ``N_struct``)
 
 Data conventions
 ----------------
-Nothing here imports LUCiD (gate A0). Two input forms are supported:
+Nothing here imports LUCiD; research use is clarified in issue 6133100584. Two input forms are supported:
 
 * **hits** — flat arrays ``pmt_ids``, ``times`` (ns), ``charges`` (pe), one
   entry per detected photoelectron/hit;
@@ -164,7 +164,7 @@ def efficiency_loss_counts(pe_counts: np.ndarray, survival, rng=None) -> np.ndar
 def scaled_qe(per_pmt_qe, survival) -> np.ndarray:
     """The LUCiD-config route: multiply the per-PMT QE array by ``survival``.
 
-    For use once gate A0 allows a LUCiD-dependent run: the thinning then
+    For an explicitly configured LUCiD-dependent run: the thinning then
     happens inside LUCiD's own photon loop, before charge smearing.
     """
     qe = np.asarray(per_pmt_qe, dtype=float)

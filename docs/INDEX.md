@@ -73,3 +73,10 @@ decisions, the earlier revision plan, and package docs.
 | `../sources/` | research notes and raw API dumps (`sources/README.md`) |
 | `../reference/` | prior-art and testbed PDFs |
 | `../archive/` | off-active-path code and notes |
+
+## PMT corrections, 16 October 2026
+
+- [Requirement status](PMT_ISSUE5_STATUS.md)
+- [Source and stage contract](PMT_SOURCE_AND_STAGE_CONTRACT.md)
+- [Draft experiment and WP8 decisions](PMT_EXPERIMENT_CONTRACT.md)
+- [Engineering closeout](PMT_ISSUE5_FINAL_REPORT.md)
