@@ -1,5 +1,7 @@
 # LUCiD integration and prompt Cherenkov development closeout
 
+Later follow-up: [multi-energy prompt-track validation](PMT_MULTIENERGY_TRACK_REPORT_2026-10-16.md) and [author decisions](PMT_CALIBRATION_AND_PROTOCOL_DECISIONS_2026-10-16.md). The results below remain the historical single-energy pilot; the later pass resolves physical mPMT membership but not crate mapping or measured response calibration.
+
 16 October 2026. **Engineering pilot complete; scientific issue remains partially complete.**
 
 ## Scope and provenance

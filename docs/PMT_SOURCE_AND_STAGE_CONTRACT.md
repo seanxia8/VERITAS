@@ -75,3 +75,7 @@ Point-source tests concern isotropic flashers and their defined emission point. 
 ## Follow-up: actual prompt transport
 
 The later user-authorized Deepthought pass implements `lucid_transport.PromptTransport` against a hash-verified pinned source and actual WCTE geometry. The 24-event PhotonSim Cherenkov source, mm-to-m conversion, pre-response interception, independent transport checks, local cone validation and three-seed direction pilot are documented in [the integration report](PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md). This supersedes the original environment/exporter deferral above. PMT calibration, dispersive transport, track/energy endpoints and scientific claim evaluation remain unresolved.
+
+## Follow-up: multi-energy track development
+
+The [multi-energy report](PMT_MULTIENERGY_TRACK_REPORT_2026-10-16.md) records primary-start/direction/initial-energy development targets, physical-event-disjoint reconstruction splits, an independent response-fit split, actual upstream mPMT membership, the retained source-cap STOP and a pre-training balanced-cohort amendment. Photon emission cropping and upstream cylinder snapping are declared approximations, not geometry-matched Geant4 validation. The earlier point-source fixture remains point-source-only. The [decision register](PMT_CALIBRATION_AND_PROTOCOL_DECISIONS_2026-10-16.md) identifies the calibration and author choices needed before primary claim evaluation.

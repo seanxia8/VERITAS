@@ -81,3 +81,5 @@ decisions, the earlier revision plan, and package docs.
 - [Draft experiment and WP8 decisions](PMT_EXPERIMENT_CONTRACT.md)
 - [Engineering closeout](PMT_ISSUE5_FINAL_REPORT.md)
 - [Real LUCiD integration, prompt Cherenkov closure and GPU pilot](PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md)
+- [Multi-energy prompt-track development validation](PMT_MULTIENERGY_TRACK_REPORT_2026-10-16.md)
+- [PMT calibration inputs and author protocol decisions](PMT_CALIBRATION_AND_PROTOCOL_DECISIONS_2026-10-16.md)

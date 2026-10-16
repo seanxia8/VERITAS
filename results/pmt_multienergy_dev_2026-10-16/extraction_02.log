@@ -1,0 +1,32 @@
+1000 22 202615 548327395
+1000 23 201983 563690028
+1500 0 313695 580122538
+1500 1 320620 596631881
+1500 2 318311 613140334
+1500 3 321081 629601890
+1500 4 319303 646151180
+1500 5 317657 663193217
+1500 6 320284 680094133
+1500 7 322356 696891382
+1500 8 325530 713936942
+1500 9 323463 730550697
+1500 10 317627 747492981
+1500 11 323979 764492944
+1500 12 323197 781607459
+Traceback (most recent call last):
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_source.py", line 91, in <module>
+    p=argparse.ArgumentParser()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_source.py", line 58, in extract
+    for event in range(cfg['events_per_energy']):
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 888, in arrays
+    _ranges_or_baskets_to_arrays(
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 3180, in _ranges_or_baskets_to_arrays
+    obj = notifications.get()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/queue.py", line 171, in get
+    self.not_empty.wait()
+  File "/home/dwong/anaconda3/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+KeyboardInterrupt

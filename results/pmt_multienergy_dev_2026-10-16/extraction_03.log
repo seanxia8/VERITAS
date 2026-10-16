@@ -1,0 +1,52 @@
+1500 13 321735 865771390
+1500 14 323027 876836566
+1500 15 321390 887909203
+1500 16 320122 898921172
+1500 17 320271 909904570
+1500 18 318009 920864011
+1500 19 320302 931869635
+Traceback (most recent call last):
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_source.py", line 94, in <module>
+    extract(**vars(p.parse_args()))
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_source.py", line 71, in extract
+    chunks=raw.arrays(fields,entry_start=lo,entry_stop=hi+1,library='np')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 888, in arrays
+    _ranges_or_baskets_to_arrays(
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 3193, in _ranges_or_baskets_to_arrays
+    uproot.source.futures.delayed_raise(*obj)
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/futures.py", line 38, in delayed_raise
+    raise exception_value.with_traceback(traceback)
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 3108, in chunk_to_basket
+    basket = uproot.models.TBasket.Model_TBasket.read(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/model.py", line 854, in read
+    self.read_members(chunk, cursor, context, file)
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/models/TBasket.py", line 227, in read_members
+    ) = cursor.fields(chunk, _tbasket_format1, context)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/cursor.py", line 201, in fields
+    return format.unpack(chunk.get(start, stop, self, context))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/chunk.py", line 446, in get
+    self.wait(insist=stop)
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/chunk.py", line 388, in wait
+    self._raw_data = numpy.frombuffer(self._future.result(), dtype=self._dtype)
+                                      ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/futures.py", line 141, in result
+    delayed_raise(*self._excinfo)
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/futures.py", line 38, in delayed_raise
+    raise exception_value.with_traceback(traceback)
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/futures.py", line 314, in _run
+    self._result = self._task(resource)
+                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/object.py", line 83, in task
+    return resource.get(start, stop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/source/object.py", line 66, in get
+    return self._obj.read(stop - start)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_source.py", line 27, in read
+    if self.budget['used']+n>self.budget['cap']:raise RuntimeError('aggregate source read cap')
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: aggregate source read cap

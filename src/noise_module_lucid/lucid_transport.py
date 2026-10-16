@@ -13,7 +13,7 @@ PIN = "eaf2e89f579d6679e90020c732ac2c846895d691"
 
 
 class PromptTransport:
-    def __init__(self, config, manifest):
+    def __init__(self, config, manifest, max_candidates_per_ray=16):
         import json, lucid
         upstream = Path(lucid.__file__).resolve().parent.parent
         expected = json.loads(Path(manifest).read_text())
@@ -26,7 +26,8 @@ class PromptTransport:
         jax.config.update("jax_enable_x64", True)
         from lucid.geometry.detector_geometry import DetectorGeometry
         self.geometry = DetectorGeometry.from_config(str(config), temperature=None,
-            deposit_leg_bound=True, max_candidates_per_ray=16)
+            deposit_leg_bound=True, max_candidates_per_ray=max_candidates_per_ray)
+        self.max_candidates_per_ray = max_candidates_per_ray
         self.config_hash = hashlib.sha256(Path(config).read_bytes()).hexdigest()
 
     def export(self, event_id, photon_id, origins_m, directions, emission_ns, wavelength_nm):
@@ -66,10 +67,11 @@ class PromptTransport:
 
     def provenance(self):
         return dict(upstream_revision=PIN, geometry_config_sha256=self.config_hash,
+            max_candidates_per_ray=self.max_candidates_per_ray,
             stage='incident_photons', applied_effects=[], prompt_direct=True,
             scattering=False, reflection=False, angular_acceptance='uniform',
             concentrator=False, absorption='off', dispersion='off',
             speed_m_per_ns=float(self.geometry.speed_of_light),
-            transport_precision='float64; normalized directions', max_candidates_per_ray=16,
+            transport_precision='float64; normalized directions',
             sensor_model='upstream spherical hard intersections; first forward encounter',
             units=['m','ns','nm'], evidence_stage='development', non_citable=True)

@@ -1,0 +1,229 @@
+{
+  "appledouble_sidecars": {
+    "src/noise_module/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/artifacts/._injector.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/artifacts/._non_gaussian.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/budgets/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/budgets/._al2o3_athermal.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/budgets/._fit_al2o3_athermal.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/budgets/._reference_budget.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/budgets/._tes_budget.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/core/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/core/._config.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/core/._generator.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/core/._streaming.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/core/._templates.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/core/._utils.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/multichannel/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/multichannel/._generator.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/resampling/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/resampling/._psd.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/spectral/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/spectral/._models.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/temporal/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/temporal/._wrapper.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._conftest.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_al2o3_athermal_fit.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_al2o3_phases_3_to_6.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_artifact_injector.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_filtered_and_spectral_coherence.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_freeze_channel_structure.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_multichannel_noise.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_noise_generator.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_noise_psd_roundtrip.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_noise_statistical_validation.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_paper_convention_gates.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_phase1_phase2.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_phase3_phase5.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_phase6_phase8.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_psd_resampling.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_qp_simulator.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_reference_budget.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_review_fixes.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_temporal_noise.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/tests/._test_tes_budget.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/validation/.___init__.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/validation/._calibration.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    },
+    "src/noise_module/validation/._checks.py": {
+      "sha256": "602382581d132f0b661bbdc188147ca8f8693a0a6a235c62e6f92cca1c0ce094",
+      "magic_hex": "00051607",
+      "bytes": 163
+    }
+  }
+}

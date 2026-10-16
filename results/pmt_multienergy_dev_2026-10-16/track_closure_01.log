@@ -1,0 +1,72 @@
+/home/dwong/anaconda3/lib/python3.12/site-packages/jax/_src/ops/scatter.py:96: FutureWarning: scatter inputs have incompatible types: cannot safely cast value from dtype=int64 to dtype=int32 with jax_numpy_dtype_promotion='standard'. In future JAX releases this will result in an error.
+  warnings.warn(
+500 0 8
+500 1 16
+500 2 24
+500 3 32
+500 4 40
+500 5 48
+500 6 56
+500 7 64
+500 8 72
+500 9 80
+500 10 88
+500 11 96
+500 12 104
+500 13 112
+500 14 120
+500 15 128
+500 16 136
+500 17 144
+500 18 152
+500 19 160
+1000 0 168
+1000 1 176
+1000 2 184
+1000 3 192
+1000 4 200
+1000 5 208
+1000 6 216
+1000 7 224
+1000 8 232
+1000 9 240
+1000 10 248
+1000 11 256
+1000 12 264
+1000 13 272
+1000 14 280
+1000 15 288
+1000 16 296
+1000 17 304
+1000 18 312
+1000 19 320
+1500 0 328
+1500 1 336
+1500 2 344
+1500 3 352
+1500 4 360
+1500 5 368
+1500 6 376
+1500 7 384
+1500 8 392
+1500 9 400
+1500 10 408
+1500 11 416
+1500 12 424
+1500 13 432
+1500 14 440
+1500 15 448
+1500 16 456
+1500 17 464
+1500 18 472
+1500 19 480
+transport_gate False
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_data.py", line 74, in <module>
+    run(**vars(p.parse_args()))
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/multienergy_data.py", line 69, in run
+    if not passed:raise RuntimeError('transport closure failed; no training')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: transport closure failed; no training
