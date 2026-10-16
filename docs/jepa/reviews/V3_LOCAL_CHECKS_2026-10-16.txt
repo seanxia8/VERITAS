@@ -1,0 +1,28 @@
+JEPA v3 bounded local checks — 2026-10-16
+PASS preserved v2 SHA256: RUNBOOK_JEPA_NOISE_2026-10-16.md
+PASS preserved v2 SHA256: AGENT_PROMPT_JEPA_2026-10-16.md
+PASS preserved v2 SHA256: toy_check_2026-10-16.py
+PASS toy change is printed parameter name only; RNG and computation unchanged
+PASS E3 primary/fallback four-frame patches align; raw STFT supports disjoint; sample lengths correct
+PASS E2 sample/token gap agreement: context tokens0-2, gap3-4, target5-7
+PASS no trailing whitespace: RUNBOOK_JEPA_NOISE_2026-10-16.md
+PASS no trailing whitespace: AGENT_PROMPT_JEPA_2026-10-16.md
+
+Toy output (.venv/bin/python):
+gamma_load=0.0: top canon corr [0.922 0.889 0.88  0.026]  angle(JEPA/CCA top-3, noise-weighted) = 0.9 deg
+   canon corr after whitening: [0.922 0.889 0.88  0.026]
+   noise-anchored fixed point angle to noise-weighted = 1.0 deg
+gamma_load=1.0: top canon corr [0.998 0.92  0.888 0.88 ]  angle(JEPA/CCA top-3, noise-weighted) = 89.3 deg
+   canon corr after whitening: [0.998 0.92  0.888 0.88 ]
+   noise-anchored fixed point angle to noise-weighted = 0.9 deg
+
+P5 counterexample output (.venv/bin/python):
+noise eigenvalues: [1.   1.   1.   2.25]
+original target physics rank: 1
+whitened target physics loading: [5.55111512e-17 0.00000000e+00]
+whitened cross-view covariance norm: 1.2050192183849333e-16
+context noise-weighted physics direction: [0.5 0. ]
+P5 requires an additional non-annihilation/rank condition after innovation.
+
+Limits: documentation/analytic checks only. No new package implementation, actual-data validation, training, registration, push or remote execution.
+PASS R5 eligibility: zero, constant and globally shrinking curves rejected; rising plateau accepted (standalone specification check, not package implementation).

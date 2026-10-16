@@ -1,0 +1,31 @@
+{
+  "runbook_version": "v3",
+  "base_sha": "0cae6b061e488e319643cfb0ba820318b8923578",
+  "flags": {
+    "PUSH_JEPA": "yes",
+    "GPU_ALLOWED": "yes",
+    "OPTIONAL_WPS": "WP7"
+  },
+  "review_disposition": "Both final v3 reviews ACCEPT; no unresolved P1. Historical prompt hash superseded by explicit author permission update.",
+  "prior_development_evidence": [
+    "Appendix A toy",
+    "P5 annihilation counterexample"
+  ],
+  "source_sha256": {
+    "docs/jepa/AGENT_PROMPT_JEPA_2026-10-16.md": "5165b48af039a63281060503f96091c5e250f09fc4679e2201973e1b608d4340",
+    "docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md": "5f8de710a39e74a6f76235eeaf46c4df0907bfbe5145b1d3aa88e3a9fff1e6cd",
+    "docs/jepa/reviews/EXECUTION_PRELAUNCH_REVIEW_2026-10-16.md": "0b5463ad7e43671de4181f273ebb7817d4791298e7f79c2d3dc98f84c2e3c8a1",
+    "docs/jepa/reviews/EXECUTION_V3_REVIEW_2026-10-16.md": "7dc9379bc74f846c9429848912201a1ee5210a8fd77650ef6a9d306a3c34dc8d",
+    "docs/jepa/reviews/INDEPENDENT_PRELAUNCH_REVIEW_2026-10-16.md": "64989ecb6e0ccbadf2a283dfe5558e309dffcff2ada008fdf90c33e8752b9a7a",
+    "docs/jepa/reviews/P5_COUNTEREXAMPLE_OUTPUT.txt": "85613d1357bed2d2c00745b03f5c97e3729d155381cf3d59f2ed7fcde6c417cc",
+    "docs/jepa/reviews/PRELAUNCH_REVIEW_SUMMARY_2026-10-16.md": "fe2b6526be4857d4d761045f815b8728a8ac579b86c38adc9293874e183d4280",
+    "docs/jepa/reviews/REVISION_REPORT_JEPA_V3_2026-10-16.md": "478f1870763d0363bcd598e77c7b8f0790409ce8aee4df26371db7cc62d1bd7d",
+    "docs/jepa/reviews/SCIENTIFIC_V3_REVIEW_2026-10-16.md": "d6b2a10c4971867fb78d6cecb6088453d3ae435f13f3e441746c094aeba0a97d",
+    "docs/jepa/reviews/V3_LOCAL_CHECKS_2026-10-16.txt": "333c61dff85b19af4e0f59097fefc8c2644439e2135188897d8f67e6403cc44d",
+    "docs/jepa/reviews/check_p5_counterexample.py": "3baa078294f92747c60c041ac47ce83b2bcee189df9f046894cc0ab6c4520ecf",
+    "docs/jepa/reviews/snapshots/v2/AGENT_PROMPT_JEPA_2026-10-16.md": "02a6dc9f9e47040667b9f6237086237897e37a3fa1ad2b467fa053326c3babd6",
+    "docs/jepa/reviews/snapshots/v2/RUNBOOK_JEPA_NOISE_2026-10-16.md": "61ab3399f3ff32884e57054960f3e6040674f0a4a4d897243b69461f16e33a59",
+    "docs/jepa/reviews/snapshots/v2/toy_check_2026-10-16.py": "fe29f96554bb0fd8ccba324b87b77be1eac716105c491ec2572c557a235d1283",
+    "docs/jepa/toy_check_2026-10-16.py": "9c54b9f30d80476f5906eabd737d88967c2141e2c1eaf450ac2187e3c4bbf9ac"
+  }
+}
