@@ -1,5 +1,7 @@
 # PMT issue 5 engineering closeout
 
+> Historical WP0–WP5 CPU closeout. The subsequent user-authorized real LUCiD integration, prompt Cherenkov validation and three-seed GPU pilot are complete within their bounded engineering scope: [follow-up report](PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md). The old no-training/exporter deferrals below describe the earlier pass.
+
 16 October 2026. **The scientific issue is partially complete.** This pass delivers reversible WP0–WP5 engineering mechanisms, synthetic acceptance tests, WP6/WP8 drafts and WP9 engineering evidence. It does not establish target-detector calibration, scientific superiority, physics review, issue closure or release.
 
 ## ✅ Requirement evidence

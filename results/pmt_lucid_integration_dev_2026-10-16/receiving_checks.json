@@ -1,0 +1,36 @@
+{
+  "metrics_recomputed": {
+    "10": {
+      "mse_recomputed": 0.0008347483235411346,
+      "angle_recomputed_deg": 2.5742077827453613,
+      "physical_test_ids": [
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    "11": {
+      "mse_recomputed": 0.0008305641822516918,
+      "angle_recomputed_deg": 2.659857988357544,
+      "physical_test_ids": [
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    "12": {
+      "mse_recomputed": 0.000678414071444422,
+      "angle_recomputed_deg": 2.289409637451172,
+      "physical_test_ids": [
+        20,
+        21,
+        22,
+        23
+      ]
+    }
+  },
+  "all_received_runtime_code_hashes_match": true,
+  "dataset_hash_matches_training": true
+}

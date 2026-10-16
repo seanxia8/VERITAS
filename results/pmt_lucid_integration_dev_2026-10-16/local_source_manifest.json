@@ -1,0 +1,14 @@
+{
+  "configs/lucid_pmt/cell_contract.json": "a6fbd0079e2c8fcbec5b7aa2e7ff4cb213c103b12c550fdbf81c22767cfe075d",
+  "configs/lucid_pmt/integration_pilot.json": "81651024e5d8b9bd6420a51868b2c1f6347bcb6425eb6c8415419a3a45807f21",
+  "configs/lucid_pmt/reference.json": "d996f5c54f1104511b3e15894928c6c050944e36b600123ffe9c5badfbc75189",
+  "configs/lucid_pmt/split_contract.json": "b5955360bcf449de3fc01db2c50b80f647ccc5d66d288b4a9876fade8b32bf4d",
+  "configs/lucid_pmt/upstream_manifest.json": "136c3bfb60357cc5de588423c580f865a40715c8cc3f6649b5cd9e18048f4cb2",
+  "src/noise_module_lucid/lucid_adapter.py": "4259ef6659461a6e25d713aefa307a884137439365830d6066ae930f43dec4d3",
+  "src/noise_module_lucid/lucid_baseline.py": "72a38da59771b3b6361c0c5bf7c9ffea6b3340851f0916f6eaacd74c6306cd2d",
+  "src/noise_module_lucid/lucid_controls.py": "d6a407fc595e3054d9a556c1c42843d0159c8412214e76dfb99c2ce429b4b000",
+  "src/noise_module_lucid/lucid_integration.py": "b0b49d1c2005000536d025f1a364d905ad07b6253a0fd50888222b632cdba3a1",
+  "src/noise_module_lucid/lucid_transport.py": "8b70958c40a62ab89c7428fef14cf9e3d821d727ed7b79118104ce5bcd2fd4cb",
+  "src/noise_module_lucid/photonsim_subset.py": "9c266f0d070e73358f62d2bb25614c1b016483c7863e454b0d5754271e3d6d71",
+  "src/noise_module_lucid/tests/test_lucid_integration.py": "4223952f9a0811533ba7c0798631d32c05b8f5468c93d06535cd2e44557963ce"
+}

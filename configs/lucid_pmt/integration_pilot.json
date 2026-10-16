@@ -1,0 +1,80 @@
+{
+  "evidence_stage": "development",
+  "non_citable": true,
+  "authorization": "User 16 October 2026: real LUCiD integration, prompt Cherenkov validation, GPU baseline training on Deepthought",
+  "source": "upstream PhotonSim water muon 500MeV_100events.root, events 0..23 via bounded range reads",
+  "source_cap_bytes": 134217728,
+  "transport": "pinned WCTE hard sphere first encounters; no scattering/reflection/absorption/dispersion; uniform angular acceptance",
+  "rotations_per_event": 16,
+  "splits": {
+    "train": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "validation": [
+      16,
+      17,
+      18,
+      19
+    ],
+    "test": [
+      20,
+      21,
+      22,
+      23
+    ]
+  },
+  "source_seeds": [
+    10,
+    11,
+    12
+  ],
+  "epochs": 60,
+  "batch_size": 16,
+  "learning_rate": 0.001,
+  "optimizer": "AdamW, weight_decay=0.0001",
+  "architecture": "PMT digit PointNet: 6->128->128->128, masked mean+max ->256->3, ReLU; unit direction output",
+  "inputs": [
+    "log1p(measured_charge)",
+    "measured_time_minus_first_digit / 20 ns",
+    "sensor_x/2m",
+    "sensor_y/2m",
+    "sensor_z/2m",
+    "hit_mask"
+  ],
+  "loss": "mean squared error on normalized primary direction",
+  "checkpoint": "minimum validation MSE; held-out test once per seed",
+  "primary_energy_endpoint": "not trained: one energy only",
+  "gpu_memory_fraction": 0.25,
+  "cpu_threads": 4,
+  "training_wall_seconds": 1800,
+  "generation_wall_seconds": 1800,
+  "geometry_check_rays": 256,
+  "closure": {
+    "max_flight_time_residual_ns": 0.0001,
+    "max_ray_sphere_distance_error_m": 0.0001,
+    "analytic_sensor_agreement": 1.0,
+    "cone_median_abs_error_deg_max": 5,
+    "cone_p95_abs_error_deg_max": 10
+  },
+  "trainability": {
+    "all_seed_test_mse_below_constant_fraction": 0.8,
+    "all_seed_mean_angle_deg_below": 60
+  },
+  "response": "synthetic development QE, CE and per-channel/group timing/gain; not WCTE calibration",
+  "no_primary_claim_evaluation": true
+}

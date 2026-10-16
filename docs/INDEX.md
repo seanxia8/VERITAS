@@ -80,3 +80,4 @@ decisions, the earlier revision plan, and package docs.
 - [Source and stage contract](PMT_SOURCE_AND_STAGE_CONTRACT.md)
 - [Draft experiment and WP8 decisions](PMT_EXPERIMENT_CONTRACT.md)
 - [Engineering closeout](PMT_ISSUE5_FINAL_REPORT.md)
+- [Real LUCiD integration, prompt Cherenkov closure and GPU pilot](PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md)

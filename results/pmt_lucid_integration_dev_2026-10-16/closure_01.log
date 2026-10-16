@@ -1,0 +1,34 @@
+physical_event 0 samples 16
+physical_event 1 samples 32
+physical_event 2 samples 48
+physical_event 3 samples 64
+physical_event 4 samples 80
+physical_event 5 samples 96
+physical_event 6 samples 112
+physical_event 7 samples 128
+physical_event 8 samples 144
+physical_event 9 samples 160
+physical_event 10 samples 176
+physical_event 11 samples 192
+physical_event 12 samples 208
+physical_event 13 samples 224
+physical_event 14 samples 240
+physical_event 15 samples 256
+physical_event 16 samples 272
+physical_event 17 samples 288
+physical_event 18 samples 304
+physical_event 19 samples 320
+physical_event 20 samples 336
+physical_event 21 samples 352
+physical_event 22 samples 368
+physical_event 23 samples 384
+{"passed": false, "cone": {"n": 1576360, "median_abs_error_deg": 0.45935772856973145, "p95_abs_error_deg": 2.3591968982541234, "interpretation": "constant-index approximation versus PhotonSim local segment emission; supporting only"}, "elapsed_seconds": 72.63727234862745}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/work/dwong/pmt_lucid_20261016/code/src/noise_module_lucid/lucid_integration.py", line 107, in <module>
+    run(**vars(p.parse_args()))
+  File "/work/dwong/pmt_lucid_20261016/code/src/noise_module_lucid/lucid_integration.py", line 101, in run
+    if not passed:raise RuntimeError('predeclared closure failed: training prohibited')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: predeclared closure failed: training prohibited

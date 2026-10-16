@@ -1,14 +1,14 @@
 # PMT experiment contract
 
-16 October 2026. **DRAFT — UNFROZEN.** This document prepares WP6; it authorizes no training, remote execution or new transfer arm. Claims, labels and `GENERIC_COMMITTED` remain as in `PREREGISTRATION.md` §§1–8.
+16 October 2026. **DRAFT — UNFROZEN.** This document prepares WP6. The user subsequently authorized real LUCiD integration, prompt Cherenkov validation and baseline GPU training on Deepthought on 16 October 2026. The bounded engineering pilot is specified in `configs/lucid_pmt/integration_pilot.json`; this is not a scientific protocol freeze or authorization for a new transfer arm. Claims, labels and `GENERIC_COMMITTED` remain as in `PREREGISTRATION.md` §§1–8.
 
 ## 🔌 Interfaces and baseline
 
 Input is `PhotonBatch` (`pmt-photons-v1`): incident photons with persistent IDs, sensor IDs, forward arrival times in ns, wavelengths in nm and declared upstream effects. Response parameters and their provenance are versioned in `configs/lucid_pmt/reference.json`. Wavelengths and truth are simulation/evaluation data. The deployed model/monitor sees measured sensor charge/time, geometry, grouping and frozen operational calibration only, through an allowlist. All twins and variants preserve physical event identity.
 
-Candidate target: pinned LUCiD WCTE geometry. Actual PMT hardware model, physical group map, wavelength QE/CE and width calibrations remain pending. The current 76-channel cylinder is a synthetic flasher fixture, not WCTE or a Cherenkov event. A real exporter before QE/TTS and prompt Cherenkov closure are required before physics evaluation. Baseline includes nontrivial group gain/width and per-channel T-Q curves. Uniform angular response, prompt light and no concentrators are settled for the first trial.[^request]
+Candidate target: pinned LUCiD WCTE geometry. Actual PMT hardware model, physical group map, wavelength QE/CE and width calibrations remain pending. The current 76-channel cylinder is a synthetic flasher fixture, not WCTE or a Cherenkov event. The follow-up real exporter before QE/TTS and bounded prompt Cherenkov closure now pass; broader target-detector validation is still required before physics evaluation. Baseline includes nontrivial group gain/width and per-channel T-Q curves. Uniform angular response, prompt light and no concentrators are settled for the first trial.[^request]
 
-Subject interface draft: per-event measured digit arrays plus sensor geometry → frozen reconstruction outputs and declared internal hooks. Padding/masking, architecture, output target, operational noise-reference source and trainability thresholds must be fixed before model fitting. There is no model trained in this pass. Train baseline response only with ≥3 seeds, target 5; no per-variant primary retraining.[^request]
+Subject interface draft: per-event measured digit arrays plus sensor geometry → frozen reconstruction outputs and declared internal hooks. Padding/masking, architecture, output target, operational noise-reference source and trainability thresholds must be fixed before model fitting. The original CPU pass trained no model. The follow-up engineering pilot uses a measured-digit PointNet direction model because the existing compact waveform transformer assumes a different input representation. This does not replace the primary scientific model or baseline by implication. Train baseline response only with ≥3 seeds, target 5; no per-variant primary retraining.[^request]
 
 ## 🧩 Split and information design
 
@@ -46,7 +46,7 @@ Model seeds are outermost; cells are Claim-2 resampling units; events are paired
 | Denominator | Same-event clean errors; zero denominator is undefined | Author adopts policy before primary evaluation |
 | Counts/severity/held-out units | Development precision study not run | Author after bounded precision work, before held-out evaluation |
 | Monitor feature amendment | Supporting diagnostics only | Author before changing primary comparison |
-| Compute budget | This pass CPU only; maximum local fixture 32 fit +16 closure +24 evaluation ×8 cells, no model training | Host, memory, wall time, storage and seed budget pending before WP7 |
+| Compute budget | Original CPU fixture retained. Follow-up: 24 physical PhotonSim events, 16 rotations each; 3 baseline seeds; 60 epochs/seed; 30-minute generation and total training caps; one GPU at 25% memory fraction | Pilot budget implemented; full scientific WP7 budget pending |
 
 ## 🧭 WP8 parent-issue decisions
 
@@ -60,3 +60,11 @@ Model seeds are outermost; cells are Claim-2 resampling units; events are paired
 | Future scope | Angular acceptance next iteration; concentrators/scattering/reflection deferred. LIGO future; HeST/DELight conditional on existing Phase-B decision | No automatic arm expansion |
 
 [^request]: Junjie Xia, current correction and acceptance: https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6134579713
+
+## 16 October follow-up integration pilot
+
+The real input is the upstream public 500 MeV water-muon PhotonSim example, events 0–23 read under a 128 MiB network cap. Source emission positions are explicitly converted from mm to m. Physical IDs 0–15 train, 16–19 select checkpoints, and 20–23 provide the one-time pilot test; all 16 rotations of an event remain together. Rotation is data augmentation, not another independent physical event. The target is the primary direction; the single-energy sample cannot validate energy inference. Shower centring and in-volume/spectral selections are generation operations, recorded per event, not model features.
+
+The sensor geometry is pinned WCTE (1,995 channels). The PMT response remains an explicitly synthetic development model. Groups of 19 sequential indices are synthetic groups, not verified hardware crates. Transport uses hard first-forward spherical intersections before QE/CE/TTS, with uniform acceptance and scattering/reflection/absorption/dispersion off. Float64 and 16 sensor candidates address numerical precision and candidate omissions observed during engineering closure. This is not a full optical-detector validation.
+
+Inputs contain only measured charge/time, sensor position and occupancy. The PointNet uses masked mean/max pooling and a unit-vector head; the exact model, optimizer, seeds, splits and gates are recorded before training in the pilot JSON. No primary harm score, attribution claim, S-family selection, transfer decision or target-PMT calibration is resolved by passing this pilot. See `PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md` for results and preserved failures.

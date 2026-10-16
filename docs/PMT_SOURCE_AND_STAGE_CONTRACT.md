@@ -24,7 +24,7 @@ Source URLs and content SHA-256 are in `results/pmt_dev_2026-10-16_wp0_wp5/upstr
 | `config/WCTE_geom_config.json` | Water cylinder reads `wcte_geometry.npz` | Candidate geometry is WCTE, not copied SK geometry |
 | `config/WCTE_physics_config.json` | Scalar QE .2, 50 m scattering/absorption and nonzero reflection; no PMT type or crate map | Defaults do not satisfy prompt-only trial; target hardware, measured QE/width curves and mapping remain pending |
 
-No LUCiD checkout, JAX or data bundle exists in the tested environment. Consequently the strict `lucid_adapter.incident_record` validates an explicit pre-response interception record, but the upstream exporter and real Cherenkov integration are **not validated**. Its acceptance test is a synthetic record. A weighted likelihood ray is not an independent photon; do not cast weighted output into unit photons. Obtain hard direct sensor encounters with original photon IDs, wavelength and verified time units, with QE/TTS disabled, before passing the record.
+The original CPU-only pass had no LUCiD checkout, JAX or data bundle. In that pass, the strict `lucid_adapter.incident_record` validates an explicit pre-response interception record, but the upstream exporter and real Cherenkov integration were **not validated**. Its acceptance test is a synthetic record. A weighted likelihood ray is not an independent photon; do not cast weighted output into unit photons. Obtain hard direct sensor encounters with original photon IDs, wavelength and verified time units, with QE/TTS disabled, before passing the record.
 
 ## 🔧 Ownership and observation
 
@@ -71,3 +71,7 @@ Point-source tests concern isotropic flashers and their defined emission point. 
 [^use]: https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6133100584
 [^root]: https://github.com/CIDeR-ML/LUCiD/tree/eaf2e89f579d6679e90020c732ac2c846895d691
 [^thesis]: Junjie Xia, July 2019, *Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors*. https://www-sk.icrr.u-tokyo.ac.jp/sk/_pdf/articles/MasterThesis-XIA_JUNJIE-35176375.pdf
+
+## Follow-up: actual prompt transport
+
+The later user-authorized Deepthought pass implements `lucid_transport.PromptTransport` against a hash-verified pinned source and actual WCTE geometry. The 24-event PhotonSim Cherenkov source, mm-to-m conversion, pre-response interception, independent transport checks, local cone validation and three-seed direction pilot are documented in [the integration report](PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md). This supersedes the original environment/exporter deferral above. PMT calibration, dispersive transport, track/energy endpoints and scientific claim evaluation remain unresolved.
