@@ -1,0 +1,12 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:08:38 UTC 2026
+quota_exit=1
+308M	/ceph/dwong/jepa/code
+41K	/ceph/dwong/jepa/venv
+1.5K	/ceph/dwong/jepa/returns
+du_exit=0
+Filesystem                                                            Inodes IUsed IFree IUse% Mounted on
+[2a00:1398:5:fe01:3eec:efff:fe38:7926],[129.13.101.127]:/ceph_data 210810807     -     -     - /ceph
+Fri Oct 16 15:08:38 UTC 2026

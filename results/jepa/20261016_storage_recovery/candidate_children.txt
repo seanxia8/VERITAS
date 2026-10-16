@@ -1,0 +1,53 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:13:17 UTC 2026
+{"path": "/ceph/dwong/.conda/envs", "ceph.dir.rfiles": "9921", "ceph.dir.rsubdirs": "971", "ceph.dir.rbytes": "366019203"}
+{"path": "/ceph/dwong/venvs/dpo_batch3", "ceph.dir.rfiles": "41150", "ceph.dir.rsubdirs": "4626", "ceph.dir.rbytes": "7314587214"}
+{"path": "/ceph/dwong/b1/fix_20261001", "ceph.dir.rfiles": "11", "ceph.dir.rsubdirs": "2", "ceph.dir.rbytes": "353447"}
+{"path": "/ceph/dwong/b1/u2_3", "ceph.dir.rfiles": "1185", "ceph.dir.rsubdirs": "48", "ceph.dir.rbytes": "4922111481"}
+{"path": "/ceph/dwong/b1/src_u2_2", "ceph.dir.rfiles": "3022", "ceph.dir.rsubdirs": "539", "ceph.dir.rbytes": "410843475"}
+{"path": "/ceph/dwong/b1/src_u1", "ceph.dir.rfiles": "6139", "ceph.dir.rsubdirs": "1000", "ceph.dir.rbytes": "592564313"}
+{"path": "/ceph/dwong/b1/src_u2_3", "ceph.dir.rfiles": "3048", "ceph.dir.rsubdirs": "552", "ceph.dir.rbytes": "411115543"}
+{"path": "/ceph/dwong/b1/src_t24d", "ceph.dir.rfiles": "4510", "ceph.dir.rsubdirs": "670", "ceph.dir.rbytes": "673840294"}
+{"path": "/ceph/dwong/b1/src_t25", "ceph.dir.rfiles": "6378", "ceph.dir.rsubdirs": "1034", "ceph.dir.rbytes": "602082632"}
+{"path": "/ceph/dwong/b1/src_t24d_2", "ceph.dir.rfiles": "3266", "ceph.dir.rsubdirs": "575", "ceph.dir.rbytes": "420386864"}
+{"path": "/ceph/dwong/b1/t24d", "ceph.dir.rfiles": "0", "ceph.dir.rsubdirs": "1", "ceph.dir.rbytes": "0"}
+{"path": "/ceph/dwong/b1/t24d_2", "ceph.dir.rfiles": "53", "ceph.dir.rsubdirs": "15", "ceph.dir.rbytes": "47723795"}
+{"path": "/ceph/dwong/b1/RETURN", "ceph.dir.rfiles": "8", "ceph.dir.rsubdirs": "1", "ceph.dir.rbytes": "83848584"}
+{"path": "/ceph/dwong/b1/t25", "ceph.dir.rfiles": "8664", "ceph.dir.rsubdirs": "1446", "ceph.dir.rbytes": "20560589502"}
+{"path": "/ceph/dwong/b1/u2", "ceph.dir.rfiles": "149", "ceph.dir.rsubdirs": "42", "ceph.dir.rbytes": "8571761"}
+{"path": "/ceph/dwong/b1/u2_2", "ceph.dir.rfiles": "151", "ceph.dir.rsubdirs": "44", "ceph.dir.rbytes": "8731057"}
+{"path": "/ceph/dwong/b1/u1", "ceph.dir.rfiles": "1516", "ceph.dir.rsubdirs": "47", "ceph.dir.rbytes": "9816357990"}
+{"path": "/ceph/dwong/b1/src_u2", "ceph.dir.rfiles": "6145", "ceph.dir.rsubdirs": "1000", "ceph.dir.rbytes": "821536474"}
+{"path": "/ceph/dwong/b2/src_x3", "ceph.dir.rfiles": "6551", "ceph.dir.rsubdirs": "1156", "ceph.dir.rbytes": "1106814085"}
+{"path": "/ceph/dwong/b2/x3", "ceph.dir.rfiles": "1573", "ceph.dir.rsubdirs": "266", "ceph.dir.rbytes": "723940905"}
+{"path": "/ceph/dwong/b2/agent", "ceph.dir.rfiles": "25", "ceph.dir.rsubdirs": "3", "ceph.dir.rbytes": "68322"}
+{"path": "/ceph/dwong/b2/src_x2", "ceph.dir.rfiles": "6551", "ceph.dir.rsubdirs": "1156", "ceph.dir.rbytes": "1106814556"}
+{"path": "/ceph/dwong/b2/x2", "ceph.dir.rfiles": "4505", "ceph.dir.rsubdirs": "759", "ceph.dir.rbytes": "2327954758"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/.agents", "ceph.dir.rfiles": "2", "ceph.dir.rsubdirs": "3", "ceph.dir.rbytes": "11108"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/archive", "ceph.dir.rfiles": "99", "ceph.dir.rsubdirs": "14", "ceph.dir.rbytes": "2077573"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/round7", "ceph.dir.rfiles": "1", "ceph.dir.rsubdirs": "1", "ceph.dir.rbytes": "1988"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/experiment_scaffold", "ceph.dir.rfiles": "665", "ceph.dir.rsubdirs": "20", "ceph.dir.rbytes": "15316387"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/scripts", "ceph.dir.rfiles": "237", "ceph.dir.rsubdirs": "2", "ceph.dir.rbytes": "5349093"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/evidence", "ceph.dir.rfiles": "14574", "ceph.dir.rsubdirs": "5331", "ceph.dir.rbytes": "204342046"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/ref", "ceph.dir.rfiles": "3", "ceph.dir.rsubdirs": "2", "ceph.dir.rbytes": "83142"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/third_party", "ceph.dir.rfiles": "21694", "ceph.dir.rsubdirs": "2290", "ceph.dir.rbytes": "421643708"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/notes", "ceph.dir.rfiles": "5", "ceph.dir.rsubdirs": "3", "ceph.dir.rbytes": "108885"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/.git", "ceph.dir.rfiles": "6230", "ceph.dir.rsubdirs": "304", "ceph.dir.rbytes": "98308878"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/docs", "ceph.dir.rfiles": "197", "ceph.dir.rsubdirs": "18", "ceph.dir.rbytes": "4435630"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/sources", "ceph.dir.rfiles": "25", "ceph.dir.rsubdirs": "5", "ceph.dir.rbytes": "1292684"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/paper", "ceph.dir.rfiles": "78", "ceph.dir.rsubdirs": "10", "ceph.dir.rbytes": "5755625"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/protocols", "ceph.dir.rfiles": "231", "ceph.dir.rsubdirs": "6", "ceph.dir.rbytes": "3727758"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/output", "ceph.dir.rfiles": "2", "ceph.dir.rsubdirs": "4", "ceph.dir.rbytes": "1764152"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/.venv", "ceph.dir.rfiles": "1065", "ceph.dir.rsubdirs": "113", "ceph.dir.rbytes": "63548419"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/data", "ceph.dir.rfiles": "4", "ceph.dir.rsubdirs": "2", "ceph.dir.rbytes": "9057"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention/round10", "ceph.dir.rfiles": "200", "ceph.dir.rsubdirs": "17", "ceph.dir.rbytes": "3148739"}
+{"path": "/ceph/dwong/models/gguf-tools-venv", "ceph.dir.rfiles": "1265", "ceph.dir.rsubdirs": "164", "ceph.dir.rbytes": "64525511"}
+{"path": "/ceph/dwong/models/round5-titan", "ceph.dir.rfiles": "35", "ceph.dir.rsubdirs": "4", "ceph.dir.rbytes": "109728563876"}
+{"path": "/ceph/dwong/models/.cache", "ceph.dir.rfiles": "9", "ceph.dir.rsubdirs": "3", "ceph.dir.rbytes": "501"}
+{"path": "/ceph/dwong/models/round4-l40", "ceph.dir.rfiles": "5", "ceph.dir.rsubdirs": "1", "ceph.dir.rbytes": "78789662176"}
+{"path": "/ceph/dwong/models/qwen3-4b-provenance", "ceph.dir.rfiles": "5", "ceph.dir.rsubdirs": "1", "ceph.dir.rbytes": "11452232"}
+{"path": "/ceph/dwong/models/local-exam-l40", "ceph.dir.rfiles": "4", "ceph.dir.rsubdirs": "1", "ceph.dir.rbytes": "58137197664"}
+{"path": "/ceph/dwong/models/llama.cpp", "ceph.dir.rfiles": "13252", "ceph.dir.rsubdirs": "1412", "ceph.dir.rbytes": "1685503421"}
+Fri Oct 16 15:13:18 UTC 2026

@@ -1,0 +1,27 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:22:06 UTC 2026
+drwxr-xr-x 2 dwong cms 1 Oct 16 17:07 /ceph/dwong/jepa/returns/20261016_wp0_remote_env
+drwxr-xr-x 4 dwong cms 7 Oct 16 17:07 /ceph/dwong/jepa/venv/cpu_py311_torch251
+    PID     ELAPSED COMMAND
+2189228  2-16:55:42 /usr/lib/systemd/systemd --user
+2189229  2-16:55:42 (sd-pam)
+2189807  2-16:55:27 codex -c features.code_mode_host=true app-server --listen unix://
+2442490  2-04:20:13 tmux -L paper1megzr1 new-session -d -s r1-preflight bash /ceph/dwong/megz_r1_host_20261014/experiments/mlst2026/meg_z_r1_20261014/host_preflight.sh
+3143994    05:07:19 sshd: dwong@notty
+3143995    05:07:19 codex app-server proxy
+3201404       09:50 sshd: dwong@pts/19
+3201405       09:50 -bash
+3205042       00:02 sshd: dwong@notty
+3205044       00:02 bash -c date -u; ls -ld /ceph/dwong/jepa/venv/* /ceph/dwong/jepa/returns/*; ps -u dwong -o pid,etime,args | head -35; getfattr -n ceph.dir.rfiles /ceph/dwong 2>&1; getfattr -n ceph.dir.rsubdirs /ceph/dwong 2>&1
+3205057       00:00 ps -u dwong -o pid,etime,args
+3205058       00:00 head -35
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rfiles="407353"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rsubdirs="51376"
+

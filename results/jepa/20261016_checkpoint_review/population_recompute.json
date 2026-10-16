@@ -1,0 +1,707 @@
+{
+  "cells": [
+    {
+      "cell": "20261016_wp2_population_line075_common045",
+      "line": 0.75,
+      "common": 0.45,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line075_common045/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line075_common045/noise_covariance.npy": "7f8e544ae1fe24c07efc515327be90cf55dcfcad79c359415f38673401401c43"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9866537783591497,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.00040082583202910913
+          },
+          "kth_correlation": 0.0003052753520980736,
+          "canonical_gap": 0.0003052753520980736,
+          "recovery_angle_rad": 1.392676382709031e-14,
+          "producer_angle_rad": 1.3131454055400873e-10,
+          "gamma_abs_error": 0.0,
+          "kth_abs_error": 8.310409652101391e-17
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9955547660616733,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.002453947526074824
+          },
+          "kth_correlation": 0.01053779963300957,
+          "canonical_gap": 0.01053779963300957,
+          "recovery_angle_rad": 7.295400924804465e-13,
+          "producer_angle_rad": 1.2765510310665353e-11,
+          "gamma_abs_error": 6.661338147750939e-16,
+          "kth_abs_error": 2.645453300864631e-15
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.9955522469973608,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.00245211974159724
+          },
+          "kth_correlation": 0.009671538937831488,
+          "canonical_gap": 0.009671538937831488,
+          "recovery_angle_rad": 5.68257693478423e-13,
+          "producer_angle_rad": 1.1321726682849834e-11,
+          "gamma_abs_error": 6.661338147750939e-16,
+          "kth_abs_error": 3.2942398808799567e-15
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.981555277517939,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00030749257844185337
+          },
+          "kth_correlation": 0.00021693422196341475,
+          "canonical_gap": 0.00021693422196341475,
+          "recovery_angle_rad": 8.411598772824288e-15,
+          "producer_angle_rad": 8.707246120573975e-10,
+          "gamma_abs_error": 1.6653345369377348e-15,
+          "kth_abs_error": 1.0831179703130189e-16
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line0_common0",
+      "line": 0.0,
+      "common": 0.0,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0/noise_covariance.npy": "bf4783539256068f2f81f43227cd5ec7390cef5538667a15bc76d6fe4d4e63c8"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.6063657790739089,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.001075165325632428
+          },
+          "kth_correlation": 0.00021965711596119448,
+          "canonical_gap": 0.00021965711596119448,
+          "recovery_angle_rad": 1.0612062707076344e-14,
+          "producer_angle_rad": 3.069065311556147e-10,
+          "gamma_abs_error": 4.107825191113079e-15,
+          "kth_abs_error": 1.5151725360484924e-17
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.7355317517518115,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0026027755083985345
+          },
+          "kth_correlation": 0.011739872818497454,
+          "canonical_gap": 0.011739872818497454,
+          "recovery_angle_rad": 2.2197082709444548e-13,
+          "producer_angle_rad": 7.69430555513141e-13,
+          "gamma_abs_error": 1.3322676295501878e-15,
+          "kth_abs_error": 6.071532165918825e-17
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.7348855782629854,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0026008194998333586
+          },
+          "kth_correlation": 0.010775028021454611,
+          "canonical_gap": 0.010775028021454611,
+          "recovery_angle_rad": 2.132835687504882e-13,
+          "producer_angle_rad": 4.591937093162495e-13,
+          "gamma_abs_error": 3.774758283725532e-15,
+          "kth_abs_error": 3.469446951953614e-17
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.44627206822584337,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.001045494984013046
+          },
+          "kth_correlation": 0.00015083575684564864,
+          "canonical_gap": 0.00015083575684564864,
+          "recovery_angle_rad": 5.6542531003688084e-15,
+          "producer_angle_rad": 8.872017921219972e-12,
+          "gamma_abs_error": 1.1102230246251565e-16,
+          "kth_abs_error": 4.797594613248357e-18
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line0_common0p225",
+      "line": 0.0,
+      "common": 0.225,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p225/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p225/noise_covariance.npy": "f1f964943a9a101633ef2c123b549f86d6e8d265bb896f01c1c3d68fe3a15264"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9374412904286012,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.0004548366116525341
+          },
+          "kth_correlation": 0.0002973721894746165,
+          "canonical_gap": 0.0002973721894746165,
+          "recovery_angle_rad": 1.443089930100054e-14,
+          "producer_angle_rad": 5.105511099024011e-10,
+          "gamma_abs_error": 9.992007221626409e-16,
+          "kth_abs_error": 1.3715157481941631e-17
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9779006869692349,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.002455015550168518
+          },
+          "kth_correlation": 0.010582116006257919,
+          "canonical_gap": 0.010582116006257919,
+          "recovery_angle_rad": 3.417458215511681e-13,
+          "producer_angle_rad": 4.1268236363232145e-12,
+          "gamma_abs_error": 2.1094237467877974e-15,
+          "kth_abs_error": 9.43689570931383e-16
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.9778853392069575,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024531240439334603
+          },
+          "kth_correlation": 0.00971098924810667,
+          "canonical_gap": 0.00971098924810667,
+          "recovery_angle_rad": 3.227077041379322e-13,
+          "producer_angle_rad": 3.1176596672910544e-12,
+          "gamma_abs_error": 3.3306690738754696e-16,
+          "kth_abs_error": 7.424616477180734e-16
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9141419505241085,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00035815678911183717
+          },
+          "kth_correlation": 0.00021128503124288864,
+          "canonical_gap": 0.00021128503124288864,
+          "recovery_angle_rad": 6.58592383715357e-15,
+          "producer_angle_rad": 3.7008305716642107e-10,
+          "gamma_abs_error": 5.551115123125783e-16,
+          "kth_abs_error": 4.824699667560495e-18
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line0_common0p45",
+      "line": 0.0,
+      "common": 0.45,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p45/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p45/noise_covariance.npy": "8991858ab9228b6389b0a919b925c645f87fd7533aa890d3cb45b13843df1087"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9662047091901854,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.00042259191299221806
+          },
+          "kth_correlation": 0.0003020629461363048,
+          "canonical_gap": 0.0003020629461363048,
+          "recovery_angle_rad": 1.0843951691153089e-14,
+          "producer_angle_rad": 9.727993694481333e-10,
+          "gamma_abs_error": 1.1102230246251565e-16,
+          "kth_abs_error": 1.5016200088924236e-17
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9884688629061191,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024542059360030967
+          },
+          "kth_correlation": 0.010555029666643762,
+          "canonical_gap": 0.010555029666643762,
+          "recovery_angle_rad": 4.879901557784566e-13,
+          "producer_angle_rad": 2.9836091824443028e-12,
+          "gamma_abs_error": 2.220446049250313e-15,
+          "kth_abs_error": 1.2958384365546749e-15
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.9884617363014406,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.002452362117296723
+          },
+          "kth_correlation": 0.009686855931326057,
+          "canonical_gap": 0.009686855931326057,
+          "recovery_angle_rad": 4.909907375441207e-13,
+          "producer_angle_rad": 2.441791223848364e-12,
+          "gamma_abs_error": 2.220446049250313e-16,
+          "kth_abs_error": 3.0531133177191805e-16
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9534380058611877,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00032787509568184844
+          },
+          "kth_correlation": 0.0002146290368112253,
+          "canonical_gap": 0.0002146290368112253,
+          "recovery_angle_rad": 3.758920551612616e-15,
+          "producer_angle_rad": 2.336626204511402e-10,
+          "gamma_abs_error": 1.1102230246251565e-16,
+          "kth_abs_error": 3.5101045334218206e-17
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line0_common0p675",
+      "line": 0.0,
+      "common": 0.675,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p675/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p675/noise_covariance.npy": "f3c738ffbb21a0fb70714db0ac79367e1e6034ccc45e3e41b80708e290af8293"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9768475754912813,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.0004111464769445546
+          },
+          "kth_correlation": 0.00030374729464440034,
+          "canonical_gap": 0.00030374729464440034,
+          "recovery_angle_rad": 1.1332953828767992e-14,
+          "producer_angle_rad": 1.4904540826964002e-10,
+          "gamma_abs_error": 6.661338147750939e-16,
+          "kth_abs_error": 2.439454888092385e-18
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.992199274386984,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024540413683013977
+          },
+          "kth_correlation": 0.010545866595447565,
+          "canonical_gap": 0.010545866595447565,
+          "recovery_angle_rad": 4.980540039071548e-13,
+          "producer_angle_rad": 6.171796416204293e-12,
+          "gamma_abs_error": 3.9968028886505635e-15,
+          "kth_abs_error": 1.573394192710964e-15
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.992194664081601,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024522076866648895
+          },
+          "kth_correlation": 0.009678706722248324,
+          "canonical_gap": 0.009678706722248324,
+          "recovery_angle_rad": 5.799102705852815e-13,
+          "producer_angle_rad": 3.193168904846537e-12,
+          "gamma_abs_error": 2.7755575615628914e-15,
+          "kth_abs_error": 5.2562121322097255e-16
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9680512676278558,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00031715294689442633
+          },
+          "kth_correlation": 0.00021583602511051386,
+          "canonical_gap": 0.00021583602511051386,
+          "recovery_angle_rad": 5.379360670673111e-15,
+          "producer_angle_rad": 4.6407112792849537e-10,
+          "gamma_abs_error": 1.2212453270876722e-15,
+          "kth_abs_error": 2.5831116759467143e-17
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line0_common0p9",
+      "line": 0.0,
+      "common": 0.9,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p9/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line0_common0p9/noise_covariance.npy": "e5a8cb95cf0cbfc5ba5d8bb0f2581dd3e88485ada62fe7ec45a2d2442f25912a"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9823922643971233,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.00040528465740133384
+          },
+          "kth_correlation": 0.00030461408937405805,
+          "canonical_gap": 0.00030461408937405805,
+          "recovery_angle_rad": 9.316711512262491e-15,
+          "producer_angle_rad": 1.0221479713597235e-10,
+          "gamma_abs_error": 4.440892098500626e-16,
+          "kth_abs_error": 6.066111155056397e-17
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9941060220878585,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.00245398174203531
+          },
+          "kth_correlation": 0.010541262298729197,
+          "canonical_gap": 0.010541262298729197,
+          "recovery_angle_rad": 5.54047427939159e-13,
+          "producer_angle_rad": 7.619795006197135e-12,
+          "gamma_abs_error": 3.3306690738754696e-16,
+          "kth_abs_error": 3.0444397003392965e-15
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.9941026201352895,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.002452151794406291
+          },
+          "kth_correlation": 0.009674614868919842,
+          "canonical_gap": 0.009674614868919842,
+          "recovery_angle_rad": 6.335692691293258e-13,
+          "producer_angle_rad": 6.989946363399118e-12,
+          "gamma_abs_error": 8.881784197001252e-16,
+          "kth_abs_error": 3.71057351511439e-15
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9756819592397894,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00031166534612522096
+          },
+          "kth_correlation": 0.00021645859279871086,
+          "canonical_gap": 0.00021645859279871086,
+          "recovery_angle_rad": 4.2884897691244145e-15,
+          "producer_angle_rad": 4.4788663999703866e-10,
+          "gamma_abs_error": 6.661338147750939e-16,
+          "kth_abs_error": 1.4674676404591303e-16
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line1p5_common0p45",
+      "line": 1.5,
+      "common": 0.45,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line1p5_common0p45/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line1p5_common0p45/noise_covariance.npy": "b74c67b6ba1c09ebf4053949864743dfae16fc2c8e14767748759b12f6ec9f47"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9916848481112143,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.0003956132890402429
+          },
+          "kth_correlation": 0.00030605054815971075,
+          "canonical_gap": 0.00030605054815971075,
+          "recovery_angle_rad": 9.146062336781397e-15,
+          "producer_angle_rad": 1.8781057556849642e-10,
+          "gamma_abs_error": 8.881784197001252e-16,
+          "kth_abs_error": 1.030534164947472e-16
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9972466838777277,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024539196959399096
+          },
+          "kth_correlation": 0.010533794602929141,
+          "canonical_gap": 0.010533794602929141,
+          "recovery_angle_rad": 7.838172140461726e-13,
+          "producer_angle_rad": 1.577421180860679e-11,
+          "gamma_abs_error": 1.2212453270876722e-15,
+          "kth_abs_error": 2.7842311789427754e-15
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.9972451573841746,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.00245209368601659
+          },
+          "kth_correlation": 0.00966798268921209,
+          "canonical_gap": 0.00966798268921209,
+          "recovery_angle_rad": 8.662355791430126e-13,
+          "producer_angle_rad": 1.0223861262782499e-11,
+          "gamma_abs_error": 9.992007221626409e-16,
+          "kth_abs_error": 4.924879948298155e-15
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9884991085840116,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00030261574862595566
+          },
+          "kth_correlation": 0.00021749257599347672,
+          "canonical_gap": 0.00021749257599347672,
+          "recovery_angle_rad": 4.982314506321041e-15,
+          "producer_angle_rad": 2.042671417362949e-10,
+          "gamma_abs_error": 9.992007221626409e-16,
+          "kth_abs_error": 2.1703016987728585e-16
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line2p25_common0p45",
+      "line": 2.25,
+      "common": 0.45,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line2p25_common0p45/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line2p25_common0p45/noise_covariance.npy": "a62640bb9429e018dd47981974af3235636c6b6c7396e18472d1506627988b19"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9939612308755604,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.00039327297993614597
+          },
+          "kth_correlation": 0.0003063993589175322,
+          "canonical_gap": 0.0003063993589175322,
+          "recovery_angle_rad": 9.23983909438534e-15,
+          "producer_angle_rad": 1.552290910532056e-10,
+          "gamma_abs_error": 1.6653345369377348e-15,
+          "kth_abs_error": 2.1927988938519327e-16
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9980057305708999,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024539114593460747
+          },
+          "kth_correlation": 0.010532011385305896,
+          "canonical_gap": 0.010532011385305896,
+          "recovery_angle_rad": 1.050455039630866e-12,
+          "producer_angle_rad": 1.8745512760886643e-11,
+          "gamma_abs_error": 2.220446049250313e-15,
+          "kth_abs_error": 1.0739673039772413e-14
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.998004635887255,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.002452085978319165
+          },
+          "kth_correlation": 0.009666399803921784,
+          "canonical_gap": 0.009666399803921784,
+          "recovery_angle_rad": 8.792388013877741e-13,
+          "producer_angle_rad": 1.5317497001194776e-11,
+          "gamma_abs_error": 1.9984014443252818e-15,
+          "kth_abs_error": 9.0951551845464e-15
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9916445592683644,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.00030042655827726666
+          },
+          "kth_correlation": 0.00021774409477629504,
+          "canonical_gap": 0.00021774409477629504,
+          "recovery_angle_rad": 5.171550929252015e-15,
+          "producer_angle_rad": 1.900211760670541e-09,
+          "gamma_abs_error": 1.1102230246251565e-15,
+          "kth_abs_error": 2.6394901889159605e-16
+        }
+      ]
+    },
+    {
+      "cell": "20261016_wp2_population_line3_common0p45",
+      "line": 3.0,
+      "common": 0.45,
+      "raw_sha256": {
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line3_common0p45/J0.npy": "689a806c4963b021bf8f313792038d6709864d4140ecc0b02174692a0c37d176",
+        "/Users/wongdowling/Documents/VERITAS/results/jepa/raw_local/wp2_population_line3_common0p45/noise_covariance.npy": "d26b124bcfe658e9f7e17f21fbefe53a27a7ad867047a7ab3e0868d6b27d0017"
+      },
+      "splits": [
+        {
+          "split": "time",
+          "gamma_n": 0.9952591073661179,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908576,
+            "target": 3.3375878896276792e-15,
+            "residual_target": 0.0003919437004110797
+          },
+          "kth_correlation": 0.00030659769465234593,
+          "canonical_gap": 0.00030659769465234593,
+          "recovery_angle_rad": 9.574639600522196e-15,
+          "producer_angle_rad": 1.9465803168725307e-10,
+          "gamma_abs_error": 9.992007221626409e-16,
+          "kth_abs_error": 6.310056643865636e-17
+        },
+        {
+          "split": "channel",
+          "gamma_n": 0.9984367064446208,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024539079545251195
+          },
+          "kth_correlation": 0.01053100263091368,
+          "canonical_gap": 0.01053100263091368,
+          "recovery_angle_rad": 1.1147089202957604e-12,
+          "producer_angle_rad": 2.9068780382255645e-11,
+          "gamma_abs_error": 1.5543122344752192e-15,
+          "kth_abs_error": 3.1901564723213482e-15
+        },
+        {
+          "split": "interleaved",
+          "gamma_n": 0.9984358532171366,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.00260833221319208,
+            "target": 0.00260833221319208,
+            "residual_target": 0.0024520826992969927
+          },
+          "kth_correlation": 0.009665504518067664,
+          "canonical_gap": 0.009665504518067664,
+          "recovery_angle_rad": 9.352583417120974e-13,
+          "producer_angle_rad": 5.2870954576533806e-11,
+          "gamma_abs_error": 3.9968028886505635e-15,
+          "kth_abs_error": 4.6629367034256575e-15
+        },
+        {
+          "split": "block",
+          "gamma_n": 0.9934389593423469,
+          "status": "eligible",
+          "ratios": {
+            "context": 0.0005800200158908571,
+            "target": 3.337588860986248e-15,
+            "residual_target": 0.0002991832081087502
+          },
+          "kth_correlation": 0.0002178871883088277,
+          "canonical_gap": 0.0002178871883088277,
+          "recovery_angle_rad": 5.459626178765064e-15,
+          "producer_angle_rad": 1.7981244431841388e-10,
+          "gamma_abs_error": 9.992007221626409e-16,
+          "kth_abs_error": 3.198396408832238e-18
+        }
+      ]
+    }
+  ],
+  "numeric_seconds": 2.550898291170597,
+  "E2_time_selection": {
+    "targets": [
+      0.1,
+      0.5,
+      0.9
+    ],
+    "gammas": [
+      0.9662047091901854,
+      0.9866537783591497,
+      0.9916848481112143,
+      0.9939612308755604,
+      0.9952591073661179
+    ],
+    "lines": [
+      0.0,
+      0.75,
+      1.5,
+      2.25,
+      3.0
+    ],
+    "selected_lines": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "distinct": false
+  }
+}

@@ -1,0 +1,5 @@
+Using CPython 3.11.15
+Creating virtual environment at: /ceph/dwong/jepa/venv/cpu_py311_torch251_retry1
+Activate with: source /ceph/dwong/jepa/venv/cpu_py311_torch251_retry1/bin/activate
+Using Python 3.11.15 environment at: /ceph/dwong/jepa/venv/cpu_py311_torch251_retry1
+Resolved 9 packages in 221ms

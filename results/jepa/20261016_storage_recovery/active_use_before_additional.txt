@@ -1,0 +1,21 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:16:33 UTC 2026
+    PID     ELAPSED COMMAND
+2189228  2-16:50:09 /usr/lib/systemd/systemd --user
+2189229  2-16:50:09 (sd-pam)
+2189807  2-16:49:54 codex -c features.code_mode_host=true app-server --listen unix://
+2442490  2-04:14:40 tmux -L paper1megzr1 new-session -d -s r1-preflight bash /ceph/dwong/megz_r1_host_20261014/experiments/mlst2026/meg_z_r1_20261014/host_preflight.sh
+3143994    05:01:46 sshd: dwong@notty
+3143995    05:01:46 codex app-server proxy
+3201404       04:17 sshd: dwong@pts/19
+3201405       04:17 -bash
+3203038       01:53 rm -rf models
+3203252       00:44 sshd: dwong@notty
+3203259       00:44 timeout 180 python3 -
+3203275       00:42 python3 -
+3203592       00:03 sshd: dwong@notty
+3203594       00:02 bash -c date -u; ps -u dwong -o pid,etime,args | head -35
+3203610       00:00 ps -u dwong -o pid,etime,args
+3203611       00:00 head -35

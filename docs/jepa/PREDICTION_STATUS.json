@@ -1,0 +1,101 @@
+{
+  "version": "v3",
+  "predictions": [
+    {
+      "id": "R1",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R2",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R3",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R3b",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R4a",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R4b",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R5",
+      "campaign": "E1",
+      "status": "not_run",
+      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R6",
+      "campaign": "E2",
+      "status": "not_evaluable",
+      "reason": "G6_fixed_line_grid_cannot_supply_three_distinct_noise_levels",
+      "seeds": [],
+      "evidence": "results/jepa/20261016_wp2_E2_LEVEL_SELECTION.json"
+    },
+    {
+      "id": "R7",
+      "campaign": "E2",
+      "status": "not_evaluable",
+      "reason": "G6_fixed_line_grid_cannot_supply_three_distinct_noise_levels",
+      "seeds": [],
+      "evidence": "results/jepa/20261016_wp2_E2_LEVEL_SELECTION.json"
+    },
+    {
+      "id": "R8",
+      "campaign": "E2",
+      "status": "not_evaluable",
+      "reason": "G6_fixed_line_grid_cannot_supply_three_distinct_noise_levels",
+      "seeds": [],
+      "evidence": "results/jepa/20261016_wp2_E2_LEVEL_SELECTION.json"
+    },
+    {
+      "id": "R9",
+      "campaign": "E3",
+      "status": "not_run",
+      "reason": "G6_manifest_and_E2_beta_transfer_pending",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R10",
+      "campaign": "E4",
+      "status": "not_run",
+      "reason": "WP5_acceptance_pending",
+      "seeds": [],
+      "evidence": null
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:12:57 UTC 2026
+{"path": "/ceph/dwong", "ceph.dir.rfiles": "444387", "ceph.dir.rsubdirs": "55692", "ceph.quota.max_files": "500000", "ceph.quota.max_bytes": "0"}
+{"path": "/ceph/dwong/arXiv-v1-polished-extended-preprint", "ceph.dir.rfiles": "5530", "ceph.dir.rsubdirs": "869"}
+{"path": "/ceph/dwong/transformer", "ceph.dir.rfiles": "24948", "ceph.dir.rsubdirs": "2258"}
+{"path": "/ceph/dwong/.ollama", "ceph.dir.rfiles": "0", "ceph.dir.rsubdirs": "2"}
+{"path": "/ceph/dwong/noise-weighted-subspace-reconstruction", "ceph.dir.rfiles": "33887", "ceph.dir.rsubdirs": "3324"}
+{"path": "/ceph/dwong/y19_zenodo_git", "ceph.dir.rfiles": "22", "ceph.dir.rsubdirs": "3"}
+{"path": "/ceph/dwong/tr07_runs", "ceph.dir.rfiles": "2075", "ceph.dir.rsubdirs": "433"}
+{"path": "/ceph/dwong/megz_host", "ceph.dir.rfiles": "2108", "ceph.dir.rsubdirs": "455"}
+{"path": "/ceph/dwong/enl_runs", "ceph.dir.rfiles": "4481", "ceph.dir.rsubdirs": "34"}
+{"path": "/ceph/dwong/mlst-successor-runs-20260913", "ceph.dir.rfiles": "4546", "ceph.dir.rsubdirs": "41"}
+{"path": "/ceph/dwong/trigger_dataset", "ceph.dir.rfiles": "7829", "ceph.dir.rsubdirs": "33"}
+{"path": "/ceph/dwong/agent-checkpoint-intervention", "ceph.dir.rfiles": "45323", "ceph.dir.rsubdirs": "8146"}
+{"path": "/ceph/dwong/paper1_env", "ceph.dir.rfiles": "11216", "ceph.dir.rsubdirs": "1092"}
+{"path": "/ceph/dwong/work", "ceph.dir.rfiles": "140", "ceph.dir.rsubdirs": "71"}
+{"path": "/ceph/dwong/zc_logs", "ceph.dir.rfiles": "12", "ceph.dir.rsubdirs": "1"}
+{"path": "/ceph/dwong/lucid_training_data", "ceph.dir.rfiles": "50", "ceph.dir.rsubdirs": "4"}
+{"path": "/ceph/dwong/jepa", "ceph.dir.rfiles": "570", "ceph.dir.rsubdirs": "121"}
+{"path": "/ceph/dwong/b3_logs", "ceph.dir.rfiles": "5", "ceph.dir.rsubdirs": "1"}
+{"path": "/ceph/dwong/y19_logs", "ceph.dir.rfiles": "8", "ceph.dir.rsubdirs": "1"}
+{"path": "/ceph/dwong/b2", "ceph.dir.rfiles": "19205", "ceph.dir.rsubdirs": "3341"}
+{"path": "/ceph/dwong/delight", "ceph.dir.rfiles": "6", "ceph.dir.rsubdirs": "2"}
+{"path": "/ceph/dwong/b2_receive", "ceph.dir.rfiles": "6", "ceph.dir.rsubdirs": "3"}
+{"path": "/ceph/dwong/texlive", "ceph.dir.rfiles": "41350", "ceph.dir.rsubdirs": "2605"}
+{"path": "/ceph/dwong/DELight_mtr", "ceph.dir.rfiles": "1453", "ceph.dir.rsubdirs": "345"}
+{"path": "/ceph/dwong/hf_cache", "ceph.dir.rfiles": "176", "ceph.dir.rsubdirs": "56"}
+{"path": "/ceph/dwong/b1", "ceph.dir.rfiles": "44258", "ceph.dir.rsubdirs": "7017"}
+{"path": "/ceph/dwong/autoresearch_cache", "ceph.dir.rfiles": "13", "ceph.dir.rsubdirs": "3"}
+{"path": "/ceph/dwong/autoresearch_harness", "ceph.dir.rfiles": "11939", "ceph.dir.rsubdirs": "1364"}
+{"path": "/ceph/dwong/paper1_dataset", "ceph.dir.rfiles": "105", "ceph.dir.rsubdirs": "14"}
+{"path": "/ceph/dwong/r1_batch1_ENGINEERING_ONLY_resume_20261012T191238Z", "ceph.dir.rfiles": "13", "ceph.dir.rsubdirs": "2"}
+{"path": "/ceph/dwong/meg_env", "ceph.dir.rfiles": "12632", "ceph.dir.rsubdirs": "1503"}
+{"path": "/ceph/dwong/tr09_preparation", "ceph.dir.rfiles": "13496", "ceph.dir.rsubdirs": "2051"}
+{"path": "/ceph/dwong/r1_batch1_ENGINEERING_ONLY_20261012_E4cC3e", "ceph.dir.rfiles": "104", "ceph.dir.rsubdirs": "9"}
+{"path": "/ceph/dwong/zc_venv", "ceph.dir.rfiles": "5786", "ceph.dir.rsubdirs": "528"}
+{"path": "/ceph/dwong/agent_paper_B", "ceph.dir.rfiles": "2296", "ceph.dir.rsubdirs": "316"}
+{"path": "/ceph/dwong/tr09_runs", "ceph.dir.rfiles": "4390", "ceph.dir.rsubdirs": "23"}
+{"path": "/ceph/dwong/.conda", "ceph.dir.rfiles": "9921", "ceph.dir.rsubdirs": "972"}
+{"path": "/ceph/dwong/y19_venv", "ceph.dir.rfiles": "5786", "ceph.dir.rsubdirs": "528"}
+{"path": "/ceph/dwong/cresst_u2_audit_20260930", "ceph.dir.rfiles": "44", "ceph.dir.rsubdirs": "2"}
+{"path": "/ceph/dwong/b3", "ceph.dir.rfiles": "36", "ceph.dir.rsubdirs": "8"}
+{"path": "/ceph/dwong/y19_host", "ceph.dir.rfiles": "3939", "ceph.dir.rsubdirs": "660"}
+{"path": "/ceph/dwong/megz_r1_host_20261014", "ceph.dir.rfiles": "915", "ceph.dir.rsubdirs": "277"}
+{"path": "/ceph/dwong/x3_env", "ceph.dir.rfiles": "25191", "ceph.dir.rsubdirs": "2103"}
+{"path": "/ceph/dwong/ORACLE", "ceph.dir.rfiles": "1592", "ceph.dir.rsubdirs": "409"}
+{"path": "/ceph/dwong/venvs", "ceph.dir.rfiles": "41150", "ceph.dir.rsubdirs": "4627"}
+{"path": "/ceph/dwong/tr09_receiving", "ceph.dir.rfiles": "4", "ceph.dir.rsubdirs": "3"}
+{"path": "/ceph/dwong/enl_preparation", "ceph.dir.rfiles": "14953", "ceph.dir.rsubdirs": "3055"}
+{"path": "/ceph/dwong/meg_z", "ceph.dir.rfiles": "544", "ceph.dir.rsubdirs": "82"}
+{"path": "/ceph/dwong/e12_runtime_20260823_201812", "ceph.dir.rfiles": "55", "ceph.dir.rsubdirs": "7"}
+{"path": "/ceph/dwong/models", "ceph.dir.rfiles": "14583", "ceph.dir.rsubdirs": "1587"}
+{"path": "/ceph/dwong/megz_timing_host", "ceph.dir.rfiles": "2099", "ceph.dir.rsubdirs": "436"}
+{"path": "/ceph/dwong/ceph_lwindett"}
+{"path": "/ceph/dwong/ots_env", "ceph.dir.rfiles": "1950", "ceph.dir.rsubdirs": "226"}
+{"path": "/ceph/dwong/delight_conf", "ceph.dir.rfiles": "13", "ceph.dir.rsubdirs": "2"}
+{"path": "/ceph/dwong/datasets", "ceph.dir.rfiles": "13627", "ceph.dir.rsubdirs": "3811"}
+{"path": "/ceph/dwong/zc_host", "ceph.dir.rfiles": "7953", "ceph.dir.rsubdirs": "814"}
+{"path": "/ceph/dwong/y19_zenodo", "ceph.dir.rfiles": "13", "ceph.dir.rsubdirs": "1"}
+Fri Oct 16 15:12:57 UTC 2026

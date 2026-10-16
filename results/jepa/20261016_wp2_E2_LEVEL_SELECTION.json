@@ -1,0 +1,51 @@
+{
+  "code_sha": "338326c58a8a2ae6194a41056a46dac60e68f0eb",
+  "split": "time",
+  "common_strength": 0.45,
+  "targets": [
+    0.1,
+    0.5,
+    0.9
+  ],
+  "candidates": [
+    {
+      "line_multiplier": 0,
+      "gamma_n": 0.9662047091901853,
+      "source": "results/jepa/20261016_wp2_population_line0_common0p45/time.json",
+      "sha256": "2ff2e36b9ac6e67c5024671a7ef8ce7e730a3e5f4a8297c3a2d207429f3042b5"
+    },
+    {
+      "line_multiplier": 0.75,
+      "gamma_n": 0.9866537783591497,
+      "source": "results/jepa/20261016_wp2_population_line075_common045/time.json",
+      "sha256": "b71a4a30878a173b800681760ecc00a3b3e26f72d839cd9945f8b54ea73e95a0"
+    },
+    {
+      "line_multiplier": 1.5,
+      "gamma_n": 0.9916848481112152,
+      "source": "results/jepa/20261016_wp2_population_line1p5_common0p45/time.json",
+      "sha256": "8c3af36ab23daf6ca73674c1aae0556f691ec1976dd48a21b970b8d41c9220a6"
+    },
+    {
+      "line_multiplier": 2.25,
+      "gamma_n": 0.9939612308755621,
+      "source": "results/jepa/20261016_wp2_population_line2p25_common0p45/time.json",
+      "sha256": "5d87988949477c481c25464d3eecb2fa7664a5dfc02642ee8864d085179f55f9"
+    },
+    {
+      "line_multiplier": 3,
+      "gamma_n": 0.9952591073661169,
+      "source": "results/jepa/20261016_wp2_population_line3_common0p45/time.json",
+      "sha256": "9d87c303e1a3996a408364ead96ba77dee4244b18aec0df4c0780b77b3595f47"
+    }
+  ],
+  "selected_line_multipliers": [
+    0,
+    0,
+    0
+  ],
+  "distinct": false,
+  "gate": "G6",
+  "independent_review": "ACCEPT population evidence; G6 confirmed in WP2 independent review Addendum F",
+  "scope": "E2 three-level comparison; dependent E3 beta transfer and WP7"
+}

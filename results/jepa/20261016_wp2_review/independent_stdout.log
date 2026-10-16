@@ -1,0 +1,62 @@
+{
+  "checks": {
+    "population_recovery_radians": {
+      "cca": 2.0603287896470825e-15,
+      "hard_isotropy": 2.0603287896470825e-15,
+      "gevp": 1.0177836696645922e-14,
+      "whitened_pca": 2.308970062952192e-15
+    },
+    "unreduced_objective": [
+      {
+        "beta": 0.0,
+        "objective": 1.8624234554538772,
+        "independent_error": 0.0,
+        "best_random_excess": 0.04283647578020933,
+        "tangent_fd": -7.771561172376096e-11
+      },
+      {
+        "beta": 0.1,
+        "objective": 1.9908057779535706,
+        "independent_error": 0.0,
+        "best_random_excess": 0.06987583346170312,
+        "tangent_fd": -5.551115123125782e-11
+      },
+      {
+        "beta": 1.0,
+        "objective": 3.1462466804508136,
+        "independent_error": 1.3322676295501878e-15,
+        "best_random_excess": 0.1976726404298379,
+        "tangent_fd": 2.2204460492503128e-11
+      },
+      {
+        "beta": 10.0,
+        "objective": 14.70065570542324,
+        "independent_error": 8.881784197001252e-15,
+        "best_random_excess": 1.237213928581916,
+        "tangent_fd": 8.881784197001251e-11
+      }
+    ],
+    "joint_vs_known_amplitude": [
+      0.36390191128741434,
+      0.29166666666666663
+    ],
+    "analytic_jacobian_errors": [
+      3.99999767197734e-08,
+      9.999981176456174e-09
+    ],
+    "mask_hashes": {
+      "time": "b2530eb811d0b6b2404dc2192723ae3196802c4a59627f3ede7b83e9930e723d",
+      "channel": "5ccf19f4f2c0424bb9636387a42e899d136172cb5e410c08d271cedf5925f25d",
+      "interleaved": "91b7028f7770c4b443bb7958ecb7c5dd7cf8fe30d68decf6ad3fb13a995763ba",
+      "block": "efdc53f53db1b6a35c70109d0cd261385737c2d2f386599460a28d67e53b3720"
+    },
+    "constant_decimal_target": {
+      "expected_valid": false,
+      "actual_valid": true,
+      "score": -1.2980742146337074e+31,
+      "passes": false
+    }
+  },
+  "sources_unchanged": true,
+  "elapsed_seconds": 0.028085292084142566
+}

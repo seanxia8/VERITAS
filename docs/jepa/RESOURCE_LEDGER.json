@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "status": "gated_checkpoint_A3_revision_requested_E2_G6_remote_retry_timeout",
+  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
+  "campaigns": {
+    "E1": {
+      "cpu_cap_hours": 24,
+      "gpu_cap_hours": 0,
+      "allocated_workers": null,
+      "projection_status": "pending_A3_revision_host_acceptance_and_complete_benchmark",
+      "launch_allowed": false,
+      "charged_cpu_hours": 0.9951256591319602,
+      "charged_gpu_hours": 0
+    },
+    "E2": {
+      "cpu_cap_hours": 72,
+      "gpu_cap_hours": 48,
+      "allocated_workers": null,
+      "projection_status": "G6_fixed_grid_not_distinct_no_training",
+      "launch_allowed": false,
+      "charged_cpu_hours": 0,
+      "charged_gpu_hours": 0
+    },
+    "E3": {
+      "cpu_cap_hours": 48,
+      "gpu_cap_hours": 24,
+      "allocated_workers": null,
+      "projection_status": "pending_manifest_and_reviewed_implementation",
+      "launch_allowed": false,
+      "charged_cpu_hours": 0,
+      "charged_gpu_hours": 0
+    },
+    "E4": {
+      "cpu_cap_hours": 4,
+      "gpu_cap_hours": 2,
+      "allocated_workers": null,
+      "projection_status": "pending_WP5_acceptance",
+      "launch_allowed": false,
+      "charged_cpu_hours": 0,
+      "charged_gpu_hours": 0
+    }
+  },
+  "jobs": [
+    {
+      "id": "wp2_population_line075_common045",
+      "campaign": "E1",
+      "purpose": "pregrid_population_eligibility_only",
+      "code_sha": "338326c58a8a2ae6194a41056a46dac60e68f0eb",
+      "allocated_cpu_seconds": 600,
+      "workers": 1,
+      "gpu_hours": 0,
+      "status": "complete",
+      "cell": {
+        "line_multiplier": 0.75,
+        "common_strength": 0.45
+      },
+      "splits": [
+        "time",
+        "channel",
+        "interleaved",
+        "block"
+      ],
+      "actual_seconds": 27.15736195887439,
+      "cpu_budget_hours": 0.007543711655242886,
+      "exit_status": 0
+    },
+    {
+      "id": "wp2_remaining_A1_population_cells",
+      "campaign": "E1",
+      "purpose": "complete_pregrid_eligibility_and_exact_noise_levels",
+      "code_sha": "338326c58a8a2ae6194a41056a46dac60e68f0eb",
+      "workers": 1,
+      "gpu_hours": 0,
+      "cells": [
+        [
+          0,
+          0.45
+        ],
+        [
+          1.5,
+          0.45
+        ],
+        [
+          2.25,
+          0.45
+        ],
+        [
+          3,
+          0.45
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0.225
+        ],
+        [
+          0,
+          0.675
+        ],
+        [
+          0,
+          0.9
+        ]
+      ],
+      "projected_seconds_including25pct_reserve": 271.5736195887439,
+      "total_allocated_seconds": 480,
+      "per_cell_allocation_seconds": 60,
+      "status": "complete",
+      "stop_rule": "stop dependent batch on any nonzero exit; preserve every attempt",
+      "actual_seconds": 220.71753883291967,
+      "cpu_budget_hours": 0.0613104274535888,
+      "exit_status": 0
+    }
+  ],
+  "preflight_records": [
+    {
+      "id": "local_setup",
+      "charge_to": "E1",
+      "workers": 1,
+      "cpu_budget_hours": 0.5,
+      "measurement": "conservative estimated upper-bound charge, not measured CPU time",
+      "details": "Includes initial package DNS failure, authorized package installation, wrapper preparation. Install subprocess resolve0.810s preparation10.15s install0.334s; full envelope unavailable."
+    },
+    {
+      "id": "local_reproduction",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 110.95683216606267,
+      "cpu_budget_hours": 0.030821342268350743,
+      "gpu_hours": 0,
+      "evidence": "results/jepa/20261016_wp0_local/provenance.json"
+    },
+    {
+      "id": "remote_preflight_and_failed_env",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 158,
+      "cpu_budget_hours": 0.04388888888888889,
+      "gpu_hours": 0,
+      "measurement": "conservative observation envelope including failed install and diagnostics",
+      "evidence": "results/jepa/20261016_wp0_remote_env/provenance.json"
+    },
+    {
+      "id": "wp1_and_linear_implementer_checks",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 1.002466,
+      "cpu_budget_hours": 0.0002784627777777778,
+      "gpu_hours": 0,
+      "evidence": "docs/jepa/WP2_IMPLEMENTATION.md"
+    },
+    {
+      "id": "orchestrator_theory_rerun",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 0.389338875,
+      "cpu_budget_hours": 0.00010814968749999999,
+      "gpu_hours": 0,
+      "details": "11 tests pass"
+    },
+    {
+      "id": "metrics_first_engineering_test",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 0.546962,
+      "cpu_budget_hours": 0.00015193388888888888,
+      "gpu_hours": 0,
+      "exit_status": 1,
+      "details": "30 pass 1 fail; terminal-mean rounding fixture repaired before outcomes"
+    },
+    {
+      "id": "metrics_repair_test",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 0.548679,
+      "cpu_budget_hours": 0.00015241083333333334,
+      "gpu_hours": 0,
+      "exit_status": 0,
+      "details": "31 combined tests pass"
+    },
+    {
+      "id": "reviewer_initial",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 0.8244100000000001,
+      "cpu_budget_hours": 0.0002290027777777778,
+      "gpu_hours": 0,
+      "evidence": "results/jepa/20261016_wp2_review/pytest_run.json"
+    },
+    {
+      "id": "waveform_initial_engineering_checks",
+      "charge_to": "E1",
+      "workers": 1,
+      "cpu_budget_hours": 0.008333333333333333,
+      "gpu_hours": 0,
+      "measurement": "conservative30s including source metadata, six tests twice and24 regressions",
+      "evidence": "docs/jepa/WAVEFORM_DERIVATION.md"
+    },
+    {
+      "id": "waveform_full_covariance_one_attempt",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 64.680115084,
+      "cpu_budget_hours": 0.01796669863444444,
+      "gpu_hours": 0,
+      "evidence": "results/jepa/20261016_wp2_waveform_covariance/RESULT.json",
+      "details": "Includes64.562651s run and.117464s verification; full2% criterion pass"
+    },
+    {
+      "id": "storage_recovery",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 438.545117,
+      "cpu_budget_hours": 0.12181808805555555,
+      "gpu_hours": 0,
+      "measurement": "conservative entire recovery envelope including timed-out cleanup",
+      "evidence": "docs/jepa/STORAGE_RECOVERY.md"
+    },
+    {
+      "id": "independent_population_recompute",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 3.694741,
+      "cpu_budget_hours": 0.0010263169444444445,
+      "gpu_hours": 0,
+      "measurement": "2.694741s measured plus conservative1s summary reads",
+      "evidence": "results/jepa/20261016_wp2_review/population_recompute.json"
+    },
+    {
+      "id": "remote_env_retry1",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 600,
+      "cpu_budget_hours": 0.16666666666666666,
+      "gpu_hours": 0,
+      "measurement": "measured outer timeout600s exit124; trap0 is nonauthoritative"
+    },
+    {
+      "id": "receiving_and_remaining_checkpoint_checks",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 120,
+      "cpu_budget_hours": 0.03333333333333333,
+      "gpu_hours": 0,
+      "measurement": "conservative allocation charge for resumed remote snapshots receiving hashes local report/provenance checks and previously uncharged small engineering rechecks"
+    },
+    {
+      "id": "E1c_engine_tests",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 0.5587219582,
+      "cpu_budget_hours": 0.00015520054394444445,
+      "gpu_hours": 0,
+      "measurement": "measured one-thread subprocess"
+    },
+    {
+      "id": "generic_probe_tests",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 0.830089,
+      "cpu_budget_hours": 0.00023058027777777778,
+      "gpu_hours": 0,
+      "measurement": "conservative sum of two tool wall envelopes"
+    },
+    {
+      "id": "fresh_checkpoint_independent_review",
+      "charge_to": "E1",
+      "workers": 1,
+      "elapsed_seconds": 4,
+      "cpu_budget_hours": 0.0011111111111111111,
+      "gpu_hours": 0,
+      "measurement": "conservative4s charge for measured3.574947s independent subprocess checks",
+      "evidence": "results/jepa/20261016_checkpoint_review"
+    }
+  ],
+  "notes": [
+    "Shared initial preflight conservatively charged wholly to E1; no cost borrowed from other caps.",
+    "No campaign launch allocation: one worker is accounting only for serial setup/checks; Deepthought formula cap32 is not a reservation.",
+    "Agent reasoning time is not experiment compute. Remaining local validation timing is appended before closeout.",
+    "Projection must include calibration, smoke, searches, all cells/depths, probes, figures, oracle and 25 percent reserve."
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "records": [
+    {
+      "cell": [
+        0,
+        0.45
+      ],
+      "output": "results/jepa/20261016_wp2_population_line0_common0p45",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        1.5,
+        0.45
+      ],
+      "output": "results/jepa/20261016_wp2_population_line1p5_common0p45",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        2.25,
+        0.45
+      ],
+      "output": "results/jepa/20261016_wp2_population_line2p25_common0p45",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        3,
+        0.45
+      ],
+      "output": "results/jepa/20261016_wp2_population_line3_common0p45",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        0,
+        0
+      ],
+      "output": "results/jepa/20261016_wp2_population_line0_common0",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        0,
+        0.225
+      ],
+      "output": "results/jepa/20261016_wp2_population_line0_common0p225",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        0,
+        0.675
+      ],
+      "output": "results/jepa/20261016_wp2_population_line0_common0p675",
+      "exit_status": 0
+    },
+    {
+      "cell": [
+        0,
+        0.9
+      ],
+      "output": "results/jepa/20261016_wp2_population_line0_common0p9",
+      "exit_status": 0
+    }
+  ],
+  "elapsed_seconds": 220.71753883291967,
+  "last_utc": "2026-10-16T15:29:47.815863+00:00"
+}

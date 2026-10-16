@@ -104,3 +104,29 @@ Command `python -m pytest src/jepa_noise/tests/test_oracle_runner_guards.py src/
 Final accepted source bindings are: masks.py `b4bf11ed2c6d69af0a04320599a1a8824f77e7c036543d1569d2a81c4e1544e9`; views.py `692ab80833bd5440f4426b358bd3996ad9259781e52fe5aaa701b76fac3aa277`; waveform_v1.json `efa2c03fc40a875c0a0d1410bfca10685f6d32f74def74dac55364e87136f712`; linear_solver_v1.json `52fa6a91556259144aff7925555dc7133c6135806db8c94bdad834d1e7899fa7`; runner as above. Earlier source findings remain in this append-only review with their closed dispositions.
 
 The remaining full-WP2 evidence gap is actual traceable retained-view eligibility/recovery records for required cells, with separate operational host/resource gates. A single accepted cell check will not establish the complete sweep. The reviewer made no implementation edits and launched no population runner or sample grid.
+
+## Addendum F — nine-cell population evidence accepted; E2 feasibility G6 confirmed
+
+**ACCEPT the nine distinct A1 population cells and their 36 retained-view records as local WP2 numerical evidence.** The inputs are bound to committed SHA `338326c58a8a2ae6194a41056a46dac60e68f0eb`, approved A1/A2 and the unchanged v3 runbook. The review/source remained untouched while the producer batch ran; this addendum was written only after its completion signal. No sample grid, mask reselection or model training occurred.
+
+The reviewer recomputed from host-local `noise_covariance.npy` and `J0.npy` for every completed cell, verified every producer SHA256 inventory, raw-file hash, successful exit, unchanged-input status and matching initial/final code SHA. Exact paths and hashes for all nine cells are copied into `results/jepa/20261016_wp2_review/population_recompute.json`; producer directories are `results/jepa/20261016_wp2_population_*/`, with raw matrices under the host-qualified paths in each provenance file. The covariance/J0 arrays were not rewritten.
+
+The independent script imports **no production JEPA solver**. It uses literal registered raw-index arrays, Cholesky marginal whitening, explicit Schur innovations, and a rank-three signal reduction to a 3-by-3 canonical-correlation problem. It separately computes the top noise canonical singular value from the retained raw noise blocks. Across all 36 rows, maximum producer-versus-review discrepancy is 4.11e-15 in gamma_n and 1.08e-14 in the kth transformed canonical correlation. Every P5 row is eligible; minimum independently computed kth correlation/gap is 0.00015083575684564864 and minimum residual-target singular-value ratio is 0.0002991832081087502. Independently reconstructed mapped context spaces have maximum recovery angle 1.12e-12 radians; the producer’s maximum angle is 1.91e-9 radians. Both satisfy the registered 1e-6-radian population bound.
+
+The rank distinction matters. Original time/block target loading has numerical rank two, with smallest/largest singular-value ratio about 3.34e-15. Its innovation loading `A_t-N_tc solve(N_cc,A_c)` has rank three, and context loading also has rank three. Therefore these cells support the **conditional triangular-oracle P5** check; they do not establish ordinary full-target-rank P3 recovery for the original views. Innovation target legitimately uses context, which can restore its physical rank. Zero added line/common knobs also retain the base’s cross-view noise, so they must not be labeled a zero-cross-noise P3 baseline. No fixed split was replaced to obtain these results.
+
+**E2 distinct-level feasibility is negative: G6 is confirmed.** At fixed g=.45, the five declared line multipliers 0/.75/1.5/2.25/3 give independently computed time-split population gamma_n:
+
+| Line multiplier | gamma_n |
+|---|---|
+| 0 | 0.9662047091901854 |
+| .75 | 0.9866537783591497 |
+| 1.5 | 0.9916848481112143 |
+| 2.25 | 0.9939612308755604 |
+| 3 | 0.9952591073661179 |
+
+Nearest-target selection for .1/.5/.9 returns **0/0/0**, not three distinct levels. The same failure holds separately for channel, interleaved and block: all three targets select line zero in each declared split. Their zero-line minima are approximately .988469, .988462 and .953438 respectively. These are population feasibility findings under the approved law, not empirical R6 failures. The registered response is scoped G6 before E2 cells/training; neither a new line grid nor a replacement split is justified by this review. E1 population evidence and exact-model work remain scientifically distinct from that E2 block.
+
+Recompute command: `python results/jepa/20261016_wp2_review/population_recompute.py`, using the fixed interpreter, PYTHONPATH and three BLAS thread variables set to one. Two invocations processed eight then one newly completed cell; cumulative numerical script time **2.694741 seconds** under the explicitly allocated 120-second single-thread review limit. Small JSON summary reads add less than one second; no full covariance generation was repeated. Logs and script are retained. The rank-three reduction exploits the known model structure and was independently derived, not a relaxed tolerance or selected subset.
+
+Local WP2 source, theorem/negative controls, covariance, CRLB, masks, oracle visibility and all nine A1 population-cell obligations reviewed here are accepted at their recorded hashes. Complete campaign/used-host execution acceptance remains subject to separate operational gates, while E2 is explicitly blocked by the confirmed G6 feasibility result. This review neither authorizes E2 training nor promotes local engineering evidence to confirmatory results.

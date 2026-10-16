@@ -1,0 +1,35 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:12:35 UTC 2026
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.quota.max_bytes="0"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.quota.max_files="500000"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rbytes="1674665358239"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rfiles="444387"
+
+6399	/ceph/dwong/arXiv-v1-polished-extended-preprint
+27206	/ceph/dwong/transformer
+2	/ceph/dwong/.ollama
+37211	/ceph/dwong/noise-weighted-subspace-reconstruction
+25	/ceph/dwong/y19_zenodo_git
+2508	/ceph/dwong/tr07_runs
+2563	/ceph/dwong/megz_host
+4515	/ceph/dwong/enl_runs
+4587	/ceph/dwong/mlst-successor-runs-20260913
+7862	/ceph/dwong/trigger_dataset
+inode_scan_exit=124
+size_scan_exit=124
+Filesystem               Size  Used Avail Use% Mounted on
+home:/export/home/dwong   50G   31G   20G  61% /home/dwong
+Fri Oct 16 15:13:20 UTC 2026

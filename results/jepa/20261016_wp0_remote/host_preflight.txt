@@ -1,0 +1,39 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:05:19 UTC 2026
+deepthought
+40
+ 17:05:19 up 58 days,  9:24,  6 users,  load average: 2.14, 2.12, 2.10
+              total        used        free      shared  buff/cache   available
+Mem:          503Gi        96Gi       141Gi       348Mi       265Gi       403Gi
+Swap:         4.0Gi       437Mi       3.6Gi
+Filesystem                                                          Size  Used Avail Use% Mounted on
+[2a00:1398:5:fe01:3eec:efff:fe38:7926],[129.13.101.127]:/ceph_data  1.3P  995T  307T  77% /ceph
+f36c179ad5efca3305379ed3143ddd545b02c760	refs/heads/JEPA
+/home/dwong/.local/bin/python3.11
+/home/dwong/.local/bin/uv
+/usr/bin/voms-proxy-info
+/ceph/dwong/datasets
+/ceph/dwong/datasets/fashion_mnist
+/ceph/dwong/datasets/fashion_mnist/raw
+/ceph/dwong/datasets/f2_fehpo
+/ceph/dwong/datasets/f2_fehpo/v7_round5_deepseek_followup
+/ceph/dwong/datasets/f2_fehpo/v6_round5_titan_recovery
+/ceph/dwong/datasets/f2_fehpo/v8_hosted_ceiling_v2_calibration
+/ceph/dwong/datasets/f2_fehpo/v5_round5_replacement
+/ceph/dwong/datasets/f2_fehpo/v1
+/ceph/dwong/datasets/f2_fehpo/v9_hosted_ceiling_v2_scored
+/ceph/dwong/datasets/f2_fehpo/v12_round5_titan_fresh
+/ceph/dwong/datasets/f2_fehpo/smoke_substrate_a
+/ceph/dwong/datasets/f2_fehpo/v5_round5
+/ceph/dwong/datasets/f2_fehpo/v2
+/ceph/dwong/datasets/f2_fehpo/v3_round3_dev
+/ceph/dwong/datasets/.staging
+/ceph/dwong/datasets/3sat
+/ceph/dwong/datasets/3sat/round5-design-v1
+slot1@deepthought2.etp.kit.edu Owner Idle NVIDIA L40S
+slot1@nemo2_gpu-e8332163e8@g3605.nemo.privat Drained Retiring NVIDIA L40S
+slot1_1@nemo2_gpu-e8332163e8@g3605.nemo.privat Claimed Retiring NVIDIA L40S
+slot1@nemo2_gpu-0c067bc44d@g3606.nemo.privat Unclaimed Idle NVIDIA L40S
+slot1_1@nemo2_gpu-0c067bc44d@g3606.nemo.privat Claimed Busy NVIDIA L40S

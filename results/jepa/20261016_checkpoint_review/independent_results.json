@@ -1,0 +1,35 @@
+{
+  "before": {
+    "src/jepa_noise/dynamics.py": "60cdd08b6f49cecc4900ae29dfdc79e26bf994f33ddfd9b965ed6578dcc91f6a",
+    "src/jepa_noise/probes.py": "24071be3084dd731cae60e91f7c8c69081c463218c15610c820903a6a5c4dcfa",
+    "src/jepa_noise/metrics.py": "889394d396b0764262a3958c0c58f071797173e51bf6e17318afdab16972b346",
+    "src/jepa_noise/tests/test_dynamics.py": "4c7886c812e91150e3f56f4bf4afd631537111745c1fe94d2afd747d82cbc562",
+    "src/jepa_noise/tests/test_probes.py": "3cc19aef27c3418fcd56359b406aefe119fd56e52cc017e6e69617d43b7073d7"
+  },
+  "environment": {
+    "PYTHONPATH": "src",
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  },
+  "python": "3.11.11 (main, Dec  3 2024, 17:20:40) [Clang 16.0.0 (clang-1600.0.26.4)]",
+  "asymmetric_direct_sample_gradient_max_error": 7.267778878716769e-10,
+  "augmented_svd_cv_mse_max_error": 6.661338147750939e-16,
+  "command": [
+    "/private/tmp/jepa-venv-cpu311/bin/python",
+    "-m",
+    "pytest",
+    "src/jepa_noise/tests/test_dynamics.py",
+    "src/jepa_noise/tests/test_probes.py",
+    "-q"
+  ],
+  "exit_status": 0,
+  "after": {
+    "src/jepa_noise/dynamics.py": "60cdd08b6f49cecc4900ae29dfdc79e26bf994f33ddfd9b965ed6578dcc91f6a",
+    "src/jepa_noise/probes.py": "24071be3084dd731cae60e91f7c8c69081c463218c15610c820903a6a5c4dcfa",
+    "src/jepa_noise/metrics.py": "889394d396b0764262a3958c0c58f071797173e51bf6e17318afdab16972b346",
+    "src/jepa_noise/tests/test_dynamics.py": "4c7886c812e91150e3f56f4bf4afd631537111745c1fe94d2afd747d82cbc562",
+    "src/jepa_noise/tests/test_probes.py": "3cc19aef27c3418fcd56359b406aefe119fd56e52cc017e6e69617d43b7073d7"
+  },
+  "elapsed_seconds": 0.4559633331373334
+}

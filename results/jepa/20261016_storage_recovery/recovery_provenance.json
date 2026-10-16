@@ -1,0 +1,31 @@
+{
+  "cleanup": {
+    "cleanup_audit.jsonl": {
+      "completed_directory_records": 1376,
+      "audited_files_deleted": 10280,
+      "audited_bytes_deleted": 216391368,
+      "audited_empty_dirs_removed": 1376,
+      "complete": false,
+      "exit_status": 124
+    },
+    "cleanup_additional_audit.jsonl": {
+      "completed_directory_records": 1352,
+      "audited_files_deleted": 12168,
+      "audited_bytes_deleted": 250148660,
+      "audited_empty_dirs_removed": 1352,
+      "complete": true,
+      "exit_status": 0
+    }
+  },
+  "count_caveat": "First pass hit180s bound. Per-directory completed audit is lower bound; partial final-directory deletion may be unlogged. No further deletion was attempted. Other concurrent rm models process means aggregate root quota change is not attributable solely to us.",
+  "headroom_before_retry": 41271,
+  "headroom_checked_utc": "2026-10-16T15:22:06Z",
+  "storage_phase_start_utc": "2026-10-16T15:12:16Z",
+  "cleanup_completed_utc": "2026-10-16T15:19:34.545117Z",
+  "storage_phase_elapsed_seconds": 438.545117,
+  "gpu_hours": 0,
+  "scientific_outcomes_generated": false,
+  "author_authorized_cleanup": true,
+  "retry_allocation_seconds": 600,
+  "retry_count": 1
+}

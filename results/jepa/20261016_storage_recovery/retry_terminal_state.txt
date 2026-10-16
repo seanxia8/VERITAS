@@ -1,0 +1,31 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:32:40 UTC 2026
+total 6
+-rw-r--r-- 1 dwong cms  483 Oct 16 17:32 SHA256SUMS
+-rw-r--r-- 1 dwong cms   29 Oct 16 17:32 end_utc.txt
+-rw-r--r-- 1 dwong cms    2 Oct 16 17:32 exit_status.txt
+-rw-r--r-- 1 dwong cms  599 Oct 16 17:22 requirements.txt
+-rw-r--r-- 1 dwong cms  300 Oct 16 17:22 setup.log
+-rw-r--r-- 1 dwong cms   29 Oct 16 17:22 start_utc.txt
+-rw-r--r-- 1 dwong cms 1999 Oct 16 17:22 verify_imports.py
+Fri Oct 16 15:22:24 UTC 2026
+Fri Oct 16 15:32:24 UTC 2026
+0
+3207635       00:03 bash -c date -u; ls -l /ceph/dwong/jepa/returns/20261016_wp0_remote_env_retry1; cat /ceph/dwong/jepa/returns/20261016_wp0_remote_env_retry1/start_utc.txt /ceph/dwong/jepa/returns/20261016_wp0_remote_env_retry1/end_utc.txt /ceph/dwong/jepa/returns/20261016_wp0_remote_env_retry1/exit_status.txt; ps -u dwong -o pid,etime,args | grep -E "(uv pip install|timeout 600 bash)"; getfattr -n ceph.dir.rfiles /ceph/dwong 2>&1; getfattr -n ceph.dir.rsubdirs /ceph/dwong 2>&1; cd /ceph/dwong/jepa/returns/20261016_wp0_remote_env_retry1; sha256sum -c SHA256SUMS
+3207653       00:00 grep -E (uv pip install|timeout 600 bash)
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rfiles="416379"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rsubdirs="51668"
+
+setup.log: OK
+requirements.txt: OK
+verify_imports.py: OK
+start_utc.txt: OK
+end_utc.txt: OK
+exit_status.txt: OK

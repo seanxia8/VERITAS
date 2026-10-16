@@ -1,0 +1,22 @@
+{
+  "status": "partial_preflight_no_experiments",
+  "code_sha_available_from_remote": "f36c179ad5efca3305379ed3143ddd545b02c760",
+  "host": "deepthought.etp.kit.edu",
+  "first_successful_utc": "2026-10-16T15:05:02Z",
+  "last_metadata_utc": "2026-10-16T15:06:11Z",
+  "elapsed_observation_window_seconds": 69,
+  "cpu_resource_charge_conservative_seconds": 69,
+  "gpu_hours": 0,
+  "worker_allocation": null,
+  "worker_formula_cap": 32,
+  "failures": [
+    "initial sandbox DNS failure before host contact",
+    "bounded metadata find timeout exit124"
+  ],
+  "environment_import_status": "pending_package_skeleton_published_SHA",
+  "tidmad_manifest_status": "unverified",
+  "outcomes_generated": false,
+  "remote_jobs_submitted": 0,
+  "remote_changes": false,
+  "note": "69 seconds is conservative full elapsed preflight window, not measured process CPU. One worker charged; overlapping diagnostic requests not scientific workers. Preparation accounting only; no campaign benchmark started."
+}

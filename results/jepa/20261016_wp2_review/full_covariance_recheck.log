@@ -1,0 +1,32 @@
+{
+  "status": "ACCEPT_full_covariance_fixture",
+  "source_directory": "/Users/wongdowling/Documents/VERITAS/results/jepa/20261016_wp2_waveform_covariance",
+  "producer_host": "Dowlings-MacBook-Pro-2.local",
+  "n": 200000,
+  "shape": [
+    2048,
+    2048
+  ],
+  "all_producer_hashes_verified": true,
+  "producer_inventory": {
+    "EMPIRICAL_COVARIANCE.npy": "9da3edecdcab1f343e2b59f52dea236932d4123b321aaa3e6af787ae6395e200",
+    "PREDECLARATION.json": "56936b32862d2ae8be7881f4066421a59edc9b6e52123d9fd429589fe2a70331",
+    "PROGRESS.json": "aaeecc3a0eddf88561281a48f19183573cd189ebef3fba473beeaf2ad893a64c",
+    "PROJECTION.json": "3c60da2a8c6f92d273c0eeb4226f5dff47563d5518c232c3d6172a5021eeb5cc",
+    "PROVENANCE.json": "0b8058ac32753f0ea6a4610e860eb44a0a73899ee398d3c15c5eca7a31cfcb3f",
+    "RESULT.json": "0845aff3764fc786da46a74b57e438989c42308e08a3eb98d14951e52ca9a23c",
+    "SUM_X.npy": "26695d712117a090444298e86aef7b2184d1f2200084022232820968fe697961",
+    "SUM_XX.npy": "af9a3ccf840890881628a493e20f7401c8b655ceea4d5bb646d903df8910fc87",
+    "check_full_covariance.py": "8516212bab310e3df2a8b530e3521d0e37d308f8b31700d479fd110efefd56f8"
+  },
+  "empirical_byte_equality": true,
+  "ddof0_relative_frobenius": 0.008777029866105138,
+  "ddof1_relative_frobenius": 0.008776793294821216,
+  "normalization_factor_n_over_nminus1": 1.000005000025,
+  "expected_ddof0_relative_rms": 0.009342111770912667,
+  "producer_active_seconds": 64.56265079206787,
+  "review_elapsed_seconds": 0.9284295421093702,
+  "review_end_utc": "2026-10-16T15:19:19.037345+00:00",
+  "review_host": "Dowlings-MacBook-Pro-2.local",
+  "limitations": "Recomputed complete sufficient statistics; did not regenerate all noise draws or verify a saved prefix because no prefix hash was stored."
+}

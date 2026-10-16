@@ -1,0 +1,21 @@
+Fri Oct 16 15:07:09 UTC 2026
+Cloning into '/ceph/dwong/jepa/code/72add60e0e92ad4ec344bb309adbfc023b486455'...
+HEAD is now at 72add60 jepa: add isolated package skeleton for host preflight
+72add60e0e92ad4ec344bb309adbfc023b486455
+Using CPython 3.11.15
+Creating virtual environment at: /ceph/dwong/jepa/venv/cpu_py311_torch251
+Activate with: source /ceph/dwong/jepa/venv/cpu_py311_torch251/bin/activate
+Using Python 3.11.15 environment at: /ceph/dwong/jepa/venv/cpu_py311_torch251
+Resolved 9 packages in 585ms
+Downloading networkx (2.0MiB)
+Downloading sympy (5.9MiB)
+Downloading torch (166.6MiB)
+ Downloaded networkx
+ Downloaded sympy
+ Downloaded torch
+Prepared 9 packages in 27.64s
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+error: Failed to install: typing_extensions-4.16.0-py3-none-any.whl (typing-extensions==4.16.0)
+  Caused by: Disk quota exceeded (os error 122) at path "/ceph/dwong/jepa/venv/cpu_py311_torch251/lib/python3.11/site-packages/.tmpCQLJED"

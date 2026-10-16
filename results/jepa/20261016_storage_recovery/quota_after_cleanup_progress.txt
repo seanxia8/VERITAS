@@ -1,0 +1,15 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:19:22 UTC 2026
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rfiles="408763"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rsubdirs="51607"
+
+3203658       02:30 timeout 180 python3 -
+3204462       00:02 bash -c date -u; getfattr -n ceph.dir.rfiles /ceph/dwong 2>&1; getfattr -n ceph.dir.rsubdirs /ceph/dwong 2>&1; ps -u dwong -o pid,etime,args | grep -E "(timeout 180 python3 -|rm -rf models)"
+3204486       00:00 grep -E (timeout 180 python3 -|rm -rf models)

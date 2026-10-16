@@ -1,0 +1,19 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:05:46 UTC 2026
+proxy_exit=1
+
+Couldn't find a valid proxy.
+
+find_exit=124
+slot1@deepthought2.etp.kit.edu Owner Idle NVIDIA L40S
+slot1@nemo2_gpu-e8332163e8@g3605.nemo.privat Drained Retiring NVIDIA L40S
+slot1_1@nemo2_gpu-e8332163e8@g3605.nemo.privat Claimed Retiring NVIDIA L40S
+slot1@nemo2_gpu-0c067bc44d@g3606.nemo.privat Unclaimed Idle NVIDIA L40S
+slot1_1@nemo2_gpu-0c067bc44d@g3606.nemo.privat Claimed Busy NVIDIA L40S
+condor_status_exit=0
+drwxr-xr-x  3 dwong cms  1 Aug 12 18:34 /ceph/dwong/datasets/3sat
+drwxr-xr-x 13 dwong cms 11 Sep 24 00:23 /ceph/dwong/datasets/f2_fehpo
+drwxr-xr-x  3 dwong cms  1 Aug 12 18:34 /ceph/dwong/datasets/fashion_mnist
+Fri Oct 16 15:06:01 UTC 2026

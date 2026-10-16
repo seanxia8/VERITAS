@@ -1,0 +1,22 @@
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html
+Fri Oct 16 15:17:47 UTC 2026
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rfiles="422861"
+
+getfattr: Removing leading '/' from absolute path names
+# file: ceph/dwong
+ceph.dir.rsubdirs="53221"
+
+3203038       03:07 rm -rf models
+3203259       01:58 timeout 180 python3 -
+3203275       01:56 python3 -
+3203658       00:55 timeout 180 python3 -
+3203677       00:53 bash -c cd /work/dwong/pmt_lucid_20261016; env JAX_PLATFORMS=cpu OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 PYTHONPATH=code/src:upstream timeout 1800 /home/dwong/anaconda3/bin/python3 -m noise_module_lucid.lucid_integration --upstream upstream --source source_subset --config code/configs/lucid_pmt/integration_pilot.json --manifest code/configs/lucid_pmt/upstream_manifest.json --out evidence/closure_02 > evidence/closure_02.log 2>&1
+3203682       00:52 python3 -
+3203689       00:51 timeout 1800 /home/dwong/anaconda3/bin/python3 -m noise_module_lucid.lucid_integration --upstream upstream --source source_subset --config code/configs/lucid_pmt/integration_pilot.json --manifest code/configs/lucid_pmt/upstream_manifest.json --out evidence/closure_02
+3203690       00:51 /home/dwong/anaconda3/bin/python3 -m noise_module_lucid.lucid_integration --upstream upstream --source source_subset --config code/configs/lucid_pmt/integration_pilot.json --manifest code/configs/lucid_pmt/upstream_manifest.json --out evidence/closure_02
+3203996       00:02 bash -c date -u; getfattr -n ceph.dir.rfiles /ceph/dwong 2>&1; getfattr -n ceph.dir.rsubdirs /ceph/dwong 2>&1; ps -u dwong -o pid,etime,args | grep -E "(timeout 180|python3 -|rm -rf models)"
+3204014       00:00 grep -E (timeout 180|python3 -|rm -rf models)

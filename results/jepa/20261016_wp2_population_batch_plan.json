@@ -1,0 +1,47 @@
+{
+  "id": "wp2_remaining_A1_population_cells",
+  "campaign": "E1",
+  "purpose": "complete_pregrid_eligibility_and_exact_noise_levels",
+  "code_sha": "338326c58a8a2ae6194a41056a46dac60e68f0eb",
+  "workers": 1,
+  "gpu_hours": 0,
+  "cells": [
+    [
+      0,
+      0.45
+    ],
+    [
+      1.5,
+      0.45
+    ],
+    [
+      2.25,
+      0.45
+    ],
+    [
+      3,
+      0.45
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0.225
+    ],
+    [
+      0,
+      0.675
+    ],
+    [
+      0,
+      0.9
+    ]
+  ],
+  "projected_seconds_including25pct_reserve": 271.5736195887439,
+  "total_allocated_seconds": 480,
+  "per_cell_allocation_seconds": 60,
+  "status": "allocated_before_execution",
+  "stop_rule": "stop dependent batch on any nonzero exit; preserve every attempt"
+}

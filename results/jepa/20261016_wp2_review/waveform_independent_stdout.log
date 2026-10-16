@@ -1,0 +1,35 @@
+{
+  "start_utc": "2026-10-16T15:14:58.459610+00:00",
+  "source_sha256_before": {
+    "src/jepa_noise/views.py": "692ab80833bd5440f4426b358bd3996ad9259781e52fe5aaa701b76fac3aa277",
+    "src/jepa_noise/configs/waveform_v1.json": "efa2c03fc40a875c0a0d1410bfca10685f6d32f74def74dac55364e87136f712",
+    "src/jepa_noise/tests/test_waveform.py": "9a3338a5ea26d8b31ede919bef37182acf352f8288ec9edbacff19822926181b",
+    "docs/jepa/WAVEFORM_DERIVATION.md": "3e1e1d12da4ebd1b5b15ffba9bcda6f7bd1e0a641cebf0d83e8f855ff92f0e15",
+    "src/noise_module/core/generator.py": "7f27952a05e1efb02e7c3f191528c125e466f010a7312adc994c9dcfff64f68b",
+    "src/noise_module/multichannel/generator.py": "7da2a720da691fcfcb9169cb0ed482fb833c1cd21aa45eb29e040e3e58449bcb",
+    "src/latent_monitor/tier1.py": "9ab7b8fed678d26b874f38a97aab190d4058ae20e8bbbb54ded94443f39c6776",
+    "src/latent_monitor/whitening.py": "8ef54745729ea2e88b91ba6411cdca6d5df3bff4df99132e5d7f348412b8e22d",
+    "src/jepa_noise/crlb.py": "0e00a3ccc9fc22ff9dbba8bf081d4ef937d894b7545e9719e3d74f3a27a45647"
+  },
+  "source_covariance_max_error": 7.618905506490137e-15,
+  "filtered_white_identity_error": 7.631915932559963e-15,
+  "total_covariance_error": 8.715250743307479e-15,
+  "namespaces_and_fixed_j0": "pass",
+  "half_step_relative_error": 1.5740943923303914e-06,
+  "production_crlb_relative_error": 1.6442855646047896e-13,
+  "of_vs_information_relative_error": 1.1621814621776139e-12,
+  "source_sha256_after": {
+    "src/jepa_noise/views.py": "692ab80833bd5440f4426b358bd3996ad9259781e52fe5aaa701b76fac3aa277",
+    "src/jepa_noise/configs/waveform_v1.json": "efa2c03fc40a875c0a0d1410bfca10685f6d32f74def74dac55364e87136f712",
+    "src/jepa_noise/tests/test_waveform.py": "9a3338a5ea26d8b31ede919bef37182acf352f8288ec9edbacff19822926181b",
+    "docs/jepa/WAVEFORM_DERIVATION.md": "3e1e1d12da4ebd1b5b15ffba9bcda6f7bd1e0a641cebf0d83e8f855ff92f0e15",
+    "src/noise_module/core/generator.py": "7f27952a05e1efb02e7c3f191528c125e466f010a7312adc994c9dcfff64f68b",
+    "src/noise_module/multichannel/generator.py": "7da2a720da691fcfcb9169cb0ed482fb833c1cd21aa45eb29e040e3e58449bcb",
+    "src/latent_monitor/tier1.py": "9ab7b8fed678d26b874f38a97aab190d4058ae20e8bbbb54ded94443f39c6776",
+    "src/latent_monitor/whitening.py": "8ef54745729ea2e88b91ba6411cdca6d5df3bff4df99132e5d7f348412b8e22d",
+    "src/jepa_noise/crlb.py": "0e00a3ccc9fc22ff9dbba8bf081d4ef937d894b7545e9719e3d74f3a27a45647"
+  },
+  "sources_unchanged": true,
+  "elapsed_seconds": 7.365322208032012,
+  "end_utc": "2026-10-16T15:15:05.823586+00:00"
+}
