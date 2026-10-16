@@ -10,6 +10,10 @@ Adopt THEORY.md's proposed independent Gaussian I/Q sinusoid at the registered t
 
 Resolve the remaining sweep choices together: E1b line sweep holds g=.45; E1b common-mode sweep holds line multiplier=0. E2 fixes g=.45 throughout development/evaluation and selects its three line multipliers by the registered gamma_n rule. All other runbook values, masks, endpoints, budgets and eligibility thresholds stay as registered. Nonzero common mode makes WP7's x2 amplitude fault an actual perturbation. The base colored noise and physical white addition remain present in every cell; neither is rescaled by the added components.
 
-This is a concrete proposed law, not a claim that it will satisfy rank, distinct gamma_n levels, trainability or budgets. G6 checks can still stop affected work after approval. A different law is also possible, but must be explicit and registered before outcomes. No implementation or result may silently adopt this proposal.
+This approved amendment defines the generating law; it is not a claim that it will satisfy rank, distinct gamma_n levels, trainability or budgets. G6 checks can still stop affected work after approval. Any later change requires a new explicit amendment before affected outcomes. Implementation may now adopt A1, with exact source/config binding and pre-outcome validation.
 
 Affected work: E1b/E2 and their dependent E3/WP7 work. Exact-model population analysis is independent and continues. Author decision is recorded above; no further approval of this same law is required.
+
+## Approved amendment A2 — E1c sample and loss binding
+
+The author explicitly approved E1C_CONFIG_PROPOSAL.md on 2026-10-16 before any E1c outcomes. Its fixed n100000 full-batch sample, paired depth data/initialization and primary-source half-squared-norm reduction are now part of the contract. Original runbook thresholds, learning rate and horizon remain unchanged. Numerical gradient review and campaign budgeting are still required.
