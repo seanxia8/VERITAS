@@ -7,6 +7,7 @@ dependencies = []
 
 [tool.uv.workspace]
 members = [
+    "src/jepa_noise",
     "src/herald_simulation",
     "src/latent_monitor",
     "src/noise_module",
