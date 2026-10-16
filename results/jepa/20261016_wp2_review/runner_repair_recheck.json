@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/private/tmp/jepa-venv-cpu311/bin/python",
+    "-m",
+    "pytest",
+    "src/jepa_noise/tests/test_oracle_runner_guards.py",
+    "src/jepa_noise/tests/test_oracle_visibility.py",
+    "-q"
+  ],
+  "elapsed_seconds": 0.6317722080275416,
+  "exit_status": 0,
+  "independent_all_grid_pairs_checked": 25,
+  "source_sha256_before": {
+    "docs/jepa/check_waveform_population.py": "d837b865b530be1d76fbd346594f37930125e89b45789b591cdda662513515e8",
+    "src/jepa_noise/tests/test_oracle_runner_guards.py": "f19868b238ce31dc2ac870dd382e0f883a87059efda69ca105bcd46b99c40f9f",
+    "src/jepa_noise/masks.py": "b4bf11ed2c6d69af0a04320599a1a8824f77e7c036543d1569d2a81c4e1544e9",
+    "src/jepa_noise/configs/waveform_v1.json": "efa2c03fc40a875c0a0d1410bfca10685f6d32f74def74dac55364e87136f712",
+    "src/jepa_noise/configs/linear_solver_v1.json": "52fa6a91556259144aff7925555dc7133c6135806db8c94bdad834d1e7899fa7",
+    "src/jepa_noise/views.py": "692ab80833bd5440f4426b358bd3996ad9259781e52fe5aaa701b76fac3aa277"
+  },
+  "source_sha256_after": {
+    "docs/jepa/check_waveform_population.py": "d837b865b530be1d76fbd346594f37930125e89b45789b591cdda662513515e8",
+    "src/jepa_noise/tests/test_oracle_runner_guards.py": "f19868b238ce31dc2ac870dd382e0f883a87059efda69ca105bcd46b99c40f9f",
+    "src/jepa_noise/masks.py": "b4bf11ed2c6d69af0a04320599a1a8824f77e7c036543d1569d2a81c4e1544e9",
+    "src/jepa_noise/configs/waveform_v1.json": "efa2c03fc40a875c0a0d1410bfca10685f6d32f74def74dac55364e87136f712",
+    "src/jepa_noise/configs/linear_solver_v1.json": "52fa6a91556259144aff7925555dc7133c6135806db8c94bdad834d1e7899fa7",
+    "src/jepa_noise/views.py": "692ab80833bd5440f4426b358bd3996ad9259781e52fe5aaa701b76fac3aa277"
+  },
+  "outcome_execution": "none; synthetic guard fixtures only"
+}

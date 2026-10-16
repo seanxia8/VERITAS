@@ -1,0 +1,6 @@
+gamma_load=0.0: top canon corr [0.922 0.889 0.88  0.026]  angle(JEPA/CCA top-3, noise-weighted) = 0.9 deg
+   canon corr after whitening: [0.922 0.889 0.88  0.026]
+   noise-anchored fixed point angle to noise-weighted = 1.0 deg
+gamma_load=1.0: top canon corr [0.998 0.92  0.888 0.88 ]  angle(JEPA/CCA top-3, noise-weighted) = 89.3 deg
+   canon corr after whitening: [0.998 0.92  0.888 0.88 ]
+   noise-anchored fixed point angle to noise-weighted = 0.9 deg

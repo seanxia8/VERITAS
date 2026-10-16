@@ -1,0 +1,10 @@
+{
+  "gaussian_expected_relative_rms": 0.009342111770912667,
+  "trace": 3205.361006566713,
+  "frobenius_squared": 624386.586120667,
+  "effective_rank_trace2_over_fro2": 16.45509274350872,
+  "generation_512_seconds": 0.10472037503495812,
+  "covariance_product_512_seconds": 0.06341558299027383,
+  "projected_active_seconds_with_25pct_reserve": 83.13730846264662,
+  "scope": "fixed prefix engineering timing; no model outcome or calibration"
+}

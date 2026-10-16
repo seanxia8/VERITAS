@@ -1,0 +1,17 @@
+{
+  "version": "linear_solver_v1",
+  "dtype": "float64",
+  "solver": "scipy.linalg.eigh(driver=evr); numpy.linalg.svd(full_matrices=true)",
+  "optimization": "exact reduced symmetric eigenproblem; no iterative optimizer",
+  "matrix_residual_tolerance": 1e-8,
+  "rank_relative_tolerance": 1e-12,
+  "oracle_eligibility_threshold": 1e-8,
+  "subspace_tolerance_rad": 1e-6,
+  "sample_ridge_relative": 1e-6,
+  "exact_identity_ridge": 0.0,
+  "beta_grid": [0.1, 1.0, 10.0],
+  "eigenbasis": "descending eigenvalue; exact degeneracies resolved by projected ascending coordinate axes; largest-absolute coordinate positive",
+  "target_completion": "rowspace of Uc T, then ascending coordinate axes with Gram-Schmidt",
+  "tie_tolerance": "exact floating-point eigenvalue equality only; near ties reported as gaps, not rotated",
+  "pre_outcome_review_status": "pending independent review; no sample grid authorized"
+}

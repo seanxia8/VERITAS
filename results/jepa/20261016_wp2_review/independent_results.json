@@ -1,0 +1,100 @@
+{
+  "start_utc": "2026-10-16T15:11:14.177370+00:00",
+  "python": "3.11.11 (main, Dec  3 2024, 17:20:40) [Clang 16.0.0 (clang-1600.0.26.4)]",
+  "host": "Dowlings-MacBook-Pro-2.local",
+  "source_sha256_before": {
+    "docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md": "5f8de710a39e74a6f76235eeaf46c4df0907bfbe5145b1d3aa88e3a9fff1e6cd",
+    "docs/jepa/GATE_G5.md": "54886aa3feb3a72f0db745fa43eb3f2e9a76b1440651bd6c6b614b4851ff6160",
+    "docs/jepa/THEORY.md": "4bf1bae5ef4d4613e328057611ca22a2b170d8e699244dea6c4205250a16c275",
+    "docs/jepa/WP2_IMPLEMENTATION.md": "c200e05b574365f5649bcd35d3e67cbf2a1f5bca6b1c187151296bd7631bb2bd",
+    "src/jepa_noise/configs/linear_solver_v1.json": "52fa6a91556259144aff7925555dc7133c6135806db8c94bdad834d1e7899fa7",
+    "src/jepa_noise/linear.py": "0b722975ca38cb7ece228eaf70051ede572e3e900cd2223adf4373c91ab2a767",
+    "src/jepa_noise/masks.py": "56e7e8d208b97556d1bde7fd0baec5c086229e399e7651e2358f731be1418053",
+    "src/jepa_noise/metrics.py": "f029701abf8a8cb16b811c8f28f51cdfd2d48a8fb764d6fd8cbcaa46155c7824",
+    "src/jepa_noise/crlb.py": "0e00a3ccc9fc22ff9dbba8bf081d4ef937d894b7545e9719e3d74f3a27a45647",
+    "src/jepa_noise/views.py": "e8af6dcbf9779300fe3e483a3ab7713350221e1978e58d4b41e50a951a18e0a8",
+    "src/jepa_noise/report.py": "9510a9fabc7946433839718261c8cd23d0bde4009b608010ebe3f3c3d449f284",
+    "src/jepa_noise/tests/test_linear.py": "df55cb5c241cea27d1ac77c383842a63754cdab4150d284fb1bfe7b5a831ed9a",
+    "src/jepa_noise/tests/test_theory.py": "04e29ee0ddf0c069af8ee09bd201437b19c9254bd7d9b1263f1af5f2ce60c29d",
+    "src/latent_monitor/estimators/cw_pca.py": "35e8cdefcbcfe8bf9b28558bbc5d3f0108c72a85a100088fa556d4b065cb7bd9",
+    "docs/jepa/toy_check_2026-10-16.py": "9c54b9f30d80476f5906eabd737d88967c2141e2c1eaf450ac2187e3c4bbf9ac"
+  },
+  "checks": {
+    "population_recovery_radians": {
+      "cca": 2.0603287896470825e-15,
+      "hard_isotropy": 2.0603287896470825e-15,
+      "gevp": 1.0177836696645922e-14,
+      "whitened_pca": 2.308970062952192e-15
+    },
+    "unreduced_objective": [
+      {
+        "beta": 0.0,
+        "objective": 1.8624234554538772,
+        "independent_error": 0.0,
+        "best_random_excess": 0.04283647578020933,
+        "tangent_fd": -7.771561172376096e-11
+      },
+      {
+        "beta": 0.1,
+        "objective": 1.9908057779535706,
+        "independent_error": 0.0,
+        "best_random_excess": 0.06987583346170312,
+        "tangent_fd": -5.551115123125782e-11
+      },
+      {
+        "beta": 1.0,
+        "objective": 3.1462466804508136,
+        "independent_error": 1.3322676295501878e-15,
+        "best_random_excess": 0.1976726404298379,
+        "tangent_fd": 2.2204460492503128e-11
+      },
+      {
+        "beta": 10.0,
+        "objective": 14.70065570542324,
+        "independent_error": 8.881784197001252e-15,
+        "best_random_excess": 1.237213928581916,
+        "tangent_fd": 8.881784197001251e-11
+      }
+    ],
+    "joint_vs_known_amplitude": [
+      0.36390191128741434,
+      0.29166666666666663
+    ],
+    "analytic_jacobian_errors": [
+      3.99999767197734e-08,
+      9.999981176456174e-09
+    ],
+    "mask_hashes": {
+      "time": "b2530eb811d0b6b2404dc2192723ae3196802c4a59627f3ede7b83e9930e723d",
+      "channel": "5ccf19f4f2c0424bb9636387a42e899d136172cb5e410c08d271cedf5925f25d",
+      "interleaved": "91b7028f7770c4b443bb7958ecb7c5dd7cf8fe30d68decf6ad3fb13a995763ba",
+      "block": "efdc53f53db1b6a35c70109d0cd261385737c2d2f386599460a28d67e53b3720"
+    },
+    "constant_decimal_target": {
+      "expected_valid": false,
+      "actual_valid": true,
+      "score": -1.2980742146337074e+31,
+      "passes": false
+    }
+  },
+  "source_sha256_after": {
+    "docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md": "5f8de710a39e74a6f76235eeaf46c4df0907bfbe5145b1d3aa88e3a9fff1e6cd",
+    "docs/jepa/GATE_G5.md": "54886aa3feb3a72f0db745fa43eb3f2e9a76b1440651bd6c6b614b4851ff6160",
+    "docs/jepa/THEORY.md": "4bf1bae5ef4d4613e328057611ca22a2b170d8e699244dea6c4205250a16c275",
+    "docs/jepa/WP2_IMPLEMENTATION.md": "c200e05b574365f5649bcd35d3e67cbf2a1f5bca6b1c187151296bd7631bb2bd",
+    "src/jepa_noise/configs/linear_solver_v1.json": "52fa6a91556259144aff7925555dc7133c6135806db8c94bdad834d1e7899fa7",
+    "src/jepa_noise/linear.py": "0b722975ca38cb7ece228eaf70051ede572e3e900cd2223adf4373c91ab2a767",
+    "src/jepa_noise/masks.py": "56e7e8d208b97556d1bde7fd0baec5c086229e399e7651e2358f731be1418053",
+    "src/jepa_noise/metrics.py": "f029701abf8a8cb16b811c8f28f51cdfd2d48a8fb764d6fd8cbcaa46155c7824",
+    "src/jepa_noise/crlb.py": "0e00a3ccc9fc22ff9dbba8bf081d4ef937d894b7545e9719e3d74f3a27a45647",
+    "src/jepa_noise/views.py": "e8af6dcbf9779300fe3e483a3ab7713350221e1978e58d4b41e50a951a18e0a8",
+    "src/jepa_noise/report.py": "9510a9fabc7946433839718261c8cd23d0bde4009b608010ebe3f3c3d449f284",
+    "src/jepa_noise/tests/test_linear.py": "df55cb5c241cea27d1ac77c383842a63754cdab4150d284fb1bfe7b5a831ed9a",
+    "src/jepa_noise/tests/test_theory.py": "04e29ee0ddf0c069af8ee09bd201437b19c9254bd7d9b1263f1af5f2ce60c29d",
+    "src/latent_monitor/estimators/cw_pca.py": "35e8cdefcbcfe8bf9b28558bbc5d3f0108c72a85a100088fa556d4b065cb7bd9",
+    "docs/jepa/toy_check_2026-10-16.py": "9c54b9f30d80476f5906eabd737d88967c2141e2c1eaf450ac2187e3c4bbf9ac"
+  },
+  "sources_unchanged": true,
+  "elapsed_seconds": 0.028085292084142566,
+  "end_utc": "2026-10-16T15:11:14.204594+00:00"
+}

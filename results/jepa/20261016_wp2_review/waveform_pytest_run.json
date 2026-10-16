@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/private/tmp/jepa-venv-cpu311/bin/python",
+    "-m",
+    "pytest",
+    "src/jepa_noise/tests/test_waveform.py",
+    "-q",
+    "-s"
+  ],
+  "elapsed_seconds": 5.916114958003163,
+  "exit_code": 0
+}

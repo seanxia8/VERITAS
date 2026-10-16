@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/private/tmp/jepa-venv-cpu311/bin/python",
+    "-m",
+    "pytest",
+    "src/jepa_noise/tests/test_theory.py",
+    "src/jepa_noise/tests/test_linear.py",
+    "-q"
+  ],
+  "elapsed_seconds": 0.6964310000184923,
+  "exit_code": 0,
+  "environment": {
+    "PYTHONPATH": "src",
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "RECONSTRUCTION_DISABLE_TORCH_COMPILE": "1"
+  }
+}

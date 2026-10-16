@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/private/tmp/jepa-venv-cpu311/bin/python",
+    "-m",
+    "pytest",
+    "src/jepa_noise/tests/test_oracle_visibility.py",
+    "-q"
+  ],
+  "exit_code": 0,
+  "pytest_wall_seconds": 0.43313479190692306,
+  "total_wall_seconds": 0.5333241671323776,
+  "independent_nonmonotonic_index_mapping": "pass",
+  "context_target_gap_dependency": "exact_zero",
+  "retained_marginal_not_conditional": "pass",
+  "source_sha256_before": {
+    "src/jepa_noise/masks.py": "b4bf11ed2c6d69af0a04320599a1a8824f77e7c036543d1569d2a81c4e1544e9",
+    "src/jepa_noise/tests/test_oracle_visibility.py": "257554f75de57dce9e98f56de4dc10d6ef486d64f89810203be37a8276ed46f3",
+    "docs/jepa/check_waveform_population.py": "a755ba68dace81e90927e5f15669e262137355a1177089319e963e474c2e976e"
+  },
+  "source_sha256_after": {
+    "src/jepa_noise/masks.py": "b4bf11ed2c6d69af0a04320599a1a8824f77e7c036543d1569d2a81c4e1544e9",
+    "src/jepa_noise/tests/test_oracle_visibility.py": "257554f75de57dce9e98f56de4dc10d6ef486d64f89810203be37a8276ed46f3",
+    "docs/jepa/check_waveform_population.py": "a755ba68dace81e90927e5f15669e262137355a1177089319e963e474c2e976e"
+  }
+}

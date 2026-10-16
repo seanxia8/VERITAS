@@ -1,0 +1,131 @@
+{
+  "status": "development output, not reviewed",
+  "purpose": "WP0 reproduction of known prior evidence",
+  "code_sha": "f36c179ad5efca3305379ed3143ddd545b02c760",
+  "branch": "JEPA",
+  "working_tree": "M README.md\n M pyproject.toml\n?? docs/LUCID_MODEL_LINEUP_2026-10-09.md\n?? docs/jepa/PROTECTED_BASELINE.json\n?? results/jepa/\n?? src/jepa_noise/",
+  "source_sha256": {
+    "docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md": "5f8de710a39e74a6f76235eeaf46c4df0907bfbe5145b1d3aa88e3a9fff1e6cd",
+    "docs/jepa/toy_check_2026-10-16.py": "9c54b9f30d80476f5906eabd737d88967c2141e2c1eaf450ac2187e3c4bbf9ac",
+    "docs/jepa/reviews/check_p5_counterexample.py": "3baa078294f92747c60c041ac47ce83b2bcee189df9f046894cc0ab6c4520ecf"
+  },
+  "python": "3.11.11 (main, Dec  3 2024, 17:20:40) [Clang 16.0.0 (clang-1600.0.26.4)]",
+  "executable": "/private/tmp/jepa-venv-cpu311/bin/python",
+  "host": "Dowlings-MacBook-Pro-2.local",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "start_utc": "2026-10-16T15:05:29.813087+00:00",
+  "cpu_count": 10,
+  "load_average": [
+    7.9697265625,
+    6.900390625,
+    6.0654296875
+  ],
+  "workers": 1,
+  "environment": {
+    "PYTHONPATH": "src",
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "RECONSTRUCTION_DISABLE_TORCH_COMPILE": "1"
+  },
+  "config_hash": "7a572f2496bf7374644ef73cae81df1aeac5e0aafdeeb03f920dc748eebd301f",
+  "environment_hash": "74237dad52812d6cb86f281902a4bc7a4f216f42841bdc3e0a1eb94038b17dd5",
+  "data_hash": "synthetic; registered toy source defines data generation",
+  "split_hash": "not applicable: historical two-view toy",
+  "rng": "Appendix A numpy.default_rng(0), original draw order; P5 deterministic",
+  "runs": [
+    {
+      "name": "appendix_a",
+      "elapsed_seconds": 1.1581481250468642,
+      "exit_status": 0
+    },
+    {
+      "name": "p5_annihilation",
+      "elapsed_seconds": 0.0018116249702870846,
+      "exit_status": 0
+    }
+  ],
+  "imports": {
+    "torch": {
+      "status": "pass",
+      "version": "2.5.1",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/torch/__init__.py"
+    },
+    "numpy": {
+      "status": "pass",
+      "version": "1.26.4",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/numpy/__init__.py"
+    },
+    "scipy": {
+      "status": "pass",
+      "version": "1.17.1",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/scipy/__init__.py"
+    },
+    "pandas": {
+      "status": "pass",
+      "version": "2.2.3",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/pandas/__init__.py"
+    },
+    "matplotlib": {
+      "status": "pass",
+      "version": "3.9.4",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/matplotlib/__init__.py"
+    },
+    "h5py": {
+      "status": "pass",
+      "version": "3.16.0",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/h5py/__init__.py"
+    },
+    "pytest": {
+      "status": "pass",
+      "version": "9.1.1",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/pytest/__init__.py"
+    },
+    "sklearn": {
+      "status": "pass",
+      "version": "1.9.1",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/sklearn/__init__.py"
+    },
+    "jaxtyping": {
+      "status": "pass",
+      "version": "0.2.38",
+      "file": "/private/tmp/jepa-venv-cpu311/lib/python3.11/site-packages/jaxtyping/__init__.py"
+    },
+    "reconstruction_model.model": {
+      "status": "pass",
+      "version": null,
+      "file": "/Users/wongdowling/Documents/VERITAS/src/reconstruction_model/model.py"
+    },
+    "tidmad_transformer.model": {
+      "status": "pass",
+      "version": null,
+      "file": "/Users/wongdowling/Documents/VERITAS/src/tidmad_transformer/model.py"
+    },
+    "jepa_noise": {
+      "status": "pass",
+      "version": "0.1.0",
+      "file": "/Users/wongdowling/Documents/VERITAS/src/jepa_noise/__init__.py"
+    }
+  },
+  "torch": {
+    "version": "2.5.1",
+    "threads": 1,
+    "cuda_available": false,
+    "device_used": "cpu"
+  },
+  "appendix_a_tolerance": "pass: correlations .01, angles .5 degrees, printed whitening spectra identical",
+  "rng_final_state": {
+    "bit_generator": "PCG64",
+    "state": {
+      "state": 100593681063276105910671119376119990569,
+      "inc": 87136372517582989555478159403783844777
+    },
+    "has_uint32": 0,
+    "uinteger": 0
+  },
+  "p5_status": "oracle_rank_ineligible: valid SPD annihilation negative control; not recovery failure",
+  "end_utc": "2026-10-16T15:07:20.772468+00:00",
+  "elapsed_seconds": 110.95683216606267,
+  "exit_status": 0,
+  "cumulative_cpu_worker_hours": 0.030821342268350743
+}

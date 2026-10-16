@@ -1,0 +1,19 @@
+{
+  "constant_and_tiny_variation": "pass",
+  "literal_r5_cases": 8,
+  "command": [
+    "/private/tmp/jepa-venv-cpu311/bin/python",
+    "-m",
+    "pytest",
+    "src/jepa_noise/tests/test_theory.py",
+    "src/jepa_noise/tests/test_linear.py",
+    "src/jepa_noise/tests/test_metrics.py",
+    "-q"
+  ],
+  "pytest_elapsed_seconds": 0.7545123340096325,
+  "elapsed_seconds": 0.9277462081518024,
+  "source_sha256": {
+    "src/jepa_noise/metrics.py": "889394d396b0764262a3958c0c58f071797173e51bf6e17318afdab16972b346",
+    "src/jepa_noise/tests/test_metrics.py": "08a522817d8551f7146bd2a5846b745a33d283d3cc1210e52d40903972b4d768"
+  }
+}

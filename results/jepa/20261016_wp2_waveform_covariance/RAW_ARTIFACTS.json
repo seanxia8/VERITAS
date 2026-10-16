@@ -1,0 +1,16 @@
+[
+  {
+    "host": "Dowlings-MacBook-Pro-2.local",
+    "absolute_path": "/Users/wongdowling/Documents/VERITAS/results/jepa/20261016_wp2_waveform_covariance/SUM_XX.npy",
+    "bytes": 33554560,
+    "sha256": "af9a3ccf840890881628a493e20f7401c8b655ceea4d5bb646d903df8910fc87",
+    "retention": "local raw artifact, deliberately not committed; available to independent reviewer"
+  },
+  {
+    "host": "Dowlings-MacBook-Pro-2.local",
+    "absolute_path": "/Users/wongdowling/Documents/VERITAS/results/jepa/20261016_wp2_waveform_covariance/EMPIRICAL_COVARIANCE.npy",
+    "bytes": 33554560,
+    "sha256": "9da3edecdcab1f343e2b59f52dea236932d4123b321aaa3e6af787ae6395e200",
+    "retention": "local raw artifact, deliberately not committed; available to independent reviewer"
+  }
+]
