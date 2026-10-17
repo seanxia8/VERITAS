@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 17:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 18:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -54,9 +54,11 @@ Updated: 2026-10-17 17:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   pid 57774), attempt_003, W=1, 57 rows, ETA ~20:30 local. Handoff notes in
   `results/jepa/20261017_wp3_e1b/NEXT_SESSION_HANDOFF.md`. Long local runs must be detached
   (attempt_002/003 were lost to agent-turn reaping); every further long run is launched detached.
-- Titan: β development cohort running (`wp4a_beta_dev`), β=0.1 and β=1 complete (~2014 s each),
-  β=10 running; `beta_decision.json` expected ~18:10 local, then the nine bridge runs as three
-  parallel guard-gated jobs (GPUs 0/2/3).
+- Titan: **β development cohort complete**; **β = 10 selected** (scores 0.104152 / 0.104057 /
+  0.097206); recorded in DECISIONS. The 12-run bridge grid is launching as four jobs of three runs
+  (sigreg_jepa, anchored at β=10, mae_chi2 in parallel on GPUs 0/2/3; the parallel-attention
+  ablation as job D when a slot frees), ~25-30 min/run, outputs under
+  `returns/wp4a_grid_*`. Data root cache warm (~2 GB, 56 entries).
 - **Preliminary WP4a finding**: on the benchmark run, the amplitude-preservation probe is
   representation-dependent — read-out tokens mean R² 0.912 (criterion met) but the post-time-block
   representation 0.808 (criterion < 0.9, random-init floor 0.738). Registered criterion therefore
