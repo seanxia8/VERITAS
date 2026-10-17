@@ -1,0 +1,1119 @@
+{
+  "artifact": "results/jepa/20261016_wp3_E1_BUDGET_PROJECTION.json",
+  "status": "PROJECTION ONLY \u2014 not execution; no gate is cleared by this file",
+  "generated_utc": "2026-10-16T19:55:13Z",
+  "author": "budget-projection (bounded implementer)",
+  "provenance": {
+    "runbook_path": "docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md",
+    "runbook_sha256": "5f8de710a39e74a6f76235eeaf46c4df0907bfbe5145b1d3aa88e3a9fff1e6cd",
+    "runbook_sha256_expected": "5f8de710a39e74a6f76235eeaf46c4df0907bfbe5145b1d3aa88e3a9fff1e6cd",
+    "runbook_sha256_matches_expected": true,
+    "fixed_base_sha": "0cae6b061e488e319643cfb0ba820318b8923578",
+    "registration_sha": "f36c179ad5efca3305379ed3143ddd545b02c760",
+    "code_head_sha": "f021d3c19e22acf485d97318e7b0f104730e6c57",
+    "branch": "JEPA",
+    "code_head_note": "HEAD is the resumed-execution checkpoint commit; the projection is bound to the runbook hash and code HEAD at the time of measurement",
+    "resource_ledger_path": "docs/jepa/RESOURCE_LEDGER.json",
+    "resource_ledger_sha256": "9069ad094fa90f294630f1b8d129797da0d0d6fc03cc5afd8899202893c4b0ee",
+    "measurement_script": "results/jepa/20261016_wp3_E1_budget_benchmark.py",
+    "measurement_script_sha256": "a28e1b6dd76ca7f4113f854a21f7e168efa9e09e82cc622f1e9c5b22d8c4da69",
+    "benchmark_environment": {
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "PYTHONPATH": "src",
+      "RECONSTRUCTION_DISABLE_TORCH_COMPILE": "1",
+      "cpu_count": 10,
+      "machine": "arm64",
+      "numpy": "1.26.4",
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "python": "3.11.11",
+      "started_utc": "2026-10-16T19:53:23Z"
+    },
+    "benchmark_total_seconds": 109.84525,
+    "benchmark_max_block_seconds": 108.95329,
+    "runbook_3_2_constraints_observed": [
+      "each benchmark block is far below the 600 s (ten CPU minute) ceiling",
+      "one thread per BLAS/OMP/MKL variable as runbook Sec.3.1 requires",
+      "no full campaign, sample grid, 100000-step trajectory or GPU work was run",
+      "already-recorded RESOURCE_LEDGER timings are reused rather than re-run (9-cell E1b population eligibility)"
+    ]
+  },
+  "a3_status": {
+    "document": "docs/jepa/E1_PROBE_CONFIG_PROPOSAL.md",
+    "status": "UNAPPROVED",
+    "author_requested_revision": "2026-10-16, E1a probe cohort size under author revision",
+    "consequence": "Every A3-derived cohort, row-labelling and probe-fitting term is flagged a3_dependent=true and the whole projection is parametric in n_probe_ea. No A3 default is adopted as authorized.",
+    "approved_amendments_not_at_issue": [
+      "A1 (GATE_G5.md): E1b waveform law",
+      "A2 (E1C_CONFIG_PROPOSAL.md): E1c sample/loss binding"
+    ],
+    "a3_dependent_terms": [
+      "e1a_covariance_accumulation",
+      "e1a_solver_fits",
+      "e1a_probe_cohort_generation",
+      "e1a_probe_ridge_fits",
+      "e1a_probe_evaluation_and_embedding",
+      "e1a_crlb_of",
+      "e1b_calibration_noise",
+      "e1b_probe_cohort_generation",
+      "e1b_criterion_M_records",
+      "e1b_solver_fits",
+      "e1b_probe_oracle_preprocess_and_embedding",
+      "e1b_probe_ridge_fits_and_evaluation",
+      "e1b_criterion_M_scoring",
+      "r3_transformed_diagnostic_checks",
+      "e1_development_searches"
+    ]
+  },
+  "accounting_rule": {
+    "rule": "CPU = aggregate worker-hours / fixed allocated workers, plus serial preparation/evaluation time; also an active wall-clock cap (runbook Sec.3.2). GPU summed per device.",
+    "failed_attempts": "included (failed_attempts_allowance component, 5 percent of deterministic parallel work)",
+    "reserve": "25 percent applied once to the whole projection (parallel + serial)",
+    "already_charged_cpu_hours": 0.9951256591319602,
+    "already_charged_source": "RESOURCE_LEDGER.json campaigns.E1.charged_cpu_hours (0.9951256591319602 h) \u2014 preparation/check/preflight charges, reported separately and not double counted",
+    "cpu_cap_hours": 24,
+    "gpu_cap_hours": 0,
+    "gpu_hours_projected": 0,
+    "allocated_workers_in_ledger": null
+  },
+  "assumed_worker_allocation": {
+    "assumed_workers": 1,
+    "basis": "RESOURCE_LEDGER.json: allocated_workers is null and the note states one worker is accounting only for serial setup/checks while the Deepthought formula cap 32 is not a reservation. One worker is therefore the only recorded allocation, so it is the conservative substitution point.",
+    "substitution_instruction": "The orchestrator can substitute the final allocation W; wall hours = parallel_worker_hours / W + serial_wall_hours. The table below already does this for W=1..64.",
+    "memory_and_load_constraint": "E1b n=100000 float64 raw data is 1.64 GB per cohort before context/target slices; the local 16 GB host was at load average ~6 during measurement. Runbook Sec.3.1 caps workers by memory and load, so a large worker count is not assumed even though the 24 h cap would allow it.",
+    "serial_component_hours_incl_reserve": 2.81359,
+    "parallel_worker_hours_incl_reserve": 10.052068
+  },
+  "n_probe_ea": {
+    "definition": "E1a probe cohort size (probe-training events, with an equal independent probe-test cohort), A3 Sec.1 proposal 10000, under author revision",
+    "baseline_used": 10000,
+    "baseline_is_authorized": false,
+    "affects": [
+      "e1a_probe_cohort_generation",
+      "e1a_probe_ridge_fits",
+      "e1a_probe_evaluation_and_embedding",
+      "e1b_probe_cohort_generation",
+      "e1b_probe_oracle_preprocess_and_embedding",
+      "e1b_probe_ridge_fits_and_evaluation"
+    ]
+  },
+  "components": {
+    "parallel_worker_components": [
+      {
+        "id": "e1a_subject_generation",
+        "description": "E1a subject + built-in calibration draws, 630 datasets at n=1e3/1e4/1e5",
+        "count_formula": "210 datasets x (sample(1e3)+sample(1e4)+sample(1e5)); each sample() also draws n calibration-noise records",
+        "count": 630.0,
+        "unit": "dataset",
+        "unit_seconds": 0.057103167,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "A.generation[n].dataset_seconds",
+        "total_seconds": 35.974995,
+        "a3_dependent": false,
+        "a3_dependency_note": "counts and n are runbook-fixed; A3's n_cal=n_subject clause adds no separate E1a generation call because ExactModel.sample already draws n calibration records",
+        "conservatism": "uses measured per-dataset times including the auxiliary calibration draw; no favourable reduction assumed"
+      },
+      {
+        "id": "e1a_covariance_accumulation",
+        "description": "E1a subject sample covariance + independent noise-calibration sample covariance (A3 n_cal=n_subject)",
+        "count_formula": "2 accumulations (subject ridge 1e-6, calibration unregularized divisor n-1) x 210 datasets x 3 n",
+        "count": 1260.0,
+        "unit": "covariance accumulation",
+        "unit_seconds": 0.011453489,
+        "unit_seconds_basis": "scaled_from_measured",
+        "measurement_ref": "A.sample_covariance_ridge_n100000_d40_seconds linearly scaled in n",
+        "total_seconds": 14.431396,
+        "a3_dependent": true,
+        "a3_dependency_note": "n_cal=n_subject and the separate calibration-covariance role are A3 clauses",
+        "conservatism": "linear-in-n scaling from one measured n=1e5 point; d=40 so the term is negligible either way"
+      },
+      {
+        "id": "e1a_solver_fits",
+        "description": "E1a 9 representation rows per dataset (CCA, hard-isotropy, PCA, whitened PCA, GEVP, 3x finite-beta, oracle) + 630 OF rows",
+        "count_formula": "630 datasets x 9 representation rows at d=40, plus 630 OF rows",
+        "count": 6300.0,
+        "unit": "method/settings record",
+        "unit_seconds": 0.011728248,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "A.solvers_d40_seconds",
+        "total_seconds": 73.88796,
+        "a3_dependent": true,
+        "a3_dependency_note": "the ten-row method/noise-information tabulation is A3 Sec.3; the methods themselves are runbook WP3",
+        "conservatism": "measured per-row solver set summed over all rows including the three finite-beta arms"
+      },
+      {
+        "id": "e1a_probe_cohort_generation",
+        "description": "E1a independent probe-training + probe-test cohorts (parametric in n_probe_ea)",
+        "count_formula": "210 paired cohorts x 2 partitions x n_probe_ea events (baseline n_probe_ea=10000)",
+        "count": 4200000.0,
+        "unit": "event",
+        "unit_seconds": 2.9763749e-06,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "A.generation per-event (max over measured n)",
+        "total_seconds": 12.500775,
+        "a3_dependent": true,
+        "a3_dependency_note": "the 10000+10000 per-cell probe cohort size is A3 Sec.1 and is under author revision",
+        "conservatism": "max measured per-event time over n=1e3/1e4/1e5 used for every cohort"
+      },
+      {
+        "id": "e1a_probe_ridge_fits",
+        "description": "E1a grouped ridge probes: 5 alphas x 5 grouped folds + final refit per valid output",
+        "count_formula": "5670 representation records x 4 outputs = 22680 grouped_ridge output calls; 26 fit_ridge calls each = 589680 fits",
+        "count": 589680.0,
+        "unit": "fit_ridge call",
+        "unit_seconds": 0.00071956931,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "D.grouped_ridge_4outputs_n10000_dim3_seconds / 4",
+        "total_seconds": 424.31563,
+        "a3_dependent": true,
+        "a3_dependency_note": "probe cohort size, 5-block grouping and the 4-output target set are A3 clauses",
+        "conservatism": "uses the baseline n_probe_ea=10000 cohort; sweep in sensitivity_n_probe_ea"
+      },
+      {
+        "id": "e1a_probe_evaluation_and_embedding",
+        "description": "E1a frozen-embedding extraction and one independent probe-test evaluation per output",
+        "count_formula": "5670 records x (2 partitions x 10000 events) embedding extraction + 22680 evaluations",
+        "count": 113400000.0,
+        "unit": "event",
+        "unit_seconds": 2.1814601e-08,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "D.embedding_extract_per_20000_events_e1a_context_d40_seconds + D.evaluate_4outputs_seconds",
+        "total_seconds": 8.6276195,
+        "a3_dependent": true,
+        "a3_dependency_note": "probe cohort size and partitions are A3 clauses",
+        "conservatism": "embedding extraction charged on both partitions for every record"
+      },
+      {
+        "id": "e1a_crlb_of",
+        "description": "E1a exact Fisher/CRLB and context GLS OF baseline per dataset",
+        "count_formula": "630 datasets x (fisher + crlb + OF solve) at d=40",
+        "count": 630.0,
+        "unit": "dataset",
+        "unit_seconds": 0.00056320895,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "A.solvers_d40_seconds",
+        "total_seconds": 0.35482164,
+        "a3_dependent": true,
+        "a3_dependency_note": "row 10 (OF) is A3 Sec.3; CRLB is runbook Sec.4.2",
+        "conservatism": "counts every dataset even though the Fisher is n-independent"
+      },
+      {
+        "id": "e1b_view_construction",
+        "description": "Tier1Views A1 waveform-law construction per view dataset (2048x2048 covariance, common basis, J0)",
+        "count_formula": "45 raw cohorts x 4 splits = 180 constructions",
+        "count": 180.0,
+        "unit": "construction",
+        "unit_seconds": 0.0595725,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].construct_seconds",
+        "total_seconds": 10.72305,
+        "a3_dependent": false,
+        "a3_dependency_note": "the nine fixed A1 cells, four registered splits and five seeds are approved law, not A3",
+        "conservatism": "uses the largest measured steady-state construction time; the 0.78 s cold first-call is charged to serial"
+      },
+      {
+        "id": "e1b_subject_generation",
+        "description": "E1b raw subject cohorts, 45 x n=100000 (per-event Python loop)",
+        "count_formula": "45 cohorts x 100000 events",
+        "count": 4500000.0,
+        "unit": "event",
+        "unit_seconds": 0.00023184933,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].subject_sample_per_event_seconds (max)",
+        "total_seconds": 1043.322,
+        "a3_dependent": false,
+        "a3_dependency_note": "n=100000 per cell/seed is runbook WP3",
+        "conservatism": "max per-event time over splits; generation is a per-event loop so cost is linear in events"
+      },
+      {
+        "id": "e1b_calibration_noise",
+        "description": "E1b independent noise-only calibration records for sample GEVP/finite-beta controls",
+        "count_formula": "45 cells x 100000 records (A3 n_cal=100000 per E1b cell/seed)",
+        "count": 4500000.0,
+        "unit": "record",
+        "unit_seconds": 0.00019567633,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].noise_record_per_event_seconds (max)",
+        "total_seconds": 880.5435,
+        "a3_dependent": true,
+        "a3_dependency_note": "n_cal=100000 per E1b cell/seed is an A3 Sec.1 clause",
+        "conservatism": "independently charged in addition to the subject cohorts; not replaced by exact covariance"
+      },
+      {
+        "id": "e1b_probe_cohort_generation",
+        "description": "E1b independent probe-training + probe-test raw cohorts (parametric in n_probe_ea)",
+        "count_formula": "45 paired cohorts x 2 partitions x n_probe_ea events (baseline 10000)",
+        "count": 900000.0,
+        "unit": "event",
+        "unit_seconds": 0.00023184933,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].subject_sample_per_event_seconds (max)",
+        "total_seconds": 208.6644,
+        "a3_dependent": true,
+        "a3_dependency_note": "probe cohort size is A3 Sec.1 and under author revision",
+        "conservatism": "reuses the subject-batch per-event cost for probe batches"
+      },
+      {
+        "id": "e1b_criterion_M_records",
+        "description": "Criterion-M development records for the A3-proposed E1b setting (line 1.5, common .45, dev seed 100)",
+        "count_formula": "4096 event records + 4096 independent noise records",
+        "count": 8192.0,
+        "unit": "record",
+        "unit_seconds": 0.00021376283,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].subject_sample/noise_record per event",
+        "total_seconds": 1.7511451,
+        "a3_dependent": true,
+        "a3_dependency_note": "the M development setting choice is A3 Sec.4; the 4096+4096 counts are runbook Sec.2.3",
+        "conservatism": "both record types generated separately; the M scoring step itself is separately estimated"
+      },
+      {
+        "id": "e1c_training_data",
+        "description": "E1c A2 fixed n=100000 paired batch per seed/gamma + empirical moments",
+        "count_formula": "2 gammas x 5 seeds = 10 batches; sample(1e5) at d=40 + empirical_moments",
+        "count": 10.0,
+        "unit": "batch",
+        "unit_seconds": 0.1822535,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "A.generation['100000'] + C.moment_build_n100000_d40_seconds",
+        "total_seconds": 1.822535,
+        "a3_dependent": false,
+        "a3_dependency_note": "E1c data/loss binding is approved A2, not A3",
+        "conservatism": "uses the measured ExactModel.sample(1e5) time at d=40 including its auxiliary calibration draws"
+      },
+      {
+        "id": "e1b_subject_sample_covariances",
+        "description": "E1b subject sample covariance blocks (context/target/cross) per view dataset at n=100000",
+        "count_formula": "180 view datasets x 3 moment products at that split's dimensions",
+        "count": 180.0,
+        "unit": "view dataset",
+        "unit_seconds": 27.286926,
+        "unit_seconds_basis": "scaled_from_measured",
+        "measurement_ref": "B.splits[*].sample_covariance_10000_events_seconds x10 (linear in n)",
+        "total_seconds": 4911.6467,
+        "a3_dependent": false,
+        "a3_dependency_note": "needed by the runbook CCA/finite-beta/predictor arms independently of A3 row labelling",
+        "conservatism": "linear-in-n scaling from a measured n=10000 accumulation; no BLAS blocking saving assumed"
+      },
+      {
+        "id": "e1b_solver_fits",
+        "description": "E1b 9 representation rows per view dataset (CCA, hard-isotropy, PCA, whitened PCA, GEVP, 3x finite-beta, oracle) + 180 OF rows",
+        "count_formula": "180 view datasets x 9 representation rows at 384/768/1024 dimensions + 180 OF rows",
+        "count": 1800.0,
+        "unit": "view dataset solver set",
+        "unit_seconds": 2.1997401,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].solvers_seconds",
+        "total_seconds": 3959.5321,
+        "a3_dependent": true,
+        "a3_dependency_note": "the ten-row method/noise-information tabulation is A3 Sec.3",
+        "conservatism": "sums every row including all three finite-beta betas and the 2048-dim joint oracle solve"
+      },
+      {
+        "id": "e1b_oracle_transform",
+        "description": "E1b retained-marginal inverse-Cholesky oracle transform (gap/unused coordinates discarded)",
+        "count_formula": "180 view datasets x one 768/1536/2048 inverse-Cholesky factorization",
+        "count": 180.0,
+        "unit": "transform",
+        "unit_seconds": 0.81495864,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].retained_oracle_transform_seconds",
+        "total_seconds": 146.69255,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook Sec.4.1/P5 requires the retained-marginal transform",
+        "conservatism": "measured at the real retained dimensions; SPD rejection is not charged separately"
+      },
+      {
+        "id": "e1b_oracle_preprocess_subject",
+        "description": "E1b oracle preprocessing of every subject cohort (whiten retained coordinates, zero unused)",
+        "count_formula": "45 cohorts x 4 splits x 100000 events x retained-dim dense transform",
+        "count": 18000000.0,
+        "unit": "event",
+        "unit_seconds": 0.00018603337,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].oracle_preprocess_per_event_seconds",
+        "total_seconds": 3348.6007,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook Sec.4.1 oracle path applies to the sample data",
+        "conservatism": "uses each split's measured per-event matmul cost at n=2000 and scales linearly in events"
+      },
+      {
+        "id": "e1b_oracle_path_covariance",
+        "description": "E1b sample moments of the oracle-preprocessed subject data (retained 768/1536/2048 dimensions)",
+        "count_formula": "45 cohorts x 4 splits x 3 moment products at retained dimensions, n=100000",
+        "count": 180.0,
+        "unit": "split accumulation",
+        "unit_seconds": 27.002873,
+        "unit_seconds_basis": "scaled_from_measured",
+        "measurement_ref": "B.splits[*].oracle_path_covariance_10000_events_seconds x10",
+        "total_seconds": 4860.5172,
+        "a3_dependent": false,
+        "a3_dependency_note": "the oracle arm's whitened CCA needs these moments",
+        "conservatism": "linear-in-n scaling; retained 2048x2048 products are the dominant measured term"
+      },
+      {
+        "id": "e1b_probe_oracle_preprocess_and_embedding",
+        "description": "E1b probe cohorts: oracle context preprocessing + frozen embedding extraction on both partitions",
+        "count_formula": "45 cohorts x 2 partitions x n_probe_ea oracle preprocess + 1620 records x 2 partitions x n_probe_ea embeddings",
+        "count": 900000.0,
+        "unit": "probe event",
+        "unit_seconds": 0.00077974132,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "B.splits[*].oracle_preprocess_per_event_seconds; D.embedding_extract_e1b per event",
+        "total_seconds": 701.76719,
+        "a3_dependent": true,
+        "a3_dependency_note": "probe cohort size and oracle-embedding pullback are A3 Sec.1-2",
+        "conservatism": "per-split oracle rates averaged with equal weight; embedding cost charged for all 1620 records"
+      },
+      {
+        "id": "e1b_probe_ridge_fits_and_evaluation",
+        "description": "E1b grouped ridge probes over the 51 valid outputs per cell (three physics + nonconstant nuisance)",
+        "count_formula": "9180 grouped_ridge output calls x 26 fits = 238680 fits, plus 9180 independent probe-test evaluations",
+        "count": 238680.0,
+        "unit": "fit_ridge call",
+        "unit_seconds": 0.00073000521,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "D.grouped_ridge_4outputs_n10000_dim3_seconds / 4",
+        "total_seconds": 174.23764,
+        "a3_dependent": true,
+        "a3_dependency_note": "the 51-output valid-target accounting and probe cohort size are A3 clauses",
+        "conservatism": "uses all 51 valid outputs per cell, including the shared intersection cell once per display-selected set"
+      },
+      {
+        "id": "e1b_crlb_of",
+        "description": "E1b exact Fisher/CRLB and context GLS OF baseline per view dataset",
+        "count_formula": "180 view datasets x (fisher + crlb + OF solve) at 384/768/1024 dimensions",
+        "count": 180.0,
+        "unit": "view dataset",
+        "unit_seconds": 0.6541427,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "B.splits[*].solvers_seconds",
+        "total_seconds": 117.74569,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook Sec.4.2 CRLB and WP3 OF baseline",
+        "conservatism": "measured with the real split dimensions; every split charged"
+      },
+      {
+        "id": "e1b_criterion_M_scoring",
+        "description": "Criterion-M projected covariance/eigensolve for four candidate splits (surrogate: M is not implemented)",
+        "count_formula": "4 candidate splits x (8-dim projected covariance + eigensolve) on 4096+4096 records",
+        "count": 4.0,
+        "unit": "candidate split",
+        "unit_seconds": 0.001091083,
+        "unit_seconds_basis": "estimated_surrogate",
+        "measurement_ref": "B.criterion_M_projection_surrogate_seconds",
+        "total_seconds": 0.0043643322,
+        "a3_dependent": true,
+        "a3_dependency_note": "M scope/setting in E1 is A3 Sec.4; the projection, k=3 and tie rule are runbook Sec.2.3",
+        "conservatism": "surrogate timing only; M has no package implementation, so the scoring step is an estimate and record generation is charged separately"
+      },
+      {
+        "id": "e1c_gd_execution",
+        "description": "E1c tied stop-gradient full-batch GD at the registered 100000-step horizon",
+        "count_formula": "2 gammas x 5 seeds x 3 depths = 30 runs x 100000 steps",
+        "count": 3000000.0,
+        "unit": "GD step",
+        "unit_seconds": 0.00016122648,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "C.per_step_seconds (2000-step engineering horizon, explicitly incomplete)",
+        "total_seconds": 483.67944,
+        "a3_dependent": false,
+        "a3_dependency_note": "horizon, depths, learning rate and loss are approved A2 and runbook Sec.4.2",
+        "conservatism": "per-step cost includes mode-contribution measurements every step; scaled to the full registered horizon, not a shortened campaign"
+      },
+      {
+        "id": "e1c_curve_serialization",
+        "description": "E1c per-step trajectory persistence and hashing (100001 rows per run)",
+        "count_formula": "30 runs x 100001 rows x 4 measurements (3.2 MB per run), written and hashed",
+        "count": 30.0,
+        "unit": "run",
+        "unit_seconds": 0.5,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "measured local write (0.0106 s) and sha256 (0.0293 s) per 64 MiB in block E",
+        "total_seconds": 15.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook completion requires per-step curves and SHA256SUMS",
+        "conservatism": "0.5 s per 3.2 MB run is an estimated envelope above the measured local throughput (sums to 15.0 s); JSON/checkpoint overhead is not measured"
+      },
+      {
+        "id": "r3_transformed_diagnostic_checks",
+        "description": "R3 transformed/unregularized invariance diagnostics (not extra method rows)",
+        "count_formula": "1 extra CCA-equivalent eigendecomposition per representation record: 5670 E1a + 1620 E1b (count estimated; A3 fixes no count)",
+        "count": 7290.0,
+        "unit": "diagnostic eigenproblem",
+        "unit_seconds": 0.48411227,
+        "unit_seconds_basis": "measured",
+        "measurement_ref": "A.solvers_d40_seconds['cca']; B.splits[*].solvers_seconds['cca']",
+        "total_seconds": 3529.1785,
+        "a3_dependent": true,
+        "a3_dependency_note": "A3 Sec.2 states R3 transformed checks must be charged but does not fix their count",
+        "conservatism": "one transformation/eigendecomposition per record; extra invertible-map products are not separately measured, so the true count may be higher"
+      },
+      {
+        "id": "population_eligibility_checks",
+        "description": "E1a population rank/canonical eligibility and noise-weighted reference checks",
+        "count_formula": "42 theta/eta/gamma cells x (population identity + oracle rank/canonical eligibility)",
+        "count": 42.0,
+        "unit": "cell",
+        "unit_seconds": 2.8571429,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "A.population_call_seconds + A.solvers_d40_seconds['oracle'] scaled to a conservative envelope",
+        "total_seconds": 120.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook WP2/WP3 require population eligibility before grids; E1b 9-cell population eligibility is already computed and charged in RESOURCE_LEDGER.json",
+        "conservatism": "conservative 120 s envelope although the measured per-cell cost is milliseconds; E1b population eligibility is NOT re-charged because it is seed-independent and already recorded"
+      },
+      {
+        "id": "prelaunch_benchmark_phase",
+        "description": "Runbook Sec.3.2 pre-launch benchmark phase charged to E1",
+        "count_formula": "up to 3 representative benchmark blocks at the 600 s per-benchmark ceiling",
+        "count": 3.0,
+        "unit": "benchmark block",
+        "unit_seconds": 600.0,
+        "unit_seconds_basis": "estimated_conservative",
+        "measurement_ref": "this session's measured blocks A-E totalled 109.8 s inside one 600 s ceiling",
+        "total_seconds": 1800.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "no E1 scientific choice in the benchmark phase; it is charged to the campaign by runbook Sec.3.2",
+        "conservatism": "charged at the ceiling even though the measured representative set used 109.8 s"
+      },
+      {
+        "id": "e1_engineering_tests_and_fixtures",
+        "description": "E1 unit tests, diagonal-covariance dynamics fixture, annihilation and gradient/stop-gradient fixtures",
+        "count_formula": "conservative envelope covering repeated pytest runs of src/jepa_noise/tests plus the separate diagonal fixture",
+        "count": 1.0,
+        "unit": "envelope",
+        "unit_seconds": 300.0,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "RESOURCE_LEDGER.json records 0.56-0.83 s per pytest run and 0.14 s for the 8-test dynamics suite",
+        "total_seconds": 300.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook WP2/WP3 require the diagonal fixture, gradient and annihilation controls before grids",
+        "conservatism": "300 s envelope is far above the measured sub-second suites; retained so repeated repair/review cycles are not free"
+      },
+      {
+        "id": "e1_development_searches",
+        "description": "E1 development coefficient searches",
+        "count_formula": "none registered: finite-beta betas .1/1/10 are prespecified arms and E1c has no tuning (A2)",
+        "count": 0.0,
+        "unit": "search",
+        "unit_seconds": 0.0,
+        "unit_seconds_basis": "not_applicable",
+        "measurement_ref": "A3 Sec.3 and E1C_CONFIG_PROPOSAL.md A2",
+        "total_seconds": 0.0,
+        "a3_dependent": true,
+        "a3_dependency_note": "A3 confirms no beta selection or development tuning is added in E1",
+        "conservatism": "zero by contract, not by favourable assumption; adding a search would require G5"
+      },
+      {
+        "id": "failed_attempts_allowance",
+        "description": "Failed/timeout/retried E1 attempts (runbook Sec.3.2 counts failed attempts)",
+        "count_formula": "5 percent of the deterministic parallel subtotal 27185.5 s plus the serial subtotal 8103.1 s",
+        "count": 1.0,
+        "unit": "allowance",
+        "unit_seconds": 1764.4326,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "RESOURCE_LEDGER.json failure history (600 s remote timeout exit124, exit-1 test, storage recovery)",
+        "total_seconds": 1764.4326,
+        "a3_dependent": false,
+        "a3_dependency_note": "not A3-specific",
+        "conservatism": "5 percent is a planning allowance, not a measured failure rate; the ledger shows at least one 600 s failed attempt and one exit-1 test already"
+      }
+    ],
+    "serial_components": [
+      {
+        "id": "reporting_and_figures",
+        "description": "F1-F4 figures, E1 tables and byte-identical PREDICTIONS.md regeneration (run twice)",
+        "count_formula": "4 figures + full-record aggregation over 8100 method records and 30 trajectories + two report regenerations",
+        "count": 1.0,
+        "unit": "serial envelope",
+        "unit_seconds": 2400.0,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "report.py exists but the E1 empirical aggregation is not implemented; no timing measurable",
+        "total_seconds": 2400.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook WP3 outputs F1-F4; completion requires byte-identical regeneration",
+        "conservatism": "conservative serial envelope with 3x uncertainty; not measured because the aggregation code does not exist yet"
+      },
+      {
+        "id": "artifact_transfer_and_hashing",
+        "description": "Return-artifact transfer and SHA256 inventory for all E1 outputs",
+        "count_formula": "assumed 5 GB artifact inventory at the measured local hash rate 2292 MB/s plus rsync serialization",
+        "count": 1.0,
+        "unit": "serial envelope",
+        "unit_seconds": 1200.0,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "E.sha256_MB_per_s measured locally; network transfer NOT measured (remote host is STOP)",
+        "total_seconds": 1200.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook Sec.1.2 requires hash inventories and orchestrator return verification",
+        "conservatism": "remote transfer is an estimate with 5x uncertainty; no remote throughput could be measured because the sole remote environment attempt is a preserved STOP"
+      },
+      {
+        "id": "coordinator_serial_overhead",
+        "description": "Coordinator ledger updates, config/manifest freezing, stop/launch, checkpoint receipt and evaluation aggregation",
+        "count_formula": "1 serial envelope covering the full campaign wave structure",
+        "count": 1.0,
+        "unit": "serial envelope",
+        "unit_seconds": 3600.0,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "RESOURCE_LEDGER.json preparation/check charges 0.995 h already spent before any grid",
+        "total_seconds": 3600.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook Sec.1.2/3.2 coordinator-owned ledger and per-job remaining-budget allocation",
+        "conservatism": "conservative 1 h serial envelope; the already-spent 0.995 h is reported separately and not double counted"
+      },
+      {
+        "id": "independent_review_recompute",
+        "description": "Fresh-context independent reviewer recomputation of E1 raw statistics (WP3/WP5/final closeout)",
+        "count_formula": "one conservative serial envelope for pytest reruns, hashes, raw-statistic recomputation and review evidence",
+        "count": 1.0,
+        "unit": "serial envelope",
+        "unit_seconds": 900.0,
+        "unit_seconds_basis": "estimated",
+        "measurement_ref": "RESOURCE_LEDGER.json records reviewer_initial 0.82 s and fresh_checkpoint_independent_review 4 s for bounded checks",
+        "total_seconds": 900.0,
+        "a3_dependent": false,
+        "a3_dependency_note": "runbook Sec.1.4 requires a fresh-context independent reviewer who recomputes required statistics",
+        "conservatism": "estimated with 3x uncertainty; agent reasoning time itself is not experiment compute, only reruns are charged"
+      },
+      {
+        "id": "cold_start_and_import_overhead",
+        "description": "Per-wave cold process start/import overhead for benchmark and grid processes",
+        "count_formula": "4 cold starts at the measured first-call construction cost 0.78 s",
+        "count": 4.0,
+        "unit": "cold start",
+        "unit_seconds": 0.78241104,
+        "unit_seconds_basis": "measured_proxy",
+        "measurement_ref": "B.splits['time'].construct_seconds (first call, includes source imports)",
+        "total_seconds": 3.1296442,
+        "a3_dependent": false,
+        "a3_dependency_note": "infrastructure only",
+        "conservatism": "uses the measured cold first-call time as a proxy; per-process interpreter start is not separately measured"
+      }
+    ]
+  },
+  "subtotals_by_phase": {
+    "note": "grouped subtotals of this projection; serial and parallel are reported separately in subtotals",
+    "e1a_generation_calibration": 63.261988,
+    "e1a_solvers_and_probes": 506.83121,
+    "e1b_generation_calibration": 2134.2854,
+    "e1b_solvers": 12648.826,
+    "e1b_oracle": 9057.5776,
+    "e1b_probes": 174.23764,
+    "e1c": 500.50198,
+    "reporting_transfer_serial": 7203.1296,
+    "benchmark_phase": 2100.0,
+    "review_serial": 900.0,
+    "failed_attempts": 1764.4326,
+    "development_searches": 0.0
+  },
+  "subtotals": {
+    "parallel_worker_seconds_excluding_reserve": 28949.955,
+    "parallel_worker_hours_excluding_reserve": 8.041654,
+    "serial_seconds_excluding_reserve": 8103.1296,
+    "serial_hours_excluding_reserve": 2.2508693,
+    "parallel_worker_hours_incl_reserve": 10.052068,
+    "serial_hours_incl_reserve": 2.8135867,
+    "failed_attempts_seconds": 1764.4326
+  },
+  "grand_total": {
+    "grand_total_seconds_excluding_reserve": 37053.084,
+    "grand_total_worker_hours_excluding_reserve": 10.292523,
+    "reserve_25pct_seconds": 9263.271,
+    "grand_total_seconds_including_reserve": 46316.355,
+    "grand_total_worker_hours_including_reserve": 12.865654,
+    "plus_already_charged_cpu_hours": 0.9951256591319602,
+    "cumulative_e1_cpu_hours_including_charge_and_reserve": 13.86078,
+    "cumulative_vs_24h_cap_hours": 13.86078,
+    "arithmetic_at_assumed_allocation": "(parallel_worker_hours_incl_reserve 10.0521 h / 1 assumed worker(s)) + serial_hours_incl_reserve 2.8136 h + already_charged 0.9951 h = 13.8608 h",
+    "cap_headroom_hours": 10.13922
+  },
+  "cap_comparison": {
+    "cap_wall_hours": 24,
+    "assumed_workers": 1,
+    "formula": "cumulative_hours(W) = (parallel_worker_hours_incl_reserve / W) + serial_hours_incl_reserve + already_charged_cpu_hours",
+    "at_assumed_allocation": {
+      "workers": 1,
+      "parallel_worker_hours_incl_reserve": 10.052068,
+      "wall_hours_from_parallel": 10.0521,
+      "serial_wall_hours": 2.81359,
+      "campaign_wall_hours_incl_reserve": 12.8657,
+      "cumulative_incl_already_charged_hours": 13.8608,
+      "fits_24h_cap": true,
+      "exceeds_by_hours": 0.0
+    },
+    "table_1_to_64_workers": [
+      {
+        "workers": 1,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 10.0521,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 12.8657,
+        "cumulative_incl_already_charged_hours": 13.8608,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 2,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 5.02603,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 7.83962,
+        "cumulative_incl_already_charged_hours": 8.83475,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 3,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 3.35069,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 6.16428,
+        "cumulative_incl_already_charged_hours": 7.1594,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 4,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 2.51302,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 5.3266,
+        "cumulative_incl_already_charged_hours": 6.32173,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 6,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 1.67534,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 4.48893,
+        "cumulative_incl_already_charged_hours": 5.48406,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 8,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 1.25651,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 4.0701,
+        "cumulative_incl_already_charged_hours": 5.06522,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 12,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 0.837672,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 3.65126,
+        "cumulative_incl_already_charged_hours": 4.64638,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 16,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 0.628254,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 3.44184,
+        "cumulative_incl_already_charged_hours": 4.43697,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 24,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 0.418836,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 3.23242,
+        "cumulative_incl_already_charged_hours": 4.22755,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 32,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 0.314127,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 3.12771,
+        "cumulative_incl_already_charged_hours": 4.12284,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      },
+      {
+        "workers": 64,
+        "parallel_worker_hours_incl_reserve": 10.052068,
+        "wall_hours_from_parallel": 0.157064,
+        "serial_wall_hours": 2.81359,
+        "campaign_wall_hours_incl_reserve": 2.97065,
+        "cumulative_incl_already_charged_hours": 3.96578,
+        "fits_24h_cap": true,
+        "exceeds_by_hours": 0.0
+      }
+    ],
+    "cap_exceeded_for_any_W_ge_1": false,
+    "where_exceeded": "nowhere for W >= 1: the parallel aggregate including reserve is only 10.05 worker-hours, so even at one worker the cumulative projection is 13.86 h; the 24 h cap would only bind for a sub-one-worker allocation, which the runbook does not define",
+    "binding_constraint_observed": "host memory/load per runbook Sec.3.1, not the 24 h cap"
+  },
+  "measured_benchmark_provenance": {
+    "A_e1a_exact_model": {
+      "command": "PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 /private/tmp/jepa-venv-cpu311/bin/python results/jepa/20261016_wp3_E1_budget_benchmark.py",
+      "block_seconds": 0.21771,
+      "status": "ok",
+      "under_600s_ceiling": true,
+      "sizes": {
+        "n": [
+          1000,
+          10000,
+          100000
+        ],
+        "d": 40,
+        "k": 3
+      },
+      "scaling_rationale": "ExactModel.sample is fully vectorized; dataset time measured at three n and used directly."
+    },
+    "B_e1b_waveform": {
+      "command": "PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 /private/tmp/jepa-venv-cpu311/bin/python results/jepa/20261016_wp3_E1_budget_benchmark.py",
+      "block_seconds": 108.953287,
+      "status": "ok",
+      "under_600s_ceiling": true,
+      "sizes": {
+        "events_per_generation_timing": 2000,
+        "channels": 8,
+        "samples": 256,
+        "context_dims": {
+          "block": 384,
+          "channel": 1024,
+          "interleaved": 1024,
+          "time": 768
+        },
+        "retained_dims": {
+          "block": 768,
+          "channel": 2048,
+          "interleaved": 2048,
+          "time": 1536
+        },
+        "covariance_accumulation_events": 10000
+      },
+      "scaling_rationale": "Generation is an explicit per-event Python loop (namespace_rng + irfft per component), so cost is linear in event count; measured at 2000 events per split. Covariance and oracle-preprocessing matmuls are measured at 10000/2000 events and scaled linearly in events for n=100000; their dimension dependence is measured directly at each split's real dimensions."
+    },
+    "C_e1c_dynamics": {
+      "command": "PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 /private/tmp/jepa-venv-cpu311/bin/python results/jepa/20261016_wp3_E1_budget_benchmark.py",
+      "block_seconds": 0.392247,
+      "status": "ok",
+      "under_600s_ceiling": true,
+      "sizes": {
+        "steps": 2000,
+        "d": 40,
+        "depths_timed": 3,
+        "n": 100000
+      },
+      "scaling_rationale": "Per-step cost measured over 2000 engineering steps with registered d=40, depth 3 and n=1e5 fixed moments; linear in steps."
+    },
+    "D_probes": {
+      "command": "PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 /private/tmp/jepa-venv-cpu311/bin/python results/jepa/20261016_wp3_E1_budget_benchmark.py",
+      "block_seconds": 0.18126,
+      "status": "ok",
+      "under_600s_ceiling": true,
+      "sizes": {
+        "probe_train": 10000,
+        "feature_dim": 3,
+        "outputs": 4,
+        "groups": 5
+      },
+      "scaling_rationale": "grouped_ridge measured on the baseline A3 cohort size; per-fit cost scales linearly in cohort rows for fixed feature dimension."
+    },
+    "E_io_hashing": {
+      "command": "PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 /private/tmp/jepa-venv-cpu311/bin/python results/jepa/20261016_wp3_E1_budget_benchmark.py",
+      "block_seconds": 0.100742,
+      "status": "ok",
+      "under_600s_ceiling": true,
+      "sizes": {
+        "bytes": 67108864
+      },
+      "scaling_rationale": "Local sha256/write/read throughput on 64 MiB; network transfer not measurable."
+    }
+  },
+  "measured_reused_from_ledger": [
+    {
+      "id": "E1b_9cell_population_eligibility",
+      "ledger_jobs": [
+        "wp2_population_line075_common045",
+        "wp2_remaining_A1_population_cells"
+      ],
+      "measured_seconds": [
+        27.15736195887439,
+        220.71753883291967
+      ],
+      "reason_not_recharged": "population eligibility is seed-independent, so the nine fixed A1 cells x four splits already measured cover the full E1b population-check requirement; these charges are already inside charged_cpu_hours"
+    }
+  ],
+  "unmeasured_or_estimated_terms": [
+    {
+      "id": "e1a_covariance_accumulation",
+      "basis": "scaled_from_measured",
+      "total_seconds": 14.431396,
+      "uncertainty": "linear-in-n scaling from one measured n=1e5 point; d=40 so the term is negligible either way"
+    },
+    {
+      "id": "e1b_subject_sample_covariances",
+      "basis": "scaled_from_measured",
+      "total_seconds": 4911.6467,
+      "uncertainty": "linear-in-n scaling from a measured n=10000 accumulation; no BLAS blocking saving assumed"
+    },
+    {
+      "id": "e1b_oracle_path_covariance",
+      "basis": "scaled_from_measured",
+      "total_seconds": 4860.5172,
+      "uncertainty": "linear-in-n scaling; retained 2048x2048 products are the dominant measured term"
+    },
+    {
+      "id": "e1b_probe_oracle_preprocess_and_embedding",
+      "basis": "estimated",
+      "total_seconds": 701.76719,
+      "uncertainty": "per-split oracle rates averaged with equal weight; embedding cost charged for all 1620 records"
+    },
+    {
+      "id": "e1b_criterion_M_scoring",
+      "basis": "estimated_surrogate",
+      "total_seconds": 0.0043643322,
+      "uncertainty": "surrogate timing only; M has no package implementation, so the scoring step is an estimate and record generation is charged separately"
+    },
+    {
+      "id": "e1c_curve_serialization",
+      "basis": "estimated",
+      "total_seconds": 15.0,
+      "uncertainty": "0.5 s per 3.2 MB run is an estimated envelope above the measured local throughput (sums to 15.0 s); JSON/checkpoint overhead is not measured"
+    },
+    {
+      "id": "population_eligibility_checks",
+      "basis": "estimated",
+      "total_seconds": 120.0,
+      "uncertainty": "conservative 120 s envelope although the measured per-cell cost is milliseconds; E1b population eligibility is NOT re-charged because it is seed-independent and already recorded"
+    },
+    {
+      "id": "prelaunch_benchmark_phase",
+      "basis": "estimated_conservative",
+      "total_seconds": 1800.0,
+      "uncertainty": "charged at the ceiling even though the measured representative set used 109.8 s"
+    },
+    {
+      "id": "e1_engineering_tests_and_fixtures",
+      "basis": "estimated",
+      "total_seconds": 300.0,
+      "uncertainty": "300 s envelope is far above the measured sub-second suites; retained so repeated repair/review cycles are not free"
+    },
+    {
+      "id": "failed_attempts_allowance",
+      "basis": "estimated",
+      "total_seconds": 1764.4326,
+      "uncertainty": "5 percent is a planning allowance, not a measured failure rate; the ledger shows at least one 600 s failed attempt and one exit-1 test already"
+    },
+    {
+      "id": "reporting_and_figures",
+      "basis": "estimated",
+      "total_seconds": 2400.0,
+      "uncertainty": "conservative serial envelope with 3x uncertainty; not measured because the aggregation code does not exist yet"
+    },
+    {
+      "id": "artifact_transfer_and_hashing",
+      "basis": "estimated",
+      "total_seconds": 1200.0,
+      "uncertainty": "remote transfer is an estimate with 5x uncertainty; no remote throughput could be measured because the sole remote environment attempt is a preserved STOP"
+    },
+    {
+      "id": "coordinator_serial_overhead",
+      "basis": "estimated",
+      "total_seconds": 3600.0,
+      "uncertainty": "conservative 1 h serial envelope; the already-spent 0.995 h is reported separately and not double counted"
+    },
+    {
+      "id": "independent_review_recompute",
+      "basis": "estimated",
+      "total_seconds": 900.0,
+      "uncertainty": "estimated with 3x uncertainty; agent reasoning time itself is not experiment compute, only reruns are charged"
+    }
+  ],
+  "estimate_disclosure": [
+    {
+      "term": "e1b_criterion_M_scoring",
+      "why_estimated": "no Criterion-M package implementation exists; only the 8-dim projected covariance eigensolve is timed as a surrogate while record generation is measured"
+    },
+    {
+      "term": "population_eligibility_checks",
+      "why_estimated": "charges a conservative 120 s envelope; measured per-cell cost is milliseconds"
+    },
+    {
+      "term": "prelaunch_benchmark_phase",
+      "why_estimated": "charged at the 600 s per-benchmark ceiling although the measured representative set used 109.8 s"
+    },
+    {
+      "term": "failed_attempts_allowance",
+      "why_estimated": "5 percent planning allowance; no complete failure-rate measurement exists"
+    },
+    {
+      "term": "e1b_probe_oracle_preprocess_and_embedding",
+      "why_estimated": "equal-weight average of per-split oracle rates and embedding rates; probe-cohort composition is A3-dependent"
+    },
+    {
+      "term": "r3_transformed_diagnostic_checks",
+      "why_estimated": "A3 requires the R3 transformed checks to be charged but fixes no count; one eigenproblem per record is assumed"
+    },
+    {
+      "term": "reporting_and_figures",
+      "why_estimated": "E1 empirical aggregation does not exist yet, so no timing is measurable"
+    },
+    {
+      "term": "artifact_transfer_and_hashing",
+      "why_estimated": "network transfer is unmeasurable because the sole remote environment attempt is a preserved STOP; a 5 GB inventory envelope is assumed"
+    },
+    {
+      "term": "coordinator_serial_overhead",
+      "why_estimated": "serial coordinator envelope; the ledger shows 0.995 h already spent on preparation/checks before any grid"
+    },
+    {
+      "term": "e1c_curve_serialization",
+      "why_estimated": "derived from measured local write/hash throughput, not from a real trajectory dump"
+    },
+    {
+      "term": "e1_engineering_tests_and_fixtures",
+      "why_estimated": "conservative envelope; measured suites run in under a second, so the envelope covers repeated repair/review cycles"
+    },
+    {
+      "term": "independent_review_recompute",
+      "why_estimated": "serial review envelope; only reruns are charged, agent reasoning time is not experiment compute (RESOURCE_LEDGER note)"
+    },
+    {
+      "term": "all scaled_from_measured terms",
+      "why_estimated": "linear-in-n scaling from measured n=10000/n=100000 points; E1b generation is an explicit per-event loop so this scaling is structurally justified, while covariance/matmul terms could deviate if BLAS blocking changes"
+    }
+  ],
+  "sensitivity_n_probe_ea": [
+    {
+      "n_probe_ea": 500,
+      "parallel_worker_hours_incl_reserve": 9.5229691,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 12.3366,
+      "cumulative_hours_incl_charged": 13.3317,
+      "fits_24h_cap_at_1_worker": true
+    },
+    {
+      "n_probe_ea": 1000,
+      "parallel_worker_hours_incl_reserve": 9.5508164,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 12.3644,
+      "cumulative_hours_incl_charged": 13.3595,
+      "fits_24h_cap_at_1_worker": true
+    },
+    {
+      "n_probe_ea": 2500,
+      "parallel_worker_hours_incl_reserve": 9.6343583,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 12.4479,
+      "cumulative_hours_incl_charged": 13.4431,
+      "fits_24h_cap_at_1_worker": true
+    },
+    {
+      "n_probe_ea": 5000,
+      "parallel_worker_hours_incl_reserve": 9.7735947,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 12.5872,
+      "cumulative_hours_incl_charged": 13.5823,
+      "fits_24h_cap_at_1_worker": true
+    },
+    {
+      "n_probe_ea": 10000,
+      "parallel_worker_hours_incl_reserve": 10.052068,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 12.8657,
+      "cumulative_hours_incl_charged": 13.8608,
+      "fits_24h_cap_at_1_worker": true
+    },
+    {
+      "n_probe_ea": 20000,
+      "parallel_worker_hours_incl_reserve": 10.609013,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 13.4226,
+      "cumulative_hours_incl_charged": 14.4177,
+      "fits_24h_cap_at_1_worker": true
+    },
+    {
+      "n_probe_ea": 50000,
+      "parallel_worker_hours_incl_reserve": 12.27985,
+      "serial_wall_hours_incl_reserve": 2.81359,
+      "campaign_wall_hours_at_assumed_1_worker_incl_reserve": 15.0934,
+      "cumulative_hours_incl_charged": 16.0886,
+      "fits_24h_cap_at_1_worker": true
+    }
+  ],
+  "stress_test_of_estimates": {
+    "method": "all estimated/surrogate/scaled_from_measured terms multiplied by a common factor; measured terms and the 5 percent failure allowance recomputed",
+    "measured_only_component_hours": 4.01813,
+    "estimated_or_scaled_component_hours_at_1x": 5.78427,
+    "rows": [
+      {
+        "factor_on_every_estimated_or_scaled_term": 1.0,
+        "grand_total_worker_hours_incl_reserve": 12.8657,
+        "cumulative_hours_incl_charge": 13.8608,
+        "fits_24h_cap_at_1_worker": true,
+        "measured_only_hours": 4.01813,
+        "soft_terms_hours_at_1x": 5.78427
+      },
+      {
+        "factor_on_every_estimated_or_scaled_term": 1.5,
+        "grand_total_worker_hours_incl_reserve": 16.6616,
+        "cumulative_hours_incl_charge": 17.6567,
+        "fits_24h_cap_at_1_worker": true,
+        "measured_only_hours": 4.01813,
+        "soft_terms_hours_at_1x": 5.78427
+      },
+      {
+        "factor_on_every_estimated_or_scaled_term": 2.0,
+        "grand_total_worker_hours_incl_reserve": 20.4575,
+        "cumulative_hours_incl_charge": 21.4526,
+        "fits_24h_cap_at_1_worker": true,
+        "measured_only_hours": 4.01813,
+        "soft_terms_hours_at_1x": 5.78427
+      },
+      {
+        "factor_on_every_estimated_or_scaled_term": 3.0,
+        "grand_total_worker_hours_incl_reserve": 28.0494,
+        "cumulative_hours_incl_charge": 29.0445,
+        "fits_24h_cap_at_1_worker": false,
+        "measured_only_hours": 4.01813,
+        "soft_terms_hours_at_1x": 5.78427
+      }
+    ],
+    "largest_fitting_factor": 2.0,
+    "interpretation": "the fits verdict survives at least a 2.0x upward error on every estimated term"
+  },
+  "verdict": {
+    "fits_e1_24h_cap": true,
+    "assumed_workers": 1,
+    "cumulative_hours_including_reserve_and_charge": 13.86078,
+    "cap_hours": 24.0,
+    "headroom_hours": 10.13922,
+    "g2_applies": false,
+    "statement": "On this projection the registered E1 design FITS the 24 wall-hour cap at the assumed one-worker allocation: 13.86 h cumulative including the 25 percent reserve and the already charged 0.9951 h, leaving 10.14 h headroom. G2 is therefore not triggered by this projection. This is a projection, not execution, and it clears no gate: A3 remains UNAPPROVED, the remote host acceptance is a preserved STOP, WP2 full acceptance and the WP4 numerical config review are open, so launch_allowed remains false.",
+    "standing_rule": "E1 has no automatic grid, seed, sample or depth reduction; no CPU-for-GPU substitution and no unlisted fallback. If any revision (A3 cohort size, final worker allocation, or measured costs) pushes the cumulative projection over 24 h, G2 applies and only an explicit author G5 amendment may bound the campaign.",
+    "no_automatic_reduction_authorized": true,
+    "gate_g2_disposition": "not triggered by this projection",
+    "gpu": {
+      "cap_hours": 0,
+      "projected_hours": 0,
+      "used_hours": 0
+    }
+  },
+  "caveats": [
+    "Projection, not execution: no E1 grid, tied trajectory or figure was produced by this work.",
+    "A3 is UNAPPROVED; the baseline n_probe_ea=10000 is a proposal, and the sweep shows the cap is not sensitive to it at this scale.",
+    "Estimates are conservatively rounded upward where a measurement was impossible; every estimated term is listed in unmeasured_or_estimated_terms and estimate_disclosure.",
+    "The 24 h cap comparison is at the assumed one-worker allocation with the serial component held fixed; substituting the final worker count changes only the parallel term.",
+    "No gate is cleared by this file; it exists to satisfy the runbook Sec.3.2 / G2 projection requirement."
+  ]
+}
