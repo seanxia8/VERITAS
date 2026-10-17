@@ -1581,6 +1581,22 @@ def _write_stop(attempt: Path, reason: str, detail: dict, code: int) -> int:
     return code
 
 
+def apply_rerun_rows(rows: list, completed: set, rerun: list) -> tuple[list, set]:
+    """Restrict a campaign to explicitly re-run row ids (author-provenance tool)."""
+    if not rerun:
+        return rows, completed
+    known = {row["row_id"] for row in rows}
+    unknown = [identifier for identifier in rerun if identifier not in known]
+    if unknown:
+        raise CampaignBlocked(
+            "unknown --rerun-rows identifier(s): " + ", ".join(unknown)
+        )
+    wanted = set(rerun)
+    return [row for row in rows if row["row_id"] in wanted], (
+        set(completed) - wanted
+    )
+
+
 def run_campaign(args) -> int:
     root = Path(args.root).resolve()
     config_path = Path(args.config).resolve()
@@ -1619,6 +1635,13 @@ def run_campaign(args) -> int:
             identifier for identifier, record in discovered.items()
             if record.get("status") != "not_run"
         }
+    rerun = [value.strip() for value in (getattr(args, "rerun_rows", None) or "").split(",")
+             if value.strip()]
+    try:
+        rows, completed = apply_rerun_rows(rows, completed, rerun)
+    except CampaignBlocked as error:
+        print(f"STOP: {error}", file=sys.stderr)
+        return 2
     pending = [row for row in rows if row["row_id"] not in completed]
     skipped = [row["row_id"] for row in rows if row["row_id"] in completed]
     if args.limit_rows is not None:
@@ -2051,6 +2074,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ignore-budget-projection", action="store_true",
                         help="do not stop if the preflight projection exceeds "
                              "the cap (recorded; the Lead owns G2)")
+    parser.add_argument("--rerun-rows", default=None,
+                        help="comma-separated row ids to re-run in a new attempt "
+                             "(provenance repair; earlier records are preserved)")
     parser.add_argument("--allow-dirty", action="store_true",
                         help="development-only override: allow a full-scope run on a dirty "
                              "src/scripts tree; the attempt is marked non-registered")

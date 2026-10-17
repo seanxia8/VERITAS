@@ -5,7 +5,7 @@ Development output; no prospective grid evidence yet. Analytic fixtures and the 
 | Prediction | Campaign | Status | Reason | Evaluation seeds | Numeric evidence |
 |---|---|---|---|---|---|
 | R1 | E1 | fail | evaluated_from_stored_tables | 0, 1, 2, 3, 4 | results/jepa/20261017_wp3_e1a/aggregate_E1a.json; cells 6/6 pass; max cell median angle 4.175 deg; E1b channel clean-cell median 17.309 deg (<=10) |
-| R2 | E1 | fail | evaluated_from_stored_tables | 0, 1, 2, 3, 4 | results/jepa/20261017_wp3_e1a/aggregate_E1a.json; scale cells with Spearman>=0.8: 4/6; required cell median 85.984 deg; E1b channel Spearman 1.000 (>=0.8), seed-mean angle at g=.05 77.329 deg (>=45) |
+| R2 | E1 | fail | evaluated_from_stored_tables | 0, 1, 2, 3, 4 | results/jepa/20261017_wp3_e1a/aggregate_E1a.json; scale cells with Spearman>=0.8: 5/6; required cell median 85.984 deg; E1b channel Spearman 1.000 (>=0.8), seed-mean angle at g=.05 77.329 deg (>=45) |
 | R3 | E1 | not_evaluable | r3_solver_tolerance_failure_2_of_210_rows | 0, 1, 2, 3, 4 | none |
 | R3b | E1 | pass | evaluated_from_stored_tables | 0, 1, 2, 3, 4 | results/jepa/20261017_wp3_e1a/aggregate_E1a.json; eligible cells 42; pass 42; annihilation control rank-ineligible (outside primary grid); corrected-implementation outcome (oracle pullback fix; superseded attempts archived) |
 | R4a | E1 | fail | evaluated_from_stored_tables | 0, 1, 2, 3, 4 | results/jepa/20261017_wp3_e1a/aggregate_E1a.json; cells 32/42 pass |

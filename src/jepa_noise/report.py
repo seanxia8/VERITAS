@@ -299,7 +299,12 @@ def compute_r2(config: dict, index) -> dict:
                     missing += 1
                 else:
                     values.append(angle)
-            seed_means.append(_median(values))
+            # v3 §2.4: "Spearman over seed-mean angles" -> the mean across
+            # seeds at each gamma level (not the cross-seed median; the two
+            # estimators differ, see the E1 independent recompute 2026-10-17).
+            seed_means.append(
+                statistics.fmean(values) if values else None
+            )
         complete = all(value is not None for value in seed_means)
         rho = _spearman(gammas, seed_means) if complete else None
         required_cell = (theta == R2_REQUIRED_CELL[0]
@@ -432,8 +437,9 @@ def compute_r3b(config: dict, index) -> dict:
         "expected_status": "oracle_rank_ineligible",
         "in_primary_grid": False,
         "reported_rank_ineligibility": (
-            "rank 1 < k 2 with zero whitened cross-view signal; "
-            "recorded in the stored fixture output"),
+            "fixture k=1, original target rank 1, conditioned residual rank 0 "
+            "(zero whitened cross-view signal); recorded in the stored fixture "
+            "output"),
     }
     detail = {"cells": cells, "annihilation_control": annihilation,
               "eligible_cells": len(eligible),

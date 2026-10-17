@@ -494,3 +494,29 @@ Recorded as the author's explicit authorisation for those two paths only (v4 §6
   0-based parity; and `mpmt_id` takes **105 distinct values over the range 0…105 with id 45
   absent**, so module indexing must not assume a dense 0…104 block. Both are recorded for the
   LUCiD generator/encoder implementation.
+
+## E1 independent recompute — fixes applied (2026-10-17)
+
+- **2026-10-17 — R2 estimator corrected to the registered definition.** v3 §2.4 registers
+  "Spearman over seed-mean angles", i.e. per scale cell the mean across seeds at each γ_load level.
+  `report.compute_r2` used the cross-seed median, which gives 4/6 passing cells with the failing
+  cell θ=0.1/η=1; the registered seed-mean gives **5/6** (ρ = 0.8929, 0.750, 1.000, 1.000, 1.000,
+  0.9643) with the failing cell **θ=0.1/η=3**. R2 remains **fail** either way; PREDICTIONS now
+  reports the registered estimator and the identity of the failing cell. (The two estimators are
+  both defensible a priori, so the choice is recorded here with the registered text as authority.)
+- **2026-10-17 — E1b provenance limitation and repair.** 8 of the 65 E1b rows — the five
+  `g0_line0` clean-cell rows and `g0p005` seeds 0–2 — were written by
+  `attempt_003_20261017T141027Z_E1b` (code SHA `59efe0b8`, attempt status `running`, no
+  `SHA256SUMS`, its `run.py` source hash not matching any git commit), and the named final attempt
+  reused them (`skipped_completed_row`). R1/R2 E1b outcomes are unaffected in magnitude (clean-cell
+  median 17.309° vs 10°; g-sweep 77.329° vs 45°), but the aggregate did not disclose the mix. Repair:
+  a targeted `--rerun-rows` mode re-runs exactly those eight rows in a new attempt under the current
+  clean SHA; the earlier records are preserved, the new records supersede them by row id, and the
+  aggregate is regenerated afterwards. This is also why the new clean-tree rule exists.
+- **2026-10-17 — R3b annihilation-control wording corrected** to the stored fixture's actual
+  content (k=1, original target rank 1, conditioned residual rank 0), not "rank 1 < k 2".
+- **2026-10-17 — E1a/E1c config-SHA provenance note.** Their rows record config SHA
+  `0cc1688…`; the current `configs/e1_grid_v4.json` is `f2712b0c…` and `0cc1688…` was never
+  committed (it differs only in the values the later fixes introduced; the grid, splits, laws and
+  seeds are the registered ones). The row files retain the recorded hash; the config is not
+  fabricated retroactively. E1b rows use the current committed config.

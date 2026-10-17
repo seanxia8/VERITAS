@@ -1,5 +1,6 @@
 """Runner/report infrastructure tests for E1 (WP3); no campaign outcomes."""
 import json
+import statistics
 import math
 import shutil
 from pathlib import Path
@@ -438,3 +439,28 @@ def test_src_tree_status_is_empty_in_a_clean_repo_and_dirty_when_modified(tmp_pa
     assert run.src_tree_status(repo) == ""
     (repo / "src" / "mod.py").write_text("x = 2\n")
     assert "src/mod.py" in run.src_tree_status(repo)
+
+
+def test_rerun_rows_restricts_to_named_rows_and_clears_completion():
+    rows = [{"row_id": "g0_line0_s0"}, {"row_id": "g0_line0_s1"},
+            {"row_id": "g0p005_line0_s0"}]
+    completed = {"g0_line0_s0", "g0_line0_s1", "g0p005_line0_s0"}
+    selected, remaining = run.apply_rerun_rows(
+        rows, completed, ["g0_line0_s0", "g0p005_line0_s0"])
+    assert [row["row_id"] for row in selected] == ["g0_line0_s0", "g0p005_line0_s0"]
+    assert remaining == {"g0_line0_s1"}
+    assert run.apply_rerun_rows(rows, completed, []) == (rows, completed)
+    try:
+        run.apply_rerun_rows(rows, completed, ["not_a_row"])
+    except run.CampaignBlocked:
+        pass
+    else:
+        raise AssertionError("unknown rerun row must be refused")
+
+
+def test_r2_uses_seed_mean_angles_not_the_cross_seed_median():
+    """v3 §2.4 registers `Spearman over seed-mean angles`; mean and median differ."""
+    seed_angles = [10.0, 12.0, 30.0]
+    mean_angle = statistics.fmean(seed_angles)
+    assert abs(mean_angle - 17.3333333) < 1e-6
+    assert statistics.median(seed_angles) == 12.0
