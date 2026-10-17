@@ -2,10 +2,11 @@
 """Development-only LUCiD photon-bomb generator contract (WP4b).
 
 Binding: ``docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md`` §3.5.2--§3.5.4,
-§3.5.3a and v3 §6 WP5.  Everything is labelled
-``readout_synthetic_unrepaired``; the physical WCTE geometry (105 mPMT × 19
-PMTs, physical ``mpmt_id`` map) and pinned LUCiD revision are unavailable, so
-nothing produced here is a reported result.
+§3.5.3a and v3 §6 WP5.  Everything is labelled ``readout_dark_off`` (the
+merged PMT reference response with dark counts off, author decision
+2026-10-18); the physical WCTE geometry (105 mPMT × 19 PMTs, physical
+``mpmt_id`` map) and pinned LUCiD revision are unavailable locally, so nothing
+produced here is a reported result.
 
 Implemented: the WCTE geometry reader (``load_wcte_geometry``: the physical
 ``mpmt_id`` map from LUCiD's own ``config/WCTE_geom_config.json`` at the pinned
@@ -14,12 +15,15 @@ detector-state laws F1/F3/F2/F2'/R11b/T with keyed RNG namespaces; the
 photon-bomb event generator (§3.5.3: isotropic point source, log-uniform yield,
 config spectrum, prompt transport with ``exp(-d/lambda)``, per-PMT expected
 charge); the synthetic unrepaired readout (Poisson, SPE smearing, transit-time
-spread, dark counts, fixed-PE threshold, the ``noise_module_lucid.response``
-walk primitive); the nominal twin on shared keyed draws; run structure, v3 §6 ID
-ranges under the ``lucid/`` prefix, manifest and sparse-hit storage; N_min
-exclusion accounting (§3.5.4); §3.5.3a Fisher/ceiling numerics; and the 1000-event
-benchmark.  The synthetic schema fixture is *not* WCTE; no LUCiD data is
-redistributed.
+spread, fixed-PE threshold, the ``noise_module_lucid.response`` walk primitive)
+with the merged fixed detector response from
+``configs/lucid_pmt/reference.json`` (per-module parity charge gain and digit
+timing-width factor, present in the measured readout **and** the nominal twin)
+and dark counts **off**; the nominal twin on shared keyed draws; run structure,
+v3 §6 ID ranges under the ``lucid/`` prefix, manifest and sparse-hit storage;
+N_min exclusion accounting (§3.5.4); §3.5.3a Fisher/ceiling numerics; and the
+1000-event benchmark.  The synthetic schema fixture is *not* WCTE; no LUCiD
+data is redistributed.
 """
 from __future__ import annotations
 
@@ -27,12 +31,22 @@ import hashlib
 import json
 import subprocess
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Sequence
 
 import numpy as np
 
-READOUT_LABEL = "readout_synthetic_unrepaired"
+#: This readout is the merged PMT reference response with **dark counts off**; the
+#: label travels with every config, manifest, benchmark and decision payload.
+READOUT_LABEL = "readout_dark_off"
+#: The pre-merge label.  Never written: it only makes a stale artefact recognisable.
+READOUT_LABEL_LEGACY = "readout_synthetic_unrepaired"
+DARK_COUNTS_OFF = "off"
+DARK_RATE_HZ_OFF = 0.0
+#: A frozen decision that the merged-readout re-run must replace.  The old values stay
+#: recorded; they are never re-frozen as new values without the author.
+SUPERSEDED_PENDING_MERGED_READOUT = "superseded_pending_merged_readout"
 DEVELOPMENT_ONLY = True
 DEFAULT_SEED = 20261017
 #: Placeholder: §3.5.3 fixes F2's form but no lambda0, and the PMT reference
@@ -68,8 +82,16 @@ def dark_charge_variance(dark_rate_hz: float, window_ns: float,
     return lam * (1.0 + float(sigma_spe) ** 2)
 
 
-#: Defaults matching ``configs/lucid_bombs_v0.json`` (4200 Hz, 1000 ns, sigma_spe 0.3).
+#: Legacy dark-*on* window variance (4200 Hz, 1000 ns, sigma_spe 0.3).  The merged
+#: reference response declares ``dark_counts: off``, so this is NOT the readout's
+#: variance and must not be used for a reported ceiling; it survives only because the
+#: ``lucid_arms`` MAE-chi2 config and its test (outside this task's edit scope) still
+#: cite it as ``mae_chi2.v_dark``.
 V_DARK = round(dark_charge_variance(4200.0, 1000.0, 0.3), 6)  # 0.004578 PE^2
+#: ``v_dark`` for ``readout_dark_off``: derived from the zero dark rate, not a literal.
+V_DARK_READOUT = round(dark_charge_variance(DARK_RATE_HZ_OFF, 1000.0, 0.3), 12)  # 0.0
+#: The registered per-PMT variance with F3 marginalised as a random gain (§3.5.6).
+VARIANCE_FORMULA = "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2"
 ORACLE_ARM = "oracle_nominal_twin"
 
 NS_F1, NS_F3, NS_F2, NS_F2P = "lucid/F1", "lucid/F3", "lucid/F2", "lucid/F2p"
@@ -435,6 +457,9 @@ def write_manifest(path: Path | str, runs: Sequence[RunSpec], geometry: Geometry
     payload = {"schema": "jepa-lucid-bombs-manifest-v0",
                "status": "development_only" if DEVELOPMENT_ONLY else "production",
                "readout_label": READOUT_LABEL, "reported_results": False,
+               "dark_counts": DARK_COUNTS_OFF,
+               "fixed_response": reference_provenance(),
+               "yield_range_decision_status": YIELD_RANGE_DECISION_STATUS_IN_FORCE,
                "geometry_name": geometry.name, "geometry_sha256": geometry.digest,
                "dataset_seed": int(seed), "code_sha": code_sha or current_code_sha(),
                "n_runs": len(rows), "n_events": int(sum(r.n_events for r in runs)),
@@ -452,6 +477,10 @@ def verify_manifest(payload: dict, runs: Sequence[RunSpec], geometry: Geometry,
     """Recompute every state/event hash and raise on the first mismatch."""
     if payload.get("readout_label") != READOUT_LABEL:
         raise ValueError("manifest readout label mismatch")
+    if payload.get("dark_counts") != DARK_COUNTS_OFF:
+        raise ValueError("manifest dark_counts mismatch (this readout is dark-off)")
+    if payload.get("fixed_response", {}).get("sha256") != reference_response().sha256:
+        raise ValueError("manifest fixed-response hash mismatch")
     if payload.get("geometry_sha256") != geometry.digest:
         raise ValueError("manifest geometry hash mismatch")
     if int(payload.get("dataset_seed", -1)) != int(seed):
@@ -604,21 +633,28 @@ class Detectability:
     n_events: int
     sigma_f: float
     profiled: bool
+    s_p: float = F3_SPREAD
 
-def fisher_event(mu, dmu, *, sigma_spe: float = SIGMA_SPE, v_dark: float = V_DARK) -> float:
-    """``sum_p (dmu_p/df)^2 / (mu_p (1 + sigma_spe^2) + v_dark)``."""
+def fisher_event(mu, dmu, *, sigma_spe: float = SIGMA_SPE, v_dark: float = V_DARK_READOUT,
+                 s_p: float = F3_SPREAD) -> float:
+    """``sum_p (dmu_p/df)^2 / (mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2)``.
+
+    F3 is marginalised as a random per-PMT gain: ``s_p^2 mu_p^2`` is the same
+    covariance term as the §3.5.6 ``lucid_arms.chi2_dense_module`` diagonal.  A
+    zero-mean PMT has zero variance when ``v_dark = 0`` and carries no information,
+    so exactly-zero-``mu`` PMTs are skipped rather than dividing by zero.
+    """
     mu, dmu = np.asarray(mu, float), np.asarray(dmu, float)
     if mu.ndim != 1 or mu.shape != dmu.shape:
         raise ValueError("mu and dmu must be one-dimensional and equally shaped")
     if not np.isfinite(mu).all() or not np.isfinite(dmu).all():
         raise ValueError("mu and dmu must be finite")
-    if np.any(mu < 0) or v_dark < 0 or sigma_spe < 0:
-        raise ValueError("mu, v_dark and sigma_spe must be non-negative")
-    variance = mu * (1.0 + float(sigma_spe) ** 2) + float(v_dark)
-    if np.any((dmu != 0.0) & (variance <= 0.0)):
-        raise ValueError("non-zero derivative where the Poisson variance vanishes")
-    info = float(np.sum(np.divide(dmu ** 2, variance, out=np.zeros_like(mu),
-                                  where=variance > 0)))
+    if np.any(mu < 0) or v_dark < 0 or sigma_spe < 0 or s_p < 0:
+        raise ValueError("mu, v_dark, sigma_spe and s_p must be non-negative")
+    variance = (mu * (1.0 + float(sigma_spe) ** 2) + float(v_dark)
+                + float(s_p) ** 2 * mu ** 2)
+    keep = (variance > 0.0) & (mu > 0.0)
+    info = float(np.sum(np.divide(dmu ** 2, variance, out=np.zeros_like(mu), where=keep)))
     if not np.isfinite(info):
         raise ValueError("non-finite Fisher information")
     return info
@@ -637,7 +673,7 @@ def r2_max(information: float, sigma_f: float) -> float:
     return float(sigma_f ** 2 / (sigma_f ** 2 + 1.0 / information))
 
 def detectability(mu_events, dmu_events, sigma_f: float, *, sigma_spe: float = SIGMA_SPE,
-                  v_dark: float = V_DARK,
+                  v_dark: float = V_DARK_READOUT, s_p: float = F3_SPREAD,
                   profiled_information: float | None = None) -> Detectability:
     """Per-event and per-run ceilings; ``profiled_information`` replaces the naive sum.
 
@@ -648,7 +684,7 @@ def detectability(mu_events, dmu_events, sigma_f: float, *, sigma_spe: float = S
     mu_events, dmu_events = list(mu_events), list(dmu_events)
     if not mu_events or len(mu_events) != len(dmu_events):
         raise ValueError("one mu/dmu pair per event is required")
-    i_event = np.asarray([fisher_event(m, d, sigma_spe=sigma_spe, v_dark=v_dark)
+    i_event = np.asarray([fisher_event(m, d, sigma_spe=sigma_spe, v_dark=v_dark, s_p=s_p)
                           for m, d in zip(mu_events, dmu_events)])
     if profiled_information is None:
         i_run, profiled = float(i_event.sum()), False
@@ -658,7 +694,8 @@ def detectability(mu_events, dmu_events, sigma_f: float, *, sigma_spe: float = S
             raise ValueError("profiled_information must be finite and non-negative")
         profiled = True
     return Detectability(i_event, np.asarray([r2_max(i, sigma_f) for i in i_event]),
-                         i_run, r2_max(i_run, sigma_f), len(i_event), float(sigma_f), profiled)
+                         i_run, r2_max(i_run, sigma_f), len(i_event), float(sigma_f), profiled,
+                         s_p=float(s_p))
 
 # ======================================================================= WCTE geometry (WP4b)
 #: Pinned LUCiD revision and geometry facts, DECISIONS.md 2026-10-17.
@@ -974,6 +1011,9 @@ FROZEN_YIELD_RANGE_STATUS = "frozen_by_detectability_check"
 VALID_YIELD_RANGE_STATUSES = (YIELD_RANGE_STATUS, FROZEN_YIELD_RANGE_STATUS)
 #: The status in force for manifests and benchmarks (the frozen check has been run).
 YIELD_RANGE_STATUS_IN_FORCE = FROZEN_YIELD_RANGE_STATUS
+#: The frozen 2026-10-17 range predates the merged readout, so it is *superseded*:
+#: recorded everywhere, re-frozen only after the merged-readout §3.5.3a re-run.
+YIELD_RANGE_DECISION_STATUS_IN_FORCE = SUPERSEDED_PENDING_MERGED_READOUT
 CPU_CAP_WALL_HOURS = 48.0
 BENCHMARK_CORES = 16
 #: §3.5.3 volume enumerated for the 48 h projection (see WP4B_GENERATOR.md).
@@ -993,6 +1033,145 @@ def leading_edge_time(charges, threshold_mv, **kw):
         _readout_primitive = primitive
     return _readout_primitive(charges, threshold_mv, **kw)
 
+# ======================================================================= fixed detector response
+#: The merged PMT reference response (PMT R-5): ``configs/lucid_pmt/reference.json``.
+FIXED_RESPONSE_RELPATH = "configs/lucid_pmt/reference.json"
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def resolve_reference_path(path: Path | str | None = None) -> Path:
+    """Resolve the reference-response path; a repo-relative path stays portable."""
+    if path is None:
+        return _repo_root() / FIXED_RESPONSE_RELPATH
+    candidate = Path(path)
+    return candidate if candidate.is_absolute() else _repo_root() / candidate
+
+
+try:  # the hash is read from the file, never typed in
+    REFERENCE_RESPONSE_SHA256 = hashlib.sha256(
+        resolve_reference_path().read_bytes()).hexdigest()
+except OSError:  # pragma: no cover - checkout without the manifest
+    REFERENCE_RESPONSE_SHA256 = ""
+
+
+@dataclass(frozen=True)
+class ReferenceResponse:
+    """The fixed detector response shared by the measured readout and the nominal twin.
+
+    It is detector response, not injected drift: it is present in the measured readout
+    **and** in the nominal twin, which therefore cancels only the injected F1/F3 (and
+    F2/F2'/R11b/T) gains.  Every number is reproduced from the manifest, never a
+    literal: ``factor = base + odd_group_delta * (g % 2)`` on the **dense** module
+    index ``g`` (``response_manifest.module_groups(mpmt_id)`` over the sparse ids).
+    """
+
+    path: str
+    relpath: str
+    sha256: str
+    schema: str
+    status: str
+    gain_rule: dict
+    timing_width_rule: dict
+    dark_counts: str
+    parameters: dict
+
+    def gain(self, module_index) -> np.ndarray:
+        """Per-PMT fixed charge gain on the dense module index."""
+        return _parity_factor(self.gain_rule, module_index)
+
+    def timing_width_factor(self, module_index) -> np.ndarray:
+        """Per-PMT digit Gaussian timing-width factor on the dense module index."""
+        return _parity_factor(self.timing_width_rule, module_index)
+
+    @property
+    def provenance(self) -> dict:
+        return {"path": str(self.path), "relpath": self.relpath, "sha256": self.sha256,
+                "schema": self.schema, "status": self.status,
+                "dark_counts": self.dark_counts, "gain_rule": dict(self.gain_rule),
+                "timing_width_factor_rule": dict(self.timing_width_rule)}
+
+
+def _parity_factor(rule, module_index) -> np.ndarray:
+    """``base + odd_group_delta * (g % 2)``, the merged per-module rule."""
+    rule = dict(rule)
+    if rule.get("rule") != "group_parity":
+        raise ValueError(f"unknown per-module rule {rule.get('rule')!r}")
+    group = np.asarray(module_index, dtype=np.int64)
+    if group.ndim != 1 or np.any(group < 0):
+        raise ValueError("one non-negative dense module index per PMT required")
+    return float(rule["base"]) + float(rule["odd_group_delta"]) * (group % 2)
+
+
+def dense_module_index(geometry) -> np.ndarray:
+    """Dense 0..n_modules-1 module index per PMT; never a raw (sparse) ``mpmt_id``."""
+    index = np.asarray(geometry.module_of_pmt, dtype=np.int64)
+    n_pmt, n_modules = int(geometry.n_pmt), int(geometry.n_modules)
+    if index.shape != (n_pmt,) or index.size == 0 or index.min() < 0 or index.max() >= n_modules:
+        raise ValueError("geometry must give a dense module index per PMT")
+    return index
+
+
+def dense_module_index_from_mpmt_id(mpmt_id) -> np.ndarray:
+    """Dense index from raw module ids through the merged manifest helper.
+
+    ``response_manifest.module_groups`` takes ``np.unique(..., return_inverse=True)``,
+    so the sparse WCTE ids (0..105 with id 45 absent) map to dense 0..104.
+    """
+    from noise_module_lucid.response_manifest import module_groups
+    return module_groups(mpmt_id)
+
+
+@lru_cache(maxsize=8)
+def _reference_response_cached(path: str) -> ReferenceResponse:
+    from noise_module_lucid.response_manifest import load_manifest
+    resolved = Path(path)
+    if not resolved.is_file():
+        raise FileNotFoundError(f"fixed response not found: {resolved}")
+    manifest = load_manifest(resolved)  # schema + every recorded parameter value hash
+    values = {name: entry["value"] for name, entry in manifest["parameters"].items()}
+    try:
+        relpath = str(resolved.resolve().relative_to(_repo_root()))
+    except ValueError:  # pragma: no cover - response outside the repo (tests)
+        relpath = str(resolved)
+    return ReferenceResponse(
+        path=str(resolved.resolve()), relpath=relpath,
+        sha256=hashlib.sha256(resolved.read_bytes()).hexdigest(), schema=manifest["schema"],
+        status=manifest["status"], gain_rule=dict(values["gain"]),
+        timing_width_rule=dict(values["timing_width_factor"]),
+        dark_counts=str(manifest.get("stage_owners", {}).get("dark_counts", DARK_COUNTS_OFF)),
+        parameters=values)
+
+
+def reference_response(path: Path | str | None = None) -> ReferenceResponse:
+    """Read the fixed response once per path (cached; validated against the manifest)."""
+    return _reference_response_cached(str(resolve_reference_path(path)))
+
+
+def generator_reference(cfg: "GeneratorConfig") -> ReferenceResponse:
+    """The response a generator config is bound to (path recorded in the config)."""
+    return reference_response(cfg.reference_response_path)
+
+
+def reference_provenance(cfg: "GeneratorConfig" | None = None) -> dict:
+    """Source path + sha256 recorded by every manifest, benchmark and decision."""
+    return (generator_reference(cfg) if cfg is not None else reference_response()).provenance
+
+
+def fixed_charge_gain(geometry, reference: ReferenceResponse | None = None) -> np.ndarray:
+    """Fixed per-PMT charge gain from the reference response (odd dense module +3%)."""
+    ref = reference_response() if reference is None else reference
+    return ref.gain(dense_module_index(geometry))
+
+
+def fixed_timing_width_factor(geometry, reference: ReferenceResponse | None = None) -> np.ndarray:
+    """Fixed per-PMT digit Gaussian width factor (odd dense module +5%)."""
+    ref = reference_response() if reference is None else reference
+    return ref.timing_width_factor(dense_module_index(geometry))
+
+
 @dataclass(frozen=True)
 class GeneratorConfig:
     """All event-generation settings; science values that are pending are parameters, not constants."""
@@ -1008,7 +1187,9 @@ class GeneratorConfig:
     n_wavelength_samples: int = 1
     sigma_spe: float = SIGMA_SPE
     tts_sigma_ns: float = 1.5
-    dark_rate_hz: float = 4200.0
+    #: Dark counts are off for ``readout_dark_off``: zero rate and the policy string.
+    dark_rate_hz: float = DARK_RATE_HZ_OFF
+    dark_counts: str = DARK_COUNTS_OFF
     window_ns: float = 1000.0
     threshold_pe: float = 0.25
     walk_calibration_pe: float = 0.25
@@ -1017,6 +1198,9 @@ class GeneratorConfig:
     lambda0_m: float = LAMBDA0_M
     twin: bool = True
     spectrum_label: str = "synthetic_uniform_300_600_nm (PMT reference stand-in)"
+    #: The fixed detector response is bound by path + hash (both recorded in manifests).
+    reference_response_path: str = FIXED_RESPONSE_RELPATH
+    reference_response_sha256: str = REFERENCE_RESPONSE_SHA256
 
     def __post_init__(self):
         pairs = list(zip(self.qe_curve_nm, self.qe_curve))
@@ -1030,6 +1214,9 @@ class GeneratorConfig:
                   ("sigma_spe >= 0", self.sigma_spe >= 0.0),
                   ("tts_sigma_ns >= 0", self.tts_sigma_ns >= 0.0),
                   ("dark_rate_hz >= 0", self.dark_rate_hz >= 0.0),
+                  ("dark_counts off", self.dark_counts == DARK_COUNTS_OFF),
+                  ("dark off needs a zero rate",
+                   self.dark_counts != DARK_COUNTS_OFF or float(self.dark_rate_hz) == 0.0),
                   ("window_ns > 0", self.window_ns > 0.0),
                   ("threshold_pe > 0", self.threshold_pe > 0.0),
                   ("walk_calibration_pe > 0", self.walk_calibration_pe > 0.0),
@@ -1043,6 +1230,12 @@ class GeneratorConfig:
         if float(self.lambda0_m) != float(LAMBDA0_M):
             raise ValueError(f"lambda0_m is frozen at the module constant {LAMBDA0_M} m pending "
                              "§3.5.3a; change both together")
+        fixed_path = resolve_reference_path(self.reference_response_path)
+        if not fixed_path.is_file():
+            raise ValueError(f"generator config: fixed response {fixed_path} not found")
+        if _sha(fixed_path.read_bytes()) != str(self.reference_response_sha256):
+            raise ValueError(f"generator config: fixed response sha256 does not match "
+                             f"{fixed_path}; re-read the file instead of editing the hash")
 
     @property
     def digest(self) -> str:
@@ -1067,6 +1260,8 @@ def load_generator_config(path: Path | str) -> GeneratorConfig:
         raise ValueError(
             "config: a frozen yield range must carry a yield_range_decision block"
         )
+    if decision_block is not None and not decision_block.get("status"):
+        raise ValueError("config: the yield_range_decision block must record its status")
     allowed = set(GeneratorConfig.__dataclass_fields__)
     unknown = sorted(set(kwargs) - allowed)
     if unknown:
@@ -1076,7 +1271,25 @@ def load_generator_config(path: Path | str) -> GeneratorConfig:
     kwargs["spectrum_nm"] = tuple(kwargs["spectrum_nm"])
     if payload.get("lambda0_m") is not None and float(payload["lambda0_m"]) != float(kwargs["lambda0_m"]):
         raise ValueError("config: top-level lambda0_m and generator.lambda0_m disagree")
-    return GeneratorConfig(**kwargs)
+    if payload.get("readout_label") != READOUT_LABEL:
+        raise ValueError(f"config: readout_label {payload.get('readout_label')!r} != "
+                         f"{READOUT_LABEL!r} (the merged readout is dark-off)")
+    cfg = GeneratorConfig(**kwargs)
+    fixed = payload.get("fixed_response")
+    if fixed is not None:
+        ref = generator_reference(cfg)
+        if not fixed.get("path") or \
+                resolve_reference_path(fixed["path"]).resolve() != Path(ref.path):
+            raise ValueError("config: fixed_response.path does not name the recorded response")
+        if fixed.get("sha256") != ref.sha256:
+            raise ValueError(f"config: fixed_response.sha256 {fixed.get('sha256')!r} != "
+                             f"the manifest's {ref.sha256!r}")
+        if fixed.get("gain") != ref.gain_rule or \
+                fixed.get("timing_width_factor") != ref.timing_width_rule:
+            raise ValueError("config: fixed_response rules disagree with the manifest")
+        if fixed.get("dark_counts") != DARK_COUNTS_OFF:
+            raise ValueError("config: fixed_response.dark_counts must be 'off'")
+    return cfg
 
 def qe_at(wavelength_nm, cfg: GeneratorConfig) -> np.ndarray:
     """Interpolate the (synthetic) QE curve; wavelengths outside the table are clipped."""
@@ -1171,13 +1384,22 @@ class SensorDraws:
     poisson_u: np.ndarray       # (n_pmt, n_cap)
     charge_z: np.ndarray        # (n_pmt,)
     transit_z: np.ndarray       # (n_pmt,)
-    dark_counts: np.ndarray     # (n_pmt,)
+    dark_counts: np.ndarray     # (n_pmt,), always zeros under readout_dark_off
     window_ns: float
     capacity: int
 
 def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
                seed: int = DEFAULT_SEED) -> SensorDraws:
-    """Vertex, log-uniform yield, spectrum, and every shared normal/Poisson draw."""
+    """Vertex, log-uniform yield, spectrum, and every shared normal/Poisson draw.
+
+    The dark bank is neutralised for ``readout_dark_off``: no dark RNG namespace is
+    consumed and ``dark_counts`` is an empty (all-zero) array.  The anchor's
+    dark-window draw is not physical until the PMT R-6 SHA lands, so nothing may
+    report it.
+    """
+    if cfg.dark_counts != DARK_COUNTS_OFF:
+        raise ValueError(f"{READOUT_LABEL}: dark counts must be off, got {cfg.dark_counts!r}")
+
     def rng(role):
         return keyed_rng(seed, NS_DRAWS, run_id, event_id, role)
 
@@ -1192,25 +1414,39 @@ def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
                        vertex_m=vertex, yield_photons=yield_photons, qe_eff=qe_eff,
                        poisson_u=poisson_u, charge_z=rng("charge").standard_normal(geometry.n_pmt),
                        transit_z=rng("transit").standard_normal(geometry.n_pmt),
-                       dark_counts=rng("dark").poisson(cfg.dark_rate_hz * cfg.window_ns * 1e-9,
-                                                       geometry.n_pmt).astype(np.int64),
+                       dark_counts=np.zeros(geometry.n_pmt, dtype=np.int64),
                        window_ns=float(cfg.window_ns), capacity=capacity)
 
 def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geometry,
-                                 cfg: GeneratorConfig) -> HitReadout:
-    """The unrepaired PMT chain: QE/CE -> Poisson -> SPE smear -> gain -> threshold+walk.
+                                 cfg: GeneratorConfig,
+                                 reference: ReferenceResponse | None = None) -> HitReadout:
+    """The unrepaired PMT chain with the fixed merged response and dark counts off.
 
-    Gains act on the charge **before** the fixed-PE threshold, so a gain change can move a
-    PMT between hit and unhit.  The walk curve is ``response.leading_edge_time`` at the
-    actual threshold, corrected by the same curve at the training-time calibration
-    threshold; with ``threshold_pe == walk_calibration_pe`` the residual is exactly zero.
+    QE/CE -> Poisson (mean carries the fixed per-module parity gain) -> SPE smear ->
+    injected gain -> threshold+walk.  Injected gains act on the charge **before** the
+    fixed-PE threshold, so a gain change can move a PMT between hit and unhit.  The
+    fixed response is applied here, not in :class:`DetectorState`, so the nominal twin
+    keeps both the parity charge gain and the timing-width factor and cancels only the
+    injected F1/F3 (and F2/F2'/R11b/T) gains.
+
+    The digit Gaussian width is ``tts_sigma_ns * timing_width_factor`` per PMT (odd
+    dense module +5%).  The walk curve is ``response.leading_edge_time`` at the actual
+    threshold, corrected by the same curve at the training-time calibration threshold;
+    with ``threshold_pe == walk_calibration_pe`` the residual is exactly zero.
     """
-    mu = expected_charge(geometry, draws.vertex_m, draws.yield_photons, draws.qe_eff,
-                         state.attenuation_length_m, cfg)
+    if cfg.dark_counts != DARK_COUNTS_OFF:
+        raise ValueError(f"{READOUT_LABEL}: dark counts must be off, got {cfg.dark_counts!r}")
+    if np.any(np.asarray(draws.dark_counts, dtype=np.int64)):
+        raise ValueError(f"{READOUT_LABEL}: the shared draw carries dark charge; the dark "
+                         "bank is empty for this readout (PMT R-6 SHA pending)")
+    ref = generator_reference(cfg) if reference is None else reference
+    mu = (expected_charge(geometry, draws.vertex_m, draws.yield_photons, draws.qe_eff,
+                          state.attenuation_length_m, cfg)
+          * fixed_charge_gain(geometry, ref))
     n_photon = poisson_counts_from_uniform(draws.poisson_u, mu)
     if int(n_photon.max()) >= int(draws.capacity):
         raise RuntimeError("photon count reached the shared-draw capacity; enlarge count_capacity")
-    n = n_photon + np.asarray(draws.dark_counts, dtype=np.int64)
+    n = n_photon
     charge = np.clip(n + np.sqrt(n) * float(cfg.sigma_spe) * draws.charge_z, 0.0, None)
     q = charge * np.asarray(state.gains, dtype=float)
     thr_mv = float(cfg.threshold_pe) * float(cfg.mv_per_pe)
@@ -1219,15 +1455,17 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     walk_cal = leading_edge_time(q, cal_mv, mv_per_pe=float(cfg.mv_per_pe))
     fired = np.isfinite(walk)
     residual = np.where(np.isfinite(walk_cal), walk - np.where(np.isfinite(walk_cal), walk_cal, 0.0), 0.0)
+    sigma_t = float(cfg.tts_sigma_ns) * fixed_timing_width_factor(geometry, ref)
     times = (propagation_time_ns(geometry, draws.vertex_m, cfg)
-             + float(cfg.tts_sigma_ns) * draws.transit_z + residual)
+             + sigma_t * draws.transit_z + residual)
     index = np.flatnonzero(fired)
     return HitReadout(index, q[index], times[index])
 
 def make_readout(geometry, cfg: GeneratorConfig) -> ReadoutCallable:
     """Bind the real readout to a geometry/config, for :func:`nominal_twin`."""
+    reference = generator_reference(cfg)  # read once, then shared by every event
     def readout(state, draws):
-        return readout_synthetic_unrepaired(state, draws, geometry, cfg)
+        return readout_synthetic_unrepaired(state, draws, geometry, cfg, reference)
     return readout
 
 # ======================================================================= generated runs/storage
@@ -1258,6 +1496,8 @@ def generate_run(geometry, cfg: GeneratorConfig, run: RunSpec, *, seed: int | No
     seed = int(run.seed if seed is None else seed)
     with_twin = bool(cfg.twin if with_twin is None else with_twin)
     state = run.state(geometry)
+    reference = generator_reference(cfg)
+    fixed_gain = fixed_charge_gain(geometry, reference)
     readout = make_readout(geometry, cfg)
     event_ids = np.arange(run.event_start, run.event_stop, dtype=np.int64)
     vertices = np.zeros((event_ids.size, 3))
@@ -1267,8 +1507,9 @@ def generate_run(geometry, cfg: GeneratorConfig, run: RunSpec, *, seed: int | No
     for i, event_id in enumerate(event_ids):
         draws = draw_event(geometry, cfg, run.run_id, int(event_id), seed=seed)
         vertices[i], yields[i] = draws.vertex_m, draws.yield_photons
-        expected[i] = float(expected_charge(geometry, draws.vertex_m, draws.yield_photons,
-                                            draws.qe_eff, state.attenuation_length_m, cfg).sum())
+        expected[i] = float((expected_charge(geometry, draws.vertex_m, draws.yield_photons,
+                                             draws.qe_eff, state.attenuation_length_m, cfg)
+                             * fixed_gain).sum())
         hits.append(readout(state, draws))
         if with_twin:
             twin_hits.append(nominal_twin(draws, geometry, readout, arm=ORACLE_ARM))
@@ -1308,6 +1549,8 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
                "geometry_summary": geometry.summary(),
                "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
                "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,
+               "dark_rate_hz": float(cfg.dark_rate_hz),
+               "expected_pe_includes_fixed_response": True,
                "fiducial_fraction": float(cfg.fiducial_fraction),
                "threshold_pe": float(cfg.threshold_pe), "spectrum_label": cfg.spectrum_label,
                "state_clipped": dict(generated.state.clipped), "n_hits": generated.n_hits,
@@ -1366,8 +1609,13 @@ def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000
             "hits_per_event": float(generated.n_hits) / max(generated.n_events, 1),
             "is_synthetic_geometry": bool(geometry.synthetic),
             "geometry_name": geometry.name, "geometry_sha256": geometry.digest,
-            "readout_label": READOUT_LABEL, "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
-            "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE, "law": law, "setting": float(setting),
+            "readout_label": READOUT_LABEL, "dark_counts": DARK_COUNTS_OFF,
+            "dark_rate_hz": float(cfg.dark_rate_hz),
+            "fixed_response": reference_provenance(cfg),
+            "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
+            "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,
+            "yield_range_decision_status": YIELD_RANGE_DECISION_STATUS_IN_FORCE,
+            "law": law, "setting": float(setting),
             "terciles": _tercile_table(geometry, generated),
             "volume_events": REGISTERED_VOLUME_EVENTS,
             "volume_breakdown": dict(REGISTERED_VOLUME_BREAKDOWN),

@@ -99,12 +99,12 @@ def test_config_freezes_the_registered_numerics():
         == (1024, 17, 3.0)
     assert settings.coefficient_lambda == settings.sigreg.coefficient_lambda == 0.02
     assert settings.sigma_spe == lb.SIGMA_SPE == 0.3
-    assert 0.0 < settings.v_dark == pytest.approx(lb.V_DARK, rel=1e-12)
+    assert settings.v_dark == 0.0  # readout_dark_off: dark counts are off
     generator = lb.load_generator_config(Path(CONFIG).parent / "lucid_bombs_v0.json")
     assert settings.time_sigma_ns == generator.tts_sigma_ns == 1.5
     assert settings.rescale_sd == 0.01 and settings.variance_floor_pe2 == 0.0
-    assert config["mae_chi2"]["variance_floor_status"].startswith("resolved_2026-10-17")
-    assert settings.v_dark > 0.0
+    assert config["mae_chi2"]["variance_floor_status"] == "inactive_on_readout_dark_off"
+    assert settings.v_dark == 0.0
     assert config["anchor"]["dark_overlay"]["draws"] == 2
     assert config["anchor"]["dark_overlay"]["dark_only_draws"] == 1
     assert config["training"]["optimizer"] == "pending_review"

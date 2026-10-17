@@ -159,10 +159,10 @@ class ArmSettings:
             raise ValueError("mae_chi2 noise settings and rescale SD must be non-negative/positive")
         if settings.sigma_spe == 0:
             raise ValueError("sigma_spe must be positive")
-        if settings.v_dark == 0 and settings.variance_floor_pe2 <= 0:
-            raise ValueError(
-                "mae_chi2: v_dark = 0 needs a positive variance floor (C_m would be singular at mu = 0)"
-            )
+        # readout_dark_off (author 2026-10-18): v_dark = 0 and no floor is the
+        # registered configuration.  The head parameterises mu = softplus(.) > 0,
+        # so C_m is positive definite; a true zero-mean PMT has deterministic zero
+        # charge and is handled as a limit, not floored.
         if config["probes"]["primary_form"] != PRIMARY_PROBE_FORM:
             raise ValueError("run_mean must stay the primary probe form")
         return settings
@@ -245,10 +245,7 @@ def chi2_module_terms(q: Tensor, mu: Tensor, module: Tensor, slot: Tensor, *,
         raise ValueError(
             "chi2 spreads must be s > 0, s_p/sigma_spe/v_dark >= 0, floor >= 0"
         )
-    if v_dark == 0 and floor == 0:
-        raise ValueError(
-            "chi2: v_dark = 0 needs a positive variance floor (C_m would be singular at mu = 0)"
-        )
+    # v_dark = 0 with floor = 0 is valid on readout_dark_off: mu = softplus(.) > 0.
     batch, k = q.shape
     module, slot = module.to(torch.long), slot.to(torch.long)
     module = module.expand(batch, k) if module.ndim == 1 else module

@@ -338,7 +338,9 @@ def test_verdict_wiring_pass_fail_and_not_evaluable():
     verdicts = lr.evaluate_verdicts(tables, CONFIG)
     assert verdicts["R6"]["status"] == "pass"
     assert verdicts["R7"]["status"] == "pass"
-    assert verdicts["R7b"]["status"] == "pass"
+    # readout_dark_off: the dark overlay is the identity, so R7b is not evaluable
+    assert verdicts["R7b"]["status"] == "not_evaluable"
+    assert verdicts["R7b"]["reason"] == "readout_dark_off_dark_overlay_is_identity"
     assert verdicts["R11"]["status"] == "pass"
     assert verdicts["R11b"]["status"] == "fail"       # co-trained models keep both conditions
     assert verdicts["R12"]["status"] == "not_evaluable"  # F3 failed the frozen check

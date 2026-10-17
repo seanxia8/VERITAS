@@ -971,3 +971,45 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   Rule selects the largest qualifying β = **10** (`tie_kind: null`), decision JSON written with
   `extension: "B1-ext"`, `registered: false`, tolerance 1.1, budget cap 4.0 GPU-h recorded.
   The anchored 3-seed grid at β = 10 and the beside-B1 aggregate are now running on the Titan.
+
+## Merged PMT readout integrated into the generator and detectability (2026-10-18)
+
+- **2026-10-18 — fixed detector response merged.** `lucid_bombs` now reads
+  `configs/lucid_pmt/reference.json` (path + sha256 bound in the generator config and in every
+  manifest) through the in-repo `noise_module_lucid.response_manifest` helpers and applies:
+  - the `group_parity` **charge gain** `1 + 0.03·(dense module index % 2)` (odd modules +3 %) to
+    the expected charge of the measured readout **and of the nominal twin** — the twin cancels only
+    the injected F1/F3 gains;
+  - the odd-module **timing-width factor** `1 + 0.05·(dense index % 2)` to the per-PMT digit
+    Gaussian width;
+  - the parity index is the **dense** module index (`geometry.module_of_pmt`, identical to
+    `response_manifest.module_groups(mpmt_id)` over the sparse WCTE ids; dense index 45 is raw
+    `mpmt_id` 46 — verified by test).
+  The generator's own QE table, `ce = 0.95`, `tts_sigma_ns = 1.5` and the walk parameters are
+  unchanged: only the two named fixed factors were merged. Absolute ceilings may shift when the
+  other readout constants are aligned with the manifest later; the twin cancellation is unaffected.
+- **2026-10-18 — dark counts are off in the merged response.** The readout no longer draws dark
+  charge (config `dark_rate_hz = 0`, `dark_counts: off`, hard guards), every product is labelled
+  **`readout_dark_off`** (configs, run manifests, sparse stores, benchmark and decision JSON), and
+  **no result from this readout is reportable**. Consequences recorded: `v_dark = 0` in the
+  `mae_chi2` covariance (valid because the head parameterises μ = softplus(·) > 0, so C_m stays
+  positive definite; a true zero-mean PMT is the deterministic-zero limit, not a floored variance);
+  the dark-window bank is an all-zero draw, so the anchor's dark overlay is the identity and
+  **R7b is `not_evaluable` with reason `readout_dark_off_dark_overlay_is_identity`** on this
+  readout (never a pass or a fail); the anchor's dark-window draw and the private dark noise are
+  non-physical until the PMT R-6 SHA is merged.
+- **2026-10-18 — F3 marginalised in the detectability check (author §3).** The per-PMT variance is
+  **`μ_p(1 + σ_spe²) + v_dark + s_p²·μ_p²`** (the `mae_chi2` term) with the in-force
+  **`s_p = 0.10`** (the frozen §3.5.3a fallback, not the 0.05 scan start), and μ_p includes the
+  fixed parity gain. Exactly-zero-μ PMTs get weight 0 (dark off) — no NaN. The decision JSON records
+  the label, response source+hash, `f3_marginalised: true`, the formula, and the **previous frozen
+  ceilings side by side** with deltas; freezing is an explicit `--freeze`.
+- **2026-10-18 — status of the previous decisions:** `[Y_lo, Y_hi]`, F2-vs-F2′, s_p and the F1
+  eligibility are marked **`superseded_pending_merged_readout`** until the host re-run on the WCTE
+  geometry with the F3-marginalised variance freezes the new values.
+- **2026-10-18 — R2 recompute corrections.** The independent reviewer (verdict (a): the seed-mean
+  estimator is the registered one) also found that the earlier DECISIONS line naming the median
+  estimator's failing cell as θ0.1/η1 was wrong: the cross-seed median fails **θ0.1/η3 and
+  θ0.4/η3** (4/6), while the registered seed-mean gives 5/6 with only θ0.1/η3 failing. The R1
+  evidence text's misleading "(<=10)" comparator was corrected. R3's two solver exceptions are not
+  scored as failures (the stored convention: an incomplete row is not a failure); recorded.

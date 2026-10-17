@@ -33,6 +33,31 @@ def _draws(geometry=GEOM, event_id=7, run_id="lucid/probe_train/0000", n_photons
         dark_counts=rng("dark").poisson(dark_mean, geometry.n_pmt).astype(np.int64))
 
 
+def _fraction_draws(geometry, cfg, fractions, *, vertex=None, yield_photons=1.0):
+    """SensorDraws whose Poisson arrivals sit at fixed fractions of the raw mean.
+
+    ``fractions[pmt] = [f0, f1, ...]`` puts the k-th arrival at ``f_k * mu_p`` of the
+    **no-fixed-response** mean, so an arrival at ``1.02 * mu_p`` is counted on a +3%
+    module and not on a 1.00 module: the fixed response is applied to the expected
+    charge, exactly and deterministically (charge_z is zero, so the realised charge is
+    the count).
+    """
+    vertex = np.array([0.10, -0.20, 0.05]) if vertex is None else np.asarray(vertex, float)
+    qe = np.full(geometry.n_pmt, 0.2)
+    mu_raw = lb.expected_charge(geometry, vertex, yield_photons, qe, lb.LAMBDA0_M, cfg)
+    capacity = max((len(f) for f in fractions.values()), default=0) + 1
+    u = np.full((geometry.n_pmt, capacity), 0.9)  # a large increment: no further arrival
+    for pmt, fracs in fractions.items():
+        for j, fraction in enumerate(fracs):
+            u[int(pmt), j] = np.exp(-float(fraction) * mu_raw[int(pmt)])
+    return lb.SensorDraws(
+        key=f"{lb.NS_DRAWS}/crafted", run_id="lucid/probe_train/0000", event_id=0,
+        vertex_m=vertex, yield_photons=float(yield_photons), qe_eff=qe, poisson_u=u,
+        charge_z=np.zeros(geometry.n_pmt), transit_z=np.zeros(geometry.n_pmt),
+        dark_counts=np.zeros(geometry.n_pmt, dtype=np.int64), window_ns=float(cfg.window_ns),
+        capacity=capacity)
+
+
 def _standin(state, draws):
     """Test-only stand-in: gains act on charge before the threshold."""
     n_pmt = int(state.gains.size)
@@ -281,9 +306,16 @@ def test_view_masks_are_a_documented_geometry_stub():
 # --------------------------------------------------------------------------- detectability
 def test_fisher_analytic_fixture():
     mu, dmu = np.array([100.0]), np.array([10.0])
-    info = lb.fisher_event(mu, dmu, sigma_spe=0.3, v_dark=0.0)
+    # s_p = 0 recovers the Poisson + SPE variance; the F3 term is s_p^2 mu^2
+    info = lb.fisher_event(mu, dmu, sigma_spe=0.3, v_dark=0.0, s_p=0.0)
     assert info == pytest.approx(100.0 / (100.0 * 1.09))
-    assert lb.fisher_event(mu, dmu, sigma_spe=0.3, v_dark=10.0) == pytest.approx(100.0 / 119.0)
+    assert lb.fisher_event(mu, dmu, sigma_spe=0.3, v_dark=0.0, s_p=0.1) == pytest.approx(
+        100.0 / (100.0 * 1.09 + 0.01 * 100.0 ** 2))
+    assert lb.fisher_event(mu, dmu, sigma_spe=0.3, v_dark=10.0, s_p=0.0) == pytest.approx(
+        100.0 / 119.0)
+    # one PMT, sigma_spe = v_dark = 0: weight = mu^2/(mu + s_p^2 mu^2) = mu/(1 + s_p^2 mu)
+    assert lb.fisher_event(np.array([5.0]), np.array([5.0]), sigma_spe=0.0, v_dark=0.0,
+                           s_p=0.1) == pytest.approx(5.0 / (1.0 + 0.01 * 5.0))
     assert lb.r2_max(info, 0.05) == pytest.approx(0.05 ** 2 / (0.05 ** 2 + 1.0 / info))
     assert lb.r2_max(0.0, 0.05) == 0.0
     assert lb.r2_max(np.inf, 0.05) == 1.0
@@ -295,7 +327,7 @@ def test_attenuation_fisher_matches_analytic_sum():
     mu = yield_pe * np.exp(-distance / lambda0)
     dmu = mu * distance / lambda0  # derivative with respect to ln(lambda)
     expected = float(np.sum(mu * (distance / lambda0) ** 2))
-    assert lb.fisher_event(mu, dmu, sigma_spe=0.0, v_dark=0.0) == pytest.approx(expected)
+    assert lb.fisher_event(mu, dmu, sigma_spe=0.0, v_dark=0.0, s_p=0.0) == pytest.approx(expected)
 
 
 def test_fisher_monotonicity_and_run_ceiling():
@@ -310,6 +342,7 @@ def test_fisher_monotonicity_and_run_ceiling():
     assert result.i_run == pytest.approx(lb.RUN_EVENTS * base)
     assert result.r2_run > result.r2_event[0]
     assert result.n_events == lb.RUN_EVENTS and not result.profiled
+    assert result.s_p == lb.F3_SPREAD  # F3 is marginalised with the spread in force
     profiled = lb.detectability([mu], [dmu], 0.05, profiled_information=1.0)
     assert profiled.profiled and profiled.i_run == 1.0
 
@@ -319,11 +352,12 @@ def test_invalid_detectability_inputs_raise():
         lb.fisher_event(np.array([-1.0]), np.array([1.0]))
     with pytest.raises(ValueError):
         lb.fisher_event(np.array([1.0, 2.0]), np.array([1.0]))
-    # mu = 0 is a dark-only PMT and is informative once v_dark > 0; only a
-    # zero-variance (v_dark = 0) configuration is invalid.
-    assert np.isfinite(lb.fisher_event(np.array([0.0]), np.array([1.0])))
     with pytest.raises(ValueError):
-        lb.fisher_event(np.array([0.0]), np.array([1.0]), v_dark=0.0)
+        lb.fisher_event(np.array([1.0]), np.array([1.0]), s_p=-0.1)
+    # A zero-mean PMT is skipped: no NaN and no division by zero, no information.
+    assert lb.fisher_event(np.array([0.0]), np.array([1.0]), v_dark=0.0) == 0.0
+    assert lb.fisher_event(np.array([0.0]), np.array([1.0])) == 0.0  # the readout's v_dark = 0
+    assert np.isfinite(lb.fisher_event(np.array([0.0]), np.array([1.0]), v_dark=1.0))
     with pytest.raises(ValueError):
         lb.detectability([], [], 0.05)
     with pytest.raises(ValueError):
@@ -347,11 +381,18 @@ def test_nothing_imports_lucid():
 def test_config_matches_module_constants():
     config = json.loads(CONFIG.read_text())
     assert config["readout_label"] == lb.READOUT_LABEL
+    assert config["dark_counts"] == lb.DARK_COUNTS_OFF == "off"
+    assert config["fixed_response"]["dark_counts"] == "off"
     assert config["lambda0_m"] == lb.LAMBDA0_M
     assert config["gain_clip"] == list(lb.GAIN_CLIP)
     assert config["views"] == {"n_min": lb.N_MIN, "max_redraws": lb.MAX_REDRAWS}
     assert config["detectability"]["sigma_spe"] == lb.SIGMA_SPE
-    assert config["detectability"]["v_dark"] == lb.V_DARK
+    assert config["detectability"]["v_dark"] == lb.V_DARK_READOUT == 0.0
+    assert config["detectability"]["dark_counts"] == "off"
+    assert config["detectability"]["f3_marginalised"] is True
+    assert config["detectability"]["f3_marginalised_spread"] == lb.F3_SPREAD
+    assert (config["detectability"]["variance_formula"] == lb.VARIANCE_FORMULA
+            == "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2")
     assert config["detector_state_laws"]["F1"]["spreads"] == list(lb.F1_SPREADS)
     assert config["detector_state_laws"]["F2"]["spreads"] == list(lb.F2_SPREADS)
     assert config["detector_state_laws"]["F2p"]["spreads"] == list(lb.F2P_SPREADS)
@@ -359,6 +400,12 @@ def test_config_matches_module_constants():
     assert config["detector_state_laws"]["R11b"]["spread"] == lb.R11B_SPREAD
     assert config["detector_state_laws"]["T"]["spread"] == lb.T_SPREAD
     assert config["detector_state_laws"]["T"]["runs"] == lb.T_RUNS
+    for law in ("F1", "F3", "F2", "F2p"):
+        assert config["detector_state_laws"][law]["decision_status"] == \
+            lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert config["superseded_decisions"]["status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert config["generator"]["yield_range_decision"]["status"] == \
+        lb.SUPERSEDED_PENDING_MERGED_READOUT
     for name, cohort in lb.COHORTS.items():
         entry = config["cohorts"][name]
         assert (entry["namespace"], entry["event_start"], entry["n_events"],
@@ -374,6 +421,8 @@ def test_config_matches_module_constants():
     assert geo["mpmt_id_gaps"] == [45] and geo["pmt_id_in_mpmt_base"] == 1
     assert generator["y_lo"] == lb.Y_LO_PHOTONS and generator["y_hi"] == lb.Y_HI_PHOTONS
     assert generator["yield_range_status"] == lb.YIELD_RANGE_STATUS_IN_FORCE
+    assert generator["dark_rate_hz"] == lb.DARK_RATE_HZ_OFF == 0.0
+    assert generator["dark_counts"] == lb.DARK_COUNTS_OFF
     assert lb.load_generator_config(CONFIG) == lb.GeneratorConfig()
     assert config["benchmark"]["volume_events"] == lb.REGISTERED_VOLUME_EVENTS
     assert config["benchmark"]["cpu_cap_wall_hours"] == lb.CPU_CAP_WALL_HOURS
@@ -537,19 +586,184 @@ def test_nominal_twin_equals_the_undrifted_readout():
 
 def test_threshold_is_applied_after_gain_and_unhit_hits_are_not_recorded():
     cfg = replace(GEN_CFG, threshold_pe=1.5, walk_calibration_pe=1.5)
-    draws = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 9, seed=3)
-    dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
-    dark[3], dark[7] = 1, 2  # 1 PE and 2 PE, no smearing
-    draws = replace(draws, yield_photons=0.0, dark_counts=dark,
-                    charge_z=np.zeros(SYNTH.n_pmt))
+    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])
+    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])
+    # exact 1 PE and 2 PE pulses, no SPE smearing: the 1 PE pulse is below 1.5 PE
+    draws = _fraction_draws(SYNTH, cfg, {odd: [0.5], even: [0.3, 0.3]})
     nominal = lb.nominal_state(SYNTH, draws.run_id)
     hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg)
-    assert hits.pmt_id.tolist() == [7]  # the 1 PE pulse never crosses 1.5 PE
+    assert hits.pmt_id.tolist() == [even]
     assert hits.charge_pe[0] == pytest.approx(2.0)
     gains = np.ones(SYNTH.n_pmt)
-    gains[3] = 1.5  # gain acts before the threshold: 1 PE x 1.5 now crosses
+    gains[odd] = 1.5  # gain acts before the threshold: 1 PE x 1.03 x 1.5 now crosses
     lifted = lb.readout_synthetic_unrepaired(replace(nominal, gains=gains), draws, SYNTH, cfg)
-    assert 3 in lifted.pmt_id.tolist() and 7 in lifted.pmt_id.tolist()
+    assert odd in lifted.pmt_id.tolist() and even in lifted.pmt_id.tolist()
+
+
+# ===================================================================== WP4b: fixed response
+def test_fixed_parity_gain_uses_the_dense_module_index():
+    ref = lb.reference_response()
+    assert ref.gain_rule == {"rule": "group_parity", "base": 1.0, "odd_group_delta": 0.03}
+    assert ref.timing_width_rule == {"rule": "group_parity", "base": 1.0,
+                                     "odd_group_delta": 0.05}
+    gain = lb.fixed_charge_gain(SYNTH)
+    assert np.all(gain[SYNTH.module_index % 2 == 1] == pytest.approx(1.03))
+    assert np.all(gain[SYNTH.module_index % 2 == 0] == pytest.approx(1.0))
+    width = lb.fixed_timing_width_factor(SYNTH)
+    assert np.all(width[SYNTH.module_index % 2 == 1] == pytest.approx(1.05))
+    assert np.all(width[SYNTH.module_index % 2 == 0] == pytest.approx(1.0))
+    # dense index 45 is the module whose raw mpmt_id is 46 (id 45 is absent from WCTE)
+    module_45 = SYNTH.module_index == 45
+    assert SYNTH.module_ids[45] == 46
+    assert np.all(gain[module_45] == pytest.approx(1.03))
+    assert np.array_equal(lb.dense_module_index_from_mpmt_id(SYNTH.mpmt_id),
+                          SYNTH.module_index)
+    # a rule on the raw sparse id would put that module at 1.0: not interchangeable
+    assert not np.allclose(gain[module_45], 1.0 + 0.03 * (SYNTH.mpmt_id[module_45] % 2))
+    with pytest.raises(ValueError):
+        replace(ref, gain_rule={"rule": "unknown"}).gain(np.array([0, 1]))
+
+
+def test_fixed_response_values_come_from_the_manifest(tmp_path):
+    from noise_module_lucid.response_manifest import value_sha256
+    payload = json.loads(Path(lb.reference_response().path).read_text())
+    payload["parameters"]["gain"]["value"]["odd_group_delta"] = 0.07
+    payload["parameters"]["gain"]["sha256"] = value_sha256(
+        payload["parameters"]["gain"]["value"])
+    path = tmp_path / "reference.json"
+    path.write_text(json.dumps(payload))
+    ref = lb.reference_response(path)
+    assert ref.gain_rule["odd_group_delta"] == 0.07 and ref.sha256 != lb.REFERENCE_RESPONSE_SHA256
+    assert np.allclose(ref.gain(np.array([0, 1, 2, 3])), [1.0, 1.07, 1.0, 1.07])
+    with pytest.raises(ValueError):  # a tampered value fails the recorded parameter hash
+        bad = dict(payload)
+        bad["parameters"] = dict(payload["parameters"])
+        bad["parameters"]["gain"] = dict(payload["parameters"]["gain"])
+        bad["parameters"]["gain"]["value"] = dict(payload["parameters"]["gain"]["value"],
+                                                  odd_group_delta=0.5)
+        (tmp_path / "tampered.json").write_text(json.dumps(bad))
+        lb.reference_response(tmp_path / "tampered.json")
+
+
+def test_readout_applies_the_parity_gain_and_the_twin_keeps_it(monkeypatch):
+    cfg = replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
+    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])   # dense 45 -> x1.03
+    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])  # dense 44 -> x1.00
+    # arrive at 1.02 x the gain-included mean: only the +3% module counts the arrival
+    draws = _fraction_draws(SYNTH, cfg, {odd: [1.02], even: [1.02]})
+    nominal = lb.nominal_state(SYNTH, draws.run_id)
+    readout = lb.make_readout(SYNTH, cfg)
+    measured = readout(nominal, draws)
+    assert measured.pmt_id.tolist() == [odd]
+    assert measured.charge_pe[0] == pytest.approx(1.0)  # 1 PE, no SPE smearing
+    # the nominal twin keeps the fixed response: it is detector response, not drift
+    twin = lb.nominal_twin(draws, SYNTH, readout, arm=lb.ORACLE_ARM)
+    assert twin.pmt_id.tolist() == [odd]
+    assert twin.charge_pe[0] == pytest.approx(1.0)
+    # without the fixed gain the same arrival is lost: the gain moved the expected charge
+    monkeypatch.setattr(lb, "fixed_charge_gain",
+                        lambda geometry, reference=None: np.ones(geometry.n_pmt))
+    assert readout(nominal, draws).pmt_id.size == 0
+    monkeypatch.undo()
+    # the twin cancels exactly the injected F1/F3 gain: an injected 0.2 drops the hit
+    drifted = replace(nominal, gains=np.where(np.arange(SYNTH.n_pmt) == odd, 0.2, 1.0))
+    assert readout(drifted, draws).pmt_id.size == 0
+    assert lb.nominal_twin(draws, SYNTH, readout, arm=lb.ORACLE_ARM).pmt_id.tolist() == [odd]
+
+
+def test_twin_ratios_cancel_only_the_injected_gain():
+    run = lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F1", 0.10, 0, 20, 7)
+    generated = lb.generate_run(SYNTH, GEN_CFG, run, with_twin=True)
+    assert not np.allclose(generated.state.gains, 1.0)
+    common_hits = 0
+    for measured, twin in zip(generated.hits, generated.twin_hits):
+        common = np.intersect1d(measured.pmt_id, twin.pmt_id)
+        common_hits += common.size
+        if common.size:
+            ratio = measured.charge_pe[np.searchsorted(measured.pmt_id, common)] / \
+                twin.charge_pe[np.searchsorted(twin.pmt_id, common)]
+            assert np.allclose(ratio, generated.state.gains[common], rtol=1e-6)
+    assert common_hits > 0
+
+
+def test_dark_counts_are_off_and_enforced():
+    assert GEN_CFG.dark_counts == "off" and GEN_CFG.dark_rate_hz == 0.0
+    assert lb.dark_charge_variance(GEN_CFG.dark_rate_hz, GEN_CFG.window_ns,
+                                   GEN_CFG.sigma_spe) == 0.0
+    assert lb.V_DARK_READOUT == 0.0
+    for event_id in range(5):
+        draws = lb.draw_event(SYNTH, GEN_CFG, "lucid/probe_train/0000", event_id)
+        assert draws.dark_counts.shape == (SYNTH.n_pmt,)
+        assert draws.dark_counts.sum() == 0
+    with pytest.raises(ValueError):  # dark off and a non-zero rate is refused
+        replace(GEN_CFG, dark_rate_hz=4200.0)
+    with pytest.raises(ValueError):  # this readout has no dark-on mode
+        replace(GEN_CFG, dark_counts="on")
+    # a stale dark-on draw can never be read out under the dark-off label
+    draws = lb.draw_event(SYNTH, GEN_CFG, "lucid/probe_train/0000", 0)
+    dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
+    dark[3] = 1
+    with pytest.raises(ValueError, match="dark"):
+        lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id),
+                                        replace(draws, dark_counts=dark), SYNTH, GEN_CFG)
+
+
+def test_readout_label_is_dark_off_everywhere(tmp_path):
+    assert lb.READOUT_LABEL == "readout_dark_off"
+    assert lb.READOUT_LABEL_LEGACY == "readout_synthetic_unrepaired"
+    config = json.loads(CONFIG.read_text())
+    assert config["readout_label"] == "readout_dark_off"
+    run = lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F1", 0.05, 0, 4, 7)
+    generated = lb.generate_run(SYNTH, GEN_CFG, run, with_twin=False)
+    payload = lb.write_generated_run(tmp_path / "run", generated, SYNTH, GEN_CFG,
+                                     code_sha="deadbeef")
+    assert payload["readout_label"] == "readout_dark_off"
+    assert payload["dark_counts"] == "off"
+    assert payload["fixed_response"]["sha256"] == lb.reference_response().sha256
+    assert payload["fixed_response"]["relpath"] == lb.FIXED_RESPONSE_RELPATH
+    assert payload["yield_range_decision_status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert lb.read_sparse_hits(tmp_path / "run" / "hits.npz").readout_label == "readout_dark_off"
+    benchmark = lb.benchmark_generation(SYNTH, GEN_CFG, n_events=4, with_twin=False)
+    assert benchmark["readout_label"] == "readout_dark_off"
+    assert benchmark["dark_counts"] == "off" and benchmark["dark_rate_hz"] == 0.0
+    assert benchmark["fixed_response"]["sha256"] == lb.reference_response().sha256
+    text = json.dumps([config, payload, benchmark])
+    assert "readout_synthetic_unrepaired" not in text
+
+
+def test_generator_config_records_the_fixed_response_source_and_hash():
+    config = json.loads(CONFIG.read_text())
+    block, generator = config["fixed_response"], config["generator"]
+    source = Path(lb.resolve_reference_path(block["path"]))
+    actual = hashlib.sha256(source.read_bytes()).hexdigest()
+    assert source.is_file() and source.name == "reference.json"
+    assert block["sha256"] == generator["reference_response_sha256"] == actual
+    assert block["sha256"] == lb.REFERENCE_RESPONSE_SHA256
+    assert block["path"] == generator["reference_response_path"] == lb.FIXED_RESPONSE_RELPATH
+    ref = lb.reference_response()
+    assert ref.sha256 == actual and ref.dark_counts == "off"
+    assert ref.gain_rule == block["gain"] == ref.parameters["gain"]
+    assert ref.timing_width_rule == block["timing_width_factor"]
+    assert GEN_CFG.reference_response_sha256 == actual
+    with pytest.raises(ValueError):
+        replace(GEN_CFG, reference_response_sha256="0" * 64)
+    with pytest.raises(ValueError):
+        replace(GEN_CFG, reference_response_path="configs/lucid_pmt/missing.json")
+
+
+def test_timing_width_factor_scales_the_digit_gaussian_width():
+    cfg = replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
+    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])   # dense 45 -> x1.05
+    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])  # dense 44 -> x1.00
+    draws = _fraction_draws(SYNTH, cfg, {odd: [0.5], even: [0.5]})
+    draws = replace(draws, transit_z=np.ones(SYNTH.n_pmt))
+    hits = lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id), draws,
+                                           SYNTH, cfg)
+    tau = lb.propagation_time_ns(SYNTH, draws.vertex_m, cfg)
+    times = dict(zip(hits.pmt_id.tolist(), hits.time_ns.tolist()))
+    sigma = GEN_CFG.tts_sigma_ns
+    assert times[odd] == pytest.approx(tau[odd] + sigma * 1.05)
+    assert times[even] == pytest.approx(tau[even] + sigma * 1.00)
 
 
 # ===================================================================== WP4b: storage/benchmark

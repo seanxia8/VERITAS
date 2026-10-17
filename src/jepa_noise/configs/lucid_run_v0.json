@@ -4,7 +4,7 @@
   "date": "2026-10-17",
   "scope": "WP5 LUCiD runner: cells/cohorts, cached generation, per-cell independent training, probes/floors/verdicts, development cohort, smoke and scaling (runbook v4 \u00a73.5.3-\u00a73.5.9, \u00a76.1-\u00a76.2)",
   "status": "development_only",
-  "readout_label": "readout_synthetic_unrepaired",
+  "readout_label": "readout_dark_off",
   "reported_results": false,
   "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
   "detectability_decision": "results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
@@ -284,7 +284,8 @@
     "dark_noise": {
       "records": 512,
       "method": "noise-only windows from the generator's own readout with yield = 0 on keyed draws (readout_synthetic_unrepaired); nominal detector state; labelled engineering pending the Lead's confirmation of the no-source convention",
-      "status": "engineering_choice_flagged"
+      "status": "non_physical_on_readout_dark_off",
+      "note": "dark counts are off in the merged PMT response; the dark window is an all-zero draw, so the anchor dark overlay is the identity and R7b (dark-window anchor) is not evaluable on this readout until the PMT R-6 SHA lands"
     },
     "cohorts": {
       "train": {
@@ -484,5 +485,6 @@
     "The occupancy ablation's arm label 'LeJEPA' is read as sigreg_jepa on natural-vs-balanced context views; the natural-view baseline is the main s = 0.05 within cell.",
     "The mae_chi2 covariance needs one cell spread s; law T's module-gain spread scales with r/R and the runbook fixes no single s. The runner passes s = 0.10 (T_SPREAD) for the law-T cell and s = 0.05 for R11b; both readings need confirmation.",
     "ijepa_ema target-encoder input (reported, not patched): lucid_arms.py:469-480 feeds the EMA target encoder the full input and gathers the masked target tokens, while v3 WP4 line 233 asks for the masked target-token input. The fix is inside lucid_arms.py, which is outside the WP5 runner fix's file scope; it is reported to the Lead and no silent patch is applied."
-  ]
+  ],
+  "dark_counts": "off"
 }

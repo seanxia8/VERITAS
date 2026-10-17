@@ -1,9 +1,46 @@
 {
   "schema": "jepa-lucid-detectability-v0",
   "status": "development_only",
-  "readout_label": "readout_synthetic_unrepaired",
+  "readout_label": "readout_dark_off",
   "reported_results": false,
-  "note": "Runbook v4 \u00a73.5.3a detectability check. The geometry is read from LUCiD's own config/WCTE_geom_config.json at the pinned revision; local tests use the schema-identical synthetic fixture from jepa_noise.lucid_bombs.from_synthetic. No LUCiD import, nothing redistributed. Every number is development-only until the PMT readout is repaired (\u00a73.5.2).",
+  "note": "Runbook v4 \u00a73.5.3a detectability check on the merged PMT readout (dark counts off). The geometry is read from LUCiD's own config/WCTE_geom_config.json at the pinned revision; local tests use the schema-identical synthetic fixture from jepa_noise.lucid_bombs.from_synthetic. No LUCiD import, nothing redistributed. Every number is development-only; the 2026-10-17 frozen yields, F2-vs-F2' and s_p are superseded_pending_merged_readout and the author has not frozen replacements.",
+  "dark_counts": "off",
+  "f3_marginalised": true,
+  "variance_formula": "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2",
+  "f3_marginalised_note": "F3 is a random per-PMT gain, not known: s_p^2 * mu_p^2 is added to every PMT variance (the \u00a73.5.6 mae_chi2 covariance term). s_p is the spread in force (lb.F3_SPREAD = 0.10), not the candidate spread of an F3 ceiling scan.",
+  "fixed_response": {
+    "path": "configs/lucid_pmt/reference.json",
+    "sha256": "522f556c59ec75f86918d6181d392eb389a6826c5984e23949db981cd1a318e2",
+    "schema": "pmt-response-v2",
+    "gain": {
+      "rule": "group_parity",
+      "base": 1.0,
+      "odd_group_delta": 0.03
+    },
+    "timing_width_factor": {
+      "rule": "group_parity",
+      "base": 1.0,
+      "odd_group_delta": 0.05
+    },
+    "module_index": "dense mPMT module index: response_manifest.module_groups(mpmt_id) over the sparse WCTE ids (0..105 with id 45 absent)",
+    "use_here": "the charge gain multiplies mu_p in every ceiling (detector response, present in the nominal twin too)",
+    "dark_counts": "off"
+  },
+  "previous_decision": {
+    "path": "results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
+    "use": "read-only input: the previously frozen ceilings are recorded beside the new ones so the Lead can report them side by side",
+    "recorded_as": "superseded_pending_merged_readout"
+  },
+  "superseded_decisions": {
+    "status": "superseded_pending_merged_readout",
+    "items": [
+      "Y_lo, Y_hi (frozen 2026-10-17 on the pre-merge readout)",
+      "F2-vs-F2' selection",
+      "F3 spread s_p",
+      "v_dark (0.004578 -> 0.0, dark off)"
+    ],
+    "refreeze_condition": "this check re-run on the merged readout; the author freezes the new values"
+  },
   "geometry": {
     "lucid_pin": "eaf2e89f579d6679e90020c732ac2c846895d691",
     "config_relpath": "config/WCTE_geom_config.json",
@@ -18,7 +55,8 @@
   "generator_config": "lucid_bombs_v0.json",
   "check": {
     "sigma_spe": 0.3,
-    "v_dark": 0.004578,
+    "v_dark": 0.0,
+    "f3_marginalised_spread": 0.1,
     "run_events": 50,
     "n_events": 50,
     "seed": 20261017,

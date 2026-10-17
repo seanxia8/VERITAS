@@ -425,7 +425,12 @@ class TrainingLoader:
                                                         entry["batch"].event_ids[found])))
         return _stack(entries, rows), (_stack(twins, twin_rows) if self.twin else None)
 def ensure_dark_bank(*, data_root, geometry, generator_config, seed, records, code_sha=None):
-    """Noise-only windows from the generator's own readout at yield = 0 (flagged choice)."""
+    """Noise-only windows from the generator's own readout at yield = 0 (flagged choice).
+
+    On ``readout_dark_off`` (the merged PMT response has dark counts off) the drawn windows are
+    all-zero, so the dark overlay and the R7b dark-window anchor are **not physical**; the bank is
+    kept only so the draw-sharing code paths stay runnable, and R7b is reported ``not_evaluable``.
+    """
     directory = Path(data_root).resolve() / "lucid" / f"dark_noise__s{int(seed)}__n{int(records)}"
     manifest_path = directory / "manifest.json"
     if manifest_path.exists():
@@ -443,8 +448,11 @@ def ensure_dark_bank(*, data_root, geometry, generator_config, seed, records, co
         "schema": "jepa-lucid-dark-bank-v0", "seed": int(seed), "n_records": int(records),
         "readout_label": READOUT_LABEL, "reported_results": False, "geometry_sha256": geometry.digest,
         "generator_config_sha256": generator_config.digest,
-        "method": "readout_synthetic_unrepaired at yield_photons = 0, nominal state",
-        "status": "engineering_choice_flagged", "code_sha": code_sha, "created_utc": utcnow()})
+        "method": "generator readout at yield_photons = 0, nominal state",
+        "status": ("non_physical_on_readout_dark_off" if READOUT_LABEL == "readout_dark_off"
+                   else "engineering_choice_flagged"),
+        "dark_counts": getattr(generator_config, "dark_counts", None),
+        "code_sha": code_sha, "created_utc": utcnow()})
     write_sha256sums(directory)
     return directory
 # --- model / training -------------------------------------------------------
@@ -1131,7 +1139,14 @@ def verdict_r7(tables, config):
                     plain_resolution=plain_res, anchored_resolution=anchor_res,
                     resolution_ratio=ratio, physics_ok=physics) | {"missing": []}
 def verdict_r7b(tables, config):
-    """§3.5.9 R7b: the dark-only anchor does not remove module drift (seeds 0-2)."""
+    """§3.5.9 R7b: the dark-only anchor does not remove module drift (seeds 0-2).
+
+    On ``readout_dark_off`` the dark overlay is the identity (dark counts are off), so R7b's
+    premise is absent: the verdict is ``not_evaluable`` with that reason, never a pass or a fail.
+    """
+    if READOUT_LABEL == "readout_dark_off":
+        return {"status": "not_evaluable", "reason": "readout_dark_off_dark_overlay_is_identity",
+                "criterion": "R7b"}
     cell, seeds = "main_s010_within", 3
     core, missing = _gain_verdict(tables, config, cell, seeds, "sigreg_jepa",
                                   "sigreg_jepa_anchored_dark", 1, "R7b")

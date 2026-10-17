@@ -42,14 +42,65 @@ def _fake_fn(mapping, default=None):
 # --------------------------------------------------------------------------- analytic toys
 def test_single_pmt_fisher_is_analytic():
     mu, dmu, sigma = 5.0, 2.0, 0.3
-    weights = ld.poisson_weights(np.array([mu]), sigma, 0.0)
+    weights = ld.poisson_weights(np.array([mu]), sigma, 0.0, 0.0)
     matrix = ld.fisher_matrix(np.array([[dmu / mu]]), weights)
     expected = dmu ** 2 / (mu * (1.0 + sigma ** 2))
     assert matrix[0, 0] == pytest.approx(expected)
     assert ld.r2_max(expected, 0.05) == pytest.approx(0.05 ** 2 / (0.05 ** 2 + 1.0 / expected))
     assert ld.r2_max(0.0, 0.05) == 0.0 and ld.r2_max(np.inf, 0.05) == 1.0
     assert ld.r2_max(2 * expected, 0.1) > ld.r2_max(expected, 0.1) > 0.0
-    assert ld.poisson_weights(np.array([mu]), 0.5, 0.0)[0] < weights[0]
+    assert ld.poisson_weights(np.array([mu]), 0.5, 0.0, 0.0)[0] < weights[0]
+
+
+def test_f3_marginalised_weight_is_analytic():
+    """One PMT, sigma_spe = v_dark = 0: w = mu^2/(mu + s_p^2 mu^2) = mu/(1 + s_p^2 mu)."""
+    mu, s_p = 5.0, 0.1
+    weight = ld.poisson_weights(np.array([mu]), 0.0, 0.0, s_p)[0]
+    assert weight == pytest.approx(mu / (1.0 + s_p ** 2 * mu))
+    assert ld.per_pmt_variance(np.array([mu]), 0.0, 0.0, s_p)[0] == pytest.approx(
+        mu + s_p ** 2 * mu ** 2)
+    # with dmu = mu (a pure unit log-derivative) the information is the weight itself
+    matrix = ld.fisher_matrix(np.array([[1.0]]), np.array([weight]))
+    assert matrix[0, 0] == pytest.approx(mu / (1.0 + s_p ** 2 * mu))
+    # the same formula as the §3.5.6 mae_chi2 diagonal, plus sigma_spe
+    variance = ld.per_pmt_variance(np.array([mu]), 0.3, 0.0, s_p)[0]
+    assert variance == pytest.approx(mu * 1.09 + s_p ** 2 * mu ** 2)
+    # F3 as a known factor (s_p = 0) carries strictly more information
+    assert ld.poisson_weights(np.array([mu]), 0.0, 0.0, 0.0)[0] == pytest.approx(mu)
+    assert weight < ld.poisson_weights(np.array([mu]), 0.0, 0.0, 0.0)[0]
+
+
+def test_zero_mean_pmts_are_skipped_not_divided_by_zero():
+    weights = ld.poisson_weights(np.array([0.0, 4.0]), 0.3, 0.0, 0.1)
+    assert np.all(np.isfinite(weights))
+    assert weights[0] == 0.0 and weights[1] > 0.0
+    # a zero-mean PMT is skipped even with a positive dark variance: it carries no signal
+    assert ld.poisson_weights(np.array([0.0]), 0.3, 1.0, 0.1)[0] == 0.0
+    assert ld.per_pmt_variance(np.array([0.0]), 0.3, 0.0, 0.1)[0] == 0.0
+    columns = np.array([[1.0], [0.0]])
+    matrix = ld.fisher_matrix(columns, weights)
+    assert np.isfinite(matrix).all()
+    assert matrix[0, 0] == pytest.approx(ld.fisher_matrix(columns[1:], weights[1:])[0, 0])
+
+
+def test_parity_gain_is_in_the_expected_charge():
+    check = ld.load_check_config(CONFIG)
+    event = ld.sample_events(GEOM, GEN, 50000.0, 1, check.seed)[0]
+    state = lb.nominal_state(GEOM, "test/parity")
+    mu = ld.true_expected_charge(GEOM, GEN, state, event)
+    raw = lb.expected_charge(GEOM, event.vertex_m, event.yield_photons, event.qe_eff,
+                             state.attenuation_length_m, GEN)
+    odd, even = GEOM.module_index % 2 == 1, GEOM.module_index % 2 == 0
+    assert np.allclose(mu[odd], 1.03 * raw[odd])
+    assert np.allclose(mu[even], raw[even])
+    # dense index, not the raw sparse mpmt_id: dense 45 is raw id 46 (even parity)
+    inside = GEOM.module_index == 45
+    assert GEOM.module_ids[45] == 46
+    assert np.allclose(mu[inside], 1.03 * raw[inside])
+    # injected F1/F3 gains ride on top of the fixed response
+    drifted = lb.state_for_run("F1", 0.05, "test/parity", GEOM, seed=check.seed)
+    mu_drift = ld.true_expected_charge(GEOM, GEN, drifted, event)
+    assert np.allclose(mu_drift, mu * drifted.gains)
 
 
 def test_profiling_reduces_to_naive_when_nuisance_is_orthogonal():
@@ -82,12 +133,13 @@ def test_vertex_derivative_matches_finite_difference():
     state = lb.state_for_run("F1", 0.05, "test/vertex", GEOM, seed=check.seed)
     mu0 = ld.true_expected_charge(GEOM, GEN, state, event)
     analytic = ld.vertex_log_derivatives(GEOM, event.vertex_m, state.attenuation_length_m)
+    fixed_gain = lb.fixed_charge_gain(GEOM, lb.generator_reference(GEN))
     eps = 1e-5
     for axis in range(3):
         vertex = event.vertex_m.copy()
         vertex[axis] += eps
         mu = lb.expected_charge(GEOM, vertex, event.yield_photons, event.qe_eff,
-                                state.attenuation_length_m, GEN) * state.gains
+                                state.attenuation_length_m, GEN) * fixed_gain * state.gains
         finite = (np.log(np.maximum(mu, 1e-300)) - np.log(np.maximum(mu0, 1e-300))) / eps
         mask = mu0 > 1e-3
         assert np.max(np.abs(finite[mask] - analytic[mask, axis])) < 1e-3
@@ -101,13 +153,29 @@ def test_median_yield_policy_and_config_consistency():
     payload = json.loads(CONFIG.read_text())
     assert payload["schema"] == ld.SCHEMA and payload["readout_label"] == lb.READOUT_LABEL
     assert payload["reported_results"] is False
+    assert payload["dark_counts"] == "off" and payload["f3_marginalised"] is True
+    assert payload["variance_formula"] == ld.VARIANCE_FORMULA == lb.VARIANCE_FORMULA
+    assert payload["fixed_response"]["sha256"] == lb.reference_response().sha256
+    assert payload["previous_decision"]["path"].endswith("wp4b_detectability_wcte_v2.json")
+    assert Path(ld.PREVIOUS_DECISION_PATH).is_file()
+    recorded = Path(payload["previous_decision"]["path"])
+    assert not recorded.is_absolute()  # portable in the config
+    assert Path(lb.__file__).resolve().parents[2] / recorded == ld.PREVIOUS_DECISION_PATH
+    assert Path(ld.previous_ceilings()["path"]) == ld.PREVIOUS_DECISION_PATH
+    assert payload["superseded_decisions"]["status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
     assert check.f1_spreads == lb.F1_SPREADS and check.f2_spreads == lb.F2_SPREADS
     assert check.f2p_spreads == lb.F2P_SPREADS and check.f3_spread == lb.F3_SPREAD_DEFAULT
+    assert check.v_dark == lb.V_DARK_READOUT == 0.0
+    assert check.f3_marginalised_spread == lb.F3_SPREAD
     assert check.y_lo == lb.Y_LO_PHOTONS_PLACEHOLDER
     assert check.y_hi_initial == lb.Y_HI_PHOTONS_PLACEHOLDER
     assert check.lambda0_m == lb.LAMBDA0_M and check.n_min == lb.N_MIN
     assert check.median_policy == "population_median_of_log_uniform"
     assert ld.CheckConfig().digest == ld.CheckConfig().digest != ""
+    with pytest.raises(ValueError):  # dark off and a dark variance is refused
+        replace(check, v_dark=0.004578)
+    with pytest.raises(ValueError):
+        replace(check, f3_marginalised_spread=0.2)
 
 
 # --------------------------------------------------------------------------- decision branches
@@ -261,3 +329,111 @@ def test_f2_branch_records_the_joint_f1_ceiling():
     assert len(rows) == 105
     assert set(rows[0]) == {"module", "r2_run"}
     assert all(0.0 <= row["r2_run"] <= 1.0 for row in rows)
+
+
+def test_decision_json_records_readout_response_and_marginalisation(tmp_path):
+    check = ld.load_check_config(CONFIG)
+    table = _table()
+    yields = {"y_lo": 6000.0, "y_hi": 380000.0, "y_hi_initial": 320000.0,
+              "y_hi_bound": 380000.0, "y_hi_bound_source": "hit_fraction_0.95",
+              "median_yield": table.median_yield, "median_policy": check.median_policy}
+    occupancy = {"n_min": 20, "within_target_median_hits": 100.0,
+                 "within_exclusion_rate": 0.0, "across_target_median_hits": 90.0,
+                 "across_initial_below_nmin_rate": 0.0}
+    payload = ld.build_decision_payload(
+        GEOM, GEN, check, table, [], {"g6": False, "f1_eligible_settings": [0.02, 0.05, 0.10],
+                                      "f1_excluded_settings": [], "f2_ok": True,
+                                      "f2_choice": {"law": "F2", "setting": 0.10},
+                                      "f2_attempted": [0.10], "f3_ok": True,
+                                      "f3_choice": {"spread": 0.05}, "f3_attempted": [0.05],
+                                      "r12_status": "evaluable", "r12_gate": None,
+                                      "law_T_ok": True, "g6_dependent_predictions": [],
+                                      "reason": "all pass"},
+        yields, occupancy, frozen=False, code_sha="deadbeef")
+    back = ld.read_decision(ld.write_decision(tmp_path / "decision.json", payload))
+    assert back["readout_label"] == "readout_dark_off"
+    assert back["dark_counts"] == "off" and back["v_dark"] == 0.0
+    assert back["sigma_spe"] == lb.SIGMA_SPE
+    assert back["f3_marginalised"] is True
+    assert back["variance_formula"] == ld.VARIANCE_FORMULA
+    assert back["variance_formula"] == "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2"
+    assert back["f3_marginalised_spread"] == lb.F3_SPREAD
+    assert back["decision_freeze_status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    ref = lb.reference_response()
+    assert back["fixed_response"]["sha256"] == ref.sha256
+    assert back["fixed_response"]["relpath"] == lb.FIXED_RESPONSE_RELPATH
+    assert back["fixed_response"]["gain_rule"] == ref.gain_rule
+    assert back["fixed_response"]["timing_width_factor_rule"] == ref.timing_width_rule
+    prev = back["previous_decision"]
+    assert prev["omitted"] is False
+    assert prev["recorded_as"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert Path(prev["path"]).is_file() and len(prev["sha256"]) == 64
+    assert prev["readout_label"] == "readout_synthetic_unrepaired"  # the old artefact
+    assert {"F1", "F3", "F2", "T"} <= {row["factor"] for row in prev["rows"]}
+    # the previous frozen ceilings sit beside the new ones on (factor, setting)
+    old = {(row["factor"], round(row["setting"], 9)): row["r2_run_median"]
+           for row in json.loads(Path(ld.PREVIOUS_DECISION_PATH).read_text())["table"]}
+    comparison = back["ceiling_comparison"]
+    assert len(comparison) == len(back["table"])
+    f1 = next(c for c in comparison if c["factor"] == "F1" and c["setting"] == 0.05)
+    assert f1["matched"] is True and f1["previous_r2_run_median"] == pytest.approx(old[("F1", 0.05)])
+    assert f1["delta_r2_run_median"] == pytest.approx(f1["new_r2_run_median"] - f1["previous_r2_run_median"])
+    assert "F3 marginalised: true" in back["decisions_md"]
+    assert "F3 marginalised" in back["decisions_md"]
+    assert "superseded_pending_merged_readout" in back["decisions_md"]
+    assert "previous frozen R" in back["decisions_md"]
+
+
+def test_previous_decision_absent_is_recorded_with_a_reason(tmp_path):
+    missing = tmp_path / "absent_decision.json"
+    assert ld.previous_ceilings(missing)["omitted"] is True
+    assert "absent" in ld.previous_ceilings(missing)["reason"]
+    check = ld.load_check_config(CONFIG)
+    table = _table()
+    payload = ld.build_decision_payload(
+        GEOM, GEN, check, table, [], {"g6": False, "f1_eligible_settings": [],
+                                      "f1_excluded_settings": [], "f2_ok": True,
+                                      "f2_choice": {"law": "F2", "setting": 0.10},
+                                      "f2_attempted": [0.10], "f3_ok": True,
+                                      "f3_choice": None, "f3_attempted": [0.05],
+                                      "r12_status": "evaluable", "r12_gate": None,
+                                      "law_T_ok": True, "g6_dependent_predictions": [],
+                                      "reason": "all pass"},
+        {"y_lo": 6000.0, "y_hi": 380000.0, "y_hi_initial": 320000.0,
+         "y_hi_bound": 380000.0, "y_hi_bound_source": "provided",
+         "median_yield": table.median_yield, "median_policy": check.median_policy},
+        {"n_min": 20, "within_target_median_hits": 100.0, "within_exclusion_rate": 0.0,
+         "across_target_median_hits": 90.0, "across_initial_below_nmin_rate": 0.0},
+        code_sha="deadbeef", previous_path=missing)  # the default: do not freeze
+    assert payload["frozen"] is False
+    assert payload["decision_freeze_status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert payload["previous_decision"]["omitted"] is True
+    assert payload["previous_decision"]["reason"]
+    assert payload["ceiling_comparison"] == []
+    assert "Previous frozen ceilings omitted" in payload["decisions_md"]
+    ld.validate_decision(payload)
+
+
+def test_ceilings_are_unchanged_when_s_p_is_zero(monkeypatch):
+    """Continuity: with s_p = 0 the marginalised formula reduces to the old variance."""
+    check = replace(ld.load_check_config(CONFIG), n_events=3, f3_marginalised_spread=0.0)
+    events = ld.sample_events(GEOM, GEN, 12000.0, check.n_events, check.seed)
+    marginalised = ld.evaluate_table(GEOM, GEN, check, 12000.0, f2_law="F2", f2_setting=0.5,
+                                     events=events)
+
+    def legacy_weights(mu, sigma_spe=lb.SIGMA_SPE, v_dark=lb.V_DARK_READOUT, s_p=0.0):
+        mu = np.asarray(mu, dtype=float)
+        var = mu * (1.0 + float(sigma_spe) ** 2) + float(v_dark)
+        return np.divide(mu * mu, var, out=np.zeros_like(mu),
+                         where=(var > 0.0) & (mu > 0.0))
+
+    monkeypatch.setattr(ld, "poisson_weights", legacy_weights)
+    legacy = ld.evaluate_table(GEOM, GEN, check, 12000.0, f2_law="F2", f2_setting=0.5,
+                               events=events)
+    for setting in check.f1_spreads:
+        assert marginalised.f1[setting]["r2_run_median"] == legacy.f1[setting]["r2_run_median"]
+        assert marginalised.f1[setting]["i_run_median"] == legacy.f1[setting]["i_run_median"]
+    assert marginalised.f2["r2_run_median"] == legacy.f2["r2_run_median"]
+    assert marginalised.t["r2_run_median"] == legacy.t["r2_run_median"]
+    assert marginalised.f3["r2_run_median"] == legacy.f3["r2_run_median"]
+    assert marginalised.f1[0.05]["r2_run_median"] > 0.0
