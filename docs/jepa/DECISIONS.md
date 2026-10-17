@@ -633,3 +633,37 @@ Recorded as the author's explicit authorisation for those two paths only (v4 §6
   WP4c stub (occupancy check only); F3's ceiling uses one representative PMT per module with
   min/max recorded (probes later use all hit PMTs); "median module charge" is the per-event mean
   over modules, median over events.
+
+## WP4b §3.5.3a detectability check — FROZEN (real WCTE geometry, 2026-10-17)
+
+Run on deepthought, CPU-only, code `9835ce5` (re-run at `80e9b57` for the joint-row evidence),
+geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3c…`, `synthetic: false`,
+1995/105/19), decision JSON `/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json` (9 970 B, sha256
+`fbddb6fd…`, content sha `e3bcbd1a…`). Median yield 58 177.275 photons.
+
+| factor | setting | R²_event | R²_run median | min | max | pass (≥0.6) |
+|---|---|---|---|---|---|---|
+| F1 | 0.02 | 0.004592 | 0.2616 | 0.1741 | 0.4023 | **no** |
+| F1 | 0.05 | 0.027988 | 0.6847 | 0.5738 | 0.8053 | yes |
+| F1 | 0.10 | 0.102428 | 0.8914 | 0.8323 | 0.9368 | yes |
+| F3 | 0.10 | 0.005985 | 0.3243 | 0.1476 | 0.5061 | **no** |
+| F2 | 0.50 | 0.001198 | 0.9210 | — | — | yes |
+| T | 0.50 | 0.571469 | 0.9860 | — | — | yes |
+
+- **Frozen yield range:** `Y_lo = 6 249.708098` photons (median 200.5 hit PMTs at Y_lo, hit
+  fraction 0.1005) and `Y_hi = 541 560.544764` photons (hit-fraction-0.95 bound: median hit
+  fraction 0.9499, 1 895 hit PMTs, module charge 191.57 PE; the 300 PE bound would have allowed
+  846 767.8, the rule takes the lower). The initial 320 000 was raised by fallback step 1.
+- **Fallback ladder applied (4 steps, recorded):** raise Y_hi 320 000 → 541 560.545; set F2 a
+  0.10 → 0.20; set F2 a 0.20 → 0.50; raise F3 s_p 0.05 → 0.10 (F3 still 0.3243).
+- **Decisions:** F1 eligible {0.05, 0.10}, the s = 0.02 cells stay in the grid but are excluded
+  from R6/R7; **F2 chosen at a = 0.50** (F2′ not used, no b); F3 fails even at s_p = 0.10 →
+  **R12 `not_evaluable`, no gate**; law T passes; **R6/R7 evaluable; G6 not triggered**.
+- **N_min occupancy at Y_lo:** `within` target median 106.5 hit PMTs (min 84, exclusion 0.0);
+  `across` proxy median 97.5 (min 64, below-N_min 0.0, exclusion after 3 redraws 0.0).
+- **Caveats recorded:** F2 and T ceilings rest on a single run realisation (`min == median == max`)
+  whereas F1 shows real spread across the 50-event draw; the `across` occupancy proxy uses a random
+  module half because `view_masks` is a WP4c stub.
+- **Re-run after the engine gained the F2-branch `f1_joint` row** (commit `80e9b57`) so R11's F1 leg
+  has the joint F1/F2 ceiling evidence; the decisions above are expected identical and will be
+  re-confirmed from that JSON.
