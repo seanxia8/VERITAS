@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 20:35Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 20:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -55,9 +55,17 @@ Updated: 2026-10-17 20:35Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   kept as the probe record.
 - deepthought2: none. Guard live, OK, 0 SHED; jjanik's GPU1 unchanged.
 - Local: E1b **detached** chain (`/tmp/e1b_chain.py` pid 56883, runner pid 56978, post companion
-  pid 57774), attempt_003, W=1, 57 rows, ETA ~20:30 local. Handoff notes in
-  `results/jepa/20261017_wp3_e1b/NEXT_SESSION_HANDOFF.md`. Long local runs must be detached
-  (attempt_002/003 were lost to agent-turn reaping); every further long run is launched detached.
+  pid 57774), attempt_003 at 41/58 rows (20:38 local, ~256 s/row, ETA ~21:45), peak RSS 1.93 GB,
+  host free ~3.7 GB. Long local runs must be detached (two attempts were lost to agent-turn
+  reaping). Do NOT commit src or run heavy suites while it runs (its finish-time source check
+  compares src/jepa_noise/*.py hashes).
+- **Pending commit**: a hardened read-only `aggregate` mode (strict manifest/probes validation,
+  duplicate/unknown-arm refusal, `--complete-run` required for damaged status, `--allow-partial`
+  forces not_evaluable, optional `--data-root`, streaming CKA, `--out` cannot be inside a source
+  root) is in the working tree on top of `ad75100`; 21 tests claimed, to be verified + committed
+  after E1b finishes (test RAM budget). The official B1 result stands from the `cd33ff1` run and
+  re-running the hardened aggregate on the host will reproduce the same numbers with better
+  provenance.
 - Titan: **β development cohort complete**; **β = 10 selected** (scores 0.104152 / 0.104057 /
   0.097206); recorded in DECISIONS. The 12-run bridge grid is launching as four jobs of three runs
   (sigreg_jepa, anchored at β=10, mae_chi2 in parallel on GPUs 0/2/3; the parallel-attention
