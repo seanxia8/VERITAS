@@ -947,3 +947,79 @@ Settled quota: `/ceph/dwong` `rfiles` 409,094 + `rsubdirs` 51,679 = 460,773 used
 (the guard's own cycle read 39,604 a little earlier; the guard runs at 30,307 → it now reports ~39.6k).
 Nothing running: no `jepa_noise`/`bridge_run` process, only `jepa_guard` in tmux, all four GPUs idle
 at 633/655/629/629 MiB and 0 %. Nothing outside `/ceph/dwong/jepa/` was modified.
+
+---
+
+## 17. WP4b real-geometry benchmark on WCTE (`fd14311b`), 17 Oct 2026 20:14Z
+
+### In-place update
+
+`code/work` fetched `origin/JEPA` (`cd33ff1..3915339`) and checked out
+**`fd14311b7a96d91213e87f98abb4a5eaa4f3ddfd`** ("WP4b generator on the physical WCTE geometry
+(readout_synthetic_unrepaired)"); `git status --porcelain` empty. **Cost: +10 files, 0 new
+directories** (in-place update, vs 340–460 for a fresh clone).
+
+### Geometry verification — passed inside the generator
+
+Command (CPU only, foreground, 19 s, exit 0):
+
+```
+python3 -m jepa_noise.lucid_bombs benchmark \
+  --geometry external/LUCiD/config/WCTE_geom_config.json \
+  --expected-config-sha256 9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c \
+  --n-events 1000 --out jobs/wp4b_benchmark_wcte_1000.json
+```
+
+The generator verified **both** hashes itself and recorded them:
+
+| Check | Value |
+|---|---|
+| `config_sha256` (pointer) | **9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c** = expected ✓ |
+| `source_sha256` (npz) | 0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8 ✓ |
+| `geometry_sha256` (parsed) | 8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1 |
+| `synthetic` / `is_synthetic_geometry` | false / false |
+| `n_sensors`, `n_modules`, `pmts_per_module` | 1995, 105, 19 |
+| `module_ids_contiguous` | **false** (confirms the id-45 gap reported in §16) |
+| `surface_counts` | barrel 1197, bottom 399, top 399 |
+| radius / height / sensor_radius | 1.5771308488246254 m / 2.77697099384 m / 0.04 m |
+| `readout_label` / `law` / `setting` | `readout_synthetic_unrepaired` / F1 / 0.05 |
+
+### Surface-label question — resolved: the host data uses STRINGS
+
+```
+$ python3 -c "import numpy as np; d=np.load('.../wcte_geometry.npz'); print(d['surfaces'][:5], d['surfaces'].dtype, np.unique(d['surfaces']))"
+['top' 'top' 'top' 'top' 'top'] <U6 ['barrel' 'bottom' 'top']
+```
+
+`surfaces` is a fixed-width unicode array (`<U6`) holding exactly `top`, `barrel`, `bottom` — no
+integers, so **no `surface_map` override is needed**, and a second benchmark run was not necessary.
+
+### Benchmark numbers (`jobs/wp4b_benchmark_wcte_1000.json`, 2,628 B)
+
+| Quantity | Value |
+|---|---|
+| events / wall | 1000 / **18.915 s** → **52.867 events/s** on one process |
+| peak RSS | **168.578 MB** |
+| hits per event | **897.499** mean |
+| sparse store | 20.574 MiB per 1000 events (≈21.5 GiB for the planned 1.07 M events) |
+| projection, 1 process | **5.6221 h** |
+| projection, 16 cores | **0.35138 h** = 0.00732 of the 48 wall-hour CPU cap |
+| planned volume | **1,070,000 events** = dev 100k + main 3×100k + secondary 5×100k + probes/robustness 17×10k |
+| yield range | 6,000–320,000 photons, `placeholder_pending_detectability_check` |
+| with twin | true |
+
+Terciles (mean hit PMTs / hit fraction / mean module charge / median total charge / median yield):
+
+| tercile | n | mean hits | hit frac | module PE | median charge PE | median yield |
+|---|---|---|---|---|---|---|
+| low | 334 | 335.10 | 0.1680 | 4.268 | 410.58 | 10,832 |
+| mid | 333 | 832.32 | 0.4172 | 16.695 | 1,533.70 | 41,813 |
+| high | 333 | 1,526.76 | 0.7653 | 65.30 | 6,560.59 | 178,151 |
+
+**Caution for the projection:** `yield_range_status` is still
+`placeholder_pending_detectability_check`, so the 0.35 h/16-core figure is against a placeholder
+yield range and will move once §3.5.3a fixes Y_lo/Y_hi on development data.
+
+Quota after: `rfiles` 409,146 + `rsubdirs` 51,679 = 460,825 used → **39,175 free** (guard read 39,186).
+Nothing running: no generator/jepa process, only `jepa_guard` in tmux, guard OK with `our_jobs []`,
+all four GPUs idle at 633/655/629/629 MiB and 0 %.

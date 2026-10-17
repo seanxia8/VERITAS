@@ -556,3 +556,23 @@ Recorded as the author's explicit authorisation for those two paths only (v4 §6
 - **2026-10-17 — pending, unchanged:** PMT SHA and the repaired readout (G-PMT 31 Oct), the
   detectability check fixing Y_lo/Y_hi/N_min, λ0 and the F2/F2′ strengths (§3.5.3a), real-geometry
   benchmark numbers, and the view masks (WP4c/encoder work).
+
+## WP4b real-geometry benchmark (2026-10-17, host)
+
+- **2026-10-17 — real WCTE geometry benchmark PASSED on deepthought** (CPU, code `fd14311`,
+  geometry `/ceph/dwong/jepa/external/LUCiD/config/WCTE_geom_config.json`): the generator itself
+  verified config sha `9943d602…` and npz sha `0a75b035…`, parsed layout digest `8b46bd3c…`,
+  `synthetic: false`, 1995 sensors / 105 modules / 19 per module, `module_ids_contiguous: false`
+  (independent confirmation of the missing id 45), surfaces barrel 1197 / bottom 399 / top 399
+  (labels are strings `top|barrel|bottom`, so no `surface_map` override is needed), radius
+  1.5771308488 m, height 2.7769709938 m, sensor radius 0.04 m.
+- **2026-10-17 — benchmark numbers:** 1000 events + twin in 18.915 s = **52.867 events/s** on one
+  process, **peak RSS 168.6 MB**, **897.5 hits/event**, sparse store 20.57 MiB per 1000 events
+  (~21.5 GiB for the planned 1.07 M events). Volume projection **5.62 h on one process, 0.35 h on
+  16 cores = 0.73 % of the 48 h CPU cap**. Terciles (mean hits / hit fraction / module PE / median
+  charge): low 335.1 / 0.168 / 4.27 PE / 410.6 PE; mid 832.3 / 0.417 / 16.70 PE / 1 533.7 PE; high
+  1 526.8 / 0.765 / 65.30 PE / 6 560.6 PE. Evidence:
+  `/ceph/dwong/jepa/jobs/wp4b_benchmark_wcte_1000.json` and `PREFLIGHT_A8_deepthought.md` §17.
+- **2026-10-17 — the projection uses the placeholder yield range** (6 000–320 000 photons,
+  `placeholder_pending_detectability_check`); it must be re-benchmarked at the frozen [Y_lo, Y_hi]
+  after §3.5.3a, as §3.5.6 requires.
