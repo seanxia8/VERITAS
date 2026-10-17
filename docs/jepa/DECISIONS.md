@@ -756,3 +756,23 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   pass), not to a mean; a metrics JSON without run metadata is accepted as a plain reference with
   unknown arm/seed provenance, while a `probes.json` naming a different arm/seed is refused; the
   4.0 GPU-hour cap is a recorded budget, not a meter.
+
+## A9 follow-ups — first results (2026-10-17/18)
+
+- **2026-10-17 — R5-ext (balanced init) executed, labelled follow-up, NOT a registered verdict.**
+  `results/jepa/20261017_wp3_e1c_ext/attempt_001` (`--e1c-init balanced`, code `46c0adb`, registered
+  false, 10 rows, 41 s/row): 7 pass / 3 not_evaluable (the registered uniform-init E1c had 10/10
+  not_evaluable, so the balanced initialisation does restore evaluability for 7 of 10 rows). Against
+  the R5 ordering rule (δ(L=3) < δ(L=1) in ≥ 4/5 evaluable seeds): **γ = 1.0: 2/5 wins → fail;
+  γ = 0.5: only 2/5 seeds evaluable (depth 3 ineligible in three seeds) → not_evaluable**, so the
+  follow-up does not demonstrate the ordering either. Reported beside R5, never replacing it; no
+  retuning, and the uniform-init R5 remains `not_evaluable`.
+- **2026-10-17 — R5-ext provenance:** extension rows are `registered: false`, `extension: "R5-ext"`,
+  written outside the registered E1 result dirs, with `config_effective.json` freezing the balanced
+  per-layer SDs ((1e-3)^(1/L), product 1e-3) before the rows ran. The attempt recorded
+  `scientific source changed during the attempt` for `lucid_arms.py` (the concurrent LUCiD-arm
+  implementer's new files, which no E1 code path imports); recorded, no row affected.
+- **2026-10-17 — B1-ext running on the Titan** (`wp4a_b1ext_beta_dev`, 3 anchored runs at
+  β ∈ {10, 100, 1000}, commit `46c0adb`, clean clone) with the LUCiD selection rule and the
+  committed plain seed-0 reference (`probes.json` sha256 `8a03c2ae…`, identical on host and in the
+  repo). Result to be reported when it finishes; ≤ 4 Titan GPU-hours recorded cap.

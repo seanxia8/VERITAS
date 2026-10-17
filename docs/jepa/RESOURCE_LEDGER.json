@@ -31,7 +31,7 @@
       "allocated_workers": null,
       "projection_status": "pending_A3_revision_host_acceptance_and_complete_benchmark",
       "launch_allowed": false,
-      "charged_cpu_hours": 8.683672,
+      "charged_cpu_hours": 8.79784,
       "charged_gpu_hours": 0
     },
     "E2": {
@@ -687,6 +687,24 @@
       "job_kind": "cpu",
       "evidence": "results/jepa/20261017_wp4b_detectability/",
       "note": "section 3.5.3a re-run with f1_joint evidence"
+    },
+    {
+      "id": "E1-E1c-ext-attempt_001_R5ext",
+      "campaign": "E1",
+      "host": "Dowlings-MacBook-Pro-2.local",
+      "device": "CPU",
+      "gpu_count": 0,
+      "worker_hours": 0.114168,
+      "cpu_hours": 0.114168,
+      "wall_seconds": 411.0,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "46c0adb",
+      "job_kind": "E1c-R5-ext",
+      "registered": false,
+      "extension": "R5-ext",
+      "evidence": "results/jepa/20261017_wp3_e1c_ext/",
+      "note": "balanced init follow-up; 7 pass / 3 not_evaluable"
     }
   ]
 }
