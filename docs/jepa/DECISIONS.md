@@ -261,3 +261,30 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   the PMT SHA is named and the geometry lands; until then the generator's occupancy work,
   detectability check and 1000-event benchmark are blocked, and G-PMT applies at 31 Oct if the
   SHA has not arrived.
+
+## Host code delivery and environment equivalence (2026-10-17)
+
+- **2026-10-17 — §6.1 10-batch equivalence test PASSED for both hosts.** Host probe
+  (`jepa_noise.probe_env`, pre-`final_proj_norm` grid fixture, fixed seed) vs the local Mac CPU
+  probe at the same code SHA (`89af5af`): worst relative difference 2.9e-6 (deepthought, torch
+  2.5.1+cu121/Titan X) and 2.4e-6 (deepthought2, torch 2.5.1+cu124/L40S), 10/10 batches, same
+  fixture/model config, same code SHA; tolerances 1e-4 relative / 1e-3 absolute. Evidence:
+  `results/jepa/20261017_env_equiv/`. The first probe (code `6468582`) was rerun because its
+  fixture read the network heads, which the repository's muP initialisation zeroes; the corrected
+  fixture reads the token grid.
+- **2026-10-17 — code-delivery layout while G-QUOTA is open.** §6.1 asks for one clone per SHA
+  under `code/<sha>/`; a sparse clone costs ~340 entries and only ~1 000 entries remain above the
+  §6.2 write-stop, so from the next SHA on we keep **one working clone per host-pair** under
+  `code/<sha>/`, created once and then updated **in place** by `git fetch origin JEPA` +
+  `git checkout <sha>` only when no job is running, with the `git rev-parse HEAD` and clean-status
+  recorded before and after every run and the SHA written into every run manifest. The existing
+  `code/89af5af` clone stays untouched as the record of the two probe runs. This is a file-layout
+  decision under §5, not a change to any registered prediction, metric, cell or dataset role; if
+  G-QUOTA (B) is granted we return to one clone per SHA.
+- **2026-10-17 — WP4a frozen-hash defect (found by the first Titan smoke).** `verify_bridge_products`
+  compared a float64 `N_actual` marginal bit-exactly against a hash frozen on the Mac; LAPACK/BLAS
+  last bits differ on the x86 hosts, so the 1-step CUDA smoke failed on deepthought before any CUDA
+  code ran. Ruling: verification becomes tolerance-based (relative Frobenius ≤ 1e-8) with the
+  computed sha recorded in the manifest, and the matrix is materialised once per host under a data
+  root so later runs load identical bytes and verify the file's own sha. The smoke must be re-run
+  after the fix; no bridge outcome may be produced before it passes.
