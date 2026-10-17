@@ -4,7 +4,11 @@ CPU only, tiny.  Four 20-step/batch-4 runs (one per arm) exercise the whole
 pipeline (data cache, training, checkpoint, embeddings, probes, manifest,
 status); the remaining tests cover resume determinism, the ridge protocol, the
 beta rule, the seed floor and B1/R7 verdict logic, the cohort ID table, CRLB,
-and the write footprint.  Total budget <= 60 s.
+and the write footprint.  The aggregate-mode tests build a small two-arm,
+two-seed tree once (module-scoped) and cover the read-only run-directory
+snapshot (mtime + sha256), B1/R7 values, missing-arm and damaged-status
+refusal/declaration, missing/unparseable probes, and CKA's optional
+embeddings.  Total budget <= 60 s.
 """
 
 import os
@@ -418,93 +422,284 @@ def test_no_writes_outside_out_and_data_root(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# aggregate-only mode: read-only over run directories, never re-runs
+# aggregate mode: read-only over run directories, never re-runs
 # ---------------------------------------------------------------------------
-def _run_file_hashes(out_root):
+def _snapshot(root):
     import hashlib
-    hashes = {}
-    for path in sorted((Path(out_root) / "runs").rglob("*")):
+
+    snapshot = {}
+    for path in sorted(Path(root).rglob("*")):
         if path.is_file():
-            hashes[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return hashes
+            stat = path.stat()
+            snapshot[str(path)] = (
+                stat.st_mtime_ns,
+                stat.st_size,
+                hashlib.sha256(path.read_bytes()).hexdigest(),
+            )
+    return snapshot
 
 
-def _tiny_two_arm_tree(tmp_path):
-    args = grid_args(tmp_path, "agg") + ["--arms", "sigreg_jepa,mae_chi2",
-                                          "--seeds", "0"]
-    assert bridge_run.main(args) == 0
-    return Path(args[2])
-
-
-def test_aggregate_is_read_only_and_reports_missing_arm(tmp_path):
-    out_root = _tiny_two_arm_tree(tmp_path)
-    before = _run_file_hashes(out_root)
-    dest = tmp_path / "combined"
-    rc = bridge_run.main([
-        "aggregate", "--out", str(dest), "--runs-root", str(out_root),
-        "--config", str(CONFIG_PATH), "--data-root", str(tmp_path / "agg" / "data"),
-        "--fixture", "synthetic", "--allow-partial",
-    ])
-    assert rc == 0
-    assert before == _run_file_hashes(out_root), "aggregate must not write run dirs"
-    for name in ("aggregate.json", "PREDICTIONS_UPDATE.md", "run_status.json",
-                 "manifest.jsonl"):
-        assert (dest / name).exists()
-    payload = json.loads((dest / "aggregate.json").read_text())
-    assert payload["aggregation_mode"].startswith("aggregate-only")
-    b1 = payload["verdicts"]["B1"]
-    assert b1["status"] == "not_evaluable"
-    assert "partial_set" in b1["reason"]
-    assert b1["status"] == "not_evaluable"
-    assert payload["status_anomalies"] == []
-    assert payload["verdicts"]["B1"]["reason"].startswith("partial_set") \
-        or "partial_set" in payload["verdicts"]["B1"]["reason"]
-
-
-def test_aggregate_refuses_a_damaged_run_status_without_declaration(tmp_path):
-    out_root = _tiny_two_arm_tree(tmp_path)
-    status_path = (out_root / "runs" / "wp4a_eval_sigreg_jepa_s0"
-                   / "run_status.json")
-    status = json.loads(status_path.read_text())
-    status["outcome"] = "interrupted"
-    status_path.write_text(json.dumps(status))
-    rc = bridge_run.main([
-        "aggregate", "--out", str(tmp_path / "combined"),
-        "--runs-root", str(out_root), "--config", str(CONFIG_PATH),
-        "--data-root", str(tmp_path / "agg" / "data"),
-        "--fixture", "synthetic", "--allow-partial",
-    ])
-    assert rc == 2, "a damaged run_status must be refused unless declared"
-
-
-def test_aggregate_records_a_declared_damaged_run_status_as_anomaly(tmp_path):
-    out_root = _tiny_two_arm_tree(tmp_path)
-    status_path = (out_root / "runs" / "wp4a_eval_sigreg_jepa_s0"
-                   / "run_status.json")
-    status = json.loads(status_path.read_text())
-    status["outcome"] = "interrupted"
-    status_path.write_text(json.dumps(status))
-    dest = tmp_path / "combined"
-    rc = bridge_run.main([
-        "aggregate", "--out", str(dest), "--runs-root", str(out_root),
-        "--config", str(CONFIG_PATH), "--data-root", str(tmp_path / "agg" / "data"),
-        "--fixture", "synthetic", "--allow-partial",
-        "--complete-run", "wp4a_eval_sigreg_jepa_s0",
-    ])
-    assert rc == 0
-    payload = json.loads((dest / "aggregate.json").read_text())
-    assert [entry["run_id"] for entry in payload["status_anomalies"]] == [
-        "wp4a_eval_sigreg_jepa_s0"
+@pytest.fixture(scope="module")
+def aggregate_source(tmp_path_factory):
+    base = tmp_path_factory.mktemp("aggregate_source")
+    grid = [float(value) for value in
+            CONFIG["objective"]["anchor"]["beta_grid"]]
+    table = [
+        {
+            "beta": value,
+            "score": 0.5 + 0.1 * index,
+            "physics_mse": {par: 1.0 for par in bridge_run.PHYSICS_TARGETS},
+            "probe_train_variance": {
+                par: 1.0 for par in bridge_run.PHYSICS_TARGETS
+            },
+        }
+        for index, value in enumerate(grid)
     ]
-    assert payload["status_anomalies"][0]["manifest_outcome"] == "complete"
-
-
-def test_aggregate_refuses_an_incomplete_registered_set(tmp_path):
-    out_root = _tiny_two_arm_tree(tmp_path)
-    rc = bridge_run.main([
-        "aggregate", "--out", str(tmp_path / "combined"),
-        "--runs-root", str(out_root), "--config", str(CONFIG_PATH),
-        "--data-root", str(tmp_path / "agg" / "data"),
+    decision = base / "beta_decision.json"
+    bridge_run.write_beta_decision(
+        decision,
+        selected_beta=1.0,
+        table=table,
+        config=CONFIG,
+        config_sha=CONFIG_SHA,
+        code_sha="test",
+        cohort_prov={"name": "development"},
+        seed=100,
+        steps=10000,
+        fixture="synthetic",
+        registered=False,
+    )
+    out = base / "out"
+    data = base / "data"
+    args = [
+        "grid",
+        "--out", str(out),
+        "--data-root", str(data),
         "--fixture", "synthetic",
-    ])
-    assert rc == 2
+        "--device", "cpu",
+        "--steps", "20",
+        "--batch", "2",
+        "--max-events", "20",
+        "--arms", "sigreg_jepa,sigreg_jepa_anchored",
+        "--seeds", "0,1",
+        "--beta-decision", str(decision),
+    ]
+    assert bridge_run.main(args) == 0
+    return {"base": base, "out": out, "data": data, "decision": decision}
+
+
+def _aggregate_args(source, dest, *extra, root=None):
+    return [
+        "aggregate",
+        "--out", str(dest),
+        "--runs-root", str(root if root is not None else source["out"]),
+        "--config", str(CONFIG_PATH),
+        "--data-root", str(source["data"]),
+        "--fixture", "synthetic",
+        "--beta-decision", str(source["decision"]),
+        *extra,
+    ]
+
+
+def _partial_root(source, name, skip_arm=None, damaged_run=None):
+    import shutil
+
+    root = source["base"] / name
+    (root / "runs").mkdir(parents=True)
+    shutil.copy2(source["out"] / "manifest.jsonl", root / "manifest.jsonl")
+    for run_dir in sorted((source["out"] / "runs").iterdir()):
+        probes = json.loads((run_dir / "probes.json").read_text())
+        if probes["run"]["arm"] == skip_arm:
+            continue
+        # A real run directory whose files are symlinks: the test may replace
+        # one file without ever writing through to the source run directory.
+        target = root / "runs" / run_dir.name
+        target.mkdir()
+        for path in run_dir.iterdir():
+            if path.name == "run_status.json" and run_dir.name == damaged_run:
+                status = json.loads(path.read_text())
+                status["outcome"] = "interrupted"
+                (target / path.name).write_text(json.dumps(status))
+            else:
+                os.symlink(path, target / path.name)
+    return root
+
+
+def test_aggregate_evaluates_b1_r7_read_only(aggregate_source):
+    source = aggregate_source
+    run_snapshot = _snapshot(source["out"] / "runs")
+    data_files = {p.name for p in source["data"].rglob("*")}
+    dest = source["base"] / "combined_a"
+    rc = bridge_run.main(_aggregate_args(
+        source, dest, "--allow-partial", "--partial-verdicts"
+    ))
+    assert rc == 0
+    # mtime + content snapshot: no file inside any runs/ directory changed
+    assert _snapshot(source["out"] / "runs") == run_snapshot
+    assert {p.name for p in source["data"].rglob("*")} == data_files
+    assert {path.name for path in dest.iterdir()} == {
+        "aggregate.json", "PREDICTIONS_UPDATE.md", "run_status.json",
+        "manifest.jsonl",
+    }
+    payload = json.loads((dest / "aggregate.json").read_text())
+    arms = payload["arms"]
+    plain = {
+        int(seed): value["nuisance_r2"]
+        for seed, value in arms["sigreg_jepa"]["seeds"].items()
+    }
+    anchored = {
+        int(seed): value["nuisance_r2"]
+        for seed, value in arms["sigreg_jepa_anchored"]["seeds"].items()
+    }
+    assert set(plain) == set(anchored) == {0, 1}
+    for key in ("B1", "R7"):
+        assert payload["verdicts"][key]["status"] in {"pass", "fail"}
+    b1 = payload["verdicts"]["B1"]
+    assert b1["plain_mean"] == pytest.approx(
+        float(np.mean(list(plain.values())))
+    )
+    assert b1["anchored_mean"] == pytest.approx(
+        float(np.mean(list(anchored.values())))
+    )
+    for seed in (0, 1):
+        assert b1["paired_differences"][str(seed)] == pytest.approx(
+            plain[seed] - anchored[seed]
+        )
+    r7 = payload["verdicts"]["R7"]
+    for parameter in bridge_run.PHYSICS_TARGETS:
+        plain_values = [
+            arms["sigreg_jepa"]["physics_mse_crlb"][parameter]["values"][
+                str(seed)
+            ]
+            for seed in (0, 1)
+        ]
+        anchored_values = [
+            arms["sigreg_jepa_anchored"]["physics_mse_crlb"][parameter][
+                "values"
+            ][str(seed)]
+            for seed in (0, 1)
+        ]
+        expected = float(np.mean(anchored_values)) / float(
+            np.mean(plain_values)
+        )
+        assert r7["physics"][parameter]["ratio"] == pytest.approx(expected)
+        assert r7["physics"][parameter]["within_tolerance"] is not None
+    assert payload["partial_registered_set"] is True
+    assert payload["nuisance_defined_targets"] == ["common_0", "common_1"]
+    for arm in ("sigreg_jepa", "sigreg_jepa_anchored"):
+        assert payload["seed_cka"][arm]["status"] == "computed"
+        assert payload["seed_cka"][arm]["mean"] is not None
+    manifest_rows = [
+        json.loads(line)
+        for line in (dest / "manifest.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    assert len(manifest_rows) == 4
+    assert all(
+        row["probes_sha256"] and row["source_run_dir"]
+        for row in manifest_rows
+    )
+    # --allow-partial alone forbids a cross-arm verdict (the literal rule)
+    partial_dest = source["base"] / "combined_partial"
+    assert bridge_run.main(_aggregate_args(
+        source, partial_dest, "--allow-partial"
+    )) == 0
+    partial = json.loads((partial_dest / "aggregate.json").read_text())
+    for key in ("B1", "R7"):
+        assert partial["verdicts"][key]["status"] == "not_evaluable"
+        assert partial["verdicts"][key]["reason"] == "partial_registered_set"
+
+
+def test_aggregate_missing_arm_is_named(aggregate_source):
+    source = aggregate_source
+    root = _partial_root(source, "missing_arm",
+                         skip_arm="sigreg_jepa_anchored")
+    dest = source["base"] / "combined_missing"
+    assert bridge_run.main(_aggregate_args(
+        source, dest, "--allow-partial", root=root
+    )) == 0
+    payload = json.loads((dest / "aggregate.json").read_text())
+    for key in ("B1", "R7"):
+        assert payload["verdicts"][key]["status"] == "not_evaluable"
+        assert payload["verdicts"][key]["reason"] == (
+            "missing_required_arm:sigreg_jepa_anchored"
+        )
+
+
+def test_aggregate_refuses_then_accepts_declared_damaged_status(
+    aggregate_source
+):
+    source = aggregate_source
+    run_id = "wp4a_eval_sigreg_jepa_s0"
+    root = _partial_root(source, "damaged", damaged_run=run_id)
+    refused_dest = source["base"] / "combined_damaged_refused"
+    assert bridge_run.main(_aggregate_args(
+        source, refused_dest, "--allow-partial", root=root
+    )) == 2
+    assert not refused_dest.exists()
+    accepted_dest = source["base"] / "combined_damaged_accepted"
+    assert bridge_run.main(_aggregate_args(
+        source, accepted_dest, "--allow-partial",
+        "--complete-run", run_id, root=root,
+    )) == 0
+    payload = json.loads((accepted_dest / "aggregate.json").read_text())
+    assert payload["declared_complete_runs"] == [run_id]
+    anomaly = payload["status_anomalies"][0]
+    assert anomaly["run_id"] == run_id
+    assert anomaly["resolution"] == "--complete-run declaration"
+    assert payload["aggregate_provenance"]["declarations"][run_id]
+    manifest_rows = [
+        json.loads(line)
+        for line in (accepted_dest / "manifest.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
+    declared = [row for row in manifest_rows if row["run_id"] == run_id]
+    assert len(declared) == 1
+    assert declared[0]["declared_complete"] is True
+    assert declared[0]["declaration_source"] == "--complete-run"
+    status = json.loads((accepted_dest / "run_status.json").read_text())
+    assert status["declared_complete_runs"] == [run_id]
+
+
+def test_aggregate_refuses_missing_or_unparseable_probes(aggregate_source):
+    source = aggregate_source
+    run_id = "wp4a_eval_sigreg_jepa_s0"
+    for name, replacement in (
+        ("bad_probes_json", "{not valid json"),
+        ("missing_probes", None),
+    ):
+        root = _partial_root(source, name)
+        probes = root / "runs" / run_id / "probes.json"
+        probes.unlink()
+        if replacement is not None:
+            probes.write_text(replacement)
+        dest = source["base"] / f"combined_{name}"
+        assert bridge_run.main(_aggregate_args(
+            source, dest, "--allow-partial", root=root
+        )) == 2
+        assert not dest.exists()
+
+
+def test_seed_cka_missing_or_unreadable_is_not_evaluable(tmp_path):
+    missing = bridge_run._seed_cka({"arm": {"seeds": {
+        "0": {"embedding_path": None},
+    }}})
+    assert missing["arm"]["status"] == "not_evaluable"
+    assert missing["arm"]["reason"] == "embeddings_missing"
+    corrupt = tmp_path / "corrupt.npz"
+    corrupt.write_bytes(b"not an npz archive")
+    unreadable = bridge_run._seed_cka({"arm": {"seeds": {
+        "0": {"embedding_path": str(corrupt)},
+        "1": {"embedding_path": str(corrupt)},
+    }}})
+    assert unreadable["arm"]["status"] == "not_evaluable"
+    assert unreadable["arm"]["reason"].startswith("embeddings_unreadable")
+
+
+def test_grid_mode_parser_is_unchanged():
+    parser = bridge_run.build_parser()
+    grid = parser.parse_args(["grid", "--out", "out", "--data-root", "data"])
+    assert grid.mode == "grid"
+    assert not hasattr(grid, "runs_root")
+    with pytest.raises(SystemExit):
+        parser.parse_args(["aggregate", "--out", "out"])

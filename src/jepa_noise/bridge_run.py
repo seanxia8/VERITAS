@@ -46,6 +46,15 @@ Modes
     Writes per-run manifests/status/checkpoints/embeddings/probes, a compact
     ``aggregate.json`` and a ``PREDICTIONS_UPDATE`` fragment.  It never edits
     ``PREDICTION_STATUS.json``.
+``aggregate``
+    Read-only aggregation over completed runs spread across several out roots.
+    It discovers ``runs/<run_id>/probes.json`` (and ``embeddings.npz`` for
+    seed CKA when present), requires the full registered arm x seed set unless
+    ``--allow-partial``, and writes only ``aggregate.json``,
+    ``PREDICTIONS_UPDATE.md``, ``run_status.json`` and an aggregate-level
+    ``manifest.jsonl`` recording each source run dir and probes sha256.  It
+    never trains, evaluates, re-encodes, repairs or writes inside a run
+    directory.
 
 Engineering choices are reported one line each with the WP4a hand-off.
 """
@@ -120,6 +129,7 @@ __all__ = [
     "prepare_products",
     "run_grid",
     "run_beta_dev",
+    "run_aggregate",
     "seed_floor",
     "select_beta",
     "b1_verdict",
@@ -2346,8 +2356,8 @@ def _seed_cka(arms: dict) -> dict:
                     except ValueError as pair_error:
                         rows[key] = {"value": None, "status": str(pair_error)}
                     del first_features, second_features
-        except (OSError, ValueError, KeyError) as stream_error:
-            pass
+        except (OSError, ValueError, KeyError) as error:
+            stream_error = error
         values = [row["value"] for row in rows.values() if row["value"] is not None]
         readable = stream_error is None
         cka[arm] = {
@@ -3185,6 +3195,175 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
     return 0 if not failed else 1
 
 
+def _aggregate_load_manifest(root: Path) -> Dict[str, dict]:
+    """Read a source out root's job-level manifest (latest row per run)."""
+    path = Path(root) / "manifest.jsonl"
+    if not path.is_file():
+        raise RuntimeError(
+            f"aggregate: no manifest.jsonl under --runs-root {root}"
+        )
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise RuntimeError(f"aggregate: cannot read {path}: {error}")
+    rows: Dict[str, dict] = {}
+    for number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise RuntimeError(
+                f"aggregate: {path}:{number} is not valid JSON ({error}); "
+                "refusing damaged manifest evidence"
+            )
+        if not isinstance(row, dict) or "run_id" not in row:
+            raise RuntimeError(
+                f"aggregate: {path}:{number} has no run_id; refusing damaged "
+                "manifest evidence"
+            )
+        rows[str(row["run_id"])] = row
+    return rows
+
+
+def _aggregate_discover_runs(root: Path) -> List[Path]:
+    """Discover ``runs/<run_id>`` directories (reads only, never writes)."""
+    runs_dir = Path(root) / "runs"
+    if not runs_dir.is_dir():
+        raise RuntimeError(f"aggregate: {root} has no runs/ directory")
+    found: List[Path] = []
+    with os.scandir(runs_dir) as entries:
+        for entry in entries:
+            if entry.name.startswith(".") or not entry.is_dir():
+                continue
+            run_dir = Path(entry.path)
+            signals = (
+                "probes.json", "run_status.json", "train_log.jsonl",
+                "checkpoint.pt", "embeddings.npz",
+            )
+            if not any((run_dir / name).exists() for name in signals):
+                continue
+            if not (run_dir / "probes.json").is_file():
+                raise RuntimeError(
+                    f"aggregate: {run_dir} has no probes.json; refusing to "
+                    "aggregate or repair an incomplete run directory"
+                )
+            found.append(run_dir)
+    return sorted(found, key=lambda item: item.name)
+
+
+def _aggregate_read_json(path: Path, label: str) -> Tuple[dict, str, int]:
+    try:
+        raw = path.read_bytes()
+    except OSError as error:
+        raise RuntimeError(f"aggregate: cannot read {label} {path}: {error}")
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(
+            f"aggregate: {label} {path} is not valid JSON ({error}); refusing"
+        )
+    return payload, sha256_bytes(raw), len(raw)
+
+
+def _aggregate_probes(run_dir: Path) -> dict:
+    """Read and validate a run's probes.json (the only per-run input needed)."""
+    probes_path = run_dir / "probes.json"
+    payload, probes_sha, probes_bytes = _aggregate_read_json(
+        probes_path, "probes.json"
+    )
+    if not isinstance(payload, dict) or payload.get("schema") != SCHEMA_PROBES:
+        schema = payload.get("schema") if isinstance(payload, dict) else None
+        raise RuntimeError(
+            f"aggregate: {probes_path} is not a bridge probes payload "
+            f"(schema {schema!r}); refusing"
+        )
+    run = payload.get("run")
+    probes = payload.get("probes")
+    floor = payload.get("random_init_floor")
+    if (
+        not isinstance(run, dict)
+        or not isinstance(probes, dict)
+        or not isinstance(floor, dict)
+    ):
+        raise RuntimeError(
+            f"aggregate: {probes_path} lacks run/probes/random_init_floor; "
+            "refusing"
+        )
+    for key in ("run_id", "arm", "seed", "cohort", "steps"):
+        if key not in run:
+            raise RuntimeError(
+                f"aggregate: {probes_path} run record lacks {key!r}; refusing"
+            )
+    if str(run["run_id"]) != run_dir.name:
+        raise RuntimeError(
+            f"aggregate: {probes_path} says run_id {run['run_id']!r}, not "
+            f"{run_dir.name!r}; refusing"
+        )
+    if run["arm"] not in ALL_ARMS:
+        raise RuntimeError(
+            f"aggregate: {probes_path} records unknown arm {run['arm']!r}; "
+            f"registered arms are {ALL_ARMS}"
+        )
+    for key in ("physics", "nuisance", "amplitude"):
+        if not isinstance(probes.get(key), dict):
+            raise RuntimeError(
+                f"aggregate: {probes_path} lacks probes.{key}; refusing"
+            )
+    return {
+        "payload": payload,
+        "run": run,
+        "probes_sha256": probes_sha,
+        "probes_bytes": probes_bytes,
+    }
+
+
+def _aggregate_run_status(run_dir: Path) -> Tuple[Optional[dict], str]:
+    path = run_dir / "run_status.json"
+    if not path.is_file():
+        return None, "missing"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None, "unreadable"
+    if not isinstance(payload, dict):
+        return None, "unreadable"
+    return payload, str(payload.get("outcome"))
+
+
+def _aggregate_footprint(
+    roots: Sequence[Path], out_root: Path
+) -> dict:
+    """Grid-shaped footprint; source roots are walked read-only."""
+    def summarise(root: Path) -> dict:
+        files = 0
+        size = 0
+        for dirpath, _dirnames, filenames in os.walk(
+            root, followlinks=False
+        ):
+            for name in filenames:
+                path = Path(dirpath) / name
+                try:
+                    size += path.stat().st_size
+                except OSError:
+                    continue
+                files += 1
+        return {"files": files, "bytes": size}
+
+    per_root = {str(root): summarise(root) for root in roots}
+    total_files = sum(row["files"] for row in per_root.values())
+    total_bytes = sum(row["bytes"] for row in per_root.values())
+    return {
+        "out": summarise(Path(out_root)),
+        "data_root": {"files": total_files, "bytes": total_bytes},
+        "source_roots": per_root,
+        "note": (
+            "read-only footprint over the source out roots; no run directory "
+            "was written and no cohort data was read or written"
+        ),
+    }
+
+
 def run_aggregate(
     args,
     config: dict,
@@ -3192,115 +3371,258 @@ def run_aggregate(
     code_sha: str,
     status_text: str,
 ) -> int:
-    """Read-only aggregation over completed runs spread across out roots.
+    """Aggregate completed runs spread over several job out roots, read-only.
 
-    Never trains, evaluates, encodes or writes inside any run directory.  Run
-    completeness is taken from each source out root's ``manifest.jsonl`` (the
-    job-level record) plus the presence of an intact ``probes.json`` and
-    ``embeddings.npz``; a disagreement with the run's own ``run_status.json``
-    is recorded as a status anomaly rather than silently trusted.
+    The mode discovers ``runs/<run_id>/probes.json`` directly (never through a
+    training/evaluation path), requires the full registered arm x seed set
+    unless ``--allow-partial``, and writes only the four aggregate-level files.
+    No code path below calls training, encoding, probe fitting or cohort
+    generation; every source path is opened for reading only.
     """
+    started_at = utcnow()
     roots = [Path(root) for root in args.runs_root]
+    out_root = Path(args.out)
+    out_resolved = out_root.resolve()
     for root in roots:
-        if not (root / "manifest.jsonl").exists():
-            raise RuntimeError(f"no manifest.jsonl under --runs-root {root}")
+        root_resolved = Path(root).resolve()
+        if out_resolved == root_resolved or root_resolved in out_resolved.parents:
+            raise RuntimeError(
+                f"aggregate: --out {out_root} is inside --runs-root {root}; "
+                "the aggregate output must be outside every source root so no "
+                "run directory can be written"
+            )
+
+    declarations = list(getattr(args, "complete_run", None) or [])
     results: List[dict] = []
-    rows: Dict[str, dict] = {}
     sources: List[dict] = []
     anomalies: List[dict] = []
-    damaged: List[str] = []
+    declared_complete: List[str] = []
+    recorded: Dict[str, dict] = {}
     for root in roots:
-        root_rows = load_manifest_rows(root)
-        root_results = collect_results(root)
-        collected = {entry["manifest"]["run_id"] for entry in root_results}
-        for run_id, row in sorted(root_rows.items()):
-            if row.get("outcome") != "complete" or run_id in collected:
-                continue
-            run_dir = root / "runs" / run_id
-            absent = [
-                name for name in ("probes.json", "embeddings.npz")
-                if not (run_dir / name).exists()
-            ]
-            if absent:
-                damaged.append(
-                    f"{run_id} (manifest complete but missing {', '.join(absent)})"
+        root_rows = _aggregate_load_manifest(root)
+        for run_dir in _aggregate_discover_runs(root):
+            run_id = run_dir.name
+            if run_id in recorded:
+                raise RuntimeError(
+                    f"aggregate: duplicate run_id {run_id!r} discovered at "
+                    f"{recorded[run_id]['run_dir']} and {run_dir}; refusing "
+                    "ambiguous evidence"
                 )
-        declared_complete = getattr(args, "complete_run", None) or []
-        if root_results:
-            for result in root_results:
-                run_id = result["manifest"]["run_id"]
-                status_path = root / "runs" / run_id / "run_status.json"
-                status = None
-                if status_path.exists():
-                    try:
-                        status = json.loads(status_path.read_text(encoding="utf-8"))
-                    except json.JSONDecodeError:
-                        status = {"outcome": "unreadable"}
-                if status is not None and status.get("outcome") != "complete":
-                    if run_id in declared_complete:
-                        anomalies.append({
-                            "run_id": run_id,
-                            "manifest_outcome": "complete",
-                            "run_status_outcome": status.get("outcome"),
-                            "resolution": "--complete-run declaration",
-                        })
-                    else:
-                        damaged.append(
-                            f"{run_id} (run_status outcome {status.get('outcome')!r}, "
-                            "manifest outcome 'complete')"
-                        )
-                        continue
-                results.append(result)
-        rows.update(root_rows)
-        sources.append({
-            "runs_root": str(root),
-            "manifest_rows": len(root_rows),
-            "completed_sources": [
+            probes = _aggregate_probes(run_dir)
+            run = probes["run"]
+            arm = str(run["arm"])
+            seed = int(run["seed"])
+            row = root_rows.get(run_id)
+            status, status_outcome = _aggregate_run_status(run_dir)
+            manifest_outcome = (
+                None if row is None else str(row.get("outcome"))
+            )
+            damaged: List[str] = []
+            if row is None:
+                damaged.append("job-level manifest row missing")
+            else:
+                if row.get("outcome") != "complete":
+                    damaged.append(
+                        f"job-level manifest outcome {manifest_outcome!r}"
+                    )
+                if row.get("arm") != arm:
+                    damaged.append(
+                        f"manifest arm {row.get('arm')!r} != probes arm {arm!r}"
+                    )
+                try:
+                    row_seed = int(row.get("seed"))
+                except (TypeError, ValueError):
+                    row_seed = None
+                if row_seed != seed:
+                    damaged.append(
+                        f"manifest seed {row.get('seed')!r} != probes seed {seed}"
+                    )
+                stored = (
+                    (row.get("embedding_files") or {}).get("probes.json", {})
+                    or {}
+                ).get("sha256")
+                if stored and stored != probes["probes_sha256"]:
+                    damaged.append(
+                        "probes.json sha256 does not match the job manifest"
+                    )
+            if status_outcome != "complete":
+                damaged.append(
+                    f"run_status.json outcome {status_outcome!r}"
+                )
+            is_declared = run_id in declarations
+            if damaged and not is_declared:
+                raise RuntimeError(
+                    f"aggregate: {run_dir}: probes.json parses but the "
+                    f"completeness evidence is damaged ({'; '.join(damaged)}). "
+                    f"If the job-level manifest records the run complete, pass "
+                    f"--complete-run {run_id} to declare this damaged-status "
+                    "run complete (recorded in the aggregate provenance)."
+                )
+            if is_declared:
+                declared_complete.append(run_id)
+                anomalies.append(
+                    {
+                        "run_id": run_id,
+                        "arm": arm,
+                        "seed": seed,
+                        "source_run_dir": str(run_dir),
+                        "damaged_evidence": damaged,
+                        "resolution": "--complete-run declaration",
+                    }
+                )
+
+            manifest_row = dict(row or {})
+            manifest_row.update(
                 {
-                    "run_id": result["manifest"]["run_id"],
-                    "probes_sha256": bridge_probes_sha(
-                        root, result["manifest"]["run_id"]
+                    "run_id": run_id,
+                    "arm": arm,
+                    "seed": seed,
+                    "cohort": run.get("cohort"),
+                    "outcome": "complete",
+                    "steps": run.get("steps"),
+                    "batch": run.get("batch"),
+                    "beta": run.get("beta"),
+                    "beta_source": run.get("beta_source"),
+                    "wall_seconds": (row or {}).get("wall_seconds"),
+                    "steps_completed": (row or {}).get(
+                        "steps_completed", run.get("steps")
+                    ),
+                    "registered": bool((row or {}).get("registered", False)),
+                    "declared_complete": bool(is_declared),
+                    "probes_sha256": probes["probes_sha256"],
+                    "source_run_dir": str(run_dir),
+                    "source_runs_root": str(root),
+                    "run_status_outcome": status_outcome,
+                    "manifest_outcome": manifest_outcome,
+                }
+            )
+            embedding_path = run_dir / "embeddings.npz"
+            results.append(
+                {
+                    "manifest": manifest_row,
+                    "metrics": {
+                        "probes": probes["payload"]["probes"],
+                        "random_init_floor": probes["payload"][
+                            "random_init_floor"
+                        ],
+                        "embedding_files": (row or {}).get(
+                            "embedding_files", {}
+                        ),
+                    },
+                    "embedding_path": (
+                        embedding_path if embedding_path.is_file() else None
                     ),
                 }
-                for result in root_results
-            ],
-        })
-    if damaged:
+            )
+            recorded[run_id] = {"run_dir": run_dir, "result": results[-1]}
+            sources.append(
+                {
+                    "run_id": run_id,
+                    "arm": arm,
+                    "seed": seed,
+                    "source_runs_root": str(root),
+                    "source_run_dir": str(run_dir),
+                    "probes_path": str(run_dir / "probes.json"),
+                    "probes_sha256": probes["probes_sha256"],
+                    "probes_bytes": probes["probes_bytes"],
+                    "embedding_present": embedding_path.is_file(),
+                    "run_status_outcome": status_outcome,
+                    "manifest_outcome": manifest_outcome,
+                    "declared_complete": bool(is_declared),
+                }
+            )
+    unknown_declarations = sorted(
+        set(declarations) - set(recorded)
+    )
+    if unknown_declarations:
         raise RuntimeError(
-            "run status disagrees with the job-level manifest for: "
-            + "; ".join(damaged)
-            + ". Refusing to guess: re-run the aggregate with "
-            "--complete-run <run_id ...> for runs whose metrics are intact and "
-            "whose status file was damaged after the run finished."
+            "aggregate: --complete-run names no discovered run: "
+            + ", ".join(unknown_declarations)
         )
     if not results:
-        raise RuntimeError("no completed runs found under the given --runs-root values")
-    requested = [
-        f"wp4a_eval_{arm}_s{seed}".replace("-", "_")
-        for arm in ALL_ARMS
-        for seed in (0, 1, 2)
+        raise RuntimeError(
+            "aggregate: no completed runs discovered under the given "
+            "--runs-root values"
+        )
+
+    expected = [
+        (arm, seed) for arm in ALL_ARMS for seed in REGISTERED_SEEDS
     ]
-    completed_ids = sorted(result["manifest"]["run_id"] for result in results)
-    by_arm: Dict[str, set] = {}
-    for result in results:
-        by_arm.setdefault(result["manifest"]["arm"], set()).add(
-            int(result["manifest"]["seed"])
+    present = {
+        (result["manifest"]["arm"], int(result["manifest"]["seed"]))
+        for result in results
+    }
+    if len(present) != len(results):
+        raise RuntimeError(
+            "aggregate: two source runs claim the same arm/seed; refusing "
+            "ambiguous evidence"
         )
     missing = [
-        f"{arm}/s{seed}" for arm in ALL_ARMS for seed in (0, 1, 2)
-        if seed not in by_arm.get(arm, set())
+        (arm, seed) for arm in ALL_ARMS for seed in REGISTERED_SEEDS
+        if (arm, seed) not in present
     ]
     if missing and not getattr(args, "allow_partial", False):
+        listed = ", ".join(f"{arm}/s{seed}" for arm, seed in missing)
         raise RuntimeError(
             "aggregate requires the full registered set "
-            f"(sigreg_jepa, sigreg_jepa_anchored, mae_chi2, sigreg_jepa_parallel x seeds 0,1,2); "
-            f"missing: {', '.join(missing)} (use --allow-partial for a debugging aggregate)"
+            "(sigreg_jepa, sigreg_jepa_anchored, mae_chi2, "
+            "sigreg_jepa_parallel x seeds 0,1,2); missing: "
+            f"{listed} (use --allow-partial for a debugging aggregate)"
         )
+    if getattr(args, "partial_verdicts", False) and not getattr(
+        args, "allow_partial", False
+    ):
+        raise RuntimeError(
+            "aggregate: --partial-verdicts requires --allow-partial"
+        )
+
+    anchored = [
+        result for result in results
+        if result["manifest"]["arm"] == "sigreg_jepa_anchored"
+    ]
+    beta_provenance = None
+    if args.beta_decision:
+        decision = load_beta_decision(
+            Path(args.beta_decision), config, config_sha
+        )
+        beta_provenance = {
+            "decision_path": str(args.beta_decision),
+            "decision_sha256": sha256_file(args.beta_decision),
+            "selected_beta": float(decision["selected_beta"]),
+            "decision_registered": bool(
+                decision.get("registered", False)
+            ),
+        }
+        for result in anchored:
+            recorded_beta = result["manifest"].get("beta")
+            if recorded_beta is None:
+                continue
+            if float(recorded_beta) != float(decision["selected_beta"]):
+                raise RuntimeError(
+                    f"aggregate: {result['manifest']['run_id']} ran with "
+                    f"beta {recorded_beta}, but the decision selects "
+                    f"{decision['selected_beta']}; refusing"
+                )
+    elif anchored:
+        raise RuntimeError(
+            "aggregate with sigreg_jepa_anchored requires --beta-decision "
+            "from `bridge_run beta-dev` (v4 §3.5.7)"
+        )
+
     cohorts: Dict[str, dict] = {}
     for result in results:
         provenance = result["manifest"].get("cohort_provenance")
-        if provenance:
-            cohorts.setdefault(str(result["manifest"]["cohort"]), provenance)
+        cohort_name = result["manifest"].get("cohort")
+        if provenance and cohort_name:
+            cohorts.setdefault(str(cohort_name), provenance)
+    fixtures = sorted({
+        str(result["manifest"].get("fixture"))
+        for result in results
+        if result["manifest"].get("fixture")
+    })
+    fixture = args.fixture or (
+        fixtures[0] if len(fixtures) == 1 else "mixed"
+    )
     aggregate = build_aggregate(
         results,
         config=config,
@@ -3308,86 +3630,174 @@ def run_aggregate(
         code_sha=code_sha,
         status_text=status_text,
         cohorts=cohorts,
-        fixture=args.fixture,
+        fixture=fixture,
     )
-    aggregate["runs"] = [rows[run_id] for run_id in completed_ids if run_id in rows]
+    requested = [
+        f"wp4a_eval_{arm}_s{seed}"
+        for arm in ALL_ARMS for seed in REGISTERED_SEEDS
+    ]
+    completed_ids = sorted(
+        result["manifest"]["run_id"] for result in results
+    )
+    pending_ids = [
+        f"wp4a_eval_{arm}_s{seed}" for arm, seed in missing
+    ]
+    source_config_shas = sorted({
+        str(result["manifest"].get("config_sha256"))
+        for result in results
+        if result["manifest"].get("config_sha256")
+    })
+    source_code_shas = sorted({
+        str(result["manifest"].get("code_sha"))
+        for result in results
+        if result["manifest"].get("code_sha")
+    })
+    aggregate["mode"] = "aggregate"
+    aggregate["aggregation_mode"] = (
+        "aggregate-only (read-only; no run directory written)"
+    )
+    aggregate["aggregation_sources"] = sources
+    aggregate["aggregate_provenance"] = {
+        "runs_roots": [str(root) for root in roots],
+        "source_run_dirs": [row["source_run_dir"] for row in sources],
+        "probes_sha256": {
+            row["run_id"]: row["probes_sha256"] for row in sources
+        },
+        "declared_complete_runs": sorted(declared_complete),
+        "declarations": {
+            entry["run_id"]: {
+                "damaged_evidence": entry["damaged_evidence"],
+                "resolution": entry["resolution"],
+            }
+            for entry in anomalies
+        },
+        "data_root": (
+            None if getattr(args, "data_root", None) is None
+            else str(args.data_root)
+        ),
+        "data_root_used": False,
+        "data_root_note": (
+            "--data-root is accepted for command-line compatibility only; "
+            "aggregate never reads or writes cohort data"
+        ),
+        "source_config_sha256": source_config_shas,
+        "source_code_sha": source_code_shas,
+        "current_config_sha256": config_sha,
+        "current_code_sha": code_sha,
+        "note": (
+            "discovered runs/<run_id>/probes.json read-only; no training, "
+            "evaluation, encoding, checkpoint or run-directory write"
+        ),
+    }
+    aggregate["declared_complete_runs"] = sorted(declared_complete)
+    aggregate["status_anomalies"] = anomalies
     aggregate["requested_runs"] = requested
     aggregate["completed_runs"] = completed_ids
-    aggregate["pending_runs"] = [
-        run_id for run_id in requested if run_id not in set(completed_ids)
+    aggregate["pending_runs"] = pending_ids
+    # Grid-shaped placeholders: aggregate mode never trains, so there are no
+    # failed/interrupted runs; a damaged status is either refused or declared
+    # complete above and recorded in status_anomalies.
+    aggregate["interrupted_runs"] = []
+    aggregate["failed_runs"] = []
+    aggregate["missing_registered_runs"] = [
+        {"arm": arm, "seed": seed,
+         "run_id": f"wp4a_eval_{arm}_s{seed}"}
+        for arm, seed in missing
     ]
-    aggregate["aggregation_sources"] = sources
-    aggregate["status_anomalies"] = anomalies
-    if getattr(args, "allow_partial", False):
+    aggregate["partial_registered_set"] = bool(missing)
+    aggregate["beta_decision"] = beta_provenance
+    if missing:
         for key in ("B1", "R7"):
-            aggregate["verdicts"][key]["status"] = "not_evaluable"
-            aggregate["verdicts"][key]["reason"] = (
-                "partial_set: --allow-partial forbids a cross-arm verdict; "
-                f"missing {', '.join(aggregate['pending_runs']) or 'none'}"
-            )
-    aggregate["aggregation_mode"] = "aggregate-only (read-only; no run directory written)"
-    aggregate["data_footprint"] = _footprint_roots(roots)
-    out_root = Path(args.out)
+            verdict = aggregate["verdicts"][key]
+            verdict["partial_registered_set"] = True
+            verdict["missing_registered_runs"] = list(pending_ids)
+            if not getattr(args, "partial_verdicts", False):
+                if not (
+                    str(verdict.get("reason") or "").startswith(
+                        ("missing_required_arm:",
+                         "missing_required_nuisance_target:")
+                    )
+                ):
+                    verdict["reason"] = "partial_registered_set"
+                verdict["status"] = "not_evaluable"
+    aggregate["data_footprint"] = _aggregate_footprint(roots, out_root)
+    aggregate["files"] = {
+        "manifest_rows": len(results),
+        "source_runs": len(sources),
+    }
+
     out_root.mkdir(parents=True, exist_ok=True)
-    write_manifest = out_root / "manifest.jsonl"
-    with write_manifest.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps({
-            "run_id": out_root.name,
-            "kind": "aggregate-only",
-            "code_sha": code_sha,
-            "config_sha256": config_sha,
-            "sources": [str(root) for root in roots],
-            "completed_runs": completed_ids,
-            "status_anomalies": [entry["run_id"] for entry in anomalies],
-            "finished_at_utc": utcnow(),
-        }, sort_keys=True) + "\n")
-    atomic_write_json(out_root / "aggregate.json", aggregate)
-    predictions_fragment(aggregate, out_dir=out_root)
-    atomic_write_json(
-        out_root / "run_status.json",
+    aggregate_path = out_root / "aggregate.json"
+    predictions_path = out_root / "PREDICTIONS_UPDATE.md"
+    manifest_path = out_root / "manifest.jsonl"
+    atomic_write_json(aggregate_path, aggregate)
+    predictions_fragment(aggregate, out_dir=out_root, mode="aggregate")
+    manifest_rows = [
         {
-            "run_id": out_root.name,
-            "host": host_name(),
-            "mode": "aggregate",
-            "outcome": "complete" if not aggregate["pending_runs"] else "incomplete",
-            "runs_complete": len(completed_ids),
-            "runs_pending": len(aggregate["pending_runs"]),
-            "finished_at_utc": utcnow(),
-            "aggregate_sha256": sha256_file(out_root / "aggregate.json"),
-        },
+            "schema": SCHEMA_AGGREGATE_MANIFEST,
+            "kind": "source_run",
+            "run_id": row["run_id"],
+            "arm": row["arm"],
+            "seed": row["seed"],
+            "source_runs_root": row["source_runs_root"],
+            "source_run_dir": row["source_run_dir"],
+            "probes_path": row["probes_path"],
+            "probes_sha256": row["probes_sha256"],
+            "probes_bytes": row["probes_bytes"],
+            "embedding_present": row["embedding_present"],
+            "run_status_outcome": row["run_status_outcome"],
+            "manifest_outcome": row["manifest_outcome"],
+            "declared_complete": row["declared_complete"],
+            "declaration_source": (
+                "--complete-run" if row["declared_complete"] else None
+            ),
+        }
+        for row in sources
+    ]
+    atomic_write_text(
+        manifest_path,
+        "\n".join(
+            json.dumps(_jsonable(row), sort_keys=True)
+            for row in manifest_rows
+        ) + "\n",
     )
+    verdict_status = {
+        key: value["status"]
+        for key, value in aggregate["verdicts"].items()
+    }
+    status_payload = {
+        "run_id": out_root.name,
+        "mode": "aggregate",
+        "host": host_name(),
+        "device": None,
+        "outcome": "complete" if not missing else "incomplete",
+        "exit_status": 0,
+        "started_at_utc": started_at,
+        "finished_at_utc": utcnow(),
+        "source_runs_roots": [str(root) for root in roots],
+        "runs_aggregated": len(results),
+        "runs_requested": len(requested),
+        "runs_complete": len(completed_ids),
+        "runs_pending": len(pending_ids),
+        "declared_complete_runs": sorted(declared_complete),
+        "partial_registered_set": bool(missing),
+        "registered_run": aggregate["registered_run"],
+        "verdicts": verdict_status,
+        "aggregate_sha256": sha256_file(aggregate_path),
+        "predictions_sha256": sha256_file(predictions_path),
+        "manifest_sha256": sha256_file(manifest_path),
+    }
+    atomic_write_json(out_root / "run_status.json", status_payload)
     print(json.dumps({
-        "aggregate": str(out_root / "aggregate.json"),
-        "predictions": str(out_root / "PREDICTIONS_UPDATE.md"),
-        "verdicts": {key: value["status"] for key, value in aggregate["verdicts"].items()},
+        "aggregate": str(aggregate_path),
+        "predictions": str(predictions_path),
+        "verdicts": verdict_status,
         "completed_runs": len(completed_ids),
-        "pending_runs": aggregate["pending_runs"],
-        "status_anomalies": [entry["run_id"] for entry in anomalies],
+        "pending_runs": pending_ids,
+        "declared_complete_runs": sorted(declared_complete),
+        "registered_run": aggregate["registered_run"],
     }, indent=2, sort_keys=True))
     return 0
-
-
-def bridge_probes_sha(root: Path, run_id: str) -> Optional[str]:
-    """sha256 of a run's ``probes.json`` (read-only provenance record)."""
-    path = Path(root) / "runs" / run_id / "probes.json"
-    return sha256_file(path) if path.exists() else None
-
-
-def _footprint_roots(roots: Sequence[Path]) -> dict:
-    """Aggregate-level footprint over the source out roots (read-only walk)."""
-    total_files = 0
-    total_bytes = 0
-    for root in roots:
-        for path in Path(root).rglob("*"):
-            if path.is_file():
-                total_files += 1
-                total_bytes += path.stat().st_size
-    return {
-        "source_roots": [str(root) for root in roots],
-        "files": total_files,
-        "bytes": total_bytes,
-        "note": "read-only footprint over the source out roots; no run directory was written",
-    }
 
 
 def _footprint(out_root: Path, data_root: Path) -> dict:
@@ -3454,14 +3864,37 @@ def build_parser() -> argparse.ArgumentParser:
     grid.add_argument("--seeds", default=None, help="comma-separated seed override")
     grid.add_argument("--beta-decision", default=None,
                       help="beta_decision.json from beta-dev (required for the anchored arm)")
-    aggregate = sub.add_parser("aggregate", parents=[common],
-                               help="read-only aggregation over completed runs across out roots")
+    aggregate = sub.add_parser(
+        "aggregate",
+        help="read-only aggregation over completed runs across out roots",
+    )
+    aggregate.add_argument("--out", required=True,
+                           help="aggregate output root (the only write root)")
     aggregate.add_argument("--runs-root", nargs="+", required=True,
-                           help="out roots containing runs/<run_id>/ (manifest.jsonl required)")
+                           help="out roots containing runs/<run_id>/")
+    aggregate.add_argument("--config", default=None,
+                           help="path to configs/bridge_v1.json")
+    aggregate.add_argument("--beta-decision", default=None,
+                           help="beta_decision.json from beta-dev (required when "
+                                "an anchored run is aggregated)")
+    aggregate.add_argument("--data-root", default=None,
+                           help="accepted for compatibility only; aggregate never "
+                                "reads or writes cohort data")
+    aggregate.add_argument("--fixture", choices=("a4", "synthetic"),
+                           default=None,
+                           help="recorded fixture label (derived from the source "
+                                "manifests when omitted)")
     aggregate.add_argument("--allow-partial", action="store_true",
-                           help="debugging aggregate over an incomplete arm x seed set")
-    aggregate.add_argument("--complete-run", nargs="*", default=[],
-                           help="run_ids declared complete despite a damaged run_status.json")
+                           help="debugging aggregate over an incomplete arm x seed "
+                                "set; every verdict becomes not_evaluable")
+    aggregate.add_argument("--partial-verdicts", action="store_true",
+                           help="with --allow-partial, still evaluate B1/R7 from "
+                                "the runs present (tagged partial_registered_set)")
+    aggregate.add_argument("--complete-run", action="extend", nargs="+",
+                           default=[], metavar="RUN_ID",
+                           help="declare a run complete despite a damaged "
+                                "run_status.json; recorded in the aggregate "
+                                "manifest/provenance")
     beta = sub.add_parser("beta-dev", parents=[common],
                           help="development-cohort beta selection (v3 §1.3)")
     beta.add_argument("--beta-grid", default=None,
@@ -3481,12 +3914,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     code_sha = git_head(root)
     status_text = git_status(root)
     try:
+        if args.mode == "aggregate":
+            # Dispatch before the grid/beta-dev data-root handling: aggregate
+            # accepts --data-root for compatibility but must never touch it.
+            return run_aggregate(args, config, config_sha, code_sha, status_text)
         if args.fixture == "a4":
             Path(args.data_root).mkdir(parents=True, exist_ok=True)
         if args.mode == "beta-dev":
             return run_beta_dev(args, config, config_sha, code_sha, status_text)
-        if args.mode == "aggregate":
-            return run_aggregate(args, config, config_sha, code_sha, status_text)
         if args.mode == "grid":
             if args.beta_decision is None and (
                 args.arms is None or "sigreg_jepa_anchored" in args.arms.split(",")
