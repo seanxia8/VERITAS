@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 01:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 01:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -129,9 +129,19 @@ Updated: 2026-10-18 01:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   R5-ext after the freeze (project cost first; E1 8.7/24 h); B1-ext ≤ 4 Titan GPU-h in parallel.
 - **B1-ext β development complete: β = 10 selected** (max ratio 0.952 ≤ 1.1; β=100 and 1000 fail);
   anchored 3-seed grid + beside-B1 aggregate running on the Titan (B1-ext ~1.56 of 4 GPU-h used).
-- **Running**: merged-readout generator/detectability integration (implementer), the fresh R2
-  review, the B1-ext anchored grid. Then: detectability re-run/freeze on the host, WP5 smoke +
-  scaling, R5-ext re-run after the freeze.
+- **Merged-readout integration committed (`28e24c8`)**: parity gain (odd dense modules +3 %) in
+  the measured readout and the nominal twin (twin cancels only injected F1/F3 gains), odd-module
+  timing-width factor, dark counts off with hard guards, **`readout_dark_off`** everywhere,
+  `v_dark = 0` in `mae_chi2` (softplus keeps C_m positive definite; no floor), dark bank all-zero
+  so **R7b is `not_evaluable`** on this readout, and the detectability variance is
+  `μ(1+σ²) + v_dark + s_p²μ²` with in-force `s_p = 0.10`. Previous [Y_lo,Y_hi]/F2/F1 decisions are
+  `superseded_pending_merged_readout`. Expected: 99 LUCiD tests, 425 full suite.
+- **R2 recompute verdict recorded** (fresh reviewer, verdict (a): seed-mean is the registered
+  estimator; R2 = 5/6 failing θ0.1/η3; 4/6 median is a non-registered post-hoc sensitivity) beside
+  R2 in `PREDICTION_STATUS.json`, whose R1–R5/R3b rows are now the evaluated statuses.
+- **Running**: host detectability re-run on the merged readout with `--freeze` (this is the freeze
+  that gates the report), B1-ext anchored grid + aggregate (~00:37Z), then WP5 smoke + scaling at
+  the same SHA, then the R5-ext re-run.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
