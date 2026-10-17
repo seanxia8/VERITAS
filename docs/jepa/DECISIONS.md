@@ -361,3 +361,26 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   (1e-8 relative rule not triggered). Record: config SHA 2f7b3c5e…, decision file
   `returns/wp4a_beta_dev/beta_decision.json`, grid values {0.1, 1, 10} as registered. The selected β
   is passed to the grid through the decision file; it is not written into the frozen config.
+
+## WP4a bridge grid execution (2026-10-17)
+
+- **2026-10-17 — 12/12 bridge runs complete on the Titan, all exit 0**, 10 000 steps, batch 128,
+  `registered_run: true`, three jobs in parallel on GPUs 0/2/3 (GPU 1 never used, amensch's kernel
+  untouched), plus the fourth job when a slot freed. Per-run wall seconds: sigreg_jepa
+  1371.14/1361.98/1362.40; anchored (β=10) 1771.40/1766.67/1772.30; mae_chi2 619.49/615.34/615.15;
+  parallel ablation 1307.60/1316.54/1300.83. Job walls 4114.72 / 5330.30 / 1871.46 / 3944.72 s
+  (1.14 / 1.48 / 0.52 / 1.10 Titan GPU-h).
+- **2026-10-17 — combined-aggregation incident.** The driver's `grid` mode has no aggregate-only
+  path: re-invoking it over an out root **re-executes** runs. The host operator stopped it after
+  11 min 06 s (CPU only, no GPU, no cohort-data writes) per instruction. Damage, through symlinks,
+  in `wp4a_grid_sigreg`: s0 `run_status.json` clobbered and `checkpoint.pt`/`SHA256SUMS` overwritten
+  by the aborted 282-step re-run (the final checkpoint artifact is lost, its sha survives in the
+  manifest), s1 `run_status.json` reset; both runs' `embeddings.npz` and `probes.json` untouched,
+  the other 10 run dirs untouched. The run outcomes stand: metrics and embeddings predate the
+  damage, the job-level aggregate (17:25Z) and manifest record the completed runs, and a
+  pre-damage compact snapshot is committed under `results/jepa/wp4a_grid_sigreg/`. Nothing is
+  restored or rewritten; the damage is recorded in `PREFLIGHT_A8_deepthought.md` §14.
+- **2026-10-17 — aggregate-only mode required.** B1/R7 cannot be read from any single job's
+  aggregate (each holds one arm), and `grid` re-runs, so a new read-only `aggregate` mode is being
+  added (plus a fix of the misleading `missing_required_nuisance_target_in_the_declared_set`
+  reason string, which is emitted for the *missing comparison arm*, not for an undefined target).
