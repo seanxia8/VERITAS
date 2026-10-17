@@ -235,3 +235,29 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   ORACLE check-out is never fetched into or modified. The clone is made when the generation
   environment is assembled (it needs the WCTE geometry/readout first), not now, because of the
   entry-quota pressure.
+
+## WP4b generator scaffold (2026-10-17)
+
+- **2026-10-17 — WP4b scaffold committed, development-only.** `lucid_bombs.py` implements the
+  detector-state laws (F1, F3, F2, F2′, R11b, T) as geometry-agnostic keyed samplers with the A8
+  [0.5, 1.5] per-factor clipping and clipped counts, the `DetectorState`/`state_for_run` contract,
+  the nominal-twin contract (oracle-only, shared draws, `PermissionError` otherwise), the v3 §6
+  cohort/run/ID structure with the `lucid/` prefix, manifest + CSR-like sparse storage with
+  `SHA256SUMS`, the real N_min=20 exclusion/redraw accounting, and the §3.5.3a Fisher-information
+  and R²-ceiling numerics. 24 tests; whole package 288 pass. Everything labelled
+  `readout_synthetic_unrepaired`; nothing here is a reported result.
+- **2026-10-17 — engineering choices inside the scaffold** (v4 §5 decision default, none changes a
+  registered prediction, metric, cell or dataset role): the robustness-set event IDs
+  `lucid/robustness` 220000–229999 (dev 1220000–1229999) are an allocation the v3 §6 table does
+  not provide, chosen disjoint from every registered range; per-cell disjoint event blocks are
+  passed explicitly via `event_id_start` and recorded in each manifest; namespaces are derived by
+  SHA-256 from (seed, role, run/event/geometry), never integer offsets; sparse arrays use int32
+  PMT ids and float32 charge/time.
+- **2026-10-17 — open parameters that wait for the physical geometry/readout** (recorded, not
+  guessed into the science): attenuation length `lambda0` (the PMT reference has absorption off;
+  the placeholder 50 m is not a registered value), the F2/F2′ strength `a` for the R11/R11b cells
+  (fixed only by the §3.5.3a detectability check), the R11b attenuation variant (F2 vs F2′ and its
+  strength), the F2′ detector half-height H, and the WCTE yields Y_lo/Y_hi/N_min. These bind when
+  the PMT SHA is named and the geometry lands; until then the generator's occupancy work,
+  detectability check and 1000-event benchmark are blocked, and G-PMT applies at 31 Oct if the
+  SHA has not arrived.

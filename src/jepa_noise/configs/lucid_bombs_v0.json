@@ -1,0 +1,39 @@
+{
+  "schema": "jepa-lucid-bombs-v0",
+  "status": "development_only",
+  "readout_label": "readout_synthetic_unrepaired",
+  "reported_results": false,
+  "note": "WP4b development contract; physical WCTE geometry and the pinned LUCiD revision eaf2e89f579d6679e90020c732ac2c846895d691 are not available. No result from this config is reportable.",
+  "geometry_fixture": {
+    "name": "synthetic_cylinder_dev (NOT WCTE)",
+    "n_modules": 8,
+    "pmts_per_module": 7,
+    "half_height_m": 4.0
+  },
+  "lambda0_m": 50.0,
+  "lambda0_note": "placeholder: the runbook fixes F2's form but not lambda0, and the PMT reference fixture has absorption off",
+  "detector_state_laws": {
+    "F1": {"spreads": [0.02, 0.05, 0.10], "namespace": "lucid/F1"},
+    "F3": {"spread": 0.05, "namespace": "lucid/F3"},
+    "F2": {"spreads": [0.10, 0.20, 0.50], "namespace": "lucid/F2"},
+    "F2p": {"spreads": [0.05, 0.10], "namespace": "lucid/F2p"},
+    "R11b": {"spread": 0.05, "k_namespace": "lucid/k_R11b"},
+    "T": {"spread": 0.10, "runs": 100, "k_namespace": "lucid/k_T"}
+  },
+  "gain_clip": [0.5, 1.5],
+  "cohorts": {
+    "train": {"namespace": "lucid/train", "event_start": 0, "n_events": 100000, "run_length": 1000},
+    "probe_train": {"namespace": "lucid/probe_train", "event_start": 200000, "n_events": 10000, "run_length": 50},
+    "probe_test": {"namespace": "lucid/probe_test", "event_start": 210000, "n_events": 10000, "run_length": 50},
+    "robustness": {"namespace": "lucid/robustness", "event_start": 220000, "n_events": 10000, "run_length": 50},
+    "dev_train": {"namespace": "lucid/dev_train", "event_start": 1000000, "n_events": 100000, "run_length": 1000},
+    "dev_probe_train": {"namespace": "lucid/dev_probe_train", "event_start": 1200000, "n_events": 10000, "run_length": 50},
+    "dev_probe_test": {"namespace": "lucid/dev_probe_test", "event_start": 1210000, "n_events": 10000, "run_length": 50},
+    "dev_robustness": {"namespace": "lucid/dev_robustness", "event_start": 1220000, "n_events": 10000, "run_length": 50}
+  },
+  "event_id_source": "v3 §6 WP5 integer ranges, lucid/ namespace prefix",
+  "robustness_id_note": "v3 §6 has no robustness range; 220000-229999 is a WP4b extension and is reported to the lead",
+  "views": {"n_min": 20, "max_redraws": 3},
+  "detectability": {"sigma_spe": 0.3, "v_dark": 0.0, "run_events": 50},
+  "dataset_seed": 20261017
+}
