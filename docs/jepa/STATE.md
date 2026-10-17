@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 15:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 15:35Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -46,9 +46,16 @@ Updated: 2026-10-17 15:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
 
 ## Running jobs
 
-None on the hosts. Local: impl-guard (code + tests), impl-bridge (code + tests), impl-e1 (E1b
-projection + runner fixes), review-wp2v4 (independent recompute). CPU is oversubscribed while
-they run; start nothing new that needs >1 core until they finish.
+- deepthought: none. Guard live (`jepa_guard`, from code/6468582), level OK, 0 SHED ever; GPU
+  baseline restored. `code/work` = mutable working clone at `bbcded2` (clean); `code/89af5af`
+  kept as the probe record.
+- deepthought2: none. Guard live, OK, 0 SHED; jjanik's GPU1 unchanged.
+- Local: E1b attempt_002 (W=2, ~2.3 h projected, started 12:54Z) and the WP4a bridge runner
+  implementer (subagent). CPU shared; do not add heavy local jobs.
+- **GPU evidence so far**: corrected 10-batch equivalence PASSED both hosts (worst rel 2.9e-6 /
+  2.4e-6); 1-step CUDA bridge smoke PASSED on the Titan (4 arms, 14.4 s, anchored arm clean).
+- **Quota floor**: free entries ~30,552 = 552 above the §6.2 write-stop. Generation blocked until
+  G-QUOTA; beta cohort + bridge runs to be kept to a minimal file footprint.
 
 ## Queue
 
@@ -63,10 +70,11 @@ they run; start nothing new that needs >1 core until they finish.
 
 ## Next three actions
 
-1. Guard fixes → delta review → commit → sparse clone on both hosts → 10-min dry run each → live
-   guard → probe job each → equivalence comparison.
-2. Merge WP2-v4 review verdict; merge WP4a when its tests pass; merge E1b when projected and run.
-3. First report to the author (access/registration, preflight, gates, two-week plan), then continue.
+1. When E1b completes: commit the E1 runner/report/config/results, regenerate PREDICTIONS.md, and
+   commission the E1 light independent recompute (§5).
+2. When the bridge runner lands: commit, in-place update `code/work` to the new SHA, run the beta
+   development cohort (3 x 10k steps) then the bridge grid (9 runs), harvest, and compute B1/R7.
+3. G-QUOTA answer needed before LUCiD generation; meanwhile WP4b's blocked items stay blocked.
 
 ## Open gates
 
