@@ -1,6 +1,8 @@
 """Tests for the WP4b development-only LUCiD generator contract."""
 import ast
+import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -359,3 +361,235 @@ def test_config_matches_module_constants():
         assert (entry["namespace"], entry["event_start"], entry["n_events"],
                 entry["run_length"]) == (cohort.event_namespace, cohort.event_start,
                                          cohort.n_events, cohort.run_length)
+    geo, generator = config["geometry"], config["generator"]
+    assert geo["lucid_pin"] == lb.LUCID_PIN
+    assert geo["config_sha256"] == lb.WCTE_CONFIG_SHA256
+    assert geo["npz_sha256_prefix"] == lb.WCTE_NPZ_SHA256_PREFIX
+    assert (geo["n_sensors"], geo["n_modules"], geo["pmts_per_module"]) == (
+        lb.WCTE_N_SENSORS, lb.WCTE_N_MODULES, lb.WCTE_PMTS_PER_MODULE)
+    assert geo["surface_counts"] == lb.WCTE_SURFACE_COUNTS
+    assert geo["mpmt_id_gaps"] == [45] and geo["pmt_id_in_mpmt_base"] == 1
+    assert generator["y_lo"] == lb.Y_LO_PHOTONS and generator["y_hi"] == lb.Y_HI_PHOTONS
+    assert generator["yield_range_status"] == lb.YIELD_RANGE_STATUS
+    assert lb.load_generator_config(CONFIG) == lb.GeneratorConfig()
+    assert config["benchmark"]["volume_events"] == lb.REGISTERED_VOLUME_EVENTS
+    assert config["benchmark"]["cpu_cap_wall_hours"] == lb.CPU_CAP_WALL_HOURS
+    assert config["benchmark"]["cores_at_most"] == lb.BENCHMARK_CORES
+
+
+# ===================================================================== WP4b: WCTE geometry
+SYNTH = lb.from_synthetic()
+GEN_CFG = lb.load_generator_config(CONFIG)
+
+
+def test_wcte_schema_fixture_matches_registered_facts():
+    g = SYNTH
+    assert (g.n_pmt, g.n_modules, g.pmts_per_module) == (1995, 105, 19)
+    assert dict(g.surface_counts) == lb.WCTE_SURFACE_COUNTS
+    assert g.synthetic and "NOT WCTE" in g.name
+    assert g.module_ids.tolist() == [m for m in range(106) if m != 45]
+    assert g.module_ids_contiguous is False and 45 not in g.module_ids.tolist()
+    assert np.array_equal(np.bincount(g.module_index), np.full(105, 19))
+    assert np.array_equal(g.pmt_id, np.arange(1, 1996))
+    assert g.pmt_id_in_mpmt.min() == 1 and g.pmt_id_in_mpmt.max() == 19
+    for module in (0, 45, 104):
+        inside = g.module_index == module
+        assert np.array_equal(np.sort(g.pmt_id_in_mpmt[inside]), np.arange(1, 20))
+    assert np.allclose(np.linalg.norm(g.directions, axis=1), 1.0)
+    assert np.allclose(g.module_centres_m, np.stack(
+        [g.positions_m[g.module_index == m].mean(axis=0) for m in range(g.n_modules)]))
+    assert len(g.digest) == 64 and g.digest == lb.from_synthetic().digest
+
+
+def test_geometry_loader_round_trip_from_config_pointer(tmp_path):
+    g = SYNTH
+    npz = tmp_path / "wcte_geometry.npz"
+    np.savez(npz, positions_mm=g.positions_m * 1000.0, directions=g.directions,
+             surfaces=g.surfaces, pmt_id=g.pmt_id, mpmt_id=g.mpmt_id,
+             pmt_id_in_mpmt=g.pmt_id_in_mpmt, radius=g.radius_m, height=g.height_m,
+             sensor_radius=g.sensor_radius_m)
+    config = tmp_path / "geom_config_test.json"  # not the pinned filename: no implicit pin
+    config.write_text(json.dumps({"material": "water", "detector_type": "cylinder",
+                                  "geometry_definitions": {"npz_file_path": npz.name}}))
+    loaded = lb.load_wcte_geometry(config)
+    assert loaded.config_sha256 == hashlib.sha256(config.read_bytes()).hexdigest()
+    assert loaded.source_sha256 and loaded.source_path == str(npz.resolve())
+    assert (loaded.n_pmt, loaded.n_modules) == (1995, 105)
+    assert np.allclose(loaded.positions_m, g.positions_m, atol=1e-12)
+    assert np.array_equal(loaded.pmt_id_in_mpmt, g.pmt_id_in_mpmt)
+    assert np.array_equal(loaded.mpmt_id, g.mpmt_id)
+    assert loaded.digest == lb.load_wcte_geometry(npz).digest  # stable across loads
+    assert loaded.synthetic is False and len(loaded.source_sha256) == 64
+    fixture = tmp_path / "fixture.json"
+    fixture.write_text(json.dumps({"synthetic": True, "geometry_definitions":
+                                   {"npz_file_path": npz.name}}))
+    assert lb.load_wcte_geometry(fixture).synthetic is True
+    with pytest.raises(ValueError, match="sha256"):
+        lb.load_wcte_geometry(config, expected_config_sha256="0" * 64)
+    with pytest.raises(ValueError, match="pinned"):
+        lb.load_wcte_geometry(npz, expected_npz_sha256_prefix="deadbeef")
+    with pytest.raises(FileNotFoundError):
+        lb.load_wcte_geometry(tmp_path / "missing.npz")
+
+
+def test_geometry_validation_refuses_bad_schemas():
+    with pytest.raises(ValueError, match="1-based"):
+        lb.from_synthetic({"pmt_id_in_mpmt_start": 0})
+    with pytest.raises(ValueError, match="carries 18"):
+        lb.from_synthetic({"surface_counts": {"top": 398, "barrel": 1197, "bottom": 399},
+                           "drop_last_pmt_of_module": 3})
+    with pytest.raises(ValueError, match="unknown surface"):
+        lb.from_synthetic({"surface_names": ("top", "side", "bottom"),
+                           "surface_counts": {"top": 399, "side": 1197, "bottom": 399}})
+    with pytest.raises(ValueError, match="surface counts"):
+        replace(SYNTH, surface_counts=(("barrel", 1111), ("bottom", 399), ("top", 399)))
+    with pytest.raises(ValueError, match="unit vectors"):
+        replace(SYNTH, directions=SYNTH.directions * 1.01)
+    with pytest.raises(ValueError, match="positions_m"):
+        replace(SYNTH, positions_m=SYNTH.positions_m[:-1])
+    with pytest.raises(ValueError, match="pmt_id"):
+        replace(SYNTH, pmt_id=np.zeros(SYNTH.n_pmt, dtype=np.int64))
+
+
+# ===================================================================== WP4b: generator physics
+def test_expected_charge_scales_with_yield_and_attenuates_far_sensors():
+    vertex = np.array([0.2, -0.1, 0.05])
+    qe = np.full(SYNTH.n_pmt, 0.2)
+    low = lb.expected_charge(SYNTH, vertex, 1_000.0, qe, 50.0, GEN_CFG)
+    high = lb.expected_charge(SYNTH, vertex, 2_000.0, qe, 50.0, GEN_CFG)
+    assert low.sum() > 0.0
+    assert np.allclose(high, 2.0 * low, rtol=1e-12)  # signal conservation in the total
+    assert high.sum() == pytest.approx(2.0 * low.sum(), rel=1e-12)
+    short = lb.expected_charge(SYNTH, vertex, 1_000.0, qe, 0.2, GEN_CFG)
+    dist = np.linalg.norm(SYNTH.positions_m - vertex, axis=1)
+    ratio = short / low  # exp(-d/5)/exp(-d/50) < 1, falling with distance
+    assert np.corrcoef(ratio, dist)[0, 1] < -0.5
+    far, near = dist > np.percentile(dist, 90), dist < np.percentile(dist, 10)
+    assert ratio[far].mean() < 0.1 * ratio[near].mean()
+    assert short.sum() < low.sum()
+    # disc approximation: reduced to pi r^2 cos(theta)/d^2 for d >> r
+    omega = lb.solid_angle_fraction(SYNTH, vertex)
+    assert np.all(omega > 0) and omega.sum() < 1.0
+    chosen = int(np.argmax(dist))
+    d = dist[chosen]
+    cos = abs(float(np.dot(SYNTH.positions_m[chosen] - vertex, SYNTH.directions[chosen]))) / d
+    assert omega[chosen] == pytest.approx(SYNTH.sensor_radius_m ** 2 / (4.0 * d * d) * cos, rel=2e-2)
+
+
+def test_poisson_inversion_is_exact_and_shared_across_means():
+    u = lb.keyed_rng(1, "poisson-test").random((8000, 400))
+    for mean in (3.0, 10.0):
+        counts = lb.poisson_counts_from_uniform(u, np.full(8000, mean))
+        assert counts.mean() == pytest.approx(mean, rel=0.04)
+        assert counts.var() == pytest.approx(mean, rel=0.06)
+    assert lb.poisson_counts_from_uniform(u, np.zeros(8000)).max() == 0
+    lower = lb.poisson_counts_from_uniform(u, np.full(8000, 5.0))
+    upper = lb.poisson_counts_from_uniform(u, np.full(8000, 8.0))
+    assert np.all(lower <= upper)  # one shared draw, ordered by the mean
+    assert lb.count_capacity(10.0) > 10.0 + lb.count_capacity(0.0) - 10.0
+    with pytest.raises(ValueError):
+        lb.poisson_counts_from_uniform(u, np.full(7999, 1.0))
+
+
+def test_generation_is_reproducible_and_shares_one_state_per_run():
+    first_run = lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F1", 0.05, 0, 30, 7)
+    second_run = lb.RunSpec("lucid/probe_train/0001", "lucid/probe_train", "F1", 0.05, 30, 30, 7)
+    a = lb.generate_run(SYNTH, GEN_CFG, first_run, with_twin=False)
+    b = lb.generate_run(SYNTH, GEN_CFG, first_run, with_twin=False)
+    assert np.array_equal(a.event_ids, np.arange(0, 30))
+    assert a.state.digest == b.state.digest == first_run.state(SYNTH).digest
+    for left, right in zip(a.hits, b.hits):
+        assert np.array_equal(left.pmt_id, right.pmt_id)
+        assert np.allclose(left.charge_pe, right.charge_pe)
+        assert np.allclose(left.time_ns, right.time_ns)
+    c = lb.generate_run(SYNTH, GEN_CFG, second_run, with_twin=False)
+    assert c.state.digest != a.state.digest
+    assert np.array_equal(c.event_ids, np.arange(30, 60))
+    # a run of 50 events is the registered probe length and every event shares the state
+    probe = lb.COHORTS["probe_train"]
+    assert probe.run_length == 50 and lb.COHORTS["train"].run_length == 1000
+    assert a.expected_pe.shape == (30,) and np.all(a.expected_pe > 0)
+    assert a.expected_pe.sum() > 0 and a.n_hits > 0
+
+
+def test_nominal_twin_equals_the_undrifted_readout():
+    readout = lb.make_readout(SYNTH, GEN_CFG)
+    draws = lb.draw_event(SYNTH, GEN_CFG, "lucid/probe_train/0000", 5, seed=11)
+    undrifted = lb.state_for_run("F1", 0.0, draws.run_id, SYNTH, include_f3=False)
+    assert np.allclose(undrifted.gains, 1.0)
+    assert undrifted.attenuation_length_m == lb.LAMBDA0_M
+    measured = readout(undrifted, draws)
+    twin = lb.nominal_twin(draws, SYNTH, readout, arm=lb.ORACLE_ARM,
+                           lambda0_m=GEN_CFG.lambda0_m)
+    assert np.array_equal(measured.pmt_id, twin.pmt_id)
+    assert np.array_equal(measured.charge_pe, twin.charge_pe)
+    assert np.array_equal(measured.time_ns, twin.time_ns)
+    with pytest.raises(PermissionError):
+        lb.nominal_twin(draws, SYNTH, readout, arm="sigreg_jepa")
+    drifted = lb.state_for_run("F2", 0.20, draws.run_id, SYNTH)
+    other = readout(drifted, draws)
+    assert not np.array_equal(measured.pmt_id, other.pmt_id) or \
+        not np.allclose(measured.charge_pe, other.charge_pe)
+
+
+def test_threshold_is_applied_after_gain_and_unhit_hits_are_not_recorded():
+    cfg = replace(GEN_CFG, threshold_pe=1.5, walk_calibration_pe=1.5)
+    draws = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 9, seed=3)
+    dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
+    dark[3], dark[7] = 1, 2  # 1 PE and 2 PE, no smearing
+    draws = replace(draws, yield_photons=0.0, dark_counts=dark,
+                    charge_z=np.zeros(SYNTH.n_pmt))
+    nominal = lb.nominal_state(SYNTH, draws.run_id)
+    hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg)
+    assert hits.pmt_id.tolist() == [7]  # the 1 PE pulse never crosses 1.5 PE
+    assert hits.charge_pe[0] == pytest.approx(2.0)
+    gains = np.ones(SYNTH.n_pmt)
+    gains[3] = 1.5  # gain acts before the threshold: 1 PE x 1.5 now crosses
+    lifted = lb.readout_synthetic_unrepaired(replace(nominal, gains=gains), draws, SYNTH, cfg)
+    assert 3 in lifted.pmt_id.tolist() and 7 in lifted.pmt_id.tolist()
+
+
+# ===================================================================== WP4b: storage/benchmark
+def test_generated_run_storage_manifest_and_sha256sums(tmp_path):
+    run = lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F2", 0.20, 200_000, 20, 7)
+    generated = lb.generate_run(SYNTH, GEN_CFG, run, with_twin=True)
+    payload = lb.write_generated_run(tmp_path / "run", generated, SYNTH, GEN_CFG, code_sha="deadbeef")
+    assert payload["readout_label"] == lb.READOUT_LABEL
+    assert payload["reported_results"] is False
+    assert payload["geometry_sha256"] == SYNTH.digest and payload["code_sha"] == "deadbeef"
+    assert payload["generator_config_sha256"] == GEN_CFG.digest
+    assert payload["geometry_config_sha256"] is None and payload["geometry_synthetic"] is True
+    assert payload["yield_range_photons"] == [GEN_CFG.y_lo, GEN_CFG.y_hi]
+    assert payload["yield_range_status"] == lb.YIELD_RANGE_STATUS
+    assert payload["runs"][0]["law"] == "F2" and payload["runs"][0]["setting"] == 0.20
+    assert payload["n_events"] == 20 and payload["n_hits"] == generated.n_hits
+    assert payload["twin_present"] is True
+    lb.verify_manifest(payload, (run,), SYNTH, seed=7)
+    lb.verify_sha256sums(tmp_path / "run")
+    back = lb.read_sparse_hits(tmp_path / "run" / "hits.npz")
+    assert back.readout_label == lb.READOUT_LABEL
+    assert np.array_equal(back.event_ids, generated.event_ids)
+    assert np.array_equal(back.offsets,
+                          lb.sparse_from_readouts(generated.event_ids, generated.hits).offsets)
+    assert lb.read_sparse_hits(tmp_path / "run" / "twin_hits.npz").offsets[-1] > 0
+    truth = np.load(tmp_path / "run" / "events.npz")
+    assert np.allclose(truth["yield_photons"], generated.yields_photons)
+    assert np.allclose(truth["vertex_m"], generated.vertices_m)
+    twins = np.load(tmp_path / "run" / "twin_hits.npz")["offsets"]
+    hits = np.load(tmp_path / "run" / "hits.npz")["offsets"]
+    assert twins.shape == hits.shape == (21,)
+
+
+def test_benchmark_reports_rate_memory_and_yield_terciles():
+    result = lb.benchmark_generation(SYNTH, GEN_CFG, n_events=40, with_twin=True)
+    assert result["benchmark_events"] == 40 and result["events_per_s"] > 0.0
+    assert result["seconds"] > 0.0 and result["peak_rss_mb"] > 0.0
+    assert result["is_synthetic_geometry"] is True and result["readout_label"] == lb.READOUT_LABEL
+    assert [row["tercile"] for row in result["terciles"]] == ["low", "mid", "high"]
+    assert sum(row["n_events"] for row in result["terciles"]) == 40
+    assert result["terciles"][0]["yield_photons_median"] < result["terciles"][2]["yield_photons_median"]
+    assert result["volume_events"] == lb.REGISTERED_VOLUME_EVENTS
+    assert sum(lb.REGISTERED_VOLUME_BREAKDOWN.values()) == lb.REGISTERED_VOLUME_EVENTS
+    assert result["cpu_cap_wall_hours"] == lb.CPU_CAP_WALL_HOURS == 48.0
+    assert result["projected_hours_one_process"] > 0.0
+    assert result["fraction_of_cap_16_cores"] > 0.0

@@ -7,11 +7,19 @@ Binding: ``docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md`` §3.5.2--§3.5.4,
 PMTs, physical ``mpmt_id`` map) and pinned LUCiD revision are unavailable, so
 nothing produced here is a reported result.
 
-Implemented: detector-state laws F1/F3/F2/F2'/R11b/T with keyed RNG
-namespaces; the ``readout(state, draws) -> hits`` contract and nominal twin;
-run structure, v3 §6 ID ranges under the ``lucid/`` prefix, manifest and
-sparse-hit storage; N_min exclusion accounting (§3.5.4); and §3.5.3a
-Fisher/ceiling numerics.  The built-in 8×7 synthetic cylinder is *not* WCTE.
+Implemented: the WCTE geometry reader (``load_wcte_geometry``: the physical
+``mpmt_id`` map from LUCiD's own ``config/WCTE_geom_config.json`` at the pinned
+revision, with a schema-identical local fixture from ``from_synthetic``);
+detector-state laws F1/F3/F2/F2'/R11b/T with keyed RNG namespaces; the
+photon-bomb event generator (§3.5.3: isotropic point source, log-uniform yield,
+config spectrum, prompt transport with ``exp(-d/lambda)``, per-PMT expected
+charge); the synthetic unrepaired readout (Poisson, SPE smearing, transit-time
+spread, dark counts, fixed-PE threshold, the ``noise_module_lucid.response``
+walk primitive); the nominal twin on shared keyed draws; run structure, v3 §6 ID
+ranges under the ``lucid/`` prefix, manifest and sparse-hit storage; N_min
+exclusion accounting (§3.5.4); §3.5.3a Fisher/ceiling numerics; and the 1000-event
+benchmark.  The synthetic schema fixture is *not* WCTE; no LUCiD data is
+redistributed.
 """
 from __future__ import annotations
 
@@ -216,11 +224,13 @@ class DetectorState:
         return h.hexdigest()
 
 def nominal_state(geometry: Geometry, run_id: str = "nominal",
-                  seed: int = DEFAULT_SEED) -> DetectorState:
+                  seed: int = DEFAULT_SEED, lambda0_m: float = LAMBDA0_M) -> DetectorState:
     """All gains 1 and ``lambda = lambda0``; the twin's detector state."""
+    if not np.isfinite(lambda0_m) or float(lambda0_m) <= 0.0:
+        raise ValueError("nominal_state needs a positive finite lambda0_m")
     m, p = np.ones(geometry.n_modules), np.ones(geometry.n_pmt)
     return DetectorState("nominal", None, run_id, int(seed), NS_NOMINAL, p.copy(), m,
-                         p.copy(), p.copy(), LAMBDA0_M,
+                         p.copy(), p.copy(), float(lambda0_m),
                          {"module": 0, "pmt": 0, "gradient": 0})
 
 def state_for_run(law: str, setting, run_id: str, geometry: Geometry, *,
@@ -312,11 +322,11 @@ class HitReadout:
 ReadoutCallable = Callable[[DetectorState, Draws], HitReadout]
 
 def nominal_twin(draws: Draws, geometry: Geometry, readout: ReadoutCallable, *,
-                 arm: str) -> HitReadout:
+                 arm: str, lambda0_m: float = LAMBDA0_M) -> HitReadout:
     """Nominal-gain readout on the same draws; only the oracle arm may call this."""
     if arm != ORACLE_ARM:
         raise PermissionError(f"nominal twin is private to {ORACLE_ARM!r}, not {arm!r}")
-    return readout(nominal_state(geometry, draws.run_id), draws)
+    return readout(nominal_state(geometry, draws.run_id, lambda0_m=lambda0_m), draws)
 
 # --------------------------------------------------------------------------- runs and IDs
 @dataclass(frozen=True)
@@ -391,8 +401,13 @@ def make_runs(cohort: CohortSpec, law: str, setting=None, *, seed: int = DEFAULT
                  for i in range(cohort.n_runs))
 
 def write_manifest(path: Path | str, runs: Sequence[RunSpec], geometry: Geometry,
-                   seed: int = DEFAULT_SEED, *, code_sha: str | None = None) -> dict:
-    """Write the manifest: run/event spans, law, state hashes, geometry hash, label, code SHA."""
+                   seed: int = DEFAULT_SEED, *, code_sha: str | None = None,
+                   extra: dict | None = None) -> dict:
+    """Write the manifest: run/event spans, law, state hashes, geometry hash, label, code SHA.
+
+    ``extra`` adds provenance (geometry source/config hashes, generator digest, yields);
+    it may not shadow a reserved key.
+    """
     rows = [{"run_id": r.run_id, "event_namespace": r.event_namespace,
              "event_id_start": r.event_start, "event_id_stop": r.event_stop,
              "n_events": r.n_events, "law": r.law, "setting": r.setting,
@@ -405,6 +420,11 @@ def write_manifest(path: Path | str, runs: Sequence[RunSpec], geometry: Geometry
                "dataset_seed": int(seed), "code_sha": code_sha or current_code_sha(),
                "n_runs": len(rows), "n_events": int(sum(r.n_events for r in runs)),
                "runs": rows}
+    if extra:
+        clash = sorted(set(extra) & set(payload))
+        if clash:
+            raise ValueError(f"manifest extra keys collide with reserved keys: {clash}")
+        payload.update(extra)
     Path(path).write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
     return payload
 
@@ -549,8 +569,9 @@ class ViewExclusionCounter:
 def view_masks(geometry: Geometry, split: str, rng=None):
     """Documented stub: both views need the physical module map/centres."""
     raise NotImplementedError(
-        "view masks require the physical WCTE geometry and module centres; "
-        "N_min counters and exclusion accounting are implemented independently")
+        "view masks are WP4c encoder work: the geometry now supplies module_ids, "
+        "module_centres_m and the 1-based pmt_id_in_mpmt; N_min counters and exclusion "
+        "accounting are implemented independently")
 
 # --------------------------------------------------------------------------- detectability
 @dataclass(frozen=True)
@@ -619,3 +640,727 @@ def detectability(mu_events, dmu_events, sigma_f: float, *, sigma_spe: float = S
         profiled = True
     return Detectability(i_event, np.asarray([r2_max(i, sigma_f) for i in i_event]),
                          i_run, r2_max(i_run, sigma_f), len(i_event), float(sigma_f), profiled)
+
+# ======================================================================= WCTE geometry (WP4b)
+#: Pinned LUCiD revision and geometry facts, DECISIONS.md 2026-10-17.
+LUCID_PIN = "eaf2e89f579d6679e90020c732ac2c846895d691"
+WCTE_CONFIG_RELPATH = "config/WCTE_geom_config.json"
+WCTE_NPZ_RELPATH = "config/wcte_geometry.npz"
+WCTE_CONFIG_SHA256 = "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c"
+WCTE_NPZ_SHA256_PREFIX = "0a75b035"
+WCTE_N_SENSORS, WCTE_N_MODULES, WCTE_PMTS_PER_MODULE = 1995, 105, 19
+WCTE_SURFACE_NAMES = ("top", "barrel", "bottom")
+WCTE_SURFACE_COUNTS = {"top": 399, "barrel": 1197, "bottom": 399}
+WCTE_RADIUS_M, WCTE_HEIGHT_M = 1.5771308488246254, 2.77697099384
+WCTE_SENSOR_RADIUS_M = 0.04
+C_M_PER_S = 299792458.0
+#: Effectively infinite attenuation length: the capacity bound (attenuation only removes light).
+UNATTENUATED_M = 1.0e9
+
+def _geom_sha(meta: dict, arrays) -> str:
+    h = hashlib.sha256(json.dumps(meta, sort_keys=True, separators=(",", ":")).encode())
+    for array, dtype in arrays:
+        h.update(np.ascontiguousarray(array, dtype=dtype).tobytes())
+    return h.hexdigest()
+
+def _surface_array(values, surface_map=None) -> np.ndarray:
+    out = []
+    for raw in np.asarray(values).reshape(-1).tolist():
+        label = str(raw).strip().lower()
+        out.append(surface_map.get(label, label) if surface_map else label)
+    return np.array(out, dtype="<U8")
+
+@dataclass(frozen=True, eq=False)
+class DetectorGeometry:
+    """Validated WCTE sensor map, or a schema-identical synthetic fixture.
+
+    ``module_index`` is the dense 0..n_modules-1 index; ``mpmt_id`` keeps the raw
+    module ids (105 distinct values over 0..105 with id 45 absent), so nothing
+    may assume a dense 0..104 block.  ``pmt_id_in_mpmt`` is **1-based** (1..19),
+    exactly as the geometry file gives it.
+    """
+
+    name: str
+    positions_m: np.ndarray        # (n_sensors, 3)
+    directions: np.ndarray         # (n_sensors, 3), inward-facing unit vectors
+    surfaces: np.ndarray           # (n_sensors,) 'top' | 'barrel' | 'bottom'
+    pmt_id: np.ndarray             # (n_sensors,) 1..n_sensors
+    mpmt_id: np.ndarray            # (n_sensors,) raw module id
+    pmt_id_in_mpmt: np.ndarray     # (n_sensors,) 1..19
+    module_index: np.ndarray       # (n_sensors,) dense module index
+    module_ids: np.ndarray         # (n_modules,) sorted raw ids
+    module_centres_m: np.ndarray   # (n_modules, 3)
+    radius_m: float
+    height_m: float
+    sensor_radius_m: float
+    source_path: str = "<synthetic schema fixture>"
+    source_sha256: str = ""
+    config_sha256: str | None = None
+    n_sensors: int = WCTE_N_SENSORS
+    n_modules: int = WCTE_N_MODULES
+    pmts_per_module: int = WCTE_PMTS_PER_MODULE
+    surface_counts: tuple = tuple(sorted(WCTE_SURFACE_COUNTS.items()))
+    synthetic: bool = False
+
+    def __post_init__(self):
+        n, m, k = int(self.n_sensors), int(self.n_modules), int(self.pmts_per_module)
+        if n <= 0 or m <= 0 or k <= 0:
+            raise ValueError("geometry: n_sensors, n_modules and pmts_per_module must be positive")
+        pos = np.ascontiguousarray(self.positions_m, dtype=float)
+        dirs = np.ascontiguousarray(self.directions, dtype=float)
+        surf = _surface_array(self.surfaces)
+        p_id = np.ascontiguousarray(self.pmt_id, dtype=np.int64)
+        m_id = np.ascontiguousarray(self.mpmt_id, dtype=np.int64)
+        p_in = np.ascontiguousarray(self.pmt_id_in_mpmt, dtype=np.int64)
+        mi = np.ascontiguousarray(self.module_index, dtype=np.int64)
+        mids = np.ascontiguousarray(self.module_ids, dtype=np.int64)
+        centres = np.ascontiguousarray(self.module_centres_m, dtype=float)
+        for label, array, shape in (("positions_m", pos, (n, 3)),
+                                    ("directions", dirs, (n, 3)),
+                                    ("surfaces", surf, (n,)),
+                                    ("pmt_id", p_id, (n,)), ("mpmt_id", m_id, (n,)),
+                                    ("pmt_id_in_mpmt", p_in, (n,)),
+                                    ("module_index", mi, (n,)),
+                                    ("module_ids", mids, (m,)),
+                                    ("module_centres_m", centres, (m, 3))):
+            if array.shape != shape:
+                raise ValueError(f"geometry: {label} must have shape {shape}, got {array.shape}")
+        if mids.size > 1 and np.any(np.diff(mids) <= 0):
+            raise ValueError("geometry: module_ids must be strictly increasing and unique")
+        if mi.min() < 0 or mi.max() >= m:
+            raise ValueError("geometry: module_index out of range for module_ids")
+        counts = np.bincount(mi, minlength=m)
+        bad = np.flatnonzero(counts != k)
+        if bad.size:
+            j = int(bad[0])
+            raise ValueError(f"geometry: module mpmt_id {int(mids[j])} carries {int(counts[j])} "
+                             f"PMTs, expected {k} (a module with missing PMTs is refused)")
+        declared = dict(self.surface_counts)
+        found = {s: int(np.count_nonzero(surf == s)) for s in WCTE_SURFACE_NAMES}
+        extra = sorted(set(surf.tolist()) - set(WCTE_SURFACE_NAMES))
+        if extra:
+            raise ValueError(f"geometry: unknown surface labels {extra}; pass surface_map to name them "
+                             f"as {list(WCTE_SURFACE_NAMES)}")
+        if found != declared:
+            raise ValueError(f"geometry: surface counts {found} != declared {declared}")
+        if np.unique(p_id).size != n or p_id.min() < 1 or p_id.max() > n:
+            raise ValueError(f"geometry: pmt_id must be the unique integers 1..{n}")
+        order = np.lexsort((p_in, mi))
+        if not np.array_equal(p_in[order], np.tile(np.arange(1, k + 1), m)):
+            raise ValueError(f"geometry: pmt_id_in_mpmt must be 1..{k} within every module "
+                             "(the file is 1-based; 0-based ids are refused)")
+        if not (np.isfinite(pos).all() and np.isfinite(dirs).all() and np.isfinite(centres).all()):
+            raise ValueError("geometry: positions, directions and module centres must be finite")
+        norms = np.linalg.norm(dirs, axis=1)
+        if np.any(np.abs(norms - 1.0) > 1e-6):
+            raise ValueError(f"geometry: directions must be unit vectors (max |n|-1 = "
+                             f"{np.abs(norms - 1.0).max():.3g})")
+        scalars = (float(self.radius_m), float(self.height_m), float(self.sensor_radius_m))
+        if not all(np.isfinite(s) and s > 0 for s in scalars):
+            raise ValueError("geometry: radius_m, height_m and sensor_radius_m must be positive and finite")
+        if np.abs(pos[:, 2]).max() > 0.5 * scalars[1] * (1.0 + 1e-6) + 1e-9:
+            raise ValueError("geometry: sensor z exceeds half the detector height")
+        for label, value in (("positions_m", pos), ("directions", dirs), ("surfaces", surf),
+                             ("pmt_id", p_id), ("mpmt_id", m_id), ("pmt_id_in_mpmt", p_in),
+                             ("module_index", mi), ("module_ids", mids),
+                             ("module_centres_m", centres)):
+            object.__setattr__(self, label, value)
+        object.__setattr__(self, "surface_counts", tuple(sorted(declared.items())))
+
+    # -- derived views -----------------------------------------------------
+    @property
+    def n_pmt(self) -> int:
+        return int(self.n_sensors)
+
+    @property
+    def half_height_m(self) -> float:
+        return 0.5 * float(self.height_m)
+
+    @property
+    def module_of_pmt(self) -> np.ndarray:
+        return self.module_index
+
+    @property
+    def z_pmt_m(self) -> np.ndarray:
+        return self.positions_m[:, 2]
+
+    @property
+    def module_ids_contiguous(self) -> bool:
+        """False for the real map (id 45 absent); never assume a dense id block."""
+        return bool(np.array_equal(self.module_ids, np.arange(self.n_modules)))
+
+    @property
+    def digest(self) -> str:
+        """Layout-only hash: identical arrays give identical digests across files."""
+        return _geom_sha({"n_sensors": int(self.n_sensors), "n_modules": int(self.n_modules),
+                          "pmts_per_module": int(self.pmts_per_module),
+                          "radius_m": float(self.radius_m), "height_m": float(self.height_m),
+                          "sensor_radius_m": float(self.sensor_radius_m),
+                          "surface_counts": dict(self.surface_counts)},
+                         ((self.positions_m, "<f8"), (self.directions, "<f8"),
+                          (self.surfaces, "<U8"), (self.pmt_id, "<i8"), (self.mpmt_id, "<i8"),
+                          (self.pmt_id_in_mpmt, "<i8"), (self.module_index, "<i8"),
+                          (self.module_ids, "<i8"), (self.module_centres_m, "<f8")))
+
+    def summary(self) -> dict:
+        out = {"name": self.name, "synthetic": bool(self.synthetic),
+               "source_path": self.source_path, "geometry_sha256": self.digest,
+               "source_sha256": self.source_sha256, "config_sha256": self.config_sha256,
+               "module_ids_contiguous": self.module_ids_contiguous,
+               "surface_counts": dict(self.surface_counts)}
+        out.update(n_sensors=int(self.n_sensors), n_modules=int(self.n_modules),
+                   pmts_per_module=int(self.pmts_per_module), radius_m=float(self.radius_m),
+                   height_m=float(self.height_m), sensor_radius_m=float(self.sensor_radius_m))
+        return out
+
+def from_synthetic(schema=None) -> DetectorGeometry:
+    """Schema-identical synthetic fixture, generated here; **not** WCTE and never LUCiD data.
+
+    ``schema`` may override the counts (tests only): module ids, PMTs per module, surface
+    counts/names, the three scalars, ``pmt_id_in_mpmt_start`` and
+    ``drop_last_pmt_of_module``.
+    """
+    s = {"module_ids": tuple(x for x in range(106) if x != 45),
+         "pmts_per_module": WCTE_PMTS_PER_MODULE,
+         "surface_counts": dict(WCTE_SURFACE_COUNTS), "surface_names": WCTE_SURFACE_NAMES,
+         "radius_m": WCTE_RADIUS_M, "height_m": WCTE_HEIGHT_M,
+         "sensor_radius_m": WCTE_SENSOR_RADIUS_M, "pmt_id_in_mpmt_start": 1,
+         "drop_last_pmt_of_module": None}
+    s.update(dict(schema or {}))
+    module_ids = np.asarray(s["module_ids"], dtype=np.int64)
+    mid, per, names = int(module_ids.size), int(s["pmts_per_module"]), tuple(s["surface_names"])
+    counts = {label: int(s["surface_counts"][label]) for label in names}
+    radius, height = float(s["radius_m"]), float(s["height_m"])
+    golden, ratio = np.pi * (3.0 - np.sqrt(5.0)), 0.5 * (2.0 ** 0.5 - 1.0)
+    pos, dirs, surf = [], [], []
+    for label in names:
+        c = counts[label]
+        j = np.arange(c, dtype=float)
+        if label in ("top", "bottom"):
+            r = radius * np.sqrt((j + ratio) / max(c, 1))
+            phi = 2.0 * np.pi * j * golden
+            z = np.full(c, (0.5 if label == "top" else -0.5) * height)
+            pos.append(np.stack([r * np.cos(phi), r * np.sin(phi), z], axis=1))
+            dirs.append(np.tile([0.0, 0.0, -1.0 if label == "top" else 1.0], (c, 1)))
+        else:
+            phi = 2.0 * np.pi * j / max(c, 1)
+            z = -0.5 * height + (j + 0.5) * height / max(c, 1)
+            pos.append(np.stack([radius * np.cos(phi), radius * np.sin(phi), z], axis=1))
+            dirs.append(np.stack([-np.cos(phi), -np.sin(phi), np.zeros(c)], axis=1))
+        surf.append(np.full(c, label, dtype="<U8"))
+    pos, dirs, surf = np.concatenate(pos), np.concatenate(dirs), np.concatenate(surf)
+    index = np.arange(sum(counts.values()), dtype=np.int64)
+    drop = s["drop_last_pmt_of_module"]
+    if drop is not None:
+        victim = int(drop) * per + per - 1
+        if not 0 <= victim < index.size:
+            raise ValueError("from_synthetic: drop_last_pmt_of_module out of range")
+        keep = index != victim
+        pos, dirs, surf, index = pos[keep], dirs[keep], surf[keep], index[keep]
+    mi = index // per
+    centres = np.stack([pos[mi == i].mean(axis=0) for i in range(mid)])
+    return DetectorGeometry(
+        name="synthetic_wcte_schema_fixture (NOT WCTE)", positions_m=pos, directions=dirs,
+        surfaces=surf, pmt_id=np.arange(1, pos.shape[0] + 1, dtype=np.int64),
+        mpmt_id=module_ids[mi],
+        pmt_id_in_mpmt=(index % per + int(s["pmt_id_in_mpmt_start"])).astype(np.int64),
+        module_index=mi, module_ids=module_ids, module_centres_m=centres,
+        radius_m=radius, height_m=height, sensor_radius_m=float(s["sensor_radius_m"]),
+        n_sensors=int(pos.shape[0]), n_modules=mid, pmts_per_module=per,
+        surface_counts=tuple(sorted(counts.items())), synthetic=True)
+
+def load_wcte_geometry(source, *, surface_map=None, expected_config_sha256=None,
+                       expected_npz_sha256_prefix=None, name=None,
+                       synthetic: bool | None = None) -> DetectorGeometry:
+    """Read LUCiD's WCTE geometry (``.json`` pointer or the ``.npz`` it points at).
+
+    The JSON pointer is verified against the pinned SHA-256 (``WCTE_CONFIG_SHA256``)
+    when it is named ``WCTE_geom_config.json`` or when ``expected_config_sha256`` is
+    given; the npz is checked against ``WCTE_NPZ_SHA256_PREFIX``.  No LUCiD code or
+    data is imported or redistributed.  ``synthetic`` marks a local fixture (a config
+    with ``"synthetic": true`` does the same) so a benchmark can never be mistaken
+    for the real-geometry run.
+    """
+    path = Path(source)
+    if not path.is_file():
+        raise FileNotFoundError(f"geometry: source not found: {path}")
+    config_sha = None
+    if path.suffix.lower() == ".json":
+        raw = path.read_bytes()
+        config_sha = _sha(raw)
+        pinned = expected_config_sha256
+        if pinned is None and path.name == Path(WCTE_CONFIG_RELPATH).name:
+            pinned = WCTE_CONFIG_SHA256
+        if pinned is not None and config_sha != pinned:
+            raise ValueError(f"geometry: {path.name} sha256 {config_sha} != pinned {pinned}")
+        payload = json.loads(raw.decode())
+        if synthetic is None:
+            synthetic = bool(payload.get("synthetic", False))
+        rel = payload.get("geometry_definitions", {}).get("npz_file_path")
+        if not rel:
+            raise ValueError("geometry: config has no geometry_definitions.npz_file_path")
+        npz_path = (path.parent / rel).resolve()
+        if expected_npz_sha256_prefix is None and path.name == Path(WCTE_CONFIG_RELPATH).name:
+            expected_npz_sha256_prefix = WCTE_NPZ_SHA256_PREFIX
+    elif path.suffix.lower() == ".npz":
+        npz_path = path
+    else:
+        raise ValueError("geometry: source must be a .json config or a .npz file")
+    if not npz_path.is_file():
+        raise FileNotFoundError(f"geometry: npz not found: {npz_path}")
+    npz_sha = _sha(npz_path.read_bytes())
+    if expected_npz_sha256_prefix and not npz_sha.startswith(expected_npz_sha256_prefix):
+        raise ValueError(f"geometry: {npz_path.name} sha256 {npz_sha} does not start with the "
+                         f"pinned {expected_npz_sha256_prefix}")
+    with np.load(npz_path, allow_pickle=False) as data:
+        arrays = {key: data[key] for key in data.files}
+    required = ("positions_mm", "directions", "surfaces", "pmt_id", "mpmt_id", "pmt_id_in_mpmt",
+                "radius", "height", "sensor_radius")
+    missing = [key for key in required if key not in arrays]
+    if missing:
+        raise ValueError(f"geometry: {npz_path.name} is missing {missing}; present: {sorted(arrays)}")
+    scalar = lambda key: float(np.asarray(arrays[key]).reshape(-1)[0])
+    positions = np.asarray(arrays["positions_mm"], dtype=float) / 1000.0
+    mpmt_id = np.asarray(arrays["mpmt_id"], dtype=np.int64)
+    module_ids = np.unique(mpmt_id)
+    module_index = np.searchsorted(module_ids, mpmt_id).astype(np.int64)
+    centres = np.stack([positions[module_index == i].mean(axis=0) for i in range(module_ids.size)])
+    name = name or (f"synthetic schema fixture (NOT WCTE) {npz_path.name}" if synthetic
+                    else f"WCTE LUCiD {LUCID_PIN[:8]} {WCTE_CONFIG_RELPATH}")
+    return DetectorGeometry(
+        name=name,
+        positions_m=positions, directions=np.asarray(arrays["directions"], dtype=float),
+        surfaces=_surface_array(arrays["surfaces"], surface_map),
+        pmt_id=np.asarray(arrays["pmt_id"], dtype=np.int64), mpmt_id=mpmt_id,
+        pmt_id_in_mpmt=np.asarray(arrays["pmt_id_in_mpmt"], dtype=np.int64),
+        module_index=module_index, module_ids=module_ids, module_centres_m=centres,
+        radius_m=scalar("radius"), height_m=scalar("height"),
+        sensor_radius_m=scalar("sensor_radius"), source_path=str(npz_path),
+        source_sha256=npz_sha, config_sha256=config_sha, synthetic=bool(synthetic))
+
+# ======================================================================= photon-bomb generator
+NS_EVENT = "lucid/event"
+#: Placeholder yields: the runbook fixes their *definitions* (about 200 hit PMTs at
+#: Y_lo; the lower of 300 PE median module charge / 0.95 median hit fraction at Y_hi)
+#: but the values come from the §3.5.3a detectability check on development data.
+Y_LO_PHOTONS, Y_HI_PHOTONS = 6000.0, 320_000.0
+YIELD_RANGE_STATUS = "placeholder_pending_detectability_check"
+CPU_CAP_WALL_HOURS = 48.0
+BENCHMARK_CORES = 16
+#: §3.5.3 volume enumerated for the 48 h projection (see WP4B_GENERATOR.md).
+REGISTERED_VOLUME_EVENTS = 1_070_000
+REGISTERED_VOLUME_BREAKDOWN = {"main_grid_train_3x100k": 300_000,
+                               "secondary_train_5x100k": 500_000,
+                               "dev_train_100k": 100_000,
+                               "probe_and_robustness_17x10k": 170_000}
+
+_readout_primitive = None
+
+def leading_edge_time(charges, threshold_mv, **kw):
+    """The walk primitive from ``noise_module_lucid.response`` (imported, not forked)."""
+    global _readout_primitive
+    if _readout_primitive is None:  # pragma: no cover - import cost only
+        from noise_module_lucid.response import leading_edge_time as primitive
+        _readout_primitive = primitive
+    return _readout_primitive(charges, threshold_mv, **kw)
+
+@dataclass(frozen=True)
+class GeneratorConfig:
+    """All event-generation settings; science values that are pending are parameters, not constants."""
+
+    y_lo: float = Y_LO_PHOTONS
+    y_hi: float = Y_HI_PHOTONS
+    fiducial_fraction: float = 0.8
+    spectrum_kind: str = "uniform_synthetic"
+    spectrum_nm: tuple = (300.0, 600.0)
+    qe_curve_nm: tuple = (300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0)
+    qe_curve: tuple = (0.10, 0.18, 0.24, 0.25, 0.22, 0.16, 0.08)
+    ce: float = 0.95
+    n_wavelength_samples: int = 1
+    sigma_spe: float = SIGMA_SPE
+    tts_sigma_ns: float = 1.5
+    dark_rate_hz: float = 4200.0
+    window_ns: float = 1000.0
+    threshold_pe: float = 0.25
+    walk_calibration_pe: float = 0.25
+    mv_per_pe: float = 4.0
+    n_group: float = 1.33
+    lambda0_m: float = LAMBDA0_M
+    twin: bool = True
+    spectrum_label: str = "synthetic_uniform_300_600_nm (PMT reference stand-in)"
+
+    def __post_init__(self):
+        pairs = list(zip(self.qe_curve_nm, self.qe_curve))
+        checks = [("y_lo", self.y_lo > 0), ("y_hi > y_lo", self.y_hi > self.y_lo),
+                  ("0 < fiducial_fraction <= 1", 0.0 < self.fiducial_fraction <= 1.0),
+                  ("qe curve lengths", len(self.qe_curve_nm) == len(self.qe_curve) >= 2),
+                  ("qe curve wavelengths increasing", all(a[0] < b[0] for a, b in zip(pairs, pairs[1:]))),
+                  ("qe in [0, 1]", all(0.0 <= q <= 1.0 for q in self.qe_curve)),
+                  ("0 < ce <= 1", 0.0 < self.ce <= 1.0),
+                  ("n_wavelength_samples >= 1", int(self.n_wavelength_samples) >= 1),
+                  ("sigma_spe >= 0", self.sigma_spe >= 0.0),
+                  ("tts_sigma_ns >= 0", self.tts_sigma_ns >= 0.0),
+                  ("dark_rate_hz >= 0", self.dark_rate_hz >= 0.0),
+                  ("window_ns > 0", self.window_ns > 0.0),
+                  ("threshold_pe > 0", self.threshold_pe > 0.0),
+                  ("walk_calibration_pe > 0", self.walk_calibration_pe > 0.0),
+                  ("mv_per_pe > 0", self.mv_per_pe > 0.0),
+                  ("n_group >= 1", self.n_group >= 1.0),
+                  ("spectrum_kind", self.spectrum_kind == "uniform_synthetic"),
+                  ("spectrum_nm", 0.0 < self.spectrum_nm[0] < self.spectrum_nm[1])]
+        bad = [name for name, ok in checks if not ok]
+        if bad:
+            raise ValueError(f"generator config invalid: {bad}")
+        if float(self.lambda0_m) != float(LAMBDA0_M):
+            raise ValueError(f"lambda0_m is frozen at the module constant {LAMBDA0_M} m pending "
+                             "§3.5.3a; change both together")
+
+    @property
+    def digest(self) -> str:
+        fields = {k: getattr(self, k) for k in self.__dataclass_fields__}
+        return _sha(json.dumps(fields, sort_keys=True, separators=(",", ":")).encode())
+
+def load_generator_config(path: Path | str) -> GeneratorConfig:
+    """Read the ``generator`` block of ``lucid_bombs_v0.json``."""
+    payload = json.loads(Path(path).read_text())
+    block = payload.get("generator")
+    if not isinstance(block, dict):
+        raise ValueError(f"{path}: missing the 'generator' block")
+    kwargs = dict(block)
+    status = kwargs.pop("yield_range_status", YIELD_RANGE_STATUS)
+    if status != YIELD_RANGE_STATUS:
+        raise ValueError(f"config: yield_range_status {status!r} != {YIELD_RANGE_STATUS!r}")
+    allowed = set(GeneratorConfig.__dataclass_fields__)
+    unknown = sorted(set(kwargs) - allowed)
+    if unknown:
+        raise ValueError(f"config: unknown generator keys {unknown}")
+    kwargs["qe_curve_nm"] = tuple(kwargs["qe_curve_nm"])
+    kwargs["qe_curve"] = tuple(kwargs["qe_curve"])
+    kwargs["spectrum_nm"] = tuple(kwargs["spectrum_nm"])
+    if payload.get("lambda0_m") is not None and float(payload["lambda0_m"]) != float(kwargs["lambda0_m"]):
+        raise ValueError("config: top-level lambda0_m and generator.lambda0_m disagree")
+    return GeneratorConfig(**kwargs)
+
+def qe_at(wavelength_nm, cfg: GeneratorConfig) -> np.ndarray:
+    """Interpolate the (synthetic) QE curve; wavelengths outside the table are clipped."""
+    w = np.asarray(wavelength_nm, dtype=float)
+    return np.interp(w, np.asarray(cfg.qe_curve_nm, float), np.asarray(cfg.qe_curve, float))
+
+def sample_qe(geometry, rng: np.random.Generator, cfg: GeneratorConfig) -> np.ndarray:
+    """Per-PMT effective QE from the config spectrum (uniform synthetic stand-in)."""
+    lo, hi = cfg.spectrum_nm
+    total = np.zeros(geometry.n_pmt)
+    for _ in range(int(cfg.n_wavelength_samples)):
+        total += qe_at(rng.uniform(lo, hi, geometry.n_pmt), cfg)
+    return total / float(cfg.n_wavelength_samples)
+
+def fiducial_vertex(geometry, rng: np.random.Generator, fraction: float = 0.8) -> np.ndarray:
+    """Uniform-in-volume vertex in the 80% fiducial cylinder."""
+    radius = float(fraction) * geometry.radius_m
+    half_height = float(fraction) * geometry.half_height_m
+    r = radius * np.sqrt(rng.random())
+    phi = rng.uniform(0.0, 2.0 * np.pi)
+    return np.array([r * np.cos(phi), r * np.sin(phi), rng.uniform(-half_height, half_height)])
+
+def solid_angle_fraction(geometry, vertex_m, sensor_radius_m: float | None = None) -> np.ndarray:
+    """Disc solid angle / 4π per sensor.
+
+    Approximation: the exact on-axis disc solid angle ``2π(1 - d/√(d²+r²))`` times the
+    obliquity ``|cosθ|``, i.e. ``π r² cosθ / d²`` for ``d >> r``.  The tilt correction is
+    O((r/d)²); with the vertex inside the 80% fiducial, ``d >= 0.2 R = 0.315 m`` and
+    ``r = 0.04 m``, so the error is below ~2%.
+    """
+    delta = geometry.positions_m - np.asarray(vertex_m, dtype=float)
+    dist = np.linalg.norm(delta, axis=1)
+    if np.any(dist <= 0.0):
+        raise ValueError("expected charge: a sensor coincides with the vertex")
+    r = float(geometry.sensor_radius_m if sensor_radius_m is None else sensor_radius_m)
+    cos = np.abs(np.einsum("ij,ij->i", delta, geometry.directions)) / dist
+    omega = 2.0 * np.pi * (1.0 - dist / np.sqrt(dist * dist + r * r)) * np.clip(cos, 0.0, 1.0)
+    return omega / (4.0 * np.pi)
+
+def expected_charge(geometry, vertex_m, yield_photons, qe_eff, lambda_m, cfg: GeneratorConfig,
+                    *, sensor_radius_m: float | None = None) -> np.ndarray:
+    """``mu_p = Y * QE(lambda) * CE * Omega_p/(4pi) * exp(-d_p/lambda)``."""
+    lam = float(lambda_m)
+    if not np.isfinite(lam) or lam <= 0.0:
+        raise ValueError("expected charge: attenuation length must be positive and finite")
+    if not np.isfinite(yield_photons) or yield_photons < 0.0:
+        raise ValueError("expected charge: yield must be finite and non-negative")
+    dist = np.linalg.norm(geometry.positions_m - np.asarray(vertex_m, dtype=float), axis=1)
+    omega = solid_angle_fraction(geometry, vertex_m, sensor_radius_m)
+    return (float(yield_photons) * np.clip(np.asarray(qe_eff, float), 0.0, 1.0) * float(cfg.ce)
+            * omega * np.exp(-dist / lam))
+
+def propagation_time_ns(geometry, vertex_m, cfg: GeneratorConfig) -> np.ndarray:
+    """Prompt direct-light time from the vertex, in ns (group velocity ``c / n_group``)."""
+    dist = np.linalg.norm(geometry.positions_m - np.asarray(vertex_m, dtype=float), axis=1)
+    return dist * (float(cfg.n_group) / C_M_PER_S) * 1e9
+
+def count_capacity(max_mu: float, *, n_sigma: float = 12.0) -> int:
+    """Uniform columns needed by :func:`poisson_counts_from_uniform` (12σ + 10 margin)."""
+    m = float(max_mu)
+    if not np.isfinite(m) or m < 0.0:
+        raise ValueError("count capacity needs a finite non-negative mean")
+    return int(np.ceil(m + n_sigma * np.sqrt(m + 1.0) + 10.0))
+
+def poisson_counts_from_uniform(poisson_u, mu) -> np.ndarray:
+    """Exact Poisson draw from shared uniforms: arrivals of a unit-rate process.
+
+    ``counts_i = #{k : sum_{j<=k} -ln u_ij <= mu_i}``.  The *same* ``poisson_u`` mapped
+    through two different ``mu`` vectors gives correlated counts, which is how the nominal
+    twin shares the photon draw across a different attenuation length.
+    """
+    u = np.asarray(poisson_u, dtype=float)
+    mu = np.asarray(mu, dtype=float)
+    if u.ndim != 2 or mu.shape != (u.shape[0],):
+        raise ValueError("poisson_counts_from_uniform needs u (n_pmt, n_cap) and mu (n_pmt,)")
+    if not np.isfinite(mu).all() or np.any(mu < 0.0):
+        raise ValueError("poisson counts need finite non-negative means")
+    tiny = np.finfo(float).tiny
+    arrivals = np.cumsum(-np.log(np.clip(u, tiny, 1.0)), axis=1)
+    return np.count_nonzero(arrivals <= mu[:, None], axis=1).astype(np.int64)
+
+@dataclass(frozen=True, eq=False)
+class SensorDraws:
+    """One event's shared draws: the twin re-maps these through the nominal state."""
+
+    key: str
+    run_id: str
+    event_id: int
+    vertex_m: np.ndarray        # (3,)
+    yield_photons: float
+    qe_eff: np.ndarray          # (n_pmt,)
+    poisson_u: np.ndarray       # (n_pmt, n_cap)
+    charge_z: np.ndarray        # (n_pmt,)
+    transit_z: np.ndarray       # (n_pmt,)
+    dark_counts: np.ndarray     # (n_pmt,)
+    window_ns: float
+    capacity: int
+
+def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
+               seed: int = DEFAULT_SEED) -> SensorDraws:
+    """Vertex, log-uniform yield, spectrum, and every shared normal/Poisson draw."""
+    def rng(role):
+        return keyed_rng(seed, NS_DRAWS, run_id, event_id, role)
+
+    vertex = fiducial_vertex(geometry, rng("vertex"), cfg.fiducial_fraction)
+    yield_photons = float(np.exp(rng("yield").uniform(np.log(cfg.y_lo), np.log(cfg.y_hi))))
+    qe_eff = sample_qe(geometry, rng("wavelength"), cfg)
+    bound = expected_charge(geometry, vertex, yield_photons, qe_eff, UNATTENUATED_M, cfg)
+    capacity = count_capacity(float(bound.max()))
+    poisson_u = np.clip(rng("poisson").random((geometry.n_pmt, capacity)),
+                        np.finfo(float).tiny, 1.0)
+    return SensorDraws(key=f"{NS_DRAWS}/{run_id}/{event_id}", run_id=run_id, event_id=int(event_id),
+                       vertex_m=vertex, yield_photons=yield_photons, qe_eff=qe_eff,
+                       poisson_u=poisson_u, charge_z=rng("charge").standard_normal(geometry.n_pmt),
+                       transit_z=rng("transit").standard_normal(geometry.n_pmt),
+                       dark_counts=rng("dark").poisson(cfg.dark_rate_hz * cfg.window_ns * 1e-9,
+                                                       geometry.n_pmt).astype(np.int64),
+                       window_ns=float(cfg.window_ns), capacity=capacity)
+
+def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geometry,
+                                 cfg: GeneratorConfig) -> HitReadout:
+    """The unrepaired PMT chain: QE/CE -> Poisson -> SPE smear -> gain -> threshold+walk.
+
+    Gains act on the charge **before** the fixed-PE threshold, so a gain change can move a
+    PMT between hit and unhit.  The walk curve is ``response.leading_edge_time`` at the
+    actual threshold, corrected by the same curve at the training-time calibration
+    threshold; with ``threshold_pe == walk_calibration_pe`` the residual is exactly zero.
+    """
+    mu = expected_charge(geometry, draws.vertex_m, draws.yield_photons, draws.qe_eff,
+                         state.attenuation_length_m, cfg)
+    n_photon = poisson_counts_from_uniform(draws.poisson_u, mu)
+    if int(n_photon.max()) >= int(draws.capacity):
+        raise RuntimeError("photon count reached the shared-draw capacity; enlarge count_capacity")
+    n = n_photon + np.asarray(draws.dark_counts, dtype=np.int64)
+    charge = np.clip(n + np.sqrt(n) * float(cfg.sigma_spe) * draws.charge_z, 0.0, None)
+    q = charge * np.asarray(state.gains, dtype=float)
+    thr_mv = float(cfg.threshold_pe) * float(cfg.mv_per_pe)
+    cal_mv = float(cfg.walk_calibration_pe) * float(cfg.mv_per_pe)
+    walk = leading_edge_time(q, thr_mv, mv_per_pe=float(cfg.mv_per_pe))
+    walk_cal = leading_edge_time(q, cal_mv, mv_per_pe=float(cfg.mv_per_pe))
+    fired = np.isfinite(walk)
+    residual = np.where(np.isfinite(walk_cal), walk - np.where(np.isfinite(walk_cal), walk_cal, 0.0), 0.0)
+    times = (propagation_time_ns(geometry, draws.vertex_m, cfg)
+             + float(cfg.tts_sigma_ns) * draws.transit_z + residual)
+    index = np.flatnonzero(fired)
+    return HitReadout(index, q[index], times[index])
+
+def make_readout(geometry, cfg: GeneratorConfig) -> ReadoutCallable:
+    """Bind the real readout to a geometry/config, for :func:`nominal_twin`."""
+    def readout(state, draws):
+        return readout_synthetic_unrepaired(state, draws, geometry, cfg)
+    return readout
+
+# ======================================================================= generated runs/storage
+@dataclass(frozen=True, eq=False)
+class GeneratedRun:
+    """One run: a contiguous event block sharing one detector state (and its nominal twin)."""
+
+    run: RunSpec
+    state: DetectorState
+    event_ids: np.ndarray
+    vertices_m: np.ndarray
+    yields_photons: np.ndarray
+    expected_pe: np.ndarray
+    hits: tuple
+    twin_hits: tuple | None = None
+
+    @property
+    def n_events(self) -> int:
+        return int(self.event_ids.size)
+
+    @property
+    def n_hits(self) -> int:
+        return int(sum(len(h) for h in self.hits))
+
+def generate_run(geometry, cfg: GeneratorConfig, run: RunSpec, *, seed: int | None = None,
+                 with_twin: bool | None = None) -> GeneratedRun:
+    """Generate one run with a single detector state (a run property, §3.5.3)."""
+    seed = int(run.seed if seed is None else seed)
+    with_twin = bool(cfg.twin if with_twin is None else with_twin)
+    state = run.state(geometry)
+    readout = make_readout(geometry, cfg)
+    event_ids = np.arange(run.event_start, run.event_stop, dtype=np.int64)
+    vertices = np.zeros((event_ids.size, 3))
+    yields = np.zeros(event_ids.size)
+    expected = np.zeros(event_ids.size)
+    hits, twin_hits = [], []
+    for i, event_id in enumerate(event_ids):
+        draws = draw_event(geometry, cfg, run.run_id, int(event_id), seed=seed)
+        vertices[i], yields[i] = draws.vertex_m, draws.yield_photons
+        expected[i] = float(expected_charge(geometry, draws.vertex_m, draws.yield_photons,
+                                            draws.qe_eff, state.attenuation_length_m, cfg).sum())
+        hits.append(readout(state, draws))
+        if with_twin:
+            twin_hits.append(nominal_twin(draws, geometry, readout, arm=ORACLE_ARM))
+    return GeneratedRun(run, state, event_ids, vertices, yields, expected, tuple(hits),
+                        tuple(twin_hits) if with_twin else None)
+
+def generate_events(geometry, cfg: GeneratorConfig, runs, *, seed: int | None = None,
+                    with_twin: bool | None = None):
+    """Iterate ``generate_run`` over a cohort; memory holds one run at a time."""
+    for run in runs:
+        yield generate_run(geometry, cfg, run, seed=seed, with_twin=with_twin)
+
+def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: GeneratorConfig, *,
+                        seed: int | None = None, code_sha: str | None = None) -> dict:
+    """Write sparse hits, the twin (if any), event truth, the manifest and ``SHA256SUMS``."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    store = sparse_from_readouts(generated.event_ids, generated.hits)
+    write_sparse_hits(directory / "hits.npz", store)
+    if generated.twin_hits is not None:
+        write_sparse_hits(directory / "twin_hits.npz",
+                          sparse_from_readouts(generated.event_ids, generated.twin_hits))
+    truth = directory / "events.npz"
+    with open(truth, "wb") as handle:
+        np.savez_compressed(handle, event_ids=generated.event_ids,
+                            vertex_m=generated.vertices_m.astype(np.float64),
+                            yield_photons=generated.yields_photons.astype(np.float64),
+                            expected_pe=generated.expected_pe.astype(np.float32))
+    payload = write_manifest(
+        directory / "manifest.json", (generated.run,), geometry,
+        seed=int(generated.run.seed if seed is None else seed), code_sha=code_sha,
+        extra={"generator_config_sha256": cfg.digest,
+               "geometry_source_path": geometry.source_path,
+               "geometry_source_sha256": geometry.source_sha256,
+               "geometry_config_sha256": geometry.config_sha256,
+               "geometry_synthetic": bool(geometry.synthetic),
+               "geometry_summary": geometry.summary(),
+               "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
+               "yield_range_status": YIELD_RANGE_STATUS,
+               "fiducial_fraction": float(cfg.fiducial_fraction),
+               "threshold_pe": float(cfg.threshold_pe), "spectrum_label": cfg.spectrum_label,
+               "state_clipped": dict(generated.state.clipped), "n_hits": generated.n_hits,
+               "twin_present": generated.twin_hits is not None,
+               "event_truth_sha256": _sha(truth.read_bytes())})
+    write_sha256sums(directory)
+    return payload
+
+# ======================================================================= 1000-event benchmark
+def peak_rss_mb() -> float:
+    """Process peak RSS in MiB (macOS reports bytes, Linux KiB)."""
+    import resource
+    import sys
+    rss = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    return rss / (1024.0 ** 2) if sys.platform == "darwin" else rss / 1024.0
+
+def _tercile_table(geometry, generated: GeneratedRun) -> list[dict]:
+    """§3.5.3 per-yield-tercile physics table."""
+    def module_charge(hit):
+        return float(np.bincount(geometry.module_index[np.asarray(hit.pmt_id, int)],
+                                 weights=hit.charge_pe, minlength=geometry.n_modules).mean())
+    rows = []
+    for rank, idx in enumerate(np.array_split(np.argsort(generated.yields_photons), 3)):
+        hits = [generated.hits[i] for i in idx]
+        counts = np.array([len(h) for h in hits], dtype=float)
+        rows.append({
+            "tercile": ("low", "mid", "high")[rank], "n_events": int(idx.size),
+            "yield_photons_median": float(np.median(generated.yields_photons[idx])),
+            "mean_hit_pmts": float(counts.mean()), "median_hit_pmts": float(np.median(counts)),
+            "mean_hit_fraction": float((counts / geometry.n_pmt).mean()),
+            "mean_module_charge_pe": float(np.mean([module_charge(h) for h in hits])),
+            "total_charge_pe_median": float(np.median([h.charge_pe.sum() for h in hits]))})
+    return rows
+
+def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000,
+                         seed: int = DEFAULT_SEED, with_twin: bool | None = None,
+                         law: str = "F1", setting: float = 0.05) -> dict:
+    """Time/memory for ``n_events`` and the §3.5.3 per-yield-tercile table."""
+    import time
+    with_twin = bool(cfg.twin if with_twin is None else with_twin)
+    run = RunSpec(f"benchmark/{law}/{setting:g}", "benchmark", law, float(setting), 0,
+                  int(n_events), int(seed))
+    t0 = time.perf_counter()
+    generated = generate_run(geometry, cfg, run, with_twin=with_twin)
+    seconds = time.perf_counter() - t0
+    stores = [sparse_from_readouts(generated.event_ids, generated.hits)]
+    if generated.twin_hits is not None:
+        stores.append(sparse_from_readouts(generated.event_ids, generated.twin_hits))
+    bytes_hits = int(sum(a.nbytes for st in stores
+                         for a in (st.event_ids, st.offsets, st.pmt_id, st.charge_pe, st.time_ns)))
+    rate = float(generated.n_events) / seconds if seconds > 0 else float("inf")
+    hours_1 = REGISTERED_VOLUME_EVENTS / rate / 3600.0 if rate else float("inf")
+    return {"benchmark_events": int(generated.n_events), "with_twin": with_twin,
+            "seconds": seconds, "events_per_s": rate, "peak_rss_mb": peak_rss_mb(),
+            "sparse_store_mib": bytes_hits / (1024.0 ** 2),
+            "hits_per_event": float(generated.n_hits) / max(generated.n_events, 1),
+            "is_synthetic_geometry": bool(geometry.synthetic),
+            "geometry_name": geometry.name, "geometry_sha256": geometry.digest,
+            "readout_label": READOUT_LABEL, "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
+            "yield_range_status": YIELD_RANGE_STATUS, "law": law, "setting": float(setting),
+            "terciles": _tercile_table(geometry, generated),
+            "volume_events": REGISTERED_VOLUME_EVENTS,
+            "volume_breakdown": dict(REGISTERED_VOLUME_BREAKDOWN),
+            "projected_hours_one_process": hours_1,
+            "projected_hours_16_cores": hours_1 / BENCHMARK_CORES,
+            "cpu_cap_wall_hours": CPU_CAP_WALL_HOURS,
+            "fraction_of_cap_16_cores": (hours_1 / BENCHMARK_CORES) / CPU_CAP_WALL_HOURS}
+
+def main(argv=None) -> int:  # pragma: no cover - host CLI
+    """``python -m jepa_noise.lucid_bombs benchmark --geometry ...``."""
+    import argparse
+    parser = argparse.ArgumentParser(prog="python -m jepa_noise.lucid_bombs")
+    parser.add_argument("command", choices=("benchmark",), nargs="?", default="benchmark")
+    parser.add_argument("--geometry", required=True)
+    parser.add_argument("--expected-config-sha256", default=None)
+    parser.add_argument("--config", default=str(Path(__file__).resolve().parent / "configs"
+                                                / "lucid_bombs_v0.json"))
+    parser.add_argument("--n-events", type=int, default=1000)
+    parser.add_argument("--out", default=None)
+    args = parser.parse_args(argv)
+    cfg = load_generator_config(args.config)
+    geometry = load_wcte_geometry(args.geometry,
+                                  expected_config_sha256=args.expected_config_sha256)
+    result = benchmark_generation(geometry, cfg, n_events=args.n_events)
+    result["geometry_summary"] = geometry.summary()
+    text = json.dumps(result, indent=1, sort_keys=True)
+    if args.out:
+        Path(args.out).write_text(text + "\n")
+    print(text)
+    return 0
+
+if __name__ == "__main__":  # pragma: no cover - host CLI
+    raise SystemExit(main())

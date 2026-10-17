@@ -520,3 +520,39 @@ Recorded as the author's explicit authorisation for those two paths only (v4 §6
   committed (it differs only in the values the later fixes introduced; the grid, splits, laws and
   seeds are the registered ones). The row files retain the recorded hash; the config is not
   fabricated retroactively. E1b rows use the current committed config.
+
+## WP4b generator on the real WCTE geometry (2026-10-17)
+
+- **2026-10-17 — WP4b photon-bomb generator implemented on the physical WCTE layout.**
+  `lucid_bombs.load_wcte_geometry` reads LUCiD's `config/WCTE_geom_config.json` / `wcte_geometry.npz`
+  (path-configured; verifies the pointer sha256 `9943d602…` and the npz prefix `0a75b035…` by
+  filename or explicit argument) and returns a validated 1995-PMT / 105-module / 19-per-module
+  `DetectorGeometry` with a dense derived `module_index` over the sparse `mpmt_id` values (id 45
+  absent) and the 1-based `pmt_id_in_mpmt`. Local tests use a schema-identical synthetic fixture;
+  no LUCiD data is copied into the repository. The event generator computes
+  `μ_p = Y·QE(λ)·CE·Ω_p/(4π)·exp(-d_p/λ)` for prompt, no-scattering, attenuation-only transport,
+  with the disc solid angle (O((r/d)²) ≲ 2%), and a synthetic unrepaired readout
+  (`readout_synthetic_unrepaired`): exact Poisson from shared uniforms, dark counts, SPE smearing,
+  gains applied before the fixed-PE threshold, walk imported from
+  `noise_module_lucid.response.leading_edge_time` (no fork). The nominal twin shares the same
+  `SensorDraws` and is reachable only through the oracle-only contract.
+- **2026-10-17 — engineering choices (one line each).** Geometry is path-configured and hashed by
+  layout digest plus source/config file hashes (both recorded; the layout digest stays the verified
+  manifest field). Sparse `mpmt_id` is carried raw with a dense derived index; surfaces are
+  top/barrel/bottom labels with a `surface_map` override if the host npz stores integers. Twin is
+  stored beside hits (`twin_hits.npz`) with oracle-only enforced by the API. "Same photon draws"
+  means shared Poisson uniforms (counts identical for gain-only factors, correlated for F2). Dark
+  counts are one keyed Poisson per event with the 4.2 kHz PMT-preset convention, config-driven.
+  `events.npz` truth (vertex, yield, expected PE) is stored because §3.5.6 probes need it. Storage
+  is CSR-like float32/int32 sparse.
+- **2026-10-17 — synthetic-fixture benchmark (NOT WCTE), process peak RSS 270–274 MiB.**
+  1000 events + twin: 4.84–4.96 s (202–207 events/s); 972 hits/event. Terciles (mean hit PMTs /
+  module charge / hit fraction): low 370 / 4.7 PE / 0.186; mid 908 / 17.6 PE / 0.455; high 1642 /
+  70.9 PE / 0.823. Placeholder yields: Y = 6 000 → 211 median hit PMTs (definition ~200);
+  Y = 320 000 → 0.942 median hit fraction and 118 PE median module charge, so criterion (b)
+  (0.95 hit fraction) binds before (a) (300 PE). Volume projection 1.07 M events = 1.44–1.47 h on
+  one process, 0.09 h on 16 cores (0.19 % of the 48 h CPU cap). The real-geometry benchmark runs on
+  the host and must be repeated after the yields are frozen by §3.5.3a.
+- **2026-10-17 — pending, unchanged:** PMT SHA and the repaired readout (G-PMT 31 Oct), the
+  detectability check fixing Y_lo/Y_hi/N_min, λ0 and the F2/F2′ strengths (§3.5.3a), real-geometry
+  benchmark numbers, and the view masks (WP4c/encoder work).
