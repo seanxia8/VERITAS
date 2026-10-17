@@ -2,64 +2,107 @@
   "version": "v4",
   "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
   "registration_commit": "151f26e",
-  "updated_utc": "2026-10-17T18:30:00Z",
-  "note": "WP0-v4 step 4 (runbook \u00a78): R6-R8 move from not_evaluable to not_run with reason 'v4 A4/A7 redesign'; B1, R7b, R11, R11b and R12 are added as not_run with reason 'v4 A7/A8'. R1-R5, R3b, R9, R10 unchanged from v3 apart from their status reason.",
+  "updated_utc": "2026-10-18T01:45:00Z",
+  "note": "R1-R5, R3b evaluated from the stored E1 tables (R2 estimator verified by the 2026-10-18 independent recompute; the R2 recompute verdict is recorded in its recompute field). R6-R8, R7b, R11, R11b, R12 remain not_run (v4 A4/A7/A8 redesign); B1 fail; R9, R10 pending.",
   "predictions": [
     {
       "id": "R1",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1a_E1b_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "fail",
+      "reason": "e1a_6of6_pass_e1b_channel_clean_median_17.309deg_above_10deg",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1a/aggregate_E1a.json; results/jepa/20261017_wp3_e1b/aggregate_E1b.json"
     },
     {
       "id": "R2",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1a_E1b_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "fail",
+      "reason": "e1a_5of6_scale_cells_spearman_ge_0.8_failing_theta0.1_eta3; e1b_clause_pass",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1a/aggregate_E1a.json; results/jepa/20261017_wp3_e1b/aggregate_E1b.json",
+      "recompute": "independent recompute 2026-10-18: verdict (a) - v3 2.4 registers the mean across seeds at each gamma level, then Spearman over the seven gamma levels; R2 E1a = 5/6 (failing theta0.1/eta3, rho=0.750), required-cell median 85.984 deg >=45, E1b clause pass (rho=1.000, 77.329 deg at g=.05), overall R2 = fail; the pre-fix cross-seed median gives 4/6 and is not the registered estimator (retain as non-registered sensitivity)"
     },
     {
       "id": "R3",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1a_E1b_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "not_evaluable",
+      "reason": "two_solver_exceptions_among_210_rows_208_recorded_at_1e-8_isotropy_tolerance",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1a/aggregate_E1a.json"
     },
     {
       "id": "R3b",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1a_E1b_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "pass",
+      "reason": null,
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1a/aggregate_E1a.json"
     },
     {
       "id": "R4a",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1a_E1b_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "fail",
+      "reason": "32of42_cells_sample_median_le_5deg",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1a/aggregate_E1a.json"
     },
     {
       "id": "R4b",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1a_E1b_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "fail",
+      "reason": "33of42_cells_at_beta10_sample_median_le_5deg",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1a/aggregate_E1a.json"
     },
     {
       "id": "R5",
       "campaign": "E1",
-      "status": "not_run",
-      "reason": "E1_pending_E1c_v4_A4_law",
-      "seeds": [],
-      "evidence": null
+      "status": "not_evaluable",
+      "reason": "depth2_and_depth3_modes_censored_zero_of_five_evaluable_seeds",
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "evidence": "results/jepa/20261017_wp3_e1c/"
     },
     {
       "id": "B1",

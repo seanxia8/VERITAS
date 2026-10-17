@@ -926,7 +926,7 @@ def _prediction_summary(identifier: str, detail: dict) -> str:
         if identifier == "R1":
             return (base + "; E1b channel clean-cell median "
                     f"{_fmt(e1b.get('clean_cell_median_angle_deg'))} deg "
-                    "(<=10)")
+                    "(threshold 10 deg, fails above it)")
         if identifier == "R2":
             return (base + "; E1b channel Spearman "
                     f"{_fmt(e1b.get('spearman'))} (>=0.8), seed-mean angle at "
