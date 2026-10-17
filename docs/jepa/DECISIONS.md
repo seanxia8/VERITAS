@@ -830,3 +830,33 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   not fix lr or schedule; this is the smallest defensible freeze (the repository's own values,
   already reviewed and frozen for WP4), recorded here so the WP5 review requirement is satisfied.
   The §3.5.6 5 000-step budget fallback remains a recorded, non-primary run if ever used.
+
+## WP5 review — Lead rulings on the reviewer's questions (2026-10-18)
+
+- **2026-10-18 — R8/robustness:** the R8 verdict and the aging-extrapolation ratio **are added** to the
+  WP5 runner (R8 is a registered prediction, §3.5.9, and its robustness sets are already generated);
+  the runner must not claim them without scoring them.
+- **2026-10-18 — oracle-twin probes:** wired on the arm's **own input** (the nominal-twin readout);
+  if that proves impossible for a given probe form, the oracle probes are `not_evaluable` with the
+  reason recorded — never scored on real hits under an oracle label.
+- **2026-10-18 — R6/R12 readings (literal §3.5.8/§3.5.9):** R6 uses the **within-cell excess over
+  the floor** (R² − floor) > 2 × the seed floor; R12 is evaluated in **both splits at both
+  R6-eligible s (0.05 and 0.10)**, and remains `not_evaluable` from the frozen F3 outcome anyway.
+- **2026-10-18 — R11/R11b seed floor:** the median SD is taken over **all three arms** in the cell
+  (§3.5.8), and the F2 condition uses the **F2 metric's own median**; the module-gain median is not
+  the registered metric.
+- **2026-10-18 — development step 2/3 wiring:** step 3 consumes the step-2 physics-probe decision;
+  the physics reference defaults to the step-2 `sigreg_jepa` probes; if the PMT `reference.json`
+  group is not available the step is recorded `not_evaluable` — **no silent ridge fallback**.
+- **2026-10-18 — development seeds, dark bank, probe IDs:** keep the independent 9000-series
+  development seeds (never reported), the 512 yield-0 dark-window records, and the reuse of the
+  fixed 10k probe event IDs across drift settings (§3.5.3: one probe-train/probe-test set per drift
+  setting serves both splits). All three recorded; change only on the author's word.
+- **2026-10-18 — budget fallback:** the §3.5.6 5 000-step / 3-seed fallback must be **expressible as
+  a registered run** (its own recorded, non-primary role) before the Titan projection approaches the
+  cap; otherwise the only honest outcome would be G2. Implemented as a labelled fallback, not as a
+  silent non-registered run.
+- **2026-10-18 — no-action confirmations:** §3.5.6 contains no `s_p = 0` secondary cell, no R12
+  training cell, no write-once control, no development step 4, and no 1.2× CRLB / 1.1× SE
+  probe-form rule. None is added: adding one would be a new specification item (G5), not a runner
+  bug.
