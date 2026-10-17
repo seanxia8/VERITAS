@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 23:25Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 23:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -82,8 +82,19 @@ Updated: 2026-10-17 23:25Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   T 0.9860; N_min fine at Y_lo (within 106.5, across proxy 97.5); **G6 not triggered**, R6/R7
   evaluable. Frozen into `configs/lucid_bombs_v0.json` (`frozen_by_detectability_check`) and
   DECISIONS. Engine extended to emit the F2-branch `f1_joint` row for R11 (`aa012d8`).
-  Host is re-running the detectability check (evidence) and the generation benchmark at the frozen
-  yields. Next: WP4c (encoder/views incl. `view_masks`), then the E2 development cohort.
+  Host confirmed both: detectability v2 with the F2-branch `f1_joint` (105 modules, median 0.6819,
+  min 0.5360) and the frozen-yield benchmark (49.5 events/s, 1010.5 hits/event, 0.375 h on 16 cores
+  = 0.78 % of the 48 h cap). Both JSONs committed under
+  `results/jepa/20261017_wp4b_detectability/`.
+- **WP4c committed (`3eb31ea`)**: `lucid_views.py` (Hilbert `across` cyclic contiguous half = 52
+  target modules; `within` 9/10 with the 1-based field; N_min redraw/exclusion counters; balanced
+  occupancy ablation) and `point_encoder.py` (per-PMT log-charge tokens, serialised window
+  attention, 4 pre-norm d=128 blocks, read-out before any final norm, mask embedding, predictor).
+  14 tests, leakage exactly 0.0, amplitude fixture R² 0.9990, 911 k parameters, batch-32 CPU peak
+  ~2.8 GiB (4× inside the Titan cap). Tie-breaks and the training-only N_min scope in DECISIONS.
+- **Next**: LUCiD arm objectives + anchor penalty + the four probe forms (implementer running),
+  then the WP5 trainer/cohort wiring, the 500-step Titan smoke, the scaling benchmark (2k/10k Titan,
+  40k L40S — deepthought2 rejoins there), then the development cohort and main grid.
 - Standing rule: registered runs start from a git worktree pinned to the clean SHA (main tree free
   for development).
 - In flight: A9 follow-ups (B1-ext <=4 Titan GPU-h; R5-ext CPU).
