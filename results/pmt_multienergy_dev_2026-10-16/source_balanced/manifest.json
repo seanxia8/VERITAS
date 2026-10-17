@@ -1,0 +1,489 @@
+{
+  "events": [
+    {
+      "energy_MeV": 500,
+      "event_id": 0,
+      "photons": 83707,
+      "sha256": "714860401a181013ba77f50c4dafd3085e5f6473c1b9721baacf8a2074f92a83",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 1,
+      "photons": 85360,
+      "sha256": "587c1554642fd8f83a06300a84dfaf50ac0f15059d6e358d621e58d0f61abbae",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 2,
+      "photons": 85673,
+      "sha256": "ae998b9a64851c173f0d0a726049bf0f04186e42519596958d916cb6f17a7e80",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 3,
+      "photons": 83970,
+      "sha256": "e328e4605b81ae6ed137428cdacc5c29e7685dc85f40a2de93877203a0f90163",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 4,
+      "photons": 85604,
+      "sha256": "8239f3579dc4d1ba3844752b443dcd551733c16981383d84fff8536ce51b5f9d",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 5,
+      "photons": 81841,
+      "sha256": "57233ae85e09cb37772dc89d1ceed963004c2ecf9f6290f1e6876d8bb29d6c62",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 6,
+      "photons": 84455,
+      "sha256": "2f6ef5ef8de228ae195585b6cb6e7fd58c985973be70352b9e847e5a302b827c",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 7,
+      "photons": 84418,
+      "sha256": "4b998f238bb42b47e377f3136738b4c97cc081411873b0bb9fc274822333e62f",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 8,
+      "photons": 86617,
+      "sha256": "82ce3746cf0363c331ec6d22103d8d52f79eb36f1475ec4dc9d46221ae184154",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 9,
+      "photons": 85610,
+      "sha256": "4db412ed1929c7139c856b244c5d73e187da2c9cd4427dad703a8a8126a6f8f8",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 10,
+      "photons": 85125,
+      "sha256": "d18aa7726ef503b8e47c0754050e6061bd63f62dfa782e463eb3003068bd2818",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 11,
+      "photons": 85491,
+      "sha256": "1ce454f8872a818efdbed02fd4c7ed726e123b1a9db13581f3c6c1b42c861a7d",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 12,
+      "photons": 84850,
+      "sha256": "2b15734bc99916d7eeee4e0cd76bcbe363764fbbab90fd5cdb263b8dd6a036bb",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 13,
+      "photons": 84848,
+      "sha256": "a5bc374d38292b077d9b91063356c69b28b99406077a983d8bd08b16d3d3b3d6",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 14,
+      "photons": 86856,
+      "sha256": "5bba4477faa15700029b8344627d3201766580ff019c3d5100cb56e00d7aa548",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 15,
+      "photons": 86404,
+      "sha256": "bc296049d38bf48d2e88411d12168a50e8d5fb65202c571eb68d5dd764d6deea",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 16,
+      "photons": 83786,
+      "sha256": "fd50b2cccf5232add5d790ad3c8d72df98d1f6dc8d417854854b902227a01f04",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 17,
+      "photons": 85682,
+      "sha256": "44e6d1b2fed3c695696625d67755063477a70375bc460a48e11e6dd1acfc6c62",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 18,
+      "photons": 83010,
+      "sha256": "b91fd0a7e46a34f11995aed9d7fd47f1b1e0164cd507690a3c4a619129dbe338",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 19,
+      "photons": 85871,
+      "sha256": "65ed1752e0374a2728b453ec291fc4c0617c7f588fa0312e59e8597fb1770b5e",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 0,
+      "photons": 202313,
+      "sha256": "bcb7dfc5d5932f6f46df8a47a66af2c4cdddb09f9a1aa5a8639823dadc881e25",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 1,
+      "photons": 202151,
+      "sha256": "d02213b3390c8eb8763fc34ae07a8484e88d560d77176d3ba60603efeb78601b",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 2,
+      "photons": 202608,
+      "sha256": "1449e89151b32a44d32bd7e9482841fd6187494977558db5e442c2a5627f204a",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 3,
+      "photons": 203077,
+      "sha256": "7902e62d421db3c02e03effc05308aebd92bd36141f294d68c122995286b96ea",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 4,
+      "photons": 202347,
+      "sha256": "8118d171857b7e6d5686532e4e9f170780faff506d47f5130239c04e34bbe399",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 5,
+      "photons": 201853,
+      "sha256": "20d8c1b6cda89689a18b49de40bf0fb21040b1bcabba8bd3970d821d8bfe562f",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 6,
+      "photons": 203785,
+      "sha256": "cd1ff44ef072175ba7ee2f6a9383a8a614273d7707565ed3071267b404ecff5f",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 7,
+      "photons": 201793,
+      "sha256": "c4fb9b1ea2f82031e9bbabfc8636d5b4ec35bce6c448c5d03ecb28887bdc3a40",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 8,
+      "photons": 203439,
+      "sha256": "518daafc2f82a2502982d4f909dcd9ad305662115b399a53e91478435a641f14",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 9,
+      "photons": 203488,
+      "sha256": "af008efa6dd04bb4f9f43baab03a8dddf11847e7e4d0f8845d7b6ac0f04f0e43",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 10,
+      "photons": 201889,
+      "sha256": "8185307afb951249fd33c451b1abbef4710aecfcf4a3e52bbcc5a7c31684e0ea",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 11,
+      "photons": 207573,
+      "sha256": "7cb721347d99d397c181b89f8e1b1d8c0267fe18cf8e6e60bfab8282c5aa8ff4",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 12,
+      "photons": 197797,
+      "sha256": "51b09935c2baed7d9085837e0d75141ec80724f3afea97d04f071741c992bc6b",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 13,
+      "photons": 201747,
+      "sha256": "da8058c86f79542fb52d6bb39ff380179ac6ed400a07c7d80e36b0a820cc3ef0",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 14,
+      "photons": 202334,
+      "sha256": "09fc6d158d7348f368a75833370334a8bbe98026dd23e2c7d54f71599bd2aef7",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 15,
+      "photons": 200207,
+      "sha256": "2cddde8d8e872e511956f35f44677049ef62e1db5622d0f3a5b35882446eba3e",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 16,
+      "photons": 201716,
+      "sha256": "543945d3bd6053533a3e94def1bc156fcfadb0847930ff4e5cf5a105a9c3a776",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 17,
+      "photons": 204819,
+      "sha256": "e67a34a79605dae55ccecf568db1058658ab852e0e16021bfc9dcc81540accb7",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 18,
+      "photons": 203334,
+      "sha256": "67b64d2146083eac26370620888e10a45dde38414c736bf78d2ddd9403fde23b",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 19,
+      "photons": 199942,
+      "sha256": "98232fdda5c5914d1a20941d8cf20c91303304a7f89277f4c1cf71e538c749e0",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 0,
+      "photons": 313695,
+      "sha256": "f0e9c6af958f7c492609827b035b84cd132cc495b90428ca2dd431207373786c",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 1,
+      "photons": 320620,
+      "sha256": "38d169ecab501ec4654457e02ee68ef6263d944af5a4b63061307181eb5628f8",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 2,
+      "photons": 318311,
+      "sha256": "17d94e8de3ae584da480bd218ad0af9e8e242fc7419c523492e0efb8c94cb53f",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 3,
+      "photons": 321081,
+      "sha256": "9cbc4133cc4a46b399c1437a22639159ba8543c77080035d14537cb4ded9055a",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 4,
+      "photons": 319303,
+      "sha256": "f2ddd505775066c9a3d472da3bca9970e4163d5ca6db73edb2b20aec22fd8cb3",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 5,
+      "photons": 317657,
+      "sha256": "62e6ef1b1b80f9315aa863adbf6342d5f431b16d003fc04daf2f81542d67ce55",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 6,
+      "photons": 320284,
+      "sha256": "496b55d0f23af32e33d38a60ce4a9d74b9abe369c3c09585f68f45a347b6a614",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 7,
+      "photons": 322356,
+      "sha256": "f6cb605450d54cb3dbcc896caa15a440dc24fdcada6ea612d83875171e01eb61",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 8,
+      "photons": 325530,
+      "sha256": "84f1e9aaeb1ee8d2a2a4415550a0a99b25eedf2ee0b21ae1ae3b8b5b3e79a25c",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 9,
+      "photons": 323463,
+      "sha256": "d59d5c4998dcbee53ecaea1c85e6e2d49b4fd542b6af4df44f7be0ec16b1cbff",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 10,
+      "photons": 317627,
+      "sha256": "1cf404feab9228d6e1bb56f788493de95c9a23f0209c99263983de8327df8543",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 11,
+      "photons": 323979,
+      "sha256": "b6c73128026003c109089d4e44333fb96e7e54abd0126b60aba827a48fb0d19e",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 12,
+      "photons": 323197,
+      "sha256": "0d9248aa3348306f51524c6552ca63ba96edad947d1e339245cc0d53aa84a961",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 13,
+      "photons": 321735,
+      "sha256": "8d520b5d9c7565030b20f82d3b116e0f81271da45a572c00c628f293fc953efc",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 14,
+      "photons": 323027,
+      "sha256": "4798e1ecc74675badf842f504f5f2826820ade943a7512522892bbb451f6c5ae",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 15,
+      "photons": 321390,
+      "sha256": "41f0dde8ba4e135c9c99a5b924b354acb29d4498d016bb1337b72486cc912bf4",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 16,
+      "photons": 320122,
+      "sha256": "7299e89d6f8169d6169c491818649a2fc809c325aed2e3b21ca7a902084f8cb4",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 17,
+      "photons": 320271,
+      "sha256": "e52b108f4aa56ce5894e5ad81eb67f62247ae3f55250a1d8bcbeda7d3d17f1a3",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 18,
+      "photons": 318009,
+      "sha256": "c98bfe5fc36fcf7e5acfa4ddb0bda3ac059752a038f4cd0c1ca240fcecf76dd6",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    },
+    {
+      "energy_MeV": 1500,
+      "event_id": 19,
+      "photons": 320302,
+      "sha256": "f1327b2dc808bbb9720388b825c2371fd5fa5ebd9e5367accbe53e4d520f3fb9",
+      "primary_energy": 1500.0,
+      "track_initial_energy": 1500.0
+    }
+  ],
+  "source_read_status": "STOP at aggregate cap; no further source requests",
+  "conservative_charged_bytes_at_last_complete_event": 931869635,
+  "source_cap_bytes": 939524096,
+  "cohort_amendment": "Before reconstruction/training: balanced first 20 physical events per energy after source read-cap STOP; original 24-event plan preserved; no score inspected; thresholds unchanged",
+  "non_citable": true
+}

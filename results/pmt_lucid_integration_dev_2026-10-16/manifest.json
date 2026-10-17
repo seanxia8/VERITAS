@@ -1,0 +1,131 @@
+{
+  "url": "https://cernbox.cern.ch/remote.php/dav/public-files/vOhH8P78hnSQKNZ/ROOT_files/water/mu-/500MeV_100events.root",
+  "remote_bytes": 428491135,
+  "read_bytes": 131358469,
+  "cap_bytes": 134217728,
+  "source_units": "PhotonSim mm converted to m; ns; nm",
+  "events": [
+    {
+      "event_id": 0,
+      "photons": 83707,
+      "sha256": "d1ed2fa1d86067c59cf1fc2c48a03302f990b9dfd79b8422b077518c8b9f0d54"
+    },
+    {
+      "event_id": 1,
+      "photons": 85360,
+      "sha256": "9f8c43521c90a23825f89b3ba5a83b1f03f78091f64ec6306425b0c1b32d86fc"
+    },
+    {
+      "event_id": 2,
+      "photons": 85673,
+      "sha256": "49d5936a0723d49cda6a7ee76f3455123291d9c1921feff33f7c4c0bdcc75bad"
+    },
+    {
+      "event_id": 3,
+      "photons": 83970,
+      "sha256": "0ecc1fe99160698e3b6693ac35ca528836b837fc9bfffa95bda6815cd99faba7"
+    },
+    {
+      "event_id": 4,
+      "photons": 85604,
+      "sha256": "3edf0e6046897c2262f4d7fc5dac10841c803f74a183b594c19384fff62e8c0c"
+    },
+    {
+      "event_id": 5,
+      "photons": 81841,
+      "sha256": "94f476a8cad1344cc13563227afff56991d65cef0878cb0880396e10e958206d"
+    },
+    {
+      "event_id": 6,
+      "photons": 84455,
+      "sha256": "13873d7ac947132710d64c61f126e76ce6f8c7f162732c4f03d9195eb514368b"
+    },
+    {
+      "event_id": 7,
+      "photons": 84418,
+      "sha256": "746ed90dca4a09457c02b37d3be21a10574648692997228ef35302597087376d"
+    },
+    {
+      "event_id": 8,
+      "photons": 86617,
+      "sha256": "0e520352c6960af0da32b982fbd88e60bc0f2de5a42fc98b223d23b653946b81"
+    },
+    {
+      "event_id": 9,
+      "photons": 85610,
+      "sha256": "d173fa990fb22e9a6702017711a6e18aba904209bd089ef78339adfcfad627d8"
+    },
+    {
+      "event_id": 10,
+      "photons": 85125,
+      "sha256": "d89471d324fdcad2a84c9edfff094d9c1bedbd60091598ab21397d7e62866dde"
+    },
+    {
+      "event_id": 11,
+      "photons": 85491,
+      "sha256": "7370dd84736c1faa51397c33ccf0e4ea47465dd42a71e05efcb4468f3c226c4a"
+    },
+    {
+      "event_id": 12,
+      "photons": 84850,
+      "sha256": "b06dcf5011f944dabd50a2fa91566092bf0fe7d0087515b6a927144f332b0246"
+    },
+    {
+      "event_id": 13,
+      "photons": 84848,
+      "sha256": "140c8ba3c95d5b4ec4f0c0ff7a9a509fea1b54210407c6864982cb73f0bf979b"
+    },
+    {
+      "event_id": 14,
+      "photons": 86856,
+      "sha256": "c8b4331e399ebd741290e04aa089da5449ae5600b2b897656703a285b74e3eed"
+    },
+    {
+      "event_id": 15,
+      "photons": 86404,
+      "sha256": "d37b65f6ce307f0d06f34ef46d497061c28bde46d06b277cfe813ad5a57c7885"
+    },
+    {
+      "event_id": 16,
+      "photons": 83786,
+      "sha256": "8860465d66ea14603bf0a8a71e6c877b07dc125c65c9d50b33ac6e8b5848677c"
+    },
+    {
+      "event_id": 17,
+      "photons": 85682,
+      "sha256": "8d870628a865fea6e8e0f4aeaf058c486602565cdc74518ca9c14b240067aeff"
+    },
+    {
+      "event_id": 18,
+      "photons": 83010,
+      "sha256": "a57d672bf6343ec0715339ab74c62d04d73f778d7ed60a382fd7428ec418daff"
+    },
+    {
+      "event_id": 19,
+      "photons": 85871,
+      "sha256": "e03f84655fad4c05ac8cbb1fcd9d3e68ee278ee8edde5a5e725b4ad2dbfa8ff4"
+    },
+    {
+      "event_id": 20,
+      "photons": 85103,
+      "sha256": "3bfa756740084d359f051261051f5981775546858390831fcfb5ed2ae2d72794"
+    },
+    {
+      "event_id": 21,
+      "photons": 85092,
+      "sha256": "ce6feb204cd763218c9352ea2fdb9fa4e1e22e5229f6caab74bd96665306f375"
+    },
+    {
+      "event_id": 22,
+      "photons": 84976,
+      "sha256": "6c3effa4e0b5763bb2f2ec310cc12ff2c13da11c6e6b48201602ce39e8bc232c"
+    },
+    {
+      "event_id": 23,
+      "photons": 84817,
+      "sha256": "2ab2acd0d4963536e9ee0c492690864c087189d18cb74dff598ebe4edf1b7d0d"
+    }
+  ],
+  "evidence_stage": "development",
+  "non_citable": true
+}

@@ -1,0 +1,6 @@
+........................................................................ [ 68%]
+................................s                                        [100%]
+=========================== short test summary info ============================
+SKIPPED [1] src/latent_monitor/tests/test_torch_subject.py:10: could not import 'torch': No module named 'torch'
+SKIPPED [1] src/tidmad_transformer/tests/test_n_injection.py:156: could not import 'h5py': No module named 'h5py'
+104 passed, 2 skipped in 10.83s

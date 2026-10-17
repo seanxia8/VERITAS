@@ -1,0 +1,34 @@
+........................................................................ [ 49%]
+........................................................................ [ 99%]
+.                                                                        [100%]
+=============================== warnings summary ===============================
+src/noise_module/tests/test_phase6_phase8.py:35
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:35: PytestUnknownMarkWarning: Unknown pytest.mark.statistical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.statistical
+
+src/noise_module/tests/test_phase6_phase8.py:55
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:55: PytestUnknownMarkWarning: Unknown pytest.mark.statistical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.statistical
+
+src/noise_module/tests/test_phase6_phase8.py:69
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:69: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+src/noise_module/tests/test_phase6_phase8.py:97
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:97: PytestUnknownMarkWarning: Unknown pytest.mark.statistical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.statistical
+
+src/noise_module/tests/test_phase6_phase8.py:123
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:123: PytestUnknownMarkWarning: Unknown pytest.mark.calibration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.calibration
+
+tests/test_noise_generator.py::test_noise_generator_build_psd_and_metadata_are_consistent
+  /private/tmp/pmt-regression/src/noise_module/tests/test_noise_generator.py:37: DeprecationWarning: build_psd() is deprecated because it returns rFFT-bin power, not a PSD density; use build_psd_density() or build_rfft_power().
+    freqs, psd, psd_meta = generator.build_psd(2048, return_metadata=True)
+
+tests/test_noise_psd_roundtrip.py::test_build_psd_alias_returns_rfft_power_not_density
+  /private/tmp/pmt-regression/src/noise_module/tests/test_noise_psd_roundtrip.py:44: DeprecationWarning: build_psd() is deprecated because it returns rFFT-bin power, not a PSD density; use build_psd_density() or build_rfft_power().
+    freqs_power, rfft_power = generator.build_psd(128)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+145 passed, 7 warnings in 4.35s

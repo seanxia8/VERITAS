@@ -1,0 +1,53 @@
+{
+  "policy": "runbook v2 R-5: checkpoints stay on the host; paths and hashes recorded here",
+  "status": "C1 (A): development evidence",
+  "host_reverification": "pending; done read-only during R-4 under PMT_REMOTE=yes",
+  "path_sources": {
+    "181b747": "root /work/dwong/pmt_lucid_20261016 from results/pmt_lucid_integration_dev_2026-10-16/README.md joined with the receipt's relative paths; inferred, confirm on the host",
+    "56179eb": "results/pmt_multienergy_dev_2026-10-16/execution_scripts/run_final_pilot.sh (cd root + --out evidence/training_01)"
+  },
+  "checkpoints": [
+    {
+      "run": "181b747 LUCiD integration direction pilot",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_10.pt",
+      "sha256": "fd0b1b83c2ea7b825b1adc52a5a1ef763a74cc42f1f701fdbb10eeeb80bd7c20",
+      "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
+    },
+    {
+      "run": "181b747 LUCiD integration direction pilot",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_11.pt",
+      "sha256": "5ab97c9b450b1d225f90cdd73e4c5bdae3099d3f4d1a70af6c3c8e38d7ceebed",
+      "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
+    },
+    {
+      "run": "181b747 LUCiD integration direction pilot",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_12.pt",
+      "sha256": "11a5bce6d23faecb4e38256c13734d6cfded61c0eaa8d51cd2d223d1806187dc",
+      "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
+    },
+    {
+      "run": "56179eb multi-energy pilot",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_20.pt",
+      "sha256": "70d7af4e1c9331bf1ca95e4a98a5c3028dc3954856cd5a62c53cea7e8fc67eed",
+      "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+    },
+    {
+      "run": "56179eb multi-energy pilot",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_21.pt",
+      "sha256": "4dae4639f763750406bf3bb33effaa2a6089be984b7b9196a8024241b51c7d27",
+      "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+    },
+    {
+      "run": "56179eb multi-energy pilot",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_22.pt",
+      "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
+      "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+    }
+  ]
+}

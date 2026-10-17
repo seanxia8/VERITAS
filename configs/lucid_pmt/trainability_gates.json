@@ -1,0 +1,15 @@
+{
+  "source": "runbook v2 §4 R-3",
+  "status": "development",
+  "applies_to": "future runs only; past runs keep their recorded verdicts",
+  "constant_predictor": "pooled training-split mean of the target vector, applied unchanged to every subgroup",
+  "subgroup": "energy_MeV",
+  "vertex_rmse_ratio_max_pooled": 0.8,
+  "vertex_rmse_ratio_max_subgroup": 1.0,
+  "direction_mean_deg_max": 20,
+  "direction_comparison": "strict less-than, pooled and every subgroup",
+  "energy_relative_mae_ratio_max_pooled": 0.8,
+  "energy_subgroup_ratios": "reported, not gated",
+  "energy_endpoint_required": "D-E deposited energy inside the instrumented volume, log(E/1000 MeV) encoded",
+  "energy_endpoint_id_required": "deposited_energy_in_volume"
+}

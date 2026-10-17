@@ -1,0 +1,408 @@
+FFF.F.F................................................................. [ 28%]
+........................................................................ [ 57%]
+........................................................................ [ 86%]
+.................................s                                       [100%]
+=================================== FAILURES ===================================
+_______________ test_fitted_composite_reproduces_total_noise_dat _______________
+
+    def test_fitted_composite_reproduces_total_noise_dat() -> None:
+>       components = load_all_components()
+                     ^^^^^^^^^^^^^^^^^^^^^
+
+/private/tmp/pmt-regression/src/noise_module/tests/test_al2o3_athermal_fit.py:23:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/noise_module/budgets/fit_al2o3_athermal.py:65: in load_all_components
+    return {name: load_asd(fname, data_dir) for name, fname in COMPONENT_FILES.items()}
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/noise_module/budgets/fit_al2o3_athermal.py:60: in load_asd
+    data = np.loadtxt(data_dir / filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1381: in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1011: in _read
+    fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:192: in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <numpy.lib.npyio.DataSource object at 0x10ebc57f0>
+path = '/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/Johnson_noise.dat'
+mode = 'rt', encoding = None, newline = None
+
+    def open(self, path, mode='r', encoding=None, newline=None):
+        """
+        Open and return file-like object.
+
+        If `path` is a URL, it will be downloaded, stored in the
+        `DataSource` directory and opened from there.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Local file path or URL to open.
+        mode : {'r', 'w', 'a'}, optional
+            Mode to open `path`.  Mode 'r' for reading, 'w' for writing,
+            'a' to append. Available modes depend on the type of object
+            specified by `path`. Default is 'r'.
+        encoding : {None, str}, optional
+            Open text file with given encoding. The default encoding will be
+            what `open` uses.
+        newline : {None, str}, optional
+            Newline to use when reading text file.
+
+        Returns
+        -------
+        out : file object
+            File object.
+
+        """
+
+        # TODO: There is no support for opening a file for writing which
+        #       doesn't exist yet (creating a file).  Should there be?
+
+        # TODO: Add a ``subdir`` parameter for specifying the subdirectory
+        #       used to store URLs in self._destpath.
+
+        if self._isurl(path) and self._iswritemode(mode):
+            raise ValueError("URLs are not writeable")
+
+        # NOTE: _findfile will fail on a new file opened for writing.
+        found = self._findfile(path)
+        if found:
+            _fname, ext = self._splitzipext(found)
+            if ext == 'bz2':
+                mode.replace("+", "")
+            return _file_openers[ext](found, mode=mode,
+                                      encoding=encoding, newline=newline)
+        else:
+>           raise FileNotFoundError(f"{path} not found.")
+E           FileNotFoundError: /Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/Johnson_noise.dat not found.
+
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:529: FileNotFoundError
+_________________ test_native_grid_sum_matches_total_noise_dat _________________
+
+    def test_native_grid_sum_matches_total_noise_dat() -> None:
+>       components = load_all_components()
+                     ^^^^^^^^^^^^^^^^^^^^^
+
+/private/tmp/pmt-regression/src/noise_module/tests/test_al2o3_athermal_fit.py:35:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/noise_module/budgets/fit_al2o3_athermal.py:65: in load_all_components
+    return {name: load_asd(fname, data_dir) for name, fname in COMPONENT_FILES.items()}
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/noise_module/budgets/fit_al2o3_athermal.py:60: in load_asd
+    data = np.loadtxt(data_dir / filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1381: in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1011: in _read
+    fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:192: in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <numpy.lib.npyio.DataSource object at 0x10f06b440>
+path = '/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/Johnson_noise.dat'
+mode = 'rt', encoding = None, newline = None
+
+    def open(self, path, mode='r', encoding=None, newline=None):
+        """
+        Open and return file-like object.
+
+        If `path` is a URL, it will be downloaded, stored in the
+        `DataSource` directory and opened from there.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Local file path or URL to open.
+        mode : {'r', 'w', 'a'}, optional
+            Mode to open `path`.  Mode 'r' for reading, 'w' for writing,
+            'a' to append. Available modes depend on the type of object
+            specified by `path`. Default is 'r'.
+        encoding : {None, str}, optional
+            Open text file with given encoding. The default encoding will be
+            what `open` uses.
+        newline : {None, str}, optional
+            Newline to use when reading text file.
+
+        Returns
+        -------
+        out : file object
+            File object.
+
+        """
+
+        # TODO: There is no support for opening a file for writing which
+        #       doesn't exist yet (creating a file).  Should there be?
+
+        # TODO: Add a ``subdir`` parameter for specifying the subdirectory
+        #       used to store URLs in self._destpath.
+
+        if self._isurl(path) and self._iswritemode(mode):
+            raise ValueError("URLs are not writeable")
+
+        # NOTE: _findfile will fail on a new file opened for writing.
+        found = self._findfile(path)
+        if found:
+            _fname, ext = self._splitzipext(found)
+            if ext == 'bz2':
+                mode.replace("+", "")
+            return _file_openers[ext](found, mode=mode,
+                                      encoding=encoding, newline=newline)
+        else:
+>           raise FileNotFoundError(f"{path} not found.")
+E           FileNotFoundError: /Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/Johnson_noise.dat not found.
+
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:529: FileNotFoundError
+__________________ test_psd_artifact_is_finite_on_target_grid __________________
+
+tmp_path = PosixPath('/private/var/folders/mf/cqjfz_8x7tgbhvl955fzybtr0000gn/T/pytest-of-wongdowling/pytest-276/test_psd_artifact_is_finite_on0')
+
+    def test_psd_artifact_is_finite_on_target_grid(tmp_path) -> None:
+>       components = load_all_components()
+                     ^^^^^^^^^^^^^^^^^^^^^
+
+/private/tmp/pmt-regression/src/noise_module/tests/test_al2o3_athermal_fit.py:44:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/noise_module/budgets/fit_al2o3_athermal.py:65: in load_all_components
+    return {name: load_asd(fname, data_dir) for name, fname in COMPONENT_FILES.items()}
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/noise_module/budgets/fit_al2o3_athermal.py:60: in load_asd
+    data = np.loadtxt(data_dir / filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1381: in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1011: in _read
+    fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:192: in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <numpy.lib.npyio.DataSource object at 0x10eff9c10>
+path = '/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/Johnson_noise.dat'
+mode = 'rt', encoding = None, newline = None
+
+    def open(self, path, mode='r', encoding=None, newline=None):
+        """
+        Open and return file-like object.
+
+        If `path` is a URL, it will be downloaded, stored in the
+        `DataSource` directory and opened from there.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Local file path or URL to open.
+        mode : {'r', 'w', 'a'}, optional
+            Mode to open `path`.  Mode 'r' for reading, 'w' for writing,
+            'a' to append. Available modes depend on the type of object
+            specified by `path`. Default is 'r'.
+        encoding : {None, str}, optional
+            Open text file with given encoding. The default encoding will be
+            what `open` uses.
+        newline : {None, str}, optional
+            Newline to use when reading text file.
+
+        Returns
+        -------
+        out : file object
+            File object.
+
+        """
+
+        # TODO: There is no support for opening a file for writing which
+        #       doesn't exist yet (creating a file).  Should there be?
+
+        # TODO: Add a ``subdir`` parameter for specifying the subdirectory
+        #       used to store URLs in self._destpath.
+
+        if self._isurl(path) and self._iswritemode(mode):
+            raise ValueError("URLs are not writeable")
+
+        # NOTE: _findfile will fail on a new file opened for writing.
+        found = self._findfile(path)
+        if found:
+            _fname, ext = self._splitzipext(found)
+            if ext == 'bz2':
+                mode.replace("+", "")
+            return _file_openers[ext](found, mode=mode,
+                                      encoding=encoding, newline=newline)
+        else:
+>           raise FileNotFoundError(f"{path} not found.")
+E           FileNotFoundError: /Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/Johnson_noise.dat not found.
+
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:529: FileNotFoundError
+______________ test_phase5_pulse_fit_reproduces_signal_magnitude _______________
+
+    def test_phase5_pulse_fit_reproduces_signal_magnitude() -> None:
+>       fit = fit_reference_pulse()
+              ^^^^^^^^^^^^^^^^^^^^^
+
+/private/tmp/pmt-regression/src/noise_module/tests/test_al2o3_phases_3_to_6.py:34:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/noise_module/budgets/al2o3_athermal.py:119: in fit_reference_pulse
+    frequency, magnitude = np.loadtxt(signal_file).T
+                           ^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1381: in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1011: in _read
+    fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:192: in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <numpy.lib.npyio.DataSource object at 0x10effaa20>
+path = '/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/signal.dat'
+mode = 'rt', encoding = None, newline = None
+
+    def open(self, path, mode='r', encoding=None, newline=None):
+        """
+        Open and return file-like object.
+
+        If `path` is a URL, it will be downloaded, stored in the
+        `DataSource` directory and opened from there.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Local file path or URL to open.
+        mode : {'r', 'w', 'a'}, optional
+            Mode to open `path`.  Mode 'r' for reading, 'w' for writing,
+            'a' to append. Available modes depend on the type of object
+            specified by `path`. Default is 'r'.
+        encoding : {None, str}, optional
+            Open text file with given encoding. The default encoding will be
+            what `open` uses.
+        newline : {None, str}, optional
+            Newline to use when reading text file.
+
+        Returns
+        -------
+        out : file object
+            File object.
+
+        """
+
+        # TODO: There is no support for opening a file for writing which
+        #       doesn't exist yet (creating a file).  Should there be?
+
+        # TODO: Add a ``subdir`` parameter for specifying the subdirectory
+        #       used to store URLs in self._destpath.
+
+        if self._isurl(path) and self._iswritemode(mode):
+            raise ValueError("URLs are not writeable")
+
+        # NOTE: _findfile will fail on a new file opened for writing.
+        found = self._findfile(path)
+        if found:
+            _fname, ext = self._splitzipext(found)
+            if ext == 'bz2':
+                mode.replace("+", "")
+            return _file_openers[ext](found, mode=mode,
+                                      encoding=encoding, newline=newline)
+        else:
+>           raise FileNotFoundError(f"{path} not found.")
+E           FileNotFoundError: /Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/signal.dat not found.
+
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:529: FileNotFoundError
+____________ test_phase6_optimal_filter_recovers_injected_amplitude ____________
+
+    def test_phase6_optimal_filter_recovers_injected_amplitude() -> None:
+>       optimal_filter = build_optimal_filter(n_samples=16_384)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/private/tmp/pmt-regression/src/noise_module/tests/test_al2o3_phases_3_to_6.py:58:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/noise_module/budgets/al2o3_athermal.py:237: in build_optimal_filter
+    fit = pulse_fit or fit_reference_pulse(t0=pretrigger_fraction * n_samples / sampling_frequency)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/noise_module/budgets/al2o3_athermal.py:119: in fit_reference_pulse
+    frequency, magnitude = np.loadtxt(signal_file).T
+                           ^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1381: in loadtxt
+    arr = _read(fname, dtype=dtype, comment=comment, delimiter=delimiter,
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py:1011: in _read
+    fh = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:192: in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <numpy.lib.npyio.DataSource object at 0x10effb950>
+path = '/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/signal.dat'
+mode = 'rt', encoding = None, newline = None
+
+    def open(self, path, mode='r', encoding=None, newline=None):
+        """
+        Open and return file-like object.
+
+        If `path` is a URL, it will be downloaded, stored in the
+        `DataSource` directory and opened from there.
+
+        Parameters
+        ----------
+        path : str or pathlib.Path
+            Local file path or URL to open.
+        mode : {'r', 'w', 'a'}, optional
+            Mode to open `path`.  Mode 'r' for reading, 'w' for writing,
+            'a' to append. Available modes depend on the type of object
+            specified by `path`. Default is 'r'.
+        encoding : {None, str}, optional
+            Open text file with given encoding. The default encoding will be
+            what `open` uses.
+        newline : {None, str}, optional
+            Newline to use when reading text file.
+
+        Returns
+        -------
+        out : file object
+            File object.
+
+        """
+
+        # TODO: There is no support for opening a file for writing which
+        #       doesn't exist yet (creating a file).  Should there be?
+
+        # TODO: Add a ``subdir`` parameter for specifying the subdirectory
+        #       used to store URLs in self._destpath.
+
+        if self._isurl(path) and self._iswritemode(mode):
+            raise ValueError("URLs are not writeable")
+
+        # NOTE: _findfile will fail on a new file opened for writing.
+        found = self._findfile(path)
+        if found:
+            _fname, ext = self._splitzipext(found)
+            if ext == 'bz2':
+                mode.replace("+", "")
+            return _file_openers[ext](found, mode=mode,
+                                      encoding=encoding, newline=newline)
+        else:
+>           raise FileNotFoundError(f"{path} not found.")
+E           FileNotFoundError: /Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/src/noise_module/data/Al2O3_Al_athermal/signal.dat not found.
+
+../../../../Documents/VERITAS/.venv/lib/python3.12/site-packages/numpy/lib/_datasource.py:529: FileNotFoundError
+=============================== warnings summary ===============================
+test_noise_generator.py::test_noise_generator_build_psd_and_metadata_are_consistent
+  /private/tmp/pmt-regression/src/noise_module/tests/test_noise_generator.py:37: DeprecationWarning: build_psd() is deprecated because it returns rFFT-bin power, not a PSD density; use build_psd_density() or build_rfft_power().
+    freqs, psd, psd_meta = generator.build_psd(2048, return_metadata=True)
+
+test_noise_psd_roundtrip.py::test_build_psd_alias_returns_rfft_power_not_density
+  /private/tmp/pmt-regression/src/noise_module/tests/test_noise_psd_roundtrip.py:44: DeprecationWarning: build_psd() is deprecated because it returns rFFT-bin power, not a PSD density; use build_psd_density() or build_rfft_power().
+    freqs_power, rfft_power = generator.build_psd(128)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] src/latent_monitor/tests/test_torch_subject.py:10: could not import 'torch': No module named 'torch'
+SKIPPED [1] src/tidmad_transformer/tests/test_n_injection.py:156: could not import 'h5py': No module named 'h5py'
+5 failed, 244 passed, 2 skipped, 2 warnings in 15.04s

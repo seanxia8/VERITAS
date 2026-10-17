@@ -1,0 +1,8 @@
+{
+  "verified": true,
+  "checkpoint_sha256": {
+    "evidence/training_01/seed_10.pt": "fd0b1b83c2ea7b825b1adc52a5a1ef763a74cc42f1f701fdbb10eeeb80bd7c20",
+    "evidence/training_01/seed_11.pt": "5ab97c9b450b1d225f90cdd73e4c5bdae3099d3f4d1a70af6c3c8e38d7ceebed",
+    "evidence/training_01/seed_12.pt": "11a5bce6d23faecb4e38256c13734d6cfded61c0eaa8d51cd2d223d1806187dc"
+  }
+}

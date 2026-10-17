@@ -1,0 +1,100 @@
+{
+  "walk": {
+    "form": "inverse_sqrt",
+    "a_ns": 0.0,
+    "b_ns": 2.0,
+    "q_sat_pe": 50.0,
+    "domain_pe": [
+      0.25,
+      1000.0
+    ]
+  },
+  "acceptance": "conditional mean within 3 sigma_MC at 0.25, 1, 2, 5, 20 PE (runbook v2 R-2)",
+  "passed": true,
+  "rows": [
+    {
+      "q_pe": 0.25,
+      "n_digits": 20000,
+      "configured_walk_ns": 4.0,
+      "measured_mean_ns": 3.973623528922607,
+      "sigma_mc_ns": 0.017677669529663688,
+      "z": -1.4920785250076374,
+      "within_3_sigma_mc": true,
+      "slope_x1_2_shift_ns": 0.7999999999999998,
+      "slope_x0_8_shift_ns": -0.7999999999999998,
+      "expected_slope_shift_ns": 0.8,
+      "charge_membership_preserved": true,
+      "digits_before_arrival_fraction": 0.058,
+      "expected_before_arrival_fraction": 0.054799291699557974
+    },
+    {
+      "q_pe": 1,
+      "n_digits": 20000,
+      "configured_walk_ns": 2.0,
+      "measured_mean_ns": 1.9960302743702916,
+      "sigma_mc_ns": 0.010606601717798212,
+      "z": -0.37426932162891596,
+      "within_3_sigma_mc": true,
+      "slope_x1_2_shift_ns": 0.3999999999999999,
+      "slope_x0_8_shift_ns": -0.3999999999999999,
+      "expected_slope_shift_ns": 0.4,
+      "charge_membership_preserved": true,
+      "digits_before_arrival_fraction": 0.09015,
+      "expected_before_arrival_fraction": 0.09121121972586788
+    },
+    {
+      "q_pe": 2,
+      "n_digits": 20000,
+      "configured_walk_ns": 1.414213562373095,
+      "measured_mean_ns": 1.4141718427216559,
+      "sigma_mc_ns": 0.009369164850721754,
+      "z": -0.004452867689253124,
+      "within_3_sigma_mc": true,
+      "slope_x1_2_shift_ns": 0.28284271247461895,
+      "slope_x0_8_shift_ns": -0.28284271247461895,
+      "expected_slope_shift_ns": 0.282842712474619,
+      "charge_membership_preserved": true,
+      "digits_before_arrival_fraction": 0.1417,
+      "expected_before_arrival_fraction": 0.1429111993035725
+    },
+    {
+      "q_pe": 5,
+      "n_digits": 20000,
+      "configured_walk_ns": 0.8944271909999159,
+      "measured_mean_ns": 0.899433155896216,
+      "sigma_mc_ns": 0.00565685424949238,
+      "z": 0.8849379311389066,
+      "within_3_sigma_mc": true,
+      "slope_x1_2_shift_ns": 0.17888543819998304,
+      "slope_x0_8_shift_ns": -0.17888543819998312,
+      "expected_slope_shift_ns": 0.17888543819998318,
+      "charge_membership_preserved": true,
+      "digits_before_arrival_fraction": 0.12795,
+      "expected_before_arrival_fraction": 0.1317762386414864
+    },
+    {
+      "q_pe": 20,
+      "n_digits": 20000,
+      "configured_walk_ns": 0.4472135954999579,
+      "measured_mean_ns": 0.4417362100999783,
+      "sigma_mc_ns": 0.005624874545820627,
+      "z": -0.9737791226027241,
+      "within_3_sigma_mc": true,
+      "slope_x1_2_shift_ns": 0.08944271909999155,
+      "slope_x0_8_shift_ns": -0.08944271909999156,
+      "expected_slope_shift_ns": 0.08944271909999159,
+      "charge_membership_preserved": true,
+      "digits_before_arrival_fraction": 0.2886,
+      "expected_before_arrival_fraction": 0.2869915042165557
+    }
+  ],
+  "response_manifest": {
+    "path": "/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/configs/lucid_pmt/reference.json",
+    "schema": "pmt-response-v2",
+    "status": "synthetic_dev",
+    "sha256": "522f556c59ec75f86918d6181d392eb389a6826c5984e23949db981cd1a318e2"
+  },
+  "evidence_stage": "development",
+  "non_citable": true,
+  "status": "synthetic_dev"
+}

@@ -1,0 +1,62 @@
+500 0 83707 1937272
+500 1 85360 3783895
+500 2 85673 5759688
+500 3 83970 7623520
+500 4 85604 9636986
+500 5 81841 11581471
+500 6 84455 13477474
+500 7 84418 15445451
+500 8 86617 17273000
+500 9 85610 19201448
+500 10 85125 21156314
+500 11 85491 23020765
+500 12 84850 25108737
+500 13 84848 26944792
+500 14 86856 28918182
+500 15 86404 30945331
+500 16 83786 32827437
+500 17 85682 34839375
+500 18 83010 36867285
+500 19 85871 38734213
+500 20 85103 40729125
+500 21 85092 42636818
+500 22 84976 44543921
+500 23 84817 46475970
+1000 0 202313 63452911
+1000 1 202151 80490335
+1000 2 202608 97513826
+1000 3 203077 114605030
+1000 4 202347 131631452
+1000 5 201853 148691035
+1000 6 203785 165746284
+1000 7 201793 182647355
+1000 8 203439 199611602
+1000 9 203488 216587397
+1000 10 201889 233561541
+1000 11 207573 250727406
+1000 12 197797 265073869
+1000 13 201747 287627948
+1000 14 202334 308210126
+1000 15 200207 328816167
+1000 16 201716 349479468
+1000 17 204819 377865065
+1000 18 203334 398766100
+1000 19 199942 416748205
+1000 20 202554 437510236
+1000 21 203701 465815902
+Traceback (most recent call last):
+  File "/work/dwong/pmt_multienergy_20261016/code/noise_module_lucid/multienergy_source.py", line 72, in <module>
+    extract(**vars(p.parse_args()))
+  File "/work/dwong/pmt_multienergy_20261016/code/noise_module_lucid/multienergy_source.py", line 52, in extract
+    a=raw.arrays([f'Photon{q}{k}' for q in ('Pos','Dir') for k in 'XYZ']+['PhotonTime','PhotonWavelength'],entry_start=int(chunk),entry_stop=int(chunk)+1,library='np')
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 888, in arrays
+    _ranges_or_baskets_to_arrays(
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/uproot/behaviors/TBranch.py", line 3180, in _ranges_or_baskets_to_arrays
+    obj = notifications.get()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/queue.py", line 171, in get
+    self.not_empty.wait()
+  File "/home/dwong/anaconda3/lib/python3.12/threading.py", line 355, in wait
+    waiter.acquire()
+KeyboardInterrupt

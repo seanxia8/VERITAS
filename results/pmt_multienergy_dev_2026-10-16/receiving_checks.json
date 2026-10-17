@@ -1,0 +1,35 @@
+{
+  "runtime_code_config_match": true,
+  "verified_non_source_appledouble_sidecars": 45,
+  "dataset_and_checkpoint_hashes_match": true,
+  "independent_metric_checks": [
+    {
+      "seed": 20,
+      "independent_metrics": {
+        "direction_mean_deg": 7.4121357197072655,
+        "vertex_rmse_m": 0.2927374743534599,
+        "energy_relative_mae": 0.41755565567261715
+      },
+      "matches": true
+    },
+    {
+      "seed": 21,
+      "independent_metrics": {
+        "direction_mean_deg": 7.188849638300866,
+        "vertex_rmse_m": 0.2684878937749208,
+        "energy_relative_mae": 0.39033082069504604
+      },
+      "matches": true
+    },
+    {
+      "seed": 22,
+      "independent_metrics": {
+        "direction_mean_deg": 8.498611245632082,
+        "vertex_rmse_m": 0.325898901055744,
+        "energy_relative_mae": 0.4120000507006169
+      },
+      "matches": true
+    }
+  ],
+  "primary_claims_evaluated": false
+}

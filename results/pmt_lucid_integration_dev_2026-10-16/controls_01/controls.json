@@ -1,0 +1,223 @@
+{
+  "passed": true,
+  "events": [
+    {
+      "physical_event_id": 0,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 1,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 2,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 3,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 4,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 5,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 6,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 7,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 8,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 9,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 10,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 11,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 12,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 13,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 14,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 15,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 16,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 17,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 18,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 19,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 20,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 21,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 22,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    },
+    {
+      "physical_event_id": 23,
+      "exact_product_equal": true,
+      "identity_equal": true,
+      "fixed_tq_membership_equal": true,
+      "fixed_tq_charge_equal": true,
+      "fixed_tq_time_plus_1ns": true,
+      "photon_order_equal": true
+    }
+  ],
+  "evidence_stage": "development",
+  "non_citable": true
+}

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/work/dwong/pmt_multienergy_20261016/evidence/diagnose_multienergy.py", line 6, in <module>
+    from noise_module_lucid.lucid_transport import PromptTransport
+  File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/lucid_transport.py", line 75
+    transport_precision='float64; normalized directions', max_candidates_per_ray=16,
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: keyword argument repeated: max_candidates_per_ray

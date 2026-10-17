@@ -1,0 +1,55 @@
+{
+  "retrieved_date": "2026-10-16",
+  "issue5": "https://github.com/seanxia8/VERITAS/issues/5",
+  "comments": [
+    {
+      "id": 6132747205,
+      "author": "dowlingwong",
+      "role": "historical implementation"
+    },
+    {
+      "id": 6133100584,
+      "author": "seanxia8",
+      "role": "research-use clarification"
+    },
+    {
+      "id": 6134579713,
+      "author": "seanxia8",
+      "role": "current PMT correction specification"
+    },
+    {
+      "id": 6134794683,
+      "author": "seanxia8",
+      "role": "thesis source pointer"
+    }
+  ],
+  "new_scientific_clarifications": false,
+  "issue4_comment_ids": [
+    6083553525
+  ],
+  "final_live_check": {
+    "retrieved_at": "2026-10-16 14:56:11 UTC",
+    "comments": [
+      {
+        "id": 6132747205,
+        "author": "dowlingwong",
+        "url": "https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6132747205"
+      },
+      {
+        "id": 6133100584,
+        "author": "seanxia8",
+        "url": "https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6133100584"
+      },
+      {
+        "id": 6134579713,
+        "author": "seanxia8",
+        "url": "https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6134579713"
+      },
+      {
+        "id": 6134794683,
+        "author": "seanxia8",
+        "url": "https://github.com/seanxia8/VERITAS/issues/5#issuecomment-6134794683"
+      }
+    ]
+  }
+}

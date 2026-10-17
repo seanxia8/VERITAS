@@ -1,0 +1,27 @@
+/home/dwong/anaconda3/lib/python3.12/site-packages/jax/_src/ops/scatter.py:96: FutureWarning: scatter inputs have incompatible types: cannot safely cast value from dtype=int64 to dtype=int32 with jax_numpy_dtype_promotion='standard'. In future JAX releases this will result in an error.
+  warnings.warn(
+physical_event 0 samples 16
+physical_event 1 samples 32
+physical_event 2 samples 48
+physical_event 3 samples 64
+physical_event 4 samples 80
+physical_event 5 samples 96
+physical_event 6 samples 112
+physical_event 7 samples 128
+physical_event 8 samples 144
+physical_event 9 samples 160
+physical_event 10 samples 176
+physical_event 11 samples 192
+physical_event 12 samples 208
+physical_event 13 samples 224
+physical_event 14 samples 240
+physical_event 15 samples 256
+physical_event 16 samples 272
+physical_event 17 samples 288
+physical_event 18 samples 304
+physical_event 19 samples 320
+physical_event 20 samples 336
+physical_event 21 samples 352
+physical_event 22 samples 368
+physical_event 23 samples 384
+{"passed": true, "cone": {"n": 1576360, "median_abs_error_deg": 0.4593585996127594, "p95_abs_error_deg": 2.359195900861652, "interpretation": "constant-index approximation versus PhotonSim local segment emission; supporting only"}, "elapsed_seconds": 304.2893952894956}

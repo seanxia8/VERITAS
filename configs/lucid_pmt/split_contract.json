@@ -1,0 +1,34 @@
+{
+  "schema": "pmt-splits-draft-v1",
+  "status": "unfrozen",
+  "unit": "physical_event_group_including_all_twins",
+  "roles": {
+    "reference_fit": {
+      "fraction": 0.3,
+      "subsets": [
+        "subject_training",
+        "response_calibration",
+        "monitor_reference"
+      ]
+    },
+    "attribution_train": {
+      "fraction": 0.2
+    },
+    "development": {
+      "fraction": 0.15
+    },
+    "calibration": {
+      "fraction": 0.15
+    },
+    "evaluation": {
+      "fraction": 0.2
+    }
+  },
+  "event_counts": null,
+  "held_out_families": null,
+  "held_out_severities": null,
+  "held_out_groups": null,
+  "perturbation_seeds": null,
+  "pending": "author-reviewed precision and physical-support design",
+  "training_authorized": false
+}

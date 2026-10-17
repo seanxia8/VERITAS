@@ -1,0 +1,36 @@
+{
+  "retrieved_date": "2026-10-16",
+  "upstream_commit": "eaf2e89f579d6679e90020c732ac2c846895d691",
+  "files": [
+    {
+      "path": "lucid/simulation/simulator.py",
+      "url": "https://github.com/CIDeR-ML/LUCiD/blob/eaf2e89/lucid/simulation/simulator.py",
+      "sha256": "aebe0371204b305a695e654259a4875cceaabfbdfb1d3155b3d9838445ec7af3",
+      "lines": 1111
+    },
+    {
+      "path": "lucid/simulation/sensor_response.py",
+      "url": "https://github.com/CIDeR-ML/LUCiD/blob/eaf2e89/lucid/simulation/sensor_response.py",
+      "sha256": "e334e8b9947a5eaada0e2c61de48c247b7f1467105ad709cd97fad681530a0c3",
+      "lines": 615
+    },
+    {
+      "path": "lucid/simulation/digitizer.py",
+      "url": "https://github.com/CIDeR-ML/LUCiD/blob/eaf2e89/lucid/simulation/digitizer.py",
+      "sha256": "93e0450ebc4d7cb9bf99783b5211591e41d296e5bda45fd854571ae87a55a53c",
+      "lines": 635
+    },
+    {
+      "path": "lucid/simulation/photon_step.py",
+      "url": "https://github.com/CIDeR-ML/LUCiD/blob/eaf2e89/lucid/simulation/photon_step.py",
+      "sha256": "7bd42862f5b325aa3cebda331219a885153b17931899ac9e937322391e654f0d",
+      "lines": 344
+    },
+    {
+      "path": "lucid/simulation/types.py",
+      "url": "https://github.com/CIDeR-ML/LUCiD/blob/eaf2e89/lucid/simulation/types.py",
+      "sha256": "c9ee9e02a49f53eda5cc1e7988ff6896b8dae9a3f687c71a6b2f6895a082c827",
+      "lines": 69
+    }
+  ]
+}

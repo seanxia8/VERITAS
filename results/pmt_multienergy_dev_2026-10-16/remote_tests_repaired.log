@@ -1,0 +1,57 @@
+
+==================================== ERRORS ====================================
+_ ERROR collecting code/src/noise_module_lucid/tests/test_lucid_integration.py _
+/home/dwong/anaconda3/lib/python3.12/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+/home/dwong/anaconda3/lib/python3.12/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/home/dwong/anaconda3/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+/home/dwong/anaconda3/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+../pmt_lucid_20261016/code/src/noise_module_lucid/tests/test_lucid_integration.py:4: in <module>
+    from noise_module_lucid.lucid_integration import analytic_first
+code/src/noise_module_lucid/lucid_integration.py:12: in <module>
+    from .lucid_transport import PromptTransport
+E     File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/lucid_transport.py", line 75
+E       transport_precision='float64; normalized directions', max_candidates_per_ray=16,
+E                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   SyntaxError: keyword argument repeated: max_candidates_per_ray
+____ ERROR collecting code/src/noise_module_lucid/tests/test_multienergy.py ____
+/home/dwong/anaconda3/lib/python3.12/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+/home/dwong/anaconda3/lib/python3.12/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/home/dwong/anaconda3/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+/home/dwong/anaconda3/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+code/src/noise_module_lucid/tests/test_multienergy.py:3: in <module>
+    from noise_module_lucid.multienergy_data import transform_event,inside_cylinder
+code/src/noise_module_lucid/multienergy_data.py:8: in <module>
+    from .lucid_transport import PromptTransport
+E     File "/work/dwong/pmt_multienergy_20261016/code/src/noise_module_lucid/lucid_transport.py", line 75
+E       transport_precision='float64; normalized directions', max_candidates_per_ray=16,
+E                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   SyntaxError: keyword argument repeated: max_candidates_per_ray
+=========================== short test summary info ============================
+ERROR code/src/noise_module_lucid/tests/test_lucid_integration.py
+ERROR code/src/noise_module_lucid/tests/test_multienergy.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 errors in 1.17s

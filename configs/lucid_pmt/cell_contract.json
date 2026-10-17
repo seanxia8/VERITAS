@@ -1,0 +1,35 @@
+{
+  "schema": "pmt-cells-draft-v1",
+  "status": "unfrozen",
+  "candidate_N": [
+    "qe_shape",
+    "fixed_tq",
+    "timing_width",
+    "group_response"
+  ],
+  "supporting": [
+    "gain_drift",
+    "timing_drift",
+    "module_loss"
+  ],
+  "controls": [
+    "identity",
+    "exact_QE_CE_product",
+    "charge_matched_not_exact"
+  ],
+  "candidate_S": [
+    "valid_rare_position",
+    "valid_rare_direction",
+    "valid_rare_energy"
+  ],
+  "excluded": [
+    "front_end_electronics",
+    "simulation_model_changes",
+    "latent_wavelength_origin_labels"
+  ],
+  "claim_grid": null,
+  "kappa_m": {
+    "value": 1.1,
+    "status": "provisional_dev"
+  }
+}

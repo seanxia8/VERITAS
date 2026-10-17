@@ -1,0 +1,170 @@
+[
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/regression_first_copy_attempt.log",
+    "before_sha256": "081fee9ff97e4b3c60e864583d86fb726324b1597d1fe8d7a07e8d63af9613d8",
+    "after_sha256": "993430d146040a275d26d1eefb927cf96177515e2f31699736c0ea6804973c2c",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/identity/truth.csv",
+    "before_sha256": "94d0f86111940f2cb06eea45294745802912104522337755c7354b88edd43c44",
+    "after_sha256": "13005f3e40ebd1566ed51f4959153d2a4c05d46a8752be16a6d42296c192451a",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/timing_width/truth.csv",
+    "before_sha256": "c1708943da35320af01f9d1e6d981f96f8e10181e1268c74e3c50a2d862ecd3a",
+    "after_sha256": "735561a7cf9899a49865e437825399da31337ab81617af4749b9a424c169819d",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/qe_shape/truth.csv",
+    "before_sha256": "9e77bf594cca8f4e9c75fe01790a24793d5a2a20e358ec576f7d91d290267144",
+    "after_sha256": "f6a1803bc4dfe925be4f79d00cb62dca71b02006c7de14abd2053aca5160fafc",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/group_width/truth.csv",
+    "before_sha256": "bcb80accf3db71b5e6c69a0b7e06fa2a547e20166cf451ac5abc4d352cf2c10f",
+    "after_sha256": "60cf47af7aca85f910c67c25e9db9a3c41b84ef588f00840e3d13ddaf477e692",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/group_coupled/truth.csv",
+    "before_sha256": "7f61b15829ca474f39df8f0322b1fb190db369b2f784117c0e6685e99bf7abd2",
+    "after_sha256": "aeee37b2890c2eb99e8776121a88252a4b52074caa3e656d9a9f3e7560fa56af",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/fixed_tq/truth.csv",
+    "before_sha256": "e963feb2e28b239b7dbe52e6e7db4eb8286fa64bfd03e83d98515f12ad5df2c8",
+    "after_sha256": "6f9fd097018da1354c69f16a60897c9663e745dbbfb3bb4cf7179fab0b1330a1",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/group_gain/truth.csv",
+    "before_sha256": "7fcabb4d5ac08878dbe877e1d84679aef7cb0a8f33fad5622660cd14b1551b6d",
+    "after_sha256": "5771f155ebb0d3c318800a2d772e98b9ee45bdfcf197160bd8b3a3e4ddc201a1",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/matrix/reference/truth.csv",
+    "before_sha256": "837cbbca2dcc2238182c3cc643f1ad39345ed36562beb553eed069017021b736",
+    "after_sha256": "2aa898ae2f4b4a588e4fd4837ed7f65820228004fe0e8b0b048bf7b52b23104f",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_05/closure/reference/truth.csv",
+    "before_sha256": "2666d587e1379d2a7621a154b437bd2d9ac8c69a3724fa6da9da6fd96286d09d",
+    "after_sha256": "789ea72860541ad63c6eb2ae5ce8b259df1b99587f9cacd99ad3be03a2f513da",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/identity/truth.csv",
+    "before_sha256": "94d0f86111940f2cb06eea45294745802912104522337755c7354b88edd43c44",
+    "after_sha256": "13005f3e40ebd1566ed51f4959153d2a4c05d46a8752be16a6d42296c192451a",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/timing_width/truth.csv",
+    "before_sha256": "c1708943da35320af01f9d1e6d981f96f8e10181e1268c74e3c50a2d862ecd3a",
+    "after_sha256": "735561a7cf9899a49865e437825399da31337ab81617af4749b9a424c169819d",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/qe_shape/truth.csv",
+    "before_sha256": "9e77bf594cca8f4e9c75fe01790a24793d5a2a20e358ec576f7d91d290267144",
+    "after_sha256": "f6a1803bc4dfe925be4f79d00cb62dca71b02006c7de14abd2053aca5160fafc",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/group_width/truth.csv",
+    "before_sha256": "bcb80accf3db71b5e6c69a0b7e06fa2a547e20166cf451ac5abc4d352cf2c10f",
+    "after_sha256": "60cf47af7aca85f910c67c25e9db9a3c41b84ef588f00840e3d13ddaf477e692",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/group_coupled/truth.csv",
+    "before_sha256": "7f61b15829ca474f39df8f0322b1fb190db369b2f784117c0e6685e99bf7abd2",
+    "after_sha256": "aeee37b2890c2eb99e8776121a88252a4b52074caa3e656d9a9f3e7560fa56af",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/fixed_tq/truth.csv",
+    "before_sha256": "e963feb2e28b239b7dbe52e6e7db4eb8286fa64bfd03e83d98515f12ad5df2c8",
+    "after_sha256": "6f9fd097018da1354c69f16a60897c9663e745dbbfb3bb4cf7179fab0b1330a1",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/group_gain/truth.csv",
+    "before_sha256": "7fcabb4d5ac08878dbe877e1d84679aef7cb0a8f33fad5622660cd14b1551b6d",
+    "after_sha256": "5771f155ebb0d3c318800a2d772e98b9ee45bdfcf197160bd8b3a3e4ddc201a1",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/matrix/reference/truth.csv",
+    "before_sha256": "837cbbca2dcc2238182c3cc643f1ad39345ed36562beb553eed069017021b736",
+    "after_sha256": "2aa898ae2f4b4a588e4fd4837ed7f65820228004fe0e8b0b048bf7b52b23104f",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_04/closure/reference/truth.csv",
+    "before_sha256": "2666d587e1379d2a7621a154b437bd2d9ac8c69a3724fa6da9da6fd96286d09d",
+    "after_sha256": "789ea72860541ad63c6eb2ae5ce8b259df1b99587f9cacd99ad3be03a2f513da",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/identity/truth.csv",
+    "before_sha256": "94d0f86111940f2cb06eea45294745802912104522337755c7354b88edd43c44",
+    "after_sha256": "13005f3e40ebd1566ed51f4959153d2a4c05d46a8752be16a6d42296c192451a",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/timing_width/truth.csv",
+    "before_sha256": "c1708943da35320af01f9d1e6d981f96f8e10181e1268c74e3c50a2d862ecd3a",
+    "after_sha256": "735561a7cf9899a49865e437825399da31337ab81617af4749b9a424c169819d",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/qe_shape/truth.csv",
+    "before_sha256": "9e77bf594cca8f4e9c75fe01790a24793d5a2a20e358ec576f7d91d290267144",
+    "after_sha256": "f6a1803bc4dfe925be4f79d00cb62dca71b02006c7de14abd2053aca5160fafc",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/group_width/truth.csv",
+    "before_sha256": "bcb80accf3db71b5e6c69a0b7e06fa2a547e20166cf451ac5abc4d352cf2c10f",
+    "after_sha256": "60cf47af7aca85f910c67c25e9db9a3c41b84ef588f00840e3d13ddaf477e692",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/group_coupled/truth.csv",
+    "before_sha256": "7f61b15829ca474f39df8f0322b1fb190db369b2f784117c0e6685e99bf7abd2",
+    "after_sha256": "aeee37b2890c2eb99e8776121a88252a4b52074caa3e656d9a9f3e7560fa56af",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/fixed_tq/truth.csv",
+    "before_sha256": "e963feb2e28b239b7dbe52e6e7db4eb8286fa64bfd03e83d98515f12ad5df2c8",
+    "after_sha256": "6f9fd097018da1354c69f16a60897c9663e745dbbfb3bb4cf7179fab0b1330a1",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/group_gain/truth.csv",
+    "before_sha256": "7fcabb4d5ac08878dbe877e1d84679aef7cb0a8f33fad5622660cd14b1551b6d",
+    "after_sha256": "5771f155ebb0d3c318800a2d772e98b9ee45bdfcf197160bd8b3a3e4ddc201a1",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/matrix/reference/truth.csv",
+    "before_sha256": "837cbbca2dcc2238182c3cc643f1ad39345ed36562beb553eed069017021b736",
+    "after_sha256": "2aa898ae2f4b4a588e4fd4837ed7f65820228004fe0e8b0b048bf7b52b23104f",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  },
+  {
+    "path": "results/pmt_dev_2026-10-16_wp0_wp5/prompt_run_03/closure/reference/truth.csv",
+    "before_sha256": "2666d587e1379d2a7621a154b437bd2d9ac8c69a3724fa6da9da6fd96286d09d",
+    "after_sha256": "789ea72860541ad63c6eb2ae5ce8b259df1b99587f9cacd99ad3be03a2f513da",
+    "change": "CRLF to LF and trailing whitespace only; CSV parsed rows identical"
+  }
+]

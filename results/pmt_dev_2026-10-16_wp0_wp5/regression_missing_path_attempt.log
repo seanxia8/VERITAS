@@ -1,0 +1,36 @@
+
+==================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_qp_simulator.py __________________
+ImportError while importing test module '/private/tmp/pmt-regression/src/noise_module/tests/test_qp_simulator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/local/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/noise_module/tests/test_qp_simulator.py:11: in <module>
+    from qp_simulator import QPSimulator
+E   ModuleNotFoundError: No module named 'qp_simulator'
+=============================== warnings summary ===============================
+src/noise_module/tests/test_phase6_phase8.py:35
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:35: PytestUnknownMarkWarning: Unknown pytest.mark.statistical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.statistical
+
+src/noise_module/tests/test_phase6_phase8.py:55
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:55: PytestUnknownMarkWarning: Unknown pytest.mark.statistical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.statistical
+
+src/noise_module/tests/test_phase6_phase8.py:69
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:69: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+src/noise_module/tests/test_phase6_phase8.py:97
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:97: PytestUnknownMarkWarning: Unknown pytest.mark.statistical - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.statistical
+
+src/noise_module/tests/test_phase6_phase8.py:123
+  /private/tmp/pmt-regression/src/noise_module/tests/test_phase6_phase8.py:123: PytestUnknownMarkWarning: Unknown pytest.mark.calibration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.calibration
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+5 warnings, 1 error in 0.25s

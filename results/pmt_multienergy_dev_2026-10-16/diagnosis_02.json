@@ -1,0 +1,37 @@
+[
+  {
+    "candidate_limit": 16,
+    "agreement": 0.99609375,
+    "mismatches": [
+      {
+        "sample": 253,
+        "expected": 1672,
+        "observed": 1689,
+        "candidates": [
+          1680,
+          1679,
+          1678,
+          1687,
+          1681,
+          1688,
+          1686,
+          1677,
+          420,
+          1690,
+          421,
+          1682,
+          1689,
+          419,
+          1685,
+          422
+        ],
+        "expected_in_candidates": false
+      }
+    ]
+  },
+  {
+    "candidate_limit": 64,
+    "agreement": 1.0,
+    "mismatches": []
+  }
+]

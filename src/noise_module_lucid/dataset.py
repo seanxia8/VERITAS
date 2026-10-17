@@ -196,8 +196,8 @@ def run_cell(cell: CellSpec, events_pe: Sequence[tuple[EventSpec, np.ndarray]],
         "implied_covariance": implied,
         "kappa_floor_mean": float(np.mean(floors)) if floors else None,
         "lucid_commit": lucid_commit_hash,
-        "release": {"gate_A0_lucid_licence": "open",
-                    "releasable": bool(ro.calibrated) and lucid_commit_hash is not None},
+        "release": {"research_use": "clarified_issue_6133100584", "redistribution": "not_approved",
+                    "releasable": False, "evidence_stage": "development", "non_citable": True},
         "extra": _jsonable(extra_provenance) if extra_provenance else {},
     }
     paths = write_cell(out, cell.label, rows, traces_arr, prov) if out is not None else {}
@@ -359,6 +359,8 @@ class ResponseCellSpec:
     params: Any                         # readout.ReadoutParams
     origin: str = "N_struct"            # "clean" for the reference
     affected_groups: tuple[int, ...] = ()
+    changed_fields: tuple[str, ...] = ()
+    causal_control: str | None = None
 
 
 def response_cells(n_channels: int, *, group_size: int = 64, group_method: str = "contiguous",
@@ -415,13 +417,13 @@ def response_cells(n_channels: int, *, group_size: int = 64, group_method: str =
 
 def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any], positions: np.ndarray,
                         out: Path | None = None, *, fit_config: Any = None, source: str = "toy", n_boot: int = 500,
-                        lucid_commit_hash: str | None = None) -> dict[str, Any]:
+                        lucid_commit_hash: str | None = None, calibration: Any = None) -> dict[str, Any]:
     """Run every response cell over the same events; return per-cell K and digit summaries.
 
     ``events`` need ``event_id``, ``vertex``, ``photon_sensor``, ``photon_time``
     and ``true_energy`` (``toy.ToyEvent`` or an adapter around LUCiD output).
     K has two endpoints (``consequence``): vertex error and relative energy
-    error, the energy scale calibrated on the reference cell only; the draft
+    error, with a frozen calibration from separate reference-fit events; the draft
     primary is ``K = max(K_vertex, K_energy)`` (D-K). The readout seed is
     the event id, so every cell is paired with the reference event by event.
     With ``out``, each cell is written as ``<cell>/digits.npz`` (ragged arrays
@@ -438,9 +440,19 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
     errors: dict[str, list[float]] = {}
     e_errors: dict[str, list[float]] = {}
     e_errors_dc: dict[str, list[float]] = {}
-    calib: float | None = None
+    from .calibration import event_digits
+    from .consequence import aggregate_endpoints
+    from .group_response import validate_cell
+    if calibration is None:
+        raise ValueError("frozen calibration from separate reference-fit events required")
+    calibration.validate_evaluation(events, pos, cells[0].params, fit_config)
+    if any(getattr(ev, "endpoint_kind", None) != "point_source" for ev in events):
+        raise ValueError("point-source endpoint cannot score tracks")
+    for cell in cells:
+        validate_cell(cell, cells[0].params)
+    calib = calibration.energy_scale
     ref_label = cells[0].label
-    summary: dict[str, Any] = {"source": source, "non_citable": source != "lucid", "n_events": len(events),
+    summary: dict[str, Any] = {"source": source, "non_citable": True, "source_kind": source, "evidence_stage": "development", "physics_review_status": "pending", "protocol_freeze_id": None, "calibration_sha256": calibration.sha256, "n_events": len(events),
                                "kappa_m": {"value": KAPPA_M_DEV, "status": KAPPA_M_STATUS,
                                            "units": "ratio of mean error to the reference on the same events",
                                            "primary": "K = max(K_vertex, K_energy) (draft, D-K)"},
@@ -449,12 +461,9 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
         errs, rows, sens, chg, tim, offs, qtot = [], [], [], [], [], [0], []
         digits = []
         for ev in events:
-            d = readout_chain(ev.photon_sensor, ev.photon_time, n_channels, cell.params, seed=int(ev.event_id))
+            d = event_digits(ev, n_channels, cell.params)
             digits.append(d)
             qtot.append(float(d.charge.sum()))
-        if cell is cells[0]:
-            calib = energy_calibration(qtot, [ev.true_energy for ev in events])
-            ref_digits = digits
         eerr = [energy_error(q, ev.true_energy, calib) for q, ev in zip(qtot, events)]
         e_errors[cell.label] = eerr
         # known-dead-map correction (D-K item 17(c)): scale Q by the reference charge share of the
@@ -462,10 +471,8 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
         dead = np.asarray(cell.params.dead_channels, dtype=int)
         alive_share = 1.0
         if dead.size:
-            ref_frac = [1.0 - float(np.sum(np.isin(dd.sensor, dead) * dd.charge)) / max(float(dd.charge.sum()), 1e-12)
-                        for dd in ref_digits]
-            alive_share = float(np.mean(ref_frac))
-        eerr_dc = [energy_error(q / alive_share, ev.true_energy, calib) for q, ev in zip(qtot, events)]
+            alive_share = 1.0 - float(np.asarray(calibration.channel_share)[dead].sum())
+        eerr_dc = [energy_error(q / alive_share, ev.true_energy, calib) if alive_share > 0 else float("nan") for q, ev in zip(qtot, events)]
         e_errors_dc[cell.label] = eerr_dc
         for ev, d, ee, eedc in zip(events, digits, eerr, eerr_dc):
             f = fit_vertex(pos, d.sensor, d.time, d.charge, fit_config)
@@ -482,13 +489,18 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
         kv = cell_consequence(errs, errors[ref_label], n_boot=n_boot)
         ke = cell_consequence(eerr, e_errors[ref_label], n_boot=n_boot)
         kedc = cell_consequence(eerr_dc, e_errors_dc[ref_label], n_boot=n_boot)
-        K = float(np.nanmax([kv["K"], ke["K"]])) if np.isfinite([kv["K"], ke["K"]]).any() else float("nan")
+        K = aggregate_endpoints(kv["K"], ke["K"])
         entry = {"label": cell.label, "family": cell.family, "origin": cell.origin, "severity": cell.severity,
                  "moved": cell.params.moved_from(cells[0].params), "affected_groups": list(cell.affected_groups),
+                 "causal_control": cell.causal_control, "changed_fields": list(cell.changed_fields),
                  "K": K, "K_vertex": kv, "K_energy": ke, "K_energy_deadcorr": kedc,
-                 "K_deadcorr": float(np.nanmax([kv["K"], kedc["K"]])),
+                 "K_deadcorr": aggregate_endpoints(kv["K"], kedc["K"]),
                  "harmful_dev": (bool(K >= KAPPA_M_DEV) if np.isfinite(K) else None),
                  "mean_digits": float(np.mean([r["n_digits"] for r in rows])),
+                 # D-J: Gaussian-jitter digits earlier than photon arrival; D-Q: clamped overflow.
+                 "digits_before_arrival_fraction": (float(sum(r.get("n_digits_before_arrival", 0) for r in rows) / n_dig)
+                                                    if (n_dig := sum(r["n_digits"] for r in rows)) else float("nan")),
+                 "overflow_clamped": int(sum(r.get("n_overflow_clamped", 0) for r in rows)),
                  "energy_calibration": calib}
         k = {"K": K, "vertex": kv, "energy": ke}
         summary["cells"].append(entry)
@@ -499,10 +511,11 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
                                 time=np.concatenate(tim), offsets=np.asarray(offs))
             prov = {"cell": cell.label, "family": cell.family, "origin": cell.origin, "severity": cell.severity,
                     "readout_params": cell.params.to_dict(), "moved": entry["moved"],
+                    "causal_control": cell.causal_control, "changed_fields": list(cell.changed_fields),
                     "affected_groups": list(cell.affected_groups), "source": source,
-                    "non_citable": source != "lucid", "lucid_commit": lucid_commit_hash,
+                    "non_citable": True, "source_kind": source, "evidence_stage": "development", "physics_review_status": "pending", "protocol_freeze_id": None, "calibration_sha256": calibration.sha256, "lucid_commit": lucid_commit_hash,
                     "positions_hash": _sha1_array(pos), "consequence": k,
-                    "release": {"gate_A0_lucid_licence": "open"}}
+                    "release": {"research_use": "clarified_issue_6133100584", "redistribution": "not_approved"}}
             write_cell(Path(out), cell.label, rows, np.zeros((0,)), prov)
             (d_ / "traces.npy").unlink(missing_ok=True)          # hit-level cell: no waveform
     if out is not None:
@@ -512,13 +525,20 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
 
 def toy_response_run(out: Path | None, *, n_events: int = 100, n_photons: int = 800,
                      families: Sequence[str] | None = None, group_size: int = 64) -> dict[str, Any]:
-    """Development run of the response matrix on the toy detector (non-citable)."""
+    """Legacy toy source with repaired independent calibration (non-citable).
+
+    Historical saved results are preserved; this is not a byte replay of their
+    former evaluation-fitted energy scale or old optimizer initialization.
+    """
     from . import toy
 
     det = toy.cylinder_detector()
     events = [toy.point_source_event(det, e, n_photons=n_photons) for e in range(n_events)]
     cells, _ = response_cells(det.n_channels, group_size=group_size, families=families)
-    s = run_response_matrix(cells, events, det.positions, out, source="toy")
+    from .calibration import fit_reference_calibration
+    fit_events = [toy.point_source_event(det, 100000+e, n_photons=n_photons) for e in range(n_events)]
+    calibration = fit_reference_calibration(fit_events, det.positions, cells[0].params)
+    s = run_response_matrix(cells, events, det.positions, out, source="toy", calibration=calibration)
     s["toy"] = {"n_channels": det.n_channels, "radius_m": det.radius, "half_height_m": det.half_height,
                 "n_photons": n_photons}
     if out is not None:

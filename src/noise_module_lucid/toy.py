@@ -3,7 +3,7 @@
 """A toy water-Cherenkov photon source — DEVELOPMENT ONLY, never a claim substrate.
 
 Exists so the response cells, the readout chain and the consequence variable
-can be exercised end to end while LUCiD is blocked by gate A0. It is not
+can be exercised without a local LUCiD installation. Research use was clarified in issue 6133100584. It is not
 LUCiD and must not be described as a detector simulation:
 
 * PMTs on the barrel and caps of a cylinder, facing inward;
@@ -67,6 +67,7 @@ class ToyEvent:
     photon_sensor: np.ndarray
     photon_time: np.ndarray
     true_energy: float = 1.0       # the mean photon yield (the flasher's "energy"); the count is Poisson
+    endpoint_kind: str = "point_source"
 
 
 def point_source_event(det: ToyDetector, event_id: int, *, n_photons: int = 3000, tts_ns: float = 1.5,
@@ -93,3 +94,36 @@ def point_source_event(det: ToyDetector, event_id: int, *, n_photons: int = 3000
     t_sc = t0 + r[s_sc] / V_GROUP_M_PER_NS + rng.exponential(scatter_delay_ns, n_sc) + rng.normal(0.0, tts_ns, n_sc)
     return ToyEvent(int(event_id), v, float(t0), np.concatenate([s_dir, s_sc]), np.concatenate([t_dir, t_sc]),
                     true_energy=float(n_photons))
+
+
+@dataclass(frozen=True)
+class PromptEvent:
+    event_id: int
+    vertex: np.ndarray
+    t0: float
+    photon_batch: object
+    true_energy: float
+    endpoint_kind: str = "point_source"
+
+    @property
+    def photon_sensor(self):
+        return self.photon_batch.sensor_id
+
+    @property
+    def photon_time(self):
+        return self.photon_batch.arrival_time_ns
+
+
+def prompt_source_event(det, event_id, *, n_photons=4000):
+    """Incident isotropic flasher; no upstream QE/TTS/scatter/reflection.
+
+    Geometric projected area is retained, angular response is uniform.
+    Absorption and dispersion off; constant declared group velocity.
+    Synthetic uniform wavelength spectrum; not a Cherenkov event.
+    """
+    from .photon_contract import PhotonBatch
+    base = point_source_event(det, event_id, n_photons=n_photons, tts_ns=0, scatter_fraction=0)
+    rng = np.random.default_rng(900000+int(event_id))
+    batch = PhotonBatch(int(event_id), np.arange(len(base.photon_sensor)), base.photon_sensor,
+                        base.photon_time, rng.uniform(300, 600, len(base.photon_sensor)))
+    return PromptEvent(int(event_id), base.vertex, base.t0, batch, base.true_energy)

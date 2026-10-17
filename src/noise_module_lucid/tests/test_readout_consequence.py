@@ -13,6 +13,7 @@ from noise_module_lucid import toy
 from noise_module_lucid.dataset import response_cells, run_response_matrix
 from noise_module_lucid.readout import ReadoutParams, readout_chain, with_change
 from noise_module_lucid.response import RESPONSE_FAMILIES
+from noise_module_lucid.calibration import fit_reference_calibration
 
 
 @pytest.fixture(scope="module")
@@ -110,7 +111,8 @@ def test_response_matrix_directions_and_outputs(det, events, tmp_path):
     cells, _ = response_cells(det.n_channels, families=["timing_drift", "gain_drift", "module_loss"])
     pick = [cells[0]] + [c for c in cells if c.label in
                          ("N_struct:timing_drift@5", "N_struct:gain_drift@0.8", "N_struct:module_loss@4")]
-    s = run_response_matrix(pick, events, det.positions, tmp_path, n_boot=100)
+    cal = fit_reference_calibration([toy.point_source_event(det, 1000+i, n_photons=800) for i in range(24)], det.positions, pick[0].params)
+    s = run_response_matrix(pick, events, det.positions, tmp_path, n_boot=100, calibration=cal)
     by = {c["label"]: c for c in s["cells"]}
     assert by["reference"]["K"] == pytest.approx(1.0)
     assert by["N_struct:timing_drift@5"]["K_vertex"]["K"] > 1.3            # timing harms the vertex
@@ -139,7 +141,8 @@ def test_threshold_below_calibration_is_declared(det):
 def test_dead_map_correction_removes_the_known_charge_deficit(det, events):
     cells, _ = response_cells(det.n_channels, families=["module_loss"])
     pick = [cells[0], next(c for c in cells if c.label == "N_struct:module_loss@2")]
-    s = run_response_matrix(pick, events, det.positions, n_boot=0)
+    cal = fit_reference_calibration([toy.point_source_event(det, 1000+i, n_photons=800) for i in range(24)], det.positions, pick[0].params)
+    s = run_response_matrix(pick, events, det.positions, n_boot=0, calibration=cal)
     c = s["cells"][1]
     assert c["K_energy_deadcorr"]["K"] < c["K_energy"]["K"]
     assert c["K_deadcorr"] <= c["K"]

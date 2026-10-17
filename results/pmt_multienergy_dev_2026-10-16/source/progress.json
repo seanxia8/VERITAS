@@ -1,0 +1,373 @@
+{
+  "events": [
+    {
+      "energy_MeV": 500,
+      "event_id": 0,
+      "photons": 83707,
+      "sha256": "714860401a181013ba77f50c4dafd3085e5f6473c1b9721baacf8a2074f92a83",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 1,
+      "photons": 85360,
+      "sha256": "587c1554642fd8f83a06300a84dfaf50ac0f15059d6e358d621e58d0f61abbae",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 2,
+      "photons": 85673,
+      "sha256": "ae998b9a64851c173f0d0a726049bf0f04186e42519596958d916cb6f17a7e80",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 3,
+      "photons": 83970,
+      "sha256": "e328e4605b81ae6ed137428cdacc5c29e7685dc85f40a2de93877203a0f90163",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 4,
+      "photons": 85604,
+      "sha256": "8239f3579dc4d1ba3844752b443dcd551733c16981383d84fff8536ce51b5f9d",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 5,
+      "photons": 81841,
+      "sha256": "57233ae85e09cb37772dc89d1ceed963004c2ecf9f6290f1e6876d8bb29d6c62",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 6,
+      "photons": 84455,
+      "sha256": "2f6ef5ef8de228ae195585b6cb6e7fd58c985973be70352b9e847e5a302b827c",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 7,
+      "photons": 84418,
+      "sha256": "4b998f238bb42b47e377f3136738b4c97cc081411873b0bb9fc274822333e62f",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 8,
+      "photons": 86617,
+      "sha256": "82ce3746cf0363c331ec6d22103d8d52f79eb36f1475ec4dc9d46221ae184154",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 9,
+      "photons": 85610,
+      "sha256": "4db412ed1929c7139c856b244c5d73e187da2c9cd4427dad703a8a8126a6f8f8",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 10,
+      "photons": 85125,
+      "sha256": "d18aa7726ef503b8e47c0754050e6061bd63f62dfa782e463eb3003068bd2818",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 11,
+      "photons": 85491,
+      "sha256": "1ce454f8872a818efdbed02fd4c7ed726e123b1a9db13581f3c6c1b42c861a7d",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 12,
+      "photons": 84850,
+      "sha256": "2b15734bc99916d7eeee4e0cd76bcbe363764fbbab90fd5cdb263b8dd6a036bb",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 13,
+      "photons": 84848,
+      "sha256": "a5bc374d38292b077d9b91063356c69b28b99406077a983d8bd08b16d3d3b3d6",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 14,
+      "photons": 86856,
+      "sha256": "5bba4477faa15700029b8344627d3201766580ff019c3d5100cb56e00d7aa548",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 15,
+      "photons": 86404,
+      "sha256": "bc296049d38bf48d2e88411d12168a50e8d5fb65202c571eb68d5dd764d6deea",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 16,
+      "photons": 83786,
+      "sha256": "fd50b2cccf5232add5d790ad3c8d72df98d1f6dc8d417854854b902227a01f04",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 17,
+      "photons": 85682,
+      "sha256": "44e6d1b2fed3c695696625d67755063477a70375bc460a48e11e6dd1acfc6c62",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 18,
+      "photons": 83010,
+      "sha256": "b91fd0a7e46a34f11995aed9d7fd47f1b1e0164cd507690a3c4a619129dbe338",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 19,
+      "photons": 85871,
+      "sha256": "65ed1752e0374a2728b453ec291fc4c0617c7f588fa0312e59e8597fb1770b5e",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 20,
+      "photons": 85103,
+      "sha256": "7f026b3421ded470eadce8a2b11644bbbd3b25c744b691d2fd0fc143793564ea",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 21,
+      "photons": 85092,
+      "sha256": "8c3108eec3d67b65dc5202e5549574fb80e653178185641ae6b9d396b1a81173",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 22,
+      "photons": 84976,
+      "sha256": "d4492ec363ad7bf370890e6d1be7c4ba234d8f5f7272c945b7c6d9b8e54c063b",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 500,
+      "event_id": 23,
+      "photons": 84817,
+      "sha256": "6b8e19130fc592d7f5fe30fa06e8b2a89e1b246b19da566f54f53777b53a7238",
+      "primary_energy": 500.0,
+      "track_initial_energy": 500.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 0,
+      "photons": 202313,
+      "sha256": "bcb7dfc5d5932f6f46df8a47a66af2c4cdddb09f9a1aa5a8639823dadc881e25",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 1,
+      "photons": 202151,
+      "sha256": "d02213b3390c8eb8763fc34ae07a8484e88d560d77176d3ba60603efeb78601b",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 2,
+      "photons": 202608,
+      "sha256": "1449e89151b32a44d32bd7e9482841fd6187494977558db5e442c2a5627f204a",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 3,
+      "photons": 203077,
+      "sha256": "7902e62d421db3c02e03effc05308aebd92bd36141f294d68c122995286b96ea",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 4,
+      "photons": 202347,
+      "sha256": "8118d171857b7e6d5686532e4e9f170780faff506d47f5130239c04e34bbe399",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 5,
+      "photons": 201853,
+      "sha256": "20d8c1b6cda89689a18b49de40bf0fb21040b1bcabba8bd3970d821d8bfe562f",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 6,
+      "photons": 203785,
+      "sha256": "cd1ff44ef072175ba7ee2f6a9383a8a614273d7707565ed3071267b404ecff5f",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 7,
+      "photons": 201793,
+      "sha256": "c4fb9b1ea2f82031e9bbabfc8636d5b4ec35bce6c448c5d03ecb28887bdc3a40",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 8,
+      "photons": 203439,
+      "sha256": "518daafc2f82a2502982d4f909dcd9ad305662115b399a53e91478435a641f14",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 9,
+      "photons": 203488,
+      "sha256": "af008efa6dd04bb4f9f43baab03a8dddf11847e7e4d0f8845d7b6ac0f04f0e43",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 10,
+      "photons": 201889,
+      "sha256": "8185307afb951249fd33c451b1abbef4710aecfcf4a3e52bbcc5a7c31684e0ea",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 11,
+      "photons": 207573,
+      "sha256": "7cb721347d99d397c181b89f8e1b1d8c0267fe18cf8e6e60bfab8282c5aa8ff4",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 12,
+      "photons": 197797,
+      "sha256": "51b09935c2baed7d9085837e0d75141ec80724f3afea97d04f071741c992bc6b",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 13,
+      "photons": 201747,
+      "sha256": "da8058c86f79542fb52d6bb39ff380179ac6ed400a07c7d80e36b0a820cc3ef0",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 14,
+      "photons": 202334,
+      "sha256": "09fc6d158d7348f368a75833370334a8bbe98026dd23e2c7d54f71599bd2aef7",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 15,
+      "photons": 200207,
+      "sha256": "2cddde8d8e872e511956f35f44677049ef62e1db5622d0f3a5b35882446eba3e",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 16,
+      "photons": 201716,
+      "sha256": "543945d3bd6053533a3e94def1bc156fcfadb0847930ff4e5cf5a105a9c3a776",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 17,
+      "photons": 204819,
+      "sha256": "e67a34a79605dae55ccecf568db1058658ab852e0e16021bfc9dcc81540accb7",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 18,
+      "photons": 203334,
+      "sha256": "67b64d2146083eac26370620888e10a45dde38414c736bf78d2ddd9403fde23b",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 19,
+      "photons": 199942,
+      "sha256": "98232fdda5c5914d1a20941d8cf20c91303304a7f89277f4c1cf71e538c749e0",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 20,
+      "photons": 202554,
+      "sha256": "2963b1c6a7af70ac7c8c68d44fdf3efa0e15e65736999d55ac3b0cf77955ee0e",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    },
+    {
+      "energy_MeV": 1000,
+      "event_id": 21,
+      "photons": 203701,
+      "sha256": "b5d3ff32042141255beba41d404720d2633fe52c100bd9faf206d8d4ecbdbff8",
+      "primary_energy": 1000.0,
+      "track_initial_energy": 1000.0
+    }
+  ],
+  "bytes_read": 465815902
+}
