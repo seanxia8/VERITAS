@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 22:00Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 22:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -61,8 +61,13 @@ Updated: 2026-10-17 22:00Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   not_run resume fix, grid re-execution guard.
 - Diagnostics committed: docs/jepa/E1_BRIDGE_FINDINGS.md (finite-sample floors, R3 conditioning,
   amplitude information ceiling).
-- In flight: E1 light independent recompute (fresh reviewer), WP4b generator on the real WCTE
-  geometry (readout_synthetic_unrepaired), A9 follow-ups (B1-ext ≤4 Titan GPU-h; R5-ext CPU).
+- **E1 light independent recompute: ACCEPT WITH FIXES, fixes applied (`1d3753a`).** R2 now uses
+  the registered seed-mean angles (E1a 5/6, failing cell theta0.1_eta3; R2 stays fail); R3b control
+  wording corrected; `--rerun-rows` added for provenance repair. E1b provenance limitation recorded
+  (8 rows from a pre-rule dirty attempt) and its repair is queued: re-run exactly the eight
+  `g0_line0_s0..s4` + `g0p005_line0_s0..s2` rows under the clean SHA once the working tree is clean.
+- In flight: WP4b generator on the real WCTE geometry (working tree, ~+1000 lines, benchmark
+  pending), A9 follow-ups (B1-ext ≤4 Titan GPU-h; R5-ext CPU).
 
 ## Running jobs
 
