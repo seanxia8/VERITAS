@@ -895,3 +895,66 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   divided by the s = 0 resolution, plain > anchored in ≥ 4/5 paired seeds, 3/3 on the aging-trend
   cell) and will be implemented before the main grid, with the shifted-set construction reading
   recorded then — until then R8 stays `not_evaluable` with that reason.
+
+## Author instructions, 18 Oct 2026 (verbatim)
+
+> ## 1. PMT SHA named
+>
+> "PMT branch `codex/junjie-pmt-response` at `0fba034` is accepted for the JEPA merge, for
+> development. Reported LUCiD runs wait for the PMT R-6 SHA, which adds dark counts; I will name it."
+>
+> - **Merge `0fba034` into `JEPA`**, as the runbook §3.5.2 allows. Then re-run the detectability
+>   check on the merged readout (see §3). Regenerate no datasets yet.
+> - **The reference response has fixed per-module patterns:** gain (`group_parity`, odd modules +3%)
+>   and timing width. Treat both as **fixed detector response**: they are present in the measured
+>   readout and in the nominal twin. The twin removes only the injected F1/F3 gains. Record this in
+>   `DECISIONS.md`.
+> - **Dark counts are off in that response.** Until the R-6 SHA lands, the anchor's dark-window draw
+>   and the private dark noise are not physical. Label everything `readout_dark_off`, and use none
+>   of it for a reported result.
+> - **G-PMT** is resolved for development now. For reported runs, it is resolved when R-6 is merged.
+>
+> ## 2. R2: independent check of the estimator change
+>
+> `1d3753a` changed the R2 estimator after the outcomes were known, moving the E1a clause from 4/6
+> to 5/6. It may well be right, but it needs the v4 §5 light independent recompute now.
+> - A fresh reviewer, without your notes, checks `1d3753a` against the registered R2 definition text
+>   (v3 §2.4 and v4 §4).
+> - The reviewer recomputes R1–R5 from the raw E1 tables.
+> - Record the reviewer's verdict beside R2 in `PREDICTION_STATUS.json`.
+>
+> ## 3. Detectability check: treat F3 as random, not known
+>
+> Excluding the per-PMT gains from the profiled block is right, because free gains would push every
+> ceiling to zero. But treating them as **known** overstates the F1 ceilings, and those ceilings set
+> the yield range and the G6 branches.
+> - Marginalise F3 instead: add s_p²·μ_p² to each PMT's variance, the same term as in the §3.5.6
+>   `mae_chi2` covariance.
+> - Re-run the check with this change on the merged readout before freezing `[Y_lo, Y_hi]`, F2 vs
+>   F2′, and s_p.
+> - Record the old and new ceilings side by side.
+>
+> ## 4. Approved follow-ups: schedule them
+>
+> B1-ext and R5-ext were approved on 17 Oct; I will register them in the runbook as A9.
+> - **R5-ext** is CPU-only. Run it once the detectability check is frozen. E1 has used 8.7 of its
+>   24 CPU-hours; project the R5-ext cost first.
+> - **B1-ext** runs on Deepthought's Titans, at most 4 GPU-hours, in parallel with WP4b development.
+> - Report both against their criteria, beside B1 and R5. Neither changes a registered verdict.
+
+### Consequences recorded from §1 (18 Oct 2026)
+
+- **The measured readout carries fixed per-module response patterns** — a `group_parity` gain
+  (odd modules +3%) and a per-module timing width — and these are **fixed detector response**, not
+  injected noise: they appear in the measured readout **and in the nominal twin**. The twin cancels
+  only the injected F1/F3 gains. The generator's nominal twin and the probe targets therefore keep
+  the parity gain and the module timing widths.
+- **Dark counts are off in the merged response**: everything generated on that readout is labelled
+  `readout_dark_off`, and **no result from it is reportable**. In particular the anchor's
+  dark-window draw and the private dark noise are not physical until the R-6 SHA lands; the
+  `v_dark` value used by `mae_chi2` is therefore a modelling constant for the dark-off readout, not
+  a measured dark charge.
+- **G-PMT is resolved for development now** (merge `0fba034` accepted); for reported runs it is
+  resolved only when the PMT R-6 SHA (which adds dark counts) is merged. The author will name it.
+- **Merge mechanics:** merge `0fba034` into `JEPA`, no dataset regeneration yet; the merged tree's
+  PMT development artefacts are carried as-is (they are the branch's audit trail).
