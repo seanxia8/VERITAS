@@ -200,3 +200,27 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
 - **2026-10-17 — Shared jobs directory.** `/ceph/dwong/jepa/jobs/` is one directory visible from
   both hosts; guard status and job directories are per-host named, and the quota deltas between two
   samples include both operators' writes.
+
+## WP4b dependencies: LUCiD revision and WCTE geometry (2026-10-17, findings)
+
+- **2026-10-17 — The pinned LUCiD revision `eaf2e89f579d6679e90020c732ac2c846895d691` is not
+  available locally.** The only LUCiD check-out on Deepthought is
+  `/ceph/dwong/ORACLE/external/LUCiD` (git HEAD `86a1871ab4a090f9e6970935af86ca98f1d114b1`,
+  installed as `lucid-sim 0.1.dev1+g86a1871ab`); the pinned commit is not in that repository
+  (`git cat-file -e` fails). §3.5.2 pins `eaf2e89…`. Remote availability is being checked
+  network-only; until it resolves, no LUCiD-generated artefact may be labelled as being at the
+  pinned revision, and none is a reported result.
+- **2026-10-17 — The PMT branch is still at synthetic-fixture geometry.** `codex/junjie-pmt-response`
+  (worktree HEAD `56179eb`) carries `configs/lucid_pmt/reference.json` with
+  `"status": "synthetic_dev"` and `"fixture_geometry": "synthetic 76-sensor cylinder, NOT WCTE
+  geometry"`; its runbook §0 is a planning deliverable with implementation boxes unchecked.
+  Runbook v4 §3.5.3 requires the **physical WCTE map (105 mPMT modules × 19 PMTs)** "from the PMT
+  branch", which therefore does not exist yet. Consequence: WP4b's generator is built against an
+  explicit geometry/readout interface and labelled `readout_synthetic_unrepaired`; it is bound to
+  the physical geometry and the merged readout only after the author names the PMT SHA. If that has
+  not happened by 31 Oct, G-PMT is written as §3.5.2 already provides.
+- **2026-10-17 — WP4b scaffold scope.** The detector-state laws (F1, F3, F2, F2′, R11b, T), the
+  nominal-twin contract, the run/ID/storage structure and the §3.5.3a Fisher-information/ceiling
+  numerics are implemented and unit-tested without LUCiD and without claiming WTCU geometry; the
+  event generator, readout binding and detectability run wait for the merged readout. All output is
+  labelled development-only (`readout_synthetic_unrepaired`).
