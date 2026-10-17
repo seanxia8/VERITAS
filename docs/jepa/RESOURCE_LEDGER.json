@@ -16,7 +16,7 @@
     },
     "lucid_generation_cpu": {
       "cap_wall_hours": 48,
-      "charged_wall_hours": 0,
+      "charged_wall_hours": 0.07142,
       "cores_at_most": 16
     },
     "e1_cpu_wall_hours": {
@@ -627,6 +627,66 @@
       "src_scripts_status": "",
       "evidence": "results/jepa/20261017_wp3_e1b/attempt_005_20261017T201351Z_E1b",
       "note": "re-ran the eight pre-rule provenance rows under a clean tree; 8/8 pass, no source change during run"
+    },
+    {
+      "id": "wp4b_benchmark_wcte_1000",
+      "campaign": "WP4b_cpu",
+      "host": "deepthought",
+      "device": "GTX? no - CPU",
+      "gpu_count": 0,
+      "cpu_hours": 0.00525,
+      "wall_seconds": 18.915,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "fd14311/aa012d8",
+      "job_kind": "cpu",
+      "evidence": "results/jepa/20261017_wp4b_detectability/",
+      "note": "benchmark at placeholder yields"
+    },
+    {
+      "id": "wp4b_benchmark_wcte_frozen_yields_1000",
+      "campaign": "WP4b_cpu",
+      "host": "deepthought",
+      "device": "CPU",
+      "gpu_count": 0,
+      "cpu_hours": 0.00561,
+      "wall_seconds": 20.208,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "fd14311/aa012d8",
+      "job_kind": "cpu",
+      "evidence": "results/jepa/20261017_wp4b_detectability/",
+      "note": "benchmark at frozen yields"
+    },
+    {
+      "id": "wp4b_detectability_wcte",
+      "campaign": "WP4b_cpu",
+      "host": "deepthought",
+      "device": "CPU",
+      "gpu_count": 0,
+      "cpu_hours": 0.02917,
+      "wall_seconds": 105.0,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "fd14311/aa012d8",
+      "job_kind": "cpu",
+      "evidence": "results/jepa/20261017_wp4b_detectability/",
+      "note": "section 3.5.3a check, first frozen run"
+    },
+    {
+      "id": "wp4b_detectability_wcte_v2",
+      "campaign": "WP4b_cpu",
+      "host": "deepthought",
+      "device": "CPU",
+      "gpu_count": 0,
+      "cpu_hours": 0.03139,
+      "wall_seconds": 113.0,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "fd14311/aa012d8",
+      "job_kind": "cpu",
+      "evidence": "results/jepa/20261017_wp4b_detectability/",
+      "note": "section 3.5.3a re-run with f1_joint evidence"
     }
   ]
 }
