@@ -93,3 +93,40 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   0.526, 0.690, 0.847, 0.917, 0.962, 0.980, 0.990); interleaved agrees within 0.5°. The v3 table
   (base ρ = 0.4, v3 θ SD, channel) reproduces exactly: 18.4, 74.0, 84.6, 89.2°. Output:
   `results/jepa/20261017_appendixA_check/check_v4_levels_151f26e.txt`.
+
+## Phase 0 findings and rulings (2026-10-17)
+
+- **2026-10-17 — Host GPUs are GTX TITAN X, compute capability 5.2, not sm_61.** The runbook and
+  launch prompt say "GTX Titan 12 GB" and the prompt's sm_61 note is wrong for these cards. Recorded
+  in `PREFLIGHT_A8.md`; the runbook is not edited (an erratum is the author's call). Consequence:
+  the pinned torch build must contain sm_50 or sm_52 SASS/PTX; the installed
+  `/home/dwong/anaconda3` torch 2.5.1+cu121 arch list contains **sm_50**, whose cubin is
+  binary-compatible with sm_52, and `cuda.is_available()` reports capability (5, 2). Titans usable.
+- **2026-10-17 — Environment per host (§6.1 step 1, existing env read-only).**
+  - deepthought: `/home/dwong/anaconda3` — Python 3.12.2, **torch 2.5.1+cu121** (not the cu118/cu124
+    pin; driver 525.147.05 = CUDA 12.0 is within CUDA 12 minor-version compatibility and
+    `cuda.is_available()` is True), numpy 1.26.4, scipy 1.13.1, h5py 3.11.0, sklearn 1.5.1,
+    jaxtyping 0.3.11, jax 0.4.30 CPU-only. Used read-only (`PYTHONDONTWRITEBYTECODE=1`); lives in
+    `/home`, costs no quota entries. The build deviation from the pin is recorded here as §6.1
+    requires, and the mandatory 10-batch equivalence test against the local environment precedes
+    its first GPU job.
+  - deepthought2: `/ceph/dwong/transformer/.venv` — Python 3.12.2, **torch 2.5.1+cu124** (the exact
+    pin), capability (8, 9) = sm_89, numpy 1.26.4, h5py 3.14.0, jaxtyping 0.2.38; scipy, sklearn
+    and jax absent. Read-only. Enough for LUCiD training (torch/numpy/h5py); probe fitting stays on
+    Deepthought per §6.1.
+  - The two hosts' CUDA builds differ, which is acceptable because every comparison set is
+    single-GPU-type (§6.1). Equivalence tests are per host.
+- **2026-10-17 — No new environment (not attempted).** §6.1 step 2 needs ≥ 100 000 free entries;
+  31 944 free. G-ENV is not triggered because step 1 succeeded.
+- **2026-10-17 — LUCiD generation on Deepthought CPUs.** JAX has no CUDA plugin in the installed
+  env and sm_52 is below JAX's sm_70 minimum; deepthought2 has no jax. This is the §6.1 planned
+  fallback: CPU generation, ≤16 cores, 48 wall-hour cap.
+- **2026-10-17 — §6.2 "1 GB" means 1024 MiB.** The guard's start rule is
+  `other_user_memory_mib_max = 1024.0` (binary interpretation, the standard for GPU memory). With
+  the foreign idle Jupyter kernel at 1007–1011 MiB on deepthought's GPUs 0/2/3, those cards pass the
+  start rule by 13–17 MiB and are re-checked before every start; GPU1 (4183 MiB) is blocked. This
+  leaves exactly the 3 training-job GPUs of the §6.2 cap.
+- **2026-10-17 — Quota: gate G-QUOTA written, no cleanup performed.** `docs/jepa/GATE_G_QUOTA.md`
+  asks the author to choose among authorising deletion of our own failed installs (exact paths),
+  a quota increase, a local-disk path, or a volume descope. Until answered we use sparse code
+  checkouts and few-large-file data layout (§6.1/§6.2 rules, no deletion anywhere).
