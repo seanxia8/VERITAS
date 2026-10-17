@@ -6,12 +6,12 @@
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
       "cap_gpu_hours": 80,
-      "charged_gpu_hours": 0.035,
+      "charged_gpu_hours": 0.0361,
       "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)"
     },
     "E2_lucid_titan_deepthought": {
       "cap_gpu_hours": 300,
-      "charged_gpu_hours": 0.0029,
+      "charged_gpu_hours": 0.0098,
       "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)"
     },
     "lucid_generation_cpu": {
@@ -441,6 +441,51 @@
       "job_kind": "probe",
       "evidence": "/ceph/dwong/jepa/returns/probe_deepthought2_6468582/probe.json",
       "note": "environment probe; cold CephFS import dominated the 126 s wall time"
+    },
+    {
+      "id": "probe_deepthought_89af5af_v2",
+      "campaign": "phase0_guard_and_env",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 10.52,
+      "gpu_hours": 0.00292,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "89af5af",
+      "job_kind": "probe",
+      "evidence": "/ceph/dwong/jepa/returns/probe_deepthought_89af5af_v2/probe.json",
+      "note": "corrected 10-batch equivalence probe (pre-final_proj_norm grid fixture); part of the \u00a76.1 equivalence test"
+    },
+    {
+      "id": "probe_deepthought2_89af5af_v2",
+      "campaign": "phase0_guard_and_env",
+      "host": "deepthought2",
+      "device": "L40S (46 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 3.74,
+      "gpu_hours": 0.00104,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "89af5af",
+      "job_kind": "probe",
+      "evidence": "/ceph/dwong/jepa/returns/probe_deepthought2_89af5af_v2/probe.json",
+      "note": "corrected equivalence probe; cold-cache overhead gone"
+    },
+    {
+      "id": "smoke_bridge_deepthought_bbcded2",
+      "campaign": "phase0_guard_and_env",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 14.36,
+      "gpu_hours": 0.00399,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "bbcded2",
+      "job_kind": "probe",
+      "evidence": "/ceph/dwong/jepa/jobs/smoke_bridge_deepthought_bbcded2/",
+      "note": "1-step CUDA smoke of all four WP4a arms; anchored arm clean; N_actual materialised once and loaded"
     }
   ]
 }
