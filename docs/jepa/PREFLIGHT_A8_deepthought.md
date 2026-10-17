@@ -653,3 +653,145 @@ fingerprint of a float64 LAPACK product; only the tolerance and the file sha are
 remainder of the drift is the deepthought2 operator writing the shared `jobs/` directory.
 **Live warning: the margin to the §6.2 "write no new data below 30,000 free entries" floor is now
 552 entries** — dataset generation cannot start until G-QUOTA resolves.
+
+---
+
+## 14. Bridge grid (12 runs) on `deepthought`, and the failed combined aggregate
+
+Runs 16:15:03–18:01:xx UTC 17 Oct 2026; combined-aggregate attempt 18:06:28–18:17:40 UTC.
+
+### The 12 runs — all exit 0
+
+| Job | run_id | GPU | started | wall (s) | per-run walls (s) |
+|---|---|---|---|---|---|
+| A | `wp4a_grid_sigreg` (sigreg_jepa) | 0 | 16:15:03Z | 4114.72 | 1371.14 / 1361.98 / 1362.40 |
+| B | `wp4a_grid_anchored` (anchored, β=10 from `beta_decision.json`) | 2 | 16:16:32Z | 5330.30 | 1771.40 / 1766.67 / 1772.30 |
+| C | `wp4a_grid_mae_chi2` | 3 | 16:18:36Z | 1871.46 | 619.49 / 615.34 / 615.15 |
+| D | `wp4a_grid_parallel` | 3 (after C) | 16:58:47Z | 3944.72 | 1307.60 / 1316.54 / 1300.83 |
+
+All 12 runs `complete`, 10 000 steps, batch 128, `registered_run: true`; every per-job `aggregate.json`
+carries `config_batch_conflict` = {config 128, registered 128, resolution: config's 128 is the bridge's
+registered batch, §6.1's 32 is the LUCiD encoder's}. Launches were spaced by a guard cycle so each got
+a distinct GPU; GPU 1 was never used. A first launch of A was rejected with exit **2** because the
+briefed `--seeds 0 1 2` is not the driver's syntax (**comma-separated** `--seeds 0,1,2`); it did no GPU
+work and is preserved as `jobs/wp4a_grid_sigreg.attempt1_exit2_usage/`.
+**Note:** mid-run, GPU 1's foreign allocation fell from 4183 MiB to 655 MiB, so the guard switched to
+`start.gpu: 1` — the GPU-1 blocker cleared, but the §6.2 ≤3-training-jobs rule still governs.
+
+### Verdicts: B1 and R7 are `not_evaluable` in the per-job aggregates — because each holds one arm
+
+All four job aggregates report `status: not_evaluable` with the reason string
+**`missing_required_nuisance_target_in_the_declared_set`**. **Corrected reading (Lead, 18:19Z):** that
+string is misleading — it is emitted whenever `complete_sets` is false, and in a single-arm aggregate
+it is false simply because the comparison arm (`sigreg_jepa_anchored`) is absent. The nuisance targets
+are in fact fine: each `probes.json` records `nuisance.declared = ["common_0", "common_1"]` with
+`defined_target_set_complete = true`, and the line targets are correctly undefined at line = 0
+(§3.2.8). So **B1/R7 are not blocked by the fixture**: a proper combined aggregate over all four arms
+will evaluate them. The reason string is being split into two distinct reasons when the
+`--aggregate-only` mode lands.
+
+R7's `seed_floor` is nevertheless computed = **0.0156911**; seed CKA for `sigreg_jepa` = **0.94064**
+(0-1 0.93467, 0-2 0.93638, 1-2 0.95088); `mae_chi2_beside_r7` means are null only because the
+comparison arm is absent.
+
+### Amplitude preservation (criterion mean R² ≥ 0.9; post_time random-init floor 0.7376)
+
+| Arm / seed | tokens | post_time | nuisance defined_mean_r2 | physics mean_mse/CRLB |
+|---|---|---|---|---|
+| sigreg_jepa s0 | 0.9122 **PASS** | 0.8076 fail | 0.5423 | 3.869 |
+| sigreg_jepa s1 | 0.9004 **PASS** | 0.8100 fail | 0.5115 | 3.653 |
+| sigreg_jepa s2 | 0.9097 **PASS** | 0.8111 fail | 0.5216 | 4.117 |
+| anchored s0 | 0.8953 fail | 0.8164 fail | 0.4595 | 1.833 |
+| anchored s1 | 0.9048 **PASS** | 0.8087 fail | 0.5278 | 1.823 |
+| anchored s2 | 0.9052 **PASS** | 0.8169 fail | 0.5599 | 1.729 |
+| mae_chi2 s0 | 0.7718 fail | 0.7741 fail | 0.4483 | 29.184 |
+| mae_chi2 s1 | 0.7976 fail | 0.7768 fail | 0.5003 | 26.497 |
+| mae_chi2 s2 | 0.7955 fail | 0.7741 fail | 0.4033 | 24.413 |
+| parallel s0 | 0.7775 fail | 0.7799 fail | 0.5202 | 6.479 |
+| parallel s1 | 0.7515 fail | 0.7790 fail | 0.5691 | 6.272 |
+| parallel s2 | 0.7973 fail | 0.7777 fail | 0.5961 | 6.050 |
+
+**Pattern:** `post_time` fails in all 12 runs (0.774–0.817 against a 0.7376 floor) — systematic and
+arm-independent. `tokens` is arm-dependent: ~0.90–0.91 for `sigreg_jepa`/`anchored`, 0.75–0.80 for
+`mae_chi2`/`parallel`. So the benchmark's 0.912/0.808 is representative of `sigreg_jepa`, and only the
+post-time representation is systematically below criterion.
+
+### The combined-aggregate attempt failed — `grid` mode RE-EXECUTES, it does not aggregate
+
+The briefed recipe (symlink all 12 run dirs into `returns/wp4a_grid/runs/`, then run `grid` with
+`--device cpu`) was started at 18:06:28Z. It listed the 12 symlinks and wrote
+`returns/wp4a_grid/run_status.json` (`mode: grid`), then began **re-running** the first run: it reset
+`wp4a_grid_sigreg/runs/wp4a_eval_sigreg_jepa_s0/run_status.json` to `running`/0 steps, trained it to
+step 282 on CPU, and had also reset s1's status to `running`/0. At 18:17:32Z, pid 3506264 was at
+236 % CPU / 12 threads / RSS 2.85 GB with `rchar 1,040,934,625` vs `wchar 90,090`, holding
+`raw_probe_training.npy`, `raw_probe_test.npy` and `raw_subject_training.npy` open — i.e. re-fitting
+from the raw cohorts, not reading stored probes. SIGTERM was sent at 18:17:40Z (11 min 06 s in) per the
+no-re-evaluation rule. **Correction (18:19Z): the driver handled SIGTERM but did not terminate** — it
+wrote `checkpoint.pt`, `SHA256SUMS` and `run_status.json` at 18:17:44Z and kept running at 236 % CPU
+(the `timeout 900` parent was still alive) until **SIGKILL at 18:19:33Z**, i.e. 13 min 17 s total. My
+18:18Z report said "stopped with SIGTERM"; that was wrong, and no file was written after the
+18:17:44Z graceful-shutdown writes. No `aggregate.json` was produced and nothing under the data root
+was written. The driver has **no aggregate-only/report mode** (only `--resume-mode`), so a combined
+aggregate needs an implementer change or an offline combiner.
+
+**Damage it caused (write-through the symlinks, into the original job dirs)** — verified 18:19Z,
+leave-as-is confirmed by the Lead:
+- `wp4a_grid_sigreg/runs/wp4a_eval_sigreg_jepa_s0`: `run_status.json` clobbered to
+  `interrupted`/282 steps/675.65 s; `checkpoint.pt` and `SHA256SUMS` rewritten 18:17:44Z;
+  `train_log.jsonl` now 102 lines (2 appended to the original 100: steps 100 and 200 of the CPU
+  re-run, last line `elapsed_seconds 484.711`). `embeddings.npz` (665,762,122 B, 16:37Z) and
+  `probes.json` (16:38Z) are untouched.
+- `wp4a_grid_sigreg/runs/wp4a_eval_sigreg_jepa_s1`: `run_status.json` reset to `running`/0; all other
+  files original.
+- **The s0 final checkpoint artifact is lost**: `SHA256SUMS` and the checkpoint were regenerated from
+  the aborted 282-step re-run and are self-consistent with each other (`checkpoint.pt` sha256
+  `5004c63256bd373d45b53d1f3093781f57354f97a9bb5c0d39cfbbfd55b82f6c`) but **no longer match the
+  original `checkpoint_sha256 2422e380aa01d3e93555fb672bf2ceee952403aaf02b3db69ea208a8a119eed9`
+  recorded in `manifest.jsonl`**. This only matters if that encoder were to be re-evaluated later; no
+  planned analysis needs it.
+- The other 10 runs are untouched. Nothing was restored or rewritten by me. Run outcomes stand: the
+  metrics and embeddings predate the damage and their hashes were recorded in the Lead's 17:45Z
+  harvest. Authoritative values survive in `wp4a_grid_sigreg/aggregate.json` (generated 17:25Z) and
+  `manifest.jsonl`: s0 1371.11 s, s1 1361.96 s, s2 1362.37 s, steps 10 000, batch 128,
+  `registered: true`.
+
+**Infrastructure incident (one line for `INFRA_LOG.md`):** `2026-10-17T18:06:28Z–18:19:33Z deeptought
+CPU re-execution by jepa_noise.bridge_run grid over symlinked runs/ (no aggregate-only mode);
+SIGTERM handled-but-ignored, terminated by SIGKILL; s0 checkpoint+SHA256SUMS and s0/s1 run_status
+clobbered, s0 train_log +2 lines; zero GPU use; no quota regression; no aggregate produced; cause: an
+aggregation path that re-executes rather than aggregates.`
+
+### Ledger rows — original walls from each job's `manifest.jsonl` (authoritative)
+
+| run_id | arm | seed | wall_seconds | batch | steps | registered |
+|---|---|---|---|---|---|---|
+| `wp4a_eval_sigreg_jepa_s0` | sigreg_jepa | 0 | 1371.11 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_s1` | sigreg_jepa | 1 | 1361.96 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_s2` | sigreg_jepa | 2 | 1362.37 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_anchored_s0` | sigreg_jepa_anchored (β=10) | 0 | 1771.37 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_anchored_s1` | sigreg_jepa_anchored (β=10) | 1 | 1766.64 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_anchored_s2` | sigreg_jepa_anchored (β=10) | 2 | 1772.28 | 128 | 10000 | true |
+| `wp4a_eval_mae_chi2_s0` | mae_chi2 | 0 | 619.46 | 128 | 10000 | true |
+| `wp4a_eval_mae_chi2_s1` | mae_chi2 | 1 | 615.30 | 128 | 10000 | true |
+| `wp4a_eval_mae_chi2_s2` | mae_chi2 | 2 | 615.11 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_parallel_s0` | sigreg_jepa_parallel | 0 | 1307.58 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_parallel_s1` | sigreg_jepa_parallel | 1 | 1316.51 | 128 | 10000 | true |
+| `wp4a_eval_sigreg_jepa_parallel_s2` | sigreg_jepa_parallel | 2 | 1300.80 | 128 | 10000 | true |
+
+Sum of run walls = **15,180.49 s = 4.2168 h** → **4.2 Titan GPU-hours** for the 12 grid runs
+(GPU-hours = wall × 1 GPU, per §6.1). All 12 rows carry `code_sha f10c0347…` and
+`config_sha256 2f7b3c5e…`.
+
+### Footprint and state
+
+`data_footprint` (identical in all four aggregates): data root **1,836,659,444 B / 20 files**; each
+out dir ≈ 2.02–2.03 GB / 20 files (one ≈666 MB `embeddings.npz` and one checkpoint per run).
+Free entries after the grid: `rfiles` 417,771 + `rsubdirs` 51,912 = 469,683 used → **30,317 free**
+(guard's own reading 30,318). Guard level OK, GPUs idle (633/655/629/629 MiB at 0 %), only
+`jepa_guard` in tmux, nothing running.
+
+### State at 18:19:33Z (after the SIGKILL)
+
+No `bridge_run` process remains; `tmux` holds only `jepa_guard`; all four GPUs idle at
+633/655/629/629 MiB and 0 %; guard level OK, `our_jobs []`. Quota `rfiles` 417,771 + `rsubdirs`
+51,912 = 469,683 used → **30,317 free**. Nothing is running on this host.
