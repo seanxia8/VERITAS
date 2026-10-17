@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 14:15Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 14:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -23,11 +23,18 @@ Updated: 2026-10-17 14:15Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   (saturation of the angle at high γ_load); R3 rows not implemented yet; R3b fails (sample 32°
   vs population 1e-15 rad); R4a 32/42 cells ≤5°; R4b 33/42 at β=10. NOT final: R1/R2 need their
   E1b clauses; no result is reported until the light independent recompute after E1.
-- **WP4a bridge**: impl-bridge building `backbone.py` (token grid before `final_proj_norm`, fixed
-  per-channel scaling), arms + ablation + leakage/amplitude/bridge tests. Not reported yet.
-- **Guard**: first fresh review = ACCEPT WITH FIXES; four blocking defects (F1 pid contract
-  wrapper-vs-job PID, F2 4th-training start, F3 stale-status duplicate GPU, F4 quota source).
-  impl-guard is fixing; after fixes a delta re-review, then commit, then host deployment.
+- **WP4a bridge**: committed (`9d59762`, fixes `7f98b86`). 26 tests; fresh config review ACCEPT
+  WITH FIXES -> all 11 findings fixed (GPU device bug, nonlinear signal, frozen schedule/beta
+  cohort, overlay bank 1024, N_actual sha verification). Only the guard-gated 1-step CUDA smoke
+  and the beta development cohort remain before the bridge run.
+- **Guard: deployed and live on both hosts.** Two fresh reviews (final: all findings resolved),
+  137 tests. Dry runs 12:18-12:29Z on both hosts passed (level OK, cephfs_xattr, unattributed
+  <20 MiB, window warm, no status JSON, no SHED). Live guards in tmux `jepa_guard` since
+  12:29-12:30Z. One <=10-min GPU probe per host ran through `jepa_run.sh` with no bypass:
+  Titan 10.55 s (0.0029 GPU-h), L40S 126.07 s cold-cache (0.035 GPU-h); torch 2.5.1+cu121 /
+  +cu124, capabilities (5,2) / (8,9), TF32 disabled, determinism 0.0.
+- **E1b running locally** (attempt_001, W measured at launch), E1c done (`not_evaluable`, frozen
+  deep modes; dynamics init check requested). E1a final = attempt_007.
 
 ## Running jobs
 
