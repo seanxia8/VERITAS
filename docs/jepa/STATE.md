@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 23:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 23:25Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -75,10 +75,15 @@ Updated: 2026-10-17 23:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   registered_sha recorded, `src_scripts_status` empty, no source change): 8/8 rows pass,
   0.556 worker-h; E1 cumulative 8.68 h of 24 h. Aggregate/PREDICTIONS draw the clean latest
   records; values unchanged; PREDICTIONS byte-identical twice.
-- **WP4b §3.5.3a detectability engine committed (`9835ce5`)** with the profiling and F1/F2' joint
-  ceiling rulings in DECISIONS; real-geometry run requested from the host operator now (the
-  critical path). Next after its numbers: freeze Y_lo/Y_hi, s_p, a/F2-vs-F2′, re-benchmark
-  generation at the frozen yields, then WP4c (encoder/views) and the E2 development cohort steps.
+- **WP4b §3.5.3a detectability check FROZEN on the real WCTE geometry.** Y_lo 6249.708098,
+  Y_hi 541560.544764 (fallback step 1 from 320k), median yield 58177.275; F1 ceilings 0.2616 /
+  0.6847 / 0.8914 at s = 0.02 / 0.05 / 0.10 (s = 0.02 excluded from R6/R7); F3 0.3243 even at
+  s_p = 0.10 -> **R12 not_evaluable, no gate**; F2 0.9210 at a = 0.50 (**F2 selected**, F2' unused);
+  T 0.9860; N_min fine at Y_lo (within 106.5, across proxy 97.5); **G6 not triggered**, R6/R7
+  evaluable. Frozen into `configs/lucid_bombs_v0.json` (`frozen_by_detectability_check`) and
+  DECISIONS. Engine extended to emit the F2-branch `f1_joint` row for R11 (`aa012d8`).
+  Host is re-running the detectability check (evidence) and the generation benchmark at the frozen
+  yields. Next: WP4c (encoder/views incl. `view_masks`), then the E2 development cohort.
 - Standing rule: registered runs start from a git worktree pinned to the clean SHA (main tree free
   for development).
 - In flight: A9 follow-ups (B1-ext <=4 Titan GPU-h; R5-ext CPU).
