@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 22:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 22:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -66,8 +66,15 @@ Updated: 2026-10-17 22:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   wording corrected; `--rerun-rows` added for provenance repair. E1b provenance limitation recorded
   (8 rows from a pre-rule dirty attempt) and its repair is queued: re-run exactly the eight
   `g0_line0_s0..s4` + `g0p005_line0_s0..s2` rows under the clean SHA once the working tree is clean.
-- In flight: WP4b generator on the real WCTE geometry (working tree, ~+1000 lines, benchmark
-  pending), A9 follow-ups (B1-ext ≤4 Titan GPU-h; R5-ext CPU).
+- **WP4b generator on the real WCTE geometry: committed (`fd14311`).** Path-configured geometry
+  reader with hash verification, photon bombs, synthetic unrepaired readout, nominal twin,
+  runs/storage/manifests, benchmark CLI; 34 tests, full suite 327 pass. Synthetic-fixture benchmark
+  202-207 events/s, 972 hits/event, 1.07M-event volume = 1.4-1.5 h on one process (0.19% of the
+  48 h cap). Real-geometry benchmark requested from the host operator.
+- **E1b provenance repair running detached** (attempt_005 at `fd14311`, W=1, the eight
+  `g0_line0_s*`/`g0p005_line0_s0..s2` rows, ~35 min, `results/jepa/20261017_wp3_e1b/rerun_rows.log`).
+  After it finishes: regenerate aggregate_E1b/PREDICTIONS, verify byte-identity, commit.
+- In flight: A9 follow-ups (B1-ext <=4 Titan GPU-h; R5-ext CPU).
 
 ## Running jobs
 
