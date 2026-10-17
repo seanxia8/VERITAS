@@ -1,5 +1,12 @@
 # GATE G-QUOTA — the shared `/ceph/dwong` entry quota cannot carry the campaign
 
+**STATUS: ANSWERED — option (A), author, 2026-10-17 21:31.** Verbatim: "G-QUOTA: (A). I authorise
+deleting exactly these two paths, our own failed installs, whose evidence is already committed:
+`/ceph/dwong/jepa/venv/cpu_py311_torch251`, `/ceph/dwong/jepa/venv/cpu_py311_torch251_retry1`.
+Nothing else. I will also ask about a higher quota (B); continue as if it is not coming." The two
+paths are deleted by the host operator; (B) is not relied on. G-QUOTA is closed; a new quota gate
+will be written only if the campaign cannot fit after (A).
+
 Date: 2026-10-17. Written by the orchestrator. Blocks: nothing that is running now; blocks the
 storage volume of WP4b generation and WP5 returns/checkpoints when the write-stop is reached.
 Runbook v4 §6 ("a quota problem is a gate with options, not a cleanup"); §6.1 step 2; §6.2.
