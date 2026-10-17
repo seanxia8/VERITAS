@@ -305,3 +305,26 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   is blocked until the author answers G-QUOTA; the β development cohort and the nine bridge runs
   are kept to a minimal file footprint (one npz + metrics JSON + hash per run) so they can still
   run inside the remaining margin. No cleanup of any kind is performed while the gate is open.
+
+## WP4a bridge execution decisions (2026-10-17)
+
+- **2026-10-17 — bridge batch = 128 (frozen config), not 32.** v4 §3.5.1 defines the bridge as the
+  Tier-1 E2 of §3.2/§3.4, whose implementation spec (v3 §6 WP4) fixes batch 128; v4 §6.1's
+  "batch 32 must fit ... same effective batch of 32" is the LUCiD encoder's registered batch
+  (§3.5.5) and its gradient-accumulation fallback. The bridge runs at the config batch 128 (it fits
+  far inside the 9.6 GiB Titan cap); any run at a different batch/steps is labelled `provisional`.
+  The conflict and its resolution are recorded in each aggregate.
+- **2026-10-17 — β is recorded in `beta_decision.json`, not in the frozen config.** The committed
+  `configs/bridge_v1.json` has no beta value (only the "may not run until beta is selected" status);
+  the driver writes/reads `returns/wp4a_beta_dev/beta_decision.json` with the v3 §1.3 rule, and the
+  grid refuses anchored arms without a valid decision file. The selected β is copied into this log
+  when the development cohort completes.
+- **2026-10-17 — B1 uses the conservative 2× seed-floor reading** (v4 §3.5.8: a difference is
+  claimed only if |Δmean| > 2 × floor; §3.5.9 inherits it). The 1× boolean is reported as
+  supporting evidence only.
+- **2026-10-17 — write footprint of the bridge runs** (quota discipline): per run one float16
+  embeddings `.npz` (~666 MB), one rolling checkpoint (~9 MB), `probes.json`, `train_log.jsonl`,
+  `run_status.json`, `SHA256SUMS` = 6 files; the 12-run grid ≈ 76 entries / ~8 GB and the β cohort
+  ≈ 22 entries / ~2 GB, plus one cached event shard per cohort role (~18 files / ~2 GB). Bytes are
+  unquotaed and far under the 2 TB data ceiling; the entry cost (~116) fits inside the remaining
+  margin above the 30 000 write-stop.
