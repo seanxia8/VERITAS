@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 22:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 23:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -71,9 +71,16 @@ Updated: 2026-10-17 22:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   runs/storage/manifests, benchmark CLI; 34 tests, full suite 327 pass. Synthetic-fixture benchmark
   202-207 events/s, 972 hits/event, 1.07M-event volume = 1.4-1.5 h on one process (0.19% of the
   48 h cap). Real-geometry benchmark requested from the host operator.
-- **E1b provenance repair running detached** (attempt_005 at `fd14311`, W=1, the eight
-  `g0_line0_s*`/`g0p005_line0_s0..s2` rows, ~35 min, `results/jepa/20261017_wp3_e1b/rerun_rows.log`).
-  After it finishes: regenerate aggregate_E1b/PREDICTIONS, verify byte-identity, commit.
+- **E1b provenance repair COMPLETE** (`attempt_005` at clean `fd14311`, registered_run true,
+  registered_sha recorded, `src_scripts_status` empty, no source change): 8/8 rows pass,
+  0.556 worker-h; E1 cumulative 8.68 h of 24 h. Aggregate/PREDICTIONS draw the clean latest
+  records; values unchanged; PREDICTIONS byte-identical twice.
+- **WP4b §3.5.3a detectability engine committed (`9835ce5`)** with the profiling and F1/F2' joint
+  ceiling rulings in DECISIONS; real-geometry run requested from the host operator now (the
+  critical path). Next after its numbers: freeze Y_lo/Y_hi, s_p, a/F2-vs-F2′, re-benchmark
+  generation at the frozen yields, then WP4c (encoder/views) and the E2 development cohort steps.
+- Standing rule: registered runs start from a git worktree pinned to the clean SHA (main tree free
+  for development).
 - In flight: A9 follow-ups (B1-ext <=4 Titan GPU-h; R5-ext CPU).
 
 ## Running jobs
