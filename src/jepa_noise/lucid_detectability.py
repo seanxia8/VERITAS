@@ -374,7 +374,10 @@ def evaluate_table(geometry, gen_cfg, check: CheckConfig, yield_photons: float, 
         f2 = f2_ceiling(geometry, gen_cfg, check, events, "F2p", f2_setting, seed=seed, with_f1_joint=True)
         f2_law = "F2p"
     elif f2_law == "F2":
-        f2 = f2_ceiling(geometry, gen_cfg, check, events, "F2", f2_setting, seed=seed)
+        # v4 §3.5.3a profiles "the other factors"; the F1/attenuation joint
+        # ceiling must therefore be recorded on the F2 branch as well as on F2′.
+        f2 = f2_ceiling(geometry, gen_cfg, check, events, "F2", f2_setting,
+                        seed=seed, with_f1_joint=True)
     else:
         raise ValueError(f"unknown F2 law {f2_law!r}")
     t = t_ceiling(geometry, gen_cfg, check, events, seed=seed)
@@ -580,7 +583,7 @@ def build_decision_payload(geometry, gen_cfg, check: CheckConfig, table: Ceiling
                         "volume_breakdown": dict(lb.REGISTERED_VOLUME_BREAKDOWN),
                         "cores_at_most": lb.BENCHMARK_CORES, "cpu_cap_wall_hours": lb.CPU_CAP_WALL_HOURS,
                         "note": "repeat benchmark_generation at the frozen yields"},
-        "pending": ["real-geometry numbers", "merged PMT readout re-run (§3.5.2)"],
+        "pending": ["merged PMT readout re-run (§3.5.2); the real-geometry numbers are this file"],
         "ambiguities": AMBIGUITIES,
     }
     payload["decisions_md"] = _decisions_md(payload)

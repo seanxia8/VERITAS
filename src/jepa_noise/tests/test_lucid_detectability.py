@@ -246,3 +246,17 @@ def test_occupancy_n_min_check_at_low_yield():
     assert result["n_min"] == 20 and result["within_target_median_hits"] > 20
     assert result["within_exclusion_rate"] == 0.0
     assert result["across_target_median_hits"] > 20
+
+
+def test_f2_branch_records_the_joint_f1_ceiling():
+    """v4 §3.5.3a profiles the other factors; the chosen F2 law must carry f1_joint."""
+    check = ld.load_check_config(CONFIG)
+    events = ld.sample_events(GEOM, GEN, 12000.0, 6, 7)
+    table = ld.evaluate_table(
+        GEOM, GEN, check, 12000.0, f2_law="F2", f2_setting=0.5, events=events)
+    assert table.f2_law == "F2"
+    assert "f1_joint" in table.f2
+    rows = table.f2["f1_joint"]
+    assert len(rows) == 105
+    assert set(rows[0]) == {"module", "r2_run"}
+    assert all(0.0 <= row["r2_run"] <= 1.0 for row in rows)
