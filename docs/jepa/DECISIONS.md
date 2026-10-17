@@ -776,3 +776,30 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   β ∈ {10, 100, 1000}, commit `46c0adb`, clean clone) with the LUCiD selection rule and the
   committed plain seed-0 reference (`probes.json` sha256 `8a03c2ae…`, identical on host and in the
   repo). Result to be reported when it finishes; ≤ 4 Titan GPU-hours recorded cap.
+
+## WP5 LUCiD runner and its open questions (2026-10-17)
+
+- **2026-10-17 — WP5 LUCiD runner implemented (development-only; no registered run executed).**
+  `lucid_run.py`: the §3.5.6 cell enumeration (main 6 cells × arms × seeds = 162 runs; R11 15;
+  R11b 9; dark-window anchor 3; law T 9; occupancy 3; development 17 — total 201+17), per-cell
+  independent training (10 000 steps, batch 32, fp32/TF32-off, final-step freeze, rolling and
+  30-minute checkpoints, SIGTERM-safe, resume validated on arm/cell/seed/β/config sha), cached
+  generation keyed by (cohort, law, setting, seed) with hash-verified reuse, the four probe forms
+  (run-mean primary) over six targets with random-init floors and the seed floor/CKA reporting, the
+  six verdicts (R6, R7, R7b, R11, R11b, R12) only when the complete cell/seed set is present, the
+  development-cohort steps 1–4 (step 1 runnable now; 2–3 blocked by the pending WP5 config review;
+  step 4 refused pending its definition), `smoke`, `scaling` (with `does_not_fit` recorded) and
+  guard-sized `grid` chunks, and a read-only `aggregate` that never edits
+  `PREDICTION_STATUS.json`. 9 new tests pass (86 with the related suites).
+- **2026-10-17 — open questions recorded, not decided** (from the runner's config/doc; the WP5
+  config review will resolve them): the §3.5.6 cell list has no `s_p = 0` secondary cells, no
+  write-once control, no development step 4 and no 1.2× CRLB / 1.1× SE probe-form rule — the prompt
+  items that mention them are questions to the author, not implemented decisions; the dev step-2
+  reference `v_group` resolution is currently `not_evaluable`; the dark-window writer convention
+  (yield-0 windows from the generator readout, 512 records) needs confirmation; probe event-ID reuse
+  across drift settings, the R6 within-excess floor, the R12 s-scope, and `mae_chi2`'s `s` on the
+  law-T/R11b cells need readings; `oracle_nominal_twin` probes currently read real hits (twin probe
+  wiring pending); R8/robustness are scored but not emitted among the six verdicts.
+- **2026-10-17 — the registered optimizer/lr/schedule numerics remain `pending_review`** and the
+  runner refuses grid/dev training until a WP5 config review freezes them (v4 §5 review
+  requirement); a fresh reviewer is being commissioned.

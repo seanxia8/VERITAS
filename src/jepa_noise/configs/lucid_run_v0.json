@@ -1,0 +1,458 @@
+{
+  "schema": "jepa-lucid-run-v0",
+  "version": "lucid_run_v0",
+  "date": "2026-10-17",
+  "scope": "WP5 LUCiD runner: cells/cohorts, cached generation, per-cell independent training, probes/floors/verdicts, development cohort, smoke and scaling (runbook v4 \u00a73.5.3-\u00a73.5.9, \u00a76.1-\u00a76.2)",
+  "status": "development_only",
+  "readout_label": "readout_synthetic_unrepaired",
+  "reported_results": false,
+  "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
+  "detectability_decision": "results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
+  "training": {
+    "steps": 10000,
+    "batch": 32,
+    "micro_batch": null,
+    "gradient_accumulation": "auto: one micro-batch of 32 fits the \u00a76.2 caps per WP4c (~2.8 GiB at batch 32 on CPU); use --micro-batch/--accum-steps if a host profile says otherwise, keeping the effective batch at 32",
+    "fp32": true,
+    "tf32": false,
+    "checkpoint_minutes": 30.0,
+    "checkpoint_every_steps": 500,
+    "final_step_freeze": true,
+    "best_checkpoint": false,
+    "optimizer": "pending_review",
+    "optimizer_detail": {
+      "family": "pending_review",
+      "learning_rate": "pending_review",
+      "betas": "pending_review",
+      "weight_decay": "pending_review",
+      "schedule": "pending_review",
+      "warmup_steps": "pending_review",
+      "gradient_clip": "pending_review",
+      "muon_ns_steps": "pending_review"
+    },
+    "smoke_optimizer": {
+      "family": "adamw",
+      "learning_rate": 0.0003,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "weight_decay": 0.0,
+      "schedule": "constant",
+      "warmup_steps": 0,
+      "gradient_clip": null,
+      "label": "engineering_smoke_only_not_registered",
+      "note": "Used by `smoke` only; the grid and dev modes refuse while training.optimizer is pending_review."
+    }
+  },
+  "cells": {
+    "main": {
+      "spreads": [
+        0.02,
+        0.05,
+        0.1
+      ],
+      "splits": [
+        "across",
+        "within"
+      ],
+      "s_p": 0.1,
+      "s_p_note": "\u00a73.5.3 registers s_p = 0.05 adjusted only through \u00a73.5.3a; the frozen check raised it to 0.10 for every cell, including R11/R11b/T",
+      "r6_r7_eligible_spreads": [
+        0.05,
+        0.1
+      ],
+      "excluded_spreads": [
+        0.02
+      ],
+      "train_cohort": "train",
+      "arms_seeds": {
+        "sigreg_jepa": 5,
+        "sigreg_jepa_anchored": 5,
+        "mae_mse": 5,
+        "mae_chi2": 3,
+        "ijepa_ema": 3,
+        "anchor_only": 3,
+        "oracle_nominal_twin": 3
+      },
+      "probe_set_by_spread": {
+        "0.02": "main_s002",
+        "0.05": "main_s005",
+        "0.10": "main_s010"
+      },
+      "robustness_set": "robust_s020",
+      "baseline_set": "baseline_s000"
+    },
+    "secondary_order": [
+      "r11",
+      "r11b",
+      "dark_anchor",
+      "law_t",
+      "occupancy"
+    ],
+    "secondary": {
+      "r11": {
+        "law": "F2",
+        "setting": 0.5,
+        "split": "within",
+        "s_p": 0.1,
+        "arms": [
+          "sigreg_jepa",
+          "sigreg_jepa_anchored",
+          "mae_mse"
+        ],
+        "seeds": 5,
+        "train_cohort": "train",
+        "probe_set": "r11",
+        "criterion": "R11",
+        "note": "\u00a73.5.6 item 1: F1 (s = 0.05, carried by the F2 law), F2 (a = 0.50, frozen) and F3 vary independently"
+      },
+      "r11b": {
+        "law": "R11b",
+        "setting": 0.5,
+        "split": "within",
+        "s_p": 0.1,
+        "arms": [
+          "sigreg_jepa",
+          "sigreg_jepa_anchored",
+          "mae_mse"
+        ],
+        "seeds": 3,
+        "train_cohort": "train",
+        "probe_set": "r11",
+        "criterion": "R11b",
+        "note": "\u00a73.5.6 item 2: trained on law R11b (one co-varying scalar, s = 0.05, attenuation a = 0.50) plus F3; probes fitted/scored on independent R11-law probe sets"
+      },
+      "dark_anchor": {
+        "law": "F1",
+        "setting": 0.1,
+        "split": "within",
+        "s_p": 0.1,
+        "arms": [
+          "sigreg_jepa_anchored_dark"
+        ],
+        "seeds": 3,
+        "train_cohort": "train",
+        "probe_set": "main_s010",
+        "criterion": "R7b",
+        "note": "\u00a73.5.6 item 3: the dark-window-only anchor at s = 0.10, 3 seeds"
+      },
+      "law_t": {
+        "law": "T",
+        "setting": null,
+        "settings_source": "law_T_training_ratios",
+        "split": "within",
+        "s_p": 0.1,
+        "arms": [
+          "sigreg_jepa",
+          "sigreg_jepa_anchored",
+          "mae_mse"
+        ],
+        "seeds": 3,
+        "train_cohort": "train",
+        "probe_set": "t_in_range",
+        "extrapolation_set": "t_extrapolation",
+        "criterion": "R8-secondary",
+        "note": "\u00a73.5.6 item 4: law T plus F3, r/R = r/100 for r = 0..99; in-range probe sets + r/R in [1.9, 2.1] extrapolation"
+      },
+      "occupancy": {
+        "law": "F1",
+        "setting": 0.05,
+        "split": "within",
+        "s_p": 0.1,
+        "arms": [
+          "sigreg_jepa"
+        ],
+        "seeds": 3,
+        "train_cohort": "train",
+        "probe_set": "main_s005",
+        "occupancy": "balanced",
+        "criterion": "occupancy_ablation",
+        "note": "\u00a73.5.6 item 5: LeJEPA (= sigreg_jepa) within, s = 0.05, natural vs balanced context views, 3 seeds"
+      }
+    },
+    "development": {
+      "spread": 0.05,
+      "split": "within",
+      "s_p": 0.1,
+      "train_cohort": "dev_train",
+      "probe_set": "dev_main",
+      "steps": 10000,
+      "step2_arms": [
+        "sigreg_jepa",
+        "mae_mse"
+      ],
+      "step2_seed": 9000,
+      "step3_arms": [
+        "sigreg_jepa_anchored",
+        "anchor_only",
+        "sigreg_jepa_anchored_dark"
+      ],
+      "step3_seed_base": 9100,
+      "beta_grid": [
+        0.1,
+        1,
+        10,
+        100,
+        1000
+      ],
+      "beta_rule": "\u00a73.5.6: the largest beta whose vertex resolution is <= 1.1 x the development sigreg_jepa; one seed per beta; none qualifying -> none_qualified",
+      "physics_probe_rule": "\u00a73.5.6 step 2: if the linear vertex resolution of BOTH development encoders is worse than 3 x the reference fit, the primary physics probe becomes an MLP (2 hidden layers of 256, early stopping on 10% of probe-train, fixed seed)",
+      "registered": false
+    }
+  },
+  "probe_sets": {
+    "main_s002": {
+      "law": "F1",
+      "setting": 0.02
+    },
+    "main_s005": {
+      "law": "F1",
+      "setting": 0.05
+    },
+    "main_s010": {
+      "law": "F1",
+      "setting": 0.1
+    },
+    "robust_s020": {
+      "law": "F1",
+      "setting": 0.2,
+      "cohort": "robustness",
+      "test_only": true
+    },
+    "baseline_s000": {
+      "law": "F1",
+      "setting": 0.0,
+      "cohort": "robustness",
+      "test_only": true
+    },
+    "r11": {
+      "law": "F2",
+      "setting": 0.5
+    },
+    "t_in_range": {
+      "law": "T",
+      "setting_kind": "in_range"
+    },
+    "t_extrapolation": {
+      "law": "T",
+      "setting_kind": "extrapolation",
+      "cohort": "robustness",
+      "test_only": true
+    },
+    "dev_main": {
+      "law": "F1",
+      "setting": 0.05,
+      "dev": true
+    }
+  },
+  "data": {
+    "dataset_seed": 20261017,
+    "generator_config": "src/jepa_noise/configs/lucid_bombs_v0.json",
+    "geometry_default": "/ceph/dwong/jepa/external/LUCiD/config/WCTE_geom_config.json",
+    "expected_config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+    "storage": "one directory per (cohort, law, setting, dataset seed) with the generator's per-run hits.npz/twin_hits.npz/events.npz/manifest.json/SHA256SUMS and a dataset-level manifest.json; cached and verified, never regenerated silently",
+    "dark_noise": {
+      "records": 512,
+      "method": "noise-only windows from the generator's own readout with yield = 0 on keyed draws (readout_synthetic_unrepaired); nominal detector state; labelled engineering pending the Lead's confirmation of the no-source convention",
+      "status": "engineering_choice_flagged"
+    },
+    "cohorts": {
+      "train": {
+        "namespace": "lucid/train",
+        "event_start": 0,
+        "n_events": 100000,
+        "run_length": 1000
+      },
+      "probe_train": {
+        "namespace": "lucid/probe_train",
+        "event_start": 200000,
+        "n_events": 10000,
+        "run_length": 50
+      },
+      "probe_test": {
+        "namespace": "lucid/probe_test",
+        "event_start": 210000,
+        "n_events": 10000,
+        "run_length": 50
+      },
+      "robustness": {
+        "namespace": "lucid/robustness",
+        "event_start": 220000,
+        "n_events": 10000,
+        "run_length": 50
+      },
+      "dev_train": {
+        "namespace": "lucid/dev_train",
+        "event_start": 1000000,
+        "n_events": 100000,
+        "run_length": 1000
+      },
+      "dev_probe_train": {
+        "namespace": "lucid/dev_probe_train",
+        "event_start": 1200000,
+        "n_events": 10000,
+        "run_length": 50
+      },
+      "dev_probe_test": {
+        "namespace": "lucid/dev_probe_test",
+        "event_start": 1210000,
+        "n_events": 10000,
+        "run_length": 50
+      },
+      "dev_robustness": {
+        "namespace": "lucid/dev_robustness",
+        "event_start": 1220000,
+        "n_events": 10000,
+        "run_length": 50
+      }
+    },
+    "probe_event_id_reuse": "the single registered 10k probe ranges are reused across drift settings (same event IDs, keyed draws -> identical vertices/yields); each setting has its own dataset directory and state hashes",
+    "train_loader": "each 32-event batch draws 4 events from each of 8 runs chosen without replacement, so no batch comes from a single run and every event has equal probability",
+    "verify_on_reuse": "manifest and per-run state hashes; SHA256SUMS verified only with --verify-hashes"
+  },
+  "views": {
+    "n_min": 20,
+    "max_redraws": 3,
+    "mask_seed": 0,
+    "probe_loader": "probe sets are tokenised with n_min = 0: the N_min exclusion applies to training events only (DECISIONS WP4c)"
+  },
+  "evaluation": {
+    "folds": 5,
+    "alpha_grid": [
+      1e-06,
+      0.0001,
+      0.01,
+      1.0,
+      100.0
+    ],
+    "forms": [
+      "per_event",
+      "run_mean",
+      "propagated",
+      "raw_input"
+    ],
+    "form_kinds": {
+      "per_event": [
+        "vertex",
+        "log_yield",
+        "module_gain",
+        "pmt_gain",
+        "f2_variable",
+        "age"
+      ],
+      "run_mean": [
+        "module_gain",
+        "pmt_gain",
+        "f2_variable",
+        "age"
+      ],
+      "propagated": [
+        "vertex",
+        "log_yield",
+        "module_gain",
+        "pmt_gain",
+        "f2_variable",
+        "age"
+      ],
+      "raw_input": [
+        "vertex",
+        "log_yield",
+        "module_gain",
+        "pmt_gain",
+        "f2_variable",
+        "age"
+      ]
+    },
+    "primary_form": "run_mean",
+    "floors": "the same probe on an untrained encoder of the same architecture, init seed = the arm's first seed; cached per (arm, cell) because it does not depend on the training seed",
+    "physics_reference": "noise_module_lucid.consequence.fit_vertex (default FitConfig unless a reference.json v_group is named); recorded charges/times, no gain correction",
+    "physics_reference_path": null,
+    "physics_reference_status": "not_available_locally: the PMT reference.json/SHA and the repaired readout are pending (\u00a73.5.2); resolution fields are not_evaluable until named",
+    "criteria": {
+      "seed_floor": "\u00a73.5.8: for arms a and b, max(SD_a, SD_b, median SD over all arms in that cell); cross-cell (R6): max(SD_cell_a, SD_cell_b, larger median SD of the two cells); claim only if |delta mean| > 2 x floor",
+      "r6": {
+        "alpha": 0.5,
+        "eligible_spreads": [
+          0.05,
+          0.1
+        ],
+        "metric": "propagated module_gain r2_mean - floor",
+        "within_excess_rule": "within excess over floor > 2 x the within-cell seed floor (floor = max(SD_within, median SD over arms in the within cell)); reading flagged to the Lead"
+      },
+      "r7": {
+        "cell": "main_s010_within",
+        "physics_ratio": 1.1
+      },
+      "r7b": {
+        "cell": "main_s010_within",
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "tolerance": "plain - 2 x seed floor"
+      },
+      "r11": {
+        "r2_min": 0.5,
+        "leakage_max": 0.1,
+        "form": "run_mean"
+      },
+      "r11b": {
+        "requires": "R11 pass",
+        "rule": "at least one R11 condition fails on the R11-law probe sets"
+      },
+      "r12": {
+        "margin": 0.05,
+        "requires": "F3 detectability pass AND R6 pass",
+        "s_scope": "both splits at every R6-eligible s (reading flagged)"
+      }
+    }
+  },
+  "scaling": {
+    "sizes": [
+      2000,
+      10000,
+      40000
+    ],
+    "batch": 8,
+    "hit_fraction": 0.2,
+    "pmts_per_module": 20,
+    "hosts": {
+      "2000": "Titan",
+      "10000": "Titan",
+      "40000": "L40S"
+    },
+    "memory_cap_mb": {
+      "Titan": 9600,
+      "L40S": 21000
+    },
+    "max_gpu_hours_per_size": 1.0,
+    "note": "no training; synthetic layouts on a cylinder surface; forward+backward of the context encoder + predictor; a size that exceeds the cap or raises OOM is recorded as does_not_fit"
+  },
+  "hosts": {
+    "smoke_and_scaling_2k_10k": "Deepthought (4 x GTX Titan 12 GB, 40 cores)",
+    "criterion_runs_and_40k": "deepthought2 (2 x L40S, shared)",
+    "caps": {
+      "L40S_gpu_hours": 80,
+      "Titan_gpu_hours": 300,
+      "generation_cpu_wall_hours": 48,
+      "generation_cores_at_most": 16
+    },
+    "guard": "scripts/jepa_guard.py; one job per GPU; fp32 with TF32 disabled"
+  },
+  "unresolved_questions": [
+    "Secondary cells with s_p = 0: runbook \u00a73.5.3 gives F3 s_p = 0.05 adjusted only through \u00a73.5.3a, and the frozen check set s_p = 0.10 for every LUCiD cell (including R11, R11b and T). No s_p = 0 cell is registered; none is created here.",
+    "R12 is not a separate training cell: it is a control evaluated on the main cells, evaluable only if F3 passes \u00a73.5.3a and R6 passes. F3 failed the frozen check, so R12 is not_evaluable and no R12 cell is trained.",
+    "No single-GPU per job 'write-once control' exists in \u00a73.5.6. The five secondary items are R11, R11b, dark-window-only anchor, aging trend and occupancy ablation; a write-once control/cell is not defined and is not implemented.",
+    "Development-cohort step 4 (robustness seed selection) is not in \u00a73.5.6. The runbook fixes three dev steps and 17 dev trainings (2 probe-decision + 15 beta); step 4 is refused and referred to the Lead.",
+    "The per-event vs run-mean probe-form decision with a 1.2x CRLB ratio and a 1.1x expected-SE criterion is not in \u00a73.5.6. The runbook fixes run_mean as the primary form for every registered criterion and dev step 2 as the physics-probe type (ridge vs MLP at 3x the reference fit). That rule is not implemented.",
+    "R6's within-excess 'seed floor' is not spelled out; the runner uses the within-cell \u00a73.5.8 floor and records it. R12's 'both splits' does not name s; the runner reads both splits at every R6-eligible s (0.05, 0.10). Both readings need confirmation.",
+    "Probe sets reuse the single registered 10k probe-train/probe-test event-ID ranges across drift settings (distinct dataset directories and state hashes). If disjoint ranges per setting are intended, the runbook does not name them.",
+    "The generator has no no-source (dark-only) writer. The runner generates noise-only windows from the generator's own readout with yield = 0 on keyed draws (nominal state, 512 records); the convention needs the Lead's confirmation.",
+    "The physics reference v_group from reference.json is not available locally (PMT branch pending); until a path is named the reference resolution is not_evaluable.",
+    "R11/R11b: the criterion does not name a probe form; the runner uses run_mean per the \u00a73.5.9 preamble ('all LUCiD detector-state R2 values are run-mean') and the seed-mean leakage (each seed's value recorded).",
+    "The occupancy ablation's arm label 'LeJEPA' is read as sigreg_jepa on natural-vs-balanced context views; the natural-view baseline is the main s = 0.05 within cell.",
+    "The mae_chi2 covariance needs one cell spread s; law T's module-gain spread scales with r/R and the runbook fixes no single s. The runner passes s = 0.10 (T_SPREAD) for the law-T cell and s = 0.05 for R11b; both readings need confirmation."
+  ]
+}
