@@ -11,7 +11,7 @@
     },
     "E2_lucid_titan_deepthought": {
       "cap_gpu_hours": 300,
-      "charged_gpu_hours": 0.0098,
+      "charged_gpu_hours": 6.5228,
       "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)"
     },
     "lucid_generation_cpu": {
@@ -486,6 +486,96 @@
       "job_kind": "probe",
       "evidence": "/ceph/dwong/jepa/jobs/smoke_bridge_deepthought_bbcded2/",
       "note": "1-step CUDA smoke of all four WP4a arms; anchored arm clean; N_actual materialised once and loaded"
+    },
+    {
+      "id": "wp4a_bench_sigreg_s0",
+      "campaign": "E2_bridge",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 1782.67,
+      "gpu_hours": 0.4952,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f10c034",
+      "job_kind": "training",
+      "evidence": "/ceph/dwong/jepa/returns/wp4a_bench_sigreg_s0/",
+      "note": "benchmark single sigreg_jepa run (cache build + 10k steps + eval)"
+    },
+    {
+      "id": "wp4a_beta_dev",
+      "campaign": "E2_bridge",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 6402.63,
+      "gpu_hours": 1.7785,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f10c034",
+      "job_kind": "training",
+      "evidence": "/ceph/dwong/jepa/returns/wp4a_beta_dev/",
+      "note": "beta development cohort: 3 anchored runs, beta in {0.1,1,10}, seed 100"
+    },
+    {
+      "id": "wp4a_grid_sigreg",
+      "campaign": "E2_bridge",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 4114.72,
+      "gpu_hours": 1.143,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f10c034",
+      "job_kind": "training",
+      "evidence": "/ceph/dwong/jepa/returns/wp4a_grid_sigreg/",
+      "note": "bridge grid: sigreg_jepa seeds 0-2"
+    },
+    {
+      "id": "wp4a_grid_anchored",
+      "campaign": "E2_bridge",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 5330.3,
+      "gpu_hours": 1.4806,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f10c034",
+      "job_kind": "training",
+      "evidence": "/ceph/dwong/jepa/returns/wp4a_grid_anchored/",
+      "note": "bridge grid: sigreg_jepa_anchored seeds 0-2 at beta=10"
+    },
+    {
+      "id": "wp4a_grid_mae_chi2",
+      "campaign": "E2_bridge",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 1871.46,
+      "gpu_hours": 0.5199,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f10c034",
+      "job_kind": "training",
+      "evidence": "/ceph/dwong/jepa/returns/wp4a_grid_mae_chi2/",
+      "note": "bridge grid: mae_chi2 seeds 0-2"
+    },
+    {
+      "id": "wp4a_grid_parallel",
+      "campaign": "E2_bridge",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 3944.72,
+      "gpu_hours": 1.0958,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f10c034",
+      "job_kind": "training",
+      "evidence": "/ceph/dwong/jepa/returns/wp4a_grid_parallel/",
+      "note": "bridge grid: parallel-attention ablation seeds 0-2"
     }
   ]
 }
