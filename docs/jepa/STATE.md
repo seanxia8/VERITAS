@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 22:50Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 01:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -115,9 +115,23 @@ Updated: 2026-10-17 22:50Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   resume, recorded 5k/3-seed fallbacks, complete floor-cache identity, registered reporting);
   `ijepa_ema` target encoder corrected to target-only tokens with the rest masked. Full package
   suite **411 passed**. LUCiD training numerics frozen (mirroring `bridge_v1.json`).
-- **Running on the Titan**: B1-ext β-dev (β=10 and β=100 complete, β=1000 finishing), then the
-  detectability re-run (v_dark alignment), the WP5 500-step real-geometry smoke and the 2k/10k
-  scaling benchmark.
+- **PMT branch merged** (`codex/junjie-pmt-response` at `0fba034`, merge commit `b6d95c9`): accepted
+  by the author for development; fixed per-module response patterns (group_parity gain odd modules
+  +3%, odd-module timing width +5%) are **fixed detector response** present in the readout and the
+  nominal twin (the twin cancels only injected F1/F3 gains); dark counts are **off** in this
+  response, so everything is labelled **`readout_dark_off`** and nothing from it is reportable;
+  G-PMT is resolved for development, reported runs wait for the R-6 SHA (author will name it).
+  Reference `v_group = 0.2172409115942029` is available in `configs/lucid_pmt/reference.json`.
+- **Author instructions 2026-10-18 (verbatim in DECISIONS):** re-run the detectability check on the
+  **merged readout with F3 marginalised** (variance += s_p²·μ_p²) before freezing [Y_lo, Y_hi],
+  F2-vs-F2′ and s_p, recording old vs new ceilings; a **fresh R2 recompute** of the estimator change
+  (`1d3753a`) against v3 §2.4/v4 §4, verdict recorded beside R2 in `PREDICTION_STATUS.json`;
+  R5-ext after the freeze (project cost first; E1 8.7/24 h); B1-ext ≤ 4 Titan GPU-h in parallel.
+- **B1-ext β development complete: β = 10 selected** (max ratio 0.952 ≤ 1.1; β=100 and 1000 fail);
+  anchored 3-seed grid + beside-B1 aggregate running on the Titan (B1-ext ~1.56 of 4 GPU-h used).
+- **Running**: merged-readout generator/detectability integration (implementer), the fresh R2
+  review, the B1-ext anchored grid. Then: detectability re-run/freeze on the host, WP5 smoke +
+  scaling, R5-ext re-run after the freeze.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
