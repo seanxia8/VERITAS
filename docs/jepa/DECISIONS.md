@@ -429,3 +429,42 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   `git status --porcelain -- src scripts` is non-empty, and records the clean SHA.** Implemented in
   the E1 runner and in the host launcher (`jepa_run.sh`/`jepa_launch.py`); smokes/dev runs may
   override explicitly and are then marked non-registered.
+
+## Author answers (2026-10-17 21:31, quoted verbatim)
+
+**G-QUOTA — answered (A).**
+> G-QUOTA: (A). I authorise deleting exactly these two paths, our own failed installs, whose
+> evidence is already committed:
+> - `/ceph/dwong/jepa/venv/cpu_py311_torch251`
+> - `/ceph/dwong/jepa/venv/cpu_py311_torch251_retry1`
+>
+> Nothing else. I will also ask about a higher quota (B); continue as if it is not coming.
+
+Recorded as the author's explicit authorisation for those two paths only (v4 §6 hard rule). Option
+(B) is not relied on.
+
+**WCTE geometry / LUCiD — author correction.**
+> WCTE geometry is not blocked by the PMT branch.
+> - The physical map is LUCiD's own `config/WCTE_geom_config.json` at the pinned revision. Its
+>   SHA-256 is recorded in the PMT branch's `configs/lucid_pmt/upstream_manifest.json`
+>   (`9943d602…`).
+> - The PMT pilots `181b747` and `56179eb` already transported photons on the pinned WCTE geometry.
+>   The 76-sensor cylinder is only the PMT contract-test fixture.
+> - Clone LUCiD at `eaf2e89f` inside our area, read-only. Verify that hash, then build
+>   `lucid_bombs.py` on the real WCTE geometry and `mpmt_id` map, with the readout labelled
+>   `readout_synthetic_unrepaired`.
+> - The PMT SHA itself is still pending; G-PMT on 31 Oct is unchanged.
+
+**Approved follow-ups (A9), verbatim.**
+> ## 5. Approved follow-ups (labelled, run beside the registered results, not replacing them)
+>
+> I approve these two follow-ups. Record this paragraph verbatim in `DECISIONS.md`.
+> - **B1-ext.** Development cohort with β ∈ {10, 100, 1000} and the LUCiD selection rule (the largest
+>   β whose physics stays within 1.1 × plain). Then `sigreg_jepa_anchored`, 3 seeds, at that β, on
+>   the bridge cell. Report beside B1 under the same criterion. Budget ≤ 4 Titan GPU-hours.
+> - **R5-ext.** E1c with balanced initialisation: per-layer SD = (1e-3)^(1/L), so the end-to-end
+>   scale matches depth 1. Same learning rate, steps and eligibility rules. Freeze the config before
+>   running; CPU only.
+>
+> Neither replaces a registered verdict. Both are reported as follow-ups. I will register them in
+> the runbook as amendment A9.
