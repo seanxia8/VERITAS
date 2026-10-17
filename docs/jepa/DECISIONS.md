@@ -1048,3 +1048,26 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   What the follow-up reports is the **development trade-off at β ∈ {10, 100, 1000}**: nuisance R²,
   physics MSE/CRLB per parameter, and which tolerance excluded β = 100 (t0 at 2.437×) and β = 1000
   (t0 at 7.673×, amplitude 1.763×, tau_t 1.683×). No registered verdict changes.
+
+## B1-ext development β trade-off (18 Oct 2026) — reported beside B1, no verdict change
+
+Source: the three β-development runs' `probes.json` under
+`/ceph/dwong/jepa/returns/wp4a_b1ext_beta_dev/runs/` (each 10 000 steps, 1 868/1 859/1 874 s).
+
+| β | nuisance R² (dev) | physics MSE/CRLB amplitude | t0 | tau_t | ratio to plain (amp / t0 / tau_t) | qualifies |
+|---|---|---|---|---|---|---|
+| 10 | 0.6094 | 1.0605 | 2.9816 | 1.0067 | 0.952 / 0.317 / 0.933 | **yes** |
+| 100 | 0.6079 | 1.2069 | 22.944 | 1.1303 | 1.084 / **2.437** / 1.048 | no (t0) |
+| 1000 | 0.4452 | 1.9641 | 72.237 | 1.8159 | 1.763 / **7.673** / 1.683 | no (t0, amplitude, tau_t) |
+
+Plain seed-0 reference (`sigreg_jepa`, evaluation cohort, sha256 `8a03c2ae…`):
+physics MSE/CRLB 1.1138 / 9.4142 / 1.0789.
+
+**Reading:** from β = 10 to β = 100 the nuisance R² is flat (0.609 → 0.608) while the physics
+degrades sharply (t0 ratio 0.32 → 2.44), and β = 1000 loses both. In the development cohort the
+anchor at β = 10 costs no physics (all ratios ≤ 0.95) and is not weaker in nuisance protection than
+much stronger anchors — so the failure of B1 is not "the anchor was too weak": stronger anchoring
+buys no nuisance protection and costs physics. The dev-cohort nuisance R² (0.609) is not directly
+comparable to the registered B1 evaluation-cohort value (0.516) because the cohorts differ; both are
+reported. The 3-seed anchored grid would have replicated the registered B1 anchored arm and is
+stopped/labelled a replication, not a second verdict.
