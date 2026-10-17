@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 21:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 22:00Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -102,9 +102,18 @@ Updated: 2026-10-17 21:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
 - **A9 follow-ups**: R5-ext executed (balanced init: 7/10 rows evaluable vs 0/10; γ=1.0 2/5 wins →
   fail, γ=0.5 2/5 evaluable → not_evaluable; labelled, no retune, R5 stays not_evaluable).
   B1-ext β development cohort running on the Titan (3 runs, β ∈ {10,100,1000}, commit `46c0adb`).
-- **Next**: WP5 runner (trainer/cohorts/dev-cohort steps/scaling; implementer running), then the
-  500-step Titan smoke, the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins),
-  the WP5 config review, the development cohort and the main grid.
+- **WP5 LUCiD runner committed (`66ae509`)**: §3.5.6 cell enumeration (main 162, secondary 39,
+  development 17), per-cell training protocol, cached generation, four probe forms + floors,
+  R6/R7/R7b/R11/R11b/R12 wiring, dev steps 1–4 (2–3 blocked), smoke/scaling/grid-chunk/aggregate
+  modes; 9 tests (86 with related suites). Open questions recorded, not decided (s_p=0 cells,
+  R12 cell, write-once control, dev step 4, probe-form rule, reference v_group, dark-window
+  convention, twin probe wiring; R8/robustness scored but not emitted).
+- **Running**: fresh WP5 review (cell plan, protocol, probes, verdicts, the twelve unresolved
+  questions, and the optimizer/lr/schedule freeze from repository conventions — the only blocker
+  for grid/dev training) and the B1-ext β development cohort on the Titan.
+- **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
+  the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
+  then the 201-run grid in guard-sized chunks.
 - Standing rule: registered runs start from a git worktree pinned to the clean SHA (main tree free
   for development).
 - In flight: A9 follow-ups (B1-ext <=4 Titan GPU-h; R5-ext CPU).
