@@ -328,3 +328,19 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   ≈ 22 entries / ~2 GB, plus one cached event shard per cohort role (~18 files / ~2 GB). Bytes are
   unquotaed and far under the 2 TB data ceiling; the entry cost (~116) fits inside the remaining
   margin above the 30 000 write-stop.
+
+## E1b interruption and cross-attempt row discovery (2026-10-17)
+
+- **2026-10-17 — E1b attempt_002 stopped cleanly at 33/65 rows.** The runner's own resource guard
+  stopped it (`resource_guard_host_free_ram`; the Mac's free RAM fell while the GPU-side bridge
+  work was running) and it also recorded that scientific source files changed during the attempt
+  (the WP4a commits landed mid-run). No row was overwritten; the attempt is preserved and the
+  interruption is recorded. Accounting: 2.476 worker-hours charged for the stopped attempt.
+- **2026-10-17 — known defect: rows are not carried across attempts.** attempt_003 restarted at
+  W=1 and reported `completed_rows_found=0 pending=65`, so it recomputes the 33 rows attempt_002
+  already completed (the write-once M diagnostic *is* found, so the discovery is inconsistent).
+  The fix (make completed rows discoverable across attempts within a campaign, with provenance
+  pointing at the originating attempt, never copying) is queued until attempt_003 finishes,
+  because editing scientific source during a running attempt is exactly what the runner's
+  source-change check stops on. Cumulative E1 stays well under the 24 h cap (~9 h projected
+  including the stopped attempt), so the waste is time, not budget.
