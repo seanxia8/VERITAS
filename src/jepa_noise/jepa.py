@@ -155,6 +155,7 @@ class BridgeModel(nn.Module):
             context_patches=data.get("context_patches"),
             target_patches=data.get("target_patches"),
             parallel=(arm == ABLATION_ARM),
+            mask_embed_init=float(backbone.get("mask_embed_init", 0.02)),
         )
         self.parallel = arm == ABLATION_ARM
 
@@ -172,6 +173,9 @@ class BridgeModel(nn.Module):
                     d_ff=predictor_cfg.get("d_ff"),
                     norm_eps=float(backbone.get("norm_eps", 1e-6)),
                     n_target=self.encoder.n_target_tokens,
+                    query_init_std=float(
+                        config["predictor"].get("query_init_std", 0.02)
+                    ),
                 )
             )
             self.sigreg = SIGReg(sigreg_config_from_dict(config["sigreg"]))
@@ -221,9 +225,12 @@ class BridgeModel(nn.Module):
             if not torch.isfinite(bank).all():
                 raise ValueError("noise_bank must be finite")
             self.register_buffer("overlay_bank", bank, persistent=False)
-            self._overlay_generator = torch.Generator(
-                device=bank.device
-            ).manual_seed(self.seed + 100003)
+            # Deliberately a CPU generator: overlay record indices are drawn on
+            # CPU and moved to the bank device, so sampling is device-independent
+            # and CUDA-safe (see _overlay_index).
+            self._overlay_generator = torch.Generator().manual_seed(
+                self.seed + 100003
+            )
         self.initialize(self.seed)
 
     # ------------------------------------------------------------- construction
@@ -321,12 +328,34 @@ class BridgeModel(nn.Module):
         covariance = centered.transpose(0, 1) @ centered / (z.size(0) - 1)
         return covariance.diagonal().sum()
 
-    def _sample_overlay(self, batch_size: int) -> Tensor:
+    @staticmethod
+    def _overlay_index(
+        n_records: int, batch_size: int, generator: torch.Generator, device: torch.device
+    ) -> Tensor:
+        """Draw overlay record indices on CPU, then place them on the bank device.
+
+        The generator is deliberately a CPU generator: a CPU ``torch.randint``
+        result indexed into a CUDA bank raises a device-mismatch error, so the
+        index is moved to ``device`` explicitly.  Keeping the generator on CPU
+        also makes the sampled record sequence device-independent.
+        """
         index = torch.randint(
             0,
-            self.overlay_bank.size(0),
+            int(n_records),
             (int(batch_size),),
-            generator=self._overlay_generator,
+            generator=generator,
+        )
+        return index.to(device)
+
+    def _sample_overlay(self, batch_size: int) -> Tensor:
+        """Independent calibration-noise overlay draw ``(B, C, T)``.
+
+        Compatible with a CUDA ``overlay_bank``: the index is created on CPU
+        and moved to the bank device before ``index_select``.
+        """
+        device = self.overlay_bank.device
+        index = self._overlay_index(
+            self.overlay_bank.size(0), batch_size, self._overlay_generator, device
         )
         return self.overlay_bank.index_select(0, index)
 
@@ -458,12 +487,20 @@ def build_optimizers(model: BridgeModel, config: Optional[dict] = None) -> list:
     if model.recon_head is not None:
         adamw_groups.append(dict(params=list(model.recon_head.parameters())))
 
+    device = next(model.parameters()).device
+    if device.type == "cuda":
+        fused = bool(adamw_cfg.get("fused_on_cuda", True))
+    else:
+        # Documented CPU fallback for local tests (the repository convention is
+        # fused=True on CUDA; CPU builds reject the fused kernel).
+        fused = bool(adamw_cfg.get("fused_on_cpu", False))
     adamw = AdamW(
         adamw_groups,
         lr=float(adamw_cfg["lr"]),
         betas=tuple(float(b) for b in adamw_cfg["betas"]),
+        eps=float(adamw_cfg.get("eps", 1e-8)),
         weight_decay=float(adamw_cfg["weight_decay"]),
-        fused=bool(adamw_cfg.get("fused", False)),
+        fused=fused,
     )
     muon = Muon(
         muon_params,

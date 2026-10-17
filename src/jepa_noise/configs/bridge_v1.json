@@ -5,7 +5,7 @@
   "status": "frozen numeric config for independent pre-outcome review; no sample grid or reported run is authorized until reviewed (v3 G6 WP4 item)",
   "data": {
     "law": "A4 at g = 0.02, nominal SNR, channel split",
-    "signal_mode": "linearized (Tier-1 A4 reference cell)",
+    "signal_mode": "nonlinear (v3 WP5 EventFamily waveforms; A4 changes the base noise, epsilon_dc and, for E1b only, the linearised theta SD; the linearised fixture is E1b/E1-only)",
     "split": "channel",
     "channels": 8,
     "n_samples": 256,
@@ -69,15 +69,17 @@
       "sha256": "d31351ad8771a26a8f1fbbefee6efcad90978175f9bd346775fbdc788683fb28",
       "n_target": 1024,
       "target_raw_index_sha256": "72110e38eda26fdd25d001791881d5219c5c0f8dbdbf0b6d053319d691ae11c0",
-      "generator_manifest_sha256": "d2eb830c765d404b70dc08dc42ee85d6d4ea7057893dc6d4e08fafa61b36eb3b",
-      "generator_noise_covariance_sha256": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8"
+      "generator_manifest_sha256": "1cd3195b650f038bb4a729215101191589c8f54736767c14ed18762383c00744",
+      "generator_noise_covariance_sha256": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8",
+      "runtime_verification": "jepa_noise.train.a4_bridge_products(verify=True) recomputes the 1024x1024 marginal and raises on any sha256 mismatch with this config before training. On a host the marginal is written once under /ceph/dwong/jepa/data/bridge/<sha256>/N_actual_target_marginal.npy (or JEPA_BRIDGE_DATA_ROOT) with a manifest recording path+file hash; the repository stores only the sha256 + recipe."
     },
     "generator": {
       "views_constructor": {
-        "signal_mode": "linearized",
+        "signal_mode": "nonlinear",
         "split": "channel",
         "line_multiplier": 0.0,
         "common_strength": 0.02,
+        "amplitude_scale": 1.0,
         "law": "v4-A4-waveform-v1",
         "base_rho": 0.0,
         "seed": 0,
@@ -99,25 +101,28 @@
       "split": "channel",
       "split_hash": "5ccf19f4f2c0424bb9636387a42e899d136172cb5e410c08d271cedf5925f25d",
       "noise_covariance_sha256": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8",
-      "manifest_sha256": "d2eb830c765d404b70dc08dc42ee85d6d4ea7057893dc6d4e08fafa61b36eb3b",
+      "manifest_sha256": "1cd3195b650f038bb4a729215101191589c8f54736767c14ed18762383c00744",
       "calibration_noise": {
         "role": "noise_cal",
         "event_ids": [
           0,
           4095
         ],
-        "n_records": 4096
+        "n_records": 4096,
+        "note": "disjoint from the event streams; used only to fit the fixed per-channel scaling"
       },
       "overlay_noise": {
         "role": "noise_overlay",
         "event_ids": [
           0,
-          63
+          1023
         ],
-        "n_records": 64,
-        "sha256": "797ca14791de1294ff3dd8a1b304b25bfdacbfc4134dac5850fbd710aee46c8c"
+        "n_records": 1024,
+        "sha256": "a07964e016a9c0898dd808f93068749313296cd8ebc315897c20ce1ec21e9c13"
       }
-    }
+    },
+    "amplitude_scale": 1.0,
+    "theta_semantics": "amplitude,t0,tau_t"
   },
   "backbone": {
     "implementation": "subclass of reconstruction_model.model.Transformer; package is no-touch",
@@ -143,7 +148,8 @@
     ],
     "unused_modules_requires_grad": false,
     "mask_embedding": "one learned vector per channel, shared over patches, replaces non-context tokens after patch embedding and before attention",
-    "post_time_representation": "(B, C, n_patch, d_model) after the time block, before the channel layers; used by the amplitude-preservation probe"
+    "post_time_representation": "(B, C, n_patch, d_model) after the time block, before the channel layers; used by the amplitude-preservation probe",
+    "mask_embed_init": 0.02
   },
   "predictor": {
     "d_pred": 64,
@@ -153,7 +159,8 @@
     "out_proj": "linear d_pred -> d_model",
     "queries": "one learned target positional query per target token (n_target, d_pred)",
     "reads": "context outputs plus queries only; no target or gap raw data",
-    "positional_queries": true
+    "positional_queries": true,
+    "query_init_std": 0.02
   },
   "sigreg": {
     "source": {
@@ -184,7 +191,8 @@
     ],
     "combination": "0.5 * (value_context + value_target); total objective adds lambda * SIGReg",
     "note": "the pinned statistic carries the source's per-call sample-count factor N; the target term therefore enters the average with n_target times more samples than the pooled context term. This is a pinned-source consequence, not a tuned choice.",
-    "n_factor_note": "Pinned source reduction: EppsPulley returns (err @ weights) * N, where N is the number of samples passed to that call, and SlicedEppsPulley reduces by the mean over slices; no normalisation is added. Consequently the SIGReg value on the B pooled context embeddings carries N=B, while the value on B*n_target flattened target tokens carries N=B*n_target. With the v3 WP4 average 0.5*(context+target) the target term therefore enters n_target=32 times more strongly per sample. This is kept exactly as the pinned implementation reduces it (no invented normalisation) and is flagged for the pre-outcome review as a frozen property of the config."
+    "n_factor_note": "The pinned Epps-Pulley statistic multiplies by the per-call sample count N, so it is a sum over samples (reduced by the mean over slices); the per-sample weight is ~1/N. Measured at initialisation: context 1.05 at B=128 pooled embeddings vs target 0.92 at B*n_target=32*128 target tokens, i.e. the per-sample target gradient is ~1/n_target of the context gradient. The N factor therefore normalises per-sample weight; the 0.5*(context+target) average does not up-weight the target term. It is not a gate: the source reduction is kept exactly and is a frozen property of the config.",
+    "fixture_initialisation_check": "context ~1.05 at B=128 and target ~0.92 at B*n_target=32*128, measured on the frozen implementation at random init (2026-10-17 WP4a review)."
   },
   "objective": {
     "sigreg_jepa": "prediction L2 (predictor output vs target-view token embeddings, shared weights, no stop-gradient) + lambda * SIGReg",
@@ -196,7 +204,51 @@
         1.0,
         10.0
       ],
-      "beta_rule": "v3 §1.3 on an independent Tier-1 development cohort (g = 0.02, nominal, development seed 100); ties within 1e-8 relative favour the smaller coefficient; beta is NOT selected by this implementation and is not chosen from reported outcomes"
+      "beta_rule": "v3 §1.3 on an independent Tier-1 development cohort (g = 0.02, nominal, development seed 100); ties within 1e-8 relative favour the smaller coefficient; beta is NOT selected by this implementation and is not chosen from reported outcomes",
+      "development_cohort": {
+        "role": "independent Tier-1 development cohort for beta selection only (v3 §1.3, v4 §3.5.7); never an evaluation cohort",
+        "views_constructor": {
+          "signal_mode": "nonlinear",
+          "split": "channel",
+          "line_multiplier": 0.0,
+          "common_strength": 0.02,
+          "amplitude_scale": 1.0,
+          "law": "v4-A4-waveform-v1",
+          "base_rho": 0.0,
+          "seed": 100,
+          "cell": "development",
+          "model_seed": 100
+        },
+        "event_ids": {
+          "development_subject_training": [
+            1000000,
+            1199999
+          ],
+          "development_probe_training": [
+            1200000,
+            1209999
+          ],
+          "development_probe_validation": [
+            1210000,
+            1219999
+          ]
+        },
+        "steps": 10000,
+        "runs_per_beta": 1,
+        "beta_grid": [
+          0.1,
+          1.0,
+          10.0
+        ],
+        "selection_rule": "for each beta in the grid, minimise the mean over physics parameters (amplitude, t0, tau_t) of validation MSE divided by that parameter's development probe-training variance; ties within 1e-8 relative favour the smaller coefficient; nuisance and final-test scores never enter",
+        "status": "frozen; sigreg_jepa_anchored may not run until beta is selected under this config on this independent cohort"
+      },
+      "overlay_noise": {
+        "role": "noise_overlay",
+        "records": 1024,
+        "sha256": "a07964e016a9c0898dd808f93068749313296cd8ebc315897c20ce1ec21e9c13",
+        "note": "independent calibration-noise draws for the anchor overlay; 1024 records span the 2048-dimensional N_actual (about 8 MB) instead of a 64-record sample; generator manifest hash is the data.generator.manifest_sha256 above"
+      }
     }
   },
   "optimizer": {
@@ -207,14 +259,18 @@
         0.9,
         0.999
       ],
+      "eps": 1e-08,
       "weight_decay": 0.0,
-      "fused": false
+      "fused_on_cuda": true,
+      "fused_on_cpu": false,
+      "fused_note": "repository convention is fused=True; the local CPU-only test environment uses the documented fallback fused=False. The run manifest records the device and the optimizer defaults actually used."
     },
     "muon": {
       "lr": 0.001,
       "momentum": 0.95,
       "nesterov": true,
-      "ns_steps": 5
+      "ns_steps": 5,
+      "note": "repository Muon defaults; frozen before outcomes"
     },
     "groups": {
       "muon": "every 2-D matrix inside the temporal, spatial, predictor and merge block modules",
@@ -222,13 +278,22 @@
       "frozen": "final_proj_norm, spatial_head, energy_head (unused by the pre-norm read-out)",
       "coverage_check": "every trainable non-EMA parameter occurs exactly once; enforced at optimizer construction and tested"
     },
-    "implicit_compile": "disabled for CPU checks via RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 (v3 §3.1)"
+    "implicit_compile": "disabled for CPU checks via RECONSTRUCTION_DISABLE_TORCH_COMPILE=1 (v3 §3.1)",
+    "numerics_frozen": "AdamW(lr, betas, eps, weight_decay, fused policy) and Muon(lr, momentum, nesterov, ns_steps) are frozen in this config; no outcome-dependent tuning of them is allowed."
   },
   "training": {
     "batch": 128,
     "steps_primary": 10000,
     "steps_fallback": 5000,
-    "schedule": "not implemented in WP4a; WP5 owns the schedule. The local CPU smoke uses a constant step with no schedule.",
+    "schedule": {
+      "type": "constant",
+      "total_steps": 10000,
+      "warmup_steps": 0,
+      "decay": "none",
+      "lr_schedule": "constant at the frozen optimizer lr for every step; no warmup, no cosine, no early stopping",
+      "grad_clip": null,
+      "note": "v4 §3.5.7 kept v3 WP4 in force, which asks for the repository AdamW/Muon conventions with numeric settings frozen before outcomes; the defensible reading is a constant-lr 10 000-step schedule with the frozen numerics above. The 5 000-step fallback is the v3 §3.2 budget fallback only, never outcome-dependent."
+    },
     "seeds": {
       "sigreg_jepa": [
         0,
@@ -264,6 +329,20 @@
     "amplitude_preservation": {
       "probe": "linear ridge on per-channel read-out token features and on the post-time-block per-channel representation",
       "criterion": "R2 >= 0.9 for sigreg_jepa and mae_chi2",
+      "aggregation": "mean over the 8 per-channel R2 values",
+      "ridge": {
+        "alpha_grid": [
+          1e-06,
+          0.0001,
+          0.01,
+          1.0,
+          100.0
+        ],
+        "folds": 5,
+        "fold_grouping": "grouped folds on probe-train (contiguous groups; no probe-test input)",
+        "standardisation": "standardisation fitted inside each fold; final scaler fitted on probe-train only",
+        "alpha_selection": "lowest validation MSE per output; ties within 1e-8 relative favour the larger alpha"
+      },
       "measured": "after training (after the smoke and on the final encoders); the random-init fixture value reported by the unit test is not the registered criterion"
     }
   },
@@ -278,6 +357,14 @@
     "Read-out is the spatial/channel-layer output before final_proj_norm; final_proj_norm, spatial_head and energy_head are unused by the bridge and frozen (requires_grad=False) so optimizer coverage means 'used'.",
     "Anchor denominator uses the unbiased (B-1) divisor in trace(Cov(z)) with gradients through the trace; mae_chi2 omits the parameter-free log-determinant; AdamW fused=False and implicit torch.compile disabled for CPU checks (v3 §3.1).",
     "Calibration/overlay noise namespaces: noise_cal ids 0-4095 for fixed scaling and noise_overlay ids 0-63 for the anchor bank, both from the registered A4 g=0.02 bridge cell (seed 0, cell 'bridge'); the namespaces are disjoint.",
-    "N_actual target marginal is frozen as sha256 + deterministic recipe rather than a stored matrix (lean-repository rule); jepa_noise.train.a4_bridge_products() recomputes it, and mae_chi2 remains labelled as using oracle noise information."
+    "N_actual target marginal is frozen as sha256 + deterministic recipe rather than a stored matrix (lean-repository rule); jepa_noise.train.a4_bridge_products() recomputes it, and mae_chi2 remains labelled as using oracle noise information.",
+    "Signal mode for the bridge is nonlinear (v3 WP5 EventFamily waveforms + §4.1 noise): v4 §3.5.7 replaces the Tier-1 E2, which v3 WP5 defines with nonlinear waveforms; A4 changes only the base noise, epsilon_dc and (for E1b only) the linearised theta SD. The linearised fixture is E1b/E1-only.",
+    "Anchor overlay bank uses 1024 independent noise_overlay draws (ids 0-1023, ~8 MB) instead of 64, so the 2048-dimensional N_actual is covered; namespace, count and sha256 are frozen in data.generator.overlay_noise.",
+    "Amplitude-preservation criterion is frozen: mean over the 8 per-channel R2 values; ridge alpha grid {1e-6,1e-4,1e-2,1,100}; 5 grouped folds on probe-train; standardisation fitted inside each fold; final scaler on probe-train only; ties favour the larger alpha (v3 §1.3).",
+    "AdamW uses fused=True on CUDA per the repository convention and the documented fused=False fallback on CPU for local tests; the device and the optimizer defaults actually used are recorded in the run manifest.",
+    "Training schedule is frozen as constant learning rate for 10000 steps, no warmup and no decay, with the optimizer numerics frozen in this config; no outcome-dependent schedule is allowed.",
+    "N_actual provenance is checked at run time by a4_bridge_products(): the recomputed 1024x1024 marginal must match the frozen sha256 or it raises; on a host the marginal is written once under <data root>/<sha256>/ and path+hash are recorded, while the repository keeps only the hash and recipe.",
+    "Device handling: overlay indices are drawn with a CPU generator and moved to the overlay-bank device before index_select (CUDA-safe and device-independent sampling); train.py smoke accepts --device and --limit-batches, and the 1-step CUDA smoke is guard-gated outside this WP.",
+    "SIGReg source reduction keeps the N factor exactly as pinned: the statistic is a sum over samples (mean over slices), so per-sample weight is ~1/N; measured context 1.05 at B=128 vs target 0.92 at 32*128, i.e. per-sample target gradient ~1/n_target. This is not a gate and no normalisation was invented."
   ]
 }

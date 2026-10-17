@@ -37,11 +37,15 @@ Pinned numerics (see configs/bridge_v1.json, "sigreg")
 
 Application per v3 WP4: the regulariser value is the average of the value on
 the context pooled embeddings and the value on the target token embeddings
-(flattened over batch).  Note that the pinned statistic carries the source's
-per-call sample-count factor ``N``; with ``B`` pooled context samples and
-``B * n_target`` target tokens the target term therefore enters the average
-with a larger factor.  That is a consequence of the pinned reduction, recorded
-here and in the config, not a tuned choice.
+(flattened over batch).  The pinned statistic carries the source's per-call
+sample-count factor ``N``; it is therefore a sum over samples (mean over
+slices), so the per-sample weight is ~1/N.  With ``B`` pooled context samples
+and ``B * n_target`` target tokens the two terms are of comparable total
+magnitude and the target term is *not* up-weighted per sample: measured at
+initialisation, context 1.05 at B = 128 vs target 0.92 at B = 32*128, i.e. the
+per-sample target gradient is ~1/n_target of the context one.  The N factor
+normalises per-sample weight; it is kept exactly as the source reduces it and
+is recorded as a frozen property of the config (no invented normalisation).
 """
 
 from __future__ import annotations

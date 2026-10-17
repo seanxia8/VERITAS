@@ -8,9 +8,11 @@ loop for the CPU smoke.  It implements no cohort handling, no checkpoints, no
 schedules and no evaluation; those belong to WP5 and are out of scope here.
 
 The registered bridge cell is A4 at g = 0.02, nominal SNR, channel split:
-``Tier1Views(signal_mode='linearized', split='channel', line_multiplier=0.,
-common_strength=0.02, law='v4-A4-waveform-v1', base_rho=0.0, seed=0,
-cell='bridge', model_seed=0)``.
+``Tier1Views(signal_mode='nonlinear', split='channel', line_multiplier=0.,
+common_strength=0.02, amplitude_scale=1.0, law='v4-A4-waveform-v1',
+base_rho=0.0, seed=0, cell='bridge', model_seed=0)`` (v3 WP5 defines the
+Tier-1 E2 signal as nonlinear EventFamily waveforms; the linearised fixture is
+E1b-only).
 
 Usage::
 
@@ -31,6 +33,7 @@ import hashlib
 import json
 import sys
 import time
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
 import numpy as np
@@ -78,10 +81,15 @@ def _seeded_generator(seed: Optional[int]) -> torch.Generator:
 # ---------------------------------------------------------------------------
 #: The registered Tier-1 bridge cell: A4 at g = 0.02, nominal SNR, channel split.
 BRIDGE_VIEWS = {
-    "signal_mode": "linearized",
+    # v3 WP5 defines the Tier-1 E2 signal as nonlinear EventFamily waveforms;
+    # A4 changes the base noise, epsilon_dc and (E1b only) the linearised theta
+    # SD, so the bridge keeps the nonlinear signal.  The linearised fixture is
+    # E1b-only (E1).  Scaling and N_actual are noise-only and unaffected.
+    "signal_mode": "nonlinear",
     "split": "channel",
     "line_multiplier": 0.0,
     "common_strength": 0.02,
+    "amplitude_scale": 1.0,
     "law": "v4-A4-waveform-v1",
     "base_rho": 0.0,
     "seed": 0,
@@ -94,7 +102,9 @@ CALIBRATION_ROLE = "noise_cal"
 CALIBRATION_EVENT_COUNT = 4096
 #: The anchor overlay draws from an independent noise namespace (v3 WP5).
 OVERLAY_ROLE = "noise_overlay"
-OVERLAY_EVENT_COUNT = 64
+#: Full-rank overlay bank for the 2048-dimensional N_actual: 1024 independent
+#: noise_overlay draws (8 MB float32), not a 64-record sample.
+OVERLAY_EVENT_COUNT = 1024
 
 
 def _canonical_sha256(payload) -> str:
@@ -116,10 +126,82 @@ def a4_bridge_views(**overrides):
     return Tier1Views(**params)
 
 
+def write_bridge_artifact(products: dict, root) -> str:
+    """Write the 1024x1024 target marginal once under ``root/<sha256>/``.
+
+    Returns the artifact directory.  The file is checked against the frozen
+    sha256 if it already exists (never silently overwritten).  ``root`` is the
+    host data root, e.g. ``/ceph/dwong/jepa/data/bridge``.
+    """
+    from .masks import raw_split
+
+    metadata = products["metadata"]
+    target = metadata["target_noise_covariance"]
+    frozen_sha = target["sha256"]
+    index = raw_split("channel").target
+    covariance = np.asarray(products["target_noise_covariance"], dtype=np.float64)
+    marginal = covariance[np.ix_(index, index)]
+    directory = Path(root) / frozen_sha
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / "N_actual_target_marginal.npy"
+    if path.exists():
+        existing = np.load(path)
+        if not np.array_equal(existing, marginal):
+            raise RuntimeError(
+                f"existing bridge artifact {path} does not match the frozen "
+                "N_actual target marginal"
+            )
+    else:
+        np.save(path, marginal)
+    file_sha = _array_sha256(marginal, "<f8")
+    record = {
+        "target_marginal_sha256": frozen_sha,
+        "file_sha256": file_sha,
+        "shape": list(marginal.shape),
+        "dtype": "<f8",
+        "generator_manifest_sha256": metadata["generator"]["manifest_sha256"],
+        "views_constructor": metadata["generator"]["views_constructor"],
+        "path": str(path),
+    }
+    (directory / "manifest.json").write_text(
+        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    metadata["target_noise_covariance"]["artifact_path"] = str(path)
+    metadata["target_noise_covariance"]["artifact_file_sha256"] = file_sha
+    return str(directory)
+
+
+def verify_bridge_products(config: dict, products: dict) -> None:
+    """Raise unless the products reproduce the frozen config hashes exactly."""
+    frozen_target = config["data"]["target_noise_covariance"].get("sha256")
+    computed_target = products["metadata"]["target_noise_covariance"]["sha256"]
+    if frozen_target is not None and frozen_target != computed_target:
+        raise RuntimeError(
+            "computed N_actual target marginal sha256 "
+            f"{computed_target} does not match the frozen config sha256 "
+            f"{frozen_target}"
+        )
+    frozen_scaling = config["data"]["fixed_scaling"].get("values_mean_std")
+    if frozen_scaling:
+        expected_mean = torch.as_tensor(frozen_scaling["mean"], dtype=torch.float32)
+        expected_std = torch.as_tensor(frozen_scaling["std"], dtype=torch.float32)
+        if not torch.equal(expected_mean, products["channel_mean"]):
+            raise RuntimeError(
+                "computed fixed per-channel mean does not match the frozen config"
+            )
+        if not torch.equal(expected_std, products["channel_std"]):
+            raise RuntimeError(
+                "computed fixed per-channel std does not match the frozen config"
+            )
+
+
 def a4_bridge_products(
     n_calibration: int = CALIBRATION_EVENT_COUNT,
     n_overlay: int = OVERLAY_EVENT_COUNT,
     progress: bool = False,
+    config: Optional[dict] = None,
+    verify: bool = True,
+    artifact_root=None,
 ) -> dict:
     """Real A4 bridge products from the registered generator.
 
@@ -128,7 +210,10 @@ def a4_bridge_products(
     (independent ``noise_overlay`` draws for the anchor), the full raw
     ``N_actual`` covariance (the ``mae_chi2`` model slices the target marginal),
     and a ``metadata`` dict with the sha256 hashes written into the reviewed
-    config.
+    config.  With ``verify`` (default) the computed products are checked against
+    the frozen config hashes and a mismatch raises.  With ``artifact_root`` (or
+    the ``JEPA_BRIDGE_DATA_ROOT`` environment variable) the target marginal is
+    written once under ``<root>/<sha256>/`` and the path+hash are recorded.
     """
     from .masks import raw_split
 
@@ -214,13 +299,24 @@ def a4_bridge_products(
             "sha256": _array_sha256(bank, "<f8"),
         },
     }
-    return {
+    products = {
         "channel_mean": channel_mean,
         "channel_std": channel_std,
         "noise_bank": torch.as_tensor(bank, dtype=torch.float32),
         "target_noise_covariance": covariance,
         "metadata": metadata,
     }
+    if verify:
+        frozen = load_config() if config is None else config
+        verify_bridge_products(frozen, products)
+        metadata["verified_against_config"] = True
+    else:
+        metadata["verified_against_config"] = False
+    if artifact_root is None:
+        artifact_root = os.environ.get("JEPA_BRIDGE_DATA_ROOT")
+    if artifact_root:
+        write_bridge_artifact(products, artifact_root)
+    return products
 
 
 def freeze_bridge_config(
@@ -235,7 +331,7 @@ def freeze_bridge_config(
     """
     path = CONFIG_PATH if config_path is None else config_path
     config = load_config(path)
-    products = a4_bridge_products(progress=progress)
+    products = a4_bridge_products(progress=progress, verify=False)
     metadata = products["metadata"]
     data = config["data"]
     scaling = metadata["fixed_scaling"]
@@ -387,6 +483,8 @@ def smoke_arms(
     steps: int = 1,
     seed: int = 0,
     fixture: Optional[dict] = None,
+    device=None,
+    limit_batches: Optional[int] = None,
 ) -> Dict[str, dict]:
     """One forward+backward+optimizer step per arm on tiny CPU inputs.
 
@@ -396,7 +494,16 @@ def smoke_arms(
     """
     config = load_config() if config is None else config
     fixture = synthetic_fixture(config, seed=seed) if fixture is None else fixture
-    batches = make_batches(config, batch=batch, count=max(1, steps), seed=seed + 11)
+    device = torch.device("cpu") if device is None else torch.device(device)
+    n_batches = max(1, int(steps))
+    if limit_batches is not None:
+        n_batches = max(1, min(n_batches, int(limit_batches)))
+    batches = [
+        batch_tensor.to(device)
+        for batch_tensor in make_batches(
+            config, batch=batch, count=n_batches, seed=seed + 11
+        )
+    ]
     results: Dict[str, dict] = {}
     for arm in arms:
         beta = _beta_placeholder(config) if arm == "sigreg_jepa_anchored" else None
@@ -411,6 +518,8 @@ def smoke_arms(
             beta=beta,
             seed=seed,
         )
+        if device.type != "cpu":
+            model.to(device)
         optimizers = build_optimizers(model)
         losses = train_steps(model, optimizers, batches, steps)
         elapsed = time.perf_counter() - start
@@ -420,6 +529,8 @@ def smoke_arms(
             "metrics": dict(model(batches[-1])["metrics"]),
             "n_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
             "beta_placeholder": beta,
+            "device": str(device),
+            "n_batches": len(batches),
         }
     return results
 
@@ -441,6 +552,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--batch", type=int, default=2)
     parser.add_argument("--steps", type=int, default=1)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="e.g. cpu or cuda:0; the run manifest records the device",
+    )
+    parser.add_argument(
+        "--limit-batches", type=int, default=None, help="cap the synthetic batches"
+    )
+    parser.add_argument(
+        "--data-root",
+        default=None,
+        help=("host data root for the frozen N_actual artifact, e.g. "
+              "/ceph/dwong/jepa/data/bridge; recorded with path+hash"),
+    )
     args = parser.parse_args(argv)
     if args.freeze_config:
         config, products = freeze_bridge_config(args.config, progress=True)
@@ -461,7 +586,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             "(WP5 owns the trainer)"
         )
     config = load_config(args.config)
-    fixture = a4_bridge_products(progress=True) if args.a4 else None
+    fixture = (
+        a4_bridge_products(progress=True, artifact_root=args.data_root)
+        if args.a4
+        else None
+    )
     results = smoke_arms(
         config,
         arms=ALL_ARMS,
@@ -469,6 +598,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         steps=args.steps,
         seed=args.seed,
         fixture=fixture,
+        device=args.device,
+        limit_batches=args.limit_batches,
     )
     print(json.dumps(results, indent=2, sort_keys=True))
     return 0
