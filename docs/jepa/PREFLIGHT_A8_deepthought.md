@@ -350,3 +350,30 @@ Total campaign ≈ **2,000–3,500 entries**.
 - One probe hung (an env-version script over the `bash -s` stdin heredoc, killed after ~10 min); it
   was re-run as three bounded calls with `timeout`, which produced all the values above. Charge the
   whole preflight as ~15 minutes of one-worker read-only preparation, **0 GPU-hours**.
+
+---
+
+## 9. Guard-deployment preparation (measured 12:09:23–12:09:53 UTC)
+
+Authorised write: **`mkdir -p /ceph/dwong/jepa/jobs`** (that path only, nothing else). Entry counts
+before/after: `rfiles` 416,387 → **416,387** (unchanged), `rsubdirs` 51,669 → **51,670** (+1, the new
+directory); `max_files` 500,000; `rbytes` unchanged. Used 468,057 → **free 31,943 entries**.
+`jobs/` is currently empty; it is where `guard_<host>.json`, `guard_<host>.log` and the PID files go.
+
+| Check | Result |
+|---|---|
+| Interpreter | `/home/dwong/anaconda3/bin/python3` = **Python 3.12.2**; `import torch, numpy, jaxtyping` → `2.5.1+cu121 12.1 True 1.26.4 0.3.11` (exit 0, no CUDA context: GPU memory unchanged before/after) |
+| `nvidia-smi` | `/usr/bin/nvidia-smi`; **`pmon -c 1` works (exit 0)** but per-process **SM% is unusable on this Maxwell card**: `sm` column `-` on GPUs 0 and 3, `0` on 1 and 2; `mem`/`enc`/`dec` all `-`. Only 6 lines (2 header + 4 rows) |
+| Per-process memory attribution | `nvidia-smi --query-compute-apps=pid,process_name,used_memory` works (exit 0) and returns all four rows (1004/4176/1004/1004 MiB for PID 3103118) — **but the CSV has no GPU index column**, so the guard must take the index from the full `nvidia-smi` process table (which lists GPU idx + PID + memory correctly) rather than from this query alone |
+| `getfattr` | `/usr/bin/getfattr`; `max_files` **500000**, `dir.rfiles` **416387**, `dir.rsubdirs` **51670** |
+| `tmux` | `/usr/bin/tmux`, **tmux 2.7**; `tmux ls` → `no server running on /tmp/tmux-12100/default`, **exit 1** (the guard must treat exit 1 + "no server running" as *empty*, not as an error) |
+| `git` | `/usr/bin/git`, **2.43.7** → supports `--filter=blob:none` and `sparse-checkout` |
+| Driver id | 525.147.05, VBIOS 84.00.1F.00.01 (4 GPUs) |
+
+**Sparse-clone arithmetic** (basis measured on the existing clone; nothing cloned):
+tracked files 516 total, of which `scripts/` 28, `src/` 274 (`src/jepa_noise` 15), `docs/jepa` 16;
+full checkout = 549 files + 109 dirs = **658 entries / 308 MB**; `.git` alone = 33 files + 17 dirs =
+50 entries / 138 MB. A `git clone --filter=blob:none --no-checkout` costs ≈ **50 entries, single-digit
+MB** (no blobs fetched), then `git sparse-checkout set scripts` adds 28 files + 5 dirs = **33 entries**
+→ **≈ 83 entries total**; `set scripts src` adds ≈ 274 files + dirs → **≈ 400 entries**. So the
+sparse route saves ~58% (§6.1's "one clone per SHA" rule is satisfied without paying 658 each time).
