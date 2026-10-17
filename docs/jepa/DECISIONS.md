@@ -803,3 +803,30 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
 - **2026-10-17 — the registered optimizer/lr/schedule numerics remain `pending_review`** and the
   runner refuses grid/dev training until a WP5 config review freezes them (v4 §5 review
   requirement); a fresh reviewer is being commissioned.
+
+## WP5 pre-outcome review and frozen LUCiD training numerics (2026-10-18)
+
+- **2026-10-18 — WP5 independent review: ACCEPT WITH FIXES.** The cell/cohort plan is verified
+  correct against §3.5.6 (main 6 cells × arm seeds = 162 runs; 39 secondary: R11 15, R11b 9,
+  dark-window 3, law T 9, occupancy 3; development 17 = 2 + 15), and the implementer's claims about
+  the runbook are confirmed: §3.5.6 contains **no** `s_p = 0` secondary cells, no R12 training
+  cell, no write-once control, no development step 4 and no 1.2× CRLB / 1.1× SE probe-form rule.
+  Those remain questions for the author, not implemented decisions. The review also confirmed the
+  §3.5.3a fallback `s_p = 0.10` is used for every cell because DECISIONS is binding.
+  **The runner is not yet executable end-to-end**: P0 defects — an undefined name in `_score`, an
+  unthreaded `physics_method` parameter, missing metrics treated as `fail` instead of
+  `not_evaluable`, three verdict-math errors (F2 floor, R11b arm set, R6 excess-based median SD),
+  and the optimizer block not actually applying eps/fused/Muon momentum/nesterov or any schedule.
+  P1 issues (robustness/R8 and law-T extrapolation never scored despite the doc; oracle-twin probes
+  reading real hits; `ijepa_ema` target-encoder input; dev step-2 decision flow; auto-resume;
+  fallback-run labelling; floor-cache identity; several missing registered reporting quantities) are
+  queued before outcomes. A fixer is working; nothing trains until P0 lands.
+- **2026-10-18 — frozen LUCiD training numerics (Lead decision).** Mirror the already-frozen WP4
+  convention (`configs/bridge_v1.json:281-322`, itself the repository's conventions): AdamW
+  **lr 1e-3**, betas (0.9, 0.999), weight decay 0, **eps 1e-8**, fused on CUDA with the documented
+  CPU fallback; Muon **lr 1e-3**, momentum 0.95, nesterov, ns_steps 5; **constant learning rate, no
+  warmup, no decay, grad clip null**; batch 32, 10 000 steps, fp32 with TF32 off. The runner must
+  apply these (not merely record them) and refuse any other, unfrozen schedule. The runbook does
+  not fix lr or schedule; this is the smallest defensible freeze (the repository's own values,
+  already reviewed and frozen for WP4), recorded here so the WP5 review requirement is satisfied.
+  The §3.5.6 5 000-step budget fallback remains a recorded, non-primary run if ever used.
