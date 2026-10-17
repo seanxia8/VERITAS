@@ -154,3 +154,25 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   held; stale claims are reclaimed only when both launcher and job PIDs are dead. A stuck
   pre-pid.json launcher can block one GPU (availability only, never safety); if that happens the
   operator reports it and the guard's duplicate-GPU HOLD keeps the card safe.
+
+## WP3 E1 execution decisions (2026-10-17)
+
+- **2026-10-17 — E1 runner/attempt protocol.** One attempt directory per launch; completed rows are
+  never overwritten; a re-run of an attempt whose implementation changed goes to a new attempt and
+  the old attempt is archived (tar.xz + sha256) in the same results directory. `report E1` is
+  regenerated only from the stored rows, and non-E1 rows are sourced solely from
+  `PREDICTION_STATUS.json`.
+- **2026-10-17 — R3 frozen transform.** The R3 per-view invariance diagnostic uses a fixed
+  invertible transform (N(0,1) + 5I per seed/cell, independent per view for context and target),
+  recorded in `configs/e1_grid_v4.json` before its outcome. It is an engineering choice inside the
+  registered definition (v3 §2.4 R3, P2).
+- **2026-10-17 — R3b implementation-defect correction.** Attempt 006 measured the oracle's angles on
+  the whitened-coordinate functional; the registered definition requires row spaces mapped back to
+  the original context coordinates (v3 §4; P2 "map directions back before comparing"). Corrected in
+  attempt 007; both attempts are archived, no row overwritten. The corrected R3b outcome is
+  prospective from that correction and is subject to the E1 independent recompute.
+- **2026-10-17 — E1 worker count for E1b.** Registered formula W = min(physical cores − 2,
+  floor(free GB / 4)), capped at 3, measured at each launch; W and peak RSS per worker recorded in
+  the attempt manifest.
+- **2026-10-17 — E1 attempts 001–006 are superseded** (solver-tolerance rows and the R3b
+  implementation defect) and archived bit-exactly; only attempt 007's rows feed the report.
