@@ -1057,3 +1057,202 @@ per-event and per-run R² ceilings, yield-range and F2/F2′ fallback decisions)
 geometry. CPU-only, reads the pinned LUCiD geometry read-only, writes one decision JSON under
 `/ceph/dwong/jepa/jobs/`. If it exceeds ~5 minutes it will run in a tmux session
 `jepa_<run_id>` with its log under `/ceph/dwong/jepa/jobs/`. Awaiting the SHA and the command.
+
+---
+
+## 19. §3.5.3a detectability check at the real WCTE geometry (`9835ce5b`), 17 Oct 2026 20:59–21:02Z
+
+### Provenance (standing rule §18)
+
+```
+rev-parse HEAD          : 9835ce5b5f41486133573b7b5dc0d8bc0bd94ba4
+git status --porcelain  : (empty — clean)
+```
+
+In-terminal check of the geometry pointer: `sha256sum external/LUCiD/config/WCTE_geom_config.json` =
+**9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c** (matches). The engine verified
+the geometry itself and wrote into the decision JSON: `config_sha256 9943d602…`, `source_sha256
+0a75b035…`, `geometry_sha256 8b46bd3c…`, **`synthetic: false`**, 1995 sensors / 105 modules / 19 per
+module, `module_ids_contiguous: false`, surfaces barrel 1197 / bottom 399 / top 399.
+
+**Run:** `python3 -m jepa_noise.lucid_detectability run --geometry … --config
+configs/lucid_detectability_v0.json --generator-config configs/lucid_bombs_v0.json --seed 20261017
+--out jobs/wp4b_detectability_wcte.json`. **Exit 0, wall 105 s**, foreground (no tmux needed), CPU
+only. Evidence no GPU was touched: `lucid_detectability.py` contains **zero** `import torch`/`cuda`
+references (grep count 0), and the GPU memory baseline was unchanged (633/655/629/629 MiB at 0 %).
+No file was written outside `/ceph/dwong/jepa/` — only the JSON under `jobs/`; no `__pycache__`
+(`PYTHONDONTWRITEBYTECODE=1`). In-place update cost **+11 files** (10 code + the JSON);
+free entries 39,175 → **39,163** (`rfiles` 409,158 + `rsubdirs` 51,679 = 460,837 used).
+
+### The decision JSON
+
+**Path (exact, for harvest): `/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json`**
+size **9,970 B**, `sha256 fbddb6fd9493de704841b5cfc35e1ea12c9dba726b0dfe476297b6958bfe56a3`,
+`content_sha256 e3bcbd1a0069b222563c606cd386adf5453b6109b621d1d1e374fdb8cd5b13f0`,
+`status: frozen`, `frozen: true`, `reported_results: false`,
+schema `jepa-lucid-detectability-decision-v0`, code_sha `9835ce5b…`,
+config_digest `1f39d9b4170ef6eb38f0ac404cf5a8ba6344a43c1f9fef022f732f9aaa3c6956`,
+generator_config_digest `a852ff2271fef0af4959fb98295371a39703870db4e52d76ce19c7b08911c046`,
+seed 20261017, 50 events per ceiling, `sigma_spe 0.3`, `v_dark 0.0`,
+readout `readout_synthetic_unrepaired`.
+
+### Ceilings (frozen table; threshold 0.6 on the run-level lower bound)
+
+| factor | setting | σ_f | R²_event (median) | R²_run median | R²_run min | R²_run max | pass |
+|---|---|---|---|---|---|---|---|
+| F1 | 0.02 | 0.02 | 0.004592 | 0.2616 | 0.1741 | 0.4023 | **false** |
+| F1 | 0.05 | 0.05 | 0.027988 | **0.6847** | 0.5738 | 0.8053 | **true** |
+| F1 | 0.10 | 0.10 | 0.102428 | **0.8914** | 0.8323 | 0.9368 | **true** |
+| F3 | 0.10 | 0.10 | 0.005985 | 0.3243 | 0.1476 | 0.5061 | **false** |
+| F2 | 0.50 | 1.0 | 0.001198 | **0.9210** | 0.9210 | 0.9210 | **true** |
+| T | 0.50 | 0.28868 | 0.571469 | **0.9860** | 0.9860 | 0.9860 | **true** |
+
+Median yield used for all rows: **58,177.275** photons (`population_median_of_log_uniform`).
+
+### Frozen yields and how they were set
+
+- **Y_lo = 6,249.708098** photons — set so the median hit PMTs ≈ 200: check at Y_lo gives
+  median 200.5 hit PMTs, hit fraction 0.1005, median module charge 2.277 PE (48 events).
+- **Y_hi = 541,560.544764** photons — bound (b) of §3.5.3a, `hit_fraction_0.95`: at Y_hi the median
+  hit fraction is 0.9499 (1,895 hit PMTs), module charge 191.57 PE. The competing bound
+  `module_charge_300pe` would have allowed 846,767.77; the rule takes the **lower** of the two, so
+  Y_hi = 541,560.545. Initial Y_hi was 320,000 and was raised by fallback step 1 (10 iterations,
+  48 bound events).
+- Median yield 58,177.275 follows the frozen policy `population_median_of_log_uniform`.
+
+### Branches and the fallback ladder (4 steps applied)
+
+1. `raise_y_hi` 320,000 → 541,560.545 — because F1 s=0.02, F3 s_p=0.05 and F2 a=0.1 were below 0.6;
+2. `set_F2_a` 0.1 → 0.2 (F2 still below);
+3. `set_F2_a` 0.2 → 0.5 (F2 then passes at 0.9210);
+4. `raise_F3_spread` 0.05 → 0.10 (F3 still fails at 0.3243).
+
+- **F1:** eligible `[0.05, 0.1]`, excluded `[0.02]` (`f1_all_below_threshold: false`).
+- **F2 vs F2′:** **F2 chosen**, `setting a = 0.5` (attempted 0.1, 0.2, 0.5). **F2′ not used**, so no
+  `b` value exists.
+- **F3:** attempted `[0.05, 0.1]`, final s_p = 0.1, R² 0.3243 < 0.6 → `f3_choice: null`, `f3_ok:
+  false` → **R12 `not_evaluable`, no gate** (`r12_gate: null`), exactly as §3.5.3a prescribes.
+- **Law T:** 0.9860 ≥ 0.6 → `law_T_ok: true`.
+- **R6/R7:** `evaluable` / `evaluable`. **G6: false**, `g6_dependent_predictions: []`.
+  Reason string: `F3 cannot reach 0.6: R12 not_evaluable, no gate`.
+
+### N_min occupancy (n_min = 20, checked at Y_lo)
+
+| view | target median hits | target min hits | exclusion / below-N_min |
+|---|---|---|---|
+| within | 106.5 | 84 | 0.0 |
+| across (random-half proxy) | 97.5 | 64 | initial below-N_min 0.0, after-3-redraw exclusion 0.0 |
+
+Note (from the JSON's own ambiguities): the `across` view here is a random module half, not the
+contiguous Hilbert half, because `view_masks` is still a WP4c stub.
+
+### `f1_joint` for the R11 cell — NOT PRESENT, by construction
+
+The JSON has **no `f1_joint` row** (`table` has 6 rows: F1×3, F3, F2, T; the string `f1_joint` does
+not appear anywhere in the file). In the engine, `with_f1_joint=True` is passed **only** on the F2′
+branch (`f2_ceiling(..., "F2p", ..., with_f1_joint=True)`, or when profiling F2p during the ladder).
+Because **F2 passed at a = 0.5, the F2′ branch was never evaluated**, so no per-module joint F1/F2′
+rows were produced. The builder exists and would emit `row["f1_joint"] = [{module: j, r2_run: …}]`
+for all 105 modules. If R11's declared ceiling requires that joint row, it needs either a forced F2′
+evaluation or the row also emitted on the F2 branch — an engine decision, not something I can
+produce by re-running the same command.
+
+### Other observations worth one line each
+
+- **F2 and T have `r2_run_min == median == max`** (single run realisation each), whereas the F1 rows
+  show real run-to-run spread (e.g. 0.174–0.402 at s=0.02). Both pass comfortably (0.921, 0.986), but
+  those two ceilings rest on one run draw, unlike F1.
+- F3's failure is expected from the JSON's own ambiguity list: per-PMT gains are part of the true μ
+  but are **not** profiled (an incidental-parameter block would zero every other factor's
+  information), so F3's ceiling is structurally conservative.
+- `pending` still lists `["real-geometry numbers", "merged PMT readout re-run (§3.5.2)"]` — the first
+  entry looks like a template line that this run has now satisfied; the second is the PMT-SHA re-run
+  and remains genuinely pending.
+- The JSON's `rebenchmark` block is the input for the later generation benchmark: volume 1,070,000
+  events, y_lo/y_hi/median as frozen, ≤16 cores, 48 wall-hour cap, note "repeat
+  benchmark_generation at the frozen yields". **Not run**, per instruction.
+
+---
+
+## 20. `f1_joint` evidence and the frozen-yield generation benchmark (`aa012d8a`), 17 Oct 2026 21:06–21:09Z
+
+Provenance pair for both jobs: **`git rev-parse HEAD` = `aa012d8a2c3149d71ddfc4350edd826a7e5f9116`**
+("jepa: freeze the generator yield range and factor choices from the section 3.5.3a check"),
+**`git status --porcelain` empty (clean)**, sparse paths `scripts src`. Frozen config confirmed in the
+checkout before running: `y_lo 6249.708098`, `y_hi 541560.544764`,
+`yield_range_status frozen_by_detectability_check`, F2 `selected_spread 0.5` / `selected true`, the
+F2′ alternative `selected false`.
+
+### Step 1 — detectability re-run (evidence with `f1_joint`)
+
+**Exit 0, wall 113 s**, foreground, CPU only. Output written to a **new file**;
+both runs are kept (`…_wcte.json` from `9835ce5b`, `…_wcte_v2.json` from `aa012d8a`).
+
+**Path: `/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_v2.json`** — 16,920 B,
+`sha256 540e9b2e0acd6858e3269bb90732a912ac9462f734d79f7b21b38dbb89c9f03c`,
+`content_sha256 17bd075fa13c0503c1860abaed36abf72a43f7dd497ec13429bf89ec5c413243`,
+`status frozen`, code_sha `aa012d8a…`. The file grew from 9,970 B to 16,920 B — that is the joint row.
+
+**`f1_joint` is present in the F2 row** (factor F2, setting 0.5, law F2, passes true) with **105
+per-module rows**, modules **0…104**:
+
+| statistic | r2_run |
+|---|---|
+| median | **0.681917** |
+| min | **0.536011** |
+| max | **0.812746** |
+
+(first three: module 0 → 0.792067, module 1 → 0.730611, module 2 → 0.782970.) The joint
+F1/attenuation ceiling is therefore **above the 0.6 threshold at the median** but dips below it for
+some modules (min 0.536) — presented as R11 evidence without a pass/fail criterion, as the JSON's
+ambiguity list describes ("the joint F1/F2' row is recorded beside it for R11"). Note the joint row
+indexes modules by **dense position 0…104**, not by `mpmt_id` (which skips 45) — the R11 comparison
+must use the same positional convention as the geometry arrays.
+
+**Decisions match the first run.** `y_lo`, `y_hi`, median yield, F1 eligible `[0.05, 0.1]` /
+excluded `[0.02]`, F2 choice `{law: F2, setting: 0.5}` with attempts `[0.1, 0.2, 0.5]`, F3
+`choice null` / `ok false`, `g6 false` with `[]`, `r12_status not_evaluable` / `r12_gate null`,
+`r6/r7 evaluable`, `law_T_ok true`, the 4-step fallback ladder, and all occupancy numbers are
+**identical**. The only differences are in the 3rd–4th decimal of the numeric ceilings
+(F1 0.02 0.261623→0.260945; F1 0.05 0.684725→0.685515; F1 0.1 0.891448→0.890838; F3
+0.324295→0.323420; F2 0.921027→0.920896; T 0.986016→0.986021 — max shift 0.0013, no pass/fail
+change), consistent with the generator config now carrying the frozen yield range, which slightly
+changes the sampled event set. **`pending` is fixed**: it is now
+`["merged PMT readout re-run (§3.5.2); the real-geometry numbers are this file"]`.
+
+### Step 2 — generation benchmark at the frozen yields
+
+**Exit 0, wall 21 s** (20.208 s internal), CPU only.
+**Path: `/ceph/dwong/jepa/jobs/wp4b_benchmark_wcte_frozen_yields_1000.json`** — 2,633 B,
+`sha256 a2b34ae942b2b80ecb006f24999f18128d53ddbcd21fc3a4d1f3db50da46d372`.
+
+| Quantity | Placeholder run (§17) | **Frozen-yield run** |
+|---|---|---|
+| events / internal seconds | 1000 / 18.915 | 1000 / **20.208** |
+| events/s | 52.867 | **49.486** |
+| peak RSS | 168.578 MB | **178.547 MB** |
+| hits/event | 897.499 | **1,010.527** |
+| sparse store /1000 events | 20.574 MiB | **23.161 MiB** (≈24.8 GiB for 1.07 M) |
+| projection, 1 process | 5.6221 h | **6.0061 h** |
+| projection, 16 cores | 0.35138 h | **0.37538 h** = **0.00782 of the 48 h cap** |
+| `yield_range_photons` | [6000, 320000] | **[6249.708098, 541560.544764]** |
+| `yield_range_status` | placeholder_pending_detectability_check | **`frozen_by_detectability_check`** ✓ |
+
+Terciles at the frozen yields:
+
+| tercile | n | mean hits | hit frac | module PE | median charge PE | median yield |
+|---|---|---|---|---|---|---|
+| low | 334 | 370.49 | 0.1857 | 4.889 | 461.19 | 12,126.1 |
+| mid | 333 | 970.29 | 0.4864 | 22.556 | 2,030.64 | 55,199.2 |
+| high | 333 | 1,692.72 | 0.8485 | 104.161 | 10,338.40 | 280,698.4 |
+
+Geometry re-verified inside the benchmark: `config_sha256 9943d602…`, `geometry_sha256 8b46bd3c…`,
+`n_sensors 1995`, `n_modules 105`, `module_ids_contiguous false`, `is_synthetic_geometry false`,
+readout `readout_synthetic_unrepaired`, `with_twin true`, volume 1,070,000 events
+(dev 100k + main 3×100k + secondary 5×100k + probes/robustness 17×10k).
+
+**Costs and state:** in-place update + detectability + benchmark added 9 files total
+(`rfiles` 409,167 → 409,176); free entries **39,154 → 39,146** (guard's own reading 39,146). Nothing
+running afterwards (no jepa process), only `jepa_guard` in tmux, guard level OK with `our_jobs []`,
+all four GPUs idle (655/653/653/653 MiB at 0 %; both jobs contain zero torch/cuda use), and nothing
+was written outside `/ceph/dwong/jepa/`.

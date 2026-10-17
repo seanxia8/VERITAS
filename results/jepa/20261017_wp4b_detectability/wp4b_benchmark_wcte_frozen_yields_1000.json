@@ -1,0 +1,83 @@
+{
+ "benchmark_events": 1000,
+ "cpu_cap_wall_hours": 48.0,
+ "events_per_s": 49.48646804243563,
+ "fraction_of_cap_16_cores": 0.007820483400027351,
+ "geometry_name": "WCTE LUCiD eaf2e89f config/WCTE_geom_config.json",
+ "geometry_sha256": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+ "geometry_summary": {
+  "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+  "geometry_sha256": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+  "height_m": 2.77697099384,
+  "module_ids_contiguous": false,
+  "n_modules": 105,
+  "n_sensors": 1995,
+  "name": "WCTE LUCiD eaf2e89f config/WCTE_geom_config.json",
+  "pmts_per_module": 19,
+  "radius_m": 1.5771308488246254,
+  "sensor_radius_m": 0.04,
+  "source_path": "/ceph/dwong/jepa/external/LUCiD/config/wcte_geometry.npz",
+  "source_sha256": "0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8",
+  "surface_counts": {
+   "barrel": 1197,
+   "bottom": 399,
+   "top": 399
+  },
+  "synthetic": false
+ },
+ "hits_per_event": 1010.527,
+ "is_synthetic_geometry": false,
+ "law": "F1",
+ "peak_rss_mb": 178.546875,
+ "projected_hours_16_cores": 0.37538320320131285,
+ "projected_hours_one_process": 6.006131251221006,
+ "readout_label": "readout_synthetic_unrepaired",
+ "seconds": 20.20754439663142,
+ "setting": 0.05,
+ "sparse_store_mib": 23.161033630371094,
+ "terciles": [
+  {
+   "mean_hit_fraction": 0.1857082826827548,
+   "mean_hit_pmts": 370.48802395209583,
+   "mean_module_charge_pe": 4.8887063473590375,
+   "median_hit_pmts": 345.0,
+   "n_events": 334,
+   "tercile": "low",
+   "total_charge_pe_median": 461.1904606856955,
+   "yield_photons_median": 12126.075635511033
+  },
+  {
+   "mean_hit_fraction": 0.4863630547841074,
+   "mean_hit_pmts": 970.2942942942943,
+   "mean_module_charge_pe": 22.555865675593456,
+   "median_hit_pmts": 959.0,
+   "n_events": 333,
+   "tercile": "mid",
+   "total_charge_pe_median": 2030.6408700199565,
+   "yield_photons_median": 55199.180738166724
+  },
+  {
+   "mean_hit_fraction": 0.848481564271038,
+   "mean_hit_pmts": 1692.7207207207207,
+   "mean_module_charge_pe": 104.16058658641045,
+   "median_hit_pmts": 1716.0,
+   "n_events": 333,
+   "tercile": "high",
+   "total_charge_pe_median": 10338.398590882582,
+   "yield_photons_median": 280698.37168359745
+  }
+ ],
+ "volume_breakdown": {
+  "dev_train_100k": 100000,
+  "main_grid_train_3x100k": 300000,
+  "probe_and_robustness_17x10k": 170000,
+  "secondary_train_5x100k": 500000
+ },
+ "volume_events": 1070000,
+ "with_twin": true,
+ "yield_range_photons": [
+  6249.708098,
+  541560.544764
+ ],
+ "yield_range_status": "frozen_by_detectability_check"
+}

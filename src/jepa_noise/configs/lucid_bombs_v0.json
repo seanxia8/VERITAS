@@ -125,13 +125,25 @@
     "twin": true,
     "yield_range_decision": {
       "decisions": "../DECISIONS.md section 'WP4b \u00a73.5.3a detectability check \u2014 FROZEN'",
-      "decision_json": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json",
-      "decision_json_sha256": "fbddb6fd9493de704841b5cfc35e1ea12c9dba726b0dfe476297b6958bfe56a3",
-      "decision_content_sha256": "e3bcbd1a0069b222563c606cd386adf5453b6109b621d1d1e374fdb8cd5b13f0",
+      "decision_json": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_v2.json",
+      "decision_json_sha256": "540e9b2e0acd6858e3269bb90732a912ac9462f734d79f7b21b38dbb89c9f03c",
+      "decision_content_sha256": "17bd075fa13c0503c1860abaed36abf72a43f7dd497ec13429bf89ec5c413243",
       "y_lo_basis": "median 200.5 hit PMTs at Y_lo (hit fraction 0.1005)",
       "y_hi_basis": "hit_fraction_0.95 bound (median 0.9499; the 300 PE bound would allow 846767.8)",
       "median_yield_photons": 58177.275,
-      "rebenchmark_required": true
+      "rebenchmark_required": true,
+      "decision_rerun_note": "v2 adds the F2-branch f1_joint evidence (105 per-module joint F1/F2 ceilings); decisions identical to v1, ceilings shifted by <=0.0013",
+      "module_index_convention": "f1_joint rows are indexed by dense position 0..104; map to mpmt_id through DetectorGeometry.module_ids (id 45 absent) - never assume position == mpmt_id",
+      "frozen_yield_benchmark": {
+        "events_per_second": 49.486,
+        "hits_per_event": 1010.527,
+        "peak_rss_mb": 178.547,
+        "projection_hours_one_process": 6.0061,
+        "projection_hours_16_cores": 0.37538,
+        "fraction_of_48h_cap": 0.00782,
+        "evidence": "/ceph/dwong/jepa/jobs/wp4b_benchmark_wcte_frozen_yields_1000.json",
+        "evidence_sha256": "a2b34ae942b2b80ecb006f24999f18128d53ddbcd21fc3a4d1f3db50da46d372"
+      }
     }
   },
   "cohorts": {

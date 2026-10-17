@@ -667,3 +667,30 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
 - **Re-run after the engine gained the F2-branch `f1_joint` row** (commit `80e9b57`) so R11's F1 leg
   has the joint F1/F2 ceiling evidence; the decisions above are expected identical and will be
   re-confirmed from that JSON.
+
+## Detectability re-run, joint F1/F2 ceiling, frozen-yield benchmark (2026-10-17)
+
+- **2026-10-17 — detectability re-run at `aa012d8` confirmed the frozen decisions and added the
+  F2-branch joint evidence.** `wp4b_detectability_wcte_v2.json` (16 920 B, sha256 `540e9b2e…`,
+  content sha `17bd075f…`, status frozen): every decision identical to v1 (Y_lo 6 249.708098,
+  Y_hi 541 560.544764, median yield 58 177.275, F1 eligible {0.05, 0.10}, F2 a = 0.50, F3 fails,
+  G6 false, R12 `not_evaluable`, R6/R7 evaluable, same four fallback steps, same occupancy);
+  ceilings shifted by ≤0.0013 from the slightly different sampled events.
+- **2026-10-17 — joint F1/F2 ceiling (R11 evidence, no criterion):** the F2 row now carries
+  `f1_joint` with 105 per-module rows, `r2_run` median **0.6819**, min 0.5360, max 0.8127 — above
+  the 0.6 ceiling requirement at the median, dipping below it for a minority of modules. No G6 is
+  triggered by this (the frozen branch remains G6=false); the R11 criterion itself is the probe
+  R² ≥ 0.5 plus the seed-floor rule, and this row is reported beside it.
+- **2026-10-17 — module-index convention for `f1_joint`: dense position 0…104.** The joint rows are
+  indexed by dense position, whereas `mpmt_id` skips 45. R11's comparison (and any probe/module
+  mapping) must map dense position → `mpmt_id` through `DetectorGeometry.module_ids`; position ==
+  mpmt_id must never be assumed. Recorded here and in the generator config's decision block.
+- **2026-10-17 — generation re-benchmarked at the frozen yield range** (§3.5.6 requirement):
+  1000 events in 20.208 s = **49.486 events/s** (was 52.867 at the placeholder range), peak RSS
+  178.5 MB, **1 010.5 hits/event** (was 897.5), sparse 23.16 MiB per 1000 events (~24.8 GiB for the
+  planned 1.07 M). Projection **6.006 h on one process, 0.37538 h on 16 cores = 0.78 % of the 48 h
+  CPU cap**. `yield_range_status = frozen_by_detectability_check` echoed from the config; the
+  geometry was re-verified in-run. Terciles (mean hits / hit fraction / module PE / median charge):
+  low 370.5 / 0.186 / 4.89 PE / 461.2 PE; mid 970.3 / 0.486 / 22.56 PE / 2 030.6 PE; high
+  1 692.7 / 0.849 / 104.2 PE / 10 338.4 PE. Evidence committed under
+  `results/jepa/20261017_wp4b_detectability/`.

@@ -1,0 +1,83 @@
+{
+ "benchmark_events": 1000,
+ "cpu_cap_wall_hours": 48.0,
+ "events_per_s": 52.86684432067167,
+ "fraction_of_cap_16_cores": 0.007320431299140856,
+ "geometry_name": "WCTE LUCiD eaf2e89f config/WCTE_geom_config.json",
+ "geometry_sha256": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+ "geometry_summary": {
+  "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+  "geometry_sha256": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+  "height_m": 2.77697099384,
+  "module_ids_contiguous": false,
+  "n_modules": 105,
+  "n_sensors": 1995,
+  "name": "WCTE LUCiD eaf2e89f config/WCTE_geom_config.json",
+  "pmts_per_module": 19,
+  "radius_m": 1.5771308488246254,
+  "sensor_radius_m": 0.04,
+  "source_path": "/ceph/dwong/jepa/external/LUCiD/config/wcte_geometry.npz",
+  "source_sha256": "0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8",
+  "surface_counts": {
+   "barrel": 1197,
+   "bottom": 399,
+   "top": 399
+  },
+  "synthetic": false
+ },
+ "hits_per_event": 897.499,
+ "is_synthetic_geometry": false,
+ "law": "F1",
+ "peak_rss_mb": 168.578125,
+ "projected_hours_16_cores": 0.35138070235876107,
+ "projected_hours_one_process": 5.622091237740177,
+ "readout_label": "readout_synthetic_unrepaired",
+ "seconds": 18.91544715501368,
+ "setting": 0.05,
+ "sparse_store_mib": 20.57354736328125,
+ "terciles": [
+  {
+   "mean_hit_fraction": 0.1679708252667597,
+   "mean_hit_pmts": 335.10179640718565,
+   "mean_module_charge_pe": 4.268393105330397,
+   "median_hit_pmts": 315.0,
+   "n_events": 334,
+   "tercile": "low",
+   "total_charge_pe_median": 410.58439601120375,
+   "yield_photons_median": 10831.752915704097
+  },
+  {
+   "mean_hit_fraction": 0.41720517509991195,
+   "mean_hit_pmts": 832.3243243243244,
+   "mean_module_charge_pe": 16.695389409959475,
+   "median_hit_pmts": 822.0,
+   "n_events": 333,
+   "tercile": "mid",
+   "total_charge_pe_median": 1533.7029280083834,
+   "yield_photons_median": 41813.090206741384
+  },
+  {
+   "mean_hit_fraction": 0.7652931126615337,
+   "mean_hit_pmts": 1526.7597597597598,
+   "mean_module_charge_pe": 65.3008482768428,
+   "median_hit_pmts": 1537.0,
+   "n_events": 333,
+   "tercile": "high",
+   "total_charge_pe_median": 6560.58953040359,
+   "yield_photons_median": 178151.2446701417
+  }
+ ],
+ "volume_breakdown": {
+  "dev_train_100k": 100000,
+  "main_grid_train_3x100k": 300000,
+  "probe_and_robustness_17x10k": 170000,
+  "secondary_train_5x100k": 500000
+ },
+ "volume_events": 1070000,
+ "with_twin": true,
+ "yield_range_photons": [
+  6000.0,
+  320000.0
+ ],
+ "yield_range_status": "placeholder_pending_detectability_check"
+}
