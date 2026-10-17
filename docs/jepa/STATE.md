@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 18:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 20:35Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -23,10 +23,14 @@ Updated: 2026-10-17 18:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   (saturation of the angle at high γ_load); R3 rows not implemented yet; R3b fails (sample 32°
   vs population 1e-15 rad); R4a 32/42 cells ≤5°; R4b 33/42 at β=10. NOT final: R1/R2 need their
   E1b clauses; no result is reported until the light independent recompute after E1.
-- **WP4a bridge**: committed (`9d59762`, fixes `7f98b86`). 26 tests; fresh config review ACCEPT
-  WITH FIXES -> all 11 findings fixed (GPU device bug, nonlinear signal, frozen schedule/beta
-  cohort, overlay bank 1024, N_actual sha verification). Only the guard-gated 1-step CUDA smoke
-  and the beta development cohort remain before the bridge run.
+- **WP4a bridge: COMPLETE - B1 FAILS.** 12/12 registered runs (10 000 steps, batch 128, A4 g=0.02,
+  channel split, nonlinear); beta = 10 selected on the independent development cohort. Combined
+  read-only aggregate: plain nuisance R2 0.525128 vs anchored 0.515705, per-seed paired
+  differences +0.08280/-0.01625/-0.03828, seed floor 0.0512676 -> B1 fail (seed 0 only,
+  |dmean| 0.0094 << 0.1025); physics kept (anchored/plain MSE/CRLB 0.984/0.337/0.981); anchored
+  CKA 0.99843 vs 0.94064. Amplitude-preservation criterion not met (post-time fails all 12; tokens
+  0.90-0.91 only for sigreg/anchored). Results: docs/jepa/WP4A_BRIDGE_RESULTS.md; aggregate in
+  results/jepa/wp4a_grid_combined/; 6.52 Titan GPU-h total. B1 = fail in PREDICTION_STATUS.json.
 - **Guard: deployed and live on both hosts.** Two fresh reviews (final: all findings resolved),
   137 tests. Dry runs 12:18-12:29Z on both hosts passed (level OK, cephfs_xattr, unattributed
   <20 MiB, window warm, no status JSON, no SHED). Live guards in tmux `jepa_guard` since
