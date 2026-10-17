@@ -1,0 +1,73 @@
+{
+  "schema": "jepa-lucid-detectability-v0",
+  "status": "development_only",
+  "readout_label": "readout_synthetic_unrepaired",
+  "reported_results": false,
+  "note": "Runbook v4 §3.5.3a detectability check. The geometry is read from LUCiD's own config/WCTE_geom_config.json at the pinned revision; local tests use the schema-identical synthetic fixture from jepa_noise.lucid_bombs.from_synthetic. No LUCiD import, nothing redistributed. Every number is development-only until the PMT readout is repaired (§3.5.2).",
+  "geometry": {
+    "lucid_pin": "eaf2e89f579d6679e90020c732ac2c846895d691",
+    "config_relpath": "config/WCTE_geom_config.json",
+    "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+    "npz_relpath": "config/wcte_geometry.npz",
+    "npz_sha256_prefix": "0a75b035",
+    "n_sensors": 1995,
+    "n_modules": 105,
+    "pmts_per_module": 19,
+    "note": "id 45 absent; pmt_id_in_mpmt is 1-based; the host reads the npz, never a LUCiD import."
+  },
+  "generator_config": "lucid_bombs_v0.json",
+  "check": {
+    "sigma_spe": 0.3,
+    "v_dark": 0.0,
+    "run_events": 50,
+    "n_events": 50,
+    "seed": 20261017,
+    "threshold": 0.6,
+    "f1_spreads": [0.02, 0.05, 0.10],
+    "f3_spread": 0.05,
+    "f3_max_spread": 0.10,
+    "f2_spreads": [0.10, 0.20, 0.50],
+    "f2p_spreads": [0.05, 0.10],
+    "t_spread": 0.10,
+    "t_ratio": 0.5,
+    "y_lo": 6000.0,
+    "y_hi_initial": 320000.0,
+    "y_lo_target_hits": 200.0,
+    "y_hi_target_module_charge_pe": 300.0,
+    "y_hi_target_hit_fraction": 0.95,
+    "bound_events": 48,
+    "bound_iterations": 10,
+    "occupancy_events": 64,
+    "n_min": 20,
+    "median_policy": "population_median_of_log_uniform",
+    "lambda0_m": 50.0
+  },
+  "acceptance": {
+    "run_level_ceiling_min": 0.6,
+    "note": "Every factor used by a registered criterion needs a run-level ceiling >= 0.6 at the median yield. F1 cells below 0.6 stay in the grid but are excluded from R6/R7; no F1 cell -> G6 for the dependent predictions. F2/F2' cannot -> G6. F3 cannot -> R12 not_evaluable (no gate).",
+    "fallback_order": [
+      "raise Y_hi to its §3.5.3 bound (lower of 300 PE median module charge and 0.95 median hit fraction)",
+      "F2: next a in {0.10, 0.20, 0.50}, then switch to F2' with b = 0.05, then 0.10",
+      "F3: s_p up to 0.10"
+    ]
+  },
+  "nuisance_policy": {
+    "F1": ["vertex", "yield", "other module gains"],
+    "F3": ["vertex", "yield", "F1 module gains"],
+    "F2": ["vertex", "yield", "F1 module gains"],
+    "F2p": ["vertex", "yield", "F1 module gains"],
+    "T": ["vertex", "yield"],
+    "note": "F3 per-PMT gains are part of the true mu but are not profiled: one free gain per PMT is an incidental-parameter block that would make every other factor's profiled information identically zero. The ceilings are lower bounds because profiling ignores the known yield/module-gain priors."
+  },
+  "rebenchmark": {
+    "volume_events": 1070000,
+    "volume_breakdown": {
+      "main_grid_train_3x100k": 300000,
+      "secondary_train_5x100k": 500000,
+      "dev_train_100k": 100000,
+      "probe_and_robustness_17x10k": 170000
+    },
+    "cores_at_most": 16,
+    "cpu_cap_wall_hours": 48.0
+  }
+}
