@@ -19,7 +19,7 @@ def rows(vertex_error,groups,dir_deg=0.):
 def test_config_declares_runbook_thresholds():
     g=load_gates()
     assert DEFAULT.name=='trainability_gates.json' and g['source']=='runbook v2 §4 R-3' and g['status']=='development'
-    assert (g['vertex_rmse_ratio_max_pooled'],g['vertex_rmse_ratio_max_subgroup'],g['direction_mean_deg_max'],g['energy_relative_mae_ratio_max_pooled'])==(.8,1.,20,.8)
+    assert (g['vertex_rmse_ratio_max_pooled'],g['vertex_rmse_ratio_max_subgroup'],g['direction_mean_deg_max'],g['energy_relative_mae_ratio_max_pooled'],g['energy_relative_mae_ratio_max_subgroup'])==(.8,1.,20,.8,1.)
 
 
 def test_vertex_ratio_exactly_point_eight_passes_and_above_fails():
@@ -77,3 +77,13 @@ def test_energy_gate_fails_closed_off_the_de_endpoint():
     assert evaluate(p,t,c,s,g,energy_endpoint=DE)['passed']
     r=evaluate(p,t,c,s,g)
     assert not r['passed'] and 'not the required D-E endpoint' in r['gates']['energy_pooled']['reason']
+
+
+def test_energy_regression_to_mean_in_one_subgroup_fails_while_pooled_passes():
+    """Author decision 18 Oct 2026: energy is gated per subgroup as well as pooled."""
+    g=load_gates();s=np.repeat([500,1500],2);p,t,c=rows(np.zeros(4),s)
+    t[:,6]=np.log(s/1000);c[6]=np.log(s/1000).mean();p[:,6]=t[:,6];p[2:,6]=np.log(.8)
+    r=evaluate(p,t,c,s,g,energy_endpoint=DE)
+    assert r['gates']['energy_pooled']['passed'] and r['gates']['energy_subgroup_500']['passed']
+    assert r['table']['subgroups']['1500']['energy_relative_mae']['ratio']>1
+    assert not r['gates']['energy_subgroup_1500']['passed'] and not r['passed']

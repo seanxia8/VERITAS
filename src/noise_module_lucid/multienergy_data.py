@@ -5,7 +5,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from scipy.spatial import cKDTree
 from .lucid_transport import PromptTransport
-from .lucid_integration import analytic_first,response
+from .lucid_integration import analytic_first,response,time_feature
 from .readout import readout_chain
 from . import response_manifest
 
@@ -55,7 +55,7 @@ def run(config,source,upstream,manifest,out):
                 sampled=np.linspace(0,len(pid)-1,cfg['geometry_check_rays'],dtype=int);expected=analytic_first(o[keep][sampled],dirs[keep][sampled],pos,float(g.sensor_radius),g.detector);observed=np.full(len(pid),-1,int);observed[ix]=batch.sensor_id
                 geometry.append(dict(energy_MeV=energy,event_id=eid,agreement=float(np.mean(expected==observed[sampled])),max_time_error_ns=float(np.max(np.abs(direct-travel))/float(g.speed_of_light)),max_sphere_error_m=float(np.max(np.abs(np.linalg.norm(hit-pos[batch.sensor_id],axis=1)-float(g.sensor_radius))))))
             digit=readout_chain(batch.sensor_id,batch.arrival_time_ns,n,ref,seed=event_id,photon_batch=batch)
-            x=np.zeros((n,6),np.float32);x[:,2:5]=pos/2;x[digit.sensor,0]=np.log1p(digit.charge);x[digit.sensor,1]=(digit.time-digit.time.min())/20 if len(digit) else 0;x[digit.sensor,5]=1
+            x=np.zeros((n,6),np.float32);x[:,2:5]=pos/2;x[digit.sensor,0]=np.log1p(digit.charge);x[digit.sensor,1]=time_feature(digit.time,ref.readout_window_ns);x[digit.sensor,5]=1
             xlist.append(x);ylist.append(np.r_[axis,vertex,np.log(float(raw['energy_MeV'])/1000)])
             rows.append(dict(event_id=event_id,physical_event_id=f'{energy}:{eid}',source_event_id=eid,energy_MeV=energy,role=role,rotation=aug,primary_track_contained=bool(inside_cylinder(track,float(g.detector.r),float(g.detector.H)).all()),source_photons=len(o),outside_volume=int((~inside).sum()),inside_sensor_volume=int(in_sensor.sum()),selected_photons=int(keep.sum()),incident_hits=len(batch.photon_id),digits=len(digit),charge_sum=float(digit.charge.sum()),overflow_clamped=int(digit.counts['overflow_clamped']),digits_before_arrival=int(digit.counts['digits_before_arrival'])))
         print(energy,eid,len(rows),flush=True)

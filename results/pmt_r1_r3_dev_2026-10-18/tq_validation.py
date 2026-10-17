@@ -16,7 +16,7 @@ from noise_module_lucid.readout import readout_chain
 N, SEED = 20000, 71
 base = response_manifest.reference_response(N, np.zeros(N, dtype=int))
 base = replace(base, qe_curve=QECurve(base.qe_curve.wavelength_nm, (1.0,)*len(base.qe_curve.wavelength_nm)),
-               collection_efficiency=1.0, spe_sigma=0.0)
+               collection_efficiency=1.0, spe_sigma=0.0, dark_rate_hz=0.0)  # T-Q in isolation; R-6 dark counts off
 
 
 def read(p, q):

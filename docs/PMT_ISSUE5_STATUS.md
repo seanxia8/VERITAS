@@ -2,7 +2,11 @@
 
 _Rewritten 18 October 2026 under runbook v2 R-5 (`docs/RUNBOOK_JUNJIE_PMT_v2_2026-10-16.md`). Supersedes the 16 October table, whose rows repeated the same boilerplate; that version is in git history at `56179eb`._
 
-**Overall: engineering development only. No primary claim comparison has been run, and nothing here is a reported result.** The `181b747`/`56179eb` GPU, remote and CERNBox runs are development evidence (C1 = A, `PMT_DECISIONS_LOG.md`). Every §3 default (D-TQ, D-Q, D-J, D-G, D-K, D-E) is a development setting, not adopted for primary evaluation.
+**Overall: engineering development only. No primary claim comparison has been run, and nothing here is a reported result.** The `181b747`/`56179eb` GPU, remote and CERNBox runs are development evidence (C1 = A, `PMT_DECISIONS_LOG.md`). Author decisions of 18 Oct 2026 (`PMT_DECISIONS_LOG.md`):
+- D-Q, D-J, D-G and D-K are adopted as binding.
+- D-TQ's form a + b/√q is adopted; its values stay `synthetic_dev`.
+- D-E is pending Junjie; (A), deposited energy, is the labelled development default.
+- κ_m = 1.10 stays `provisional_dev` until the WP6 freeze.
 
 Physics review with Junjie has not happened for any row. "Evaluated" means a primary WP7 comparison; none has been run.
 
@@ -10,7 +14,7 @@ Physics review with Junjie has not happened for any row. "Evaluated" means a pri
 |---|---|---|---|---|
 | J1 Stop weak electronics-noise work | Claim cells exclude frozen electronics families | Documentation check | Done (engineering) | Nothing |
 | J2 Wavelength QE and degeneracy | QE(λ)·CE detection with keyed draws; exact-product control and charge-matched weak control | `test_pmt_contract.py`; fixture `exact_degeneracy_equal` passes (R-1 re-run, 18 Oct); real-photon exact control passed in `181b747` | Synthetic mechanism works | Target-PMT QE/CE values (Junjie). No identifiability claim |
-| J3 Fixed-threshold T-Q, wider low-Q timing | D-TQ walk `a + b/√q` (b = 2 ns, q_sat = 50 PE) on [0.25, 1000] PE; the polynomial form is kept as legacy. Charge-dependent Gaussian width. Slope cells b × 1.2 and b × 0.8, plus an offset-only control | `test_physical_tq.py`; `results/pmt_r1_r3_dev_2026-10-18/tq_validation.json` (conditional mean within 3σ_MC at 0.25/1/2/5/20 PE) | R-2 done, `synthetic_dev` | Measured or thesis-derived curve (Junjie). The real-photon slope control runs in R-4. Asymmetric kernel not built (D-J) |
+| J3 Fixed-threshold T-Q, wider low-Q timing | D-TQ walk (form adopted) `a + b/√q` (b = 2 ns, q_sat = 50 PE) on [0.25, 1000] PE; the polynomial form is kept as legacy. Charge-dependent Gaussian width. Slope cells b × 1.2 and b × 0.8, plus an offset-only control | `test_physical_tq.py`; `results/pmt_r1_r3_dev_2026-10-18/tq_validation.json` (conditional mean within 3σ_MC at 0.25/1/2/5/20 PE) | R-2 done, `synthetic_dev` | Measured or thesis-derived curve (Junjie). The real-photon slope control runs in R-4. Asymmetric kernel not built (D-J) |
 | J4 Module amplitude/width response | Coupled gain + width cell with isolated controls; factors applied per mPMT module (D-G) through the manifest rule | `test_pmt_contract.py`, `test_response_manifest.py`; fixture cells | Synthetic mechanism works | Crate/cable map and measured factors (Junjie) |
 | J5 Baseline includes response; ≥ 3 seeds | 3-seed direction pilot (`181b747`) and 3-seed multi-energy pilot (`56179eb`), both development evidence | GPU pilots; R-3 constant-predictor table (`PMT_MULTIENERGY_TRACK_REPORT_2026-10-16.md`) | Energy gate failed (recorded verdict stands) | R-4 re-run with the D-E endpoint. WP7 waits for "launch WP7" |
 | J6 Prompt-only first trial | Pinned LUCiD prompt transport on WCTE; independent geometry/time closure | Closure runs in `181b747`/`56179eb` | Development evidence | Full detector physics review |
@@ -26,6 +30,9 @@ Physics review with Junjie has not happened for any row. "Evaluated" means a pri
 |---|---|
 | R-1 single response manifest | Done. Pilots build from `configs/lucid_pmt/reference.json` (schema v2); a static scan test fails on any literal-built response; the fixture was re-run with 4000 photons (`results/pmt_r1_r3_dev_2026-10-18/fixture_run_02`) and all four checks pass |
 | R-2 physical T-Q | Done locally. The real-photon run of the slope control belongs to R-4 |
-| R-3 relative gates | Done. Gates in `configs/lucid_pmt/trainability_gates.json` apply to future runs; the past-run table is in the multi-energy report |
+| R-3 relative gates | Done. Gates in `configs/lucid_pmt/trainability_gates.json` apply to future runs; energy is gated pooled and per subgroup (author, 18 Oct); the past-run table is in the multi-energy report |
+| R-6 dark counts | Done. Keyed dark-count stage in the readout, rate in the manifest (1 kHz per PMT, `synthetic_dev`), `readout.dark_noise_window` for dark-only windows; fixture re-run in `results/pmt_r6_dev_2026-10-18` |
+| E26 sub-domain threshold | Fixed: counted as `below_charge_domain`, not raised |
+| `endpoint_identifiability.py` | Committed as `dev_unreviewed` with analytic tests; supports the D-E containment preflight |
 | R-4 re-run | Pending |
 | R-5 hygiene | Runs 03/04 removed (history `56179eb`); every results directory ≤ 20 MB; checkpoint paths and hashes in `results/PMT_CHECKPOINTS.json` (host re-verification in R-4); this file rewritten |

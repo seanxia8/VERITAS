@@ -92,7 +92,7 @@
     "path": "/Users/wongdowling/.codex/worktrees/junjie-pmt-response/VERITAS/configs/lucid_pmt/reference.json",
     "schema": "pmt-response-v2",
     "status": "synthetic_dev",
-    "sha256": "522f556c59ec75f86918d6181d392eb389a6826c5984e23949db981cd1a318e2"
+    "sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68"
   },
   "evidence_stage": "development",
   "non_citable": true,

@@ -21,6 +21,16 @@ def response(geometry):
     return response_manifest.reference_response(len(module),response_manifest.module_groups(module))
 
 
+def time_feature(time_ns, window_ns):
+    """Digit time from the declared readout-window start, in window lengths (R-6).
+
+    The origin is the trigger-defined window, so dark hits cannot move it, unlike the
+    pre-R-6 ``(time - time.min()) / 20 ns``.
+    """
+    lo, hi = (float(x) for x in window_ns)
+    return (np.asarray(time_ns, dtype=float) - lo) / (hi - lo)
+
+
 def analytic_first(origins,directions,centres,radius,detector):
     """Independent float64 all-sensor intersection, no candidate grid."""
     oc=origins[:,None,:]-centres[None,:,:]
@@ -82,7 +92,7 @@ def run(upstream, source, config, manifest, out):
             digits=readout_chain(batch.sensor_id,batch.arrival_time_ns,n,ref,seed=event_id,photon_batch=batch)
             x=np.zeros((n,6),np.float32);x[:,2:5]=pos/2
             x[digits.sensor,0]=np.log1p(digits.charge)
-            x[digits.sensor,1]=(digits.time-digits.time.min())/20 if len(digits) else 0
+            x[digits.sensor,1]=time_feature(digits.time,ref.readout_window_ns)
             x[digits.sensor,5]=1
             arrays.append(x);labels.append(raw['primary_direction']@rot.T);groups.append(eid)
             rows.append(dict(event_id=event_id,physical_event_id=eid,rotation=rotation,source_photons=len(pid),outside_volume=int((~inside).sum()),outside_spectrum=int((~band).sum()),incident_hits=len(batch.photon_id),digits=len(digits),overflow_clamped=int(digits.counts['overflow_clamped']),digits_before_arrival=int(digits.counts['digits_before_arrival'])))

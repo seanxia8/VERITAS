@@ -9,7 +9,8 @@
   "direction_mean_deg_max": 20,
   "direction_comparison": "strict less-than, pooled and every subgroup",
   "energy_relative_mae_ratio_max_pooled": 0.8,
-  "energy_subgroup_ratios": "reported, not gated",
+  "energy_subgroup_ratios": "gated: <= 1.0 x constant in every energy subgroup (author decision 18 Oct 2026, docs/PMT_DECISIONS_LOG.md)",
   "energy_endpoint_required": "D-E deposited energy inside the instrumented volume, log(E/1000 MeV) encoded",
-  "energy_endpoint_id_required": "deposited_energy_in_volume"
+  "energy_endpoint_id_required": "deposited_energy_in_volume",
+  "energy_relative_mae_ratio_max_subgroup": 1.0
 }
