@@ -489,3 +489,167 @@ per-GPU `start_ok [0:T, 1:F, 2:T, 3:T]`. All five cycles since the probe
 (12:35:28, 12:37:29, 12:39:30, 12:41:30, 12:43:31) were `OK` with `our_jobs` empty; **0 SHED lines**
 in the live log. GPU memory back at baseline 1011/4183/1007/1007 MiB, 0 % each. Free entries:
 500,000 − (416,784 + 51,737) = **31,479**.
+
+---
+
+## 12. Deployment at SHA `89af5af`: one clone, corrected probe (pass), bridge smoke (FAIL)
+
+Measured 12:55:59–12:59:07 UTC on `deepthought`. One clone plus exactly two guard-gated jobs, run
+one at a time; nothing else started.
+
+### Clone
+
+Destination `code/89af5af` was free (nothing forced). `git clone --filter=blob:none --sparse` +
+`git sparse-checkout set src scripts` + `git checkout 89af5af`. `git rev-parse HEAD` =
+**`89af5af6575522c68c8f58d45039b5fd8df12635`**, subject "jepa: WP4b generator scaffold (laws, twin,
+runs/storage, Fisher ceilings)". 340 files checked out, `scripts/` 23 files, `src/jepa_noise/` 21
+files. **Entry delta: `rfiles` 416,784 → 417,071 (+287), `rsubdirs` 51,737 → 51,790 (+53) → +340
+entries, +7,402,522 B (7.1 MB)** — consistent with the previous sparse clone's +334.
+
+### Job 1 — `probe_deepthought_89af5af_v2` (PASS)
+
+Guard before launch: OK, age 38.5 s, `start.gpu 0`. Launch 12:56:19Z; launcher started 12:56:20Z,
+finished 12:56:31Z, **`exit_status 0`**, `timed_out false`, `wall_seconds 10.52` (shell wall 12 s).
+Guard after: OK, `our_jobs []`, GPU back at baseline.
+
+| Acceptance item | Value |
+|---|---|
+| `status` | **`ok`** |
+| `fixture.readout` | **`pre_final_proj_norm_token_grid`** |
+| batches | **10** (batch 4, 8 ch, 256 samples, seed 0), 10 `per_batch` rows |
+| `grid_shape` | **`[32, 8, 128]`** on every batch |
+| `grid_sum` / `grid_abs_sum` | non-zero: sums 39.60, −341.75, −14.28, 31.97, −299.25, 30.77, −139.47, −173.98, −199.33, −121.15; abs sums 25,923–26,257 |
+| timing | `mean_seconds_per_step` **0.00689 s**, peak 31.9 MiB |
+| `freeze.txt` | written (9,217 B) |
+| torch | 2.5.1+cu121, `cuda_available true`, GTX TITAN X `[5,2]`, tf32 matmul/cudnn after = false/false |
+| `repo_head` | `89af5af6575522c68c8f58d45039b5fd8df12635` |
+
+The degenerate fixture of the first probe is closed: the grid is non-trivial and the read-out label is
+the reviewed one.
+
+### Job 2 — `smoke_bridge_deepthought_89af5af` (FAIL, deterministic hash mismatch)
+
+Guard before launch: OK, age 3 s (deliberately waited for the 12:57:35Z cycle; nothing forced).
+Launch 12:57:38Z; launcher started 12:57:39Z, **finished 12:57:49Z, `outcome exited`, `exit_status 1`**,
+`timed_out false`, `wall_seconds 10.68` (shell wall 12 s). Guard after: OK, `our_jobs []`, 0 SHED,
+GPU back at baseline 1011/4183/1007/1007 MiB.
+
+Traceback (`jobs/smoke_bridge_deepthought_89af5af/job.log`), after `calibration noise 4096/4096`:
+
+```
+File ".../src/jepa_noise/train.py", line 609, in <module>  raise SystemExit(main())
+File ".../src/jepa_noise/train.py", line 590, in main  a4_bridge_products(progress=True, artifact_root=args.data_root)
+File ".../src/jepa_noise/train.py", line 311, in a4_bridge_products  verify_bridge_products(frozen, products)
+File ".../src/jepa_noise/train.py", line 179, in verify_bridge_products
+RuntimeError: computed N_actual target marginal sha256 16955029c6a13117d3a19f21e1944f935bacde1e8b24e1c11103d9dea0f0fb6e
+does not match the frozen config sha256 d31351ad8771a26a8f1fbbefee6efcad90978175f9bd346775fbdc788683fb28
+```
+
+**This is not the CUDA/device path and not the `index_select` error.** The failure is upstream of all
+device code: it is the pre-outcome config verification inside `a4_bridge_products`, which runs on
+numpy. Nothing was moved to CUDA, no arm ran, so the WP4a overlay device fix remains **unproven**.
+
+Evidence gathered read-only:
+- The frozen value is `src/jepa_noise/configs/bridge_v1.json` → `data.target_noise_covariance.sha256`
+  = `d31351ad…`; the same file also freezes `generator_manifest_sha256 1cd3195b…`,
+  `generator_noise_covariance_sha256 970b7818…`, `n_target 1024`.
+- Config **and** `train.py` were last modified in the *same* commit `7f98b86` ("WP4a review fixes
+  (pre-outcome config freeze)", 2026-10-17 14:35), so the constant is not stale relative to the code
+  in this clone.
+- The checked quantity is exact integer-free indexing: `marginal = noise_covariance[np.ix_(target,
+  target)]` then `_array_sha256(marginal, "<f8")`. `np.ix_` is a pure copy, so a mismatch means the
+  **covariance matrix itself differs in its last bits**.
+- That matrix is built from `np.kron(channel_cov, temporal_covariance)` plus line/common terms, where
+  `temporal_covariance` comes from the PSD through FFT and `leading_temporal_basis` (LAPACK
+  `eigh` in `linear.py`), plus BLAS matrix products. It is a ULP-sensitive construction, and the hash
+  is therefore a **platform fingerprint, not a portable invariant**: the frozen value was produced on
+  the author's Mac; deepthought's numpy 1.26.4 is linked to **openblas64 0.3.23.dev**.
+- Consequence: the failure is reproducible-by-construction on this host and cannot be fixed by device
+  selection. There is also **no CLI switch to skip verification**: `--smoke` calls
+  `a4_bridge_products(progress=True, artifact_root=...)` with the default `verify=True`.
+
+Options for the orchestrator (decision, not mine): (A) re-freeze the two data-derived hashes on
+deepthought with `python -m jepa_noise.train --freeze-config` and commit the updated
+`bridge_v1.json`, recording in `DECISIONS.md` that this is a data-derived, pre-outcome re-freeze;
+(B) replace exact-hash verification with a tolerance/platform-aware check (code change, needs review);
+(C) write the marginal once under `/ceph/dwong/jepa/data/bridge/<sha256>/` and verify the stored file
+instead of recomputing bit-for-bit. Until one is chosen, the 1-step CUDA bridge smoke cannot pass.
+
+Quota after both jobs: `rfiles` 417,189 + `rsubdirs` 51,804 = 468,993 used → **free 31,007** (the
+guard's own 12:57:35Z reading was 31,019; the small drift is the shared `jobs/` directory being
+written concurrently by the deepthought2 operator).
+
+---
+
+## 13. Fix verification at `bbcded2e`: mutable `work` clone + bridge smoke PASS
+
+Measured 13:04:34–13:06:09 UTC on `deepthought`. One clone (the last full clone; `code/work` is the
+mutable clone from now on) plus exactly one guard-gated job.
+
+### Clone `code/work`
+
+Destination free (nothing forced). Same recipe, then `git checkout bbcded2e…`. `git rev-parse HEAD`
+= **`bbcded2e0e823ed6e12b5f14837df8c4a3805df8`** ("jepa: fix WP4a platform-brittle frozen-hash
+verification (found by first Titan smoke)"), detached HEAD, **`git status --porcelain` empty** (and
+empty with `--ignored`). **Entry delta: `rfiles` 417,189 → 417,470 (+281), `rsubdirs` 51,804 →
+51,857 (+53) → +334 entries.** `code/89af5af` untouched as the probe record; `code/6468582` still the
+reviewed guard source that the live guard runs.
+
+The fix is present in this checkout: `relative_frobenius_error()` with
+`MATRIX_RELATIVE_TOLERANCE = 1e-8`, a tolerance-based reference object, and the exact sha retained as
+an informational manifest record (`train.py` lines 154–288).
+
+### Job — `smoke_bridge_deepthought_bbcded2` (PASS)
+
+Guard before: OK, age 2 s (waited for the cycle; nothing forced). Launched 13:05:39Z; launcher
+started 13:05:40Z, finished 13:05:54Z, **`exit_status 0`**, `outcome exited`, `timed_out false`,
+**`wall_seconds 14.36`** (shell wall 16 s), `gpu_index 0`, `planned_minutes 10.0`, timeout 900 s.
+Guard after: OK, age 31.5 s, `our_jobs []`, 0 SHED, GPU back to baseline 1011/4183/1007/1007 MiB.
+
+Four arm summaries, all **`"device": "cuda:0"`**, `n_batches 1`, no exception anywhere in the log:
+
+| Arm | seconds | notes |
+|---|---|---|
+| `mae_chi2` | 0.213 | `chi2` 799.64, loss 821.84 |
+| `sigreg_jepa` | 2.830 | first arm, includes CUDA warm-up; loss in log |
+| `sigreg_jepa_anchored` | 0.111 | anchor 0.5939, anchor_trace 2.8598, β placeholder 1.0, 942,528 params |
+| `sigreg_jepa_parallel` | 0.079 | 975,424 params |
+
+Error scan of `job.log`: `index_select`, `Traceback`, `RuntimeError`, `CUDA error`, device-side
+asserts → **none**. The `index_select` device concern is therefore cleared on the Titan.
+
+**Peak memory: not emitted by this path** — `train.py --smoke` records no peak-memory field (only
+`probe_env` does). Bounded implicitly: the largest single allocation is the 1024×1024 float64 marginal
+(8,388,736 B file, loaded not recomputed), models are 0.94–0.98 M parameters at batch 2×8×256, the
+process ran under the launcher's 0.8 memory fraction (9.6 GiB Titan cap), and the GPU returned to
+baseline the second the job exited.
+
+### Cache manifest (materialised once on this host)
+
+`/ceph/dwong/jepa/data/bridge/30c63a6e35c5c575416246440c360bab5d8cedd35a17846f82d79d8c80d11db7/`
+containing `N_actual_target_marginal.npy` (8,388,736 B) and `manifest.json`:
+
+```
+code_sha                 : bbcded2e0e823ed6e12b5f14837df8c4a3805df8
+computed_on              : deepthought
+shape / dtype            : [1024, 1024] / <f8
+file_sha256              : fa5d7d65cf7eb0bff8535c983f5fef625a6803fcfdb14e60fb9deb61ca808516
+reference_file_sha256    : 30c63a6e35c5c575416246440c360bab5d8cedd35a17846f82d79d8c80d11db7
+relative_frobenius_tolerance : 1e-08
+views_constructor        : base_rho 0.0, common_strength 0.02, line_multiplier 0.0,
+                           law v4-A4-waveform-v1, split channel, seed 0, cell bridge, signal_mode nonlinear
+note                     : materialised once on this host from the pinned generator; later runs load
+                           these bytes after verifying file_sha256
+```
+
+That is exactly the (C) behaviour asked for: the directory is keyed by the platform-independent
+reference sha, the file's own sha is recorded and verified on load, and the exact computed sha is
+informational only. Note the file sha (`fa5d7d65…`) differs from the frozen Mac constant
+(`d31351ad…`) and from the earlier Titan recomputation (`16955029…`) — as expected for a bit-exact
+fingerprint of a float64 LAPACK product; only the tolerance and the file sha are gates now.
+
+**Quota after this job: `rfiles` 417,578 + `rsubdirs` 51,870 = 469,448 used → free 30,552**
+(guard's 13:05:37Z reading 30,561). The clone cost +334, my job/cache artifacts ≈ 8 entries; the
+remainder of the drift is the deepthought2 operator writing the shared `jobs/` directory.
+**Live warning: the margin to the §6.2 "write no new data below 30,000 free entries" floor is now
+552 entries** — dataset generation cannot start until G-QUOTA resolves.

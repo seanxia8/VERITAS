@@ -288,3 +288,20 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   computed sha recorded in the manifest, and the matrix is materialised once per host under a data
   root so later runs load identical bytes and verify the file's own sha. The smoke must be re-run
   after the fix; no bridge outcome may be produced before it passes.
+
+## Phase 0/1 GPU evidence (2026-10-17)
+
+- **2026-10-17 — WP4a 1-step CUDA smoke PASSED on the Titan (code `bbcded2`).** All four arms ran
+  on `cuda:0`, exit 0, 14.36 s wall, no device/index_select error; the anchored arm (the one the
+  device defect would have broken) ran clean; GPU back to baseline afterwards. The N_actual
+  marginal was materialised once under `/ceph/dwong/jepa/data/bridge/<reference-sha>/` with
+  `file_sha256 fa5d7d65…` and loaded by the run (tolerance + file-sha model). The overlay device
+  path is now proven end to end.
+- **2026-10-17 — GPU-hours so far** (ledger rows added): Phase-0 probes 0.0029 (Titan) and 0.035
+  (L40S); corrected probes 0.0029/0.0010; WP4a smoke 0.0040 (Titan). Well inside the Titan 300 h /
+  L40S 80 h caps.
+- **2026-10-17 — quota floor reached for writes.** Free entries fell to ~30 552 after the working
+  clone and the smoke, i.e. 552 above the §6.2 "no new data below 30 000" floor. Data generation
+  is blocked until the author answers G-QUOTA; the β development cohort and the nine bridge runs
+  are kept to a minimal file footprint (one npz + metrics JSON + hash per run) so they can still
+  run inside the remaining margin. No cleanup of any kind is performed while the gate is open.
