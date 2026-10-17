@@ -1,0 +1,218 @@
+{
+  "exact_product_equal": true,
+  "integrated_detection_probability": {
+    "spectrum": "uniform 300..600 nm",
+    "reference_probability": 0.3,
+    "shape_drift_probability": 0.31000000000000005
+  },
+  "charge_matched": {
+    "label": "charge_matched_not_exact",
+    "fit_event_ids": [
+      10000,
+      10001,
+      10002,
+      10003,
+      10004,
+      10005,
+      10006,
+      10007,
+      10008,
+      10009,
+      10010,
+      10011,
+      10012,
+      10013,
+      10014,
+      10015,
+      10016,
+      10017,
+      10018,
+      10019,
+      10020,
+      10021,
+      10022,
+      10023,
+      10024,
+      10025,
+      10026,
+      10027,
+      10028,
+      10029,
+      10030,
+      10031
+    ],
+    "gain_factor": 0.7956350266679659,
+    "evaluation": [
+      {
+        "event_id": 30000,
+        "charge_difference": 13.996361660066896,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.58418053407744,
+        "common_time_rms_difference_ns": 0.04558783310795608
+      },
+      {
+        "event_id": 30001,
+        "charge_difference": 33.527536257589304,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.33181966659297046,
+        "common_time_rms_difference_ns": 0.08182348085126179
+      },
+      {
+        "event_id": 30002,
+        "charge_difference": 10.344262455834041,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.01057520820953961,
+        "common_time_rms_difference_ns": 0.0399747297722243
+      },
+      {
+        "event_id": 30003,
+        "charge_difference": 9.13018966714219,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.24418262116479106,
+        "common_time_rms_difference_ns": 0.05267034527653109
+      },
+      {
+        "event_id": 30004,
+        "charge_difference": 24.03961601104436,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.37403591095552713,
+        "common_time_rms_difference_ns": 0.04811944322796445
+      },
+      {
+        "event_id": 30005,
+        "charge_difference": -20.85265283248941,
+        "occupancy_difference": -1,
+        "charge_std_difference": -0.5275982793901814,
+        "common_time_rms_difference_ns": 0.016656739750430652
+      },
+      {
+        "event_id": 30006,
+        "charge_difference": 36.97137086730038,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.5264405974412174,
+        "common_time_rms_difference_ns": 0.03637044305736827
+      },
+      {
+        "event_id": 30007,
+        "charge_difference": 13.529229021439164,
+        "occupancy_difference": 0,
+        "charge_std_difference": -0.22119091100634058,
+        "common_time_rms_difference_ns": 0.035555440817784216
+      },
+      {
+        "event_id": 30008,
+        "charge_difference": 1.9717954045071338,
+        "occupancy_difference": 0,
+        "charge_std_difference": 1.0347060242561383,
+        "common_time_rms_difference_ns": 0.08112972548342404
+      },
+      {
+        "event_id": 30009,
+        "charge_difference": -20.33466335877904,
+        "occupancy_difference": 0,
+        "charge_std_difference": -0.1888997189522481,
+        "common_time_rms_difference_ns": 0.049617112009546605
+      },
+      {
+        "event_id": 30010,
+        "charge_difference": -6.2411794825450215,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.03212724202684747,
+        "common_time_rms_difference_ns": 0.0319662399059812
+      },
+      {
+        "event_id": 30011,
+        "charge_difference": 17.090697653414395,
+        "occupancy_difference": -1,
+        "charge_std_difference": 0.48996370537621026,
+        "common_time_rms_difference_ns": 0.07635097044955752
+      },
+      {
+        "event_id": 30012,
+        "charge_difference": -2.5487372568613864,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.31394492508299443,
+        "common_time_rms_difference_ns": 0.043360366073720485
+      },
+      {
+        "event_id": 30013,
+        "charge_difference": 15.264834123916557,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.6139507477355828,
+        "common_time_rms_difference_ns": 0.04400162110399323
+      },
+      {
+        "event_id": 30014,
+        "charge_difference": -2.916210748893036,
+        "occupancy_difference": 0,
+        "charge_std_difference": -0.07127771620996981,
+        "common_time_rms_difference_ns": 0.0663978395527626
+      },
+      {
+        "event_id": 30015,
+        "charge_difference": 0.9555831034774656,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.24395726631118553,
+        "common_time_rms_difference_ns": 0.03089470617032915
+      },
+      {
+        "event_id": 30016,
+        "charge_difference": -14.534813503072542,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.4127060304780592,
+        "common_time_rms_difference_ns": 0.018308739749909077
+      },
+      {
+        "event_id": 30017,
+        "charge_difference": 9.261833603867217,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.04499997718386517,
+        "common_time_rms_difference_ns": 0.1125109023629895
+      },
+      {
+        "event_id": 30018,
+        "charge_difference": -1.081246633045339,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.42101476941490823,
+        "common_time_rms_difference_ns": 0.10140086725129464
+      },
+      {
+        "event_id": 30019,
+        "charge_difference": -6.4996679743952654,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.29616907622443733,
+        "common_time_rms_difference_ns": 0.06838300575172475
+      },
+      {
+        "event_id": 30020,
+        "charge_difference": 4.670527865134545,
+        "occupancy_difference": 0,
+        "charge_std_difference": -0.03849729531616042,
+        "common_time_rms_difference_ns": 0.031180348615045074
+      },
+      {
+        "event_id": 30021,
+        "charge_difference": 4.846887956377941,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.05749140083718984,
+        "common_time_rms_difference_ns": 0.06876157174144397
+      },
+      {
+        "event_id": 30022,
+        "charge_difference": 0.6430302812721038,
+        "occupancy_difference": 0,
+        "charge_std_difference": 0.7333568811356823,
+        "common_time_rms_difference_ns": 0.09672760893304477
+      },
+      {
+        "event_id": 30023,
+        "charge_difference": 18.29396556787674,
+        "occupancy_difference": -1,
+        "charge_std_difference": -0.4089758024405281,
+        "common_time_rms_difference_ns": 0.07202050531350283
+      }
+    ],
+    "spatial_charge_l1": 492.3035344982855,
+    "exact_degeneracy_claim": false
+  }
+}

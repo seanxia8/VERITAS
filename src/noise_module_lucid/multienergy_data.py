@@ -1,13 +1,13 @@
 """Multi-energy prompt-track development dataset, explicit primary targets."""
 import argparse, hashlib, json, time
 from pathlib import Path
-from dataclasses import replace
 import numpy as np
 from scipy.spatial.transform import Rotation
 from scipy.spatial import cKDTree
 from .lucid_transport import PromptTransport
 from .lucid_integration import analytic_first,response
 from .readout import readout_chain
+from . import response_manifest
 
 
 def inside_cylinder(points,radius,height):
@@ -28,11 +28,8 @@ def transform_event(raw,rotation,vertex):
 def run(config,source,upstream,manifest,out):
     cfg=json.loads(Path(config).read_text());source=Path(source);out=Path(out);out.mkdir(parents=True,exist_ok=False)
     start=time.monotonic();receipt=json.loads((source/'manifest.json').read_text());transport=PromptTransport(Path(upstream)/'config/WCTE_geom_config.json',manifest,max_candidates_per_ray=cfg['max_candidates_per_ray'])
-    g=transport.geometry;pos=np.asarray(g.sensor_points,float);n=len(pos);ref=response(n)
+    g=transport.geometry;pos=np.asarray(g.sensor_points,float);n=len(pos);ref=response(g)
     module=np.asarray(g.detector.mpmt_id,dtype=int)
-    if module.shape!=(n,):raise ValueError('mPMT map not aligned to sensors')
-    _,inverse=np.unique(module,return_inverse=True)
-    ref=replace(ref,gain=tuple(1+.03*(inverse%2)),timing_width_factor=tuple(1+.05*(inverse%2)))
     mapping=dict(source='pinned WCTE npz metadata reordered by upstream Cylinder.from_file',channel_mpmt_id=module.tolist(),channel_pmt_id=np.asarray(g.detector.pmt_id).tolist(),physical_mpmt_groups=int(len(np.unique(module))),crate_map=None,response_factors='synthetic; not measured module calibration',snap_to_wall=bool(g.detector.snap_to_wall),max_position_snap_m=float(np.max(np.linalg.norm(pos-np.asarray(g.detector.raw_positions),axis=1))))
     (out/'physical_module_map.json').write_text(json.dumps(mapping,indent=2))
     sensor_tree=cKDTree(pos)
@@ -60,10 +57,10 @@ def run(config,source,upstream,manifest,out):
             digit=readout_chain(batch.sensor_id,batch.arrival_time_ns,n,ref,seed=event_id,photon_batch=batch)
             x=np.zeros((n,6),np.float32);x[:,2:5]=pos/2;x[digit.sensor,0]=np.log1p(digit.charge);x[digit.sensor,1]=(digit.time-digit.time.min())/20 if len(digit) else 0;x[digit.sensor,5]=1
             xlist.append(x);ylist.append(np.r_[axis,vertex,np.log(float(raw['energy_MeV'])/1000)])
-            rows.append(dict(event_id=event_id,physical_event_id=f'{energy}:{eid}',source_event_id=eid,energy_MeV=energy,role=role,rotation=aug,primary_track_contained=bool(inside_cylinder(track,float(g.detector.r),float(g.detector.H)).all()),source_photons=len(o),outside_volume=int((~inside).sum()),inside_sensor_volume=int(in_sensor.sum()),selected_photons=int(keep.sum()),incident_hits=len(batch.photon_id),digits=len(digit),charge_sum=float(digit.charge.sum())))
+            rows.append(dict(event_id=event_id,physical_event_id=f'{energy}:{eid}',source_event_id=eid,energy_MeV=energy,role=role,rotation=aug,primary_track_contained=bool(inside_cylinder(track,float(g.detector.r),float(g.detector.H)).all()),source_photons=len(o),outside_volume=int((~inside).sum()),inside_sensor_volume=int(in_sensor.sum()),selected_photons=int(keep.sum()),incident_hits=len(batch.photon_id),digits=len(digit),charge_sum=float(digit.charge.sum()),overflow_clamped=int(digit.counts['overflow_clamped']),digits_before_arrival=int(digit.counts['digits_before_arrival'])))
         print(energy,eid,len(rows),flush=True)
     passed=all(c['agreement']==cfg['geometry_agreement_required'] and c['max_time_error_ns']<cfg['max_time_residual_ns'] and c['max_sphere_error_m']<cfg['max_sphere_residual_m'] for c in geometry)
-    report=dict(passed=passed,config=cfg,source=receipt,transport=transport.provenance(),geometry=geometry,cone=cone,events=rows,elapsed_seconds=time.monotonic()-start,response=ref.to_dict(),evidence_stage='development',non_citable=True)
+    report=dict(passed=passed,config=cfg,source=receipt,transport=transport.provenance(),geometry=geometry,cone=cone,events=rows,elapsed_seconds=time.monotonic()-start,response=ref.to_dict(),response_manifest=response_manifest.provenance(),readout_counts=dict(overflow_clamped=sum(r['overflow_clamped'] for r in rows),digits_before_arrival_fraction=sum(r['digits_before_arrival'] for r in rows)/max(1,sum(r['digits'] for r in rows))),evidence_stage='development',non_citable=True)
     (out/'validation.json').write_text(json.dumps(report,indent=2));np.savez_compressed(out/'digits.npz',x=np.asarray(xlist),y=np.asarray(ylist,dtype=np.float32),role=np.array([r['role'] for r in rows]),physical_event_id=np.array([r['physical_event_id'] for r in rows]),energy_MeV=np.array([r['energy_MeV'] for r in rows]),contained=np.array([r['primary_track_contained'] for r in rows]),charge=np.array([r['charge_sum'] for r in rows]))
     print('transport_gate',passed,flush=True)
     if not passed:raise RuntimeError('transport closure failed; no training')

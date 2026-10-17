@@ -497,6 +497,10 @@ def run_response_matrix(cells: Sequence[ResponseCellSpec], events: Sequence[Any]
                  "K_deadcorr": aggregate_endpoints(kv["K"], kedc["K"]),
                  "harmful_dev": (bool(K >= KAPPA_M_DEV) if np.isfinite(K) else None),
                  "mean_digits": float(np.mean([r["n_digits"] for r in rows])),
+                 # D-J: Gaussian-jitter digits earlier than photon arrival; D-Q: clamped overflow.
+                 "digits_before_arrival_fraction": (float(sum(r.get("n_digits_before_arrival", 0) for r in rows) / n_dig)
+                                                    if (n_dig := sum(r["n_digits"] for r in rows)) else float("nan")),
+                 "overflow_clamped": int(sum(r.get("n_overflow_clamped", 0) for r in rows)),
                  "energy_calibration": calib}
         k = {"K": K, "vertex": kv, "energy": ke}
         summary["cells"].append(entry)

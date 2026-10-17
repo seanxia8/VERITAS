@@ -13,3 +13,5 @@ See `../../docs/PMT_LUCID_INTEGRATION_REPORT_2026-10-16.md` for interpretation, 
 - `local_tests.txt`: 94 pass, one optional skip; `remote_pmt_tests.log`: 95 pass.
 
 The 5.4 MiB digit dataset, source photon subset and checkpoints remain under `/work/dwong/pmt_lucid_20261016` on Deepthought. This local evidence stores hashes and small evaluation artifacts rather than duplicating the source photon dataset. No task jobs remain running.
+
+**18 October 2026 (runbook v2 R-1/R-2):** these results were produced with the response then hard-coded in `lucid_integration.response`: a polynomial T-Q curve, and gain/width parity taken from `channel // 19`. The code now builds the response from `configs/lucid_pmt/reference.json`, with the D-TQ walk `a + b/sqrt(q)` and parity on the physical mPMT module (D-G). That changes gain/width parity on 1292 of 1995 channels. The results here cannot be byte-reproduced from the current code; use commit `56179eb`. Their recorded verdicts are unchanged (development evidence, C1 = A).

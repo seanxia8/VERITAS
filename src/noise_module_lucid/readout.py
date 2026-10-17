@@ -16,7 +16,9 @@ Stages (in order)
 2. **digitisation** — per PMT: photoelectron count and first-arrival time;
 3. **charge** — ``n + sqrt(n) * spe_sigma * z`` with one fixed normal ``z`` per
    channel (paired across cells), clipped at 0;
-4. **gain** — per-channel charge scale (``response.gain_drift_hits``);
+4. **gain** — per-channel charge scale (``response.gain_drift_hits``); with a
+   declared ``charge_domain_pe`` a charge above its upper bound is clamped to
+   it and counted (``overflow_clamped``, an ADC-saturation analogue, D-Q);
 5. **discriminator** — leading-edge at ``threshold_pe`` × the SPE amplitude: a
    digit whose pulse never reaches it is lost; the readout time carries the
    walk at the *actual* threshold and is corrected with the walk curve
@@ -72,6 +74,7 @@ class ReadoutParams:
     timing_width: Any = None
     timing_width_factor: Any = 1.0
     reference_offsets_ns: Any = 0.0
+    charge_domain_pe: Any = None
 
     def moved_from(self, ref: "ReadoutParams") -> list[str]:
         """Names of the fields that differ from ``ref`` (a valid cell moves exactly one)."""
@@ -198,6 +201,14 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
     gain = _per_channel(p.gain, n_channels, "gain")
     chan = np.arange(n_channels)
     q = gain_drift_hits(q, chan, gain)
+    if p.charge_domain_pe is not None:
+        lo, hi = (float(v) for v in p.charge_domain_pe)
+        if not (np.isfinite([lo, hi]).all() and 0 <= lo < hi):
+            raise ValueError("invalid charge domain")
+        over = hit & (q > hi)
+        q = np.where(over, hi, q)
+    else:
+        over = np.zeros(n_channels, dtype=bool)
 
     # 5. discriminator with walk, corrected by the training-time calibration curve
     thr_mv = p.threshold_pe * p.mv_per_pe
@@ -213,18 +224,25 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
     counts["uncalibrated_walk"] = int(uncal.sum())
     corr = np.where(np.isfinite(walk_cal), walk_cal, 0.0)
     t_read = t_first + np.where(fired, walk - corr, 0.0)
+    # Raw digit time minus first photon arrival, before any calibration subtraction (D-J).
+    # Legacy mode: the template walk is the raw delay. T-Q mode: the walk curve is, plus any
+    # template residual left when the threshold differs from the calibration threshold.
+    delay = np.where(fired, walk if p.walk_curve is None else walk - corr, 0.0)
 
     # New bounded T-Q response is distinct from historical threshold walk.
     if (p.walk_curve is None) != (p.reference_walk is None):
         raise ValueError("both cell and frozen reference walk curves required")
     if p.walk_curve is not None:
         from .timing_response import evaluate_walk
-        t_read[fired] += evaluate_walk(p.walk_curve, q[fired], chan[fired]) - evaluate_walk(p.reference_walk, q[fired], chan[fired])
+        cell_walk = evaluate_walk(p.walk_curve, q[fired], chan[fired])
+        t_read[fired] += cell_walk - evaluate_walk(p.reference_walk, q[fired], chan[fired])
+        delay[fired] += cell_walk
     if p.timing_width is not None:
         from scipy.special import ndtri
         jitter = ndtri(keyed_uniform(seed, photon_batch.event_id, chan, "timing"))
         widths = p.timing_width(q[fired]) * _per_channel(p.timing_width_factor, n_channels, "timing_width_factor")[fired]
         t_read[fired] += widths * jitter[fired]
+        delay[fired] += widths * jitter[fired]
     elif np.any(_per_channel(p.timing_width_factor, n_channels, "timing_width_factor") != 1):
         raise ValueError("width factor requires a timing width model")
     counts["lost_time_window"] = 0  # this chain does not impose an event window
@@ -241,6 +259,9 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
     counts["lost_dead"] = int((fired & ~alive).sum())
     sel = fired & alive
     counts["digits"] = int(sel.sum())
+    counts["digits_before_arrival"] = int((sel & (delay < 0)).sum())
+    if p.charge_domain_pe is not None:
+        counts["overflow_clamped"] = int((sel & over).sum())  # digits reported at the clamp
     return Digits(sensor=chan[sel], charge=q[sel], time=t_read[sel], n_pe_true=n_pe[sel], counts=counts)
 
 

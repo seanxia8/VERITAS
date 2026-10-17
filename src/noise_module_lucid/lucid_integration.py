@@ -10,18 +10,15 @@ import time
 import numpy as np
 from scipy.spatial.transform import Rotation
 from .lucid_transport import PromptTransport
-from .quantum_efficiency import QECurve
-from .readout import ReadoutParams, readout_chain
-from .timing_response import WalkCurve, WidthCurve, ChannelWalkCurve
+from .readout import readout_chain
+from . import response_manifest
 
 
-def response(n):
-    curves=ChannelWalkCurve(tuple(WalkCurve((2+.05*(i%3),-1),(.25,1000)) for i in range(n)))
-    return ReadoutParams(qe_curve=QECurve((200,300,400,600,800),(0,.25,.5,.25,0)),
-        collection_efficiency=.8, walk_curve=curves, reference_walk=curves,
-        timing_width=WidthCurve((.25,1,5,1000),(2.5,1.5,.8,.5)),spe_sigma=.3,
-        gain=tuple(1+.03*((i//19)%2) for i in range(n)),
-        timing_width_factor=tuple(1+.05*((i//19)%2) for i in range(n)))
+def response(geometry):
+    """Manifest reference response on the pinned geometry's physical mPMT modules (D-G)."""
+    module=np.asarray(geometry.detector.mpmt_id,dtype=int)
+    if module.shape!=(len(geometry.sensor_points),):raise ValueError('mPMT map not aligned to sensors')
+    return response_manifest.reference_response(len(module),response_manifest.module_groups(module))
 
 
 def analytic_first(origins,directions,centres,radius,detector):
@@ -44,7 +41,7 @@ def run(upstream, source, config, manifest, out):
     cfg=json.loads(Path(config).read_text());src=json.loads((Path(source)/'manifest.json').read_text())
     transport=PromptTransport(Path(upstream)/'config/WCTE_geom_config.json',manifest)
     geom=transport.geometry;pos=np.asarray(geom.sensor_points,dtype=float);n=len(pos)
-    ref=response(n); arrays=[];labels=[];groups=[];rows=[];cone=[];checks=[]
+    ref=response(geom); arrays=[];labels=[];groups=[];rows=[];cone=[];checks=[]
     for rec in src['events']:
         path=Path(source)/f"event_{rec['event_id']:03d}.npz"
         if hashlib.sha256(path.read_bytes()).hexdigest()!=rec['sha256']:raise ValueError('source hash mismatch')
@@ -88,13 +85,13 @@ def run(upstream, source, config, manifest, out):
             x[digits.sensor,1]=(digits.time-digits.time.min())/20 if len(digits) else 0
             x[digits.sensor,5]=1
             arrays.append(x);labels.append(raw['primary_direction']@rot.T);groups.append(eid)
-            rows.append(dict(event_id=event_id,physical_event_id=eid,rotation=rotation,source_photons=len(pid),outside_volume=int((~inside).sum()),outside_spectrum=int((~band).sum()),incident_hits=len(batch.photon_id),digits=len(digits)))
+            rows.append(dict(event_id=event_id,physical_event_id=eid,rotation=rotation,source_photons=len(pid),outside_volume=int((~inside).sum()),outside_spectrum=int((~band).sum()),incident_hits=len(batch.photon_id),digits=len(digits),overflow_clamped=int(digits.counts['overflow_clamped']),digits_before_arrival=int(digits.counts['digits_before_arrival'])))
         print('physical_event',eid,'samples',len(arrays),flush=True)
     cone=np.asarray(cone);limits=cfg['closure']
     passed=all(c['analytic_sensor_agreement']>=limits['analytic_sensor_agreement'] and c['max_sphere_error_m']<limits['max_ray_sphere_distance_error_m'] and c['max_time_error_ns']<limits['max_flight_time_residual_ns'] for c in checks)
     cone_summary=dict(n=len(cone),median_abs_error_deg=float(np.median(cone)),p95_abs_error_deg=float(np.quantile(cone,.95)),interpretation='constant-index approximation versus PhotonSim local segment emission; supporting only')
     passed &= cone_summary['median_abs_error_deg']<limits['cone_median_abs_error_deg_max'] and cone_summary['p95_abs_error_deg']<limits['cone_p95_abs_error_deg_max']
-    report=dict(passed=bool(passed),transport=transport.provenance(),geometry_checks=checks,cone=cone_summary,events=rows,response=ref.to_dict(),source_manifest=src,config=cfg,elapsed_seconds=time.monotonic()-start)
+    report=dict(passed=bool(passed),transport=transport.provenance(),geometry_checks=checks,cone=cone_summary,events=rows,response=ref.to_dict(),response_manifest=response_manifest.provenance(),readout_counts=dict(overflow_clamped=sum(r['overflow_clamped'] for r in rows),digits_before_arrival_fraction=sum(r['digits_before_arrival'] for r in rows)/max(1,sum(r['digits'] for r in rows))),source_manifest=src,config=cfg,elapsed_seconds=time.monotonic()-start)
     (out/'closure.json').write_text(json.dumps(report,indent=2))
     np.savez_compressed(out/'digits.npz',x=np.asarray(arrays),y=np.asarray(labels,dtype=np.float32),physical_event_id=np.asarray(groups))
     print(json.dumps(dict(passed=bool(passed),cone=cone_summary,elapsed_seconds=report['elapsed_seconds'])),flush=True)

@@ -17,24 +17,19 @@ from .calibration import fit_reference_calibration, event_digits, digest
 from .consequence import FitConfig
 from .dataset import ResponseCellSpec, run_response_matrix
 from .group_response import GroupMap, group_intervention
-from .quantum_efficiency import QECurve
-from .readout import ReadoutParams
-from .timing_response import WalkCurve, WidthCurve, ChannelWalkCurve
+from . import response_manifest
 from .toy import cylinder_detector, prompt_source_event
 
 
 def fixture():
+    spec = response_manifest.load_manifest()["fixture"]
     det = cylinder_detector(4, 12, 2)
-    mapping = GroupMap(tuple(np.arange(det.n_channels)//12), "synthetic_dev", "contiguous fixture channels; NOT physical crates")
-    curves = ChannelWalkCurve(tuple(WalkCurve((2+0.05*(i%3),-1),(.25,100)) for i in range(det.n_channels)))
-    ref = ReadoutParams(qe_curve=QECurve((300,400,600),(.25,.5,.25)),
-        collection_efficiency=.8, walk_curve=curves, reference_walk=curves,
-        timing_width=WidthCurve(), spe_sigma=.3,
-        gain=tuple(1+0.03*(g%2) for g in mapping.channel_group),
-        timing_width_factor=tuple(1+0.05*(g%2) for g in mapping.channel_group))
-    fit = [prompt_source_event(det,10000+i,n_photons=1000) for i in range(32)]
-    closure = [prompt_source_event(det,20000+i,n_photons=1000) for i in range(16)]
-    evaluation = [prompt_source_event(det,30000+i,n_photons=1000) for i in range(24)]
+    mapping = GroupMap(tuple(np.arange(det.n_channels)//spec["channels_per_group"]), spec["group_provenance"], spec["group_source"])
+    ref = response_manifest.reference_response(det.n_channels, np.asarray(mapping.channel_group))
+    n = spec["photons_per_event"]
+    fit = [prompt_source_event(det,10000+i,n_photons=n) for i in range(32)]
+    closure = [prompt_source_event(det,20000+i,n_photons=n) for i in range(16)]
+    evaluation = [prompt_source_event(det,30000+i,n_photons=n) for i in range(24)]
     return det,mapping,ref,fit,closure,evaluation
 
 
@@ -54,16 +49,19 @@ def run(out):
     checks={"closure_no_failures":cq["K_vertex"]["n_failed_cell"]==0,
             "closure_vertex_under_0_3m":cq["K_vertex"]["mean_error_cell"]<.3,
             "closure_energy_under_10pct":cq["K_energy"]["mean_error_cell"]<.1}
-    shifted=ChannelWalkCurve(tuple(WalkCurve((c.coefficients_ns[0]+(2 if i%2 else 0),-2),c.domain_pe) for i,c in enumerate(ref.walk_curve.curves)))
+    # D-TQ intervention: slope b*(1 +/- 0.2); the offset-only cell is a separate control.
+    steeper,shallower,offset=ref.walk_curve.scaled(1.2),ref.walk_curve.scaled(0.8),ref.walk_curve.scaled(offset_ns=1.0)
     coupled=group_intervention(ref,mapping,[1,3],gain_factor=.8,width_factor=1.5)
     gain_only=group_intervention(ref,mapping,[1,3],gain_factor=.8)
     width_only=group_intervention(ref,mapping,[1,3],width_factor=1.5)
     # Exact product control changes QE and CE jointly but no operational origin class.
-    exact=replace(ref,qe_curve=QECurve((300,400,600),(.5,1,.5)),collection_efficiency=.4)
+    exact=response_manifest.exact_product_control(ref)
     cells=[base,
         ResponseCellSpec("identity","identity",0,ref),
-        ResponseCellSpec("qe_shape","qe_shape",.3,replace(ref,qe_curve=ref.qe_curve.drift(.3,[-1,0,1]))),
-        ResponseCellSpec("fixed_tq","fixed_tq",2,replace(ref,walk_curve=shifted)),
+        ResponseCellSpec("qe_shape","qe_shape",.3,replace(ref,qe_curve=ref.qe_curve.drift(.3,[0,-1,0,1,0]))),
+        ResponseCellSpec("fixed_tq_slope_up","fixed_tq",1.2,replace(ref,walk_curve=steeper)),
+        ResponseCellSpec("fixed_tq_slope_down","fixed_tq",.8,replace(ref,walk_curve=shallower)),
+        ResponseCellSpec("tq_offset_control","tq_offset_control",1.0,replace(ref,walk_curve=offset)),
         ResponseCellSpec("timing_width","timing_width",1.5,replace(ref,timing_width_factor=tuple(1.5*np.array(ref.timing_width_factor)))),
         ResponseCellSpec("group_coupled","group_response",1,coupled,affected_groups=(1,3),changed_fields=("gain","timing_width_factor"),causal_control="synthetic-group-strength"),
         ResponseCellSpec("group_gain","gain_drift",.8,gain_only,affected_groups=(1,3)),
@@ -78,7 +76,7 @@ def run(out):
         exact_equal &= all(np.array_equal(getattr(a,k),getattr(b,k)) for k in ("sensor","charge","time"))
     checks["exact_degeneracy_equal"]=bool(exact_equal)
     # Weaker control: fit ONLY a charge-sum match on reference-fit data; evaluate residuals separately.
-    qe_loss=replace(ref,collection_efficiency=.64)
+    qe_loss=replace(ref,collection_efficiency=.8*ref.collection_efficiency)
     q_ref=sum(event_digits(e,det.n_channels,ref).charge.sum() for e in fit)
     q_loss=sum(event_digits(e,det.n_channels,qe_loss).charge.sum() for e in fit)
     gain_matched=replace(ref,gain=tuple(np.array(ref.gain)*(q_loss/q_ref)))
@@ -101,7 +99,7 @@ def run(out):
     w=np.linspace(300,600,100);q=np.linspace(.25,10,100)
     axes[0,0].plot(w,ref.qe_curve(w),label="reference");axes[0,0].plot(w,cells[2].params.qe_curve(w),label="shape drift")
     axes[0,0].set(xlabel="Wavelength (nm)",ylabel="QE");axes[0,0].legend()
-    axes[0,1].plot(q,ref.walk_curve.curves[1](q),label="reference");axes[0,1].plot(q,shifted.curves[1](q),label="drift")
+    axes[0,1].plot(q,ref.walk_curve(q),label="reference");axes[0,1].plot(q,steeper(q),label="slope x1.2");axes[0,1].plot(q,offset(q),label="offset control")
     axes[0,1].set(xlabel="Charge (PE)",ylabel="Raw walk location (ns)");axes[0,1].legend()
     axes[0,2].plot(q,ref.timing_width(q));axes[0,2].set(xlabel="Charge (PE)",ylabel="Gaussian sigma (ns)")
     axes[1,0].plot(coupled.gain,label="gain");axes[1,0].plot(coupled.timing_width_factor,label="width factor")
@@ -115,7 +113,7 @@ def run(out):
     report={"checks":checks,"evidence_stage":"development","non_citable":True,"source_kind":"synthetic_prompt_flasher",
         "physics_review_status":"pending","protocol_freeze_id":None,"training_run":False,"claim_comparisons":"not_run",
         "partitions":{"reference_fit":list(calibration.event_ids),"closure":[e.event_id for e in closure],"evaluation":[e.event_id for e in events]},
-        "reference":ref.to_dict(),"group_map":asdict(mapping),"fit_config":asdict(cfg),"code_config_sha256":hashes,
+        "reference":ref.to_dict(),"response_manifest":response_manifest.provenance(),"group_map":asdict(mapping),"fit_config":asdict(cfg),"code_config_sha256":hashes,
         "head":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),
         "python":sys.executable,"python_version":platform.python_version(),"numpy":np.__version__,
         "command":sys.argv,"elapsed_seconds":time.monotonic()-start}
