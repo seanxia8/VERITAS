@@ -25,10 +25,11 @@ def metrics(pred,truth):
     return dict(n=len(p),vertex_rmse_m=float(np.sqrt(np.mean(vertex**2))),vertex_median_m=float(np.median(vertex)),direction_mean_deg=float(np.mean(angle)),direction_median_deg=float(np.median(angle)),energy_relative_mae=float(np.mean(np.abs(energy/true_energy-1))),energy_bias_fraction=float(np.mean(energy/true_energy-1)),direction_mse=float(np.mean((p[:,:3]-t[:,:3])**2)),vertex_mse=float(np.mean((p[:,3:6]-t[:,3:6])**2)),log_energy_mse=float(np.mean((p[:,6]-t[:,6])**2)),finite=bool(np.isfinite(p).all()))
 
 
-def run(config,data,out):
+def run(config,data,out,gates=None):
     import torch
+    from .trainability_gates import DEFAULT,load_gates,constant_predictor,evaluate
     from torch.nn import functional as F
-    cfg=json.loads(Path(config).read_text());data=Path(data);out=Path(out)
+    cfg=json.loads(Path(config).read_text());data=Path(data);out=Path(out);gate_cfg=load_gates(gates or DEFAULT)
     if not json.loads((data.parent/'validation.json').read_text())['passed']:raise ValueError('transport gate failed')
     out.mkdir(parents=True,exist_ok=False);torch.set_num_threads(cfg['cpu_threads']);torch.use_deterministic_algorithms(True)
     if not torch.cuda.is_available():raise RuntimeError('CUDA required for authorized pilot')
@@ -40,7 +41,7 @@ def run(config,data,out):
             if ka!=kb and set(groups[ia])&set(groups[ib]):raise ValueError('physical event split leakage')
     fit=indices['response_fit'];design=np.column_stack((a['charge'][fit],np.ones(len(fit))));coef=np.linalg.lstsq(design,a['energy_MeV'][fit],rcond=None)[0]
     cal=dict(method='least squares charge-to-primary-energy, intercept included',fit_physical_event_ids=sorted(set(groups[fit])),coefficients=coef.tolist(),source_dataset_sha256=hashlib.sha256(data.read_bytes()).hexdigest());cal['sha256']=hashlib.sha256(json.dumps(cal,sort_keys=True).encode()).hexdigest();(out/'charge_calibration.json').write_text(json.dumps(cal,indent=2))
-    test=indices['test'];constant=np.tile(a['y'][indices['train']].mean(0),(len(test),1));constant_metrics=metrics(constant,a['y'][test])
+    test=indices['test'];constant_vector=constant_predictor(a['y'],indices['train']);constant=np.tile(constant_vector,(len(test),1));constant_metrics=metrics(constant,a['y'][test])
     q_pred=coef[0]*a['charge'][test]+coef[1];charge_benchmark=dict(relative_mae=float(np.mean(np.abs(q_pred/a['energy_MeV'][test]-1))),negative_predictions=int((q_pred<=0).sum()),by_energy={str(e):float(np.mean(np.abs(q_pred[a['energy_MeV'][test]==e]/e-1))) for e in cfg['energies_MeV']})
     def loss(p,t):return F.mse_loss(p[:,:3],t[:,:3])+F.mse_loss(p[:,3:6]/.35,t[:,3:6]/.35)+F.mse_loss(p[:,6],t[:,6])
     def predict(model,ix):
@@ -59,16 +60,17 @@ def run(config,data,out):
             val=float(loss(predict(model,indices['validation']),y[indices['validation']]));history.append(dict(epoch=epoch,train_loss=float(np.mean(train)),validation_loss=val))
             if val<best:best=val;best_epoch=epoch;torch.save(model.state_dict(),checkpoint)
             if epoch%20==0:print(seed,epoch,history[-1],flush=True)
-        model.load_state_dict(torch.load(checkpoint,weights_only=True));p=predict(model,test).numpy();truth=a['y'][test];m=metrics(p,truth);gate=cfg['trainability']
+        model.load_state_dict(torch.load(checkpoint,weights_only=True));p=predict(model,test).numpy();truth=a['y'][test];m=metrics(p,truth);relative=evaluate(p,truth,constant_vector,a['energy_MeV'][test],gate_cfg,energy_column=cfg.get('energy_column',6),energy_endpoint=cfg.get('energy_endpoint','initial_energy'),expected_subgroups=cfg['energies_MeV'])
         endpoint_gates={name:bool(m[name+'_mse']<constant_metrics[name+'_mse']) for name in ('direction','vertex','log_energy')}
-        endpoint_gates.update(vertex_absolute=m['vertex_rmse_m']<gate['vertex_rmse_m_max'],direction_absolute=m['direction_mean_deg']<gate['direction_mean_deg_max'],energy_absolute=m['energy_relative_mae']<gate['energy_relative_mae_max'])
-        result=dict(seed=seed,metrics=m,gates=endpoint_gates,passed=all(endpoint_gates.values()),best_epoch=best_epoch,parameters=sum(t.numel() for t in model.parameters()),checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),by_energy={str(e):metrics(p[a['energy_MeV'][test]==e],truth[a['energy_MeV'][test]==e]) for e in cfg['energies_MeV']},by_containment={str(v):metrics(p[a['contained'][test]==v],truth[a['contained'][test]==v]) for v in (False,True) if np.any(a['contained'][test]==v)})
+        endpoint_gates.update({'r3_'+k:v['passed'] for k,v in relative['gates'].items()})
+        result=dict(seed=seed,metrics=m,gates=endpoint_gates,relative_gates=relative,passed=all(endpoint_gates.values()),best_epoch=best_epoch,parameters=sum(t.numel() for t in model.parameters()),checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),by_energy={str(e):metrics(p[a['energy_MeV'][test]==e],truth[a['energy_MeV'][test]==e]) for e in cfg['energies_MeV']},by_containment={str(v):metrics(p[a['contained'][test]==v],truth[a['contained'][test]==v]) for v in (False,True) if np.any(a['contained'][test]==v)})
         np.savez_compressed(out/f'seed_{seed}_test.npz',prediction=p,truth=truth,physical_event_id=groups[test],energy_MeV=a['energy_MeV'][test],contained=a['contained'][test]);(out/f'seed_{seed}_history.json').write_text(json.dumps(history,indent=2));results.append(result);print(json.dumps(result),flush=True)
-    report=dict(results=results,passed=all(r['passed'] for r in results),constant_metrics=constant_metrics,charge_benchmark=charge_benchmark,config=cfg,elapsed_seconds=time.monotonic()-start,dataset_sha256=cal['source_dataset_sha256'],peak_gpu_bytes=torch.cuda.max_memory_allocated(),torch=torch.__version__,gpu=torch.cuda.get_device_name(),evidence_stage='development',non_citable=True,primary_claims_evaluated=False)
+    report=dict(results=results,passed=all(r['passed'] for r in results),constant_metrics=constant_metrics,constant_vector=constant_vector.tolist(),trainability_gates=gate_cfg,charge_benchmark=charge_benchmark,config=cfg,elapsed_seconds=time.monotonic()-start,dataset_sha256=cal['source_dataset_sha256'],peak_gpu_bytes=torch.cuda.max_memory_allocated(),torch=torch.__version__,gpu=torch.cuda.get_device_name(),evidence_stage='development',non_citable=True,primary_claims_evaluated=False)
     (out/'training.json').write_text(json.dumps(report,indent=2));print('all_trainability_gates',report['passed'],flush=True)
     if not report['passed']:raise RuntimeError('trainability gate failure retained; no retuning')
 
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for a in ('config','data','out'):p.add_argument('--'+a,required=True)
+    p.add_argument('--gates')
     run(**vars(p.parse_args()))
