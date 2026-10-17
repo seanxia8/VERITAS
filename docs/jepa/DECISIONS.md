@@ -224,3 +224,14 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   numerics are implemented and unit-tested without LUCiD and without claiming WCTE geometry; the
   event generator, readout binding and detectability run wait for the merged readout. All output is
   labelled development-only (`readout_synthetic_unrepaired`).
+- **2026-10-17 — LUCiD pin is network-available; the local ORACLE check-out is stale, not divergent.**
+  `git ls-remote` and the GitHub commits API (HTTP 200) on both `dowlingwong/LUCiD` and
+  `CIDeR-ML/LUCiD` show `eaf2e89f579d6679e90020c732ac2c846895d691` as the current `main`/`HEAD`
+  (tagged `v0.4.1`, 2026-10-06, "container: build PhotonSim v1.0.3"). The installed
+  `/ceph/dwong/ORACLE/external/LUCiD` is `86a1871ab…` (2026-09-16), an ancestor **95 commits
+  behind** the pin, which is why `git cat-file` could not see it. Ruling: generation will use the
+  pinned revision from a read-only clone inside our own area
+  (`/ceph/dwong/jepa/external/LUCiD`, added to `PYTHONPATH` ahead of the installed tree); the
+  ORACLE check-out is never fetched into or modified. The clone is made when the generation
+  environment is assembled (it needs the WCTE geometry/readout first), not now, because of the
+  entry-quota pressure.
