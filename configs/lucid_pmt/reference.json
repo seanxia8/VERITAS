@@ -24,7 +24,7 @@
     "timing_location": "readout",
     "timing_width": "readout digit Gaussian approximation; upstream TTS forbidden",
     "threshold": "readout",
-    "dark_counts": "off",
+    "dark_counts": "readout (R-6): keyed Poisson dark photoelectrons per PMT, uniform in readout_window_ns, bypass QE/CE, then the same SPE charge, gain, discriminator, T-Q walk and width",
     "pre_after_pulses": "off"
   },
   "transport": {
@@ -42,9 +42,10 @@
     "gain": "dimensionless multiplier after PE detection and SPE smearing",
     "timing": "forward ns; D-TQ walk(q)=a+b/sqrt(min(q,q_sat)) on the charge domain; frozen reference subtraction; Gaussian mean=mode, sigma=standard deviation (D-J approximation; digits earlier than photon arrival counted as digits_before_arrival)",
     "boundaries": "charge above charge_domain_pe upper bound clamped to it and counted (overflow_clamped); charge below the domain or wavelength outside the QE table rejected; no extrapolation",
-    "rng": "BLAKE2b pmt-v1 keyed by seed/event/persistent photon ID for detection and seed/event/channel for charge and timing",
+    "rng": "BLAKE2b pmt-v1 keyed by seed/event/persistent photon ID for detection, seed/event/channel for charge, timing and dark counts, and seed/event/(channel, rank) for dark times; dark-noise-only windows add a dark_window:<n> stream namespace",
     "discriminator": "T-Q mode: continuous PE peak, threshold .25 PE; legacy threshold_walk mode retains sampled-template normalization",
-    "per_channel_factors": "factor_i = base + odd_group_delta * (group_i mod 2); group = dense mPMT module index on WCTE (D-G), contiguous 12-channel synthetic groups on the fixture"
+    "per_channel_factors": "factor_i = base + odd_group_delta * (group_i mod 2); group = dense mPMT module index on WCTE (D-G), contiguous 12-channel synthetic groups on the fixture",
+    "dark_counts": "dark PE join the detected PE before digitisation; one digit per PMT, so a dark PE earlier than the source light sets that digit's time; n_dark_true is evaluation-only truth; dark-noise-only windows use noise_module_lucid.readout.dark_noise_window(params, n_channels, seed=, run=, window=)"
   },
   "parameters": {
     "survival": {
@@ -180,6 +181,21 @@
       "source": "runbook v2 \u00a73 D-G: per-module factor rule on the mPMT map (WCTE) or synthetic groups (fixture); factor values synthetic",
       "status": "synthetic_dev",
       "sha256": "294ce9ef18b53a764ea8710cc966d6fc621c7a78a349028e007ad811ef703b39"
+    },
+    "dark_rate_hz": {
+      "value": 1000.0,
+      "source": "R-6 (author, 18 Oct 2026): synthetic default 1 kHz per PMT; not a measured WCTE 3-inch PMT dark rate",
+      "status": "synthetic_dev",
+      "sha256": "4250638e192f9a123203e510b554639f0912688ad6ccdb3de696ba913112612a"
+    },
+    "readout_window_ns": {
+      "value": [
+        -200.0,
+        800.0
+      ],
+      "source": "R-6 engineering choice: 1 us window around the prompt light (forward ns, event time origin); dark hits are generated uniformly in it; source photons are not cut by it",
+      "status": "synthetic_dev",
+      "sha256": "58cb1b8c10e3f4270d49a6393d7548b5f99b4d659bd4805ed2debe8219f3b112"
     }
   },
   "fit_config": {

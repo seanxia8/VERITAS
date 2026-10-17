@@ -14,18 +14,89 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 ---
 
-## Scientific decisions: development settings (runbook v2 §3 recommended defaults)
+## Author message, 18 Oct 2026 (verbatim)
 
-These apply to engineering and development runs only. None is adopted for primary evaluation until the author marks it adopted (v2 §3, last paragraph).
+> Good work. R-1 to R-3 and R-5 are accepted. Decisions below, then continue.
+> Record this message verbatim in `docs/PMT_DECISIONS_LOG.md` (author, 18 Oct 2026).
+>
+> ## Author decisions
+>
+> 1. **SHA `0fba034` is accepted for the JEPA merge** (development). The JEPA study will merge it.
+>    Reported JEPA runs will wait for the R-6 SHA below.
+> 2. **Energy gate per subgroup:** apply it per subgroup as well. Energy MAE must be ≤ 0.8 × constant
+>    pooled **and** ≤ 1.0 × constant in every energy subgroup, as for the vertex. A pooled-only gate
+>    would hide the regression to the mean seen at 1000 MeV.
+> 3. **§3 defaults:**
+>    - D-Q, D-J, D-G and D-K are **adopted** as binding.
+>    - For D-TQ, the functional form a + b/√q is adopted, but its values stay `synthetic_dev` until
+>      Junjie gives a measured curve.
+>    - D-E is pending Junjie. Use (A), deposited energy, as the development default, labelled as
+>      such.
+>    - κ_m = 1.10 stays `provisional_dev` until the WP6 freeze.
+> 4. **`endpoint_identifiability.py`:** read it and report in five lines or fewer what it computes
+>    and which run produced it.
+>    - If it supports D-E (containment or identifiability of initial energy), commit it with a test
+>      and label it `dev_unreviewed`.
+>    - Otherwise leave it untracked and list it in the status file.
+> 5. **E26:** fix it now. A threshold below 0.25 PE is counted, not raised, with a test.
+>
+> ## New repair R-6 (before R-4; needed by the JEPA study)
+>
+> The reference response has `dark_counts: off`. The JEPA study needs dark counts, both as private
+> noise and for its anchor's dark-noise-only windows.
+> - **If the readout already implements a dark-count stage:** expose the rate in `reference.json`
+>   (`dark_rate_hz`, synthetic default 1 kHz per PMT, `synthetic_dev`) and add a public function that
+>   generates a **dark-noise-only readout window** for a given seed and run.
+> - **If it does not:** implement the stage in the readout. Dark hits are uniform in the readout
+>   window, with single-photon charge and the same T-Q walk and timing width, under keyed RNG; stage
+>   owner: readout.
+> - **Tests:**
+>   - with the rate at 0, output identical to the current reference;
+>   - the dark-hit count matches rate × window × number of PMTs within 3σ;
+>   - the dark-only window contains no source hits;
+>   - determinism under the keyed RNG.
+> - Commit, push, and **report the new SHA**. That is the SHA JEPA uses for reported runs.
+>
+> ## Then, in order
+>
+> 1. **R-4** under the C2 flags and the runbook v2 §2 shared-server rules.
+>    - First the generation-only containment check: does any μ energy range in 100–400 MeV reach
+>      ≥ 50% containment in WCTE?
+>    - Then the re-run, with vertex and direction under the R-3 gates, and energy on the deposited
+>      endpoint, labelled development.
+>    - 3 seeds; data reads ≤ 5 GB.
+> 2. **WP6:** freeze the experiment contract with everything adopted above. Cells that depend on D-E
+>    stay `pending_D-E`.
+> 3. **WP8:** draft the reply to Junjie in `docs/PMT_ISSUE5_REPLY_DRAFT.md`, not posted.
+>    - It summarises what was fixed: the response manifest, the 1/√q walk, the honest gates with the
+>      constant-baseline table, dark counts.
+>    - It asks his open decisions as a numbered list: D-E; a measured T-Q curve; the target QE/CE
+>      for the WCTE 3-inch PMTs; a crate/cable map; the dark rate; D-T/L/M/S.
+> 4. **WP7** only after I write "launch WP7".
+>
+> ## Report
+>
+> After R-6, and again after R-4 and WP8:
+> - tests and their results;
+> - the R-6 SHA;
+> - the containment result;
+> - R-4 gate table against the constant baseline;
+> - GPU-hours and data read;
+> - open decisions.
 
-| # | Decision | Development setting | Status |
+---
+
+## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
+
+| # | Decision | Setting | Status |
 |---|---|---|---|
-| D-TQ | T-Q walk shape | `walk(q) = a + b/sqrt(q)` on [0.25, q_sat]; constant above q_sat. a=0, b=2 ns, q_sat=50 PE. Intervention b × (1 ± 0.2), plus a separate offset-only control | `synthetic_dev`, not adopted |
-| D-Q | Charge domain | [0.25, 1000] PE everywhere; overflow clamped and counted | development setting, not adopted |
-| D-J | Timing kernel | Gaussian approximation; fraction of digits before photon arrival reported per cell | development setting, not adopted |
-| D-G | Intervention groups | mPMT modules (physical map from pinned file) | development setting, not adopted |
-| D-K | Fit failures | Unevaluable if failure rate > 10%; otherwise complete-case K with failure-rate difference reported; kappa_m = 1.10 `provisional_dev` | development setting, not adopted |
-| D-E | Energy endpoint | (A) Deposited energy inside instrumented volume; initial energy supporting on contained events only; containment preflight before training | development setting for R-4; open with Junjie |
+| D-TQ | T-Q walk shape | `walk(q) = a + b/sqrt(q)` on [0.25, q_sat]; constant above q_sat. a=0, b=2 ns, q_sat=50 PE. Intervention b × (1 ± 0.2), plus a separate offset-only control | **Form adopted** (18 Oct); values `synthetic_dev` until Junjie gives a measured curve |
+| D-Q | Charge domain | [0.25, 1000] PE everywhere; overflow clamped and counted | **Adopted, binding** (18 Oct) |
+| D-J | Timing kernel | Gaussian approximation; fraction of digits before photon arrival reported per cell | **Adopted, binding** (18 Oct) |
+| D-G | Intervention groups | mPMT modules (physical map from pinned file) | **Adopted, binding** (18 Oct) |
+| D-K | Fit failures | Unevaluable if failure rate > 10%; otherwise complete-case K with failure-rate difference reported | **Adopted, binding** (18 Oct); κ_m = 1.10 stays `provisional_dev` until the WP6 freeze |
+| D-E | Energy endpoint | (A) Deposited energy inside instrumented volume; initial energy supporting on contained events only; containment preflight before training | **Pending Junjie**; (A) is the labelled development default |
+| R-3 energy gate | Energy MAE gate | ≤ 0.8 × constant pooled **and** ≤ 1.0 × constant in every energy subgroup | **Author decision** (18 Oct), replaces E17 |
 | D-T/L/M/S | Portfolio | Unchanged from v1 WP8 | open with Junjie |
 
 ---
@@ -68,7 +139,25 @@ _One line each, logged as made (18 Oct 2026)._
   - The R-3 energy gate fails closed unless the run declares the endpoint `deposited_energy_in_volume`.
   - The past-run reproduction test skips when `results/` is not shipped.
   - Note added to the integration results README on the mPMT regrouping.
-- E26. Known, not fixed: on the manifest response, a threshold below 0.25 PE raises (charge below the walk domain) instead of a counted rejection. This is latent, because the legacy `threshold_walk` grid is ≥ 0.35 and no T-Q cell moves the threshold.
+- E26. Fixed 18 Oct per author decision 5. A fired digit whose charge is below the declared domain is rejected and counted as `below_charge_domain`, never extrapolated (test `test_threshold_below_charge_domain_is_counted_not_raised`). Before the fix, a threshold below 0.25 PE raised inside the walk curve.
+- E27 (R-3, author decision 2). The energy gate is now also per subgroup: ≤ 1.0 × constant in every energy subgroup (`energy_relative_mae_ratio_max_subgroup`). The fail-closed D-E endpoint rule applies to every energy gate. This replaces E17.
+- E28 (author decision 4). `endpoint_identifiability.py` supports D-E (in-volume path length, containment, initial-energy identifiability), so it is committed as `dev_unreviewed` with analytic tests. The code is unchanged apart from the label. Caveat for review: `endpoint_identifiability()` builds its constant from the mean of the evaluated set's true energy, not the training-split mean of R-3, so it is a diagnostic, not a gate.
+- E29 (R-6). The readout had no dark-count stage: the `pulses.py` dark pulses act on legacy waveform traces of the frozen electronics path. So the stage was implemented in `readout_chain`:
+  - each PMT gets Poisson(rate × window) dark photoelectrons from a keyed uniform (identity = channel), with times uniform in `readout_window_ns` (identity = channel × 4096 + rank);
+  - they bypass QE/CE/survival and join the detected photoelectrons before digitisation, so they share the SPE charge, gain, discriminator, T-Q walk and width;
+  - there is one digit per PMT, so a dark photoelectron earlier than the source light sets that digit's time;
+  - `n_dark_true` is evaluation-only truth and is not in `OperationalDigits`.
+- E30 (R-6). `readout_window_ns` = [−200, 800] ns (1 µs, forward event time), `synthetic_dev`. It bounds dark-hit generation only; source photons are not cut by it. At 1 kHz that gives an expected 0.076 dark photoelectrons per fixture event and about 2.0 per WCTE event (1995 PMTs).
+- E31 (R-6). `dark_noise_window(params, n_channels, seed=, run=, window=)` keys all its draws on stream `dark_window:<window>` with event ID = run, so a dark-only window never shares draws with a physics event that has the same ID. Rate 0 adds no draws and no count keys, and the digits are byte-identical to `0fba034` (golden hash in `test_dark_counts.py`).
+- E33 (R-6 review). The LUCiD pilots' time feature is now `(time − window start) / window length` (`lucid_integration.time_feature`), replacing `(time − first digit time) / 20 ns`. With dark counts on, the earliest digit was a dark hit in about a third of WCTE events, which moved every source time. The window start is the operational, trigger-defined origin. This changes the R-4 input distribution relative to `181b747`/`56179eb`, which are not re-scored.
+- E34 (R-6 review). Smaller fixes:
+  - `dark_noise_window` uses an empty `detected_pe` batch for responses without QE, and requires integer seed, run and window.
+  - The dark-count uniform is clamped below 1.0, where the Poisson ppf is infinite (p = 2⁻⁵³).
+  - The per-PMT bound now admits exactly 4096.
+  - The `n_pe_true` comment now says it includes dark photoelectrons.
+  - The `endpoint_identifiability()` docstring now states its constant: the evaluated set's mean energy in MeV. The code is unchanged and the test distinguishes the two definitions.
+  - Known and left: `below_charge_domain` is counted before the dead-channel mask.
+- E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
 ---

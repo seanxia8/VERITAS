@@ -21,9 +21,10 @@ N = 20000
 
 
 def flat(n):
-    """Manifest response with unit detection and unit group factors, so charge is set by gain alone."""
+    """Manifest response with unit detection, unit group factors and no dark counts (tested in
+    test_dark_counts.py), so charge is set by gain alone."""
     p = response_manifest.reference_response(n, np.zeros(n, dtype=int))
-    return replace(p, qe_curve=QECurve(p.qe_curve.wavelength_nm, (1.0,)*len(p.qe_curve.wavelength_nm)), collection_efficiency=1.0, spe_sigma=0.0)
+    return replace(p, qe_curve=QECurve(p.qe_curve.wavelength_nm, (1.0,)*len(p.qe_curve.wavelength_nm)), collection_efficiency=1.0, spe_sigma=0.0, dark_rate_hz=0.0)
 
 
 def event_for(q):
@@ -128,3 +129,16 @@ def test_paired_control_rejects_an_offset_posing_as_slope(monkeypatch):
     row = paired_checks(lambda params, batch: read(batch, params, 9), p, b)
     assert not row["tq_slope_1.2_shift_matches_curve"] and not row["tq_slope_1.2_charge_dependent"]
     assert not passed([row])
+
+
+def test_threshold_below_charge_domain_is_counted_not_raised():
+    """E26: a sub-0.25 PE threshold rejects and counts below-domain digits instead of raising."""
+    b = one_photon_per_channel(10)
+    gain = np.where(np.arange(10) < 4, 0.2, 2.0)
+    p = replace(flat(10), gain=gain, threshold_pe=0.1)
+    d = read(b, p)
+    assert d.counts["below_charge_domain"] == 4 and len(d) == 6
+    np.testing.assert_array_equal(d.sensor, np.arange(4, 10))
+    assert np.all(d.charge >= 0.25)
+    at_domain = read(b, replace(p, threshold_pe=0.25))
+    assert at_domain.counts["below_charge_domain"] == 0 and at_domain.counts["lost_threshold"] == 4

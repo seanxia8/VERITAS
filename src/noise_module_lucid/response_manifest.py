@@ -23,7 +23,7 @@ SCHEMA = "pmt-response-v2"
 DEFAULT_PATH = Path(__file__).resolve().parents[2] / "configs" / "lucid_pmt" / "reference.json"
 PARAMETERS = ("survival", "timing_offsets_ns", "reference_offsets_ns", "threshold_pe", "walk_calibration_pe",
               "spe_sigma", "dead_channels", "mv_per_pe", "qe_curve", "collection_efficiency", "charge_domain_pe",
-              "walk", "timing_width", "gain", "timing_width_factor")
+              "walk", "timing_width", "gain", "timing_width_factor", "dark_rate_hz", "readout_window_ns")
 
 
 def value_sha256(value):
@@ -95,5 +95,6 @@ def reference_response(n_channels, channel_group, manifest=None):
         dead_channels=tuple(v["dead_channels"]), mv_per_pe=v["mv_per_pe"],
         qe_curve=QECurve(tuple(v["qe_curve"]["wavelength_nm"]), tuple(v["qe_curve"]["efficiency"]), m["parameters"]["qe_curve"]["status"]),
         collection_efficiency=v["collection_efficiency"], charge_domain_pe=domain,
+        dark_rate_hz=float(v["dark_rate_hz"]), readout_window_ns=tuple(float(x) for x in v["readout_window_ns"]),
         walk_curve=curve, reference_walk=curve, timing_width=width,
         gain=_group_rule(v["gain"], group), timing_width_factor=_group_rule(v["timing_width_factor"], group))
