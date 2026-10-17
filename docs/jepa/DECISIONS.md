@@ -344,3 +344,9 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   because editing scientific source during a running attempt is exactly what the runner's
   source-change check stops on. Cumulative E1 stays well under the 24 h cap (~9 h projected
   including the stopped attempt), so the waste is time, not budget.
+- **2026-10-17 — long local runs must be detached.** E1b attempt_003 was reaped when the
+  implementer's agent session ended (8/65 rows, no traceback, no finish line). From now on, runs
+  longer than a few minutes are launched detached (`nohup ... & disown`), with the PID recorded, so
+  their lifetime is independent of any agent turn; the results are read from the attempt directory
+  afterwards. Attempt_002 (33 rows) and attempt_003 (8 rows) are preserved; the cross-attempt
+  resume fix lets the next attempt compute only the missing rows.
