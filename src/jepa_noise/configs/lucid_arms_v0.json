@@ -1,0 +1,170 @@
+{
+  "schema": "jepa-lucid-arms-v0",
+  "version": "lucid_arms_v0",
+  "date": "2026-10-17",
+  "scope": "WP5 LUCiD arm objectives, anchor penalty and probe forms, runbook v4 \u00a73.5.6",
+  "status": "development_only",
+  "readout_label": "readout_synthetic_unrepaired",
+  "reported_results": false,
+  "note": "Objective/penalty layer only: no cohorts, checkpoints or trainer. Numerics marked pending_review are frozen by the WP5 config review before any outcome.",
+  "arms": [
+    "mae_mse",
+    "mae_chi2",
+    "ijepa_ema",
+    "sigreg_jepa",
+    "sigreg_jepa_anchored",
+    "anchor_only",
+    "oracle_nominal_twin"
+  ],
+  "variants": {
+    "sigreg_jepa_anchored_dark": {
+      "role": "secondary R7b: the anchor shown only the dark-noise overlay (draw 1), no per-module rescale",
+      "draws": 1,
+      "own_beta": true,
+      "status": "pending_development_cohort"
+    }
+  },
+  "beta": {
+    "grid": [
+      0.1,
+      1,
+      10,
+      100,
+      1000
+    ],
+    "arms": {
+      "sigreg_jepa_anchored": null,
+      "anchor_only": null,
+      "sigreg_jepa_anchored_dark": null
+    },
+    "selection_rule": "\u00a73.5.6 development cohort: the largest beta whose vertex resolution is <= 1.1 x the development sigreg_jepa (same physics tolerance as R7); one seed per beta",
+    "status": "pending_development_cohort",
+    "note": "No beta is selected here; the grid is registered and build_arm refuses a beta outside it."
+  },
+  "ema": {
+    "tau_start": 0.996,
+    "tau_end": 1.0,
+    "schedule": "cosine: tau(step) = 1 - (1 - 0.996) * (1 + cos(pi * step / total_steps)) / 2",
+    "total_steps": 10000,
+    "total_steps_source": "\u00a73.5.5 training length",
+    "target_normalisation": "LayerNorm(d_model, elementwise_affine=False) on the target-token embeddings",
+    "status": "registered (task \u00a71); optimiser numerics pending_review"
+  },
+  "sigreg": {
+    "implementation": "src/jepa_noise/sigreg.py (SIGReg, SlicedEppsPulley, EppsPulley)",
+    "num_slices": 1024,
+    "t_max": 3.0,
+    "n_points": 17,
+    "coefficient_lambda": 0.02,
+    "reduction": "value = 0.5 * (context-pooled value + target-token value), each the mean over slices of the source N-scaled Epps-Pulley statistic; the source N factor is kept exactly",
+    "application": "context pooled embeddings = mean over the context-view read-out tokens; target tokens = full-input read-out tokens at the hidden (target-view) PMTs",
+    "source_pin": {
+      "repository": "galilai-group/stable-pretraining",
+      "file": "stable_pretraining/methods/lejepa.py",
+      "commit_sha": "749419f1f6c28d6a3355bee236931ba492f1d95d",
+      "mirrored_from": "src/jepa_noise/sigreg.py SIGREG_SOURCE_PIN"
+    },
+    "status": "pinned to the Tier-1 implementation; no new numerics"
+  },
+  "mae_chi2": {
+    "covariance": "C_m = diag(mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2) + s^2 mu_m mu_m^T, over the hidden PMTs of module m",
+    "loss": "0.5 * sum_m (r^T C_m^-1 r + ln det C_m) per event, mean over the batch; Woodbury inverse and determinant lemma",
+    "sigma_spe": 0.3,
+    "sigma_spe_source": "lucid_bombs.SIGMA_SPE = 0.3; lucid_bombs_v0.json generator.sigma_spe",
+    "v_dark": 0.004578,
+    "v_dark_source": "dark-charge variance per window from the generator: 4200 Hz * 1000 ns * (1+0.3^2) = 0.004578 PE^2. Not a placeholder: the generator draws dark counts, so C_m stays positive definite at mu=0 for unhit PMTs.",
+    "time_sigma_ns": 1.5,
+    "time_sigma_source": "lucid_bombs GeneratorConfig.tts_sigma_ns = 1.5 (reference transit-time spread); converted to 0.015 in the 100 ns token unit",
+    "variance_floor_pe2": 0.0,
+    "variance_floor_status": "resolved_2026-10-17: v_dark > 0 makes C_m positive definite at mu=0; no variance floor is applied",
+    "variance_floor_note": "The reference v_dark = 0 and a hidden unhit PMT has mu = 0, so C_m is singular and ln det C_m diverges. The floor keeps the loss finite but changes the log-determinant term for zero-mean PMTs; reported to the lead as an ambiguity in the registered covariance, not decided in WP5.",
+    "censoring": "threshold censoring ignored (registered second-moment approximation)",
+    "labelled": "uses noise-model (oracle) information: the cell's true s and s_p and the reference sigma_spe, v_dark",
+    "status": "covariance formula registered; variance floor flagged"
+  },
+  "anchor": {
+    "beta_applied": true,
+    "rescale_sd": 0.01,
+    "rescale_distribution": "per module, per event, per copy: N(1, 0.01^2), the assumed per-module calibration uncertainty",
+    "rescale_domain": "recorded charge, applied in the log-charge domain so a unit factor is bit-exact; the hit set is not re-thresholded",
+    "dark_overlay": {
+      "source": "dark-noise-only readout windows generated per run (\u00a73.5.3); one independent record per perturbed copy",
+      "hits": "union of hits",
+      "charge": "add where a PMT is hit in both; the dark charge alone where only the dark window hits",
+      "time": "earlier time kept where a PMT is hit in both; the dark time where only the dark window hits",
+      "draws": 2,
+      "dark_only_draws": 1
+    },
+    "denominator": "trace of the covariance of the module-pooled read-out tokens z_m (B * n_modules samples, d features, unbiased B-1 divisor); the gradient flows through it",
+    "readout": "unmasked full-input read-out for z_m(x) and z_m(x~) (Tier-1 pattern)",
+    "status": "registered; beta grid pending the development cohort"
+  },
+  "cell": {
+    "s": 0.05,
+    "s_p": 0.1,
+    "note": "s and s_p are the cell's TRUE spreads, passed per cell at build time; these values are the development cell (s = 0.05) with F3 in force (s_p = 0.10, lucid_bombs.F3_SPREAD).",
+    "f3_in_force": 0.1,
+    "f3_note": "lucid_bombs.F3_SPREAD = 0.10 after the \u00a73.5.3a check; F3 still failed, R12 not_evaluable, no gate"
+  },
+  "training": {
+    "steps": 10000,
+    "batch": 32,
+    "optimizer": "pending_review",
+    "optimizer_detail": {
+      "family": "pending_review",
+      "learning_rate": "pending_review",
+      "betas": "pending_review",
+      "weight_decay": "pending_review",
+      "schedule": "pending_review",
+      "warmup_steps": "pending_review",
+      "gradient_clip": "pending_review"
+    },
+    "optimizer_groups": "registered conventions only: Muon for 2-D block matrices inside encoder/predictor blocks, AdamW for embeddings, heads, norms and queries; the EMA target encoder is never in a group. Exposed by LucidArm.parameter_groups; no optimiser is constructed here.",
+    "status": "pending_review"
+  },
+  "probes": {
+    "primary_form": "run_mean",
+    "forms": [
+      "per_event",
+      "run_mean",
+      "propagated",
+      "raw_input"
+    ],
+    "forms_detail": {
+      "per_event": "each probe event, full-input features",
+      "run_mean": "features averaged over a run's probe events; R^2 over (run, module), (run, PMT) or runs",
+      "propagated": "the same probe on the context-encoder outputs at masked positions with the standard training mask; run-mean over events in which the position is masked",
+      "raw_input": "the same probe on the raw token features (module-mean raw features for module targets); no encoder"
+    },
+    "run_mean_definition": "vertex and log yield are per-event truths, so their run-mean target is undefined and build_probe_dataset refuses that combination; run-mean is the primary form for the registered detector-state targets",
+    "alpha_grid": [
+      1e-06,
+      0.0001,
+      0.01,
+      1.0,
+      100.0
+    ],
+    "alpha_grid_source": "v3 \u00a71.3, mirrored from src/jepa_noise/probes.ALPHAS",
+    "folds": 5,
+    "grouping": "by run (five grouped folds; sorted runs assigned round-robin)",
+    "standardisation": "fold-internal (fit_ridge standardises on that fold's training rows only)",
+    "targets": {
+      "vertex": "(x, y, z), mean over all read-out tokens",
+      "log_yield": "log yield, mean over all read-out tokens",
+      "module_gain": "ln gain_m (F1, law T), module-pooled tokens (mean over the module's PMTs), one ridge shared by all modules",
+      "pmt_gain": "ln gain_p (F3), each hit PMT's token, one ridge shared by all PMTs",
+      "f2_variable": "F2/F2' variable v, mean over all read-out tokens (run property)",
+      "age": "r/R (law T), mean over all read-out tokens (run property)"
+    },
+    "random_init_floor": "random_init_floor(arm, geometry, seed=the arm's first seed): the same encoder architecture, untrained; the same probe code runs on it",
+    "leakage_hook": "probe_predictions + squared_correlation provide R11 cross-leakage; full R11/R11b/R12 evaluation is the evaluation layer's task",
+    "status": "forms and ridge protocol implemented; the evaluation layer (probe sets, truth assembly from generated runs, floors per arm) is pending"
+  },
+  "pending": [
+    "trainer and cohort wiring (WP5 next task): loader, optimiser freeze, schedules, checkpoints",
+    "GPU smoke on the hosts of \u00a76.1",
+    "scaling benchmark (\u00a73.5.5, no training)",
+    "evaluation layer: probe-truth assembly from generated runs, random-init floors per arm, R6-R8/R11/R11b/R12 and the cross-leakage criteria",
+    "WP5 config review: freeze optimiser, learning rate, schedule and the beta grid values"
+  ]
+}

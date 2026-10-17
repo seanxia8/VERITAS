@@ -54,7 +54,22 @@ N_MIN = 20
 MAX_REDRAWS = 3
 RUN_EVENTS = 50
 SIGMA_SPE = 0.3
-V_DARK = 0.0
+def dark_charge_variance(dark_rate_hz: float, window_ns: float,
+                         sigma_spe: float) -> float:
+    """Per-PMT dark-charge variance in one readout window (PE^2).
+
+    Compound-Poisson: a dark count rate over the window gives lambda counts, each
+    smeared by the SPE charge resolution, so Var = lambda * (1 + sigma_spe^2).
+    v4 §3.5.6/§3.5.3 define ``v_dark`` as this reference dark-charge variance; the
+    earlier scaffold constant 0.0 was a placeholder taken before the generator
+    actually drew dark counts.
+    """
+    lam = float(dark_rate_hz) * float(window_ns) * 1e-9
+    return lam * (1.0 + float(sigma_spe) ** 2)
+
+
+#: Defaults matching ``configs/lucid_bombs_v0.json`` (4200 Hz, 1000 ns, sigma_spe 0.3).
+V_DARK = round(dark_charge_variance(4200.0, 1000.0, 0.3), 6)  # 0.004578 PE^2
 ORACLE_ARM = "oracle_nominal_twin"
 
 NS_F1, NS_F3, NS_F2, NS_F2P = "lucid/F1", "lucid/F3", "lucid/F2", "lucid/F2p"

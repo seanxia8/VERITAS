@@ -204,8 +204,9 @@
   },
   "detectability": {
     "sigma_spe": 0.3,
-    "v_dark": 0.0,
-    "run_events": 50
+    "v_dark": 0.004578,
+    "run_events": 50,
+    "v_dark_source": "dark-charge variance per window = lambda_dark*(1+sigma_spe^2) = 4200 Hz * 1000 ns * 1.09 = 0.004578 PE^2 (the earlier 0.0 was a pre-generator placeholder; resolved 2026-10-17)"
   },
   "benchmark": {
     "events": 1000,

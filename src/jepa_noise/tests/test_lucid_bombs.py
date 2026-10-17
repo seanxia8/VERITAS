@@ -319,8 +319,11 @@ def test_invalid_detectability_inputs_raise():
         lb.fisher_event(np.array([-1.0]), np.array([1.0]))
     with pytest.raises(ValueError):
         lb.fisher_event(np.array([1.0, 2.0]), np.array([1.0]))
+    # mu = 0 is a dark-only PMT and is informative once v_dark > 0; only a
+    # zero-variance (v_dark = 0) configuration is invalid.
+    assert np.isfinite(lb.fisher_event(np.array([0.0]), np.array([1.0])))
     with pytest.raises(ValueError):
-        lb.fisher_event(np.array([0.0]), np.array([1.0]))
+        lb.fisher_event(np.array([0.0]), np.array([1.0]), v_dark=0.0)
     with pytest.raises(ValueError):
         lb.detectability([], [], 0.05)
     with pytest.raises(ValueError):
