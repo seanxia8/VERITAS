@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 20:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 22:00Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -47,6 +47,22 @@ Updated: 2026-10-17 20:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   PMT branch is still at synthetic 76-sensor fixture geometry, so the physical WCTE 105x19 map
   required by §3.5.3 does not exist yet. Physical binding waits for the author-named PMT SHA;
   G-PMT by 31 Oct if it has not arrived.
+
+## Milestones reached (2026-10-17)
+
+- **WP0-v4, preflight, guard, WP2-v4, WP3 E1 (E1a/E1b/E1c), WP4a bridge: complete.**
+  E1 verdicts: R1 fail, R2 fail, R3 not_evaluable, R3b pass, R4a fail, R4b fail, R5 not_evaluable.
+  B1 (bridge) fail. All recorded with evidence in PREDICTION_STATUS.json; `report E1` is
+  byte-identical on repeated runs and E1 == all.
+- Author answers executed: **G-QUOTA (A)** (+9 322 entries, 39.2k free, gate closed); **LUCiD
+  pinned clone** at `/ceph/dwong/jepa/external/LUCiD` (eaf2e89f) with the WCTE geometry verified
+  (1995 PMTs / 105 mPMT / 19 per module; 1-based pmt_id_in_mpmt; mpmt_id sparse with 45 absent).
+- Author rules implemented: clean-tree gate for registered runs (E1 runner + host launcher),
+  not_run resume fix, grid re-execution guard.
+- Diagnostics committed: docs/jepa/E1_BRIDGE_FINDINGS.md (finite-sample floors, R3 conditioning,
+  amplitude information ceiling).
+- In flight: E1 light independent recompute (fresh reviewer), WP4b generator on the real WCTE
+  geometry (readout_synthetic_unrepaired), A9 follow-ups (B1-ext ≤4 Titan GPU-h; R5-ext CPU).
 
 ## Running jobs
 
