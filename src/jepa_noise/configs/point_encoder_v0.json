@@ -1,0 +1,148 @@
+{
+  "version": "point_encoder_v0",
+  "date": "2026-10-17",
+  "scope": "WP4c LUCiD point encoder, runbook v4 \u00a73.5.4-\u00a73.5.5",
+  "status": "development; architecture frozen by \u00a73.5.5, optimiser and learning-rate conventions pending the WP5 config review",
+  "readout": "readout_synthetic_unrepaired",
+  "data": {
+    "geometry": "DetectorGeometry from lucid_bombs (path-configured WCTE map, or the synthetic schema fixture in local tests)",
+    "n_pmt": 1995,
+    "n_modules": 105,
+    "pmts_per_module": 19,
+    "pmt_id_in_mpmt": "1-based; within split = even context / odd target (9/10 per module)",
+    "token_source": "generated run hits.npz (CSR-like sparse: event_ids, offsets, pmt_id, charge_pe, time_ns)"
+  },
+  "features": {
+    "order": [
+      "pos_x",
+      "pos_y",
+      "pos_z",
+      "dir_x",
+      "dir_y",
+      "dir_z",
+      "log_charge",
+      "time_100ns",
+      "hit"
+    ],
+    "n_features": 9,
+    "scaling": {
+      "position": "x, y / radius_m; z / half_height_m (fixed detector dimensions, no per-event normalisation)",
+      "direction": "unit vector / 1.0 (dimensionless; fixed divisor recorded for completeness)",
+      "log_charge": "ln(q / 1 PE) for hit PMTs, 0 for unhit PMTs",
+      "time_100ns": "(first-hit time - trigger) / 100 ns for hit PMTs, 0 for unhit PMTs",
+      "hit": "1.0 hit, 0.0 unhit",
+      "charge_floor_pe": 1e-06,
+      "data_independent": true
+    }
+  },
+  "architecture": {
+    "kind": "serialised point transformer (Hilbert sort, windowed attention)",
+    "d_model": 128,
+    "n_blocks": 4,
+    "n_heads": 4,
+    "d_ff": 512,
+    "norm": "pre-LN",
+    "norm_eps": 1e-06,
+    "final_norm": null,
+    "readout": "output of block 4 before any final normalisation; every loss and probe uses this",
+    "window": 64,
+    "window_shift": 32,
+    "window_shift_rule": "cyclic roll by 32 on alternate layers (layer index odd)",
+    "token_order": "3D Hilbert curve of the PMT positions, 12 bits per axis on the fixed detector box",
+    "mask_embedding": "one learned vector (std 0.02) replacing hidden tokens after the input projection and before block 1",
+    "init": "spectral muP linear init (reconstruction_model.model rule), mask embedding N(0, 0.02^2)",
+    "parameter_count": 911296,
+    "parameter_split": {
+      "encoder": 794496,
+      "predictor": 116800
+    }
+  },
+  "predictor": {
+    "kind": "2 pre-norm blocks over context read-out tokens plus position queries at the target PMTs",
+    "d_pred": 64,
+    "n_blocks": 2,
+    "n_heads": 4,
+    "d_ff": 256,
+    "attention": "full over context + queries",
+    "queries": "scaled position (3 features) of each target PMT; no data enters the query",
+    "output": "one d_model prediction per target PMT"
+  },
+  "views": {
+    "across": {
+      "module_order": "3D Hilbert curve of module centres (10 bits per axis)",
+      "target": "random contiguous half of the module order, cyclic, n_modules // 2 = 52 modules",
+      "context": "the complementary 53 modules",
+      "seed_namespace": "lucid/views/across/<replicate>/<event_id>/attempt/<k>"
+    },
+    "within": {
+      "context": "pmt_id_in_mpmt even (1-based: 2, 4, ..., 18) = 9 per module",
+      "target": "pmt_id_in_mpmt odd (1-based: 1, 3, ..., 19) = 10 per module",
+      "partition": "fixed for every event"
+    },
+    "n_min": 20,
+    "max_redraws": 3,
+    "exclusion": "across: redraw up to 3 times, then exclude and count; within: exclude and count",
+    "occupancy_ablation": {
+      "modes": [
+        "natural",
+        "balanced"
+      ],
+      "default": "natural",
+      "balanced": "subsample unhit PMTs of the context view only to match its hit count; every target PMT is still queried"
+    }
+  },
+  "training": {
+    "steps": 10000,
+    "batch": 32,
+    "status": "registered by \u00a73.5.5; the smoke objective in point_encoder is not a registered arm",
+    "gradient_accumulation": 1,
+    "gradient_accumulation_note": "measured unnecessary: batch 32 forward+backward peaks at about 2.4 GiB process RSS on CPU, well inside the \u00a76.2 9.6 GB Titan cap",
+    "optimizer": "pending_review",
+    "optimizer_detail": {
+      "family": "pending_review",
+      "learning_rate": "pending_review",
+      "betas": "pending_review",
+      "weight_decay": "pending_review",
+      "schedule": "pending_review",
+      "warmup_steps": "pending_review",
+      "gradient_clip": "pending_review"
+    },
+    "seed_floor": "pending_review",
+    "optimizer_note": "repository AdamW/Muon conventions as in v3 WP4; no value is chosen in WP4c, the WP5 config review fills them before outcomes"
+  },
+  "probes": {
+    "amplitude_criterion": "R\u00b2 >= 0.9 for sigreg_jepa and mae_mse, measured after the smoke and on the final encoders (\u00a73.5.5); not implemented here",
+    "fixture_measurement": {
+      "what": "ridge probe recovering per-PMT log charge from the unmasked read-out tokens at random init",
+      "fixture": "synthetic schema geometry (1995 PMTs), 8 events of 300 hits, 4 train / 4 test events, alpha 1.0, 128 read-out features",
+      "r2": 0.999,
+      "command": "pytest src/jepa_noise/tests/test_point_encoder.py -k amplitude -s",
+      "status": "fixture, not the registered criterion"
+    }
+  },
+  "memory": {
+    "host": "Mac CPU, single-threaded BLAS, torch 2.5.1",
+    "n_pmt": 1995,
+    "baseline_process_rss_mib": 178.6,
+    "measurements": [
+      {
+        "batch": 2,
+        "step_seconds": 0.57,
+        "peak_process_rss_mib": 406
+      },
+      {
+        "batch": 8,
+        "step_seconds": 2.9,
+        "peak_process_rss_mib": 1036
+      },
+      {
+        "batch": 32,
+        "step_seconds": 10.12,
+        "peak_process_rss_mib": 2844
+      }
+    ],
+    "cap": "\u00a76.2 per-process GPU memory: about 9.6 GB on a Titan, 21 GB on an L40S",
+    "verdict": "batch 32 fits the Titan cap with roughly 4x headroom; gradient accumulation not needed; GPU peak memory and throughput are pending (no GPU in this session)",
+    "repeat_run_note": "peak RSS is a high-water mark; a second run gave batch 32 at 2482-2844 MiB, i.e. about 2.4-2.8 GiB"
+  }
+}

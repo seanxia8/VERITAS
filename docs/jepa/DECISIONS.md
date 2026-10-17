@@ -694,3 +694,37 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   low 370.5 / 0.186 / 4.89 PE / 461.2 PE; mid 970.3 / 0.486 / 22.56 PE / 2 030.6 PE; high
   1 692.7 / 0.849 / 104.2 PE / 10 338.4 PE. Evidence committed under
   `results/jepa/20261017_wp4b_detectability/`.
+
+## WP4c views/masks and LUCiD point encoder (2026-10-17)
+
+- **2026-10-17 — LUCiD views/masks and the serialised point encoder implemented (development only).**
+  `lucid_views.py`: `across` orders modules on a 3D Hilbert curve of their centres and takes a
+  per-event random **cyclic contiguous half** as the target; `within` uses the 1-based
+  `pmt_id_in_mpmt` (even context / odd target = 9/10 per module, fixed); N_min = 20 hit PMTs in
+  every target view with up to 3 redraws for `across`, exclusion counted for both splits; per-view
+  hit fractions and counters; the occupancy ablation subsamples unhit **context** PMTs only with
+  every target PMT still queried. Every mask carries a JSON key and `mask_from_key` reproduces it
+  bit-identically. `point_encoder.py`: one token per PMT (all 1995) with fixed data-independent
+  scaling (position / detector dimensions, direction unitless, ln(q/1 PE) for hits else 0, first-hit
+  time /100 ns else 0, hit flag), serialised point transformer (Hilbert sort, 64-token windows
+  shifted 32 on alternate layers, 4 pre-norm blocks d = 128, 4 heads, **no final norm** — the
+  read-out is the block-4 output), one learned mask embedding for hidden tokens, predictor
+  (2 blocks, d = 64, full attention over context outputs plus position queries at target PMTs).
+  Tests: 14 pass, leakage **exactly 0.0** for all nine features and bit-exact invariance when the
+  hidden inputs change, 10-step determinism, no-final-norm proof, amplitude **fixture** R² 0.9990
+  (not the registered post-training criterion), 911 296 parameters, batch-32 CPU peak ~2.8 GiB
+  (≈4× inside the 9.6 GB Titan per-process cap, so no gradient accumulation needed).
+- **2026-10-17 — tie-break conventions fixed for the whole campaign (engineering, recorded):**
+  `across` target = **floor(105/2) = 52 modules** (the other rounding, 53, is the alternative; the
+  choice is frozen now so every `across` cell uses the same view sizes); window attention pads the
+  serialised length to a multiple of 64 with masked pad tokens and uses a cyclic roll so the
+  first/last boundary is attended; one mask vector shared across all positions; predictor attention
+  is **full** over context+queries (the runbook's literal reading — at the 40k scaling size this is
+  expected to be the memory bottleneck, and §3.5.5 explicitly allows recording "does not fit" as the
+  benchmark result); predictor queries carry the three scaled position features only (no facing
+  direction); direction divisor 1.0; charge floored at 1e-6 PE before the log.
+- **2026-10-17 — N_min exclusion scope:** `tokenise` computes the N_min exclusion per batch; callers
+  must apply it to **training events only** (v4 §3.5.3: the exclusion "applies to training events
+  only"), so the WP5 probe-set loader must not exclude probe events on N_min. Registered-arm losses
+  (mae_mse, mae_chi2, sigreg_jepa, anchor, ijepa_ema), the four §3.5.6 probe forms, the random-init
+  floor, the real-geometry smoke and the 2k/10k/40k scaling benchmark are still pending.
