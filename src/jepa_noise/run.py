@@ -27,6 +27,7 @@ for _thread_var in (
 os.environ.setdefault("RECONSTRUCTION_DISABLE_TORCH_COMPILE", "1")
 
 import argparse
+import copy
 import hashlib
 import json
 import logging
@@ -53,6 +54,12 @@ CAMPAIGN_DIR = {
     "E1c": "20261017_wp3_e1c",
 }
 STATUSES = ("pass", "fail", "not_evaluable", "not_run")
+#: A9 follow-up R5-ext (E1c with balanced initialisation).  Opt-in only: the
+#: registered E1c default stays the uniform 1e-3 initialisation and its rows
+#: stay under CAMPAIGN_DIR["E1c"].
+E1C_EXTENSION = "R5-ext"
+E1C_INIT_SCHEMES = ("uniform", "balanced")
+E1C_EXT_DIR_SUFFIX = "_wp3_e1c_ext"
 
 
 class CampaignBlocked(RuntimeError):
@@ -329,6 +336,36 @@ def expected_row_count(config: dict, campaign: str, scope: str) -> int:
 # --------------------------------------------------------------------------
 def campaign_root(root: Path, campaign: str) -> Path:
     return root / "results" / "jepa" / CAMPAIGN_DIR[campaign]
+
+
+def e1c_extension_directory(root: Path, out=None, *, today=None) -> Path:
+    """R5-ext output directory: separate from every registered result dir.
+
+    The default is ``<root>/results/jepa/<YYYYMMDD>_wp3_e1c_ext`` (UTC run
+    date).  ``out`` is an explicit override; it is refused if it resolves to,
+    or inside, any registered campaign result directory, so extension rows can
+    never be mixed with registered rows.  This function never creates a path.
+    """
+    registered = [campaign_root(Path(root), campaign).resolve()
+                  for campaign in CAMPAIGNS]
+    if out is not None:
+        directory = Path(out).resolve()
+        for candidate in registered:
+            if directory == candidate or candidate in directory.parents:
+                raise CampaignBlocked(
+                    f"R5-ext output {directory} would write into the registered "
+                    f"result directory {candidate}; extension rows must stay "
+                    "outside every registered E1 result directory")
+        return directory
+    stamp = (today or datetime.now(timezone.utc)).strftime("%Y%m%d")
+    directory = (Path(root) / "results" / "jepa"
+                 / f"{stamp}{E1C_EXT_DIR_SUFFIX}").resolve()
+    for candidate in registered:
+        if directory == candidate or candidate in directory.parents:
+            raise CampaignBlocked(  # pragma: no cover - defensive
+                f"R5-ext default output {directory} collides with the "
+                f"registered result directory {candidate}")
+    return directory
 
 
 def list_attempts(directory: Path) -> list[Path]:
@@ -1431,12 +1468,17 @@ def _invsqrt(matrix):
 # --------------------------------------------------------------------------
 # E1c executor (dynamics.py)
 # --------------------------------------------------------------------------
-def run_e1c_row(config: dict, row: dict, log) -> dict:
+def run_e1c_row(config: dict, row: dict, log, *, init_scheme="uniform") -> dict:
     from jepa_noise import dynamics
 
     spec = config["E1c"]
     gamma = float(row["cell"]["gamma_load"])
     seed = int(row["seed"])
+    extension = E1C_EXTENSION if init_scheme == "balanced" else None
+    init_per_depth = {
+        str(depth): dynamics.init_metadata(int(depth), init_scheme)
+        for depth in spec["depths"]
+    }
     row_budget = float(spec["row_budget_seconds"]) / len(spec["depths"])
     moments, ac, bc, theta_sd_array, eta_sd, provenance = (
         dynamics.prepare_campaign_moments(seed, gamma))
@@ -1448,7 +1490,8 @@ def run_e1c_row(config: dict, row: dict, log) -> dict:
                            default=str).encode())
     depth_records = {}
     for depth in spec["depths"]:
-        layers, predictor = dynamics.initialize(seed, int(depth), d=int(spec["d"]))
+        layers, predictor = dynamics.initialize(
+            seed, int(depth), d=int(spec["d"]), init_scheme=init_scheme)
         result = dynamics.run(
             moments, layers, predictor, ac, bc,
             np.asarray(theta_sd_array, dtype=float), float(eta_sd),
@@ -1469,6 +1512,7 @@ def run_e1c_row(config: dict, row: dict, log) -> dict:
             "learning_rate": float(result["learning_rate"]),
             "loss_reduction": result["loss_reduction"],
             "engineering_only": bool(result["engineering_only"]),
+            "init": init_per_depth[str(depth)],
             "curve_index": [int(x) for x in indices],
             "absolute_contribution": [absolute[index].tolist() for index in indices],
             "absolute_contribution_sha256": array_digest(absolute),
@@ -1490,7 +1534,7 @@ def run_e1c_row(config: dict, row: dict, log) -> dict:
         status, reason = "not_evaluable", "mode_learning_ineligible"
     else:
         status, reason = "pass", None
-    return {
+    record = {
         "campaign": "E1c",
         "row_id": row["row_id"],
         "cell": row["cell"],
@@ -1501,7 +1545,16 @@ def run_e1c_row(config: dict, row: dict, log) -> dict:
         "provenance": provenance,
         "steps": int(spec["steps"]),
         "depths": depth_records,
+        "e1c_init": {
+            "scheme": init_scheme,
+            "registered": init_scheme == "uniform",
+            "per_depth": init_per_depth,
+        },
     }
+    if extension is not None:
+        record["extension"] = extension
+        record["registered"] = False
+    return record
 
 
 # --------------------------------------------------------------------------
@@ -1524,7 +1577,13 @@ def execute_row(task: dict) -> dict:
         elif campaign == "E1b":
             record = run_e1b_row(config, row, log)
         elif campaign == "E1c":
-            record = run_e1c_row(config, row, log)
+            if task.get("e1c_init", "uniform") == "uniform":
+                # Registered path: the original call signature is preserved.
+                record = run_e1c_row(config, row, log)
+            else:
+                record = run_e1c_row(
+                    config, row, log,
+                    init_scheme=task.get("e1c_init"))
         else:  # pragma: no cover - guarded by CLI
             raise ValueError(f"unknown campaign {campaign!r}")
     except CampaignBlocked as error:
@@ -1549,7 +1608,7 @@ def execute_row(task: dict) -> dict:
         raise ValueError(f"invalid row status {record.get('status')!r}")
     atomic_write_json(attempt / "rows" / f"{row['row_id']}.json", record)
     log(f"row {row['row_id']} {record['status']} in {wall:.1f}s")
-    return {
+    manifest = {
         "run_id": task["run_id"],
         "code_sha": task["code_sha"],
         "config_sha256": task["config_sha256"],
@@ -1569,6 +1628,10 @@ def execute_row(task: dict) -> dict:
         "reason": record.get("reason"),
         "end_utc": utcnow(),
     }
+    if record.get("extension"):
+        manifest["extension"] = record["extension"]
+        manifest["registered"] = False
+    return manifest
 
 
 # --------------------------------------------------------------------------
@@ -1603,12 +1666,29 @@ def run_campaign(args) -> int:
     config, config_sha = load_config(config_path)
     campaign = args.campaign
     scope = "smoke" if args.smoke else "full"
+    init_scheme = getattr(args, "e1c_init", "uniform")
+    out_override = getattr(args, "out", None)
+    extension = E1C_EXTENSION if init_scheme == "balanced" else None
+    # A9 R5-ext is opt-in and applies only to E1c; everything else refuses the
+    # flag rather than silently running a different initialisation.
+    if init_scheme != "uniform" and campaign != "E1c":
+        print("STOP: --e1c-init balanced applies only to the E1c extension run "
+              "(A9 R5-ext); the registered E1a/E1b/E1c defaults are unchanged.",
+              file=sys.stderr)
+        return 2
+    if out_override is not None and extension is None:
+        print("STOP: --out overrides the result directory only for the E1c "
+              "--e1c-init balanced extension run (A9 R5-ext); a registered "
+              "run always writes its registered result directory.",
+              file=sys.stderr)
+        return 2
     # Author rule (2026-10-17): a registered run refuses to start on a dirty
     # src/scripts tree and records the clean SHA.  Smokes and explicit
-    # --allow-dirty development runs are marked non-registered.
+    # --allow-dirty development runs are marked non-registered.  The R5-ext
+    # follow-up is never registered, so it is exempt from that refusal.
     src_status = src_tree_status(root)
     allow_dirty = bool(getattr(args, "allow_dirty", False))
-    registered = scope == "full" and not allow_dirty
+    registered = scope == "full" and not allow_dirty and extension is None
     if registered and src_status:
         print(
             "STOP: a registered run refuses to start: `git status --porcelain -- "
@@ -1618,8 +1698,34 @@ def run_campaign(args) -> int:
             file=sys.stderr,
         )
         return 2
+    init_record = None
+    if campaign == "E1c":
+        from jepa_noise import dynamics
+
+        depths = list(config["E1c"]["depths"])
+        init_record = {
+            "scheme": init_scheme,
+            "registered": init_scheme == "uniform",
+            "extension": extension,
+            "per_depth": {
+                str(int(depth)):
+                    dynamics.init_metadata(int(depth), init_scheme)
+                for depth in depths
+            },
+            "note": (
+                "recorded in config_effective.json; the registered config file "
+                "is read-only and its E1c defaults are unchanged"
+            ),
+        }
     rows = enumerate_rows(config, campaign, scope)
-    directory = campaign_root(root, campaign)
+    if extension is not None:
+        try:
+            directory = e1c_extension_directory(root, out_override)
+        except CampaignBlocked as error:
+            print(f"STOP: {error}", file=sys.stderr)
+            return 2
+    else:
+        directory = campaign_root(root, campaign)
     directory.mkdir(parents=True, exist_ok=True)
     discovered = discover_rows(directory)
     if args.rerun_all:
@@ -1678,13 +1784,32 @@ def run_campaign(args) -> int:
                    if args.row_seconds_estimate is not None else None)
     projection = project_campaign(config, campaign, len(pending), workers,
                                   row_seconds=row_seconds)
+    config_effective_path = None
+    config_effective_sha = None
+    if extension is not None:
+        # Freeze the extension configuration before any row is launched: the
+        # registered config file is never edited, so the effective config is a
+        # snapshot that records the init scheme, per-layer SD and end-to-end
+        # scale for every registered depth.
+        effective_config = copy.deepcopy(config)
+        effective_config["E1c"]["init"] = init_record
+        effective_config["E1c"]["extension"] = extension
+        effective_config["E1c"]["registered"] = False
+        config_effective_path = attempt / "config_effective.json"
+        atomic_write_json(config_effective_path, effective_config)
+        config_effective_sha = sha256_file(config_effective_path)
     attempt_record = {
         "run_id": run_id, "campaign": campaign, "scope": scope,
         "config_path": str(config_path), "config_sha256": config_sha,
+        "config_effective_path": (
+            None if config_effective_path is None else str(config_effective_path)),
+        "config_effective_sha256": config_effective_sha,
         "code_sha_start": code_sha, "git_status_start": status_start,
         "src_scripts_status": src_status,
         "registered_run": registered,
         "registered_sha": code_sha if (registered and not src_status) else None,
+        "extension": extension,
+        "e1c_init": init_record,
         "source_sha256_start": hashes_start,
         "host": host_name(), "platform": platform.platform(),
         "python": sys.version, "executable": sys.executable,
@@ -1838,6 +1963,7 @@ def run_campaign(args) -> int:
             "config_path": str(config_path), "config_sha256": config_sha,
             "attempt_dir": str(attempt), "run_id": run_id,
             "code_sha": code_sha, "workers": workers, "row": row,
+            "e1c_init": init_scheme,
         })
     m_task = None
     if m_row is not None:
@@ -1846,6 +1972,7 @@ def run_campaign(args) -> int:
             "config_path": str(config_path), "config_sha256": config_sha,
             "attempt_dir": str(attempt), "run_id": run_id,
             "code_sha": code_sha, "workers": workers, "row": m_row,
+            "e1c_init": init_scheme,
         }
 
     counts = {"pass": 0, "fail": 0, "not_evaluable": 0, "not_run": 0}
@@ -2080,6 +2207,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--allow-dirty", action="store_true",
                         help="development-only override: allow a full-scope run on a dirty "
                              "src/scripts tree; the attempt is marked non-registered")
+    parser.add_argument("--e1c-init", choices=list(E1C_INIT_SCHEMES),
+                        default="uniform",
+                        help="E1c only: registered 'uniform' 1e-3 per-layer SD "
+                             "(default) or the opt-in A9 R5-ext 'balanced' "
+                             "per-layer SD (1e-3)**(1/L); balanced runs are "
+                             "non-registered and write to a separate dir")
+    parser.add_argument("--out", default=None,
+                        help="E1c R5-ext only: override the extension result "
+                             "directory; refused inside any registered result dir")
     parser.add_argument("--dry-run", action="store_true",
                         help="record the attempt, projection and rows; execute none")
     return parser
@@ -2091,6 +2227,8 @@ def main(argv=None) -> int:
     if args.campaign == "all":
         if args.smoke:
             parser.error("--smoke only applies to E1a")
+        if args.e1c_init != "uniform" or args.out is not None:
+            parser.error("--e1c-init balanced and --out apply only to E1c")
         for campaign in CAMPAIGNS:
             exit_code = run_campaign(argparse.Namespace(
                 **{**vars(args), "campaign": campaign}))

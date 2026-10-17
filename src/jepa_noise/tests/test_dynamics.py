@@ -3,7 +3,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 from jepa_noise.dynamics import (empirical_moments, diagonal_fixture, initialize,
-                                encoder, loss_and_gradients, mode_contributions, run)
+                                init_metadata, encoder, loss_and_gradients,
+                                mode_contributions, run)
 
 
 def test_empirical_moments_divisor_n_and_direct_sample_loss():
@@ -105,3 +106,47 @@ def test_resource_and_numerical_stops_are_preserved_without_learning():
     assert failed['R5']['status']=='not_evaluable'
     with pytest.raises(ValueError,match='campaign requires'):
         run(m,layers,p,ac,bc,np.ones(3),1.,budget_seconds=1.)
+
+
+# ---------------------------------------------------------------------------
+# A9 R5-ext: balanced initialisation is opt-in; the registered default is 1e-3
+# ---------------------------------------------------------------------------
+@pytest.mark.parametrize('depth', [1, 2, 3])
+def test_balanced_init_per_layer_sd_matches_depth_one_scale(depth):
+    expected_sd = 1e-3 ** (1. / depth)
+    metadata = init_metadata(depth, 'balanced')
+    assert metadata['scheme'] == 'balanced'
+    assert metadata['registered'] is False
+    assert metadata['depth'] == depth
+    assert_allclose(metadata['per_layer_sd'], [expected_sd] * depth, rtol=1e-15)
+    # The end-to-end product is the registered depth-1 scale 1e-3.
+    assert metadata['effective_end_to_end_scale'] == pytest.approx(1e-3, rel=1e-12)
+    assert metadata['predictor_sd'] == pytest.approx(1e-3, rel=0)
+    layers, predictor = initialize(11, depth, d=120, init_scheme='balanced')
+    for layer in layers:
+        # 120 x 120 samples: the empirical SD is within ~2% of the target.
+        assert np.std(layer) == pytest.approx(expected_sd, rel=0.05)
+    assert np.std(predictor) == pytest.approx(1e-3, rel=0.05)
+
+
+def test_registered_uniform_init_is_unchanged_when_the_flag_is_absent():
+    default_layers, default_predictor = initialize(3, 2)
+    explicit_layers, explicit_predictor = initialize(
+        3, 2, init_scheme='uniform')
+    for left, right in zip(default_layers, explicit_layers):
+        assert np.array_equal(left, right)
+    assert np.array_equal(default_predictor, explicit_predictor)
+    metadata = init_metadata(2, 'uniform')
+    assert metadata['scheme'] == 'uniform'
+    assert metadata['registered'] is True
+    assert metadata['per_layer_sd'] == [1e-3, 1e-3]
+    # Uniform init keeps the registered per-layer 1e-3, so the end-to-end
+    # scale is 1e-3 ** depth (the balanced scheme is what fixes it to 1e-3).
+    assert metadata['effective_end_to_end_scale'] == pytest.approx(
+        1e-6, rel=1e-12)
+    for layer in default_layers:
+        assert np.std(layer) == pytest.approx(1e-3, rel=0.05)
+    with pytest.raises(ValueError, match='unknown init scheme'):
+        init_metadata(2, 'balancedish')
+    with pytest.raises(ValueError, match='registered depth'):
+        init_metadata(4, 'balanced')

@@ -464,3 +464,162 @@ def test_r2_uses_seed_mean_angles_not_the_cross_seed_median():
     mean_angle = statistics.fmean(seed_angles)
     assert abs(mean_angle - 17.3333333) < 1e-6
     assert statistics.median(seed_angles) == 12.0
+
+
+# ---------------------------------------------------------------------------
+# A9 R5-ext: E1c balanced initialisation, opt-in and outside registered dirs
+# ---------------------------------------------------------------------------
+def test_e1c_extension_directory_is_separate_from_registered_dirs(tmp_path):
+    root = _make_root(tmp_path)
+    default = run.e1c_extension_directory(root)
+    assert default.name.endswith(run.E1C_EXT_DIR_SUFFIX)
+    assert default.parent == root / "results" / "jepa"
+    registered = [run.campaign_root(root, campaign) for campaign in run.CAMPAIGNS]
+    for directory in registered:
+        assert default != directory
+        assert directory not in default.parents
+    override = tmp_path / "explicit_ext"
+    assert run.e1c_extension_directory(root, override) == override.resolve()
+    with pytest.raises(run.CampaignBlocked, match="registered result directory"):
+        run.e1c_extension_directory(
+            root, run.campaign_root(root, "E1c"))
+    with pytest.raises(run.CampaignBlocked, match="registered result directory"):
+        run.e1c_extension_directory(
+            root, run.campaign_root(root, "E1c") / "nested")
+
+
+def test_e1c_balanced_row_records_init_and_non_registered_label(tmp_path):
+    from jepa_noise import dynamics
+
+    config = _config()
+    row = run.enumerate_rows(config, "E1c", "full")[0]
+    monkeypatch = pytest.MonkeyPatch()
+    try:
+        monkeypatch.setattr(
+            dynamics, "prepare_campaign_moments",
+            lambda seed, gamma: (
+                None, np.eye(40)[:, :3], np.eye(40)[:, 3:],
+                np.full(3, .4), 3., {"seed": seed, "gamma_load": gamma}))
+        curve = np.asarray([[1.0, 1.0, 1.0, 1.0], [1.5, 1.5, 1.5, 1.5]])
+
+        def fake_run(*args, **kwargs):
+            return {
+                "status": "complete", "reason": None, "completed_steps": 100000,
+                "elapsed_seconds": 0.1,
+                "R5": {"status": "eligible", "delta": 1.0},
+                "learning_rate": .001, "loss_reduction": "fake",
+                "engineering_only": False, "absolute": curve,
+                "normalized_diagnostic": curve, "encoder_norm": np.ones(2),
+                "loss": np.ones(2), "layers": [], "predictor": None,
+            }
+
+        monkeypatch.setattr(dynamics, "run", fake_run)
+        record = run.run_e1c_row(
+            config, row, lambda message: None, init_scheme="balanced")
+    finally:
+        monkeypatch.undo()
+    assert record["extension"] == "R5-ext"
+    assert record["registered"] is False
+    assert record["e1c_init"]["scheme"] == "balanced"
+    assert record["e1c_init"]["registered"] is False
+    expected = {1: 1e-3, 2: 1e-3 ** .5, 3: 1e-3 ** (1. / 3.)}
+    for depth, value in expected.items():
+        entry = record["depths"][str(depth)]["init"]
+        assert entry["per_layer_sd"] == pytest.approx([value] * depth)
+        assert entry["effective_end_to_end_scale"] == pytest.approx(
+            1e-3, rel=1e-12)
+    # The registered default is unchanged when the flag is absent.
+    monkeypatch = pytest.MonkeyPatch()
+    try:
+        monkeypatch.setattr(
+            dynamics, "prepare_campaign_moments",
+            lambda seed, gamma: (
+                None, np.eye(40)[:, :3], np.eye(40)[:, 3:],
+                np.full(3, .4), 3., {"seed": seed, "gamma_load": gamma}))
+        monkeypatch.setattr(dynamics, "run", fake_run)
+        default = run.run_e1c_row(config, row, lambda message: None)
+    finally:
+        monkeypatch.undo()
+    assert "extension" not in default
+    assert default["e1c_init"]["scheme"] == "uniform"
+    assert default["e1c_init"]["registered"] is True
+    for depth in (1, 2, 3):
+        entry = default["depths"][str(depth)]["init"]
+        assert entry["per_layer_sd"] == pytest.approx([1e-3] * depth)
+        assert entry["effective_end_to_end_scale"] == pytest.approx(
+            1e-3 ** depth, rel=1e-12)
+
+
+def test_e1c_balanced_dry_run_writes_extension_attempt_outside_registered(
+        tmp_path):
+    root = _make_root(tmp_path)
+    out = tmp_path / "e1c_ext_out"
+    args = run.build_parser().parse_args([
+        "E1c", "--root", str(root), "--e1c-init", "balanced",
+        "--out", str(out), "--dry-run",
+    ])
+    assert run.run_campaign(args) == 0
+    assert not run.campaign_root(root, "E1c").exists()
+    attempt = run.list_attempts(out)[0]
+    evidence = json.loads((attempt / "attempt.json").read_text())
+    assert evidence["extension"] == "R5-ext"
+    assert evidence["registered_run"] is False
+    assert evidence["config_effective_path"]
+    effective = json.loads((attempt / "config_effective.json").read_text())
+    init = effective["E1c"]["init"]
+    assert init["scheme"] == "balanced"
+    assert init["extension"] == "R5-ext"
+    assert init["registered"] is False
+    for depth in ("1", "2", "3"):
+        assert init["per_depth"][depth]["effective_end_to_end_scale"] == \
+            pytest.approx(1e-3, rel=1e-12)
+    # The same dry run without the flag stays in the registered E1c dir and
+    # records no extension block.
+    registered_root = _make_root(tmp_path / "registered")
+    assert run.run_campaign(run.build_parser().parse_args([
+        "E1c", "--root", str(registered_root), "--dry-run"])) == 0
+    registered_attempt = run.list_attempts(
+        run.campaign_root(registered_root, "E1c"))[0]
+    registered_evidence = json.loads(
+        (registered_attempt / "attempt.json").read_text())
+    assert registered_evidence["extension"] is None
+    assert registered_evidence["e1c_init"]["scheme"] == "uniform"
+    assert not (registered_attempt / "config_effective.json").exists()
+
+
+def test_e1c_init_flag_is_refused_outside_e1c(tmp_path):
+    root = _make_root(tmp_path)
+    args = run.build_parser().parse_args([
+        "E1a", "--root", str(root), "--e1c-init", "balanced", "--dry-run"])
+    assert run.run_campaign(args) == 2
+    assert not run.campaign_root(root, "E1a").exists()
+    args = run.build_parser().parse_args([
+        "E1c", "--root", str(root), "--out", str(tmp_path / "x"),
+        "--dry-run"])
+    assert run.run_campaign(args) == 2
+    assert not (tmp_path / "x").exists()
+
+
+def test_r5_eligibility_logic_consumes_extension_rows_unchanged():
+    config = _config()
+    records = {}
+    for gamma in config["E1c"]["gamma_load"]:
+        for seed in config["E1c"]["seeds"]:
+            row_id = f"g{gamma:g}_s{seed}"
+            records[row_id] = {
+                "campaign": "E1c", "row_id": row_id,
+                "cell": {"gamma_load": gamma}, "seed": seed,
+                "extension": "R5-ext", "registered": False,
+                "depths": {
+                    "1": {"R5": {"status": "eligible", "delta": 10.0}},
+                    "3": {"R5": {"status": "eligible", "delta": 5.0}},
+                },
+            }
+    index = report._index(records, "E1c")
+    outcome = report.compute_r5(config, index)
+    assert outcome["status"] == "pass"
+    assert outcome["reason"] is None
+    for gamma in config["E1c"]["gamma_load"]:
+        cell = outcome["cells"][f"gamma{gamma:g}"]
+        assert cell["wins"] == 5 and cell["evaluable_seeds"] == 5
+        assert cell["pass"] is True

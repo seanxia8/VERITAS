@@ -728,3 +728,31 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   only"), so the WP5 probe-set loader must not exclude probe events on N_min. Registered-arm losses
   (mae_mse, mae_chi2, sigreg_jepa, anchor, ijepa_ema), the four §3.5.6 probe forms, the random-init
   floor, the real-geometry smoke and the 2k/10k/40k scaling benchmark are still pending.
+
+## A9 follow-up code (labelled, non-registered) — 2026-10-17
+
+- **2026-10-17 — B1-ext and R5-ext implemented as opt-in, labelled follow-ups.** No registered
+  default changed (`git status --porcelain -- results/` empty; no runbook/DECISIONS/config edits by
+  the implementer). 71 tests pass across `test_bridge_run`, `test_run_e1` and `test_dynamics`.
+  - **B1-ext:** `bridge_run beta-dev --extension B1-ext --beta-grid 10,100,1000
+    --selection-rule lucid_physics_tolerance --plain-reference <committed plain seed-0 run>` reads
+    the plain `probes.json` read-only (records path + sha256), and selects the **largest β whose
+    per-parameter physics MSE/CRLB ratio to plain is ≤ 1.1 on all three parameters**; none
+    qualifying → `none_qualified`, no decision file, follow-up reported not evaluable. Decision JSON
+    carries `extension: "B1-ext"`, `registered: false`, the full table and the 4.0 Titan GPU-h cap
+    (recorded, not enforced by the tool). The extension grid marks every run/aggregate
+    `registered: false`, `verdict_role: "follow_up"`; a normal grid refuses an extension decision
+    and vice versa. Tie rule: a qualified β numerically equal to the largest's physics (rtol 1e-12)
+    → the **smaller** β, except bit-identical physics → the **larger** β (an active anchor at
+    identical physics); `tie_kind` records which applied.
+  - **R5-ext:** `run E1c --e1c-init balanced` uses per-layer SD `(1e-3)^(1/L)` (end-to-end product
+    1e-3, matching depth 1) with the registered lr/steps/eligibility unchanged; the default
+    `uniform` init is array-identical to the registered one. Balanced runs are labelled
+    `extension: "R5-ext"`, `registered: false`, are exempt from the dirty-tree registered refusal
+    (but still record code SHA/git status), and **cannot** write into any registered E1a/E1b/E1c
+    result directory (default `results/jepa/<date>_wp3_e1c_ext/`); the attempt freezes
+    `config_effective.json` with the E1c init block before any row runs.
+- **2026-10-17 — ambiguities recorded:** "within 1.1×" is applied per parameter (all three must
+  pass), not to a mean; a metrics JSON without run metadata is accepted as a plain reference with
+  unknown arm/seed provenance, while a `probes.json` naming a different arm/seed is refused; the
+  4.0 GPU-hour cap is a recorded budget, not a meter.

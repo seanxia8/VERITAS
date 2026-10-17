@@ -45,12 +45,56 @@ def diagonal_fixture():
     return Moments(cc, cc.copy(), ct, None, 'population_diagonal_engineering_only')
 
 
-def initialize(seed, depth, d=40):
+#: Registered initialisation (v3 §4.2: Gaussian weight SD = 1e-3) and the
+#: opt-in A9 R5-ext balanced scheme (per-layer SD = 1e-3 ** (1/L)).
+INIT_SCHEMES = ("uniform", "balanced")
+REGISTERED_INIT_SD = .001
+
+
+def init_metadata(depth, scheme="uniform"):
+    """Per-layer SD and effective end-to-end scale for one tied depth.
+
+    ``uniform`` is the registered scheme: every layer has SD 1e-3, so the
+    end-to-end scale grows as 1e-3 ** depth.  ``balanced`` is the opt-in
+    A9 R5-ext scheme: each of the L layers has SD (1e-3) ** (1/L), so the
+    end-to-end product is 1e-3 for every depth.  The predictor is not part of
+    the tied encoder and keeps the registered 1e-3 in both schemes.
+    """
+    if depth not in (1, 2, 3):
+        raise ValueError('registered depth is 1, 2 or 3')
+    if scheme not in INIT_SCHEMES:
+        raise ValueError(f'unknown init scheme {scheme!r}; use {INIT_SCHEMES}')
+    if scheme == "uniform":
+        per_layer_sd = [REGISTERED_INIT_SD]*depth
+    else:
+        sd = REGISTERED_INIT_SD ** (1./depth)
+        per_layer_sd = [sd]*depth
+    effective = float(np.prod(per_layer_sd))
+    return {
+        "scheme": scheme,
+        "depth": int(depth),
+        "per_layer_sd": [float(value) for value in per_layer_sd],
+        "predictor_sd": float(REGISTERED_INIT_SD),
+        "effective_end_to_end_scale": effective,
+        "target_end_to_end_scale": float(REGISTERED_INIT_SD),
+        "registered": scheme == "uniform",
+        "note": (
+            "uniform = v3 §4.2 registered Gaussian weight SD 1e-3 per layer; "
+            "balanced = A9 R5-ext opt-in, per-layer SD (1e-3)**(1/L) so the "
+            "end-to-end scale matches depth 1"
+        ),
+    }
+
+
+def initialize(seed, depth, d=40, *, init_scheme="uniform"):
     if depth not in (1, 2, 3) or d < 1:
         raise ValueError('registered depth is 1, 2 or 3; positive d required')
-    layers = [namespace_rng(seed, f'E1c/init/layer/{i}').normal(0., .001, size=(d,d))
+    metadata = init_metadata(depth, init_scheme)
+    layers = [namespace_rng(seed, f'E1c/init/layer/{i}').normal(
+                  0., metadata["per_layer_sd"][i], size=(d,d))
               for i in range(depth)]
-    predictor = namespace_rng(seed, 'E1c/init/predictor').normal(0., .001, size=(d,d))
+    predictor = namespace_rng(seed, 'E1c/init/predictor').normal(
+        0., metadata["predictor_sd"], size=(d,d))
     return layers, predictor
 
 

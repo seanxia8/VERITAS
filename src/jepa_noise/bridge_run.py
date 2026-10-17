@@ -132,6 +132,11 @@ __all__ = [
     "run_aggregate",
     "seed_floor",
     "select_beta",
+    "select_beta_lucid_physics",
+    "read_plain_physics_reference",
+    "B1_EXTENSION",
+    "B1_EXT_BETA_GRID",
+    "B1_EXT_PHYSICS_TOLERANCE",
     "b1_verdict",
     "r7_bridge_verdict",
     "write_beta_decision",
@@ -159,6 +164,25 @@ SCHEMA_CHECKPOINT = "jepa_bridge_checkpoint_v1"
 SCHEMA_BETA = "jepa_bridge_beta_decision_v1"
 SCHEMA_AGGREGATE = "jepa_bridge_aggregate_v1"
 SCHEMA_AGGREGATE_MANIFEST = "jepa_bridge_aggregate_manifest_v1"
+
+#: A9 labelled follow-up B1-ext: bridge beta extension.  It is opt-in only and
+#: never changes the registered v3 §1.3 grid {0.1, 1, 10} or the registered
+#: B1 verdict.  The development cohort uses the LUCiD selection rule: the
+#: largest beta whose per-parameter physics MSE/CRLB stays within 1.1 x the
+#: plain (sigreg_jepa) arm's.  Budget <= 4 Titan GPU-hours.
+B1_EXTENSION = "B1-ext"
+B1_EXT_BETA_GRID = (10.0, 100.0, 1000.0)
+B1_EXT_PHYSICS_TOLERANCE = 1.1
+B1_EXT_BUDGET_GPU_HOURS = 4.0
+B1_EXT_TIE_RULE = (
+    "primary rule: the largest beta whose per-parameter physics MSE/CRLB is "
+    "<= 1.1 x the plain reference's; if no beta qualifies the selection is "
+    "'none_qualified' and no beta is frozen.  Tie rule for qualified betas "
+    "whose physics vectors are numerically equal: choose the smaller beta "
+    "(no physical gain from the larger coefficient), unless the physics "
+    "values are bit-identical, in which case choose the larger beta (the "
+    "LUCiD rule's preference for an active anchor at identical physics)"
+)
 
 #: v3 WP5 ID table, inclusive ranges.  The bridge cell is A4 g = 0.02,
 #: nominal amplitude, channel split; the development cohort is independent
@@ -1556,6 +1580,234 @@ def select_beta(table: Sequence[dict], rtol: float = 1e-8) -> dict:
     }
 
 
+def _physics_mse_crlb_from_payload(payload: dict) -> Dict[str, float]:
+    """Per-parameter physics MSE/CRLB from a probes.json or a metrics JSON.
+
+    Accepted shapes: ``probes.physics.rows`` (the committed probes.json),
+    ``physics`` (the run's ``_metrics_summary``), or either of those nested
+    under ``metrics``.  A missing or non-positive parameter is an error: the
+    B1-ext rule has no meaning without the plain reference for every target.
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("plain reference is not a JSON object")
+    probes = payload.get("probes")
+    physics = None
+    if isinstance(probes, dict) and isinstance(probes.get("physics"), dict):
+        rows = probes["physics"].get("rows")
+        if isinstance(rows, list):
+            values = {}
+            for row in rows:
+                if not isinstance(row, dict) or row.get("target") is None:
+                    continue
+                values[str(row["target"])] = row.get("physics_mse_crlb")
+            if values:
+                return _validate_physics_values(values)
+    metrics = payload.get("metrics")
+    if isinstance(metrics, dict):
+        return _physics_mse_crlb_from_payload(metrics)
+    physics = payload.get("physics")
+    if isinstance(physics, dict):
+        values = {}
+        for parameter in PHYSICS_TARGETS:
+            entry = physics.get(parameter)
+            if isinstance(entry, dict):
+                values[parameter] = entry.get("physics_mse_crlb")
+        if values:
+            return _validate_physics_values(values)
+    raise ValueError(
+        "plain reference has no per-parameter physics MSE/CRLB table "
+        f"({PHYSICS_TARGETS}); expected a run directory's probes.json or a "
+        "metrics JSON"
+    )
+
+
+def _validate_physics_values(values) -> Dict[str, float]:
+    missing = [parameter for parameter in PHYSICS_TARGETS
+               if values.get(parameter) is None]
+    if missing:
+        raise ValueError(
+            "plain reference lacks physics MSE/CRLB for " + ", ".join(missing)
+        )
+    out = {}
+    for parameter in PHYSICS_TARGETS:
+        value = float(values[parameter])
+        if not np.isfinite(value) or value <= 0:
+            raise ValueError(
+                f"plain reference physics MSE/CRLB for {parameter} is "
+                f"{values[parameter]!r}; a positive finite value is required"
+            )
+        out[parameter] = value
+    return out
+
+
+def read_plain_physics_reference(path) -> Tuple[Dict[str, float], dict]:
+    """Read the plain ``sigreg_jepa`` seed-0 reference read-only.
+
+    ``path`` may be a run directory (its ``probes.json`` is read) or a metrics
+    JSON file.  The file actually read and its sha256 are recorded so the
+    B1-ext decision can be audited.  When the payload carries run metadata it
+    must name ``sigreg_jepa`` seed 0 (the committed plain bridge run); a
+    metrics JSON without metadata is accepted and recorded as such.
+    """
+    candidate = Path(path)
+    if not candidate.exists():
+        raise RuntimeError(f"plain reference {candidate} not found")
+    file_path = candidate / "probes.json" if candidate.is_dir() else candidate
+    if not file_path.is_file():
+        raise RuntimeError(
+            f"plain reference {candidate} has no readable {file_path.name}"
+        )
+    try:
+        payload = json.loads(file_path.read_text(encoding="utf-8"))
+        values = _physics_mse_crlb_from_payload(payload)
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        raise RuntimeError(
+            f"plain reference {file_path} is unusable: {error}"
+        ) from error
+    run = payload.get("run") if isinstance(payload, dict) else None
+    run = run if isinstance(run, dict) else {}
+    arm = run.get("arm")
+    seed = run.get("seed")
+    if arm is not None and arm != "sigreg_jepa":
+        raise RuntimeError(
+            f"plain reference {file_path} is arm {arm!r}, not sigreg_jepa"
+        )
+    if seed is not None and int(seed) != 0:
+        raise RuntimeError(
+            f"plain reference {file_path} is seed {seed}, not the committed "
+            "sigreg_jepa seed-0 bridge run"
+        )
+    provenance = {
+        "path": str(candidate),
+        "file": str(file_path),
+        "sha256": sha256_file(file_path),
+        "run_id": run.get("run_id"),
+        "arm": arm,
+        "seed": seed,
+        "cohort": run.get("cohort"),
+        "role": "plain reference (sigreg_jepa seed 0) for B1-ext",
+    }
+    return values, provenance
+
+
+def _physics_vectors_close(
+    left: Dict[str, float], right: Dict[str, float], rtol: float
+) -> bool:
+    return all(
+        abs(float(left[par]) - float(right[par]))
+        <= rtol * max(abs(float(left[par])), abs(float(right[par])))
+        for par in PHYSICS_TARGETS
+    )
+
+
+def _physics_vectors_identical(
+    left: Dict[str, float], right: Dict[str, float]
+) -> bool:
+    return all(float(left[par]) == float(right[par]) for par in PHYSICS_TARGETS)
+
+
+def select_beta_lucid_physics(
+    table: Sequence[dict],
+    plain_reference: Dict[str, float],
+    *,
+    tolerance: float = B1_EXT_PHYSICS_TOLERANCE,
+    tie_rtol: float = 1e-12,
+) -> dict:
+    """A9 B1-ext LUCiD selection rule on the bridge development cohort.
+
+    ``table`` entries carry ``beta`` and ``physics_mse_crlb`` (per parameter).
+    A beta qualifies when every per-parameter candidate/reference ratio is
+    ``<= tolerance``.  The largest qualifying beta is selected; if none
+    qualifies the status is ``none_qualified`` and no beta is returned.  Ties
+    (numerically equal physics vectors among qualified betas) follow
+    :data:`B1_EXT_TIE_RULE`: smaller beta unless the physics is bit-identical,
+    in which case the larger beta.
+    """
+    if not table:
+        raise ValueError("empty beta table")
+    plain = _validate_physics_values(plain_reference)
+    if not np.isfinite(tolerance) or tolerance <= 0:
+        raise ValueError("positive finite physics tolerance required")
+    betas = [float(row["beta"]) for row in table]
+    if len(set(betas)) != len(betas):
+        raise ValueError("duplicate beta in table")
+    entries = []
+    for row in table:
+        physics = _validate_physics_values(row.get("physics_mse_crlb") or {})
+        ratios = {par: physics[par]/plain[par] for par in PHYSICS_TARGETS}
+        qualifies = all(ratio <= tolerance for ratio in ratios.values())
+        entries.append({
+            "beta": float(row["beta"]),
+            "physics_mse_crlb": physics,
+            "ratio_to_plain": ratios,
+            "max_ratio": float(max(ratios.values())),
+            "qualifies": bool(qualifies),
+        })
+    qualified = [entry for entry in entries if entry["qualifies"]]
+    per_beta = {
+        str(entry["beta"]): {
+            "physics_mse_crlb": entry["physics_mse_crlb"],
+            "ratio_to_plain": entry["ratio_to_plain"],
+            "max_ratio": entry["max_ratio"],
+            "qualifies": entry["qualifies"],
+        }
+        for entry in sorted(entries, key=lambda item: item["beta"])
+    }
+    result = {
+        "status": "none_qualified",
+        "selected_beta": None,
+        "tolerance": float(tolerance),
+        "plain_reference_physics_mse_crlb": plain,
+        "considered_betas": sorted(betas),
+        "qualified_betas": sorted(entry["beta"] for entry in qualified),
+        "per_beta": per_beta,
+        "tie_rule": B1_EXT_TIE_RULE,
+        "rule": (
+            "A9 B1-ext / LUCiD rule: largest beta whose physics MSE/CRLB is "
+            "<= 1.1 x the plain (sigreg_jepa seed 0) reference, per parameter "
+            "(amplitude, t0, tau_t)"
+        ),
+    }
+    if not qualified:
+        closest = min(entries, key=lambda item: item["max_ratio"])
+        result["reason"] = "no_beta_within_physics_tolerance"
+        result["closest_beta"] = closest["beta"]
+        result["closest_max_ratio"] = closest["max_ratio"]
+        return result
+    ordered = sorted(qualified, key=lambda item: item["beta"], reverse=True)
+    top = ordered[0]
+    ties = [
+        entry for entry in ordered[1:]
+        if _physics_vectors_close(entry["physics_mse_crlb"],
+                                  top["physics_mse_crlb"], tie_rtol)
+    ]
+    tie_kind = None
+    selected = top
+    if ties:
+        group = [top, *ties]
+        if all(_physics_vectors_identical(entry["physics_mse_crlb"],
+                                          top["physics_mse_crlb"])
+               for entry in ties):
+            selected = max(group, key=lambda item: item["beta"])
+            tie_kind = "identical_physics_larger_beta"
+        else:
+            selected = min(group, key=lambda item: item["beta"])
+            tie_kind = "numerical_tie_smaller_beta"
+    result.update({
+        "status": "selected",
+        "selected_beta": float(selected["beta"]),
+        "selected": {
+            "beta": float(selected["beta"]),
+            "physics_mse_crlb": selected["physics_mse_crlb"],
+            "ratio_to_plain": selected["ratio_to_plain"],
+            "max_ratio": selected["max_ratio"],
+        },
+        "tie_kind": tie_kind,
+        "tied_betas": sorted(entry["beta"] for entry in ties),
+    })
+    return result
+
+
 def b1_verdict(
     plain: Dict[int, float],
     anchored: Dict[int, float],
@@ -1785,9 +2037,10 @@ def _run_status(
     reason: Optional[str] = None,
     host: Optional[str] = None,
     device: Optional[str] = None,
+    extension: Optional[str] = None,
 ) -> dict:
     finished_epoch = time.time()
-    return {
+    status = {
         "run_id": run.run_id,
         "arm": run.arm,
         "seed": int(run.seed),
@@ -1803,6 +2056,10 @@ def _run_status(
         "finished_at_utc": utcnow(),
         "wall_seconds": round(finished_epoch - started_epoch, 2),
     }
+    if extension is not None:
+        status["extension"] = extension
+        status["registered"] = False
+    return status
 
 
 def run_one(
@@ -1821,6 +2078,7 @@ def run_one(
     resume: Optional[Path],
     stop_after: Optional[int],
     checkpoint_minutes: float,
+    extension: Optional[str] = None,
 ) -> dict:
     """Train, freeze and evaluate one run; never writes outside the roots."""
     import random
@@ -1836,6 +2094,7 @@ def run_one(
         _run_status(
             run, "running", started_at=started_at, started_epoch=started_epoch,
             steps_completed=0, host=host_name(), device=str(device),
+            extension=extension,
         ),
     )
     row = run.as_dict()
@@ -1857,6 +2116,8 @@ def run_one(
             "registered": False,
         }
     )
+    if extension is not None:
+        row["extension"] = extension
     try:
         random.seed(run.seed)
         np.random.seed(run.seed % (2**32))
@@ -1911,6 +2172,7 @@ def run_one(
                     started_epoch=started_epoch,
                     steps_completed=training["step"], exit_status=0,
                     reason=training["interrupted_by"], device=str(device),
+                    extension=extension,
                 ),
             )
             write_sha256sums(run_dir)
@@ -1935,7 +2197,8 @@ def run_one(
                 products=products,
             )
         row["registered"] = bool(
-            fixture == "a4"
+            extension is None
+            and fixture == "a4"
             and not cohort.manifest["truncated"]
             and run.steps == int(config["training"]["steps_primary"])
             and run.batch == int(config["training"].get("batch", REGISTERED_BATCH))
@@ -1952,7 +2215,7 @@ def run_one(
             _run_status(
                 run, "complete", started_at=started_at,
                 started_epoch=started_epoch, steps_completed=training["step"],
-                exit_status=0, device=str(device),
+                exit_status=0, device=str(device), extension=extension,
             ),
         )
         write_sha256sums(run_dir)
@@ -1977,6 +2240,7 @@ def run_one(
                 run, "failed", started_at=started_at,
                 started_epoch=started_epoch, steps_completed=row["steps_completed"],
                 exit_status=1, reason=row["failure"], device=str(device),
+                extension=extension,
             ),
         )
         _append_manifest(run_root, row)
@@ -2386,6 +2650,41 @@ def _registered(results: Sequence[dict]) -> bool:
     )
 
 
+def _label_follow_up(aggregate: dict, extension: str) -> dict:
+    """Label an extension aggregate as a follow-up that replaces no verdict.
+
+    Every verdict keeps its computed status (for transparent reporting beside
+    the registered result) but gains ``extension``, ``registered: false`` and
+    ``verdict_role: follow_up``; B1 is labelled ``B1-ext`` so it can never be
+    mistaken for the registered B1.
+    """
+    aggregate["extension"] = extension
+    aggregate["registered_run"] = False
+    aggregate["verdict_role"] = "follow_up"
+    aggregate["replaces_registered_verdict"] = False
+    aggregate["budget_gpu_hours_cap"] = B1_EXT_BUDGET_GPU_HOURS
+    for key, verdict in aggregate.get("verdicts", {}).items():
+        verdict["extension"] = extension
+        verdict["registered"] = False
+        verdict["verdict_role"] = "follow_up"
+        if key == "B1":
+            verdict["label"] = f"{extension}"
+            verdict["criterion"] = (
+                "reported beside the registered B1 under the same criterion; "
+                "this labelled follow-up does not replace the registered B1")
+        verdict["follow_up_note"] = (
+            "labelled follow-up beside the registered result; it is never a "
+            "registered verdict")
+    return aggregate
+
+
+def _extension_fields(extension: Optional[str]) -> dict:
+    """Optional run-status fields; absent for every registered run."""
+    if extension is None:
+        return {}
+    return {"extension": extension, "registered_run": False}
+
+
 def build_aggregate(
     results: Sequence[dict],
     *,
@@ -2520,6 +2819,7 @@ def predictions_fragment(
     b1 = aggregate["verdicts"]["B1"]
     r7 = aggregate["verdicts"]["R7"]
     registered = aggregate["registered_run"]
+    extension = aggregate.get("extension")
 
     def fmt(value, digits=4):
         if value is None:
@@ -2537,6 +2837,12 @@ def predictions_fragment(
         "`PREDICTION_STATUS.json` is deliberately **not** edited here; the "
         "Lead merges this fragment.",
         "",
+        *([] if extension is None else [
+            f"**Labelled follow-up:** `{extension}` (registered: false). These "
+            "verdicts are reported beside the registered result and never "
+            "replace it.",
+            "",
+        ]),
         f"**Registered run:** `{registered}`.  A registered bridge run is A4 "
         "data, full cohort ID ranges, 10000 scheduled steps and batch 128 "
         "(v4 §3.5.7, §6.1).  Smoke/truncated runs are marked "
@@ -2553,7 +2859,9 @@ def predictions_fragment(
         "| ID | Comparison | Value | Criterion | Status |",
         "|---|---|---|---|---|",
     ]
-    status_b1 = "provisional" if not registered else b1["status"]
+    status_b1 = (
+        f"follow_up:{b1['status']}" if extension is not None
+        else ("provisional" if not registered else b1["status"]))
     lines.append(
         "| B1 | `sigreg_jepa` nuisance R² > `sigreg_jepa_anchored` | "
         f"plain {fmt(b1['plain_mean'])}, anchored {fmt(b1['anchored_mean'])}, "
@@ -2562,7 +2870,9 @@ def predictions_fragment(
         f"| every seed, |delta| > 2 x seed floor | "
         f"**{status_b1}** ({b1['status']}; {b1['reason'] or 'criterion met'}) |"
     )
-    status_r7 = "provisional" if not registered else r7["status"]
+    status_r7 = (
+        f"follow_up:{r7['status']}" if extension is not None
+        else ("provisional" if not registered else r7["status"]))
     physics = ", ".join(
         f"{par} {fmt(row['ratio'], 3)}x"
         for par, row in r7["physics"].items()
@@ -2661,13 +2971,97 @@ def write_beta_decision(
     steps: int,
     fixture: str,
     registered: bool,
+    extension: Optional[str] = None,
+    beta_grid: Optional[Sequence[float]] = None,
+    tolerance: Optional[float] = None,
+    plain_reference: Optional[dict] = None,
+    selection: Optional[dict] = None,
 ) -> dict:
-    grid = [float(value) for value in
-            config["objective"]["anchor"]["beta_grid"]]
+    """Write a beta decision; the extension form is opt-in and never registered.
+
+    The registered form (``extension=None``) is unchanged.  The B1-ext form
+    records ``extension``, the plain reference path+sha256, the physics
+    tolerance, the full table and ``registered: false``; it refuses a missing
+    beta (``none_qualified`` is reported, never frozen) and any beta outside
+    the extension grid.
+    """
+    extension = None if extension is None else str(extension)
+    grid = [float(value) for value in (
+        beta_grid if beta_grid is not None
+        else config["objective"]["anchor"]["beta_grid"])]
+    if selected_beta is None:
+        raise ValueError(
+            "no beta is frozen when no beta qualifies (none_qualified)")
     if float(selected_beta) not in grid:
         raise ValueError(
             f"selected beta {selected_beta} is not in the frozen grid {grid}"
         )
+    if extension is not None:
+        if extension != B1_EXTENSION:
+            raise ValueError(f"unknown extension {extension!r}")
+        if registered:
+            raise ValueError(
+                f"{B1_EXTENSION} is a labelled follow-up and cannot be registered")
+        if tolerance is None or not np.isfinite(float(tolerance)):
+            raise ValueError(f"{B1_EXTENSION} requires a finite physics tolerance")
+        if not isinstance(plain_reference, dict):
+            raise ValueError(f"{B1_EXTENSION} requires the plain reference provenance")
+        for key in ("path", "file", "sha256"):
+            if not plain_reference.get(key):
+                raise ValueError(
+                    f"{B1_EXTENSION} plain reference lacks {key!r}")
+        if not isinstance(selection, dict):
+            raise ValueError(f"{B1_EXTENSION} requires the selection record")
+        payload = {
+            "schema": SCHEMA_BETA,
+            "extension": extension,
+            "created_at_utc": utcnow(),
+            "selected_beta": float(selected_beta),
+            "beta_grid": grid,
+            "tolerance": float(tolerance),
+            "budget_gpu_hours_cap": B1_EXT_BUDGET_GPU_HOURS,
+            "plain_reference": dict(plain_reference),
+            "rule": B1_EXT_TIE_RULE,
+            "selection": selection,
+            "cohort": cohort_prov,
+            "model_seed": int(seed),
+            "steps": int(steps),
+            "fixture": fixture,
+            "registered": False,
+            "config_sha256": config_sha,
+            "code_sha": code_sha,
+            "table": [
+                {
+                    "beta": float(row["beta"]),
+                    "score": float(row["score"]),
+                    "physics_mse": {
+                        par: float(row["physics_mse"][par])
+                        for par in PHYSICS_TARGETS
+                    },
+                    "physics_mse_crlb": {
+                        par: float(row["physics_mse_crlb"][par])
+                        for par in PHYSICS_TARGETS
+                    },
+                    "ratio_to_plain": {
+                        par: float(
+                            row.get("ratio_to_plain", {}).get(par)
+                            or selection["per_beta"][str(float(row["beta"]))][
+                                "ratio_to_plain"][par])
+                        for par in PHYSICS_TARGETS
+                    },
+                    "qualifies": bool(
+                        row.get("qualifies", selection["per_beta"][
+                            str(float(row["beta"]))]["qualifies"])),
+                }
+                for row in table
+            ],
+            "status": (
+                f"selected; {B1_EXTENSION} follow-up beta (labelled, "
+                "registered: false; does not replace B1)"
+            ),
+        }
+        atomic_write_json(path, payload)
+        return payload
     payload = {
         "schema": SCHEMA_BETA,
         "created_at_utc": utcnow(),
@@ -2709,7 +3103,17 @@ def write_beta_decision(
     return payload
 
 
-def load_beta_decision(path: Path, config: dict, config_sha: str) -> dict:
+def load_beta_decision(
+    path: Path, config: dict, config_sha: str, *,
+    expect_extension: Optional[str] = None,
+) -> dict:
+    """Load a beta decision, refusing any cross-use of extension/registered.
+
+    A normal (non-extension) grid calls this with the default
+    ``expect_extension=None`` and therefore refuses a B1-ext decision file.  An
+    extension grid passes ``expect_extension="B1-ext"`` and refuses a
+    registered decision in turn.
+    """
     path = Path(path)
     if not path.exists():
         raise RuntimeError(
@@ -2720,6 +3124,46 @@ def load_beta_decision(path: Path, config: dict, config_sha: str) -> dict:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if payload.get("schema") != SCHEMA_BETA:
         raise RuntimeError(f"{path} is not a bridge beta decision")
+    extension = payload.get("extension")
+    if extension is not None:
+        if extension != B1_EXTENSION:
+            raise RuntimeError(
+                f"beta decision {path} declares unknown extension {extension!r}")
+        if expect_extension != extension:
+            raise RuntimeError(
+                f"beta decision {path} is a {extension} labelled follow-up, "
+                "not a registered beta decision; it is accepted only by an "
+                f"explicit `--extension {extension}` invocation")
+        grid = [float(value) for value in B1_EXT_BETA_GRID]
+        beta = payload.get("selected_beta")
+        if beta is None:
+            raise RuntimeError(
+                f"{extension} decision {path} records no selected beta")
+        if float(beta) not in grid:
+            raise RuntimeError(
+                f"beta decision {path} records {beta!r}, not a value of the "
+                f"{extension} grid {grid}")
+        if payload.get("registered") is not False:
+            raise RuntimeError(
+                f"{extension} decision {path} must record registered: false")
+        if payload.get("tolerance") is None:
+            raise RuntimeError(
+                f"{extension} decision {path} records no physics tolerance")
+        if not (payload.get("plain_reference") or {}).get("sha256"):
+            raise RuntimeError(
+                f"{extension} decision {path} records no plain-reference sha256")
+        if payload.get("config_sha256") != config_sha:
+            raise RuntimeError(
+                f"beta decision {path} was made under config "
+                f"{payload.get('config_sha256')!r}, not {config_sha!r}")
+        if payload.get("cohort", {}).get("name") != "development":
+            raise RuntimeError(
+                f"beta decision {path} is not from the development cohort")
+        return payload
+    if expect_extension is not None:
+        raise RuntimeError(
+            f"beta decision {path} is a registered decision, not an "
+            f"{expect_extension} extension decision")
     grid = [float(v) for v in config["objective"]["anchor"]["beta_grid"]]
     beta = payload.get("selected_beta")
     if beta is None or float(beta) not in grid:
@@ -2741,6 +3185,27 @@ def load_beta_decision(path: Path, config: dict, config_sha: str) -> dict:
 
 def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
                  status_text: str) -> int:
+    extension = getattr(args, "extension", None)
+    selection_rule = getattr(args, "selection_rule", None)
+    plain_reference = getattr(args, "plain_reference", None)
+    if extension not in (None, B1_EXTENSION):
+        raise SystemExit(f"unknown --extension {extension!r}")
+    if extension is None:
+        if selection_rule is not None or plain_reference is not None:
+            raise SystemExit(
+                "--selection-rule/--plain-reference apply only to the opt-in "
+                f"--extension {B1_EXTENSION} beta-dev"
+            )
+    else:
+        if selection_rule != "lucid_physics_tolerance":
+            raise SystemExit(
+                f"{B1_EXTENSION} requires --selection-rule "
+                "lucid_physics_tolerance"
+            )
+        if not plain_reference:
+            raise SystemExit(
+                f"{B1_EXTENSION} requires --plain-reference <run_dir or metrics JSON>"
+            )
     if args.fixture != "a4":
         raise SystemExit(
             "beta-dev requires the registered A4 law (--fixture a4); the "
@@ -2763,17 +3228,33 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
     )
     products = prepare_products(config, args.fixture, Path(args.data_root))
     device = configure_runtime(args.device)
-    grid = [float(value) for value in
-            config["objective"]["anchor"]["beta_grid"]]
+    registered_grid = [float(v) for v in
+                       config["objective"]["anchor"]["beta_grid"]]
+    extension_grid = [float(value) for value in B1_EXT_BETA_GRID]
     if args.beta_grid:
         grid = [float(value) for value in args.beta_grid.split(",")]
-        registered_grid = [float(v) for v in
-                           config["objective"]["anchor"]["beta_grid"]]
-        if grid != registered_grid:
+        if extension is not None:
+            if sorted(set(grid)) != sorted(extension_grid) or len(grid) != len(
+                    extension_grid):
+                raise SystemExit(
+                    f"--beta-grid {grid} differs from the {B1_EXTENSION} grid "
+                    f"{extension_grid}; the follow-up grid is fixed"
+                )
+            grid = sorted(grid)
+        elif grid != registered_grid:
             raise SystemExit(
                 f"--beta-grid {grid} differs from the frozen grid "
                 f"{registered_grid}; the grid is not tunable"
             )
+    elif extension is not None:
+        raise SystemExit(
+            f"{B1_EXTENSION} requires --beta-grid 10,100,1000")
+    else:
+        grid = registered_grid
+    plain_values = None
+    plain_prov = None
+    if extension is not None:
+        plain_values, plain_prov = read_plain_physics_reference(plain_reference)
     steps = int(args.steps or config["objective"]["anchor"][
         "development_cohort"]["steps"])
     seed = int(config["objective"]["anchor"]["development_cohort"][
@@ -2793,6 +3274,7 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             "betas": grid,
             "model_seed": seed,
             "steps": steps,
+            **_extension_fields(extension),
         },
     )
     probe_train_theta = np.asarray(
@@ -2829,6 +3311,7 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             resume=None,
             stop_after=args.stop_after,
             checkpoint_minutes=float(args.checkpoint_minutes),
+            extension=extension,
         )
         results.append(result)
         metrics = result.get("metrics")
@@ -2849,6 +3332,16 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
                 f"beta-dev run {run.run_id} has no validation MSE for a "
                 "physics parameter"
             )
+        physics_crlb = {
+            par: probes["physics"]["rows"][index].get("physics_mse_crlb")
+            for index, par in enumerate(PHYSICS_TARGETS)
+        }
+        if extension is not None and any(
+                value is None for value in physics_crlb.values()):
+            raise SystemExit(
+                f"beta-dev run {run.run_id} has no physics MSE/CRLB for a "
+                "physics parameter; the LUCiD rule cannot be applied"
+            )
         score = float(np.mean([
             physics_mse[par] / train_variances[par] for par in PHYSICS_TARGETS
         ]))
@@ -2857,6 +3350,10 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
                 "beta": float(beta),
                 "score": score,
                 "physics_mse": physics_mse,
+                "physics_mse_crlb": {
+                    par: (None if value is None else float(value))
+                    for par, value in physics_crlb.items()
+                },
                 "probe_train_variance": dict(train_variances),
             }
         )
@@ -2873,10 +3370,85 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             )
         )
         return 1
-    selection = select_beta(table)
+    if extension is not None:
+        selection = select_beta_lucid_physics(
+            table, plain_values, tolerance=B1_EXT_PHYSICS_TOLERANCE)
+        selection["plain_reference"] = plain_prov
+        # Carry the qualification markers into the full table (the decision
+        # records the complete table, including betas that do not qualify).
+        by_beta = selection["per_beta"]
+        for row in table:
+            entry = by_beta[str(float(row["beta"]))]
+            row["ratio_to_plain"] = entry["ratio_to_plain"]
+            row["qualifies"] = entry["qualifies"]
+        if selection["status"] == "none_qualified":
+            # No beta is frozen: report the follow-up as not evaluable rather
+            # than writing a decision that silently picks a beta.
+            atomic_write_json(
+                out_root / "aggregate.json",
+                {
+                    "schema": "jepa_bridge_beta_dev_v1",
+                    "extension": extension,
+                    "registered_run": False,
+                    "generated_at_utc": utcnow(),
+                    "config_sha256": config_sha,
+                    "code_sha": code_sha,
+                    "git_status": status_text,
+                    "status": "none_qualified",
+                    "selection": selection,
+                    "tolerance": B1_EXT_PHYSICS_TOLERANCE,
+                    "plain_reference": plain_prov,
+                    "table": table,
+                    "decision_path": None,
+                    "runs": [
+                        {
+                            "run_id": result["manifest"]["run_id"],
+                            "outcome": result["manifest"]["outcome"],
+                            "beta": result["manifest"]["beta"],
+                            "wall_seconds": result["manifest"].get("wall_seconds"),
+                        }
+                        for result in results
+                    ],
+                },
+            )
+            atomic_write_json(
+                out_root / "run_status.json",
+                {
+                    "run_id": out_root.name,
+                    "mode": "beta-dev",
+                    "host": host_name(),
+                    "device": str(device),
+                    "outcome": "none_qualified",
+                    "exit_status": 0,
+                    "started_at_utc": beta_started_at,
+                    "finished_at_utc": utcnow(),
+                    "runs_complete": len(table),
+                    "runs_requested": len(grid),
+                    "selected_beta": None,
+                    "extension": extension,
+                    "registered_run": False,
+                },
+            )
+            print(
+                json.dumps(
+                    {
+                        "status": "none_qualified",
+                        "selected_beta": None,
+                        "extension": extension,
+                        "beta_decision": None,
+                        "registered_run": False,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
+    else:
+        selection = select_beta(table)
     cohort_prov = cohort_provenance(cohort)
     registered = bool(
-        args.fixture == "a4"
+        extension is None
+        and args.fixture == "a4"
         and not cohort.manifest["truncated"]
         and steps == int(config["objective"]["anchor"]["development_cohort"]["steps"])
         and int(args.batch or REGISTERED_BATCH) == REGISTERED_BATCH
@@ -2894,6 +3466,11 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
         steps=steps,
         fixture=args.fixture,
         registered=registered,
+        extension=extension,
+        beta_grid=(grid if extension is not None else None),
+        tolerance=(B1_EXT_PHYSICS_TOLERANCE if extension is not None else None),
+        plain_reference=(plain_prov if extension is not None else None),
+        selection=(selection if extension is not None else None),
     )
     atomic_write_json(
         out_root / "aggregate.json",
@@ -2903,7 +3480,13 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             "config_sha256": config_sha,
             "code_sha": code_sha,
             "git_status": status_text,
+            "extension": extension,
             "registered_run": registered,
+            "tolerance": (
+                B1_EXT_PHYSICS_TOLERANCE if extension is not None else None),
+            "plain_reference": plain_prov,
+            "budget_gpu_hours_cap": (
+                B1_EXT_BUDGET_GPU_HOURS if extension is not None else None),
             "selection": selection,
             "table": table,
             "decision_path": str(decision_path),
@@ -2934,23 +3517,24 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             "runs_requested": len(grid),
             "selected_beta": decision["selected_beta"],
             "beta_decision_sha256": sha256_file(decision_path),
-            "registered_run": registered,
+            **_extension_fields(extension),
         },
     )
-    print(
-        json.dumps(
-            {
-                "status": "selected",
-                "selected_beta": decision["selected_beta"],
-                "tied_betas": selection["tied_betas"],
-                "scores": selection["scores"],
-                "beta_decision": str(decision_path),
-                "registered_run": registered,
-            },
-            indent=2,
-            sort_keys=True,
-        )
-    )
+    printed = {
+        "status": "selected",
+        "selected_beta": decision["selected_beta"],
+        "extension": extension,
+        "beta_decision": str(decision_path),
+        "registered_run": registered,
+    }
+    if extension is None:
+        printed["tied_betas"] = selection["tied_betas"]
+        printed["scores"] = selection["scores"]
+    else:
+        printed["tied_betas"] = selection.get("tied_betas")
+        printed["qualified_betas"] = selection["qualified_betas"]
+        printed["tie_kind"] = selection.get("tie_kind")
+    print(json.dumps(printed, indent=2, sort_keys=True))
     return 0
 
 
@@ -3028,10 +3612,17 @@ def _completed_run_ids_on_disk(out_root: Path) -> set:
 
 def run_grid(args, config: dict, config_sha: str, code_sha: str,
              status_text: str) -> int:
+    extension = getattr(args, "extension", None)
+    if extension not in (None, B1_EXTENSION):
+        raise SystemExit(f"unknown --extension {extension!r}")
     arms = args.arms.split(",") if args.arms else list(ALL_ARMS)
     for arm in arms:
         if arm not in ALL_ARMS:
             raise SystemExit(f"unknown arm {arm!r}; registered: {ALL_ARMS}")
+    if extension is not None and "sigreg_jepa_anchored" not in arms:
+        raise SystemExit(
+            f"--extension {extension} runs the anchored arm at the selected "
+            "beta; include sigreg_jepa_anchored in --arms")
     seeds_by_arm = config["training"]["seeds"]
     if args.seeds:
         seeds = [int(value) for value in args.seeds.split(",")]
@@ -3039,16 +3630,26 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
         seeds = None
     beta = None
     beta_source = None
+    beta_decision = None
     if "sigreg_jepa_anchored" in arms:
         decision = load_beta_decision(
-            Path(args.beta_decision), config, config_sha
+            Path(args.beta_decision), config, config_sha,
+            expect_extension=extension,
         )
+        beta_decision = decision
         beta = float(decision["selected_beta"])
         beta_source = {
             "decision_path": str(args.beta_decision),
             "decision_sha256": sha256_file(args.beta_decision),
             "decision_registered": bool(decision.get("registered", False)),
         }
+        if extension is not None:
+            beta_source.update({
+                "extension": extension,
+                "plain_reference_sha256": (
+                    decision.get("plain_reference") or {}).get("sha256"),
+                "tolerance": decision.get("tolerance"),
+            })
         print(
             f"bridge_run: anchored arm uses selected beta={beta} from "
             f"{args.beta_decision}",
@@ -3088,6 +3689,7 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
             "steps": steps,
             "batch": batch,
             "fixture": args.fixture,
+            **_extension_fields(extension),
         },
     )
     existing = {
@@ -3135,6 +3737,7 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
                 resume=Path(args.resume) if args.resume else None,
                 stop_after=args.stop_after,
                 checkpoint_minutes=float(args.checkpoint_minutes),
+                extension=extension,
             )
             results.append(result)
             print(
@@ -3167,6 +3770,15 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
         cohorts={"evaluation": cohort_provenance(cohort)},
         fixture=args.fixture,
     )
+    if extension is not None:
+        _label_follow_up(aggregate, extension)
+        aggregate["beta_decision"] = {
+            "decision_path": str(args.beta_decision),
+            "decision_sha256": sha256_file(args.beta_decision),
+            "selected_beta": beta,
+            "plain_reference": (beta_decision or {}).get("plain_reference"),
+            "tolerance": (beta_decision or {}).get("tolerance"),
+        }
     rows_by_id = load_manifest_rows(out_root)
     aggregate["runs"] = [
         rows_by_id[run_id] for run_id in sorted(rows_by_id)
@@ -3202,6 +3814,7 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
             ),
             "runs_interrupted": len(interrupted),
             "runs_failed": len(failed),
+            **_extension_fields(extension),
             "finished_at_utc": utcnow(),
             "aggregate_sha256": sha256_file(out_root / "aggregate.json"),
         },
@@ -3409,6 +4022,9 @@ def run_aggregate(
     generation; every source path is opened for reading only.
     """
     started_at = utcnow()
+    extension = getattr(args, "extension", None)
+    if extension not in (None, B1_EXTENSION):
+        raise RuntimeError(f"unknown --extension {extension!r}")
     roots = [Path(root) for root in args.runs_root]
     out_root = Path(args.out)
     out_resolved = out_root.resolve()
@@ -3517,6 +4133,7 @@ def run_aggregate(
                         "steps_completed", run.get("steps")
                     ),
                     "registered": bool((row or {}).get("registered", False)),
+                    "extension": (row or {}).get("extension"),
                     "declared_complete": bool(is_declared),
                     "probes_sha256": probes["probes_sha256"],
                     "source_run_dir": str(run_dir),
@@ -3557,6 +4174,7 @@ def run_aggregate(
                     "embedding_present": embedding_path.is_file(),
                     "run_status_outcome": status_outcome,
                     "manifest_outcome": manifest_outcome,
+                    "extension": (row or {}).get("extension"),
                     "declared_complete": bool(is_declared),
                 }
             )
@@ -3574,9 +4192,18 @@ def run_aggregate(
             "--runs-root values"
         )
 
-    expected = [
-        (arm, seed) for arm in ALL_ARMS for seed in REGISTERED_SEEDS
-    ]
+    extension_arms = ("sigreg_jepa", "sigreg_jepa_anchored")
+    if extension is None:
+        expected = [
+            (arm, seed) for arm in ALL_ARMS for seed in REGISTERED_SEEDS
+        ]
+    else:
+        # B1-ext is reported beside the registered result: it needs the plain
+        # arm and the anchored arm at the three registered seeds.  The other
+        # registered arms are irrelevant to this follow-up and are not required.
+        expected = [
+            (arm, seed) for arm in extension_arms for seed in REGISTERED_SEEDS
+        ]
     present = {
         (result["manifest"]["arm"], int(result["manifest"]["seed"]))
         for result in results
@@ -3587,10 +4214,17 @@ def run_aggregate(
             "ambiguous evidence"
         )
     missing = [
-        (arm, seed) for arm in ALL_ARMS for seed in REGISTERED_SEEDS
-        if (arm, seed) not in present
+        (arm, seed) for arm, seed in expected if (arm, seed) not in present
     ]
-    if missing and not getattr(args, "allow_partial", False):
+    if extension is not None and missing:
+        listed = ", ".join(f"{arm}/s{seed}" for arm, seed in missing)
+        raise RuntimeError(
+            f"aggregate --extension {extension} requires the plain and "
+            "anchored arms at seeds 0,1,2 (aggregate the extension out root "
+            "together with the committed plain sigreg_jepa out root); missing: "
+            f"{listed}"
+        )
+    if extension is None and missing and not getattr(args, "allow_partial", False):
         listed = ", ".join(f"{arm}/s{seed}" for arm, seed in missing)
         raise RuntimeError(
             "aggregate requires the full registered set "
@@ -3612,7 +4246,8 @@ def run_aggregate(
     beta_provenance = None
     if args.beta_decision:
         decision = load_beta_decision(
-            Path(args.beta_decision), config, config_sha
+            Path(args.beta_decision), config, config_sha,
+            expect_extension=extension,
         )
         beta_provenance = {
             "decision_path": str(args.beta_decision),
@@ -3621,6 +4256,9 @@ def run_aggregate(
             "decision_registered": bool(
                 decision.get("registered", False)
             ),
+            "extension": decision.get("extension"),
+            "plain_reference": decision.get("plain_reference"),
+            "tolerance": decision.get("tolerance"),
         }
         for result in anchored:
             recorded_beta = result["manifest"].get("beta")
@@ -3661,9 +4299,10 @@ def run_aggregate(
         cohorts=cohorts,
         fixture=fixture,
     )
+    if extension is not None:
+        _label_follow_up(aggregate, extension)
     requested = [
-        f"wp4a_eval_{arm}_s{seed}"
-        for arm in ALL_ARMS for seed in REGISTERED_SEEDS
+        f"wp4a_eval_{arm}_s{seed}" for arm, seed in expected
     ]
     completed_ids = sorted(
         result["manifest"]["run_id"] for result in results
@@ -3713,6 +4352,7 @@ def run_aggregate(
         "source_code_sha": source_code_shas,
         "current_config_sha256": config_sha,
         "current_code_sha": code_sha,
+        **(dict() if extension is None else {"extension": extension}),
         "note": (
             "discovered runs/<run_id>/probes.json read-only; no training, "
             "evaluation, encoding, checkpoint or run-directory write"
@@ -3777,6 +4417,7 @@ def run_aggregate(
             "run_status_outcome": row["run_status_outcome"],
             "manifest_outcome": row["manifest_outcome"],
             "declared_complete": row["declared_complete"],
+            "extension": row.get("extension"),
             "declaration_source": (
                 "--complete-run" if row["declared_complete"] else None
             ),
@@ -3811,6 +4452,7 @@ def run_aggregate(
         "declared_complete_runs": sorted(declared_complete),
         "partial_registered_set": bool(missing),
         "registered_run": aggregate["registered_run"],
+        **_extension_fields(extension),
         "verdicts": verdict_status,
         "aggregate_sha256": sha256_file(aggregate_path),
         "predictions_sha256": sha256_file(predictions_path),
@@ -3893,6 +4535,9 @@ def build_parser() -> argparse.ArgumentParser:
     grid.add_argument("--seeds", default=None, help="comma-separated seed override")
     grid.add_argument("--beta-decision", default=None,
                       help="beta_decision.json from beta-dev (required for the anchored arm)")
+    grid.add_argument("--extension", choices=(B1_EXTENSION,), default=None,
+                      help="opt-in A9 labelled follow-up; B1-ext accepts only a "
+                           "B1-ext beta decision and marks every run non-registered")
     aggregate = sub.add_parser(
         "aggregate",
         help="read-only aggregation over completed runs across out roots",
@@ -3906,6 +4551,10 @@ def build_parser() -> argparse.ArgumentParser:
     aggregate.add_argument("--beta-decision", default=None,
                            help="beta_decision.json from beta-dev (required when "
                                 "an anchored run is aggregated)")
+    aggregate.add_argument("--extension", choices=(B1_EXTENSION,), default=None,
+                           help="opt-in A9 labelled follow-up aggregate; requires "
+                                "the plain and anchored arms at seeds 0,1,2 and a "
+                                "B1-ext beta decision; verdicts are follow_up")
     aggregate.add_argument("--data-root", default=None,
                            help="accepted for compatibility only; aggregate never "
                                 "reads or writes cohort data")
@@ -3927,9 +4576,18 @@ def build_parser() -> argparse.ArgumentParser:
     beta = sub.add_parser("beta-dev", parents=[common],
                           help="development-cohort beta selection (v3 §1.3)")
     beta.add_argument("--beta-grid", default=None,
-                      help="must equal the frozen grid {0.1,1,10}")
+                      help="registered: must equal the frozen grid {0.1,1,10}; "
+                           f"{B1_EXTENSION}: must equal 10,100,1000")
     beta.add_argument("--beta-decision-out", default=None,
                       help="where to write beta_decision.json (default <out>/beta_decision.json)")
+    beta.add_argument("--extension", choices=(B1_EXTENSION,), default=None,
+                      help="opt-in A9 B1-ext beta development with the LUCiD "
+                           "physics-tolerance selection rule")
+    beta.add_argument("--selection-rule", default=None,
+                      help=f"{B1_EXTENSION} only: lucid_physics_tolerance")
+    beta.add_argument("--plain-reference", default=None,
+                      help=f"{B1_EXTENSION} only: the committed sigreg_jepa seed-0 "
+                           "bridge run directory or its metrics/probes JSON")
     return parser
 
 

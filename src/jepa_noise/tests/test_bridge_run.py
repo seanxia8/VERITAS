@@ -721,3 +721,373 @@ def test_grid_skips_a_completed_run_dir_without_a_manifest_row(tmp_path):
     completed = bridge_run._completed_run_ids_on_disk(out_root)
     assert completed == {"wp4a_eval_sigreg_jepa_s0"}
     assert "wp4a_eval_sigreg_jepa_s1" not in completed
+
+
+# ---------------------------------------------------------------------------
+# A9 B1-ext: LUCiD physics-tolerance beta rule, opt-in decision and grid
+# ---------------------------------------------------------------------------
+EXT_GRID = [float(value) for value in bridge_run.B1_EXT_BETA_GRID]
+
+
+def _physics(value, parameters=None):
+    return {par: float(value) for par in (parameters or
+                                          bridge_run.PHYSICS_TARGETS)}
+
+
+def _ext_table(values):
+    return [
+        {
+            "beta": beta,
+            "score": 0.5,
+            "physics_mse": _physics(1.0),
+            "physics_mse_crlb": _physics(value),
+        }
+        for beta, value in zip(EXT_GRID, values)
+    ]
+
+
+def _write_ext_decision(tmp_path, values, name="beta_decision_ext.json"):
+    table = _ext_table(values)
+    selection = bridge_run.select_beta_lucid_physics(table, _physics(1.0))
+    reference = tmp_path / "plain_probes.json"
+    reference.write_text(json.dumps({
+        "run": {"run_id": "wp4a_eval_sigreg_jepa_s0", "arm": "sigreg_jepa",
+                "seed": 0, "cohort": "evaluation"},
+        "probes": {"physics": {"rows": [
+            {"target": par, "test_mse": 1.0, "physics_mse_crlb": 1.0}
+            for par in bridge_run.PHYSICS_TARGETS
+        ]}},
+    }))
+    provenance = {
+        "path": str(reference), "file": str(reference),
+        "sha256": bridge_run.sha256_file(reference),
+        "run_id": "wp4a_eval_sigreg_jepa_s0", "arm": "sigreg_jepa", "seed": 0,
+    }
+    path = tmp_path / name
+    payload = bridge_run.write_beta_decision(
+        path,
+        selected_beta=selection["selected_beta"],
+        table=table,
+        config=CONFIG,
+        config_sha=CONFIG_SHA,
+        code_sha="test",
+        cohort_prov={"name": "development"},
+        seed=100,
+        steps=10000,
+        fixture="synthetic",
+        registered=False,
+        extension=bridge_run.B1_EXTENSION,
+        beta_grid=EXT_GRID,
+        tolerance=bridge_run.B1_EXT_PHYSICS_TOLERANCE,
+        plain_reference=provenance,
+        selection=selection,
+    )
+    return path, payload, selection
+
+
+def test_lucid_beta_rule_picks_the_largest_qualifying_beta():
+    # 1000 fails, 100 qualifies (1.09 <= 1.1) and is larger than 10.
+    selection = bridge_run.select_beta_lucid_physics(
+        _ext_table([1.05, 1.09, 1.20]), _physics(1.0))
+    assert selection["status"] == "selected"
+    assert selection["selected_beta"] == 100.0
+    assert selection["qualified_betas"] == [10.0, 100.0]
+    assert selection["tie_kind"] is None
+    # The tolerance is inclusive: exactly 1.1 x plain qualifies.
+    boundary = bridge_run.select_beta_lucid_physics(
+        _ext_table([1.2, 1.2, 1.1]), _physics(1.0))
+    assert boundary["selected_beta"] == 1000.0
+    # Every parameter must pass, not just the mean.
+    mixed = _ext_table([1.05, 1.05, 1.05])
+    mixed[2]["physics_mse_crlb"] = {
+        "amplitude": 1.05, "t0": 1.05, "tau_t": 1.11}
+    assert bridge_run.select_beta_lucid_physics(
+        mixed, _physics(1.0))["selected_beta"] == 100.0
+
+
+def test_lucid_beta_rule_reports_none_qualified_without_a_beta():
+    selection = bridge_run.select_beta_lucid_physics(
+        _ext_table([1.11, 1.2, 1.3]), _physics(1.0))
+    assert selection["status"] == "none_qualified"
+    assert selection["selected_beta"] is None
+    assert selection["qualified_betas"] == []
+    assert selection["reason"] == "no_beta_within_physics_tolerance"
+    assert selection["closest_beta"] == 10.0
+
+
+def test_lucid_beta_rule_tie_is_smaller_unless_physics_identical():
+    # Not a tie: the largest qualifying beta is selected.
+    largest = bridge_run.select_beta_lucid_physics(
+        _ext_table([1.08, 1.05, 1.00]), _physics(1.0))
+    assert largest["selected_beta"] == 1000.0
+    # Bit-identical physics across 10 and 1000 -> larger beta (1000).
+    identical = bridge_run.select_beta_lucid_physics(
+        _ext_table([1.05, 1.20, 1.05]), _physics(1.0))
+    assert identical["selected_beta"] == 1000.0
+    assert identical["tie_kind"] == "identical_physics_larger_beta"
+    assert identical["tied_betas"] == [10.0]
+    # Numerically equal but not bit-identical -> smaller beta (10).
+    close = _ext_table([1.05, 1.20, 1.05 * (1.0 + 1e-13)])
+    near = bridge_run.select_beta_lucid_physics(close, _physics(1.0))
+    assert near["selected_beta"] == 10.0
+    assert near["tie_kind"] == "numerical_tie_smaller_beta"
+    assert near["tied_betas"] == [10.0]
+
+
+def test_extension_beta_decision_carries_the_required_fields(tmp_path):
+    path, payload, selection = _write_ext_decision(
+        tmp_path, [1.05, 1.20, 1.30])
+    assert payload["extension"] == "B1-ext"
+    assert payload["registered"] is False
+    assert payload["schema"] == bridge_run.SCHEMA_BETA
+    assert payload["selected_beta"] == 10.0
+    assert payload["beta_grid"] == EXT_GRID
+    assert payload["tolerance"] == pytest.approx(1.1)
+    assert payload["plain_reference"]["sha256"] == bridge_run.sha256_file(
+        tmp_path / "plain_probes.json")
+    assert len(payload["table"]) == 3
+    for row in payload["table"]:
+        assert {"physics_mse_crlb", "ratio_to_plain", "qualifies"} <= set(row)
+    assert payload["selection"]["status"] == "selected"
+    # Only an explicit extension invocation accepts it.
+    loaded = bridge_run.load_beta_decision(
+        path, CONFIG, CONFIG_SHA, expect_extension="B1-ext")
+    assert loaded["selected_beta"] == 10.0
+    assert loaded["extension"] == "B1-ext"
+    with pytest.raises(RuntimeError, match="labelled follow-up"):
+        bridge_run.load_beta_decision(path, CONFIG, CONFIG_SHA)
+    with pytest.raises(RuntimeError, match="made under config"):
+        bridge_run.load_beta_decision(
+            path, CONFIG, "0" * 64, expect_extension="B1-ext")
+
+
+def test_extension_decision_refuses_bad_values_and_cross_use(tmp_path):
+    table = _ext_table([1.0, 1.0, 1.0])
+    with pytest.raises(ValueError, match="no beta is frozen"):
+        bridge_run.write_beta_decision(
+            tmp_path / "none.json", selected_beta=None, table=table,
+            config=CONFIG, config_sha=CONFIG_SHA, code_sha="t",
+            cohort_prov={"name": "development"}, seed=100, steps=10000,
+            fixture="synthetic", registered=False,
+            extension="B1-ext", beta_grid=EXT_GRID, tolerance=1.1,
+            plain_reference={"path": "p", "file": "f", "sha256": "0"},
+            selection={})
+    with pytest.raises(ValueError, match="not in the frozen grid"):
+        bridge_run.write_beta_decision(
+            tmp_path / "bad.json", selected_beta=2.0, table=table,
+            config=CONFIG, config_sha=CONFIG_SHA, code_sha="t",
+            cohort_prov={"name": "development"}, seed=100, steps=10000,
+            fixture="synthetic", registered=False,
+            extension="B1-ext", beta_grid=EXT_GRID, tolerance=1.1,
+            plain_reference={"path": "p", "file": "f", "sha256": "0"},
+            selection={})
+    with pytest.raises(ValueError, match="cannot be registered"):
+        bridge_run.write_beta_decision(
+            tmp_path / "reg.json", selected_beta=10.0, table=table,
+            config=CONFIG, config_sha=CONFIG_SHA, code_sha="t",
+            cohort_prov={"name": "development"}, seed=100, steps=10000,
+            fixture="synthetic", registered=True,
+            extension="B1-ext", beta_grid=EXT_GRID, tolerance=1.1,
+            plain_reference={"path": "p", "file": "f", "sha256": "0"},
+            selection={})
+    # A registered decision is refused by an extension invocation.
+    normal = write_decision(tmp_path, beta=1.0)
+    with pytest.raises(RuntimeError, match="registered decision"):
+        bridge_run.load_beta_decision(
+            normal, CONFIG, CONFIG_SHA, expect_extension="B1-ext")
+
+
+def test_plain_reference_reader_records_sha_and_rejects_the_wrong_arm(
+        tmp_path):
+    run_dir = tmp_path / "plain_run"
+    run_dir.mkdir()
+    payload = {
+        "run": {"run_id": "wp4a_eval_sigreg_jepa_s0", "arm": "sigreg_jepa",
+                "seed": 0, "cohort": "evaluation"},
+        "probes": {"physics": {"rows": [
+            {"target": par, "physics_mse_crlb": 0.25}
+            for par in bridge_run.PHYSICS_TARGETS
+        ]}},
+    }
+    (run_dir / "probes.json").write_text(json.dumps(payload))
+    values, provenance = bridge_run.read_plain_physics_reference(run_dir)
+    assert values == {par: 0.25 for par in bridge_run.PHYSICS_TARGETS}
+    assert provenance["file"] == str(run_dir / "probes.json")
+    assert provenance["sha256"] == bridge_run.sha256_file(
+        run_dir / "probes.json")
+    assert provenance["arm"] == "sigreg_jepa"
+    assert provenance["seed"] == 0
+    payload["run"]["arm"] = "sigreg_jepa_anchored"
+    (run_dir / "probes.json").write_text(json.dumps(payload))
+    with pytest.raises(RuntimeError, match="not sigreg_jepa"):
+        bridge_run.read_plain_physics_reference(run_dir)
+
+
+def test_extension_grid_refuses_an_extension_decision_without_the_flag(
+        tmp_path):
+    decision, _, _ = _write_ext_decision(tmp_path, [1.0, 1.1, 1.2])
+    args = grid_args(tmp_path, "refuse_ext") + [
+        "--arms", "sigreg_jepa_anchored", "--seeds", "0",
+        "--beta-decision", str(decision),
+    ]
+    assert bridge_run.main(args) == 2
+    assert not (tmp_path / "refuse_ext" / "out" / "manifest.jsonl").exists()
+
+
+def test_extension_grid_marks_runs_and_verdicts_as_follow_up(tmp_path):
+    decision, _, _ = _write_ext_decision(tmp_path, [1.0, 1.05, 1.2])
+    args = grid_args(tmp_path, "ext_grid", steps=2, batch=4, max_events=8) + [
+        "--extension", "B1-ext", "--arms", "sigreg_jepa_anchored",
+        "--seeds", "0", "--beta-decision", str(decision),
+    ]
+    assert bridge_run.main(args) == 0
+    out = tmp_path / "ext_grid" / "out"
+    rows = [json.loads(line) for line in
+            (out / "manifest.jsonl").read_text().splitlines() if line.strip()]
+    assert len(rows) == 1
+    assert rows[0]["extension"] == "B1-ext"
+    assert rows[0]["registered"] is False
+    assert rows[0]["beta"] == 100.0
+    run_dir = out / "runs" / rows[0]["run_id"]
+    status = json.loads((run_dir / "run_status.json").read_text())
+    assert status["extension"] == "B1-ext"
+    assert status["registered"] is False
+    aggregate = json.loads((out / "aggregate.json").read_text())
+    assert aggregate["extension"] == "B1-ext"
+    assert aggregate["registered_run"] is False
+    assert aggregate["verdict_role"] == "follow_up"
+    b1 = aggregate["verdicts"]["B1"]
+    assert b1["verdict_role"] == "follow_up"
+    assert b1["registered"] is False
+    assert b1["label"] == "B1-ext"
+    assert b1["status"] == "not_evaluable"  # plain arm absent from this root
+    fragment = (out / "PREDICTIONS_UPDATE.md").read_text()
+    assert "Labelled follow-up" in fragment and "B1-ext" in fragment
+    # A normal grid refuses the same extension decision.
+    refused = grid_args(tmp_path, "normal_refuses", steps=1, max_events=8) + [
+        "--arms", "sigreg_jepa_anchored", "--seeds", "0",
+        "--beta-decision", str(decision),
+    ]
+    assert bridge_run.main(refused) == 2
+
+
+def test_beta_dev_extension_flow_reports_none_qualified_and_decision(
+        tmp_path, monkeypatch):
+    reference = tmp_path / "plain.json"
+    reference.write_text(json.dumps({
+        "probes": {"physics": {"rows": [
+            {"target": par, "physics_mse_crlb": 1.0}
+            for par in bridge_run.PHYSICS_TARGETS
+        ]}},
+    }))
+
+    class Role:
+        theta = np.arange(30, dtype=float).reshape(10, 3) + 1.0
+
+    class Cohort:
+        roles = {"probe_training": Role()}
+        manifest = {"truncated": True}
+        key = "fake-development"
+
+    monkeypatch.setattr(bridge_run, "build_cohort_specs",
+                        lambda config: {"development": object()})
+    monkeypatch.setattr(bridge_run, "ensure_cohort",
+                        lambda *args, **kwargs: Cohort())
+    monkeypatch.setattr(bridge_run, "prepare_products",
+                        lambda *args, **kwargs: {})
+    monkeypatch.setattr(bridge_run, "configure_runtime", lambda device: "cpu")
+    monkeypatch.setattr(bridge_run, "cohort_provenance",
+                        lambda cohort: {"name": "development"})
+    values = {"none": {10.0: 1.2, 100.0: 1.3, 1000.0: 1.4},
+              "selected": {10.0: 1.05, 100.0: 1.09, 1000.0: 1.2}}
+
+    def fake_run_one(run, **kwargs):
+        table = values[fake_run_one.mode]
+        rows = [
+            {"target": par, "test_mse": 1.0,
+             "physics_mse_crlb": table[float(run.beta)]}
+            for par in bridge_run.PHYSICS_TARGETS
+        ]
+        return {
+            "manifest": {"run_id": run.run_id, "outcome": "complete",
+                         "beta": run.beta, "wall_seconds": 1.0},
+            "metrics": {"probes": {"physics": {"rows": rows}}},
+        }
+
+    monkeypatch.setattr(bridge_run, "run_one", fake_run_one)
+
+    def beta_args(out_name):
+        return bridge_run.build_parser().parse_args([
+            "beta-dev", "--out", str(tmp_path / out_name),
+            "--data-root", str(tmp_path / "data"), "--fixture", "a4",
+            "--device", "cpu", "--extension", "B1-ext",
+            "--beta-grid", "10,100,1000",
+            "--selection-rule", "lucid_physics_tolerance",
+            "--plain-reference", str(reference),
+        ])
+
+    fake_run_one.mode = "none"
+    assert bridge_run.run_beta_dev(
+        beta_args("ext_none"), CONFIG, CONFIG_SHA, "code", "") == 0
+    aggregate = json.loads(
+        (tmp_path / "ext_none" / "aggregate.json").read_text())
+    assert aggregate["status"] == "none_qualified"
+    assert aggregate["extension"] == "B1-ext"
+    assert aggregate["registered_run"] is False
+    assert aggregate["selection"]["selected_beta"] is None
+    assert not (tmp_path / "ext_none" / "beta_decision.json").exists()
+
+    fake_run_one.mode = "selected"
+    assert bridge_run.run_beta_dev(
+        beta_args("ext_selected"), CONFIG, CONFIG_SHA, "code", "") == 0
+    decision = json.loads(
+        (tmp_path / "ext_selected" / "beta_decision.json").read_text())
+    assert decision["extension"] == "B1-ext"
+    assert decision["selected_beta"] == 100.0
+    assert decision["registered"] is False
+    assert decision["plain_reference"]["sha256"] == \
+        bridge_run.sha256_file(reference)
+    aggregate = json.loads(
+        (tmp_path / "ext_selected" / "aggregate.json").read_text())
+    assert aggregate["selection"]["selected_beta"] == 100.0
+    assert aggregate["tolerance"] == pytest.approx(1.1)
+    assert aggregate["budget_gpu_hours_cap"] == pytest.approx(4.0)
+    assert aggregate["extension"] == "B1-ext"
+
+
+def test_beta_dev_extension_refuses_bad_invocations(tmp_path):
+    reference = tmp_path / "plain.json"
+    reference.write_text("{}")
+    base = ["beta-dev", "--out", str(tmp_path / "out"),
+            "--data-root", str(tmp_path / "data"), "--fixture", "a4",
+            "--device", "cpu"]
+    parser = bridge_run.build_parser()
+    with pytest.raises(SystemExit, match="selection-rule"):
+        bridge_run.run_beta_dev(
+            parser.parse_args(base + ["--extension", "B1-ext"]),
+            CONFIG, CONFIG_SHA, "code", "")
+    with pytest.raises(SystemExit, match="plain-reference"):
+        bridge_run.run_beta_dev(
+            parser.parse_args(base + [
+                "--extension", "B1-ext", "--selection-rule",
+                "lucid_physics_tolerance"]),
+            CONFIG, CONFIG_SHA, "code", "")
+    with pytest.raises(SystemExit, match="beta-grid"):
+        bridge_run.run_beta_dev(
+            parser.parse_args(base + [
+                "--extension", "B1-ext", "--selection-rule",
+                "lucid_physics_tolerance", "--plain-reference",
+                str(reference)]),
+            CONFIG, CONFIG_SHA, "code", "")
+    with pytest.raises(SystemExit, match="differs from the B1-ext grid"):
+        bridge_run.run_beta_dev(
+            parser.parse_args(base + [
+                "--extension", "B1-ext", "--selection-rule",
+                "lucid_physics_tolerance", "--plain-reference",
+                str(reference), "--beta-grid", "10,100"]),
+            CONFIG, CONFIG_SHA, "code", "")
+    with pytest.raises(SystemExit, match="apply only"):
+        bridge_run.run_beta_dev(
+            parser.parse_args(base + ["--selection-rule",
+                                      "lucid_physics_tolerance"]),
+            CONFIG, CONFIG_SHA, "code", "")
