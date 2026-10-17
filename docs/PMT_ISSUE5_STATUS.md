@@ -1,27 +1,31 @@
 # PMT issue 5 status
 
-16 October 2026. **PARTIALLY COMPLETE — engineering development only.** Real pinned-LUCiD prompt transport passes across 500/1,000/1,500 MeV after a retained candidate-lookup failure and repair. Three GPU seeds pass pooled direction/vertex development gates but all fail initial-energy trainability (39.0–41.8% MAE; required <30%). Target-PMT calibration, energy/containment and primary protocol decisions remain open. See [multi-energy report](PMT_MULTIENERGY_TRACK_REPORT_2026-10-16.md) and [author decisions](PMT_CALIBRATION_AND_PROTOCOL_DECISIONS_2026-10-16.md).
+_Rewritten 18 October 2026 under runbook v2 R-5 (`docs/RUNBOOK_JUNJIE_PMT_v2_2026-10-16.md`). Supersedes the 16 October table, whose rows repeated the same boilerplate; that version is in git history at `56179eb`._
 
-Base `0cae6b061e488e319643cfb0ba820318b8923578`; starting HEAD `84f65348a438e1b8a4594246afd3d60785518d76`; branch `codex/junjie-pmt-response`, clean at start. Fixed base verified ancestor; local dev remains the base. No applicable AGENTS.md found in this worktree or parent directories. Protected main checkout, JEPA, manuscript and historical results are not task outputs.
+**Overall: engineering development only. No primary claim comparison has been run, and nothing here is a reported result.** The `181b747`/`56179eb` GPU, remote and CERNBox runs are development evidence (C1 = A, `PMT_DECISIONS_LOG.md`). Every §3 default (D-TQ, D-Q, D-J, D-G, D-K, D-E) is a development setting, not adopted for primary evaluation.
 
-Sources: live [issue #5](https://github.com/seanxia8/VERITAS/issues/5) still has the four comments recorded in the runbook; [issue #4](https://github.com/seanxia8/VERITAS/issues/4) and its single acknowledgement were checked. No newer scientific design change found. See [source/stage contract](PMT_SOURCE_AND_STAGE_CONTRACT.md) for thesis verification and upstream code locators.
+Physics review with Junjie has not happened for any row. "Evaluated" means a primary WP7 comparison; none has been run.
 
-| Requirement | Implementation | Tested | Physics reviewed | Evaluated | Unresolved boundary |
-|---|---|---|---|---|---|
-| J1 | Complete exclusion | Documentation/source check | Pending (J8: not applicable) | Scientific comparison not run | No new electronics claims |
-| J2 | Synthetic mechanism passes | CPU synthetic/regression | Pending (J8: not applicable) | Scientific comparison not run | Real photon exporter and exact paired controls pass; target QE/CE pending; no causal identifiability claim |
-| J3 | Synthetic mechanism passes | CPU synthetic/regression | Pending (J8: not applicable) | Scientific comparison not run | Gaussian digit approximation; no measured target curve or asymmetric thesis reproduction |
-| J4 | Synthetic mechanism passes | CPU synthetic/regression | Pending (J8: not applicable) | Scientific comparison not run | 105 physical mPMT groups verified; crate map, measured group response and field calibration pending |
-| J5 | Three-seed track baseline completed; energy fails | Multi-energy real-photon GPU pilot | Pending (J8: not applicable) | Scientific comparison not run | Pooled direction/vertex gates pass; all energy gates fail; primary WP7 claim comparisons not run |
-| J6 | Real prompt integration passes | Independent geometry/time closure | Pending (J8: not applicable) | Scientific comparison not run | 60 physical events at three energies; 15,360-ray closure passes after retained repair; full detector physics review pending |
-| J7 | Point-source, local cone and track development checks | Synthetic point + real track baseline | Pending (J8: not applicable) | Scientific comparison not run | Direction/vertex development pass; initial-energy trainability fails; primary endpoints and D-K pending |
-| J8 | Research-use record updated | Documentation/source check | Pending (J8: not applicable) | Scientific comparison not run | Licence file absent at retrieval; redistribution/release unapproved |
-| J9 | Decision preparation complete | Documentation/source check | Pending (J8: not applicable) | Scientific comparison not run | D-S/D-T and real-data transfer execution deferred |
-| J10 | Draft only | Documentation/source check | Pending (J8: not applicable) | Scientific comparison not run | Physics validation, precision design, models and held-out comparison remain |
-| J11 | Engineering docs/tests complete | CPU synthetic/regression | Pending (J8: not applicable) | Scientific comparison not run | Scientific issue remains partially complete |
+| Req. | What exists | Tested by | Status | Open, and who decides |
+|---|---|---|---|---|
+| J1 Stop weak electronics-noise work | Claim cells exclude frozen electronics families | Documentation check | Done (engineering) | Nothing |
+| J2 Wavelength QE and degeneracy | QE(λ)·CE detection with keyed draws; exact-product control and charge-matched weak control | `test_pmt_contract.py`; fixture `exact_degeneracy_equal` passes (R-1 re-run, 18 Oct); real-photon exact control passed in `181b747` | Synthetic mechanism works | Target-PMT QE/CE values (Junjie). No identifiability claim |
+| J3 Fixed-threshold T-Q, wider low-Q timing | D-TQ walk `a + b/√q` (b = 2 ns, q_sat = 50 PE) on [0.25, 1000] PE; the polynomial form is kept as legacy. Charge-dependent Gaussian width. Slope cells b × 1.2 and b × 0.8, plus an offset-only control | `test_physical_tq.py`; `results/pmt_r1_r3_dev_2026-10-18/tq_validation.json` (conditional mean within 3σ_MC at 0.25/1/2/5/20 PE) | R-2 done, `synthetic_dev` | Measured or thesis-derived curve (Junjie). The real-photon slope control runs in R-4. Asymmetric kernel not built (D-J) |
+| J4 Module amplitude/width response | Coupled gain + width cell with isolated controls; factors applied per mPMT module (D-G) through the manifest rule | `test_pmt_contract.py`, `test_response_manifest.py`; fixture cells | Synthetic mechanism works | Crate/cable map and measured factors (Junjie) |
+| J5 Baseline includes response; ≥ 3 seeds | 3-seed direction pilot (`181b747`) and 3-seed multi-energy pilot (`56179eb`), both development evidence | GPU pilots; R-3 constant-predictor table (`PMT_MULTIENERGY_TRACK_REPORT_2026-10-16.md`) | Energy gate failed (recorded verdict stands) | R-4 re-run with the D-E endpoint. WP7 waits for "launch WP7" |
+| J6 Prompt-only first trial | Pinned LUCiD prompt transport on WCTE; independent geometry/time closure | Closure runs in `181b747`/`56179eb` | Development evidence | Full detector physics review |
+| J7 Vertex/energy consequence, cone check | Point-source closure; local cone diagnostic; track pilot | Fixture closure (vertex < 0.3 m, energy < 10%) passes; cone check in closure | Vertex barely beats the constant predictor; energy endpoint is ill-posed on escaping tracks | D-E endpoint (Junjie) and D-K (author) |
+| J8 LUCiD use clarification | Research-use statement recorded | Documentation check | Done | Licence file and redistribution remain unapproved |
+| J9 TIDMAD N/S/harm, arm scope | Decision preparation only | — | Not started (WP8) | D-S, D-T (author/Junjie) |
+| J10 Show scientific value | Experiment contract draft | — | Not started (WP6/WP7) | Contract freeze (WP6), then "launch WP7" |
+| J11 Consistent docs/status | This file, decisions log, R-3 table | R-5 hygiene | In progress | Nothing |
 
-The [final report](PMT_ISSUE5_FINAL_REPORT.md) maps every requirement to source, code and evidence. All output is development/non-citable, independently of simulator name. Tests: baseline PMT 68; final PMT 93, noise 145, latent/TIDMAD 104 passed; two optional-dependency skips. These are separate suites, not 342 independent physics validations.
+## Runbook v2 repairs
 
-Follow-up evidence: 94 local PMT tests pass (one optional skip); remote padding/permutation tests pass; source audit, 6,144-ray closure, real-photon paired controls and all three GPU trainability seeds pass. Full remote PMT suite: 95 passed, no skips. These do not close the scientific issue.
-
-Latest multi-energy evidence: 96 local tests pass with two optional PyTorch skips; 98 remote tests pass without skips. Source/code/config/dataset/checkpoint hashes and independent prediction metrics are verified. The held-out pilot has 12 physical events, 96 placements and only one contained placement; the 500 MeV source has prior development use. Every result remains development/non-citable.
+| Item | State |
+|---|---|
+| R-1 single response manifest | Done. Pilots build from `configs/lucid_pmt/reference.json` (schema v2); a static scan test fails on any literal-built response; the fixture was re-run with 4000 photons (`results/pmt_r1_r3_dev_2026-10-18/fixture_run_02`) and all four checks pass |
+| R-2 physical T-Q | Done locally. The real-photon run of the slope control belongs to R-4 |
+| R-3 relative gates | Done. Gates in `configs/lucid_pmt/trainability_gates.json` apply to future runs; the past-run table is in the multi-energy report |
+| R-4 re-run | Pending |
+| R-5 hygiene | Runs 03/04 removed (history `56179eb`); every results directory ≤ 20 MB; checkpoint paths and hashes in `results/PMT_CHECKPOINTS.json` (host re-verification in R-4); this file rewritten |

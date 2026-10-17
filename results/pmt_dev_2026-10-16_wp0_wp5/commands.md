@@ -26,6 +26,6 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src /Users/wongdowling/Documents/VERITAS/.v
 git diff --check
 ```
 
-Historical attempt commands used the same interpreter/module with `prompt_run_01`, `prompt_run_02`, `prompt_run_03`; revisions and failures are in validation_history.md. Final run_05 includes integrated-QE reporting and final code/config hashes; run_03 is retained. The final fixture used no changed seeds/tolerances after run_03.
+Historical attempt commands used the same interpreter/module with `prompt_run_01`, `prompt_run_02`, `prompt_run_03`; revisions and failures are in validation_history.md. Final run_05 includes integrated-QE reporting and final code/config hashes; run_03 was retained until 18 October 2026, when runs 03/04 were removed from the tree under runbook v2 R-5 (history: `56179eb`). The final fixture used no changed seeds/tolerances after run_03.
 
 Baseline environment: Python 3.12.7, NumPy 2.5.3, SciPy 1.18.1, pytest 9.1.1. No torch, h5py, JAX, LiteParse or local LUCiD checkout. PDF extraction: `/opt/homebrew/bin/pdftotext -layout /Users/wongdowling/Downloads/MasterThesis-XIA_JUNJIE-35176375.pdf /private/tmp/pmt-thesis.txt`; `shasum -a 256` confirmed the runbook hash.
