@@ -98,3 +98,29 @@ noise-record anchor does not reduce the nuisance R² of the deep encoder in ever
 preserves (and for t0 improves) the physics probes and is more seed-reproducible. This is a
 scientific outcome to report, not a fault to repair; the LUCiD main experiment (R6–R8, R11, R11b,
 R12) is where the registered deep-E2 claims now live (§3.5.9).
+
+## Diagnostics (added 2026-10-17, post hoc; no registered number changes)
+
+Two post hoc checks were run after the B1 verdict was recorded. Full detail, commands,
+JSON and the figure are in `docs/jepa/E1_BRIDGE_FINDINGS.md` and
+`results/jepa/20261017_e1_findings/`. Nothing below re-tunes, re-selects or re-runs a
+registered cell.
+
+**The positive half of B1 is strong.** Plain `sigreg_jepa` nuisance R² is **0.5251**
+against a random-init floor of **−0.00358** (same architecture and probe protocol at
+initialisation; the value is identical in all 12 runs), and the two defined nuisance
+targets in seed 0 are common_0 0.5812 and common_1 0.5034. That is direct evidence that
+a trained deep transformer encodes the shared common mode (P1): the probe is not merely
+fitting noise. The anchored arm is 0.5157, so the registered paired differences
+(+0.0828, −0.0163, −0.0383) show the anchor neither added nor removed common-mode
+information consistently — which is what B1's failure records.
+
+**Why the anchor may have been too weak (diagnostic hypothesis, not a licence to
+retune).** β = 10 was the *top* of the registered β grid {0.1, 1, 10}, and the
+registered β-selection score was still improving at that boundary (0.104152 → 0.104057
+→ 0.097206). Independently, R4b fails at β = 10 in the *exact linear model*: 9 of the
+42 E1a cells exceed 5° even though that path has no optimiser. Both facts are
+consistent with the anchor strength the B1 criterion would need lying beyond the
+registered grid. This is a hypothesis only: the author has separately approved a
+labelled follow-up (β ∈ {10, 100, 1000} with the LUCiD selection rule), and neither
+this note nor the new findings file changes a registered verdict.

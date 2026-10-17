@@ -1,0 +1,24 @@
+{
+ "e1a_replay": {
+  "cca_abs_diff_deg": 0.0,
+  "cca_expected_deg": 2.7799885516166336,
+  "cca_max_angle_deg": 2.7799885516166336,
+  "population_cca_deg": 4.1129466625058803e-13,
+  "sample_seconds": 0.19185996055603027,
+  "scc_digest_matches": true,
+  "scc_expected_sha256": "79e8d97b0f423917d130101d505eac0e240835750f30e177874937eeda0094f6",
+  "scc_unregularized_sha256": "79e8d97b0f423917d130101d505eac0e240835750f30e177874937eeda0094f6",
+  "status": "pass"
+ },
+ "e1b_replay": {
+  "cca_abs_diff_deg": 0.0,
+  "cca_expected_deg": 16.306755154100735,
+  "cca_max_angle_deg": 16.306755154100735,
+  "scc_digest_matches": true,
+  "scc_expected_sha256": "eb6a6770c6a13331854c4de9ca21cf1182cb08c553666d2827c919722bdfacc7",
+  "scc_sha256": "eb6a6770c6a13331854c4de9ca21cf1182cb08c553666d2827c919722bdfacc7",
+  "status": "pass",
+  "stream_seconds": 40.065770864486694
+ },
+ "status": "pass"
+}

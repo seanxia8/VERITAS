@@ -1,0 +1,308 @@
+{
+ "R4b_exact_linear": {
+  "cells": 42,
+  "fail_beta_10": 9,
+  "pass_beta_10": 33
+ },
+ "diagnostic_only": {
+  "cells": {
+   "theta0.1_eta1": {
+    "dropped_gamma_loads": [
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "kept_angles_deg": [
+     3.1303082883640783,
+     68.2543589941945
+    ],
+    "kept_gamma_loads": [
+     0.0,
+     0.1
+    ],
+    "n_points": 2,
+    "spearman_unsaturated": null
+   },
+   "theta0.1_eta3": {
+    "dropped_gamma_loads": [
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "kept_angles_deg": [
+     4.175121141976264,
+     72.91078218539536
+    ],
+    "kept_gamma_loads": [
+     0.0,
+     0.1
+    ],
+    "n_points": 2,
+    "spearman_unsaturated": null
+   },
+   "theta0.4_eta1": {
+    "dropped_gamma_loads": [
+     0.75,
+     0.9,
+     1.0
+    ],
+    "kept_angles_deg": [
+     1.5013243291362142,
+     2.6374197286584464,
+     27.605022944469,
+     79.48924792000753
+    ],
+    "kept_gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5
+    ],
+    "n_points": 4,
+    "spearman_unsaturated": 1.0
+   },
+   "theta0.4_eta3": {
+    "dropped_gamma_loads": [
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "kept_angles_deg": [
+     1.579243802066363,
+     35.33899957506841,
+     76.42717388512159
+    ],
+    "kept_gamma_loads": [
+     0.0,
+     0.1,
+     0.25
+    ],
+    "n_points": 3,
+    "spearman_unsaturated": 1.0
+   },
+   "theta1_eta1": {
+    "dropped_gamma_loads": [],
+    "kept_angles_deg": [
+     1.4317618081938739,
+     2.3805240803079206,
+     4.941111256243249,
+     17.175299257734807,
+     45.9493944311852,
+     65.10305537524694,
+     78.67796620679849
+    ],
+    "kept_gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "n_points": 7,
+    "spearman_unsaturated": 1.0
+   },
+   "theta1_eta3": {
+    "dropped_gamma_loads": [
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "kept_angles_deg": [
+     1.610958446391248,
+     2.5454518415154346,
+     55.164445901486395
+    ],
+    "kept_gamma_loads": [
+     0.0,
+     0.1,
+     0.25
+    ],
+    "n_points": 3,
+    "spearman_unsaturated": 1.0
+   }
+  },
+  "note": "recomputed Spearman after dropping saturated gamma points; never a replacement for the registered value",
+  "saturation_angle_deg": 80.0
+ },
+ "registered_R2": {
+  "cells": {
+   "theta0.1_eta1": {
+    "angle_range_deg": [
+     3.1303082883640783,
+     87.27862750080214
+    ],
+    "gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "saturated_points": 5,
+    "seed_mean_angles_deg": [
+     3.1303082883640783,
+     68.2543589941945,
+     80.80080225993909,
+     86.0197014406258,
+     87.27862750080214,
+     87.21989591139987,
+     86.83756636126475
+    ],
+    "spearman_pass": true,
+    "spearman_recomputed": 0.8571428571428573,
+    "spearman_registered": 0.8571428571428573
+   },
+   "theta0.1_eta3": {
+    "angle_range_deg": [
+     4.175121141976264,
+     87.7442168866619
+    ],
+    "gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "saturated_points": 5,
+    "seed_mean_angles_deg": [
+     4.175121141976264,
+     72.91078218539536,
+     82.50011661427833,
+     87.7442168866619,
+     87.53512879680835,
+     87.32394378846064,
+     87.21072082389601
+    ],
+    "spearman_pass": false,
+    "spearman_recomputed": 0.642857142857143,
+    "spearman_registered": 0.642857142857143
+   },
+   "theta0.4_eta1": {
+    "angle_range_deg": [
+     1.5013243291362142,
+     89.04838568013335
+    ],
+    "gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "saturated_points": 3,
+    "seed_mean_angles_deg": [
+     1.5013243291362142,
+     2.6374197286584464,
+     27.605022944469,
+     79.48924792000753,
+     89.04838568013335,
+     87.6044990094818,
+     86.52941110770224
+    ],
+    "spearman_pass": true,
+    "spearman_recomputed": 0.8571428571428573,
+    "spearman_registered": 0.8571428571428573
+   },
+   "theta0.4_eta3": {
+    "angle_range_deg": [
+     1.579243802066363,
+     87.55072421798556
+    ],
+    "gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "saturated_points": 4,
+    "seed_mean_angles_deg": [
+     1.579243802066363,
+     35.33899957506841,
+     76.42717388512159,
+     86.87167553805068,
+     87.55072421798556,
+     85.57058393322133,
+     85.98377058432467
+    ],
+    "spearman_pass": false,
+    "spearman_recomputed": 0.7142857142857144,
+    "spearman_registered": 0.7142857142857144
+   },
+   "theta1_eta1": {
+    "angle_range_deg": [
+     1.4317618081938739,
+     78.67796620679849
+    ],
+    "gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "saturated_points": 0,
+    "seed_mean_angles_deg": [
+     1.4317618081938739,
+     2.3805240803079206,
+     4.941111256243249,
+     17.175299257734807,
+     45.9493944311852,
+     65.10305537524694,
+     78.67796620679849
+    ],
+    "spearman_pass": true,
+    "spearman_recomputed": 1.0,
+    "spearman_registered": 1.0
+   },
+   "theta1_eta3": {
+    "angle_range_deg": [
+     1.610958446391248,
+     89.19303129063428
+    ],
+    "gamma_loads": [
+     0.0,
+     0.1,
+     0.25,
+     0.5,
+     0.75,
+     0.9,
+     1.0
+    ],
+    "saturated_points": 4,
+    "seed_mean_angles_deg": [
+     1.610958446391248,
+     2.5454518415154346,
+     55.164445901486395,
+     82.06881666756705,
+     89.19303129063428,
+     86.60143653570789,
+     85.94710435159152
+    ],
+    "spearman_pass": true,
+    "spearman_recomputed": 0.8571428571428573,
+    "spearman_registered": 0.8571428571428573
+   }
+  },
+  "statistic": "Spearman(gamma, seed-mean max angle)"
+ }
+}

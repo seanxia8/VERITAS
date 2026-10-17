@@ -1,0 +1,61 @@
+{
+ "rows": {
+  "th0.4_eta1_g0_s3": {
+   "base": {
+    "cond_scc": 145.37811217829835,
+    "cond_stt": 25.92782066984724,
+    "eigen_residual": 1.1691688098745256e-15,
+    "eps_times_cond_scc": 3.228042548337714e-14,
+    "eps_times_cond_stt": 5.757132697203291e-15,
+    "isotropy_residual": 5.572458495392654e-15,
+    "objective_gap": 2.220446049250313e-15,
+    "relative_objective_gap": 2.220446049250313e-15,
+    "trips_isotropy": false,
+    "trips_objective_gap": false
+   },
+   "cond_tc": 28631.787679188154,
+   "cond_tt": 100.22240238528906,
+   "transformed": {
+    "cond_scc": 14681224801.483625,
+    "cond_stt": 48066.845979776714,
+    "eigen_residual": 9.196430054041212e-16,
+    "eps_times_cond_scc": 3.259886760861003e-06,
+    "eps_times_cond_stt": 1.067298382557185e-11,
+    "isotropy_residual": 2.1077469629579494e-08,
+    "objective_gap": 1.2119194536808209e-12,
+    "relative_objective_gap": 1.2119194536808209e-12,
+    "trips_isotropy": true,
+    "trips_objective_gap": false
+   }
+  },
+  "th0.4_eta3_g1_s2": {
+   "base": {
+    "cond_scc": 802.6294637287032,
+    "cond_stt": 990.7596848000998,
+    "eigen_residual": 9.058386245612296e-16,
+    "eps_times_cond_scc": 1.7821954217482964e-13,
+    "eps_times_cond_stt": 2.199928427870867e-13,
+    "isotropy_residual": 3.547829789041679e-14,
+    "objective_gap": 3.1086244689504383e-15,
+    "relative_objective_gap": 3.1086244689504383e-15,
+    "trips_isotropy": false,
+    "trips_objective_gap": false
+   },
+   "cond_tc": 206.53174527576732,
+   "cond_tt": 34269.7461658578,
+   "transformed": {
+    "cond_scc": 4302137.9111521635,
+    "cond_stt": 159103022253.1744,
+    "eigen_residual": 1.4987713586238578e-15,
+    "eps_times_cond_scc": 9.552665128147816e-10,
+    "eps_times_cond_stt": 3.5327967718584576e-05,
+    "isotropy_residual": 3.178193514069327e-08,
+    "objective_gap": 3.8126835022467276e-11,
+    "relative_objective_gap": 3.8126835022467276e-11,
+    "trips_isotropy": true,
+    "trips_objective_gap": false
+   }
+  }
+ },
+ "tolerance": 1e-08
+}

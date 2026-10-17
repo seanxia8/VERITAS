@@ -1,0 +1,147 @@
+{
+ "all_rows_conditioning": {
+  "rows": 210,
+  "rows_ranked_by_scc_transformed_cond": [
+   {
+    "cond": 25261371133.416748,
+    "row": "th0.4_eta3_g0.25_s3"
+   },
+   {
+    "cond": 14681224801.483625,
+    "row": "th0.4_eta1_g0_s3"
+   },
+   {
+    "cond": 6744114016.6657505,
+    "row": "th0.1_eta3_g0.1_s4"
+   },
+   {
+    "cond": 1468340052.1800735,
+    "row": "th0.1_eta3_g0.25_s3"
+   },
+   {
+    "cond": 230290515.84228334,
+    "row": "th0.4_eta1_g0.25_s2"
+   },
+   {
+    "cond": 154922028.31744707,
+    "row": "th1_eta1_g0.1_s0"
+   }
+  ],
+  "rows_ranked_by_stt_transformed_cond": [
+   {
+    "cond": 159103022253.1744,
+    "row": "th0.4_eta3_g1_s2"
+   },
+   {
+    "cond": 442323591.0118964,
+    "row": "th0.1_eta3_g0.5_s1"
+   },
+   {
+    "cond": 340058757.1734303,
+    "row": "th0.1_eta3_g0.25_s0"
+   },
+   {
+    "cond": 247154927.54600218,
+    "row": "th1_eta3_g1_s4"
+   },
+   {
+    "cond": 237189211.26633483,
+    "row": "th0.4_eta3_g0.9_s0"
+   },
+   {
+    "cond": 181059537.4246777,
+    "row": "th0.1_eta3_g0.1_s4"
+   }
+  ],
+  "scc_transformed": {
+   "max": 25261371133.416748,
+   "median": 575386.2091253239,
+   "p95": 75902478.42485303
+  },
+  "stt_transformed": {
+   "max": 159103022253.1744,
+   "median": 185305.21537091688,
+   "p95": 11107656.673465263
+  },
+  "tc": {
+   "max": 28631.787679188154,
+   "median": 118.10417728445441
+  },
+  "tt": {
+   "max": 34269.7461658578,
+   "median": 109.4033484930213
+  }
+ },
+ "failed_rows": {
+  "th0.4_eta1_g0_s3": {
+   "base_solver": {
+    "eigen_residual": 1.1691688098745256e-15,
+    "isotropy_residual": 5.572458495392654e-15,
+    "max_angles_deg": 0.6125170977306573,
+    "objective": 0.6125170977306573,
+    "objective_gap": 2.220446049250313e-15,
+    "reduced_objective": 0.6125170977306595,
+    "status": "evaluated"
+   },
+   "base_spectrum": null,
+   "row": "th0.4_eta1_g0_s3",
+   "scc": 145.37811217829835,
+   "scc_transformed": 14681224801.483625,
+   "stt": 25.92782066984724,
+   "stt_transformed": 48066.845979776714,
+   "tc": 28631.787679188154,
+   "transformed_solver": {
+    "error": "ArithmeticError: isotropy or reduced-objective residual exceeded",
+    "status": "fail"
+   },
+   "tt": 100.22240238528906
+  },
+  "th0.4_eta3_g1_s2": {
+   "base_solver": {
+    "eigen_residual": 9.058386245612296e-16,
+    "isotropy_residual": 3.547829789041679e-14,
+    "max_angles_deg": 0.38275884945403416,
+    "objective": 0.38275884945403416,
+    "objective_gap": 3.1086244689504383e-15,
+    "reduced_objective": 0.38275884945403105,
+    "status": "evaluated"
+   },
+   "base_spectrum": null,
+   "row": "th0.4_eta3_g1_s2",
+   "scc": 802.6294637287032,
+   "scc_transformed": 4302137.9111521635,
+   "stt": 990.7596848000998,
+   "stt_transformed": 159103022253.1744,
+   "tc": 206.53174527576732,
+   "transformed_solver": {
+    "error": "ArithmeticError: isotropy or reduced-objective residual exceeded",
+    "status": "fail"
+   },
+   "tt": 34269.7461658578
+  }
+ },
+ "registered": {
+  "all_208_within_1e-8": true,
+  "evaluated_rows": 208,
+  "failed_row_ids": [
+   "th0.4_eta1_g0_s3",
+   "th0.4_eta3_g1_s2"
+  ],
+  "failed_row_reasons": [
+   "r3_exception:ArithmeticError: isotropy or reduced-objective residual exceeded"
+  ],
+  "failed_rows": 2,
+  "max_observed_row": {
+   "cell": "th0.1_eta3_g0.25",
+   "max_spectrum_difference": 8.203891455060841e-10,
+   "reason": null,
+   "seed": 3,
+   "status": "evaluated"
+  },
+  "max_observed_spectrum_difference_208": 8.203891455060841e-10,
+  "median_observed_spectrum_difference": 2.3391011350071267e-13,
+  "p99_observed_spectrum_difference": 2.3028332352126458e-10,
+  "rows_with_r3": 210,
+  "tolerance": 1e-08
+ }
+}
