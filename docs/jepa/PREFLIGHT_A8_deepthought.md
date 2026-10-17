@@ -1023,3 +1023,37 @@ yield range and will move once §3.5.3a fixes Y_lo/Y_hi on development data.
 Quota after: `rfiles` 409,146 + `rsubdirs` 51,679 = 460,825 used → **39,175 free** (guard read 39,186).
 Nothing running: no generator/jepa process, only `jepa_guard` in tmux, guard OK with `our_jobs []`,
 all four GPUs idle at 633/655/629/629 MiB and 0 %.
+
+---
+
+## 18. Standing provenance rule (author, 2026-10-17) and current clone state
+
+**Rule, recorded verbatim in intent:** a registered run must start from a clean checkout pinned to
+the clean SHA, and that clean status must be recorded. On the host this is the existing practice
+(`code/work` is updated in place with `git fetch` + `git checkout`, and every job report records
+`git rev-parse HEAD` plus an empty `git status --porcelain`). From now on every host job report here
+must include both, for the clone the job ran from; a dirty tree is only ever used for a smoke with
+`JEPA_ALLOW_DIRTY=1`, which is then **non-registered**.
+
+**State at 20:29:19Z (verified, nothing running):**
+
+| Item | Value |
+|---|---|
+| `code/work` HEAD | **fd14311b7a96d91213e87f98abb4a5eaa4f3ddfd** |
+| `code/work` `git status --porcelain` | **empty (clean)** |
+| sparse paths | `scripts src` |
+| `external/LUCiD` HEAD | eaf2e89f579d6679e90020c732ac2c846895d691 |
+| `external/LUCiD` status | empty (clean) |
+| running jepa processes | none; only `jepa_guard` in tmux |
+| guard | level OK, `our_jobs []` |
+| GPUs | all idle, 633/655/629/629 MiB at 0 % |
+| quota | rfiles 409,146 + rsubdirs 51,679 = 460,825 used → **39,175 free** |
+
+The last host job (§17 benchmark) therefore ran from `fd14311…` with a clean tree — the provenance
+pair is: `rev-parse HEAD = fd14311b7a96d91213e87f98abb4a5eaa4f3ddfd`, `git status --porcelain` empty.
+
+**Pending, not started:** the §3.5.3a detectability check (Fisher information with profiling,
+per-event and per-run R² ceilings, yield-range and F2/F2′ fallback decisions) at the real WCTE
+geometry. CPU-only, reads the pinned LUCiD geometry read-only, writes one decision JSON under
+`/ceph/dwong/jepa/jobs/`. If it exceeds ~5 minutes it will run in a tmux session
+`jepa_<run_id>` with its log under `/ceph/dwong/jepa/jobs/`. Awaiting the SHA and the command.
