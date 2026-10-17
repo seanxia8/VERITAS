@@ -576,3 +576,20 @@ Recorded as the author's explicit authorisation for those two paths only (v4 §6
 - **2026-10-17 — the projection uses the placeholder yield range** (6 000–320 000 photons,
   `placeholder_pending_detectability_check`); it must be re-benchmarked at the frozen [Y_lo, Y_hi]
   after §3.5.3a, as §3.5.6 requires.
+
+## Standing execution rules (author, 2026-10-17)
+
+- **2026-10-17 — every registered run starts from a dedicated git worktree pinned to the clean
+  SHA.** Instead of serialising development on a clean main tree: `git worktree add
+  ../VERITAS-run-<sha> <sha>`, run the registered campaign from that worktree (its `attempt.json`
+  records the worktree's clean status and HEAD), and leave the main tree free for development. The
+  main tree is never the working root of a registered run again. Development smokes may still run
+  from the main tree with `--allow-dirty` and are marked non-registered.
+- **2026-10-17 — `within` split accounting with the 1-based within-module ids.** `pmt_id_in_mpmt`
+  is 1-based (1…19), so "even → context, odd → target" gives **9 context and 10 target PMTs per
+  module** (evens 2,4,…,18 = 9; odds 1,3,…,19 = 10) — not 10/9 as a 0-based parity would. The mask
+  code must use the field as given and record the per-module counts.
+- **2026-10-17 — module identity is never positional.** `mpmt_id` has 105 distinct values over
+  0…105 with **id 45 absent**; every translation between a module id and an array index goes through
+  an explicit id→index map (`DetectorGeometry.module_index` / `module_ids`). Positional arithmetic
+  on module ids is forbidden in the generator, the views/masks and the probes.
