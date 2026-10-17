@@ -1,11 +1,15 @@
 {
-  "version": "v3",
+  "version": "v4",
+  "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
+  "registration_commit": "151f26e",
+  "updated_utc": "2026-10-17T12:05:00Z",
+  "note": "WP0-v4 step 4 (runbook \u00a78): R6-R8 move from not_evaluable to not_run with reason 'v4 A4/A7 redesign'; B1, R7b, R11, R11b and R12 are added as not_run with reason 'v4 A7/A8'. R1-R5, R3b, R9, R10 unchanged from v3 apart from their status reason.",
   "predictions": [
     {
       "id": "R1",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1a_E1b_v4_A4_law",
       "seeds": [],
       "evidence": null
     },
@@ -13,7 +17,7 @@
       "id": "R2",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1a_E1b_v4_A4_law",
       "seeds": [],
       "evidence": null
     },
@@ -21,7 +25,7 @@
       "id": "R3",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1a_E1b_v4_A4_law",
       "seeds": [],
       "evidence": null
     },
@@ -29,7 +33,7 @@
       "id": "R3b",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1a_E1b_v4_A4_law",
       "seeds": [],
       "evidence": null
     },
@@ -37,7 +41,7 @@
       "id": "R4a",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1a_E1b_v4_A4_law",
       "seeds": [],
       "evidence": null
     },
@@ -45,7 +49,7 @@
       "id": "R4b",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1a_E1b_v4_A4_law",
       "seeds": [],
       "evidence": null
     },
@@ -53,33 +57,73 @@
       "id": "R5",
       "campaign": "E1",
       "status": "not_run",
-      "reason": "WP2_full_acceptance_and_campaign_projection_pending",
+      "reason": "E1_pending_E1c_v4_A4_law",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "B1",
+      "campaign": "E2-bridge",
+      "status": "not_run",
+      "reason": "v4 A7/A8",
       "seeds": [],
       "evidence": null
     },
     {
       "id": "R6",
       "campaign": "E2",
-      "status": "not_evaluable",
-      "reason": "G6_fixed_line_grid_cannot_supply_three_distinct_noise_levels",
+      "status": "not_run",
+      "reason": "v4 A4/A7 redesign",
       "seeds": [],
-      "evidence": "results/jepa/20261016_wp2_E2_LEVEL_SELECTION.json"
+      "evidence": null
     },
     {
       "id": "R7",
       "campaign": "E2",
-      "status": "not_evaluable",
-      "reason": "G6_fixed_line_grid_cannot_supply_three_distinct_noise_levels",
+      "status": "not_run",
+      "reason": "v4 A4/A7 redesign",
       "seeds": [],
-      "evidence": "results/jepa/20261016_wp2_E2_LEVEL_SELECTION.json"
+      "evidence": null
+    },
+    {
+      "id": "R7b",
+      "campaign": "E2",
+      "status": "not_run",
+      "reason": "v4 A7/A8",
+      "seeds": [],
+      "evidence": null
     },
     {
       "id": "R8",
       "campaign": "E2",
-      "status": "not_evaluable",
-      "reason": "G6_fixed_line_grid_cannot_supply_three_distinct_noise_levels",
+      "status": "not_run",
+      "reason": "v4 A4/A7 redesign",
       "seeds": [],
-      "evidence": "results/jepa/20261016_wp2_E2_LEVEL_SELECTION.json"
+      "evidence": null
+    },
+    {
+      "id": "R11",
+      "campaign": "E2",
+      "status": "not_run",
+      "reason": "v4 A7/A8",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R11b",
+      "campaign": "E2",
+      "status": "not_run",
+      "reason": "v4 A7/A8",
+      "seeds": [],
+      "evidence": null
+    },
+    {
+      "id": "R12",
+      "campaign": "E2",
+      "status": "not_run",
+      "reason": "v4 A7/A8",
+      "seeds": [],
+      "evidence": null
     },
     {
       "id": "R9",

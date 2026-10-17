@@ -2,6 +2,28 @@
   "version": 1,
   "status": "gated_checkpoint_A3_revision_requested_E2_G6_remote_retry_timeout",
   "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
+  "v4_caps": {
+    "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
+    "E2_lucid_l40s_deepthought2": {
+      "cap_gpu_hours": 80,
+      "charged_gpu_hours": 0,
+      "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)"
+    },
+    "E2_lucid_titan_deepthought": {
+      "cap_gpu_hours": 300,
+      "charged_gpu_hours": 0,
+      "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)"
+    },
+    "lucid_generation_cpu": {
+      "cap_wall_hours": 48,
+      "charged_wall_hours": 0,
+      "cores_at_most": 16
+    },
+    "e1_cpu_wall_hours": {
+      "cap_wall_hours": 24,
+      "charged_wall_hours": 0.9951256591319602
+    }
+  },
   "campaigns": {
     "E1": {
       "cpu_cap_hours": 24,
