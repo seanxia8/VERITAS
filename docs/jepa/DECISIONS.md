@@ -350,3 +350,14 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   their lifetime is independent of any agent turn; the results are read from the attempt directory
   afterwards. Attempt_002 (33 rows) and attempt_003 (8 rows) are preserved; the cross-attempt
   resume fix lets the next attempt compute only the missing rows.
+
+## WP4a β selection (2026-10-17)
+
+- **2026-10-17 — β = 10 selected for `sigreg_jepa_anchored` on the bridge.** Development cohort
+  (A4, g = 0.02, nonlinear, channel split, seed 100; evaluation-independent ID ranges), one run per
+  β ∈ {0.1, 1, 10}, 10 000 steps each, all exit 0 (2014/2025/2024 s). v3 §1.3 rule — minimise the
+  mean over physics parameters of development-validation MSE divided by the development
+  probe-training variance: β = 0.1 : 0.104152, β = 1 : 0.104057, **β = 10 : 0.097206**. No tie
+  (1e-8 relative rule not triggered). Record: config SHA 2f7b3c5e…, decision file
+  `returns/wp4a_beta_dev/beta_decision.json`, grid values {0.1, 1, 10} as registered. The selected β
+  is passed to the grid through the decision file; it is not written into the frozen config.
