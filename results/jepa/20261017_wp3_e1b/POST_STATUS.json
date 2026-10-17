@@ -1,0 +1,50 @@
+{
+ "attempts": {
+  "attempt_003_20261017T141027Z_E1b": {
+   "consumed_worker_seconds": null,
+   "counts": null,
+   "status": "running",
+   "workers": 1
+  },
+  "attempt_003_20261017T153221Z_E1b": {
+   "consumed_worker_seconds": 14848.262,
+   "counts": {
+    "fail": 0,
+    "not_evaluable": 0,
+    "not_run": 0,
+    "pass": 58
+   },
+   "status": "complete",
+   "workers": 1
+  },
+  "attempt_004_20261017T153209Z_E1b": {
+   "consumed_worker_seconds": null,
+   "counts": {},
+   "status": "complete",
+   "workers": 1
+  },
+  "attempt_004_20261017T195133Z_E1b": {
+   "consumed_worker_seconds": null,
+   "counts": {},
+   "status": "complete",
+   "workers": 1
+  }
+ },
+ "chain_status": {
+  "detail": {
+   "discoverable": 66,
+   "expected": 65
+  },
+  "finished_utc": "2026-10-17T19:51:17Z",
+  "reason": "final_row_coverage_mismatch",
+  "status": "failed"
+ },
+ "discoverable_rows": 66,
+ "e1b_continuation_exit": 0,
+ "finished_utc": "2026-10-17T19:51:35Z",
+ "report_exit": 1,
+ "status_counts": {
+  "pass": 66
+ },
+ "waited_for_chain_pid": 56883
+}

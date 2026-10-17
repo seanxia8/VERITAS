@@ -985,8 +985,12 @@ def render(rows: list[dict]) -> str:
                  row.get('reason') or 'none',
                  ', '.join(map(str, row.get('seeds') or [])) or 'none',
                  row.get('evidence') or 'none']
-        if any('|' in str(x) or '\n' in str(x) for x in cells):
-            raise ValueError('invalid_table_cell')
+        # Markdown table cells cannot contain a raw pipe or a newline; escape
+        # pipes and collapse newlines rather than aborting the whole report
+        # (a status file edited by hand must never break regeneration).
+        cells = [
+            str(x).replace('|', '\\|').replace('\n', ' ') for x in cells
+        ]
         lines.append('| ' + ' | '.join(cells) + ' |')
     return '\n'.join(lines) + '\n'
 

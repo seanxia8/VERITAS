@@ -1,0 +1,9 @@
+{
+ "detail": {
+  "discoverable": 66,
+  "expected": 65
+ },
+ "finished_utc": "2026-10-17T19:51:17Z",
+ "reason": "final_row_coverage_mismatch",
+ "status": "failed"
+}

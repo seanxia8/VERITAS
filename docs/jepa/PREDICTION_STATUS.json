@@ -65,7 +65,7 @@
       "id": "B1",
       "campaign": "E2-bridge",
       "status": "fail",
-      "reason": "not_every_seed_seed_0_only; |delta mean|=0.00942 < 2x seed floor 0.10254 (plain 0.525128 vs anchored 0.515705 nuisance R2)",
+      "reason": "not_every_seed_seed_0_only; abs(delta mean)=0.00942 below 2x seed floor 0.10254 (plain 0.525128 vs anchored 0.515705 nuisance R2)",
       "seeds": [
         0,
         1,
