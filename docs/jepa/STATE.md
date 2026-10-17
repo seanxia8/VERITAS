@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 22:00Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 22:50Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -108,9 +108,16 @@ Updated: 2026-10-17 22:00Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   modes; 9 tests (86 with related suites). Open questions recorded, not decided (s_p=0 cells,
   R12 cell, write-once control, dev step 4, probe-form rule, reference v_group, dark-window
   convention, twin probe wiring; R8/robustness scored but not emitted).
-- **Running**: fresh WP5 review (cell plan, protocol, probes, verdicts, the twelve unresolved
-  questions, and the optimizer/lr/schedule freeze from repository conventions — the only blocker
-  for grid/dev training) and the B1-ext β development cohort on the Titan.
+- **WP5 review: ACCEPT WITH FIXES, now fixed (`d645e5f`).** P0 defects (undefined name, unthreaded
+  `physics_method`, missing metrics→fail instead of `not_evaluable`, three verdict-math errors,
+  unenforced optimizer numerics) fixed and tested; P1 items largely closed (R8/law-T recorded
+  `not_evaluable` with reasons, oracle-twin probes on the twin, dev step-3 decision flow, automatic
+  resume, recorded 5k/3-seed fallbacks, complete floor-cache identity, registered reporting);
+  `ijepa_ema` target encoder corrected to target-only tokens with the rest masked. Full package
+  suite **411 passed**. LUCiD training numerics frozen (mirroring `bridge_v1.json`).
+- **Running on the Titan**: B1-ext β-dev (β=10 and β=100 complete, β=1000 finishing), then the
+  detectability re-run (v_dark alignment), the WP5 500-step real-geometry smoke and the 2k/10k
+  scaling benchmark.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
