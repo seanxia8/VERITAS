@@ -31,7 +31,7 @@
       "allocated_workers": null,
       "projection_status": "pending_A3_revision_host_acceptance_and_complete_benchmark",
       "launch_allowed": false,
-      "charged_cpu_hours": 8.127451,
+      "charged_cpu_hours": 8.683672,
       "charged_gpu_hours": 0
     },
     "E2": {
@@ -608,6 +608,25 @@
       "job_kind": "E1b",
       "evidence": "results/jepa/20261017_wp3_e1b/",
       "note": "58/58 rows pass; detached chain; source-change warning for bridge files only"
+    },
+    {
+      "id": "E1-E1b-attempt_005_20261017T201351Z",
+      "campaign": "E1",
+      "host": "Dowlings-MacBook-Pro-2.local",
+      "device": "CPU",
+      "gpu_count": 0,
+      "worker_hours": 0.556221,
+      "cpu_hours": 0.556221,
+      "wall_seconds": 2002.4,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "fd14311",
+      "job_kind": "E1b-provenance-repair",
+      "registered_run": true,
+      "registered_sha": "fd14311b7a96d91213e87f98abb4a5eaa4f3ddfd",
+      "src_scripts_status": "",
+      "evidence": "results/jepa/20261017_wp3_e1b/attempt_005_20261017T201351Z_E1b",
+      "note": "re-ran the eight pre-rule provenance rows under a clean tree; 8/8 pass, no source change during run"
     }
   ]
 }
