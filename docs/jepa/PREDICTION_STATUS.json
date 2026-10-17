@@ -2,7 +2,7 @@
   "version": "v4",
   "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
   "registration_commit": "151f26e",
-  "updated_utc": "2026-10-17T12:05:00Z",
+  "updated_utc": "2026-10-17T18:30:00Z",
   "note": "WP0-v4 step 4 (runbook \u00a78): R6-R8 move from not_evaluable to not_run with reason 'v4 A4/A7 redesign'; B1, R7b, R11, R11b and R12 are added as not_run with reason 'v4 A7/A8'. R1-R5, R3b, R9, R10 unchanged from v3 apart from their status reason.",
   "predictions": [
     {
@@ -64,10 +64,14 @@
     {
       "id": "B1",
       "campaign": "E2-bridge",
-      "status": "not_run",
-      "reason": "v4 A7/A8",
-      "seeds": [],
-      "evidence": null
+      "status": "fail",
+      "reason": "not_every_seed_seed_0_only; |delta mean|=0.00942 < 2x seed floor 0.10254 (plain 0.525128 vs anchored 0.515705 nuisance R2)",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "evidence": "results/jepa/wp4a_grid_combined/aggregate.json; docs/jepa/WP4A_BRIDGE_RESULTS.md"
     },
     {
       "id": "R6",

@@ -384,3 +384,22 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   aggregate (each holds one arm), and `grid` re-runs, so a new read-only `aggregate` mode is being
   added (plus a fix of the misleading `missing_required_nuisance_target_in_the_declared_set`
   reason string, which is emitted for the *missing comparison arm*, not for an undefined target).
+
+## WP4a bridge outcome (2026-10-17)
+
+- **2026-10-17 — B1 FAILS on the Tier-1 bridge.** Combined read-only aggregate over the 12 runs
+  (`returns/wp4a_grid_combined/aggregate.json`, sha256 a5847744…): plain nuisance R² mean 0.525128
+  vs anchored 0.515705, paired differences seed 0/1/2 = +0.08280 / −0.01625 / −0.03828, seed floor
+  0.0512676 (2× = 0.10254). The criterion needs plain > anchored in every seed and |Δmean| > 2×
+  floor; both fail (seed 0 only). Recorded as `fail`, reason `not_every_seed`, in
+  PREDICTION_STATUS.json with the aggregate as evidence. Physics retention is kept (anchored/plain
+  MSE/CRLB ratios: amplitude 0.984, t0 0.337, tau_t 0.981 — all ≤ 1.1), and the anchored encoder is
+  the most seed-reproducible (CKA 0.99843 vs 0.94064 plain). This is a scientific outcome, not an
+  implementation fault; no re-tuning, no re-run.
+- **2026-10-17 — amplitude-preservation probe criterion not met (finding, v4 §3.5.7).** Post-time
+  block fails in all 12 runs (0.774–0.817, random-init floor 0.7376); read-out tokens are
+  arm-specific: `sigreg_jepa` 0.900–0.912 (pass), anchored 0.895–0.905 (2/3 pass), `mae_chi2` and
+  the parallel ablation 0.75–0.80 (fail). Reported without repair.
+- **2026-10-17 — status anomalies recorded, not repaired.** The two runs whose `run_status.json`
+  was damaged by the aborted aggregation re-run are accepted on job-level manifest evidence and
+  declared complete explicitly (`--complete-run`); the aggregate's `status_anomalies` names them.
