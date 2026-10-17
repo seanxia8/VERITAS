@@ -6,12 +6,12 @@
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
       "cap_gpu_hours": 80,
-      "charged_gpu_hours": 0,
+      "charged_gpu_hours": 0.035,
       "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)"
     },
     "E2_lucid_titan_deepthought": {
       "cap_gpu_hours": 300,
-      "charged_gpu_hours": 0,
+      "charged_gpu_hours": 0.0029,
       "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)"
     },
     "lucid_generation_cpu": {
@@ -31,7 +31,7 @@
       "allocated_workers": null,
       "projection_status": "pending_A3_revision_host_acceptance_and_complete_benchmark",
       "launch_allowed": false,
-      "charged_cpu_hours": 0.9951256591319602,
+      "charged_cpu_hours": 1.526592048021,
       "charged_gpu_hours": 0
     },
     "E2": {
@@ -135,6 +135,113 @@
       "actual_seconds": 220.71753883291967,
       "cpu_budget_hours": 0.0613104274535888,
       "exit_status": 0
+    },
+    {
+      "id": "20261017_wp3_e1a",
+      "campaign": "E1",
+      "purpose": "registered E1a grid: 630 (cell,n,seed) rows x ten registered method rows; final table attempt_007",
+      "code_sha": "9d59762efb6ee1e4b9517d768ada335cde62378f",
+      "code_sha_note": "attempt_007 final table; superseded attempts 001-006 ran at 8974f76/38c750f/205613e and are preserved in the archive",
+      "workers": 1,
+      "workers_note": "attempt_007 W=1 (v4 Sec.6 measured rule); attempts 001-006 W=3; per-attempt values in each attempt.json",
+      "gpu_hours": 0,
+      "rows_completed": 630,
+      "attempts": [
+        {
+          "id": "attempt_001_20261017T115352Z_E1a",
+          "rows": 84,
+          "scope": "smoke",
+          "workers": 3,
+          "wall_seconds": 31,
+          "consumed_worker_seconds": 91.353,
+          "status": "complete",
+          "code_sha": "8974f769471fb50f037d0e243483ea4a2a00501e"
+        },
+        {
+          "id": "attempt_002_20261017T115456Z_E1a",
+          "rows": 546,
+          "scope": "full",
+          "workers": 3,
+          "wall_seconds": 205,
+          "consumed_worker_seconds": 611.147,
+          "status": "complete_with_2_solver_failures",
+          "code_sha": "8974f769471fb50f037d0e243483ea4a2a00501e"
+        },
+        {
+          "id": "attempt_003_20261017T115910Z_E1a",
+          "rows": 2,
+          "scope": "retry",
+          "workers": 3,
+          "wall_seconds": 1,
+          "consumed_worker_seconds": 1.658,
+          "status": "failures_recorded",
+          "code_sha": "8974f769471fb50f037d0e243483ea4a2a00501e"
+        },
+        {
+          "id": "attempt_004_20261017T115927Z_E1a",
+          "rows": 2,
+          "scope": "retry",
+          "workers": 3,
+          "wall_seconds": 3,
+          "consumed_worker_seconds": 5.446,
+          "status": "failures_recorded",
+          "code_sha": "38c750fc40b00a2d3047bd6bb5dd00254ece9812"
+        },
+        {
+          "id": "attempt_005_20261017T115941Z_E1a",
+          "rows": 2,
+          "scope": "retry",
+          "workers": 3,
+          "wall_seconds": 1,
+          "consumed_worker_seconds": 2.836,
+          "status": "complete_but_oracle_defect",
+          "code_sha": "38c750fc40b00a2d3047bd6bb5dd00254ece9812"
+        },
+        {
+          "id": "attempt_006_20261017T120232Z_E1a",
+          "rows": 630,
+          "scope": "rerun_all_after_oracle_fix",
+          "workers": 1,
+          "wall_seconds": 731,
+          "consumed_worker_seconds": 727.775,
+          "status": "complete",
+          "code_sha": "205613e9af061276195f1cd545824ade68a5af2a"
+        },
+        {
+          "id": "attempt_007_20261017T122356Z_E1a",
+          "rows": 630,
+          "scope": "rerun_all_compact_writer",
+          "workers": 1,
+          "wall_seconds": 545,
+          "consumed_worker_seconds": 543.825,
+          "status": "complete_final_table",
+          "code_sha": "9d59762efb6ee1e4b9517d768ada335cde62378f"
+        }
+      ],
+      "actual_seconds": 545,
+      "total_wall_seconds_all_attempts": 1517,
+      "total_consumed_worker_seconds": 1984.04,
+      "cpu_budget_hours": 0.4191888889,
+      "status": "complete",
+      "results_dir": "results/jepa/20261017_wp3_e1a",
+      "superseded_archive": "results/jepa/20261017_wp3_e1a/SUPERSEDED_ATTEMPTS_001_006.tar.xz",
+      "superseded_archive_sha256": "2c98e2bc36961807c7bbaab61a116374c53cc62688586c3c1b66c7e399aea1cc",
+      "defect_note": "superseded attempts reported the conditional-oracle row with the whitened-coordinate functional instead of the raw pulled-back map; fixed and the grid re-executed; no row was overwritten"
+    },
+    {
+      "id": "20261017_wp3_e1c",
+      "campaign": "E1",
+      "purpose": "E1c A2 dynamics: 10 (gamma,seed) rows x depths 1/2/3 x 100000 full-batch GD steps",
+      "code_sha": "ed3b199ec27016c8dca361f5cbae66b01c0af5c8",
+      "workers": 1,
+      "gpu_hours": 0,
+      "rows_completed": 10,
+      "actual_seconds": 405,
+      "consumed_worker_seconds": 404.199,
+      "cpu_budget_hours": 0.1122775,
+      "status": "complete",
+      "results_dir": "results/jepa/20261017_wp3_e1c",
+      "finding": "all 10 rows not_evaluable: depth-2/3 mode contributions censored (insufficient_absolute_growth / below_absolute_floor); R5 not_evaluable (seed_evaluable_lt_4)"
     }
   ],
   "preflight_records": [
@@ -303,5 +410,37 @@
     "No campaign launch allocation: one worker is accounting only for serial setup/checks; Deepthought formula cap32 is not a reservation.",
     "Agent reasoning time is not experiment compute. Remaining local validation timing is appended before closeout.",
     "Projection must include calibration, smoke, searches, all cells/depths, probes, figures, oracle and 25 percent reserve."
+  ],
+  "v4_jobs": [
+    {
+      "id": "probe_deepthought_6468582",
+      "campaign": "phase0_guard_and_env",
+      "host": "deepthought",
+      "device": "GTX TITAN X (12 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 10.55,
+      "gpu_hours": 0.00293,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "6468582",
+      "job_kind": "probe",
+      "evidence": "/ceph/dwong/jepa/returns/probe_deepthought_6468582/probe.json",
+      "note": "environment probe: imports, one forward, env freeze, timings; TF32 disabled"
+    },
+    {
+      "id": "probe_deepthought2_6468582",
+      "campaign": "phase0_guard_and_env",
+      "host": "deepthought2",
+      "device": "L40S (46 GB)",
+      "gpu_count": 1,
+      "wall_seconds": 126.07,
+      "gpu_hours": 0.03502,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "6468582",
+      "job_kind": "probe",
+      "evidence": "/ceph/dwong/jepa/returns/probe_deepthought2_6468582/probe.json",
+      "note": "environment probe; cold CephFS import dominated the 126 s wall time"
+    }
   ]
 }

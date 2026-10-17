@@ -377,3 +377,69 @@ full checkout = 549 files + 109 dirs = **658 entries / 308 MB**; `.git` alone = 
 MB** (no blobs fetched), then `git sparse-checkout set scripts` adds 28 files + 5 dirs = **33 entries**
 → **≈ 83 entries total**; `set scripts src` adds ≈ 274 files + dirs → **≈ 400 entries**. So the
 sparse route saves ~58% (§6.1's "one clone per SHA" rule is satisfied without paying 658 each time).
+
+---
+
+## 10. Phase 0 step 4 execution on `deepthought` (17 Oct 2026, 12:18–12:38 UTC)
+
+Sequence authorised by the Lead for this host only; every start went through the guard. Timeline is
+UTC; host local time is UTC+2.
+
+**Sparse clone (12:18:03–12:18:09).** `git clone --filter=blob:none --sparse`, then
+`git sparse-checkout set src scripts`, then `git checkout 6468582` in
+`/ceph/dwong/jepa/code/6468582`. `git rev-parse HEAD` = **`64685829ec7e4230b843a914785038cc7914f7d4`**
+(exact match); `scripts/jepa_guard.py` (97,546 B), `scripts/jepa_launch.py`, `scripts/jepa_run.sh` all
+present; `src/jepa_noise/` present (incl. `guard_config.json`, `probe_env.py`). Entry cost measured:
+`rfiles` 416,387 → 416,668 (+281), `rsubdirs` 51,670 → 51,723 (+53) → **+334 entries, +1,805,616 B
+(1.7 MB)**, better than the 658 of a full checkout and inside the 370–400 estimate.
+
+**Guard dry run (12:18:28–12:29:25, tmux `jepa_guard_dryrun`, `--dry-run --interval 120`).** No
+`guard_deepthought.json` was written (verified absent). Per-cycle JSON lines went to
+`jobs/guard_deepthought.log` (the stdout log holds only the banner). Cycle at 12:22:29: `level OK`,
+`start.gpu 0`, `dry_run true`, `entry_source.source "cephfs_xattr"` with `quota_max_files 500000`,
+`rfiles 416769`, `rsubdirs 51732` → **free 31,499**, `unattributed_memory_mib` 3–7 MiB per card,
+`utilization_window` warm (n=3, span 240.8 s), amonsch's kernel attributed as foreign at 0.0 %,
+GPU 1 blocked ("other user's process PID 3103118 holds 4176 MiB > 1024 MiB limit"), **no SHED lines**.
+Session killed by exact name; `tmux ls` then empty. Note: the event log grows ~29 KB/6 min because
+each cycle appends a full status line — irrelevant for bytes, but each *run* also adds entries (§8).
+
+**Live guard (12:29:26 →, tmux `jepa_guard`, stdout `jobs/guard_deepthought_stdout.log`).** First
+status written within one 120 s cycle; `utilisation_window` warm after ~4 min, as intended (the guard
+HOLDs until then). State at 12:37:29 (age 69.1 s): `level OK`, `dry_run false`, `start.gpu 0`,
+`our_jobs []`, no PID-file errors, `free_entries 31,480`, `source cephfs_xattr`, util window warm
+(n=3, span 241.6 s), per-GPU `start_ok` = `[0:True, 1:False, 2:True, 3:True]`, unattributed 3–7 MiB,
+0 SHED events.
+
+**Probe (12:35:37–12:35:48, the only job run).** Launched through `scripts/jepa_run.sh` after a
+`--dry-run` inspection (which printed GPU 0, memory fraction 0.8, timeout 900 s, and started nothing).
+Launcher: `started pid=3437908 gpu=0 timeout=900s`; `finished outcome=exited exit=0`.
+`jobs/probe_deepthought_6468582/run_status.json`: `exit_status 0`, `timed_out false`,
+`started_at 12:35:37Z`, `finished_at 12:35:48Z`, **`wall_seconds 10.55`**.
+`returns/probe_deepthought_6468582/probe.json` acceptance facts:
+
+| Criterion | Value |
+|---|---|
+| `status` | **`ok`** |
+| `torch.cuda_available` | **true**; `device_count` 1; `device_used cuda:0` |
+| device name / capability | **`NVIDIA GeForce GTX TITAN X` / `[5, 2]`** |
+| `tf32_matmul_after` / `tf32_cudnn_after` | **false / false** (cudnn was true before the probe set it) |
+| fixture batches | **10** (batch 4, 8 ch, 256 samples, seed 0) |
+| `timing.mean_seconds_per_step` | **0.00884 s** (5 timed steps; 452 events/s; peak 31.7 MiB) |
+| `freeze.txt` | **written**, 9,217 B (torch 2.5.1+cu121, numpy 1.26.4, jax 0.4.30, …) |
+| `repo_head` | `64685829ec7e4230b843a914785038cc7914f7d4` |
+| determinism | `determinism_same_device_max_abs_diff = 0.0` |
+
+GPU state returned to baseline afterwards (1011/4183/1007/1007 MiB, 0 %). **Ledger: run_id
+`probe_deepthought_6468582`, 1 GPU (Titan), wall 10.55 s → 0.0029 GPU-h, rounds to 0.0 GPU-h.**
+`tmux ls` afterwards shows only `jepa_guard`; `our_jobs` is empty.
+
+Notes for the orchestrator:
+- **Freshness race:** the guard writes every 120 s and `jepa_run.sh` refuses a status not strictly
+  younger than 120 s. A launch must follow a cycle closely; a refusal (exit 3) is to be retried after
+  the next cycle, never bypassed. The probe launch happened 9 s after a cycle, hence accepted.
+- **Shared `jobs/`:** `/ceph/dwong/jepa/jobs/` is shared through `/ceph`; the deepthought2 operator's
+  `guard_deepthought2*` and `probe_deepthought2_6468582*` artifacts are visible here. They are not
+  ours to touch. Quota deltas measured between two points therefore include that agent's writes.
+- Cosmetic: `probe.json` records `cudnn 90100` (matching `nvidia-cudnn-cu12==9.1.0.70` in
+  `freeze.txt`) while a driver-level query of the same interpreter earlier printed 92000 — lazy
+  library resolution; `freeze.txt` is the authoritative record.
