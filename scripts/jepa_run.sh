@@ -172,6 +172,25 @@ if [ -z "$MACHINE_HOST" ]; then
         "$DETECTED_HOST" "$HOST" >&2
 fi
 
+# ---------------------------------------------------------------------------
+# Registered-run source rule (author, 2026-10-17): a registered run refuses to
+# start on a dirty src/scripts tree and records the clean SHA.  Smokes may set
+# JEPA_ALLOW_DIRTY=1; the run is then marked non-registered in the log.
+# ---------------------------------------------------------------------------
+SRC_STATUS="$(git -C "$REPO_ROOT" status --porcelain -- src scripts 2>/dev/null || true)"
+CLEAN_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || true)"
+if [ -n "$SRC_STATUS" ]; then
+    if [ "${JEPA_ALLOW_DIRTY:-0}" = "1" ]; then
+        printf 'jepa_run: WARNING dirty src/scripts tree (JEPA_ALLOW_DIRTY=1): run %s is NON-REGISTERED\n' "$RUN_ID" >&2
+        CLEAN_SHA="DIRTY"
+    else
+        printf 'jepa_run: refusing to start %s: src/scripts tree is dirty (author rule, 2026-10-17).\n' "$RUN_ID" >&2
+        printf '%s\n' "$SRC_STATUS" >&2
+        printf 'Commit the tree first, or set JEPA_ALLOW_DIRTY=1 for a non-registered smoke.\n' >&2
+        exit 2
+    fi
+fi
+
 case "$JOB_KIND" in
     training | evaluation | probe | smoke | other) : ;;
     *) die "JEPA_JOB_KIND must be training|evaluation|probe|smoke|other (got '$JOB_KIND')" ;;
@@ -356,6 +375,7 @@ mkdir -p "$RUN_DIR"
 printf '%s jepa_run: run_id=%s host=%s gpu=%s tag=%s kind=%s planned_minutes=%s timeout_seconds=%s\n' \
     "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$RUN_ID" "$HOST" "$START_GPU" "$TAG" "$JOB_KIND" \
     "$PLANNED_MINUTES" "$TIMEOUT_SECONDS" >>"$RUN_LOG"
+printf '%s jepa_run: clean_sha=%s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$CLEAN_SHA" >>"$RUN_LOG"
 if [ -n "$MAX_PLANNED_MINUTES" ]; then
     printf '%s jepa_run: guard duration cap for this start: <= %s min\n' \
         "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$MAX_PLANNED_MINUTES" >>"$RUN_LOG"

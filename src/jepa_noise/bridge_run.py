@@ -2998,6 +2998,34 @@ def collect_results(out_root: Path) -> List[dict]:
     return results
 
 
+def _completed_run_ids_on_disk(out_root: Path) -> set:
+    """Run ids whose own run_status says complete and whose probes.json exists.
+
+    Guards the "grid mode re-executed a completed run" incident: a run dir can
+    exist without a manifest row in this out root (combined/symlinked roots), so
+    the manifest-only check is not enough.  ``--force`` remains the explicit
+    override.
+    """
+    completed: set = set()
+    runs_root = Path(out_root) / "runs"
+    if not runs_root.is_dir():
+        return completed
+    for run_dir in sorted(runs_root.iterdir()):
+        if not run_dir.is_dir():
+            continue
+        probes = run_dir / "probes.json"
+        status_path = run_dir / "run_status.json"
+        if not probes.exists() or not status_path.exists():
+            continue
+        try:
+            status = json.loads(status_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if str(status.get("outcome")) == "complete":
+            completed.add(run_dir.name)
+    return completed
+
+
 def run_grid(args, config: dict, config_sha: str, code_sha: str,
              status_text: str) -> int:
     arms = args.arms.split(",") if args.arms else list(ALL_ARMS)
@@ -3067,6 +3095,7 @@ def run_grid(args, config: dict, config_sha: str, code_sha: str,
         if row.get("outcome") == "complete"
         and (out_root / "runs" / run_id / "probes.json").exists()
     }
+    existing |= _completed_run_ids_on_disk(out_root)
     results = []
     requested_ids = []
     for arm in arms:

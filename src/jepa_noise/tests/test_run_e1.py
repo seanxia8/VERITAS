@@ -314,8 +314,9 @@ def test_render_rejects_invalid_records():
         report.render([{**good, "status": "unknown"}])
     with pytest.raises(ValueError):
         report.render([{**good, "status": "pass", "evidence": None}])
-    with pytest.raises(ValueError):
-        report.render([{**good, "reason": "bad|cell"}])
+    # a hand-edited reason containing a pipe must be escaped, not abort the report
+    escaped = report.render([{**good, "reason": "bad|cell"}])
+    assert "bad\\|cell" in escaped
 
 
 def test_solver_isolation_returns_all_ten_registered_rows():
@@ -398,3 +399,42 @@ def test_stopped_attempt_rows_are_reused(tmp_path):
     evidence = json.loads((second / "attempt.json").read_text())
     assert evidence["skipped_completed_rows"] == 1
     assert evidence["reused_row_count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# 2026-10-17 author rules: not_run placeholders are not completed rows; a
+# registered run refuses to start on a dirty src/scripts tree.
+# ---------------------------------------------------------------------------
+def test_not_run_placeholder_does_not_count_as_completed(tmp_path):
+    campaign = tmp_path / "E1a"
+    attempt = campaign / "attempt_001_test"
+    rows_dir = attempt / "rows"
+    rows_dir.mkdir(parents=True)
+    (rows_dir / "row_a.json").write_text(json.dumps({
+        "row_id": "row_a", "status": "pass"}))
+    (rows_dir / "row_b.json").write_text(json.dumps({
+        "row_id": "row_b", "status": "not_run",
+        "reason": "stopped_before_launch"}))
+    discovered = run.discover_rows(campaign)
+    completed = {
+        identifier for identifier, record in discovered.items()
+        if record.get("status") != "not_run"
+    }
+    assert completed == {"row_a"}
+    assert "row_b" not in completed
+
+
+def test_src_tree_status_is_empty_in_a_clean_repo_and_dirty_when_modified(tmp_path):
+    import subprocess
+    repo = tmp_path / "repo"
+    (repo / "src").mkdir(parents=True)
+    (repo / "scripts").mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.email", "t@t"], check=True)
+    subprocess.run(["git", "-C", str(repo), "config", "user.name", "t"], check=True)
+    (repo / "src" / "mod.py").write_text("x = 1\n")
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", "c"], check=True)
+    assert run.src_tree_status(repo) == ""
+    (repo / "src" / "mod.py").write_text("x = 2\n")
+    assert "src/mod.py" in run.src_tree_status(repo)

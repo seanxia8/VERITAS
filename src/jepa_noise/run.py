@@ -98,6 +98,18 @@ def git_status(root: Path) -> str:
         return "unknown"
 
 
+def src_tree_status(root: Path) -> str:
+    """`git status --porcelain -- src scripts` (author rule for registered runs)."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "status", "--porcelain", "--", "src", "scripts"],
+            capture_output=True, text=True,
+        )
+    except Exception as error:  # pragma: no cover - git missing
+        return f"git-status-unavailable: {error}"
+    return result.stdout.strip()
+
+
 def host_name() -> str:
     return platform.node() or "unknown-host"
 
@@ -1575,6 +1587,21 @@ def run_campaign(args) -> int:
     config, config_sha = load_config(config_path)
     campaign = args.campaign
     scope = "smoke" if args.smoke else "full"
+    # Author rule (2026-10-17): a registered run refuses to start on a dirty
+    # src/scripts tree and records the clean SHA.  Smokes and explicit
+    # --allow-dirty development runs are marked non-registered.
+    src_status = src_tree_status(root)
+    allow_dirty = bool(getattr(args, "allow_dirty", False))
+    registered = scope == "full" and not allow_dirty
+    if registered and src_status:
+        print(
+            "STOP: a registered run refuses to start: `git status --porcelain -- "
+            "src scripts` is not empty.\n" + src_status +
+            "\nCommit the source tree first (or pass --allow-dirty for a "
+            "non-registered development run).",
+            file=sys.stderr,
+        )
+        return 2
     rows = enumerate_rows(config, campaign, scope)
     directory = campaign_root(root, campaign)
     directory.mkdir(parents=True, exist_ok=True)
@@ -1585,7 +1612,13 @@ def run_campaign(args) -> int:
         completed = {identifier for identifier, record in discovered.items()
                      if record.get("status") == "pass"}
     else:
-        completed = set(discovered)
+        # A stopped attempt writes a ``not_run`` placeholder for every row it did
+        # not launch (status contract).  Such a placeholder is NOT a completed
+        # row: only rows recorded with a real status count as completed.
+        completed = {
+            identifier for identifier, record in discovered.items()
+            if record.get("status") != "not_run"
+        }
     pending = [row for row in rows if row["row_id"] not in completed]
     skipped = [row["row_id"] for row in rows if row["row_id"] in completed]
     if args.limit_rows is not None:
@@ -1626,6 +1659,9 @@ def run_campaign(args) -> int:
         "run_id": run_id, "campaign": campaign, "scope": scope,
         "config_path": str(config_path), "config_sha256": config_sha,
         "code_sha_start": code_sha, "git_status_start": status_start,
+        "src_scripts_status": src_status,
+        "registered_run": registered,
+        "registered_sha": code_sha if (registered and not src_status) else None,
         "source_sha256_start": hashes_start,
         "host": host_name(), "platform": platform.platform(),
         "python": sys.version, "executable": sys.executable,
@@ -2015,6 +2051,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ignore-budget-projection", action="store_true",
                         help="do not stop if the preflight projection exceeds "
                              "the cap (recorded; the Lead owns G2)")
+    parser.add_argument("--allow-dirty", action="store_true",
+                        help="development-only override: allow a full-scope run on a dirty "
+                             "src/scripts tree; the attempt is marked non-registered")
     parser.add_argument("--dry-run", action="store_true",
                         help="record the attempt, projection and rows; execute none")
     return parser

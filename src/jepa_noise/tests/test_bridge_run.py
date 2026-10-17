@@ -703,3 +703,21 @@ def test_grid_mode_parser_is_unchanged():
     assert not hasattr(grid, "runs_root")
     with pytest.raises(SystemExit):
         parser.parse_args(["aggregate", "--out", "out"])
+
+
+def test_grid_skips_a_completed_run_dir_without_a_manifest_row(tmp_path):
+    """Author rule: grid must never re-execute a run whose status is complete."""
+    out_root = tmp_path / "out"
+    run_dir = out_root / "runs" / "wp4a_eval_sigreg_jepa_s0"
+    run_dir.mkdir(parents=True)
+    (run_dir / "probes.json").write_text("{}")
+    (run_dir / "run_status.json").write_text(
+        json.dumps({"run_id": "wp4a_eval_sigreg_jepa_s0", "outcome": "complete"}))
+    running = out_root / "runs" / "wp4a_eval_sigreg_jepa_s1"
+    running.mkdir(parents=True)
+    (running / "probes.json").write_text("{}")
+    (running / "run_status.json").write_text(
+        json.dumps({"run_id": "wp4a_eval_sigreg_jepa_s1", "outcome": "running"}))
+    completed = bridge_run._completed_run_ids_on_disk(out_root)
+    assert completed == {"wp4a_eval_sigreg_jepa_s0"}
+    assert "wp4a_eval_sigreg_jepa_s1" not in completed
