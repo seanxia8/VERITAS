@@ -415,3 +415,76 @@ def test_no_writes_outside_out_and_data_root(tmp_path):
     assert all(path.relative_to(sandbox).parts[0] in {"out", "data"}
                for path in written)
     assert not (tmp_path / "outside").exists()
+
+
+# ---------------------------------------------------------------------------
+# aggregate-only mode: read-only over run directories, never re-runs
+# ---------------------------------------------------------------------------
+def _run_file_hashes(out_root):
+    import hashlib
+    hashes = {}
+    for path in sorted((Path(out_root) / "runs").rglob("*")):
+        if path.is_file():
+            hashes[str(path)] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashes
+
+
+def _tiny_two_arm_tree(tmp_path):
+    args = grid_args(tmp_path, "agg") + ["--arms", "sigreg_jepa,mae_chi2",
+                                          "--seeds", "0"]
+    assert bridge_run.main(args) == 0
+    return Path(args[2])
+
+
+def test_aggregate_is_read_only_and_reports_missing_arm(tmp_path):
+    out_root = _tiny_two_arm_tree(tmp_path)
+    before = _run_file_hashes(out_root)
+    dest = tmp_path / "combined"
+    rc = bridge_run.main([
+        "aggregate", "--out", str(dest), "--runs-root", str(out_root),
+        "--config", str(CONFIG_PATH), "--data-root", str(tmp_path / "agg" / "data"),
+        "--fixture", "synthetic", "--allow-partial",
+    ])
+    assert rc == 0
+    assert before == _run_file_hashes(out_root), "aggregate must not write run dirs"
+    for name in ("aggregate.json", "PREDICTIONS_UPDATE.md", "run_status.json",
+                 "manifest.jsonl"):
+        assert (dest / name).exists()
+    payload = json.loads((dest / "aggregate.json").read_text())
+    assert payload["aggregation_mode"].startswith("aggregate-only")
+    b1 = payload["verdicts"]["B1"]
+    assert b1["status"] == "not_evaluable"
+    assert b1["reason"] == "missing_required_arm:sigreg_jepa_anchored"
+    assert payload["status_anomalies"] == []
+
+
+def test_aggregate_records_a_damaged_run_status_as_anomaly(tmp_path):
+    out_root = _tiny_two_arm_tree(tmp_path)
+    status_path = (out_root / "runs" / "wp4a_eval_sigreg_jepa_s0"
+                   / "run_status.json")
+    status = json.loads(status_path.read_text())
+    status["outcome"] = "interrupted"
+    status_path.write_text(json.dumps(status))
+    dest = tmp_path / "combined"
+    rc = bridge_run.main([
+        "aggregate", "--out", str(dest), "--runs-root", str(out_root),
+        "--config", str(CONFIG_PATH), "--data-root", str(tmp_path / "agg" / "data"),
+        "--fixture", "synthetic", "--allow-partial",
+    ])
+    assert rc == 0
+    payload = json.loads((dest / "aggregate.json").read_text())
+    assert [entry["run_id"] for entry in payload["status_anomalies"]] == [
+        "wp4a_eval_sigreg_jepa_s0"
+    ]
+    assert payload["status_anomalies"][0]["manifest_outcome"] == "complete"
+
+
+def test_aggregate_refuses_an_incomplete_registered_set(tmp_path):
+    out_root = _tiny_two_arm_tree(tmp_path)
+    rc = bridge_run.main([
+        "aggregate", "--out", str(tmp_path / "combined"),
+        "--runs-root", str(out_root), "--config", str(CONFIG_PATH),
+        "--data-root", str(tmp_path / "agg" / "data"),
+        "--fixture", "synthetic",
+    ])
+    assert rc == 2
