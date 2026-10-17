@@ -93,9 +93,18 @@ g = 0; (g = 0, line = 0) is the clean reference cell. `channel` is the primary s
 - k = 1 / k = 2 diagnostics (channel): g = 0 → 2.08° / 0.01°, g = 0.9 → 2.60° / 1.81°
   (§A: ≤ 2.1° / 0.0° and ≤ 2.6° / 1.8°).
 
-Residual differences come from the A4 ε recomputation (§3.2.1): ε_dc = 0.0101072 from the A4 base
-vs 0.0101959 from the v3 base used by `docs/jepa/check_v4_levels.py`. The A1 normalisation
+Residual differences are **rounding in Appendix A, not a modelling difference**: §A's 77.0° is the
+rounded *interleaved* value while the channel value at g = 0.05 is 76.949° (archived interleaved:
+77.0°, channel: 76.9°), and the A4 ε recomputation (§3.2.1; ε_dc = 0.0101072 from the A4 base vs
+0.0101959 from the v3 base) moves D by about 7e-4°, not by 0.05°. The A1 normalisation
 `v_white = 0.4461113` is unchanged (reference-cell channel factor).
+
+**How to reproduce Appendix A.** The registered script `docs/jepa/check_v4_levels.py` reads
+`views.py` internals and is therefore only valid at the registration tree (`151f26e`); its archived
+output is `results/jepa/20261017_appendixA_check/check_v4_levels_151f26e.txt`. On the delivered A4
+tree the supported reproduction is
+`results/jepa/20261017_appendixA_check/reproduce_appendix_a.py`, which uses the public API
+(`Tier1Views(law=...)` + `views.displacement`) and checks both the A4 and the v3 Appendix A tables.
 
 ## v3 law reproduction (base ρ = 0.4, v3 θ SD; channel split, line 0)
 

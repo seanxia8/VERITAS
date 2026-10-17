@@ -130,3 +130,27 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   asks the author to choose among authorising deletion of our own failed installs (exact paths),
   a quota increase, a local-disk path, or a volume descope. Until answered we use sparse code
   checkouts and few-large-file data layout (§6.1/§6.2 rules, no deletion anywhere).
+
+## Guard rulings (2026-10-17, from the fresh guard review)
+
+- **2026-10-17 — Guard start rule reads §6.2 "1 GB"/"2 GB" as 1024 MiB** (binary), and the
+  per-process GPU-memory SHED uses a documented CUDA-context tolerance of max(512 MiB, 5%) above
+  the §6.2 cap, because `nvidia-smi` reports allocator + context memory (Titan batch-32 ≈ 9.6 GB
+  against a 9.6 GB cap would otherwise SHED a compliant job). The nominal cap and the shed cap are
+  both recorded in the guard status; this loosens the literal percentage only by the context size
+  and is logged here as required by §5.
+- **2026-10-17 — Live guard must warm ≥ 5 minutes before any start, and again after any restart.**
+  The 5-minute mean GPU utilisation is the guard's own sample mean (nvidia-smi has no 5-minute
+  mean); until the window is populated the guard HOLDs ("utilisation window not populated"). The
+  operators start the guard, wait ≥ 5 minutes, then start jobs.
+- **2026-10-17 — Per-process GPU utilisation is not attributable on the Titans.** `nvidia-smi pmon
+  -c 1` runs but prints `-`/`0` for SM% for the compute PIDs on deepthought (Maxwell/driver 525)
+  and `-`/`-` on deepthought2 (driver 570). The guard therefore uses memory attribution
+  (`--query-compute-apps` memory + the full per-GPU process table for the GPU index) for the
+  "another user started heavy work" HOLD, and logs `foreign_utilization_pct = null` when pmon
+  cannot provide it. The GPU-level 5-minute mean utilisation is still enforced for starts.
+- **2026-10-17 — Claim protocol.** One O_EXCL claim file per (host, GPU) under
+  `<jobs>/.locks/`, published atomically with full content; unreadable fresh claims are treated as
+  held; stale claims are reclaimed only when both launcher and job PIDs are dead. A stuck
+  pre-pid.json launcher can block one GPU (availability only, never safety); if that happens the
+  operator reports it and the guard's duplicate-GPU HOLD keeps the card safe.

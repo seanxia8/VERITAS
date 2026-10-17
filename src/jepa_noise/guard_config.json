@@ -1,0 +1,8 @@
+{
+  "_comment": "Runtime defaults for scripts/jepa_run.sh. The resource limits themselves live in scripts/jepa_guard.py (single source of truth, runbook v4 section 6.2).",
+  "run": {
+    "default_planned_minutes": 60.0,
+    "timeout_factor": 1.5,
+    "kill_after_seconds": 300
+  }
+}
