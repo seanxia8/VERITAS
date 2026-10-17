@@ -31,7 +31,7 @@
       "allocated_workers": null,
       "projection_status": "pending_A3_revision_host_acceptance_and_complete_benchmark",
       "launch_allowed": false,
-      "charged_cpu_hours": 1.526592048021,
+      "charged_cpu_hours": 8.127451,
       "charged_gpu_hours": 0
     },
     "E2": {
@@ -576,6 +576,38 @@
       "job_kind": "training",
       "evidence": "/ceph/dwong/jepa/returns/wp4a_grid_parallel/",
       "note": "bridge grid: parallel-attention ablation seeds 0-2"
+    },
+    {
+      "id": "E1-E1b-attempt_002_20261017T124115Z",
+      "campaign": "E1",
+      "host": "Dowlings-MacBook-Pro-2.local",
+      "device": "CPU",
+      "gpu_count": 0,
+      "worker_hours": 2.475934,
+      "cpu_hours": 2.475934,
+      "wall_seconds": 8913.4,
+      "status": "stopped",
+      "exit_status": 0,
+      "code_sha": "59efe0b/df4dd1c9-tree",
+      "job_kind": "E1b",
+      "evidence": "results/jepa/20261017_wp3_e1b/",
+      "note": "resource guard (host RAM) + source-change detector; 33 rows preserved"
+    },
+    {
+      "id": "E1-E1b-attempt_003_20261017T153221Z",
+      "campaign": "E1",
+      "host": "Dowlings-MacBook-Pro-2.local",
+      "device": "CPU",
+      "gpu_count": 0,
+      "worker_hours": 4.124517,
+      "cpu_hours": 4.124517,
+      "wall_seconds": 14848.3,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "59efe0b/df4dd1c9-tree",
+      "job_kind": "E1b",
+      "evidence": "results/jepa/20261017_wp3_e1b/",
+      "note": "58/58 rows pass; detached chain; source-change warning for bridge files only"
     }
   ]
 }
