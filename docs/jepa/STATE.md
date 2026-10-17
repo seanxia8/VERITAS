@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 23:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 00:05Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -92,9 +92,19 @@ Updated: 2026-10-17 23:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   attention, 4 pre-norm d=128 blocks, read-out before any final norm, mask embedding, predictor).
   14 tests, leakage exactly 0.0, amplitude fixture R² 0.9990, 911 k parameters, batch-32 CPU peak
   ~2.8 GiB (4× inside the Titan cap). Tie-breaks and the training-only N_min scope in DECISIONS.
-- **Next**: LUCiD arm objectives + anchor penalty + the four probe forms (implementer running),
-  then the WP5 trainer/cohort wiring, the 500-step Titan smoke, the scaling benchmark (2k/10k Titan,
-  40k L40S — deepthought2 rejoins there), then the development cohort and main grid.
+- **WP5 arm/probe layer committed (`1ecfeed`)**: seven §3.5.6 arms + dark variant, the anchor
+  penalty (dark overlay + per-module rescale), the four probe forms (run-mean primary), floors and
+  R11 leakage helpers; 14 tests; Monte-Carlo readout covariance max error 4.25 %. **v_dark
+  corrected** from the scaffold 0.0 to the generator's dark-charge variance
+  0.004578 PE² (λ_dark(1+σ_spe²)), so `mae_chi2`'s C_m is positive definite at μ=0 and no variance
+  floor is applied; generator/detectability configs aligned; 63 related tests pass; the frozen
+  detectability JSON will be re-run to match the committed config.
+- **A9 follow-ups**: R5-ext executed (balanced init: 7/10 rows evaluable vs 0/10; γ=1.0 2/5 wins →
+  fail, γ=0.5 2/5 evaluable → not_evaluable; labelled, no retune, R5 stays not_evaluable).
+  B1-ext β development cohort running on the Titan (3 runs, β ∈ {10,100,1000}, commit `46c0adb`).
+- **Next**: WP5 runner (trainer/cohorts/dev-cohort steps/scaling; implementer running), then the
+  500-step Titan smoke, the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins),
+  the WP5 config review, the development cohort and the main grid.
 - Standing rule: registered runs start from a git worktree pinned to the clean SHA (main tree free
   for development).
 - In flight: A9 follow-ups (B1-ext <=4 Titan GPU-h; R5-ext CPU).
