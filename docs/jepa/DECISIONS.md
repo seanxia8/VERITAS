@@ -1013,3 +1013,38 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   θ0.4/η3** (4/6), while the registered seed-mean gives 5/6 with only θ0.1/η3 failing. The R1
   evidence text's misleading "(<=10)" comparator was corrected. R3's two solver exceptions are not
   scored as failures (the stored convention: an incomplete row is not a failure); recorded.
+
+## Author corrections before freezing (18 Oct 2026)
+
+### PMT R-6 SHA named (verbatim)
+
+> "PMT SHA b341037 is accepted for JEPA reported runs; it supersedes 0fba034."
+
+- **2026-10-18 — R-6 merged (merge commit `2c932ee`).** R-6 adds dark counts at **1 kHz per PMT in
+  a 1 µs window [−200, 800] ns**, about **2 dark hits per event**, with times measured from the start
+  of the readout window. Detectability is **not** frozen at `28e24c8`; the merged R-6 readout is the
+  readout for reported runs.
+- **2026-10-18 — `v_dark` restored** in the `mae_chi2` covariance and in the detectability ceilings as
+  the R-6 dark-charge variance `λ_dark(1+σ_spe²) = 0.001 × 1.09 = 0.00109 PE²` (derived from the
+  reference config, not a literal). The dark-window anchor draws **real** dark-only windows via
+  `noise_module_lucid.readout.dark_noise_window`, and **R7b is evaluable again**.
+- **2026-10-18 — R7b reporting requirement:** because ~2 dark hits sit against ~900 source hits, the
+  **dark-only draw's measured embedding change** must be reported next to R7b, so a pass is not
+  over-read.
+- **2026-10-18 — new readout label `readout_pmt_r6`** (the merged R-6 response with dark counts on).
+  `readout_dark_off` and `readout_synthetic_unrepaired` remain legacy constants, never written.
+
+### s_p ladder restarted from the registered default
+
+- **2026-10-18 — `s_p` restarts from 0.05.** The 0.10 value came from the superseded run that treated
+  F3 as *known*; with F3 **marginalised**, the §3.5.3a adjustment order is applied from the defaults —
+  Y_hi first, then the F2 `a` values, then (only if still short) `s_p` up to 0.10. Old and new values
+  are recorded side by side, and the superseded 0.10 is retained only as history.
+
+### B1-ext is a development β trade-off, not a second B1
+
+- **2026-10-18 — B1-ext's 3-seed anchored grid duplicates the registered B1 anchored arm** (same
+  bridge cell, arm, seeds 0,1,2, β = 10): it is stopped and labelled a replication if it ran at all.
+  What the follow-up reports is the **development trade-off at β ∈ {10, 100, 1000}**: nuisance R²,
+  physics MSE/CRLB per parameter, and which tolerance excluded β = 100 (t0 at 2.437×) and β = 1000
+  (t0 at 7.673×, amplitude 1.763×, tau_t 1.683×). No registered verdict changes.
