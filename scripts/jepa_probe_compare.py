@@ -25,7 +25,7 @@ def compare(a: dict, b: dict) -> tuple[bool, list[dict]]:
     fb = {r['batch']: r for r in b.get('fixture', {}).get('per_batch', [])}
     ok = True
     for batch in sorted(set(fa) & set(fb)):
-        for key in ('x_sum', 'x_abs_sum', 'spatial_sum', 'spatial_abs_sum', 'energy_sum'):
+        for key in ('x_sum', 'x_abs_sum', 'grid_sum', 'grid_abs_sum'):
             va, vb = fa[batch][key], fb[batch][key]
             diff = abs(va - vb)
             scale = max(abs(va), abs(vb), 1.0)
@@ -34,7 +34,7 @@ def compare(a: dict, b: dict) -> tuple[bool, list[dict]]:
             ok = ok and good
             rows.append({'batch': batch, 'quantity': key, 'host': va, 'local': vb,
                          'abs_diff': diff, 'rel_diff': rel, 'ok': good})
-        for key in ('spatial_first4', 'energy_first2'):
+        for key in ('grid_first8',):
             for i, (va, vb) in enumerate(zip(fa[batch][key], fb[batch][key])):
                 diff = abs(va - vb)
                 scale = max(abs(va), abs(vb), 1.0)

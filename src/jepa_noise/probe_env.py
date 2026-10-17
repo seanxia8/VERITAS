@@ -132,6 +132,17 @@ def main() -> int:
         model.to(device).eval()
         result['model'] = {'class': type(model).__name__, 'config': cfg.__dict__,
                            'n_params': sum(p.numel() for p in model.parameters())}
+        # The repository's muP init zeroes every residual output projection and the two heads, so
+        # the pooled head outputs are identically zero at initialisation. The equivalence fixture
+        # and the timing loss therefore use the pre-final_proj_norm token grid (the WP4a read-out),
+        # captured with a forward hook on final_proj_norm; that tensor is the first non-degenerate
+        # representation in the network.
+        captured: dict = {}
+
+        def _capture(_module, hook_args, _output):
+            captured['grid'] = hook_args[0]
+
+        model.final_proj_norm.register_forward_hook(_capture)
         rng = np.random.default_rng(args.seed)
         x_np = rng.standard_normal(
             (args.batches, args.batch_size, args.channels, args.samples)).astype(np.float32)
@@ -139,20 +150,21 @@ def main() -> int:
         with torch.no_grad():
             for b in range(args.batches):
                 x = torch.from_numpy(x_np[b]).to(device)
-                spatial, energy = model(x)
+                model(x)
+                grid = captured['grid'].double()
                 fixture.append({
                     'batch': b,
                     'x_sum': float(x_np[b].astype(np.float64).sum()),
                     'x_abs_sum': float(np.abs(x_np[b].astype(np.float64)).sum()),
-                    'spatial_sum': float(spatial.double().sum().item()),
-                    'spatial_abs_sum': float(spatial.double().abs().sum().item()),
-                    'spatial_first4': [float(v) for v in spatial.double().flatten()[:4]],
-                    'energy_sum': float(energy.double().sum().item()),
-                    'energy_first2': [float(v) for v in energy.double().flatten()[:2]],
+                    'grid_sum': float(grid.sum().item()),
+                    'grid_abs_sum': float(grid.abs().sum().item()),
+                    'grid_first8': [float(v) for v in grid.flatten()[:8]],
+                    'grid_shape': list(grid.shape),
                 })
         result['fixture'] = {'batches': args.batches, 'batch_size': args.batch_size,
                              'channels': args.channels, 'samples': args.samples,
-                             'seed': args.seed, 'per_batch': fixture}
+                             'seed': args.seed, 'readout': 'pre_final_proj_norm_token_grid',
+                             'per_batch': fixture}
     except Exception as exc:
         result['forward_error'] = f'{type(exc).__name__}: {exc}'
         result['status'] = 'failed_forward'
@@ -169,8 +181,8 @@ def main() -> int:
                 torch.cuda.reset_peak_memory_stats(device)
             t0 = time.perf_counter()
             x = torch.from_numpy(x_np[step % args.batches]).to(device)
-            spatial, energy = model(x)
-            loss = spatial.square().mean() + energy.square().mean()
+            model(x)
+            loss = captured['grid'].square().mean()
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -194,8 +206,10 @@ def main() -> int:
     try:
         with torch.no_grad():
             x = torch.from_numpy(x_np[0]).to(device)
-            a = model(x)[0].double()
-            b = model(x)[0].double()
+            model(x)
+            a = captured['grid'].double().clone()
+            model(x)
+            b = captured['grid'].double().clone()
         result['determinism_same_device_max_abs_diff'] = float((a - b).abs().max().item())
     except Exception as exc:
         result['determinism_error'] = f'{type(exc).__name__}: {exc}'
