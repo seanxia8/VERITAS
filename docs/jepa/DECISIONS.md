@@ -468,3 +468,29 @@ Recorded as the author's explicit authorisation for those two paths only (v4 §6
 >
 > Neither replaces a registered verdict. Both are reported as follow-ups. I will register them in
 > the runbook as amendment A9.
+
+## G-QUOTA option (A) executed; LUCiD pinned clone and WCTE geometry (2026-10-17)
+
+- **2026-10-17 — G-QUOTA (A) executed by the host operator.** Exactly the two authorised paths were
+  deleted; nothing else. Entries freed +9,322 (rfiles 417 783 → 408 753, rsubdirs 51 913 → 51 621),
+  free entries 30 304 → ~39 600 (39 227 settled after the shared jobs/ writes); 52 MiB freed.
+  `/ceph/dwong/jepa/venv/` left empty; `code/ data/ jobs/ returns/ logs/ raw/` intact. The gate is
+  closed; (B) is not relied on.
+- **2026-10-17 — LUCiD pinned read-only clone created** at
+  `/ceph/dwong/jepa/external/LUCiD`, HEAD `eaf2e89f579d6679e90020c732ac2c846895d691` (the pin;
+  "container: build PhotonSim v1.0.3"), clean, blobless+sparse (`lucid/`, `config/`), 460 entries /
+  6.5 MB; `import lucid` works read-only with `PYTHONPATH` pointing there under the conda python.
+  The ORACLE check-out was not fetched into or modified.
+- **2026-10-17 — WCTE geometry confirmed from LUCiD's own config.** `config/WCTE_geom_config.json`
+  sha256 `9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c` (matches the `9943d602…`
+  in the PMT branch's `configs/lucid_pmt/upstream_manifest.json`); it points to
+  `config/wcte_geometry.npz` (sha256 `0a75b035…`), which carries the parallel sensor arrays:
+  `positions_mm`/`directions` (1995, 3), `surfaces` (top 399 / barrel 1197 / bottom 399),
+  `pmt_id` (1…1995), `mpmt_id` (int32), `pmt_id_in_mpmt` (int32), and the detector scalars
+  (inner radius 1.5771308488 m, height 2.7769709938 m, sensor radius 0.04 m). **1995 PMTs in 105
+  mPMT modules, 19 per module** (21 top + 63 barrel + 21 bottom).
+- **2026-10-17 — two geometry facts that WP4b must honour:** `pmt_id_in_mpmt` is **1-based**
+  (1…19), so §3.5.4's within-module even/odd partition must use the field as given and not assume
+  0-based parity; and `mpmt_id` takes **105 distinct values over the range 0…105 with id 45
+  absent**, so module indexing must not assume a dense 0…104 block. Both are recorded for the
+  LUCiD generator/encoder implementation.
