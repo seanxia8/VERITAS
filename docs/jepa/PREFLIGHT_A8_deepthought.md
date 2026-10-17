@@ -443,3 +443,49 @@ Notes for the orchestrator:
 - Cosmetic: `probe.json` records `cudnn 90100` (matching `nvidia-cudnn-cu12==9.1.0.70` in
   `freeze.txt`) while a driver-level query of the same interpreter earlier printed 92000 — lazy
   library resolution; `freeze.txt` is the authoritative record.
+
+---
+
+## 11. LUCiD pin provenance and guard housekeeping (read-only, 12:43:59–12:44:17 UTC)
+
+### LUCiD pinned revision `eaf2e89f579d6679e90020c732ac2c846895d691` (runbook v4 §3.5.2)
+
+Runbook text, quoted: "**LUCiD.** Pinned revision `eaf2e89f579d6679e90020c732ac2c846895d691`."
+
+The pin is **not missing from the network** — it is the current tip of both candidate remotes:
+
+```
+$ git ls-remote https://github.com/dowlingwong/LUCiD | grep -i eaf2e89
+eaf2e89f579d6679e90020c732ac2c846895d691	HEAD
+eaf2e89f579d6679e90020c732ac2c846895d691	refs/heads/main
+$ git ls-remote https://github.com/CIDeR-ML/LUCiD | grep -i eaf2e89
+eaf2e89f579d6679e90020c732ac2c846895d691	HEAD
+eaf2e89f579d6679e90020c732ac2c846895d691	refs/heads/main
+eaf2e89f579d6679e90020c732ac2c846895d691	refs/tags/v0.4.1^{}
+```
+
+`ls-remote` alone only proves refs, so the existence was confirmed network-only via the commits API
+(HTTP GET, no clone, no writes): `GET /repos/{dowlingwong,CIDeR-ML}/LUCiD/commits/eaf2e89…` → **HTTP
+200 on both**. **Answer: both remotes contain the pinned commit; `dowlingwong/LUCiD` is the local
+ORACLE clone's own `origin` and its `main` is exactly the pin**, and CIDeR-ML tags it `v0.4.1`.
+
+Pinned commit metadata (API): date **2026-10-06T08:33:15Z**, author *Cesar Jesus Valls*, subject
+"container: build PhotonSim v1.0.3".
+
+Local installed LUCiD is simply **older**, not divergent: `/ceph/dwong/ORACLE/external/LUCiD` HEAD =
+`86a1871ab4a090f9e6970935af86ca98f1d114b1` (2026-09-16T13:56:48+02:00), origin
+`https://github.com/dowlingwong/LUCiD`; `git cat-file -e eaf2e89…` fails **in that clone** only
+because it has not fetched since. API compare `86a1871…eaf2e89` → status **`ahead`, ahead_by 95,
+behind_by 0**: the installed tree is an ancestor and the pin is **95 commits ahead** of it. Hence the
+installed `lucid-sim 0.1.dev1+g86a1871ab` is 95 commits behind the runbook pin. Using the pin means
+cloning/fetching it under `/ceph/dwong/jepa/` (never fetching into `/ceph/dwong/ORACLE`, which is
+outside our write area) — a provenance decision for the orchestrator, not a blocker.
+
+### Guard housekeeping (live guard, no restart)
+
+`tmux` still has only `jepa_guard`. Status at 12:43:31Z (age 46.5 s): **level OK**, `dry_run false`,
+`start.gpu 0`, `our_jobs []`, `free_entries 31,479` (`cephfs_xattr`), window warm (n=3, 241.0 s),
+per-GPU `start_ok [0:T, 1:F, 2:T, 3:T]`. All five cycles since the probe
+(12:35:28, 12:37:29, 12:39:30, 12:41:30, 12:43:31) were `OK` with `our_jobs` empty; **0 SHED lines**
+in the live log. GPU memory back at baseline 1011/4183/1007/1007 MiB, 0 % each. Free entries:
+500,000 − (416,784 + 51,737) = **31,479**.
