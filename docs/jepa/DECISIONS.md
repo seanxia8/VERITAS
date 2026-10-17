@@ -403,3 +403,29 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
 - **2026-10-17 — status anomalies recorded, not repaired.** The two runs whose `run_status.json`
   was damaged by the aborted aggregation re-run are accepted on job-level manifest evidence and
   declared complete explicitly (`--complete-run`); the aggregate's `status_anomalies` names them.
+
+## WP3 E1 provenance comparison (author-requested, 2026-10-17)
+
+- **2026-10-17 — the committed E1 runner is NOT byte-identical to the code that produced the E1a
+  and E1c rows.** Comparing the current file hashes with each attempt's recorded start/end source
+  hashes:
+  - E1a `attempt_007` (code_sha_start `9d59762`): run.py recorded start AND end `19ad201d82…`;
+    report.py start `a58e62de35…` → end `2ec13782f0…` (`source_changed_during_run` recorded);
+    neither current file matches either recorded hash.
+  - E1c `attempt_001` (code_sha_start `ed3b199`): run.py start `09dc0a2114…` → end `0f5a8c4fa3…`;
+    report.py start `bae158348d…` → end `a58e62de35…`; neither current file matches.
+  - E1b `attempt_003_20261017T153221Z` (the finishing run): run.py `df4dd1c9d1…` and report.py
+    `1760c30825…` **do** match the current files; `bridge_run.py`/`test_bridge_run.py` hashes differ
+    only because the aggregate mode was added after it started (those files are not used by E1).
+  Consequence: the E1a/E1c **row data** were produced by the code whose hashes are recorded in their
+  `attempt.json` files (authoritative for those rows), while the status/report logic (R1/R2 clause
+  combination, R3/R3b fixes) was changed afterwards and PREDICTIONS.md is regenerated with the
+  current code. No row was recomputed for the report.
+- **2026-10-17 — E1a and E1c ran from a dirty tree.** Their `code_sha_start` is a commit SHA but
+  `run.py`/`report.py` were uncommitted working-tree files at the time (recorded in each
+  `attempt.json` `git_status_start`), and both attempts record `source_changed_during_run`. This is
+  recorded as a provenance limitation of the E1a/E1c rows; it is why the new rule below exists.
+- **2026-10-17 — new rule (author directive):** a **registered run refuses to start if
+  `git status --porcelain -- src scripts` is non-empty, and records the clean SHA.** Implemented in
+  the E1 runner and in the host launcher (`jepa_run.sh`/`jepa_launch.py`); smokes/dev runs may
+  override explicitly and are then marked non-registered.

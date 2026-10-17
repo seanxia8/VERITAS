@@ -1,0 +1,436 @@
+{
+  "schema": "jepa-e1-grid-v4",
+  "registered": "2026-10-17",
+  "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
+  "runbook_v3": "docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md",
+  "amendments": {
+    "A3": "E1 cohorts, streaming and M setting as amended by v4 Sec.3.1",
+    "A4": "E1b/E2 design repair, v4 Sec.3.2",
+    "A2": "E1c data/loss binding"
+  },
+  "laws": {
+    "E1a": "exact-model-v3",
+    "E1b": "v4-A4-waveform-v1",
+    "E1c": "A2-exact-model-empirical-moments"
+  },
+  "hosts": {
+    "cpu_only": true,
+    "blas_threads": 1,
+    "workers_formula": "min(physical_cores - 2, floor(available_GB / 4))",
+    "max_workers_by_config": 3,
+    "gb_per_worker": 4,
+    "peak_worker_memory_limit_gb": 4,
+    "python": "/private/tmp/jepa-venv-cpu311/bin/python",
+    "pythonpath": "src",
+    "resource_guard": {
+      "stop_worker_peak_rss_mb": 2560.0,
+      "stop_host_free_gb": 3.0,
+      "basis": "v4 Sec.6 peak per worker <4 GB; campaign guard stops at 2.5 GB/worker or 3 GB host free RAM and relaunches at W=1 from completed rows"
+    }
+  },
+  "budget": {
+    "cpu_cap_hours": 24.0,
+    "already_charged_cpu_hours": 0.9951256591319602,
+    "projection_path": "results/jepa/20261016_wp3_E1_BUDGET_PROJECTION.json",
+    "projection_hours_at_1_worker": 13.86078,
+    "projection_workers": 1,
+    "stop_if_projection_exceeds_cap": true,
+    "row_seconds_estimate": {
+      "E1a": 1.2,
+      "E1b": 520.0,
+      "E1c": 12.0
+    },
+    "serial_hours_estimate": {
+      "E1a": 0.35,
+      "E1b": 1.9,
+      "E1c": 0.2,
+      "report": 0.5
+    }
+  },
+  "method_rows": [
+    {
+      "id": "r1_cca",
+      "solver": "cca",
+      "covariance": "subject_sample_ridge_1e-6",
+      "noise_information": "subject_sample",
+      "description": "CCA"
+    },
+    {
+      "id": "r2_hard_isotropy",
+      "solver": "hard_isotropy",
+      "covariance": "subject_sample_ridge_1e-6",
+      "noise_information": "none",
+      "description": "hard-isotropy prediction (beta=0 solution coincides with CCA in the reviewed solver; recorded as an equivalence)"
+    },
+    {
+      "id": "r3_context_pca",
+      "solver": "pca",
+      "covariance": "subject_sample_unregularized",
+      "noise_information": "none",
+      "description": "context PCA reconstruction control"
+    },
+    {
+      "id": "r4_whitened_pca",
+      "solver": "whitened_pca",
+      "covariance": "subject_sample_unregularized",
+      "noise_information": "exact_population_context",
+      "description": "noise-whitened context PCA; oracle-noise control"
+    },
+    {
+      "id": "r5_gevp",
+      "solver": "gevp",
+      "covariance": "subject_sample_unregularized",
+      "noise_information": "independent_sample_calibration",
+      "description": "pure noise GEVP"
+    },
+    {
+      "id": "r6_finite_beta_0.1",
+      "solver": "finite_beta",
+      "beta": 0.1,
+      "covariance": "subject_sample_unregularized",
+      "noise_information": "independent_sample_calibration",
+      "description": "finite-beta prediction beta=0.1"
+    },
+    {
+      "id": "r7_finite_beta_1",
+      "solver": "finite_beta",
+      "beta": 1.0,
+      "covariance": "subject_sample_unregularized",
+      "noise_information": "independent_sample_calibration",
+      "description": "finite-beta prediction beta=1"
+    },
+    {
+      "id": "r8_finite_beta_10",
+      "solver": "finite_beta",
+      "beta": 10.0,
+      "covariance": "subject_sample_unregularized",
+      "noise_information": "independent_sample_calibration",
+      "description": "finite-beta prediction beta=10"
+    },
+    {
+      "id": "r9_oracle",
+      "solver": "oracle",
+      "covariance": "exact_population",
+      "noise_information": "exact_population_joint",
+      "description": "conditional joint-whitening oracle"
+    },
+    {
+      "id": "r10_of",
+      "solver": "of",
+      "covariance": "exact_population_context",
+      "noise_information": "exact_population_context",
+      "description": "context OF/GLS physics baseline"
+    }
+  ],
+  "E1a": {
+    "d": 40,
+    "k": 3,
+    "r": 1,
+    "theta_scale": [
+      0.1,
+      0.4,
+      1.0
+    ],
+    "eta_scale": [
+      1.0,
+      3.0
+    ],
+    "gamma_load": [
+      0.0,
+      0.1,
+      0.25,
+      0.5,
+      0.75,
+      0.9,
+      1.0
+    ],
+    "n": [
+      1000,
+      10000,
+      100000
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "angle_n": 100000,
+    "share": "target",
+    "betas": [
+      0.1,
+      1.0,
+      10.0
+    ],
+    "probe": {
+      "train_events": 10000,
+      "test_events": 10000,
+      "folds": 5,
+      "fold_size": 2000,
+      "fit_intercept": true
+    },
+    "probe_targets": {
+      "physics": 3,
+      "nuisance": 1
+    },
+    "namespace_roles": [
+      "E1a_subject",
+      "E1a_probe_train",
+      "E1a_probe_test",
+      "E1a_noise_cal",
+      "E1a_R3_transform"
+    ],
+    "negative_control": {
+      "fixture": "docs/jepa/reviews/check_p5_counterexample.py",
+      "expected": "oracle_rank_ineligible",
+      "in_primary_grid": false
+    },
+    "smoke": {
+      "n": [
+        1000,
+        10000
+      ],
+      "seeds": [
+        0
+      ]
+    },
+    "expected_rows": 630,
+    "expected_smoke_rows": 84,
+    "r3_transform": {
+      "namespace": "E1a_R3_transform",
+      "distribution": "independent Gaussian N(0,1) matrices plus offset*I for the context and target views, keyed by evaluation seed and physical cell",
+      "offset": 5.0,
+      "scale": 1.0,
+      "frozen": "engineering choice frozen 2026-10-17 before the corrected E1a campaign; v3 P2 invertible per-view transform check"
+    },
+    "r3_threshold": 1e-08
+  },
+  "E1b": {
+    "law": "v4-A4-waveform-v1",
+    "signal_mode": "linearized",
+    "base_rho": 0.0,
+    "theta0": [
+      4.5,
+      0.35,
+      0.08
+    ],
+    "theta_sd": [
+      0.8660254,
+      0.0288675,
+      0.011547
+    ],
+    "theta_sd_basis": "(3, 0.1, 0.04)/sqrt(12), SDs of E2's uniform parameter ranges",
+    "reference": "latent_monitor.tier1.reference_cell, base corr_strength=0 (channel-private), temporal PSD unchanged",
+    "common_strength_grid": [
+      0.0,
+      0.005,
+      0.01,
+      0.02,
+      0.05,
+      0.1,
+      0.225,
+      0.45,
+      0.9
+    ],
+    "line_multiplier_grid": [
+      0.0,
+      0.75,
+      1.5,
+      2.25,
+      3.0
+    ],
+    "cells": [
+      {
+        "cell_id": "g0_line0",
+        "common_strength": 0.0,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p005_line0",
+        "common_strength": 0.005,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p01_line0",
+        "common_strength": 0.01,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p02_line0",
+        "common_strength": 0.02,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p05_line0",
+        "common_strength": 0.05,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p1_line0",
+        "common_strength": 0.1,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p225_line0",
+        "common_strength": 0.225,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p45_line0",
+        "common_strength": 0.45,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0p9_line0",
+        "common_strength": 0.9,
+        "line_multiplier": 0.0
+      },
+      {
+        "cell_id": "g0_line0p75",
+        "common_strength": 0.0,
+        "line_multiplier": 0.75
+      },
+      {
+        "cell_id": "g0_line1p5",
+        "common_strength": 0.0,
+        "line_multiplier": 1.5
+      },
+      {
+        "cell_id": "g0_line2p25",
+        "common_strength": 0.0,
+        "line_multiplier": 2.25
+      },
+      {
+        "cell_id": "g0_line3",
+        "common_strength": 0.0,
+        "line_multiplier": 3.0
+      }
+    ],
+    "unique_cells": 13,
+    "splits": [
+      "channel",
+      "interleaved",
+      "time",
+      "block"
+    ],
+    "primary_split": "channel",
+    "alternative_split": "interleaved",
+    "diagnostic_splits": [
+      "time",
+      "block"
+    ],
+    "n": 100000,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "k": 3,
+    "chunk_events": 10000,
+    "calibration_events": 100000,
+    "probe": {
+      "train_events": 10000,
+      "test_events": 10000,
+      "folds": 5,
+      "fold_size": 2000,
+      "fit_intercept": true
+    },
+    "probe_targets": {
+      "physics": 3,
+      "nuisance": 4,
+      "nuisance_names": [
+        "line_I",
+        "line_Q",
+        "common_0",
+        "common_1"
+      ]
+    },
+    "namespace_roles": [
+      "E1b_subject",
+      "E1b_probe_train",
+      "E1b_probe_test",
+      "E1b_noise_cal",
+      "E1b_M_event",
+      "E1b_M_noise"
+    ],
+    "expected_displacement_deg": {
+      "channel": {
+        "g0_line0": 0.0,
+        "g0p005_line0": 11.3,
+        "g0p01_line0": 22.3,
+        "g0p02_line0": 48.0,
+        "g0p05_line0": 77.0,
+        "g0p1_line0": 84.1,
+        "g0p225_line0": 87.5,
+        "g0p45_line0": 88.8,
+        "g0p9_line0": 89.4
+      },
+      "interleaved": {
+        "g0_line0": 0.0,
+        "g0p005_line0": 11.3,
+        "g0p01_line0": 22.3,
+        "g0p02_line0": 48.0,
+        "g0p05_line0": 77.0,
+        "g0p1_line0": 84.1,
+        "g0p225_line0": 87.5,
+        "g0p45_line0": 88.8,
+        "g0p9_line0": 89.4
+      }
+    },
+    "displacement_mismatch_tolerance_deg": 1.0,
+    "M_diagnostic": {
+      "common_strength": 0.02,
+      "line_multiplier": 0.0,
+      "development_seed": 100,
+      "law": "v4-A4-waveform-v1",
+      "candidate_order": [
+        "channel",
+        "interleaved",
+        "time",
+        "block"
+      ],
+      "k": 3,
+      "events": 4096,
+      "noise_records": 4096,
+      "projection_seed": 2718,
+      "projection_dim": 8,
+      "regularization": "eps(S)=1e-3*trace(S)/d",
+      "tie_tolerance": 1e-08,
+      "annotation_only": true
+    },
+    "expected_rows": 65
+  },
+  "E1c": {
+    "d": 40,
+    "depths": [
+      1,
+      2,
+      3
+    ],
+    "theta_scale": 0.4,
+    "eta_scale": 3.0,
+    "gamma_load": [
+      0.5,
+      1.0
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "batch_n": 100000,
+    "steps": 100000,
+    "learning_rate": 0.001,
+    "init_sd": 0.001,
+    "loss": "0.5*mean_events(sum_coordinates((P W x_c - stopgrad(W x_t))^2))",
+    "curve_stride": 50,
+    "row_budget_seconds": 1800,
+    "r5_rule": "delta = t_eta - min_i(t_theta_i); delta(L=3) < delta(L=1) in >=4/5 seeds at gamma_load .5 and 1; censored/nonlearned modes are not wins",
+    "expected_rows": 10
+  }
+}
