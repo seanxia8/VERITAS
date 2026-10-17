@@ -221,6 +221,6 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   not happened by 31 Oct, G-PMT is written as §3.5.2 already provides.
 - **2026-10-17 — WP4b scaffold scope.** The detector-state laws (F1, F3, F2, F2′, R11b, T), the
   nominal-twin contract, the run/ID/storage structure and the §3.5.3a Fisher-information/ceiling
-  numerics are implemented and unit-tested without LUCiD and without claiming WTCU geometry; the
+  numerics are implemented and unit-tested without LUCiD and without claiming WCTE geometry; the
   event generator, readout binding and detectability run wait for the merged readout. All output is
   labelled development-only (`readout_synthetic_unrepaired`).

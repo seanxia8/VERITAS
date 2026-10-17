@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 14:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 15:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -33,8 +33,16 @@ Updated: 2026-10-17 14:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   12:29-12:30Z. One <=10-min GPU probe per host ran through `jepa_run.sh` with no bypass:
   Titan 10.55 s (0.0029 GPU-h), L40S 126.07 s cold-cache (0.035 GPU-h); torch 2.5.1+cu121 /
   +cu124, capabilities (5,2) / (8,9), TF32 disabled, determinism 0.0.
-- **E1b running locally** (attempt_001, W measured at launch), E1c done (`not_evaluable`, frozen
-  deep modes; dynamics init check requested). E1a final = attempt_007.
+- **E1b running locally** (attempt_001, W=2, 65 rows, ~5 h projected, started 12:37Z). E1c done
+  (`not_evaluable`, frozen deep modes; dynamics init check requested). E1a final = attempt_007.
+  Next after E1b: regenerate PREDICTIONS.md, then the E1 light independent recompute (fresh agent).
+- **WP4b: scaffold in progress** (detector-state laws F1/F3/F2/F2'/R11b/T, nominal-twin contract,
+  run/ID/storage structure, §3.5.3a Fisher/ceiling numerics), labelled
+  `readout_synthetic_unrepaired`. **Two dependency findings**: the pinned LUCiD revision
+  `eaf2e89` is not available locally (only `86a1871` in /ceph/dwong/ORACLE/external/LUCiD), and the
+  PMT branch is still at synthetic 76-sensor fixture geometry, so the physical WCTE 105x19 map
+  required by §3.5.3 does not exist yet. Physical binding waits for the author-named PMT SHA;
+  G-PMT by 31 Oct if it has not arrived.
 
 ## Running jobs
 
