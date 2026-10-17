@@ -958,3 +958,16 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   resolved only when the PMT R-6 SHA (which adds dark counts) is merged. The author will name it.
 - **Merge mechanics:** merge `0fba034` into `JEPA`, no dataset regeneration yet; the merged tree's
   PMT development artefacts are carried as-is (they are the branch's audit trail).
+
+## B1-ext β development result (2026-10-17/18, Titan)
+
+- **2026-10-18 — B1-ext β development cohort complete (code `46c0adb`, clean clone).** Three anchored
+  runs at β ∈ {10, 100, 1000}, 10 000 steps each (1 868 / 1 859 / 1 874 s ≈ 1.56 GPU-h of the 4 h
+  cap). Per-parameter physics MSE/CRLB ratio to the committed plain `sigreg_jepa` seed-0 reference
+  (`probes.json` sha256 `8a03c2ae…`, identical on host and in the repo):
+  β = 10 → amplitude 0.952, t0 0.317, tau_t 0.933, **max 0.952 ≤ 1.1 → qualifies**;
+  β = 100 → amplitude 1.084, **t0 2.437**, tau_t 1.048 → does not qualify;
+  β = 1000 → amplitude 1.763, **t0 7.673**, tau_t 1.683 → does not qualify.
+  Rule selects the largest qualifying β = **10** (`tie_kind: null`), decision JSON written with
+  `extension: "B1-ext"`, `registered: false`, tolerance 1.1, budget cap 4.0 GPU-h recorded.
+  The anchored 3-seed grid at β = 10 and the beside-B1 aggregate are now running on the Titan.
