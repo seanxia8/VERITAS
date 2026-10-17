@@ -176,3 +176,27 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   the attempt manifest.
 - **2026-10-17 — E1 attempts 001–006 are superseded** (solver-tolerance rows and the R3b
   implementation defect) and archived bit-exactly; only attempt 007's rows feed the report.
+
+## Phase 0 guard deployment (2026-10-17)
+
+- **2026-10-17 — Guard deployed after two fresh reviews.** First review ACCEPT WITH FIXES (F1 pid
+  contract, F2 4th-training start, F3 claim race, F4 quota source), second review RESOLVED all
+  except F3/R1, which were closed in a third delta round (atomic claim publication; utilisation
+  warm-up HOLD) and verified by 137 tests. Commit `6468582`.
+- **2026-10-17 — Host deployments.** Sparse blobless clones at `/ceph/dwong/jepa/code/<sha>`
+  (`src scripts`, +334 entries); 10-minute dry run per host 12:18–12:29Z (no status JSON, no
+  signals, level OK, `cephfs_xattr`, unattributed memory 3–7 / 19 MiB, window warm); live guards in
+  tmux `jepa_guard` since 12:29/12:30Z; one ≤10-minute probe job per host through `jepa_run.sh`
+  (Titan 10.55 s, L40S 126.07 s cold-cache), no bypass, 0 SHED.
+- **2026-10-17 — Guard freshness race.** `jepa_run.sh` refuses a guard status not strictly younger
+  than 120 s while the guard writes every 120 s, so a start must follow a guard cycle; a refusal
+  (exit 3) is retried after the next cycle and never bypassed. Recorded by the host operator.
+- **2026-10-17 — Probe fixture defect and correction.** The first probe version recorded the
+  network's pooled heads, which the repository's muP initialisation zeroes, so the 10-batch
+  equivalence fixture was identically zero (both hosts). The probe now captures the
+  pre-`final_proj_norm` token grid with a hook and uses it for the fixture, the timing loss and
+  determinism (`9cf53de`). The equivalence test will be re-run from the next deployed SHA; the
+  environment facts from the first probes stand.
+- **2026-10-17 — Shared jobs directory.** `/ceph/dwong/jepa/jobs/` is one directory visible from
+  both hosts; guard status and job directories are per-host named, and the quota deltas between two
+  samples include both operators' writes.
