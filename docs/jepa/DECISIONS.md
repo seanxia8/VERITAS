@@ -81,3 +81,15 @@ Until the author or Junjie changes them, these are the values every LUCiD cell u
   repairs are not accepted by 31 Oct 2026).
 - **Drift ranges s, s_p, a** pending Junjie; defaults above in force.
 - **`docs/LUCID_MODEL_LINEUP_2026-10-09.md`** is untracked and untouched, per the author.
+
+## Verification records
+
+- **2026-10-17 — Appendix A reproduced at registration SHA.** Ran the registered script
+  `PYTHONPATH=src python docs/jepa/check_v4_levels.py` at `151f26e` with the accepted v3 views
+  (the script builds the A4 covariance directly from `base_rho = 0` and the E2-matched θ SD, so it
+  does not need the WP2-v4 code). A4 channel-split angle k = 3: 0.0, 11.3, 22.3, 48.0, **76.9**,
+  84.1, 87.5, 88.8, 89.4° for g = 0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.225, 0.45, 0.9 — §A's 77.0°
+  at g = 0.05 differs by 0.1°, within the 0.5° tolerance; γ_n matches §A exactly (0.000, 0.357,
+  0.526, 0.690, 0.847, 0.917, 0.962, 0.980, 0.990); interleaved agrees within 0.5°. The v3 table
+  (base ρ = 0.4, v3 θ SD, channel) reproduces exactly: 18.4, 74.0, 84.6, 89.2°. Output:
+  `results/jepa/20261017_appendixA_check/check_v4_levels_151f26e.txt`.
