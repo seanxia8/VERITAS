@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-17 15:35Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-17 17:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -50,8 +50,18 @@ Updated: 2026-10-17 15:35Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   baseline restored. `code/work` = mutable working clone at `bbcded2` (clean); `code/89af5af`
   kept as the probe record.
 - deepthought2: none. Guard live, OK, 0 SHED; jjanik's GPU1 unchanged.
-- Local: E1b attempt_002 (W=2, ~2.3 h projected, started 12:54Z) and the WP4a bridge runner
-  implementer (subagent). CPU shared; do not add heavy local jobs.
+- Local: E1b **detached** chain (`/tmp/e1b_chain.py` pid 56883, runner pid 56978, post companion
+  pid 57774), attempt_003, W=1, 57 rows, ETA ~20:30 local. Handoff notes in
+  `results/jepa/20261017_wp3_e1b/NEXT_SESSION_HANDOFF.md`. Long local runs must be detached
+  (attempt_002/003 were lost to agent-turn reaping); every further long run is launched detached.
+- Titan: β development cohort running (`wp4a_beta_dev`), β=0.1 and β=1 complete (~2014 s each),
+  β=10 running; `beta_decision.json` expected ~18:10 local, then the nine bridge runs as three
+  parallel guard-gated jobs (GPUs 0/2/3).
+- **Preliminary WP4a finding**: on the benchmark run, the amplitude-preservation probe is
+  representation-dependent — read-out tokens mean R² 0.912 (criterion met) but the post-time-block
+  representation 0.808 (criterion < 0.9, random-init floor 0.738). Registered criterion therefore
+  not met for sigreg_jepa seed 0 on the post-time representation; to be confirmed across the grid
+  and reported as a finding, not retuned.
 - **GPU evidence so far**: corrected 10-batch equivalence PASSED both hosts (worst rel 2.9e-6 /
   2.4e-6); 1-step CUDA bridge smoke PASSED on the Titan (4 arms, 14.4 s, anchored arm clean).
 - **Quota floor**: free entries ~30,552 = 552 above the §6.2 write-stop. Generation blocked until
