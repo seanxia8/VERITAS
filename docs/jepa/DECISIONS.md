@@ -860,3 +860,38 @@ geometry self-verified (`9943d602…` config, `0a75b035…` npz, layout `8b46bd3
   training cell, no write-once control, no development step 4, and no 1.2× CRLB / 1.1× SE
   probe-form rule. None is added: adding one would be a new specification item (G5), not a runner
   bug.
+
+## WP5 runner P0/P1 fixes applied (2026-10-18)
+
+- **2026-10-18 — P0 defects fixed and tested; the runner is executable end-to-end.** `_score`'s
+  undefined name; the unthreaded `physics_method` (grid now runs end-to-end on the synthetic
+  fixture and the nested step-2 decision is read); missing metrics/floors now yield
+  **`not_evaluable`** with explicit missing ids for R6, R7, R7b, R11, R11b and R12 (v3 §1.3);
+  R11/R11b use the F2 metric's own median SD and all three arms, and R6's median SD is computed on
+  the excess (per-arm SD is shift-invariant, so the observable change is that a missing non-test-arm
+  floor now forces `not_evaluable`); the frozen optimizer numerics are actually applied (AdamW
+  lr 1e-3, betas (0.9, 0.999), wd 0, eps 1e-8, fused on CUDA; Muon lr 1e-3, momentum 0.95,
+  nesterov, ns_steps 5; explicit constant-lr no-op schedule, refusal of any other schedule, no
+  warmup/decay, clip null) and the model/batches are moved to the requested device.
+- **2026-10-18 — P1 items:** R8 and the law-T extrapolation ratio are recorded `not_evaluable` with
+  precise reasons (the per-run `extra_sets` and aggregate `registered_reports` no longer claim they
+  were scored — the doc is corrected); `oracle_nominal_twin` probes and floors now read
+  `twin_hits.npz` under the same mask; the development step-3 flow consumes the nested step-2
+  physics decision and the step-2 plain probes and refuses without them (no silent ridge fallback);
+  automatic resume from a checkpoint in the run directory; 5 000-step / 3-seed fallbacks are
+  accepted and recorded in every manifest (`fallback.*`) while never `registered:true`; the floor
+  cache identity includes split, mask seed, `probe_max_events`, forms, twin flag and probe-set
+  hashes; aggregate now records the R6 full-input R²−floor, R7b attenuation R², R12 full-input
+  per-PMT R² and occupancy natural-vs-balanced quantities.
+- **2026-10-18 — `ijepa_ema` target-encoder input corrected** (Lead fix, `lucid_arms.py`): the EMA
+  target encoder now sees **target-only tokens with every other position masked**
+  (`hidden_mask=~batch.target`), as v3 WP4 requires and v4 §2 keeps; previously it saw the full
+  input. 50 tests pass across arms/runner/encoder.
+- **2026-10-18 — readings confirmed:** (i) the R6 "excess median SD" is numerically identical to the
+  raw per-arm SD because a per-arm floor shift cancels in an SD; the registered reading is kept and
+  the completeness requirement is the behavioural part; (ii) a 3-seed fallback may produce verdicts
+  but only as recorded non-registered fallback runs; (iii) R8's criterion **is** defined
+  (§3.5.9 + §3.2.9: robustness ratio = vertex resolution under the common-mode amplitude ×2 shift
+  divided by the s = 0 resolution, plain > anchored in ≥ 4/5 paired seeds, 3/3 on the aging-trend
+  cell) and will be implemented before the main grid, with the shifted-set construction reading
+  recorded then — until then R8 stays `not_evaluable` with that reason.

@@ -19,16 +19,30 @@
     "checkpoint_every_steps": 500,
     "final_step_freeze": true,
     "best_checkpoint": false,
-    "optimizer": "pending_review",
+    "optimizer": "muon_adamw",
+    "optimizer_frozen_by": "docs/jepa/DECISIONS.md 2026-10-18 'frozen LUCiD training numerics (Lead decision)': mirror the already-frozen WP4 convention in src/jepa_noise/configs/bridge_v1.json:281-322 (AdamW lr 1e-3, betas (0.9, 0.999), weight decay 0, eps 1e-8, fused on CUDA with the documented CPU fallback; Muon lr 1e-3, momentum 0.95, nesterov, ns_steps 5), constant learning rate, no warmup, no decay, grad clip null, batch 32, 10 000 steps, fp32/TF32 off. The runner applies these and refuses any other schedule.",
     "optimizer_detail": {
-      "family": "pending_review",
-      "learning_rate": "pending_review",
-      "betas": "pending_review",
-      "weight_decay": "pending_review",
-      "schedule": "pending_review",
-      "warmup_steps": "pending_review",
-      "gradient_clip": "pending_review",
-      "muon_ns_steps": "pending_review"
+      "family": "muon_adamw",
+      "learning_rate": 0.001,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08,
+      "weight_decay": 0.0,
+      "fused_on_cuda": true,
+      "fused_on_cpu": false,
+      "fused_note": "repository convention is fused=True; the CPU-only local environment uses the documented fallback fused=False. The run manifest records the device and the fused flag actually used.",
+      "muon_learning_rate": 0.001,
+      "muon_momentum": 0.95,
+      "muon_nesterov": true,
+      "muon_ns_steps": 5,
+      "schedule": "constant",
+      "warmup_steps": 0,
+      "decay": "none",
+      "gradient_clip": null,
+      "numerics_frozen": "AdamW(lr, betas, eps, weight_decay, fused policy) and Muon(lr, momentum, nesterov, ns_steps) are frozen; no outcome-dependent tuning is allowed; the schedule is an implemented no-op (constant, no warmup, no decay).",
+      "frozen_by": "docs/jepa/DECISIONS.md 2026-10-18; src/jepa_noise/configs/bridge_v1.json:281-322"
     },
     "smoke_optimizer": {
       "family": "adamw",
@@ -38,11 +52,26 @@
         0.999
       ],
       "weight_decay": 0.0,
+      "eps": 1e-08,
       "schedule": "constant",
       "warmup_steps": 0,
       "gradient_clip": null,
       "label": "engineering_smoke_only_not_registered",
-      "note": "Used by `smoke` only; the grid and dev modes refuse while training.optimizer is pending_review."
+      "note": "Fallback spec used only when a deliberately pending_review config is passed with allow_pending=True (tests/diagnostics). After the 2026-10-18 freeze, smoke uses the frozen numerics like every other run; it remains non-registered because of its synthetic geometry and reduced steps."
+    },
+    "fallbacks": {
+      "status": "not_active",
+      "steps_5000": {
+        "active": false,
+        "registered": false,
+        "note": "\u00a73.5.6 budget fallback step 3: 5 000 steps instead of 10 000; accepted by load_run_config and recorded as a non-primary run (registered=false), never a silent replacement."
+      },
+      "seeds_3": {
+        "active": false,
+        "registered": false,
+        "note": "\u00a73.5.6 budget fallback step 1: 3 seeds for every main arm; accepted by load_run_config and recorded as a non-primary run (registered=false)."
+      },
+      "recorded_in": "docs/jepa/DECISIONS.md (each fallback step must be recorded there when activated)"
     }
   },
   "cells": {
@@ -453,6 +482,7 @@
     "The physics reference v_group from reference.json is not available locally (PMT branch pending); until a path is named the reference resolution is not_evaluable.",
     "R11/R11b: the criterion does not name a probe form; the runner uses run_mean per the \u00a73.5.9 preamble ('all LUCiD detector-state R2 values are run-mean') and the seed-mean leakage (each seed's value recorded).",
     "The occupancy ablation's arm label 'LeJEPA' is read as sigreg_jepa on natural-vs-balanced context views; the natural-view baseline is the main s = 0.05 within cell.",
-    "The mae_chi2 covariance needs one cell spread s; law T's module-gain spread scales with r/R and the runbook fixes no single s. The runner passes s = 0.10 (T_SPREAD) for the law-T cell and s = 0.05 for R11b; both readings need confirmation."
+    "The mae_chi2 covariance needs one cell spread s; law T's module-gain spread scales with r/R and the runbook fixes no single s. The runner passes s = 0.10 (T_SPREAD) for the law-T cell and s = 0.05 for R11b; both readings need confirmation.",
+    "ijepa_ema target-encoder input (reported, not patched): lucid_arms.py:469-480 feeds the EMA target encoder the full input and gathers the masked target tokens, while v3 WP4 line 233 asks for the masked target-token input. The fix is inside lucid_arms.py, which is outside the WP5 runner fix's file scope; it is reported to the Lead and no silent patch is applied."
   ]
 }

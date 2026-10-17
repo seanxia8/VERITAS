@@ -469,7 +469,12 @@ class LucidArm(nn.Module):
     def _forward_ijepa_ema(self, batch: LucidBatch, step: int) -> dict:
         context, prediction, _, hidden_index, _ = self._encode_views(batch, need_full=False)
         with torch.no_grad():
-            full = self.target_encoder(batch.features, order=self.jepa.token_order)
+            # v3 WP4 (kept by v4 §2): the EMA target encoder sees **target-only**
+            # tokens with every other position masked, for the clean two-view
+            # comparison.  `batch.target` marks the target view, so the target
+            # encoder masks its complement.
+            full = self.target_encoder(batch.features, hidden_mask=~batch.target,
+                                       order=self.jepa.token_order)
             gather = hidden_index.unsqueeze(-1).expand(-1, -1, self.d_model)
             labels = self.target_norm(full.gather(1, gather))
         prediction_loss = F.mse_loss(prediction, labels)

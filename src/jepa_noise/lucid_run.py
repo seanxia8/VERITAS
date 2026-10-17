@@ -1,12 +1,15 @@
 """WP5 LUCiD runner (§3.5.6): cells, cached generation, training, probes, verdicts.
-Modes: ``grid`` (per-cell independent training; refuses while the optimizer is
-``pending_review``), ``dev`` (development-cohort steps 1-3; step 4 is refused —
-it does not exist in §3.5.6), ``smoke`` (tiny, smoke optimizer), ``scaling``
-(§3.5.5, no training; records ``does_not_fit``), ``aggregate`` (read-only; never
-edits ``PREDICTION_STATUS.json``).  ``grid --dry-run`` validates the plan without
-training or writing.  One process = one GPU job.  Binding: runbook v4 §3.5.3-
-§3.5.9 and §6.1-§6.2; every parameter the runbook does not fix is listed in
-``unresolved_questions`` and in ``docs/jepa/WP5_RUNNER.md``, never decided here.
+Modes: ``grid`` (per-cell independent training), ``dev`` (development-cohort
+steps 1-3; step 4 is refused — it does not exist in §3.5.6), ``smoke`` (tiny),
+``scaling`` (§3.5.5, no training; records ``does_not_fit``), ``aggregate``
+(read-only; never edits ``PREDICTION_STATUS.json``).  ``grid --dry-run`` validates
+the plan without training or writing.  One process = one GPU job.  Binding:
+runbook v4 §3.5.3-§3.5.9 and §6.1-§6.2; every parameter the runbook does not fix
+is listed in ``unresolved_questions`` and in ``docs/jepa/WP5_RUNNER.md``, never
+decided here.  The training numerics are frozen by the 2026-10-18 Lead decision
+(``docs/jepa/DECISIONS.md``), mirroring ``configs/bridge_v1.json``: AdamW/Muon,
+constant lr, no warmup/decay, grad clip null.  A config that still says
+``pending_review`` is refused.
 """
 from __future__ import annotations
 import argparse, json, math, os, signal, sys, time
@@ -28,6 +31,24 @@ ROOT = Path(__file__).resolve().parents[2]
 READOUT_LABEL = lb.READOUT_LABEL
 DEV2 = ("sigreg_jepa", "mae_mse")
 DEV3 = ("sigreg_jepa_anchored", "anchor_only", "sigreg_jepa_anchored_dark")
+# §3.5.6 seed counts, and the 2026-10-18 frozen numerics (Lead decision; bridge_v1.json:281-322).
+REGISTERED_SEEDS = {"sigreg_jepa": 5, "sigreg_jepa_anchored": 5, "mae_mse": 5,
+                    "mae_chi2": 3, "ijepa_ema": 3, "anchor_only": 3, "oracle_nominal_twin": 3}
+FROZEN_OPTIMIZER = {"family": "muon_adamw", "learning_rate": 0.001, "betas": [0.9, 0.999],
+                    "eps": 1e-08, "weight_decay": 0.0, "muon_learning_rate": 0.001,
+                    "muon_momentum": 0.95, "muon_nesterov": True, "muon_ns_steps": 5,
+                    "schedule": "constant", "warmup_steps": 0,
+                    "decay": "none", "gradient_clip": None}
+def fallback_active(config) -> dict:
+    """Record whether a §3.5.6 budget fallback (3 seeds or 5 000 steps) is in use."""
+    t, m = config["training"], config["cells"]["main"]
+    steps_fb = int(t["steps"]) != 10000
+    seed_fb = any(int(n) != REGISTERED_SEEDS.get(a, int(n)) for a, n in m["arms_seeds"].items())
+    return {"active": bool(steps_fb or seed_fb), "steps": int(t["steps"]),
+            "steps_fallback": bool(steps_fb), "seed_fallback": bool(seed_fb),
+            "logged_in": "docs/jepa/DECISIONS.md"} if (steps_fb or seed_fb) else {
+        "active": False, "steps": int(t["steps"]), "steps_fallback": False,
+        "seed_fallback": False, "logged_in": "docs/jepa/DECISIONS.md"}
 # --- config -----------------------------------------------------------------
 def load_run_config(path=None) -> dict:
     """Load and validate the registered plan against §3.5.6's fixed numbers."""
@@ -38,23 +59,39 @@ def load_run_config(path=None) -> dict:
         if block not in c:
             raise ValueError(f"{target}: missing {block!r}")
     t, m, d = c["training"], c["cells"]["main"], c["cells"]["development"]
-    if int(t["steps"]) != 10000 or int(t["batch"]) != 32:
-        raise ValueError(f"{target}: training must stay at 10 000 steps / batch 32")
+    if int(t["steps"]) not in (10000, 5000) or int(t["batch"]) != 32:
+        raise ValueError(f"{target}: training must stay at 10 000 steps (5 000 is the recorded "
+                         f"§3.5.6 budget fallback, non-primary) / batch 32")
     if not t.get("fp32") or t.get("tf32") or not t.get("final_step_freeze") or t.get("best_checkpoint"):
         raise ValueError(f"{target}: fp32, TF32 off, final-step freeze, no best checkpoint")
     if t["optimizer"] not in ("pending_review", "adamw", "muon_adamw"):
         raise ValueError(f"{target}: unknown optimizer {t['optimizer']!r}")
-    if t["optimizer"] == "pending_review" and any(v != "pending_review" for v in t["optimizer_detail"].values()):
-        raise ValueError(f"{target}: pending_review optimizer carries numerics")
+    if t["optimizer"] == "pending_review":
+        if any(v != "pending_review" for v in t["optimizer_detail"].values()):
+            raise ValueError(f"{target}: pending_review optimizer carries numerics")
+    else:
+        # The 2026-10-18 Lead decision freezes these values; a config edit that changes
+        # them is a specification change and is refused rather than silently trained.
+        spec = t["optimizer_detail"]
+        for key, expected in FROZEN_OPTIMIZER.items():
+            got = spec.get(key)
+            if isinstance(expected, list):
+                got = list(got) if isinstance(got, (list, tuple)) else got
+            if got != expected:
+                raise ValueError(f"{target}: frozen optimizer numerics changed: {key} "
+                                 f"{got!r} != {expected!r} (see docs/jepa/DECISIONS.md 2026-10-18)")
     if [float(x) for x in m["spreads"]] != [0.02, 0.05, 0.10] or list(m["splits"]) != ["across", "within"]:
         raise ValueError(f"{target}: main cells must be the registered spreads x splits")
     if float(m["s_p"]) != lb.F3_SPREAD:
         raise ValueError(f"{target}: s_p is frozen at {lb.F3_SPREAD}")
     if set(m["arms_seeds"]) != set(la.ARMS):
         raise ValueError(f"{target}: arms_seeds must name the seven arms")
-    for arm, n in m["arms_seeds"].items():
-        if int(n) != (5 if arm in ("sigreg_jepa", "sigreg_jepa_anchored", "mae_mse") else 3):
-            raise ValueError(f"{target}: {arm} seed count differs from §3.5.6")
+    counts = {a: int(n) for a, n in m["arms_seeds"].items()}
+    registered = {a: REGISTERED_SEEDS[a] for a in counts}
+    seed_fallback = all(n == 3 for n in counts.values())   # §3.5.6 budget fallback step 1
+    if counts != registered and not seed_fallback:
+        raise ValueError(f"{target}: {counts} is neither the registered §3.5.6 seed set "
+                         f"{registered} nor the recorded 3-seed budget fallback")
     if list(c["cells"]["secondary_order"]) != ["r11", "r11b", "dark_anchor", "law_t", "occupancy"]:
         raise ValueError(f"{target}: secondary order differs from §3.5.6")
     if tuple(d["step2_arms"]) != DEV2 or tuple(d["step3_arms"]) != DEV3 \
@@ -415,10 +452,35 @@ def build_arm(arm, geometry, arms_config, cell, seed, beta=None, dark_bank=None,
     settings = la.ArmSettings.from_config(arms_config, cell=(cell.s_arm, cell.s_p), beta=beta)
     return la.build_arm(arm, geometry, settings=settings, beta=beta, seed=int(seed),
                         dark_bank=dark_bank, encoder_config=encoder_config)
+class _ConstantSchedule:
+    """The frozen ``schedule = "constant"``: an explicit no-op (no warmup, no decay)."""
+
+    def __init__(self, optimizers):
+        self.optimizers = list(optimizers)
+
+    def step(self):
+        for optimizer in self.optimizers:
+            for group in optimizer.param_groups:
+                if "initial_lr" in group and group["lr"] != group["initial_lr"]:
+                    raise RuntimeError("constant schedule: learning rate changed")
+
+    def get_last_lr(self):
+        return [float(g["lr"]) for optimizer in self.optimizers for g in optimizer.param_groups]
+
+    def state_dict(self):
+        return {"type": "constant", "warmup_steps": 0, "decay": "none"}
+
+    def load_state_dict(self, state):
+        if state.get("type") != "constant":
+            raise RuntimeError("checkpoint scheduler is not the frozen constant schedule")
+
+
 def build_optimizers(arm, config, *, allow_pending=False):
-    """Registered AdamW/Muon groups; refuses while the numerics are pending_review."""
+    """Apply the frozen AdamW/Muon numerics (2026-10-18 Lead decision) and the
+    implemented constant schedule; refuse any other schedule or family."""
     t = config["training"]
-    if t["optimizer"] == "pending_review":
+    pending = t["optimizer"] == "pending_review"
+    if pending:
         if not allow_pending:
             raise RuntimeError("training.optimizer is pending_review: the WP5 config review must freeze "
                                "optimizer/lr/schedule before any registered or development training "
@@ -426,27 +488,54 @@ def build_optimizers(arm, config, *, allow_pending=False):
         spec, label, family = dict(t["smoke_optimizer"]), "engineering_smoke_only_not_registered", "adamw"
     else:
         spec, label = dict(t["optimizer_detail"]), t["optimizer"]
-        family = t["optimizer_detail"].get("family", t["optimizer"])
+        family = spec.get("family", t["optimizer"])
+    schedule = str(spec.get("schedule", "")).lower()
+    if schedule != "constant":
+        raise RuntimeError(f"optimizer schedule {spec.get('schedule')!r} is not implemented or frozen: "
+                           f"only 'constant' (no warmup, no decay) may be used (§3.5.5)")
+    if int(spec.get("warmup_steps", 0) or 0) != 0 or str(spec.get("decay", "none")) not in ("none", "None"):
+        raise RuntimeError("the frozen constant schedule forbids warmup and decay")
     lr, groups = spec.get("learning_rate"), arm.parameter_groups()
     if not isinstance(lr, (int, float)) or float(lr) <= 0:
         raise RuntimeError(f"optimizer {label!r}: learning_rate is not frozen")
     betas, wd = tuple(spec.get("betas", (0.9, 0.999))), float(spec.get("weight_decay", 0.0))
+    eps = float(spec.get("eps", 1e-8))
+    params = list(groups["muon"]) + list(groups["adamw"])
+    cuda = bool(params) and params[0].device.type == "cuda"
+    fused = bool(spec.get("fused_on_cuda", False)) and cuda
     if family == "adamw":
-        opts = [torch.optim.AdamW(list(groups["muon"]) + list(groups["adamw"]), lr=float(lr),
-                                  betas=betas, weight_decay=wd)]
+        opts = [torch.optim.AdamW(params, lr=float(lr), betas=betas, eps=eps,
+                                  weight_decay=wd, fused=fused)]
+        muon_info = {"muon_learning_rate": None, "muon_momentum": None,
+                     "muon_nesterov": None, "muon_ns_steps": None}
     elif family == "muon_adamw":
         from reconstruction_model.model import Muon
-        opts = [Muon(groups["muon"], lr=float(spec.get("muon_learning_rate", lr)),
-                     ns_steps=int(spec.get("muon_ns_steps", 5))),
-                torch.optim.AdamW(groups["adamw"], lr=float(lr), betas=betas, weight_decay=wd)]
+        muon_lr = float(spec.get("muon_learning_rate", lr))
+        momentum = float(spec.get("muon_momentum", 0.95))
+        nesterov = bool(spec.get("muon_nesterov", True))
+        ns_steps = int(spec.get("muon_ns_steps", 5))
+        opts = [Muon(groups["muon"], lr=muon_lr,
+                     momentum=momentum, nesterov=nesterov, ns_steps=ns_steps),
+                torch.optim.AdamW(groups["adamw"], lr=float(lr), betas=betas, eps=eps,
+                                  weight_decay=wd, fused=fused)]
+        muon_info = {"muon_learning_rate": muon_lr, "muon_momentum": momentum,
+                     "muon_nesterov": nesterov, "muon_ns_steps": ns_steps}
     else:
         raise RuntimeError(f"unknown optimizer family {family!r}")
-    return opts, {"family": family, "label": label, "learning_rate": float(lr),
-                  "betas": list(betas), "weight_decay": wd, "schedule": spec.get("schedule"),
-                  "warmup_steps": int(spec.get("warmup_steps", 0)),
-                  "gradient_clip": spec.get("gradient_clip"),
-                  "pending_review": t["optimizer"] == "pending_review",
-                  "groups": {k: len(v) for k, v in groups.items()}}
+    for optimizer in opts:
+        for group in optimizer.param_groups:
+            group.setdefault("initial_lr", float(group["lr"]))
+    scheduler = _ConstantSchedule(opts)
+    info = {"family": family, "label": label, "learning_rate": float(lr),
+            "betas": list(betas), "eps": eps, "weight_decay": wd,
+            "fused_requested": bool(spec.get("fused_on_cuda", False)), "fused": fused,
+            "device": "cuda" if cuda else "cpu", **muon_info,
+            "schedule": "constant", "schedule_implemented": "no-op constant; no warmup, no decay",
+            "warmup_steps": 0, "decay": "none",
+            "gradient_clip": spec.get("gradient_clip"),
+            "pending_review": pending,
+            "groups": {k: len(v) for k, v in groups.items()}}
+    return opts, info, scheduler
 def _checkpoint(arm, optimizers, *, identity, step, elapsed, config_sha):
     payload = {"schema": SCHEMA_CHECKPOINT, "config_sha256": config_sha, "identity": dict(identity),
                "step": int(step), "steps_scheduled": int(identity["steps_scheduled"]),
@@ -470,7 +559,8 @@ def _validate(payload, *, identity, config_sha):
         raise RuntimeError("checkpoint config sha256 differs")
 def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, config_sha,
                checkpoint_minutes=30.0, checkpoint_every=500, stop_after=None, resume=None,
-               step_callback=None, log_path=None, accum_steps=1, oracle=False, log_every=None) -> dict:
+               step_callback=None, log_path=None, accum_steps=1, oracle=False, log_every=None,
+               scheduler=None) -> dict:
     """Deterministic training; SIGTERM -> checkpoint + interrupted; the final step is kept."""
     start, elapsed_before, resumed = 0, 0.0, None
     if resume is not None:
@@ -487,6 +577,7 @@ def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, con
         if start > int(steps):
             raise RuntimeError("checkpoint step beyond the scheduled steps")
     stop = {"signal": None}
+    device = next(arm.parameters()).device
     previous = signal.signal(signal.SIGTERM, lambda signum, _f: stop.__setitem__("signal", int(signum)))
     log_every = max(1, int(steps) // 100) if log_every is None else int(log_every)
     next_timed = time.perf_counter() + checkpoint_minutes * 60.0 if checkpoint_minutes else math.inf
@@ -496,6 +587,8 @@ def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, con
             if stop["signal"] is not None or (stop_after is not None and step >= int(stop_after)):
                 interrupted = True; break
             batch, twin = loader.batch_at(step)
+            batch = _to_device(batch, device)
+            twin = _to_device(twin, device)
             for optimizer in optimizers:
                 optimizer.zero_grad(set_to_none=True)
             accum = max(1, int(accum_steps)); micro = max(1, math.ceil(int(batch.features.size(0)) / accum))
@@ -516,6 +609,8 @@ def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, con
                 torch.nn.utils.clip_grad_norm_(arm.parameters(), float(identity["gradient_clip"]))
             for optimizer in optimizers:
                 optimizer.step()
+            if scheduler is not None:
+                scheduler.step()
             if arm.arm == "ijepa_ema":
                 arm.update_target(step)
             last, step = dict(metrics, loss=total), step + 1
@@ -558,7 +653,7 @@ def run_one(*, arm_name, cell, seed, beta, config, arms_config, geometry, loader
             probe_datasets, dark_bank, out_root, data_root, config_sha, code_sha, status_text,
             device, steps=None, micro_batch=None, resume=None, stop_after=None,
             checkpoint_minutes=None, evaluate=False, allow_pending=False, step_callback=None,
-            probe_max_events=None, save_embeddings=True, log=print) -> dict:
+            probe_max_events=None, save_embeddings=True, physics_method="ridge", log=print) -> dict:
     """Train, freeze and optionally evaluate one run; writes only under out/data."""
     out_root, data_root = Path(out_root).resolve(), Path(data_root).resolve()
     run_id = run_id_for(cell.cell_id, arm_name, seed, beta)
@@ -590,22 +685,26 @@ def run_one(*, arm_name, cell, seed, beta, config, arms_config, geometry, loader
            "wall_seconds": None, "steps_completed": 0, "registered": False}
     try:
         torch.manual_seed(int(seed)); np.random.seed(int(seed) % 2 ** 32)
-        arm = build_arm(arm_name, geometry, arms_config, cell, seed, beta=beta, dark_bank=dark_bank)
-        optimizers, optimiser = build_optimizers(arm, config, allow_pending=allow_pending)
+        arm = build_arm(arm_name, geometry, arms_config, cell, seed, beta=beta,
+                        dark_bank=dark_bank).to(device)
+        optimizers, optimiser, scheduler = build_optimizers(arm, config, allow_pending=allow_pending)
         row["optimizer"], identity["gradient_clip"] = optimiser, optimiser.get("gradient_clip")
         loader = TrainingLoader(loader_dataset, geometry, split=cell.split, seed=int(seed),
                                 occupancy=cell.occupancy, n_min=int(config["views"]["n_min"]),
                                 batch=batch, twin=(arm_name == la.ORACLE_ARM),
                                 cache_runs=int(config["data"].get("loader_cache_runs", 12)))
         checkpoint_path = run_dir / "checkpoint.pt"
+        resume_path = Path(resume) if resume is not None else None
+        if resume_path is None and checkpoint_path.is_file():
+            resume_path = checkpoint_path   # documented auto-resume when a checkpoint exists
         training = train_loop(
             arm=arm, loader=loader, steps=steps, optimizers=optimizers, checkpoint_path=checkpoint_path,
             identity=identity, config_sha=config_sha,
             checkpoint_minutes=float(config["training"]["checkpoint_minutes"]
                                      if checkpoint_minutes is None else checkpoint_minutes),
             checkpoint_every=int(config["training"]["checkpoint_every_steps"]), stop_after=stop_after,
-            resume=resume, step_callback=step_callback, log_path=run_dir / "train_log.jsonl",
-            accum_steps=batch // micro, oracle=(arm_name == la.ORACLE_ARM))
+            resume=resume_path, step_callback=step_callback, log_path=run_dir / "train_log.jsonl",
+            accum_steps=batch // micro, oracle=(arm_name == la.ORACLE_ARM), scheduler=scheduler)
         row["steps_completed"], row["resumed_from_step"] = int(training["step"]), training["resumed_from_step"]
         extra = {"optimizer": optimiser, "steps_completed": int(training["step"]),
                  "checkpoint_sha256": sha256_file(checkpoint_path),
@@ -631,14 +730,18 @@ def run_one(*, arm_name, cell, seed, beta, config, arms_config, geometry, loader
                                       probe_datasets=probe_datasets, config=config, device=device,
                                       mask_seed=int(config["views"]["mask_seed"]),
                                       max_events=probe_max_events, save_embeddings=save_embeddings,
-                                      run_dir=run_dir, physics_method=physics_method)
+                                      run_dir=run_dir, physics_method=physics_method,
+                                      twin=(arm_name == la.ORACLE_ARM))
             row["probes"] = {k: (v.get("r2_mean") if isinstance(v, dict) else v)
                              for k, v in probes["results"].items()}
             row["physics"], row["probe_files"] = probes.get("physics", {}), probes.get("files", {})
+        fallback = fallback_active(config)
+        row["fallback"] = fallback
         row["registered"] = bool(not geometry.synthetic and cell.role != "development"
                                  and int(steps) == int(config["training"]["steps"])
                                  and probe_max_events is None
                                  and config["training"]["optimizer"] != "pending_review"
+                                 and not fallback["active"]
                                  and status_text.strip() == "")
         row.update(outcome="complete", finished_at_utc=utcnow(),
                    wall_seconds=round(time.time() - started_epoch, 2))
@@ -680,13 +783,20 @@ def _concat(items):
     return la.ProbeDataset(items[0].kind, items[0].form, np.concatenate([i.x for i in items]),
                            np.concatenate([i.y for i in items]), np.concatenate([i.run_ids for i in items]),
                            items[0].target_names, {"key": np.concatenate([i.meta["key"] for i in items])})
-def probe_tables(model, dataset, geometry, *, split, kinds_by_form, mask_seed, max_events=None, device=None):
-    """All four §3.5.6 probe forms; probe events are never excluded on N_min."""
+def probe_tables(model, dataset, geometry, *, split, kinds_by_form, mask_seed, max_events=None,
+                 device=None, twin=False):
+    """All four §3.5.6 probe forms; probe events are never excluded on N_min.
+
+    ``twin=True`` reads the arm's own nominal-twin input (``oracle_nominal_twin``),
+    not the real hits (§3.5.6: probes use the arm's own input).
+    """
     scaling, tables, device = pe.FeatureScaling.from_geometry(geometry), {}, device or torch.device("cpu")
     for form, kinds in kinds_by_form.items():
         accum = {kind: [] for kind in kinds}
         for row in dataset.runs:
-            batch = _probe_batch(dataset.directory / "runs" / row["run_dir"], geometry, split=split,
+            source = (dataset.directory / "runs" / row["run_dir"] / "twin_hits.npz" if twin
+                      else dataset.directory / "runs" / row["run_dir"])
+            batch = _probe_batch(source, geometry, split=split,
                                  mask_seed=mask_seed, occupancy="natural", scaling=scaling, limit=max_events)
             data = _f32(la.probe_data(model, _to_device(batch, device), _run_truth(row, dataset, geometry),
                                       geometry, run_id=row["run_id"]))
@@ -696,7 +806,8 @@ def probe_tables(model, dataset, geometry, *, split, kinds_by_form, mask_seed, m
             tables[(kind, form)] = _concat(accum[kind])
     return tables
 def _score(train, test):
-    return {f"{k}::{f}": la.probe_r2(train[k], test[k]) for k in sorted(train) if k in test}
+    return {f"{kind}::{form}": la.probe_r2(train[(kind, form)], test[(kind, form)])
+            for kind, form in sorted(train) if (kind, form) in test}
 def _vertex_error(predictions, truth):
     predictions, truth = np.asarray(predictions, float), np.asarray(truth, float)
     keep = np.isfinite(predictions).all(1) & np.isfinite(truth).all(1)
@@ -759,13 +870,13 @@ def _r11_block(train_module, test_module, train_f2, test_f2):
             "n_run_module_rows": int(module_pred.shape[0]), "n_runs": len(unique)}
 def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, device, mask_seed,
                      max_events=None, save_embeddings=True, run_dir=None, physics_method="ridge",
-                     compute_reference=False):
+                     compute_reference=False, twin=False):
     """The four probe forms over the six targets, the physics probe and R11 leakage."""
     model = getattr(arm, "jepa", arm); kinds = available_kinds(cell, config)
     train = probe_tables(model, probe_datasets["train"], geometry, split=cell.split, kinds_by_form=kinds,
-                         mask_seed=mask_seed, max_events=max_events, device=device)
+                         mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
     test = probe_tables(model, probe_datasets["test"], geometry, split=cell.split, kinds_by_form=kinds,
-                        mask_seed=mask_seed, max_events=max_events, device=device)
+                        mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
     results = _score(train, test); physics = {"model_vertex_probe": physics_method}
     if ("vertex", "per_event") in train:
         physics.update(_vertex_resolution(train[("vertex", "per_event")],
@@ -775,9 +886,15 @@ def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, d
     r11 = (_r11_block(train[("module_gain", "run_mean")], test[("module_gain", "run_mean")],
                       train[("f2_variable", "run_mean")], test[("f2_variable", "run_mean")])
            if ("module_gain", "run_mean") in train and ("f2_variable", "run_mean") in train else {})
+    extra_sets = {key: {"status": "not_evaluable", "dataset": probe_datasets[key].key,
+                        "reason": "§3.5.9 defines no registered score for this set (R8 names only a "
+                                  "'robustness ratio'; law T has no extrapolation criterion); the set "
+                                  "is generated and cached but is not scored"}
+                  for key in ("robustness", "baseline", "extrapolation") if key in probe_datasets}
     payload = {"schema": "jepa-lucid-probes-v0", "arm": arm_name, "cell_id": cell.cell_id,
                "split": cell.split, "primary_form": la.PRIMARY_PROBE_FORM, "results": results,
-               "physics": physics, "r11": r11, "registered": False, "readout_label": READOUT_LABEL}
+               "physics": physics, "r11": r11, "extra_sets": extra_sets,
+               "registered": False, "readout_label": READOUT_LABEL}
     if run_dir is not None:
         if save_embeddings:
             means = _embedding_means(model, probe_datasets["test"], geometry, split=cell.split,
@@ -835,7 +952,10 @@ def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed,
     out_root, data_root = Path(out_root).resolve(), Path(data_root).resolve()
     path = _guard(out_root / "floors" / f"{arm_name}__{cell.cell_id}.json", out_root, data_root)
     identity = {"arm": arm_name, "cell_id": cell.cell_id, "seed": 0, "config_sha256": config_sha,
-                "geometry_sha256": geometry.digest,
+                "geometry_sha256": geometry.digest, "split": cell.split,
+                "mask_seed": int(mask_seed), "probe_max_events": max_events,
+                "forms": sorted(available_kinds(cell, config)),
+                "twin_input": bool(arm_name == la.ORACLE_ARM),
                 "probe_sets": {k: v.key for k, v in probe_datasets.items()},
                 "probe_sha256": {k: v.manifest_sha256() for k, v in probe_datasets.items()}}
     if path.exists():
@@ -844,10 +964,11 @@ def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed,
             raise RuntimeError(f"floor cache {path} belongs to a different arm/cell/config")
         return cached
     model = la.random_init_floor(arm_name, geometry, seed=0); kinds = available_kinds(cell, config)
+    twin = arm_name == la.ORACLE_ARM
     train = probe_tables(model, probe_datasets["train"], geometry, split=cell.split, kinds_by_form=kinds,
-                         mask_seed=mask_seed, max_events=max_events, device=device)
+                         mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
     test = probe_tables(model, probe_datasets["test"], geometry, split=cell.split, kinds_by_form=kinds,
-                        mask_seed=mask_seed, max_events=max_events, device=device)
+                        mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
     payload = {"schema": "jepa-lucid-floor-v0", "identity": identity, "results": _score(train, test),
                "physics": (_vertex_resolution(train[("vertex", "per_event")], test[("vertex", "per_event")])
                            if ("vertex", "per_event") in train else {}),
@@ -878,45 +999,97 @@ def _values(tables, cell_id, arm, seeds, kind, form):
     return [_r2(tables, run_id_for(cell_id, arm, s), kind, form) for s in range(int(seeds))]
 def _excess(values, floor):
     return [None if v is None or floor is None else v - floor for v in values]
-def _missing(tables, specs, kind=None, form=None):
+def _run_metric_missing(tables, cell_id, arm, seeds, kind, form):
+    """Runs and the required (kind, form) probe value; missing -> not_evaluable, never fail."""
     out = []
-    for cell_id, arm, seed in specs:
-        rid = run_id_for(cell_id, arm, int(seed))
+    for seed in range(int(seeds)):
+        rid = run_id_for(cell_id, arm, seed)
         if rid not in tables["runs"]:
             out.append(rid)
-        elif kind is not None and _r2(tables, rid, kind, form) is None:
+        elif _r2(tables, rid, kind, form) is None:
             out.append(f"{rid}:{kind}::{form}")
     return out
+def _cell_metric_missing(tables, cell_id, arm_seeds, kind, form):
+    out = []
+    for arm, seeds in arm_seeds.items():
+        out.extend(_run_metric_missing(tables, cell_id, arm, seeds, kind, form))
+    return out
+def _floor_missing(tables, cell_id, arm_seeds, *metrics):
+    out = []
+    for arm in arm_seeds:
+        for kind, form in metrics:
+            if _floor_r2(tables, arm, cell_id, kind, form) is None:
+                out.append(f"floor:{arm}::{cell_id}:{kind}::{form}")
+    return out
+def _r11_missing(tables, cell_id, arm, seeds):
+    out = []
+    for seed in range(int(seeds)):
+        rid = run_id_for(cell_id, arm, seed)
+        if rid not in tables["runs"]:
+            out.append(rid); continue
+        r11 = tables["probes"].get(rid, {}).get("r11", {})
+        for field in ("leakage_i", "leakage_ii"):
+            value = r11.get(field)
+            if value is None or not np.isfinite(float(value)):
+                out.append(f"{rid}:r11.{field}")
+    return out
+def _not_evaluable(missing, reason="incomplete cell/seed/metric set"):
+    return {"status": "not_evaluable", "reason": reason, "missing": missing,
+            "values": {"required_but_missing": missing}}
 def _median_sd(tables, cell_id, arm_seeds, kind, form):
     spreads = [s for a, n in arm_seeds.items() if (s := _sd(_values(tables, cell_id, a, n, kind, form))) is not None]
     return float(np.median(spreads)) if spreads else None
+def _median_sd_excess(tables, cell_id, arm_seeds, kind, form):
+    """§3.5.8 median SD over arms of the *excess* R² (R² minus that arm's random-init floor)."""
+    spreads = []
+    for arm, seeds in arm_seeds.items():
+        floor = _floor_r2(tables, arm, cell_id, kind, form)
+        if floor is None:
+            return None
+        spread = _sd(_excess(_values(tables, cell_id, arm, seeds, kind, form), floor))
+        if spread is not None:
+            spreads.append(spread)
+    return float(np.median(spreads)) if spreads else None
+def _cell_arm_seeds(config, cell_id):
+    for cell in enumerate_cells(config):
+        if cell.cell_id == cell_id:
+            return dict(cell.seeds)
+    raise KeyError(f"unknown cell {cell_id!r}")
+def _main_seeds(config):
+    """The registered main-arm seed count (5), or the recorded 3-seed budget fallback."""
+    return int(config["cells"]["main"]["arms_seeds"]["sigreg_jepa"])
 def _verdict(passed, reason, **values):
     return {"status": "pass" if passed else "fail", "missing": [], "reason": None if passed else reason,
             "values": values}
 def _gain_verdict(tables, config, cell, seeds, arm_a, arm_b, sign, reason):
     """Shared R7/R7b core: per-seed ordering, 2x seed floor and the mean comparison."""
-    missing = _missing(tables, [(cell, arm_a, s) for s in range(seeds)]
-                       + [(cell, arm_b, s) for s in range(seeds)], "module_gain", "run_mean")
+    arm_seeds = dict(config["cells"]["main"]["arms_seeds"])
+    missing = _cell_metric_missing(tables, cell, arm_seeds, "module_gain", "run_mean")
+    missing += _run_metric_missing(tables, cell, arm_a, seeds, "module_gain", "run_mean")
+    missing += _run_metric_missing(tables, cell, arm_b, seeds, "module_gain", "run_mean")
     if missing:
-        return None, {"status": "not_evaluable", "reason": "incomplete cell/seed set", "missing": missing}
+        return None, _not_evaluable(missing, "incomplete cell/seed/metric set for the seed floor")
     a = _values(tables, cell, arm_a, seeds, "module_gain", "run_mean")
     b = _values(tables, cell, arm_b, seeds, "module_gain", "run_mean")
     every = all(x is not None and y is not None and sign * (x - y) > 0 for x, y in zip(a, b))
-    floor = _floor(_sd(a), _sd(b), _median_sd(tables, cell, config["cells"]["main"]["arms_seeds"],
-                                              "module_gain", "run_mean"))
+    floor = _floor(_sd(a), _sd(b), _median_sd(tables, cell, arm_seeds, "module_gain", "run_mean"))
     delta = _mean(a) - _mean(b)
     beyond = bool(floor is not None and abs(delta) > 2 * floor)
     return {"a": a, "b": b, "every": every, "floor": floor, "delta": delta, "beyond": beyond}, None
 def verdict_r6(tables, config):
     """§3.5.9 R6: within excess > across excess at every eligible s, beyond the floor."""
-    main, seeds = config["cells"]["main"], 5
+    main, seeds = config["cells"]["main"], _main_seeds(config)
     spreads = [float(x) for x in main["r6_r7_eligible_spreads"]]
     cells = [f"main_s{int(round(s * 100)):03d}_{split}" for s in spreads for split in ("within", "across")]
-    missing = _missing(tables, [(c, "sigreg_jepa", s) for c in cells for s in range(seeds)],
-                       "module_gain", "propagated")
+    arm_seeds = dict(main["arms_seeds"])
+    missing = []
+    for cell in cells:
+        missing += _cell_metric_missing(tables, cell, arm_seeds, "module_gain", "propagated")
+        missing += _floor_missing(tables, cell, arm_seeds, ("module_gain", "propagated"))
     if missing:
-        return {"status": "not_evaluable", "reason": "incomplete cell/seed set", "missing": missing}
-    medians = {c: _median_sd(tables, c, main["arms_seeds"], "module_gain", "propagated") for c in cells}
+        return _not_evaluable(missing, "incomplete cell/seed/metric/floor set for R6")
+    # §3.5.8 median SD over arms, on the *excess* R² (not the raw R²).
+    medians = {c: _median_sd_excess(tables, c, arm_seeds, "module_gain", "propagated") for c in cells}
     rows, passed = [], True
     for s in spreads:
         w, a = f"main_s{int(round(s * 100)):03d}_within", f"main_s{int(round(s * 100)):03d}_across"
@@ -939,14 +1112,18 @@ def verdict_r6(tables, config):
             "metric": "propagated module_gain r2_mean - random-init floor"}
 def verdict_r7(tables, config):
     """§3.5.9 R7: anchored module-gain R2 below plain in every seed, physics kept."""
-    cell, seeds = "main_s010_within", 5
+    cell, seeds = "main_s010_within", _main_seeds(config)
     core, missing = _gain_verdict(tables, config, cell, seeds, "sigreg_jepa", "sigreg_jepa_anchored", 1, "R7")
     if missing:
         return missing
     plain_res = [_res(tables, run_id_for(cell, "sigreg_jepa", s)) for s in range(seeds)]
     anchor_res = [_res(tables, run_id_for(cell, "sigreg_jepa_anchored", s)) for s in range(seeds)]
-    ratio = (_mean(anchor_res) / _mean(plain_res)) if all(v is not None for v in plain_res + anchor_res) \
-        and _mean(plain_res) else None
+    missing = [f"{run_id_for(cell, arm, s)}:physics.resolution"
+               for arm, values in (("sigreg_jepa", plain_res), ("sigreg_jepa_anchored", anchor_res))
+               for s, value in enumerate(values) if value is None]
+    if missing:
+        return _not_evaluable(missing, "physics resolution missing: R7 physics clause not evaluable")
+    ratio = (_mean(anchor_res) / _mean(plain_res)) if _mean(plain_res) else None
     physics = bool(ratio is not None and ratio <= 1.1)
     return _verdict(core["every"] and core["beyond"] and physics, "criterion not met",
                     plain=core["a"], anchored=core["b"], delta_mean=core["delta"],
@@ -967,16 +1144,17 @@ def verdict_r7b(tables, config):
     return _verdict(passed, "dark anchor removed the drift", plain=core["a"],
                     dark_anchor=core["b"], mean_plain=_mean(core["a"]), mean_dark=_mean(core["b"]),
                     threshold=threshold, seed_floor=core["floor"]) | {"missing": []}
-def _r11_conditions(tables, cell_id, arm, seeds, config):
+def _r11_conditions(tables, cell_id, arm, seeds, cell_arm_seeds):
     f1 = _values(tables, cell_id, arm, seeds, "module_gain", "run_mean")
     f2 = _values(tables, cell_id, arm, seeds, "f2_variable", "run_mean")
     mf1, mf2 = _mean(f1), _mean(f2)
     ff1 = _floor_r2(tables, arm, cell_id, "module_gain", "run_mean")
     ff2 = _floor_r2(tables, arm, cell_id, "f2_variable", "run_mean")
-    arms = ({"sigreg_jepa": 5, "sigreg_jepa_anchored": 5, "mae_mse": 5}
-            if not cell_id.startswith("r11b") else {arm: seeds})
-    med = _median_sd(tables, cell_id, arms, "module_gain", "run_mean")
-    sf1, sf2 = _floor(_sd(f1), med), _floor(_sd(f2), med)
+    # §3.5.8: each metric uses its own median SD over all arms in the cell. The F2
+    # (attenuation) floor must never be stabilised by the module-gain spread.
+    med_f1 = _median_sd(tables, cell_id, cell_arm_seeds, "module_gain", "run_mean")
+    med_f2 = _median_sd(tables, cell_id, cell_arm_seeds, "f2_variable", "run_mean")
+    sf1, sf2 = _floor(_sd(f1), med_f1), _floor(_sd(f2), med_f2)
     leak_i = [tables["probes"].get(run_id_for(cell_id, arm, s), {}).get("r11", {}).get("leakage_i")
               for s in range(seeds)]
     leak_ii = [tables["probes"].get(run_id_for(cell_id, arm, s), {}).get("r11", {}).get("leakage_ii")
@@ -990,25 +1168,39 @@ def _r11_conditions(tables, cell_id, arm, seeds, config):
             "seed_floor_f1": sf1, "seed_floor_f2": sf2, "leakage_i": leak_i, "leakage_ii": leak_ii,
             "leakage_i_mean": _mean(leak_i), "leakage_ii_mean": _mean(leak_ii), **conditions,
             "all_conditions": all(conditions.values())}
+def _r11_required(tables, cell_id, seeds, cell_arm_seeds):
+    missing = _cell_metric_missing(tables, cell_id, cell_arm_seeds, "module_gain", "run_mean")
+    missing += _cell_metric_missing(tables, cell_id, cell_arm_seeds, "f2_variable", "run_mean")
+    missing += _floor_missing(tables, cell_id, cell_arm_seeds,
+                              ("module_gain", "run_mean"), ("f2_variable", "run_mean"))
+    missing += _r11_missing(tables, cell_id, "sigreg_jepa", seeds)
+    return missing
 def verdict_r11(tables, config):
     """§3.5.9 R11: F1 and F2 separable on the R11 cell."""
-    cell, seeds = "r11_f1f2f3_within", 5
-    missing = _missing(tables, [(cell, "sigreg_jepa", s) for s in range(seeds)], "module_gain", "run_mean")
+    cell = "r11_f1f2f3_within"
+    arm_seeds = _cell_arm_seeds(config, cell)
+    seeds = int(arm_seeds["sigreg_jepa"])
+    missing = _r11_required(tables, cell, seeds, arm_seeds)
     if missing:
-        return {"status": "not_evaluable", "reason": "incomplete cell/seed set", "missing": missing}
-    conditions = _r11_conditions(tables, cell, "sigreg_jepa", seeds, config); passed = conditions["all_conditions"]
+        return _not_evaluable(missing, "incomplete cell/seed/metric/floor/leakage set for R11")
+    conditions = _r11_conditions(tables, cell, "sigreg_jepa", seeds, arm_seeds)
+    passed = conditions["all_conditions"]
     return {"status": "pass" if passed else "fail", "missing": [], "values": conditions,
             "reason": None if passed else "one or more R11 conditions not met"}
 def verdict_r11b(tables, config):
     """§3.5.9 R11b: co-trained effects stay entangled (only if R11 passes)."""
     r11 = tables.get("verdicts", {}).get("R11") or verdict_r11(tables, config)
     if r11.get("status") != "pass":
-        return {"status": "not_evaluable", "reason": "R11 does not pass", "missing": []}
-    cell, seeds = "r11b_law_within", 3
-    missing = _missing(tables, [(cell, "sigreg_jepa", s) for s in range(seeds)], "module_gain", "run_mean")
+        return {"status": "not_evaluable", "reason": f"R11 is {r11.get('status')}, not pass",
+                "missing": r11.get("missing", [])}
+    cell = "r11b_law_within"
+    arm_seeds = _cell_arm_seeds(config, cell)
+    seeds = int(arm_seeds["sigreg_jepa"])
+    missing = _r11_required(tables, cell, seeds, arm_seeds)
     if missing:
-        return {"status": "not_evaluable", "reason": "incomplete cell/seed set", "missing": missing}
-    conditions = _r11_conditions(tables, cell, "sigreg_jepa", seeds, config); passed = not conditions["all_conditions"]
+        return _not_evaluable(missing, "incomplete cell/seed/metric/floor/leakage set for R11b")
+    conditions = _r11_conditions(tables, cell, "sigreg_jepa", seeds, arm_seeds)
+    passed = not conditions["all_conditions"]
     return {"status": "pass" if passed else "fail", "missing": [], "values": conditions,
             "reason": None if passed else "all R11 conditions still hold after co-varying training"}
 def verdict_r12(tables, config):
@@ -1018,13 +1210,18 @@ def verdict_r12(tables, config):
                 "reason": "F3 did not pass §3.5.3a (frozen decision): R12 not_evaluable, no gate"}
     r6 = tables.get("verdicts", {}).get("R6") or verdict_r6(tables, config)
     if r6.get("status") != "pass":
-        return {"status": "not_evaluable", "reason": "R6 does not pass", "missing": []}
-    seeds = 5
+        return {"status": "not_evaluable", "reason": f"R6 is {r6.get('status')}, not pass",
+                "missing": r6.get("missing", [])}
+    seeds = _main_seeds(config)
     cells = [f"main_s{int(round(float(s) * 100)):03d}_{split}"
              for s in config["cells"]["main"]["r6_r7_eligible_spreads"] for split in ("within", "across")]
-    missing = _missing(tables, [(c, "sigreg_jepa", s) for c in cells for s in range(seeds)], "pmt_gain", "propagated")
+    arm_seeds = {"sigreg_jepa": seeds}
+    missing = []
+    for cell in cells:
+        missing += _cell_metric_missing(tables, cell, arm_seeds, "pmt_gain", "propagated")
+        missing += _floor_missing(tables, cell, arm_seeds, ("pmt_gain", "propagated"))
     if missing:
-        return {"status": "not_evaluable", "reason": "incomplete cell/seed set", "missing": missing}
+        return _not_evaluable(missing, "incomplete cell/seed/metric/floor set for R12")
     rows, passed = [], True
     for cell in cells:
         floor = _floor_r2(tables, "sigreg_jepa", cell, "pmt_gain", "propagated")
@@ -1089,6 +1286,64 @@ def _cka_table(embeddings, config):
                     out.append({"cell_id": cell.cell_id, "arm": arm, "seeds": [a, b],
                                 "linear_cka": linear_cka(vectors[a], vectors[b])})
     return out
+def _excess_record(tables, cell, arm, seeds, kind, form):
+    values = _values(tables, cell, arm, seeds, kind, form)
+    floor = _floor_r2(tables, arm, cell, kind, form)
+    excess = _excess(values, floor)
+    complete = all(v is not None for v in values)
+    return {"cell": cell, "arm": arm, "metric": f"{kind}::{form}", "seeds": int(seeds),
+            "values": values, "floor": floor, "excess": excess,
+            "mean": _mean(values), "mean_excess": _mean(excess),
+            "status": "evaluated" if complete and floor is not None else "not_evaluable",
+            "reason": None if complete and floor is not None else "missing run, metric or floor"}
+def registered_reports(tables, config) -> dict:
+    """§3.5.9 registered reporting quantities, recorded even when the verdict is not evaluable.
+
+    R6 full-input R² − floor; R7b attenuation (F2) R² of anchored vs plain in the R11
+    cell; R12 full-input per-PMT R² per split; the occupancy natural-vs-balanced
+    comparison.  R8 and the law-T extrapolation criterion are recorded as
+    ``not_evaluable`` because §3.5.9 does not define their ratio/quantity.
+    """
+    main, seeds = config["cells"]["main"], _main_seeds(config)
+    spreads = [float(x) for x in main["r6_r7_eligible_spreads"]]
+    cells = [f"main_s{int(round(s * 100)):03d}_{split}" for s in spreads for split in ("within", "across")]
+    r6_full = [_excess_record(tables, c, "sigreg_jepa", seeds, "module_gain", "run_mean") for c in cells]
+    r11 = "r11_f1f2f3_within"
+    r7b_attenuation = {
+        "cell": r11, "metric": "f2_variable::run_mean",
+        "plain": _excess_record(tables, r11, "sigreg_jepa", seeds, "f2_variable", "run_mean"),
+        "anchored": _excess_record(tables, r11, "sigreg_jepa_anchored", seeds, "f2_variable", "run_mean"),
+        "status": "reported_without_criterion",
+        "note": "§3.5.9 R7b: attenuation (or F2') R² of anchored vs plain in the R11 cell is "
+                "reported without criterion"}
+    r12_full = [_excess_record(tables, c, "sigreg_jepa", seeds, "pmt_gain", "run_mean") for c in cells]
+    occupancy = {
+        "main_cell": "main_s005_within", "occupancy_cell": "occupancy_s005_within_balanced",
+        "arm": "sigreg_jepa",
+        "natural": {m: _excess_record(tables, "main_s005_within", "sigreg_jepa", 3, *m)
+                    for m in (("module_gain", "run_mean"), ("module_gain", "propagated"))},
+        "balanced": {m: _excess_record(tables, "occupancy_s005_within_balanced", "sigreg_jepa", 3, *m)
+                     for m in (("module_gain", "run_mean"), ("module_gain", "propagated"))},
+        "status": "reported_without_criterion",
+        "note": "§3.5.6 item 5 / §3.5.9: natural-vs-balanced context views, recorded"}
+    return {
+        "R6_full_input_module_gain_minus_floor": r6_full,
+        "R7b_attenuation_anchored_vs_plain": r7b_attenuation,
+        "R12_full_input_per_pmt_gain": r12_full,
+        "occupancy_natural_vs_balanced": occupancy,
+        "R8_robustness": {
+            "status": "not_evaluable",
+            "reason": "§3.5.9 defines R8 only as a 'robustness ratio of plain > anchored'; neither "
+                      "the ratio's numerator/denominator nor the robustness score is defined, so no "
+                      "registered R8 quantity can be computed without a decision. The robustness "
+                      "(s = 0.20) and baseline (s = 0) sets are generated and cached.",
+            "missing": ["criterion_definition: robustness ratio"]},
+        "law_T_extrapolation": {
+            "status": "not_evaluable",
+            "reason": "§3.5.9 fixes no extrapolation criterion for law T; the [1.9, 2.1] "
+                      "extrapolation probe set is generated but its registered score is undefined.",
+            "missing": ["criterion_definition: law-T extrapolation"]},
+    }
 def run_aggregate(args, config) -> dict:
     """Read-only aggregation; writes aggregate/fragment/update under --out only."""
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
@@ -1102,7 +1357,9 @@ def run_aggregate(args, config) -> dict:
                "runs": {rid: {k: r.get(k) for k in ("cell_id", "arm", "seed", "outcome",
                                                     "registered", "wall_seconds")}
                         for rid, r in rows.items()},
-               "detectability": detect, "verdicts": verdicts, "cka": _cka_table(embeddings, config)}
+               "detectability": detect, "verdicts": verdicts,
+               "registered_reports": registered_reports(tables, config),
+               "cka": _cka_table(embeddings, config)}
     atomic_write_json(out / "aggregate.json", _safe(payload))
     fragment = {"generated_utc": payload["created_utc"], "registered": payload["registered"],
                 "note": "PREDICTION_STATUS.json is never edited by this tool",
@@ -1149,6 +1406,27 @@ def _write_decision(path: Path, payload: dict):
     payload = dict(payload, registered=False,
                    note="frozen development decision; registered=false until the full grid runs")
     atomic_write_json(path, payload); write_sha256sums(path.parent); return payload
+def physics_method_from_decision(path) -> tuple:
+    """Read a step-2 decision (nested under ``physics_probe``) or a flat grid decision.
+
+    Returns ``(method, source)``.  The registered default is ridge; only an explicit
+    ``mlp`` switches the physics probe, and an unknown/missing decision is recorded
+    as the registered default rather than silently inferred.
+    """
+    if not path:
+        return "ridge", "registered_default_ridge"
+    source = Path(path)
+    if not source.exists():
+        raise RuntimeError(f"physics-probe decision {source} does not exist; refusing a silent "
+                           f"ridge fallback (run dev --step 2 first, or omit the flag)")
+    payload = json.loads(source.read_text())
+    nested = payload.get("physics_probe") if isinstance(payload.get("physics_probe"), dict) else {}
+    value = nested.get("decision", payload.get("decision"))
+    if value == "mlp":
+        return "mlp", str(source)
+    if value == "ridge":
+        return "ridge", str(source)
+    return "ridge", f"{source}: decision {value!r} -> registered default ridge"
 def run_dev(args, config, *, geometry, gen_config, arms_config, data_root, out_root, config_sha,
             code_sha, status_text, device, dry_run=False, log=print) -> dict:
     """Development cohort steps 1-3; step 4 is not in §3.5.6 and is refused."""
@@ -1171,6 +1449,11 @@ def run_dev(args, config, *, geometry, gen_config, arms_config, data_root, out_r
     if config["training"]["optimizer"] == "pending_review":
         raise RuntimeError("development-cohort steps 2-3 need the WP5 config review to freeze the "
                            "optimizer/lr/schedule (§3.5.5; gate to the Lead)")
+    decision_path = _guard(Path(out_root) / "dev" / "step2_probe_decision.json", out_root, data_root)
+    if step == 2:
+        physics_method, physics_source = "ridge", "step 2 measures the linear probe that decides"
+    else:
+        physics_method, physics_source = physics_method_from_decision(decision_path)
     loader_ds = ensure_dataset(data_root=data_root, geometry=geometry, generator_config=gen_config,
                                cohort_spec=config["data"]["cohorts"][dev.train_cohort],
                                cohort_name=dev.train_cohort, law="F1", setting=dev.setting,
@@ -1196,20 +1479,27 @@ def run_dev(args, config, *, geometry, gen_config, arms_config, data_root, out_r
             arms_config=arms_config, geometry=geometry, loader_dataset=loader_ds,
             probe_datasets=probe_datasets, dark_bank=dark, out_root=out_root, data_root=data_root,
             config_sha=config_sha, code_sha=code_sha, status_text=status_text, device=device,
-            evaluate=True, allow_pending=False, log=log)
+            evaluate=True, allow_pending=False, physics_method=physics_method, log=log)
     if step == 2:
         linear = {arm: results[arm]["manifest"].get("physics", {}).get("resolution")
                   for arm in config["cells"]["development"]["step2_arms"]}
         reference = _reference_vertex_resolution(probe_datasets["test"], geometry, config)
-        path = _guard(Path(out_root) / "dev" / "step2_probe_decision.json", out_root, data_root)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return _write_decision(path, {"schema": "jepa-lucid-dev-step2-v0", "step": 2,
-                                      "probe_primary_form": la.PRIMARY_PROBE_FORM,
-                                      "physics_probe": decide_physics_probe(linear, reference.get("resolution")),
-                                      "reference": reference, "runs": list(results)})
+        decision_path.parent.mkdir(parents=True, exist_ok=True)
+        return _write_decision(decision_path, {"schema": "jepa-lucid-dev-step2-v0", "step": 2,
+                                               "probe_primary_form": la.PRIMARY_PROBE_FORM,
+                                               "physics_probe": decide_physics_probe(
+                                                   linear, reference.get("resolution")),
+                                               "physics_method_used": physics_method,
+                                               "reference": reference, "runs": list(results)})
     plain_path = Path(args.plain_reference) if getattr(args, "plain_reference", None) else None
-    plain_resolution = (json.loads(plain_path.read_text()).get("physics", {}).get("resolution")
-                        if plain_path and plain_path.exists() else None)
+    if plain_path is None:
+        plain_path = (Path(out_root) / "runs"
+                      / run_id_for(dev.cell_id, "sigreg_jepa",
+                                   int(config["cells"]["development"]["step2_seed"])) / "probes.json")
+    if not plain_path.is_file():
+        raise RuntimeError(f"development step 3 needs step 2's plain sigreg_jepa probes at {plain_path} "
+                           f"(run dev --step 2) or an explicit --plain-reference")
+    plain_resolution = json.loads(plain_path.read_text()).get("physics", {}).get("resolution")
     selections = {}
     for arm in config["cells"]["development"]["step3_arms"]:
         table = [{"beta": item["beta"], "resolution": results[f"{arm}@{item['beta']:g}"]["manifest"]
@@ -1219,7 +1509,10 @@ def run_dev(args, config, *, geometry, gen_config, arms_config, data_root, out_r
     path.parent.mkdir(parents=True, exist_ok=True)
     return _write_decision(path, {"schema": "jepa-lucid-dev-step3-v0", "step": 3,
                                   "plain_resolution": plain_resolution,
-                                  "plain_source": str(plain_path) if plain_path else None,
+                                  "plain_source": str(plain_path),
+                                  "physics_method": physics_method,
+                                  "physics_method_source": physics_source,
+                                  "step2_decision": str(decision_path),
                                   "selections": selections,
                                   "beta_grid": config["cells"]["development"]["beta_grid"]})
 # --- scaling / smoke --------------------------------------------------------
@@ -1365,9 +1658,9 @@ def run_grid(args, config, *, geometry, generator_config, arms_config, data_root
         beta = {arm: value["selected"] for arm, value in
                 json.loads(Path(args.beta_decision).read_text()).get("selections", {}).items()}
     sets, seed = _probe_sets(config), int(config["data"]["dataset_seed"]); done, floors_done = [], set()
-    physics_method = "ridge"
-    if getattr(args, "physics_probe_decision", None):
-        physics_method = json.loads(Path(args.physics_probe_decision).read_text()).get("decision", "ridge")
+    physics_method, physics_source = physics_method_from_decision(
+        getattr(args, "physics_probe_decision", None))
+    log(f"[grid] physics probe: {physics_method} (source: {physics_source})")
     for cell in cells:
         if arms and not (set(cell.arms) & arms):
             continue
