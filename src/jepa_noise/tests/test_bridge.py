@@ -22,6 +22,7 @@ for _variable in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ.setdefault(_variable, "1")
 
 import copy
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -74,7 +75,9 @@ def build_arm(config, products, arm, seed=0, beta=BETA_SMOKE):
         arm,
         channel_mean=products["channel_mean"],
         channel_std=products["channel_std"],
-        target_noise_covariance=products["target_noise_covariance"],
+        target_noise_covariance=products.get(
+            "target_marginal", products["target_noise_covariance"]
+        ),
         noise_bank=products["noise_bank"],
         beta=beta if arm == "sigreg_jepa_anchored" else None,
         seed=seed,
@@ -157,17 +160,23 @@ def test_config_pins_registered_numerics(config):
     assert all(isinstance(line, str) and line for line in config["decisions"])
     assert any("not a selection" in line for line in config["decisions"])
     assert "pending" in config["pre_outcome_review"]
+    # Platform-stable verification contract: tolerance authoritative, sha informational.
+    reference = data["target_noise_covariance"]["reference"]
+    assert reference["file_sha256"] == synthetic.reference_file_sha256()
+    assert reference["relative_frobenius_tolerance"] == 1e-8
+    assert data["fixed_scaling"]["relative_tolerance"] == 1e-6
+    assert "informational" in data["target_noise_covariance"]["sha256_informational_note"]
+    assert "BLAS" in data["target_noise_covariance"]["platform_stability"]
+    assert "host_cache" in data["target_noise_covariance"]
+    assert config["tests"]["smoke"]["cuda_command"].endswith("--device cuda:0")
 
 
 def test_frozen_a4_products_match_registered_generator(config, products):
-    """The config's frozen scaling and N_actual hashes reproduce from views.py."""
+    """Products verify against the frozen config by tolerance, not bytes."""
     metadata = products["metadata"]
     data = config["data"]
     frozen_scaling = data["fixed_scaling"]
     assert frozen_scaling["status"].startswith("frozen")
-    assert frozen_scaling["values_mean_std"]["mean"] == metadata["fixed_scaling"]["mean"]
-    assert frozen_scaling["values_mean_std"]["std"] == metadata["fixed_scaling"]["std"]
-    assert frozen_scaling["sha256"] == metadata["fixed_scaling"]["sha256"]
     assert (
         frozen_scaling["n_records"],
         frozen_scaling["role"],
@@ -175,7 +184,7 @@ def test_frozen_a4_products_match_registered_generator(config, products):
         frozen_scaling["cell"],
     ) == (4096, "noise_cal", 0, "bridge")
     assert all(value > 0 for value in frozen_scaling["values_mean_std"]["std"])
-    # The fitted products are bit-identical to the frozen config values.
+    # The frozen config scaling is authoritative and returned unchanged.
     assert torch.equal(
         products["channel_mean"],
         torch.tensor(frozen_scaling["values_mean_std"]["mean"], dtype=torch.float32),
@@ -184,73 +193,115 @@ def test_frozen_a4_products_match_registered_generator(config, products):
         products["channel_std"],
         torch.tensor(frozen_scaling["values_mean_std"]["std"], dtype=torch.float32),
     )
+    # The host-side refit agrees with the frozen values within the tolerance.
+    std_scale = np.asarray(frozen_scaling["values_mean_std"]["std"], dtype=float)
+    for key in ("mean", "std"):
+        computed = np.asarray(
+            metadata["fixed_scaling"]["computed_" + key], dtype=float
+        )
+        reference = np.asarray(
+            frozen_scaling["values_mean_std"][key], dtype=float
+        )
+        error = np.linalg.norm(computed - reference) / np.linalg.norm(std_scale)
+        assert error <= frozen_scaling["relative_tolerance"]
 
+    # N_actual: the committed reference file is authoritative; the exact
+    # per-host sha256 is informational and must not act as a gate.
     frozen_target = data["target_noise_covariance"]
     assert frozen_target["status"].startswith("frozen")
-    assert frozen_target["sha256"] == metadata["target_noise_covariance"]["sha256"]
+    reference_block = frozen_target["reference"]
+    assert reference_block["file_sha256"] == synthetic.reference_file_sha256()
+    assert reference_block["relative_frobenius_tolerance"] == 1e-8
+    assert "informational" in frozen_target["sha256_informational_note"]
+    assert "BLAS" in frozen_target["platform_stability"]
     assert (
         frozen_target["target_raw_index_sha256"]
         == metadata["target_noise_covariance"]["target_raw_index_sha256"]
     )
-    assert (
-        frozen_target["generator_manifest_sha256"]
-        == metadata["generator"]["manifest_sha256"]
+    reference = synthetic.load_reference_marginal()
+    computed = synthetic.target_marginal_from_full(
+        products["target_noise_covariance"]
     )
-    assert (
-        frozen_target["generator_noise_covariance_sha256"]
-        == metadata["generator"]["noise_covariance_sha256"]
+    assert synthetic.relative_frobenius_error(computed, reference) <= 1e-8
+    assert metadata["target_noise_covariance"]["reference_file_sha256"] == (
+        reference_block["file_sha256"]
     )
-    # Bridge signal is nonlinear (E1b-only linearised fixture), and the overlay
-    # bank is the registered 1024-record draw.
+
+    # Bridge signal is nonlinear (E1b-only linearised fixture); the overlay bank
+    # is the registered 1024-record draw (its sha256 is informational).
     generator = data["generator"]
     assert generator["views_constructor"]["signal_mode"] == "nonlinear"
     assert generator["views_constructor"]["amplitude_scale"] == 1.0
     assert generator["overlay_noise"]["n_records"] == 1024
     assert generator["overlay_noise"]["role"] == "noise_overlay"
+    assert "sha256_informational" in generator["overlay_noise"]
     assert products["noise_bank"].shape == (1024, 8, 256)
-    assert (
-        metadata["overlay_noise"]["sha256"]
-        == generator["overlay_noise"]["sha256"]
-        == products["metadata"]["overlay_noise"]["sha256"]
-    )
     assert metadata["verified_against_config"] is True
     synthetic.verify_bridge_products(config, products)  # must not raise
 
-    covariance = np.asarray(products["target_noise_covariance"], dtype=np.float64)
-    target_index = raw_split("channel").target
-    marginal = covariance[np.ix_(target_index, target_index)]
+    marginal = products["target_marginal"]
     assert marginal.shape == (1024, 1024)
-    np.linalg.cholesky(marginal)  # raises if the frozen marginal is not SPD
+    np.linalg.cholesky(marginal)  # raises if the marginal is not SPD
     model = build_arm(config, products, "mae_chi2")
     assert model.target_precision_chol.shape == (1024, 1024)
 
 
-def test_product_verification_raises_on_sha_mismatch(config):
-    """The run-time check must refuse a marginal that does not match the config."""
+def test_reference_matrix_tolerance_is_platform_stable():
+    """Last-bit perturbations pass; a 1e-3 relative perturbation fails."""
+    reference = synthetic.load_reference_marginal()
+    assert reference.shape == (1024, 1024)
+    assert np.allclose(reference, reference.T)
+    np.linalg.cholesky(reference)
+    index = np.unravel_index(
+        int(np.argmax(np.abs(reference))), reference.shape
+    )
+    last_bit = reference.copy()
+    last_bit[index] *= 1.0 + 1e-12
+    last_bit[index[1], index[0]] = last_bit[index]
+    synthetic.verify_bridge_matrix(last_bit, reference)  # no raise
+
+    large = reference.copy()
+    large[index] *= 1.0 + 1e-3
+    large[index[1], index[0]] = large[index]
+    with pytest.raises(RuntimeError, match="relative Frobenius"):
+        synthetic.verify_bridge_matrix(large, reference)
+
+
+def test_verification_rejects_wrong_reference_file_sha(config, products):
     bad = copy.deepcopy(config)
-    bad["data"]["target_noise_covariance"]["sha256"] = "0" * 64
-    with pytest.raises(RuntimeError, match="N_actual target marginal sha256"):
-        synthetic.a4_bridge_products(
-            n_calibration=8, n_overlay=2, config=bad
+    bad["data"]["target_noise_covariance"]["reference"]["file_sha256"] = "0" * 64
+    with pytest.raises(RuntimeError, match="does not match the config"):
+        synthetic.verify_bridge_products(bad, products)
+
+
+def test_marginal_is_materialised_once_then_loaded(products, tmp_path):
+    """Host cache: write identical bytes once, verify file sha on every load."""
+    reference_sha = products["metadata"]["reference_file_sha256"]
+    first, source = synthetic.materialize_or_load_marginal(
+        products["target_marginal"], tmp_path, reference_sha
+    )
+    assert source.startswith("computed+written:")
+    path = Path(source.split(":", 1)[1])
+    assert path.exists() and path.name == "N_actual_target_marginal.npy"
+    record = json.loads((path.parent / "manifest.json").read_text())
+    assert record["reference_file_sha256"] == reference_sha
+    assert record["shape"] == [1024, 1024] and record["dtype"] == "<f8"
+    assert record["computed_on"] and record["code_sha"] is not None
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert record["file_sha256"] == digest
+
+    loaded, second = synthetic.materialize_or_load_marginal(
+        products["target_marginal"], tmp_path, reference_sha
+    )
+    assert second.startswith("cache:")
+    assert np.array_equal(first, loaded)
+
+    # A tampered cache file is refused (never silently trained on).
+    np.save(path, loaded * (1.0 + 1e-6))
+    with pytest.raises(RuntimeError, match="sha256"):
+        synthetic.materialize_or_load_marginal(
+            products["target_marginal"], tmp_path, reference_sha
         )
-
-
-def test_bridge_artifact_is_written_once_with_hash(config, products, tmp_path):
-    """Host provenance: 8 MB marginal under <root>/<sha256>/ with path+hash."""
-    directory = synthetic.write_bridge_artifact(products, tmp_path)
-    frozen_sha = config["data"]["target_noise_covariance"]["sha256"]
-    path = Path(directory) / "N_actual_target_marginal.npy"
-    assert Path(directory).name == frozen_sha
-    assert path.exists()
-    marginal = np.load(path)
-    assert marginal.shape == (1024, 1024)
-    record = json.loads((Path(directory) / "manifest.json").read_text())
-    assert record["target_marginal_sha256"] == frozen_sha
-    assert record["file_sha256"] == products["metadata"]["target_noise_covariance"][
-        "artifact_file_sha256"
-    ]
-    # A second call verifies the existing file instead of overwriting it.
-    synthetic.write_bridge_artifact(products, tmp_path)
 
 
 def test_overlay_index_follows_bank_device(config, products):

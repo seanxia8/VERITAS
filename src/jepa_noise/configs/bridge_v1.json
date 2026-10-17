@@ -52,8 +52,7 @@
           1.0776399374008179
         ]
       },
-      "status": "frozen from the registered A4 generator (v4-A4-waveform-v1, base_rho 0, g 0.02, channel split); never refitted by the bridge, robustness shifts reuse these values",
-      "sha256": "93aaa16339cb3ebfe84c0f79fb53c3c2b08822a5d7297fd54b9add2ab5fb17eb",
+      "status": "frozen from the registered A4 generator; these values are authoritative and loaded by every host. A host-side refit is verified within relative tolerance 1e-6 (float32 last bits are BLAS-dependent).",
       "role": "noise_cal",
       "event_ids": [
         0,
@@ -61,17 +60,44 @@
       ],
       "n_records": 4096,
       "seed": 0,
-      "cell": "bridge"
+      "cell": "bridge",
+      "sha256_informational": "93aaa16339cb3ebfe84c0f79fb53c3c2b08822a5d7297fd54b9add2ab5fb17eb",
+      "relative_tolerance": 1e-06
     },
     "target_noise_covariance": {
       "definition": "target marginal of N_actual = A4 base noise + epsilon_dc*I + line + common (v3 §4.1), at masks.raw_split('channel').target (all 256 samples of channels 4-7)",
-      "status": "frozen; matrix not stored (lean-repository rule): recomputed deterministically by jepa_noise.train.a4_bridge_products()",
-      "sha256": "d31351ad8771a26a8f1fbbefee6efcad90978175f9bd346775fbdc788683fb28",
+      "status": "frozen; reference matrix committed as configs/bridge_v1_n_actual_reference.npz; hosts materialise it once under the data root and later runs load identical bytes",
       "n_target": 1024,
       "target_raw_index_sha256": "72110e38eda26fdd25d001791881d5219c5c0f8dbdbf0b6d053319d691ae11c0",
-      "generator_manifest_sha256": "1cd3195b650f038bb4a729215101191589c8f54736767c14ed18762383c00744",
-      "generator_noise_covariance_sha256": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8",
-      "runtime_verification": "jepa_noise.train.a4_bridge_products(verify=True) recomputes the 1024x1024 marginal and raises on any sha256 mismatch with this config before training. On a host the marginal is written once under /ceph/dwong/jepa/data/bridge/<sha256>/N_actual_target_marginal.npy (or JEPA_BRIDGE_DATA_ROOT) with a manifest recording path+file hash; the repository stores only the sha256 + recipe."
+      "runtime_verification": "jepa_noise.train.a4_bridge_products(verify=True) checks the computed 1024x1024 marginal against the committed configs/bridge_v1_n_actual_reference.npz with a relative-Frobenius tolerance of 1e-8 (last bits are BLAS-dependent; bit-exact hashing was platform-brittle and failed the first x86 Titan smoke on 2026-10-17). The exact per-host sha256 is informational. With a host data root the marginal is materialised once under <root>/<reference-file-sha256>/ and later runs load those identical bytes after verifying the file sha256.",
+      "sha256_informational": "d31351ad8771a26a8f1fbbefee6efcad90978175f9bd346775fbdc788683fb28",
+      "sha256_informational_note": "exact sha256 of the marginal computed on the freezing host; informational only. Verification uses the tolerance check against reference.file.",
+      "generator_manifest_sha256_informational": "1cd3195b650f038bb4a729215101191589c8f54736767c14ed18762383c00744",
+      "generator_noise_covariance_sha256_informational": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8",
+      "reference": {
+        "file": "bridge_v1_n_actual_reference.npz",
+        "file_sha256": "30c63a6e35c5c575416246440c360bab5d8cedd35a17846f82d79d8c80d11db7",
+        "format": "npz of the little-endian float64 (<f8) upper triangle of the symmetric 1024x1024 N_actual target marginal (platform-stable literal bytes; not a hash gate)",
+        "n_upper": 524800,
+        "relative_frobenius_tolerance": 1e-08,
+        "authoritative": "the relative-Frobenius tolerance check against this file is authoritative; the per-host exact sha256 is informational"
+      },
+      "platform_stability": "the matrix is a mathematical object: its last bits differ between ARM and x86 BLAS. The first Titan smoke failed on a bit-exact gate; verification is now relative-Frobenius tolerance 1e-8 against the committed reference, and the exact host sha256 is informational.",
+      "host_cache": {
+        "layout": "<data-root>/<reference-file-sha256>/N_actual_target_marginal.npy + manifest.json",
+        "manifest_fields": [
+          "reference_file_sha256",
+          "file_sha256",
+          "shape",
+          "dtype",
+          "computed_on",
+          "code_sha",
+          "relative_frobenius_tolerance",
+          "views_constructor"
+        ],
+        "behaviour": "first run on a host writes and records; later runs verify the file sha256 and load the same bytes instead of recomputing",
+        "data_root": "--data-root on the smoke command, or JEPA_BRIDGE_DATA_ROOT; the bridge host root is /ceph/dwong/jepa/data/bridge"
+      }
     },
     "generator": {
       "views_constructor": {
@@ -100,16 +126,16 @@
       "line_multiplier": 0.0,
       "split": "channel",
       "split_hash": "5ccf19f4f2c0424bb9636387a42e899d136172cb5e410c08d271cedf5925f25d",
-      "noise_covariance_sha256": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8",
-      "manifest_sha256": "1cd3195b650f038bb4a729215101191589c8f54736767c14ed18762383c00744",
+      "noise_covariance_sha256_informational": "970b7818993e9a6164a1691aeeeeaa8517973d6047955dce4a9cc78e6d5cecc8",
+      "manifest_sha256_informational": "1cd3195b650f038bb4a729215101191589c8f54736767c14ed18762383c00744",
+      "platform_note": "manifest_sha256_informational and noise_covariance_sha256_informational are platform-dependent last bits; informational only",
       "calibration_noise": {
         "role": "noise_cal",
         "event_ids": [
           0,
           4095
         ],
-        "n_records": 4096,
-        "note": "disjoint from the event streams; used only to fit the fixed per-channel scaling"
+        "n_records": 4096
       },
       "overlay_noise": {
         "role": "noise_overlay",
@@ -118,7 +144,8 @@
           1023
         ],
         "n_records": 1024,
-        "sha256": "a07964e016a9c0898dd808f93068749313296cd8ebc315897c20ce1ec21e9c13"
+        "sha256_informational": "a07964e016a9c0898dd808f93068749313296cd8ebc315897c20ce1ec21e9c13",
+        "sha256_informational_note": "overlay draws are seed-keyed noise; their bytes carry BLAS-dependent last bits, so the sha256 is informational (namespace/count are the frozen record)"
       }
     },
     "amplitude_scale": 1.0,
@@ -323,7 +350,8 @@
       "batch": 2,
       "channels": 8,
       "n_samples": 256,
-      "criterion_seconds_per_arm": 60
+      "criterion_seconds_per_arm": 60,
+      "cuda_command": "python -m jepa_noise.train --smoke --a4 --batch 2 --steps 1 --limit-batches 2 --device cuda:0"
     },
     "determinism_steps": 10,
     "amplitude_preservation": {
@@ -344,6 +372,16 @@
         "alpha_selection": "lowest validation MSE per output; ties within 1e-8 relative favour the larger alpha"
       },
       "measured": "after training (after the smoke and on the final encoders); the random-init fixture value reported by the unit test is not the registered criterion"
+    },
+    "verification": {
+      "matrix_tolerance": "relative Frobenius <= 1e-8 against the committed reference (authoritative)",
+      "scaling_tolerance": "relative <= 1e-6 against the frozen config arrays",
+      "informational_hashes": "exact per-host sha256 values are recorded in manifests but never gate a run",
+      "tests": [
+        "last-bit (1e-12) perturbation passes",
+        "1e-3 relative perturbation fails",
+        "host cache is written once then loaded with file sha256 verification"
+      ]
     }
   },
   "pre_outcome_review": "pending independent review of this frozen config (v3 G6 WP4 item: optimizer/SIGReg sourcing and numeric settings)",
@@ -365,6 +403,9 @@
     "Training schedule is frozen as constant learning rate for 10000 steps, no warmup and no decay, with the optimizer numerics frozen in this config; no outcome-dependent schedule is allowed.",
     "N_actual provenance is checked at run time by a4_bridge_products(): the recomputed 1024x1024 marginal must match the frozen sha256 or it raises; on a host the marginal is written once under <data root>/<sha256>/ and path+hash are recorded, while the repository keeps only the hash and recipe.",
     "Device handling: overlay indices are drawn with a CPU generator and moved to the overlay-bank device before index_select (CUDA-safe and device-independent sampling); train.py smoke accepts --device and --limit-batches, and the 1-step CUDA smoke is guard-gated outside this WP.",
-    "SIGReg source reduction keeps the N factor exactly as pinned: the statistic is a sum over samples (mean over slices), so per-sample weight is ~1/N; measured context 1.05 at B=128 vs target 0.92 at 32*128, i.e. per-sample target gradient ~1/n_target. This is not a gate and no normalisation was invented."
+    "SIGReg source reduction keeps the N factor exactly as pinned: the statistic is a sum over samples (mean over slices), so per-sample weight is ~1/N; measured context 1.05 at B=128 vs target 0.92 at 32*128, i.e. per-sample target gradient ~1/n_target. This is not a gate and no normalisation was invented.",
+    "Platform-stability fix (2026-10-17, after the first x86 Titan smoke failed on a Mac-vs-x86 BLAS last-bit difference): N_actual verification is a relative-Frobenius tolerance check (1e-8) against a committed little-endian float64 reference matrix (configs/bridge_v1_n_actual_reference.npz, ~0.88 MB), scaling verification is relative 1e-6 against the frozen config arrays, and exact per-host sha256 values are informational only. Bit-exact hashing of covariance products is not a valid platform gate.",
+    "Host materialisation: with a data root (or JEPA_BRIDGE_DATA_ROOT), the 1024x1024 marginal is written once under <root>/<reference-file-sha256>/ with a manifest (shape, dtype, file sha256, computed_on host, code SHA, tolerance) and later runs load those identical bytes after verifying the file sha256; without a data root the products are verified in memory and nothing is written.",
+    "The committed reference matrix is regenerated only by --freeze-config, which prints an explicit warning that its last bits are platform-dependent and that the exact sha256 is informational; the tolerance check is authoritative."
   ]
 }

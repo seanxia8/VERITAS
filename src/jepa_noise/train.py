@@ -7,6 +7,12 @@ fixture used only for masking/architecture unit tests, and (c) a minimal step
 loop for the CPU smoke.  It implements no cohort handling, no checkpoints, no
 schedules and no evaluation; those belong to WP5 and are out of scope here.
 
+Platform note: bit-exact hashing of the N_actual marginal was platform-brittle
+(the first x86 Titan smoke failed on a Mac-vs-x86 BLAS last-bit difference,
+2026-10-17); verification is now tolerance-based against a committed
+little-endian float64 reference, and exact per-host sha256 values are
+informational only.
+
 The registered bridge cell is A4 at g = 0.02, nominal SNR, channel split:
 ``Tier1Views(signal_mode='nonlinear', split='channel', line_multiplier=0.,
 common_strength=0.02, amplitude_scale=1.0, law='v4-A4-waveform-v1',
@@ -31,6 +37,7 @@ os.environ.setdefault("RECONSTRUCTION_DISABLE_TORCH_COMPILE", "1")
 import argparse
 import hashlib
 import json
+import platform
 import sys
 import time
 from pathlib import Path
@@ -59,6 +66,17 @@ __all__ = [
     "a4_bridge_views",
     "a4_bridge_products",
     "freeze_bridge_config",
+    "REFERENCE_PATH",
+    "MATRIX_RELATIVE_TOLERANCE",
+    "SCALING_RELATIVE_TOLERANCE",
+    "load_reference_marginal",
+    "reference_file_sha256",
+    "relative_frobenius_error",
+    "verify_bridge_matrix",
+    "verify_bridge_products",
+    "write_reference_marginal",
+    "materialize_or_load_marginal",
+    "target_marginal_from_full",
     "synthetic_calibration_noise",
     "synthetic_noise_bank",
     "synthetic_target_covariance",
@@ -126,72 +144,281 @@ def a4_bridge_views(**overrides):
     return Tier1Views(**params)
 
 
-def write_bridge_artifact(products: dict, root) -> str:
-    """Write the 1024x1024 target marginal once under ``root/<sha256>/``.
+REFERENCE_PATH = (
+    Path(__file__).resolve().parent
+    / "configs"
+    / "bridge_v1_n_actual_reference.npz"
+)
+#: Number of upper-triangle values of the symmetric 1024x1024 target marginal.
+REFERENCE_UPPER_COUNT = 1024 * 1025 // 2
+#: Authoritative tolerances: the matrix is a mathematical object, and its last
+#: bits differ between BLAS implementations.  Bit-exact hashing was
+#: platform-brittle and made the frozen sha a platform gate (it failed the
+#: first x86 Titan smoke, 2026-10-17); verification is now tolerance-based and
+#: the exact host sha256 is informational only.
+MATRIX_RELATIVE_TOLERANCE = 1e-8
+SCALING_RELATIVE_TOLERANCE = 1e-6
 
-    Returns the artifact directory.  The file is checked against the frozen
-    sha256 if it already exists (never silently overwritten).  ``root`` is the
-    host data root, e.g. ``/ceph/dwong/jepa/data/bridge``.
-    """
+
+def _target_index() -> np.ndarray:
     from .masks import raw_split
 
-    metadata = products["metadata"]
-    target = metadata["target_noise_covariance"]
-    frozen_sha = target["sha256"]
-    index = raw_split("channel").target
-    covariance = np.asarray(products["target_noise_covariance"], dtype=np.float64)
-    marginal = covariance[np.ix_(index, index)]
-    directory = Path(root) / frozen_sha
-    directory.mkdir(parents=True, exist_ok=True)
+    return np.asarray(raw_split("channel").target, dtype=np.int64)
+
+
+def target_marginal_from_full(covariance) -> np.ndarray:
+    """Target marginal of the full ``(C*T, C*T)`` ``N_actual`` covariance."""
+    index = _target_index()
+    return np.asarray(covariance, dtype=np.float64)[np.ix_(index, index)]
+
+
+def _file_sha256(path) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def reference_file_sha256(path=None) -> str:
+    """sha256 of the committed platform-stable reference file."""
+    return _file_sha256(REFERENCE_PATH if path is None else path)
+
+
+def load_reference_marginal(path=None) -> np.ndarray:
+    """Load the platform-stable 1024x1024 reference target marginal.
+
+    The committed file stores the little-endian float64 upper triangle (npz);
+    it is data, not a hash gate.  Loading is byte-identical on every host.
+    """
+    path = REFERENCE_PATH if path is None else Path(path)
+    with np.load(path) as data:
+        upper = np.asarray(data["upper"], dtype=np.float64)
+    if upper.shape != (REFERENCE_UPPER_COUNT,):
+        raise RuntimeError(
+            f"reference marginal has {upper.shape[0]} upper values, expected "
+            f"{REFERENCE_UPPER_COUNT}"
+        )
+    rows, columns = np.triu_indices(1024)
+    matrix = np.zeros((1024, 1024), dtype=np.float64)
+    matrix[rows, columns] = upper
+    matrix[columns, rows] = upper
+    return matrix
+
+
+def relative_frobenius_error(computed, reference) -> float:
+    """``||computed - reference||_F / ||reference||_F`` (both float64)."""
+    computed = np.asarray(computed, dtype=np.float64)
+    reference = np.asarray(reference, dtype=np.float64)
+    if computed.shape != reference.shape:
+        raise RuntimeError(
+            f"matrix shape {computed.shape} differs from reference {reference.shape}"
+        )
+    denominator = float(np.linalg.norm(reference))
+    if not denominator:
+        raise RuntimeError("reference matrix has zero Frobenius norm")
+    return float(np.linalg.norm(computed - reference) / denominator)
+
+
+def verify_bridge_matrix(
+    computed,
+    reference,
+    rtol: float = MATRIX_RELATIVE_TOLERANCE,
+    label: str = "N_actual target marginal",
+) -> float:
+    """Tolerance verification of a computed matrix against the frozen reference.
+
+    The frozen sha256 is informational only: the last bits of an
+    eigh/Cholesky-based covariance differ between ARM and x86 BLAS.  A
+    last-bit (1e-12 relative) perturbation passes; a 1e-3 relative
+    perturbation fails.  Raises on failure.
+    """
+    error = relative_frobenius_error(computed, reference)
+    if not np.isfinite(error) or error > float(rtol):
+        raise RuntimeError(
+            f"{label}: relative Frobenius difference {error:.3e} exceeds the "
+            f"frozen tolerance {float(rtol):.1e}. The exact sha256 is "
+            "informational only; see the platform-stability note in the config."
+        )
+    return error
+
+
+def write_reference_marginal(marginal, path=None, warn: bool = True) -> dict:
+    """Regenerate the committed reference matrix from the current platform.
+
+    Called by ``--freeze-config``.  The last bits of the matrix are
+    platform-dependent, so a loud warning is printed: the file is a
+    tolerance-verification reference, not a bit-exact gate.
+    """
+    path = REFERENCE_PATH if path is None else Path(path)
+    upper = np.asarray(marginal, dtype=np.float64)[np.triu_indices(1024)].astype(
+        "<f8"
+    )
+    if warn:
+        print(
+            "WARNING: regenerating " + str(path) + " from the current platform. "
+            "The last bits of a covariance are BLAS-dependent; this reference is "
+            "used with a relative-Frobenius tolerance, and the exact sha256 is "
+            "informational.",
+            file=sys.stderr,
+            flush=True,
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(path, upper=upper)
+    return {
+        "file": path.name,
+        "file_sha256": _file_sha256(path),
+        "format": (
+            "npz of the little-endian float64 (<f8) upper triangle of the "
+            "symmetric 1024x1024 N_actual target marginal (platform-stable "
+            "literal bytes; not a hash gate)"
+        ),
+        "n_upper": int(upper.size),
+        "relative_frobenius_tolerance": MATRIX_RELATIVE_TOLERANCE,
+        "authoritative": (
+            "the relative-Frobenius tolerance check against this file is "
+            "authoritative; the per-host exact sha256 is informational"
+        ),
+    }
+
+
+def materialize_or_load_marginal(
+    marginal,
+    root,
+    reference_sha: str,
+    code_sha: Optional[str] = None,
+    computed_on: Optional[str] = None,
+) -> tuple:
+    """Load the host-cached N_actual marginal, or write it once, then load.
+
+    Every run on a host uses identical bytes.  The cache directory is named by
+    the platform-stable reference file sha256, so hosts share the key, and the
+    cached file's own sha256 is verified before use (a tampered/truncated file
+    raises instead of silently training on it).
+    """
+    import platform
+
+    directory = Path(root) / reference_sha
     path = directory / "N_actual_target_marginal.npy"
     if path.exists():
-        existing = np.load(path)
-        if not np.array_equal(existing, marginal):
+        manifest_path = directory / "manifest.json"
+        if not manifest_path.exists():
             raise RuntimeError(
-                f"existing bridge artifact {path} does not match the frozen "
-                "N_actual target marginal"
+                f"cached bridge marginal {path} has no manifest.json; refusing to "
+                "trust it"
             )
-    else:
-        np.save(path, marginal)
-    file_sha = _array_sha256(marginal, "<f8")
+        record = json.loads(manifest_path.read_text(encoding="utf-8"))
+        actual = _file_sha256(path)
+        if record.get("file_sha256") != actual:
+            raise RuntimeError(
+                f"cached bridge marginal {path} sha256 {actual} does not match "
+                f"its manifest {record.get('file_sha256')}"
+            )
+        return np.load(path), f"cache:{path}"
+    array = np.ascontiguousarray(np.asarray(marginal, dtype="<f8"))
+    directory.mkdir(parents=True, exist_ok=True)
+    np.save(path, array)
+    if code_sha is None:
+        code_sha = _code_sha()
+    if computed_on is None:
+        computed_on = platform.node()
     record = {
-        "target_marginal_sha256": frozen_sha,
-        "file_sha256": file_sha,
-        "shape": list(marginal.shape),
+        "reference_file_sha256": reference_sha,
+        "file_sha256": _file_sha256(path),
+        "shape": list(array.shape),
         "dtype": "<f8",
-        "generator_manifest_sha256": metadata["generator"]["manifest_sha256"],
-        "views_constructor": metadata["generator"]["views_constructor"],
-        "path": str(path),
+        "computed_on": computed_on,
+        "code_sha": code_sha,
+        "relative_frobenius_tolerance": MATRIX_RELATIVE_TOLERANCE,
+        "views_constructor": dict(BRIDGE_VIEWS),
+        "note": (
+            "materialised once on this host from the pinned generator; later "
+            "runs load these bytes after verifying file_sha256"
+        ),
     }
     (directory / "manifest.json").write_text(
         json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    metadata["target_noise_covariance"]["artifact_path"] = str(path)
-    metadata["target_noise_covariance"]["artifact_file_sha256"] = file_sha
-    return str(directory)
+    return array, f"computed+written:{path}"
+
+
+def _code_sha() -> Optional[str]:
+    import subprocess
+
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(Path(__file__).resolve().parents[2]),
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        ).decode().strip()
+    except Exception:
+        return os.environ.get("JEPA_CODE_SHA")
+
+
+def _relative_vector_error(computed, reference, scale) -> float:
+    computed = np.asarray(computed, dtype=np.float64)
+    reference = np.asarray(reference, dtype=np.float64)
+    scale = np.asarray(scale, dtype=np.float64)
+    denominator = float(np.linalg.norm(scale))
+    if not denominator:
+        raise RuntimeError("reference scale has zero norm")
+    return float(np.linalg.norm(computed - reference) / denominator)
 
 
 def verify_bridge_products(config: dict, products: dict) -> None:
-    """Raise unless the products reproduce the frozen config hashes exactly."""
-    frozen_target = config["data"]["target_noise_covariance"].get("sha256")
-    computed_target = products["metadata"]["target_noise_covariance"]["sha256"]
-    if frozen_target is not None and frozen_target != computed_target:
-        raise RuntimeError(
-            "computed N_actual target marginal sha256 "
-            f"{computed_target} does not match the frozen config sha256 "
-            f"{frozen_target}"
-        )
+    """Verify the products against the frozen config (tolerance, not bytes).
+
+    - committed reference file sha256 vs the config's recorded file sha256
+      (both are committed bytes, so this is exact and platform-stable);
+    - computed N_actual marginal vs the reference matrix, relative Frobenius
+      tolerance ``MATRIX_RELATIVE_TOLERANCE``;
+    - host-fitted per-channel scaling vs the frozen config arrays, relative
+      tolerance ``SCALING_RELATIVE_TOLERANCE`` (float32 fits differ in their
+      last bits between BLAS implementations).
+    """
+    target = config["data"]["target_noise_covariance"]
+    reference_block = target.get("reference") or {}
+    expected_file_sha = reference_block.get("file_sha256")
+    if expected_file_sha is not None:
+        actual_file_sha = reference_file_sha256()
+        if actual_file_sha != expected_file_sha:
+            raise RuntimeError(
+                "committed N_actual reference file sha256 "
+                f"{actual_file_sha} does not match the config {expected_file_sha}"
+            )
+    reference = load_reference_marginal()
+    computed_marginal = target_marginal_from_full(
+        products["target_noise_covariance"]
+    )
+    verify_bridge_matrix(
+        computed_marginal,
+        reference,
+        rtol=float(
+            reference_block.get(
+                "relative_frobenius_tolerance", MATRIX_RELATIVE_TOLERANCE
+            )
+        ),
+    )
     frozen_scaling = config["data"]["fixed_scaling"].get("values_mean_std")
     if frozen_scaling:
-        expected_mean = torch.as_tensor(frozen_scaling["mean"], dtype=torch.float32)
-        expected_std = torch.as_tensor(frozen_scaling["std"], dtype=torch.float32)
-        if not torch.equal(expected_mean, products["channel_mean"]):
+        computed = products["metadata"]["fixed_scaling"]
+        reference_std = np.asarray(frozen_scaling["std"], dtype=np.float64)
+        mean_error = _relative_vector_error(
+            computed["mean"], frozen_scaling["mean"], reference_std
+        )
+        std_error = _relative_vector_error(
+            computed["std"], frozen_scaling["std"], reference_std
+        )
+        if mean_error > SCALING_RELATIVE_TOLERANCE:
             raise RuntimeError(
-                "computed fixed per-channel mean does not match the frozen config"
+                f"fixed per-channel mean relative difference {mean_error:.3e} "
+                f"exceeds tolerance {SCALING_RELATIVE_TOLERANCE:.1e}"
             )
-        if not torch.equal(expected_std, products["channel_std"]):
+        if std_error > SCALING_RELATIVE_TOLERANCE:
             raise RuntimeError(
-                "computed fixed per-channel std does not match the frozen config"
+                f"fixed per-channel std relative difference {std_error:.3e} "
+                f"exceeds tolerance {SCALING_RELATIVE_TOLERANCE:.1e}"
             )
 
 
@@ -205,18 +432,19 @@ def a4_bridge_products(
 ) -> dict:
     """Real A4 bridge products from the registered generator.
 
-    Returns ``channel_mean``/``channel_std`` (fixed scaling fitted once on
-    ``n_calibration`` disjoint calibration-noise records), ``noise_bank``
-    (independent ``noise_overlay`` draws for the anchor), the full raw
-    ``N_actual`` covariance (the ``mae_chi2`` model slices the target marginal),
-    and a ``metadata`` dict with the sha256 hashes written into the reviewed
-    config.  With ``verify`` (default) the computed products are checked against
-    the frozen config hashes and a mismatch raises.  With ``artifact_root`` (or
-    the ``JEPA_BRIDGE_DATA_ROOT`` environment variable) the target marginal is
-    written once under ``<root>/<sha256>/`` and the path+hash are recorded.
-    """
-    from .masks import raw_split
+    Returns ``channel_mean``/``channel_std`` (the frozen config values when
+    ``verify``; the host fit is checked against them within tolerance),
+    ``noise_bank`` (independent ``noise_overlay`` draws), the full raw
+    ``N_actual`` covariance, the exact ``target_marginal`` (1024x1024) used by
+    ``mae_chi2``, and ``metadata`` with the hashes recorded in the reviewed
+    config.
 
+    Matrix and scaling verification is tolerance-based (last-bit BLAS
+    differences); the exact sha256 values are informational.  With
+    ``artifact_root`` (or ``JEPA_BRIDGE_DATA_ROOT``) the marginal is
+    materialised once under ``<root>/<reference-file-sha256>/`` and later runs
+    load those bytes after verifying the file sha256.
+    """
     views = a4_bridge_views()
     chunks = []
     for start in range(0, int(n_calibration), 256):
@@ -230,7 +458,11 @@ def a4_bridge_products(
             )
         )
         if progress:
-            print(f"calibration noise {stop}/{n_calibration}", file=sys.stderr, flush=True)
+            print(
+                f"calibration noise {stop}/{n_calibration}",
+                file=sys.stderr,
+                flush=True,
+            )
     records = np.concatenate(chunks, axis=0)
     channel_mean, channel_std = TokenGridEncoder.fit_scaling(
         torch.as_tensor(records, dtype=torch.float32)
@@ -241,13 +473,16 @@ def a4_bridge_products(
             for event_id in range(int(n_overlay))
         ]
     )
-    split = raw_split(views.split_name)
+    split = views.split
     covariance = np.asarray(views.noise_covariance)
     target_index = np.asarray(split.target, dtype=np.int64)
     marginal = covariance[np.ix_(target_index, target_index)]
     manifest = views.manifest()
     mean = [float(value) for value in channel_mean.tolist()]
     std = [float(value) for value in channel_std.tolist()]
+    reference_sha = (
+        reference_file_sha256() if REFERENCE_PATH.exists() else "uninitialised"
+    )
     metadata = {
         "generator": {
             "views_constructor": dict(BRIDGE_VIEWS),
@@ -261,13 +496,21 @@ def a4_bridge_products(
             "line_multiplier": float(views.line_multiplier),
             "split": views.split_name,
             "split_hash": manifest["split_hash"],
-            "noise_covariance_sha256": manifest["noise_covariance_sha256"],
-            "manifest_sha256": _canonical_sha256(manifest),
+            "noise_covariance_sha256_informational": manifest[
+                "noise_covariance_sha256"
+            ],
+            "manifest_sha256_informational": _canonical_sha256(manifest),
+            "platform_note": (
+                "manifest/noise-covariance sha256 values carry BLAS-dependent "
+                "last bits and are informational only"
+            ),
         },
         "fixed_scaling": {
             "mean": mean,
             "std": std,
-            "sha256": _array_sha256(
+            "computed_mean": mean,
+            "computed_std": std,
+            "sha256_informational": _array_sha256(
                 np.stack(
                     [
                         np.asarray(mean, dtype=np.float32),
@@ -281,11 +524,13 @@ def a4_bridge_products(
             "n_records": int(n_calibration),
             "seed": BRIDGE_VIEWS["seed"],
             "cell": BRIDGE_VIEWS["cell"],
+            "relative_tolerance": SCALING_RELATIVE_TOLERANCE,
         },
         "target_noise_covariance": {
-            "sha256": _array_sha256(marginal, "<f8"),
+            "sha256_informational": _array_sha256(marginal, "<f8"),
             "n_target": int(marginal.shape[0]),
             "target_raw_index_sha256": _array_sha256(target_index, "<i8"),
+            "reference_file_sha256": reference_sha,
             "definition": (
                 "target marginal of N_actual = A4 base + epsilon_dc*I + line + "
                 "common (v3 §4.1), at masks.raw_split('channel').target"
@@ -296,38 +541,82 @@ def a4_bridge_products(
             "role": OVERLAY_ROLE,
             "event_ids": [0, int(n_overlay) - 1],
             "n_records": int(n_overlay),
-            "sha256": _array_sha256(bank, "<f8"),
+            "sha256_informational": _array_sha256(bank, "<f8"),
         },
+        "computed_on": platform.node(),
+        "code_sha": _code_sha(),
+        "reference_file_sha256": reference_sha,
+        "matrix_relative_tolerance": MATRIX_RELATIVE_TOLERANCE,
     }
     products = {
         "channel_mean": channel_mean,
         "channel_std": channel_std,
         "noise_bank": torch.as_tensor(bank, dtype=torch.float32),
         "target_noise_covariance": covariance,
+        "target_marginal": marginal,
         "metadata": metadata,
     }
     if verify:
         frozen = load_config() if config is None else config
         verify_bridge_products(frozen, products)
+        frozen_scaling = frozen["data"]["fixed_scaling"]["values_mean_std"]
+        # The frozen config values are authoritative on every host; a host-side
+        # refit is accepted within tolerance but never replaces them.
+        products["channel_mean"] = torch.as_tensor(
+            frozen_scaling["mean"], dtype=torch.float32
+        )
+        products["channel_std"] = torch.as_tensor(
+            frozen_scaling["std"], dtype=torch.float32
+        )
+        metadata["fixed_scaling"][
+            "authoritative_source"
+        ] = "frozen config values (host fit verified within tolerance)"
         metadata["verified_against_config"] = True
     else:
         metadata["verified_against_config"] = False
+    if REFERENCE_PATH.exists():
+        reference = load_reference_marginal()
+        metadata["target_noise_covariance"][
+            "relative_frobenius_error_to_reference"
+        ] = relative_frobenius_error(marginal, reference)
+    else:
+        metadata["target_noise_covariance"][
+            "relative_frobenius_error_to_reference"
+        ] = None
     if artifact_root is None:
         artifact_root = os.environ.get("JEPA_BRIDGE_DATA_ROOT")
     if artifact_root:
-        write_bridge_artifact(products, artifact_root)
+        stored, source = materialize_or_load_marginal(
+            marginal,
+            artifact_root,
+            reference_sha,
+            code_sha=metadata["code_sha"],
+            computed_on=metadata["computed_on"],
+        )
+        products["target_marginal"] = stored
+        metadata["target_noise_covariance"]["marginal_source"] = source
+        metadata["target_noise_covariance"]["artifact_path"] = source.split(
+            ":", 1
+        )[-1]
+        metadata["target_noise_covariance"]["artifact_file_sha256"] = _file_sha256(
+            metadata["target_noise_covariance"]["artifact_path"]
+        )
+    else:
+        metadata["target_noise_covariance"]["marginal_source"] = (
+            "computed (no host data root given)"
+        )
     return products
 
 
 def freeze_bridge_config(
     config_path=None, progress: bool = False
 ) -> tuple:
-    """Write the two A4 data products into the reviewed config.
+    """Write the A4 data products and the platform-stable reference matrix.
 
-    This freezes data-derived values only; it selects no hyper-parameter and
-    uses no outcome.  The full ``N_actual`` covariance is not stored in the
-    repository (lean-repository rule); its sha256 and deterministic recipe are
-    recorded, and ``a4_bridge_products`` recomputes it.
+    Data-derived values only; no hyper-parameter is selected and no outcome is
+    used.  The committed reference matrix is regenerated from the current
+    platform with an explicit warning: its last bits are BLAS-dependent, so it
+    is a tolerance-verification reference, never a bit-exact gate.
     """
     path = CONFIG_PATH if config_path is None else config_path
     config = load_config(path)
@@ -338,32 +627,53 @@ def freeze_bridge_config(
     data["fixed_scaling"].update(
         {
             "values_mean_std": {"mean": scaling["mean"], "std": scaling["std"]},
-            "sha256": scaling["sha256"],
+            "sha256_informational": scaling["sha256_informational"],
             "role": scaling["role"],
             "event_ids": scaling["event_ids"],
             "n_records": scaling["n_records"],
             "seed": scaling["seed"],
             "cell": scaling["cell"],
+            "relative_tolerance": SCALING_RELATIVE_TOLERANCE,
             "status": (
-                "frozen from the registered A4 generator (v4-A4-waveform-v1, "
-                "base_rho 0, g 0.02, channel split); never refitted by the "
-                "bridge, robustness shifts reuse these values"
+                "frozen from the registered A4 generator; these values are "
+                "authoritative and loaded by every host. A host-side refit is "
+                "verified within relative tolerance 1e-6 (float32 last bits are "
+                "BLAS-dependent)."
             ),
         }
+    )
+    reference_meta = write_reference_marginal(
+        target_marginal_from_full(products["target_noise_covariance"])
     )
     target = metadata["target_noise_covariance"]
     data["target_noise_covariance"].update(
         {
-            "sha256": target["sha256"],
+            "sha256_informational": target["sha256_informational"],
+            "sha256_informational_note": (
+                "exact sha256 of the marginal computed on the freezing host; "
+                "informational only. Verification uses the tolerance check "
+                "against reference.file."
+            ),
             "n_target": target["n_target"],
             "target_raw_index_sha256": target["target_raw_index_sha256"],
-            "generator_manifest_sha256": metadata["generator"]["manifest_sha256"],
-            "generator_noise_covariance_sha256": metadata["generator"][
-                "noise_covariance_sha256"
+            "generator_manifest_sha256_informational": metadata["generator"][
+                "manifest_sha256_informational"
             ],
+            "generator_noise_covariance_sha256_informational": metadata[
+                "generator"
+            ]["noise_covariance_sha256_informational"],
+            "reference": reference_meta,
+            "platform_stability": (
+                "the matrix is a mathematical object: its last bits differ "
+                "between ARM and x86 BLAS. The first Titan smoke failed on a "
+                "bit-exact gate; verification is now relative-Frobenius "
+                "tolerance 1e-8 against the committed reference, and the exact "
+                "host sha256 is informational."
+            ),
             "status": (
-                "frozen; matrix not stored (lean-repository rule): recomputed "
-                "deterministically by jepa_noise.train.a4_bridge_products()"
+                "frozen; reference matrix committed as "
+                "configs/bridge_v1_n_actual_reference.npz; hosts materialise it "
+                "once under the data root and later runs load identical bytes"
             ),
         }
     )
@@ -377,7 +687,7 @@ def freeze_bridge_config(
         "overlay_noise": metadata["overlay_noise"],
     }
     with open(path, "w", encoding="utf-8") as handle:
-        json.dump(config, handle, indent=2)
+        json.dump(config, handle, indent=2, ensure_ascii=False)
         handle.write("\n")
     return config, products
 
@@ -513,7 +823,9 @@ def smoke_arms(
             arm,
             channel_mean=fixture["channel_mean"],
             channel_std=fixture["channel_std"],
-            target_noise_covariance=fixture["target_noise_covariance"],
+            target_noise_covariance=fixture.get(
+                "target_marginal", fixture["target_noise_covariance"]
+            ),
             noise_bank=fixture["noise_bank"],
             beta=beta,
             seed=seed,

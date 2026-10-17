@@ -245,17 +245,27 @@ class BridgeModel(nn.Module):
         """
         cov = torch.as_tensor(full_covariance, dtype=torch.float64)
         expected = self.n_channels * self.n_samples
-        if cov.shape != (expected, expected):
+        n_target_raw = int(self.encoder.target_raw_index.numel())
+        if cov.shape == (expected, expected):
+            if not torch.isfinite(cov).all():
+                raise ValueError("target_noise_covariance must be finite")
+            if not torch.allclose(cov, cov.transpose(0, 1), rtol=1e-6, atol=1e-8):
+                raise ValueError("target_noise_covariance must be symmetric")
+            index = self.encoder.target_raw_index
+            marginal = cov.index_select(0, index).index_select(1, index)
+        elif cov.shape == (n_target_raw, n_target_raw):
+            # The exact target marginal (e.g. loaded from the host bridge cache).
+            if not torch.isfinite(cov).all():
+                raise ValueError("target marginal must be finite")
+            if not torch.allclose(cov, cov.transpose(0, 1), rtol=1e-6, atol=1e-8):
+                raise ValueError("target marginal must be symmetric")
+            marginal = cov
+        else:
             raise ValueError(
-                f"target_noise_covariance must be the full raw ({expected}, "
-                f"{expected}) N_actual; got {tuple(cov.shape)}"
+                "target_noise_covariance must be either the full raw "
+                f"({expected}, {expected}) N_actual or the exact target "
+                f"marginal ({n_target_raw}, {n_target_raw}); got {tuple(cov.shape)}"
             )
-        if not torch.isfinite(cov).all():
-            raise ValueError("target_noise_covariance must be finite")
-        if not torch.allclose(cov, cov.transpose(0, 1), rtol=1e-6, atol=1e-8):
-            raise ValueError("target_noise_covariance must be symmetric")
-        index = self.encoder.target_raw_index
-        marginal = cov.index_select(0, index).index_select(1, index)
         try:
             chol = torch.linalg.cholesky(marginal)
         except RuntimeError as exc:  # torch raises on non-PD input
