@@ -40,7 +40,11 @@ DEFAULT_SEED = 20261017
 LAMBDA0_M = 50.0
 GAIN_CLIP = (0.5, 1.5)
 F1_SPREADS = (0.02, 0.05, 0.10)
-F3_SPREAD = 0.05
+#: Registered default per v4 §3.5.3 (``s_p = 0.05``), adjustable only through §3.5.3a step 3.
+F3_SPREAD_DEFAULT = 0.05
+#: In force after the §3.5.3a detectability check (2026-10-17: raised to 0.10; F3 still fails,
+#: so R12 is ``not_evaluable`` with no gate).  Recorded in DECISIONS and in the generator config.
+F3_SPREAD = 0.10
 F2_SPREADS = (0.10, 0.20, 0.50)
 F2P_SPREADS = (0.05, 0.10)
 R11B_SPREAD = 0.05
@@ -943,8 +947,18 @@ NS_EVENT = "lucid/event"
 #: Placeholder yields: the runbook fixes their *definitions* (about 200 hit PMTs at
 #: Y_lo; the lower of 300 PE median module charge / 0.95 median hit fraction at Y_hi)
 #: but the values come from the §3.5.3a detectability check on development data.
-Y_LO_PHOTONS, Y_HI_PHOTONS = 6000.0, 320_000.0
+#: Pre-check placeholder range (what §3.5.3a starts from and raises).
+Y_LO_PHOTONS_PLACEHOLDER, Y_HI_PHOTONS_PLACEHOLDER = 6000.0, 320_000.0
+#: In force after the §3.5.3a detectability check of 2026-10-17 on the real WCTE geometry
+#: (Y_lo at ~200 median hit PMTs; Y_hi at the 0.95 hit-fraction bound; fallback step 1).
+Y_LO_PHOTONS, Y_HI_PHOTONS = 6249.708098, 541_560.544764
+#: Placeholder before §3.5.3a has run; "frozen_by_detectability_check" afterwards.  Both
+#: are valid states of the generator contract; the frozen state must carry the decision record.
 YIELD_RANGE_STATUS = "placeholder_pending_detectability_check"
+FROZEN_YIELD_RANGE_STATUS = "frozen_by_detectability_check"
+VALID_YIELD_RANGE_STATUSES = (YIELD_RANGE_STATUS, FROZEN_YIELD_RANGE_STATUS)
+#: The status in force for manifests and benchmarks (the frozen check has been run).
+YIELD_RANGE_STATUS_IN_FORCE = FROZEN_YIELD_RANGE_STATUS
 CPU_CAP_WALL_HOURS = 48.0
 BENCHMARK_CORES = 16
 #: §3.5.3 volume enumerated for the 48 h projection (see WP4B_GENERATOR.md).
@@ -1028,8 +1042,16 @@ def load_generator_config(path: Path | str) -> GeneratorConfig:
         raise ValueError(f"{path}: missing the 'generator' block")
     kwargs = dict(block)
     status = kwargs.pop("yield_range_status", YIELD_RANGE_STATUS)
-    if status != YIELD_RANGE_STATUS:
-        raise ValueError(f"config: yield_range_status {status!r} != {YIELD_RANGE_STATUS!r}")
+    if status not in VALID_YIELD_RANGE_STATUSES:
+        raise ValueError(
+            f"config: yield_range_status {status!r} not in "
+            f"{VALID_YIELD_RANGE_STATUSES!r}"
+        )
+    decision_block = kwargs.pop("yield_range_decision", None)
+    if status == FROZEN_YIELD_RANGE_STATUS and not decision_block:
+        raise ValueError(
+            "config: a frozen yield range must carry a yield_range_decision block"
+        )
     allowed = set(GeneratorConfig.__dataclass_fields__)
     unknown = sorted(set(kwargs) - allowed)
     if unknown:
@@ -1270,7 +1292,7 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
                "geometry_synthetic": bool(geometry.synthetic),
                "geometry_summary": geometry.summary(),
                "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
-               "yield_range_status": YIELD_RANGE_STATUS,
+               "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,
                "fiducial_fraction": float(cfg.fiducial_fraction),
                "threshold_pe": float(cfg.threshold_pe), "spectrum_label": cfg.spectrum_label,
                "state_clipped": dict(generated.state.clipped), "n_hits": generated.n_hits,
@@ -1330,7 +1352,7 @@ def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000
             "is_synthetic_geometry": bool(geometry.synthetic),
             "geometry_name": geometry.name, "geometry_sha256": geometry.digest,
             "readout_label": READOUT_LABEL, "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
-            "yield_range_status": YIELD_RANGE_STATUS, "law": law, "setting": float(setting),
+            "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE, "law": law, "setting": float(setting),
             "terciles": _tercile_table(geometry, generated),
             "volume_events": REGISTERED_VOLUME_EVENTS,
             "volume_breakdown": dict(REGISTERED_VOLUME_BREAKDOWN),

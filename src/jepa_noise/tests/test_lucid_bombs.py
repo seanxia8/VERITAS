@@ -93,7 +93,7 @@ def test_r11b_covariation_and_namespace_independence():
     k = lb.k_R11b(GEOM)
     assert np.allclose(state.module_gain, np.clip(1.0 + 0.05 * c * k, *lb.GAIN_CLIP))
     assert np.corrcoef(state.module_gain, k)[0, 1] == pytest.approx(np.sign(c))
-    assert 0.03 < state.pmt_gain.std() < 0.08  # F3 is present
+    assert 0.05 < state.pmt_gain.std() < 0.12  # F3 present at the frozen s_p = 0.10
     # the two persistent vectors are independent draws
     k_r11b, k_t = lb.k_R11b(BIG), lb.k_T(BIG)
     assert not np.allclose(k_r11b, k_t)
@@ -370,7 +370,7 @@ def test_config_matches_module_constants():
     assert geo["surface_counts"] == lb.WCTE_SURFACE_COUNTS
     assert geo["mpmt_id_gaps"] == [45] and geo["pmt_id_in_mpmt_base"] == 1
     assert generator["y_lo"] == lb.Y_LO_PHOTONS and generator["y_hi"] == lb.Y_HI_PHOTONS
-    assert generator["yield_range_status"] == lb.YIELD_RANGE_STATUS
+    assert generator["yield_range_status"] == lb.YIELD_RANGE_STATUS_IN_FORCE
     assert lb.load_generator_config(CONFIG) == lb.GeneratorConfig()
     assert config["benchmark"]["volume_events"] == lb.REGISTERED_VOLUME_EVENTS
     assert config["benchmark"]["cpu_cap_wall_hours"] == lb.CPU_CAP_WALL_HOURS
@@ -560,7 +560,7 @@ def test_generated_run_storage_manifest_and_sha256sums(tmp_path):
     assert payload["generator_config_sha256"] == GEN_CFG.digest
     assert payload["geometry_config_sha256"] is None and payload["geometry_synthetic"] is True
     assert payload["yield_range_photons"] == [GEN_CFG.y_lo, GEN_CFG.y_hi]
-    assert payload["yield_range_status"] == lb.YIELD_RANGE_STATUS
+    assert payload["yield_range_status"] == lb.YIELD_RANGE_STATUS_IN_FORCE
     assert payload["runs"][0]["law"] == "F2" and payload["runs"][0]["setting"] == 0.20
     assert payload["n_events"] == 20 and payload["n_hits"] == generated.n_hits
     assert payload["twin_present"] is True

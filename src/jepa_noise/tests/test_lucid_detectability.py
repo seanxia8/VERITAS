@@ -102,8 +102,9 @@ def test_median_yield_policy_and_config_consistency():
     assert payload["schema"] == ld.SCHEMA and payload["readout_label"] == lb.READOUT_LABEL
     assert payload["reported_results"] is False
     assert check.f1_spreads == lb.F1_SPREADS and check.f2_spreads == lb.F2_SPREADS
-    assert check.f2p_spreads == lb.F2P_SPREADS and check.f3_spread == lb.F3_SPREAD
-    assert check.y_lo == lb.Y_LO_PHOTONS and check.y_hi_initial == lb.Y_HI_PHOTONS
+    assert check.f2p_spreads == lb.F2P_SPREADS and check.f3_spread == lb.F3_SPREAD_DEFAULT
+    assert check.y_lo == lb.Y_LO_PHOTONS_PLACEHOLDER
+    assert check.y_hi_initial == lb.Y_HI_PHOTONS_PLACEHOLDER
     assert check.lambda0_m == lb.LAMBDA0_M and check.n_min == lb.N_MIN
     assert check.median_policy == "population_median_of_log_uniform"
     assert ld.CheckConfig().digest == ld.CheckConfig().digest != ""

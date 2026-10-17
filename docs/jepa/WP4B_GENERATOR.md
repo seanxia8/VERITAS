@@ -260,3 +260,16 @@ ordering; reproducibility and one state per run; nominal twin == undrifted reado
 the oracle-only `PermissionError`; threshold-after-gain behaviour with an unhit 1 PE pulse;
 generated-run storage with manifest provenance and `SHA256SUMS`; benchmark shape and terciles;
 config-to-module constant checks.
+
+
+## Frozen yield range (2026-10-17, after the §3.5.3a detectability check)
+
+The placeholders `[6000, 320000]` are superseded. The detectability check on the real WCTE
+geometry froze **Y_lo = 6249.708098** photons (median 200.5 hit PMTs at Y_lo) and
+**Y_hi = 541560.544764** photons (the 0.95 hit-fraction bound; the 300 PE bound would have allowed
+846767.8 and the rule takes the lower), with median yield 58177.275 photons. The fallback ladder
+raised Y_hi from 320000 in step 1; further steps set F2 a = 0.50 (F2 chosen, F2′ unused) and F3
+s_p = 0.10 (F3 still fails -> R12 `not_evaluable`, no gate). F1 s = 0.02 is excluded from R6/R7 by
+the ceiling (0.2616 < 0.6), s = 0.05 and 0.10 are eligible. The generator config records the frozen
+range with `yield_range_status: frozen_by_detectability_check` and the decision JSON path/hashes.
+The generation benchmark must be re-run at these yields (it was first run at the placeholders).

@@ -13,35 +13,104 @@
     "n_sensors": 1995,
     "n_modules": 105,
     "pmts_per_module": 19,
-    "surface_counts": {"top": 399, "barrel": 1197, "bottom": 399},
+    "surface_counts": {
+      "top": 399,
+      "barrel": 1197,
+      "bottom": 399
+    },
     "radius_m": 1.5771308488246254,
     "height_m": 2.77697099384,
     "sensor_radius_m": 0.04,
-    "mpmt_id_gaps": [45],
+    "mpmt_id_gaps": [
+      45
+    ],
     "pmt_id_in_mpmt_base": 1,
     "note": "id 45 absent; pmt_id_in_mpmt is 1-based. Nothing is redistributed; the file is read on the host only."
   },
   "lambda0_m": 50.0,
   "lambda0_note": "placeholder: the runbook fixes F2's form but not lambda0, and the PMT reference fixture has absorption off",
   "detector_state_laws": {
-    "F1": {"spreads": [0.02, 0.05, 0.10], "namespace": "lucid/F1"},
-    "F3": {"spread": 0.05, "namespace": "lucid/F3"},
-    "F2": {"spreads": [0.10, 0.20, 0.50], "namespace": "lucid/F2"},
-    "F2p": {"spreads": [0.05, 0.10], "namespace": "lucid/F2p"},
-    "R11b": {"spread": 0.05, "k_namespace": "lucid/k_R11b"},
-    "T": {"spread": 0.10, "runs": 100, "k_namespace": "lucid/k_T"}
+    "F1": {
+      "spreads": [
+        0.02,
+        0.05,
+        0.1
+      ],
+      "namespace": "lucid/F1",
+      "eligible_spreads": [
+        0.05,
+        0.1
+      ],
+      "excluded_spreads_from_R6_R7": [
+        0.02
+      ]
+    },
+    "F3": {
+      "spread": 0.1,
+      "namespace": "lucid/F3",
+      "r12_status": "not_evaluable_no_gate"
+    },
+    "F2": {
+      "spreads": [
+        0.1,
+        0.2,
+        0.5
+      ],
+      "namespace": "lucid/F2",
+      "selected_spread": 0.5,
+      "selected": true
+    },
+    "F2p": {
+      "spreads": [
+        0.05,
+        0.1
+      ],
+      "namespace": "lucid/F2p",
+      "selected": false
+    },
+    "R11b": {
+      "spread": 0.05,
+      "k_namespace": "lucid/k_R11b"
+    },
+    "T": {
+      "spread": 0.1,
+      "runs": 100,
+      "k_namespace": "lucid/k_T"
+    }
   },
-  "gain_clip": [0.5, 1.5],
+  "gain_clip": [
+    0.5,
+    1.5
+  ],
   "generator": {
-    "y_lo": 6000.0,
-    "y_hi": 320000.0,
-    "yield_range_status": "placeholder_pending_detectability_check",
+    "y_lo": 6249.708098,
+    "y_hi": 541560.544764,
+    "yield_range_status": "frozen_by_detectability_check",
     "fiducial_fraction": 0.8,
     "spectrum_kind": "uniform_synthetic",
-    "spectrum_nm": [300.0, 600.0],
+    "spectrum_nm": [
+      300.0,
+      600.0
+    ],
     "spectrum_label": "synthetic_uniform_300_600_nm (PMT reference stand-in)",
-    "qe_curve_nm": [300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0],
-    "qe_curve": [0.10, 0.18, 0.24, 0.25, 0.22, 0.16, 0.08],
+    "qe_curve_nm": [
+      300.0,
+      350.0,
+      400.0,
+      450.0,
+      500.0,
+      550.0,
+      600.0
+    ],
+    "qe_curve": [
+      0.1,
+      0.18,
+      0.24,
+      0.25,
+      0.22,
+      0.16,
+      0.08
+    ],
     "ce": 0.95,
     "n_wavelength_samples": 1,
     "sigma_spe": 0.3,
@@ -53,26 +122,88 @@
     "mv_per_pe": 4.0,
     "n_group": 1.33,
     "lambda0_m": 50.0,
-    "twin": true
+    "twin": true,
+    "yield_range_decision": {
+      "decisions": "../DECISIONS.md section 'WP4b \u00a73.5.3a detectability check \u2014 FROZEN'",
+      "decision_json": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json",
+      "decision_json_sha256": "fbddb6fd9493de704841b5cfc35e1ea12c9dba726b0dfe476297b6958bfe56a3",
+      "decision_content_sha256": "e3bcbd1a0069b222563c606cd386adf5453b6109b621d1d1e374fdb8cd5b13f0",
+      "y_lo_basis": "median 200.5 hit PMTs at Y_lo (hit fraction 0.1005)",
+      "y_hi_basis": "hit_fraction_0.95 bound (median 0.9499; the 300 PE bound would allow 846767.8)",
+      "median_yield_photons": 58177.275,
+      "rebenchmark_required": true
+    }
   },
   "cohorts": {
-    "train": {"namespace": "lucid/train", "event_start": 0, "n_events": 100000, "run_length": 1000},
-    "probe_train": {"namespace": "lucid/probe_train", "event_start": 200000, "n_events": 10000, "run_length": 50},
-    "probe_test": {"namespace": "lucid/probe_test", "event_start": 210000, "n_events": 10000, "run_length": 50},
-    "robustness": {"namespace": "lucid/robustness", "event_start": 220000, "n_events": 10000, "run_length": 50},
-    "dev_train": {"namespace": "lucid/dev_train", "event_start": 1000000, "n_events": 100000, "run_length": 1000},
-    "dev_probe_train": {"namespace": "lucid/dev_probe_train", "event_start": 1200000, "n_events": 10000, "run_length": 50},
-    "dev_probe_test": {"namespace": "lucid/dev_probe_test", "event_start": 1210000, "n_events": 10000, "run_length": 50},
-    "dev_robustness": {"namespace": "lucid/dev_robustness", "event_start": 1220000, "n_events": 10000, "run_length": 50}
+    "train": {
+      "namespace": "lucid/train",
+      "event_start": 0,
+      "n_events": 100000,
+      "run_length": 1000
+    },
+    "probe_train": {
+      "namespace": "lucid/probe_train",
+      "event_start": 200000,
+      "n_events": 10000,
+      "run_length": 50
+    },
+    "probe_test": {
+      "namespace": "lucid/probe_test",
+      "event_start": 210000,
+      "n_events": 10000,
+      "run_length": 50
+    },
+    "robustness": {
+      "namespace": "lucid/robustness",
+      "event_start": 220000,
+      "n_events": 10000,
+      "run_length": 50
+    },
+    "dev_train": {
+      "namespace": "lucid/dev_train",
+      "event_start": 1000000,
+      "n_events": 100000,
+      "run_length": 1000
+    },
+    "dev_probe_train": {
+      "namespace": "lucid/dev_probe_train",
+      "event_start": 1200000,
+      "n_events": 10000,
+      "run_length": 50
+    },
+    "dev_probe_test": {
+      "namespace": "lucid/dev_probe_test",
+      "event_start": 1210000,
+      "n_events": 10000,
+      "run_length": 50
+    },
+    "dev_robustness": {
+      "namespace": "lucid/dev_robustness",
+      "event_start": 1220000,
+      "n_events": 10000,
+      "run_length": 50
+    }
   },
-  "event_id_source": "v3 §6 WP5 integer ranges, lucid/ namespace prefix",
-  "robustness_id_note": "v3 §6 has no robustness range; 220000-229999 is a WP4b extension and is reported to the lead",
-  "views": {"n_min": 20, "max_redraws": 3},
-  "detectability": {"sigma_spe": 0.3, "v_dark": 0.0, "run_events": 50},
+  "event_id_source": "v3 \u00a76 WP5 integer ranges, lucid/ namespace prefix",
+  "robustness_id_note": "v3 \u00a76 has no robustness range; 220000-229999 is a WP4b extension and is reported to the lead",
+  "views": {
+    "n_min": 20,
+    "max_redraws": 3
+  },
+  "detectability": {
+    "sigma_spe": 0.3,
+    "v_dark": 0.0,
+    "run_events": 50
+  },
   "benchmark": {
     "events": 1000,
     "volume_events": 1070000,
-    "volume_breakdown": {"main_grid_train_3x100k": 300000, "secondary_train_5x100k": 500000, "dev_train_100k": 100000, "probe_and_robustness_17x10k": 170000},
+    "volume_breakdown": {
+      "main_grid_train_3x100k": 300000,
+      "secondary_train_5x100k": 500000,
+      "dev_train_100k": 100000,
+      "probe_and_robustness_17x10k": 170000
+    },
     "cores_at_most": 16,
     "cpu_cap_wall_hours": 48.0
   },

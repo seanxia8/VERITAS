@@ -59,14 +59,14 @@ class CheckConfig:
     seed: int = lb.DEFAULT_SEED
     threshold: float = THRESHOLD
     f1_spreads: tuple = lb.F1_SPREADS
-    f3_spread: float = lb.F3_SPREAD
+    f3_spread: float = lb.F3_SPREAD_DEFAULT
     f3_max_spread: float = 0.10
     f2_spreads: tuple = lb.F2_SPREADS
     f2p_spreads: tuple = lb.F2P_SPREADS
     t_spread: float = lb.T_SPREAD
     t_ratio: float = 0.5
-    y_lo: float = lb.Y_LO_PHOTONS
-    y_hi_initial: float = lb.Y_HI_PHOTONS
+    y_lo: float = lb.Y_LO_PHOTONS_PLACEHOLDER
+    y_hi_initial: float = lb.Y_HI_PHOTONS_PLACEHOLDER
     y_lo_target_hits: float = 200.0
     y_hi_target_module_charge_pe: float = 300.0
     y_hi_target_hit_fraction: float = 0.95
