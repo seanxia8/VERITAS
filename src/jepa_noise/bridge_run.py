@@ -103,6 +103,8 @@ __all__ = [
     "COHORT_IDS",
     "PHYSICS_TARGETS",
     "NUISANCE_TARGETS",
+    "DEFINED_NUISANCE_TARGETS",
+    "REGISTERED_SEEDS",
     "CohortSpec",
     "CohortData",
     "RunSpec",
@@ -133,11 +135,20 @@ NUISANCE_TARGETS = ("line_I", "line_Q", "common_0", "common_1")
 #: Nuisance coefficients that are undefined at line = 0 (they are recorded as
 #: undefined, never as zero; v3 §1.3, v4 §3.2.8).
 LINE_TARGETS = ("line_I", "line_Q")
+#: Nuisance targets that are defined for the bridge cell (line = 0); B1/R7 use
+#: this set, and a target recorded as undefined is never silently dropped
+#: (v4 §3.2.8).  The per-run ``probes.json`` records the same set as
+#: ``nuisance.declared`` and ``defined_target_set_complete``.
+DEFINED_NUISANCE_TARGETS = ("common_0", "common_1")
+#: The registered arm x seed set of the WP4a bridge grid.
+REGISTERED_SEEDS = (0, 1, 2)
 
 SCHEMA_RUN = "jepa_bridge_run_v1"
+SCHEMA_PROBES = "jepa_bridge_probes_v1"
 SCHEMA_CHECKPOINT = "jepa_bridge_checkpoint_v1"
 SCHEMA_BETA = "jepa_bridge_beta_decision_v1"
 SCHEMA_AGGREGATE = "jepa_bridge_aggregate_v1"
+SCHEMA_AGGREGATE_MANIFEST = "jepa_bridge_aggregate_manifest_v1"
 
 #: v3 WP5 ID table, inclusive ranges.  The bridge cell is A4 g = 0.02,
 #: nominal amplitude, channel split; the development cohort is independent
@@ -1553,11 +1564,20 @@ def b1_verdict(
     delta = _mean(values_plain) - _mean(values_anchored) if seeds else None
     floor = None
     if seeds:
-        floor = seed_floor(
+        candidate_sds = [
             _sd(values_plain) if sd_plain is None else sd_plain,
             _sd(values_anchored) if sd_anchored is None else sd_anchored,
-            all_arm_sds,
-        )
+            *[value for value in all_arm_sds],
+        ]
+        if any(
+            value is not None and np.isfinite(value)
+            for value in candidate_sds
+        ):
+            floor = seed_floor(
+                _sd(values_plain) if sd_plain is None else sd_plain,
+                _sd(values_anchored) if sd_anchored is None else sd_anchored,
+                all_arm_sds,
+            )
     verdict = {
         "id": "B1",
         "metric": metric,
@@ -1590,9 +1610,12 @@ def b1_verdict(
             "(the conservative reading of 'exceeds the seed-floor rule')"
         ),
     }
-    if not seeds or floor is None or delta is None:
+    if not seeds or delta is None:
         verdict["status"] = "not_evaluable"
         verdict["reason"] = "missing_paired_seeds"
+    elif floor is None:
+        verdict["status"] = "not_evaluable"
+        verdict["reason"] = "missing_seed_floor"
     elif verdict["all_seeds_plain_greater"] and verdict["exceeds_two_floors"]:
         verdict["status"] = "pass"
         verdict["reason"] = None
@@ -2128,6 +2151,47 @@ def evaluate_run(
 # ---------------------------------------------------------------------------
 # aggregation
 # ---------------------------------------------------------------------------
+def _defined_nuisance_scores(nuisance: dict) -> dict:
+    """Score a probe's nuisance rows over the cell's defined target set.
+
+    At line = 0 the cell's defined nuisance targets are ``common_0`` and
+    ``common_1`` (v4 §3.2.8); ``line_I``/``line_Q`` are recorded as undefined
+    and never replaced by zero or silently averaged in.  The per-run probe
+    payload records ``nuisance.declared`` and ``defined_target_set_complete``;
+    this helper re-derives the score from the rows so a damaged or wrongly
+    declared set is detected rather than trusted.
+    """
+    rows = {
+        str(row.get("target")): row
+        for row in nuisance.get("rows", [])
+        if isinstance(row, dict)
+    }
+    scores: Dict[str, float] = {}
+    missing: List[str] = []
+    for target in DEFINED_NUISANCE_TARGETS:
+        row = rows.get(target)
+        value = None if row is None else row.get("test_r2")
+        if (
+            row is None
+            or row.get("status") != "evaluated"
+            or value is None
+            or not np.isfinite(float(value))
+        ):
+            missing.append(target)
+        else:
+            scores[target] = float(value)
+    return {
+        "scores": scores,
+        "mean": float(np.mean(list(scores.values()))) if scores else None,
+        "missing": missing,
+        "complete": not missing,
+        "declared": list(nuisance.get("declared", [])),
+        "recorded_complete": bool(
+            nuisance.get("defined_target_set_complete", False)
+        ),
+    }
+
+
 def _arm_tables(results: Sequence[dict]) -> dict:
     arms: Dict[str, dict] = {}
     for result in results:
@@ -2139,7 +2203,8 @@ def _arm_tables(results: Sequence[dict]) -> dict:
         seed = int(row["seed"])
         entry = arms.setdefault(arm, {"seeds": {}})
         probes = metrics["probes"]
-        nuisance_r2 = probes["nuisance"]["defined_mean_r2"]
+        nuisance = _defined_nuisance_scores(probes["nuisance"])
+        nuisance_r2 = nuisance["mean"]
         physics = {
             par: probes["physics"]["rows"][index]["physics_mse_crlb"]
             for index, par in enumerate(PHYSICS_TARGETS)
@@ -2152,9 +2217,11 @@ def _arm_tables(results: Sequence[dict]) -> dict:
         entry["seeds"][str(seed)] = {
             "run_id": row["run_id"],
             "nuisance_r2": nuisance_r2,
-            "nuisance_target_set_complete": probes["nuisance"][
-                "defined_target_set_complete"
-            ],
+            "nuisance_targets": list(DEFINED_NUISANCE_TARGETS),
+            "nuisance_target_r2": nuisance["scores"],
+            "nuisance_missing_targets": nuisance["missing"],
+            "nuisance_declared": nuisance["declared"],
+            "nuisance_target_set_complete": nuisance["complete"],
             "random_init_floor": {
                 "nuisance_r2": floor["nuisance"]["defined_mean_r2"],
                 "physics_mse_crlb": {
@@ -2207,33 +2274,96 @@ def _arm_tables(results: Sequence[dict]) -> dict:
             value.get("nuisance_target_set_complete", False)
             for value in seeds.values()
         )
+        entry["nuisance_missing_targets"] = sorted({
+            target
+            for value in seeds.values()
+            for target in value.get("nuisance_missing_targets", [])
+        })
+        entry["nuisance_declared"] = sorted({
+            target
+            for value in seeds.values()
+            for target in value.get("nuisance_declared", [])
+        })
     return arms
 
 
 def _seed_cka(arms: dict) -> dict:
+    """Seed CKA from each run's ``embeddings.npz``, if present.
+
+    Embeddings are streamed: at most one ``npz`` is opened at a time (a CKA
+    pair needs two reduced probe-test matrices, not two full archives), and
+    only ``mean_tokens_test`` is retained.  A missing or unreadable archive
+    makes CKA alone ``not_evaluable``; it never blocks the rest of the
+    aggregate.
+    """
     cka: Dict[str, dict] = {}
     for arm, entry in arms.items():
         seeds = sorted(entry["seeds"], key=int)
         rows: Dict[str, dict] = {}
-        features = {}
-        for seed in seeds:
-            path = entry["seeds"][seed]["embedding_path"]
-            with np.load(path) as data:
-                features[seed] = np.asarray(data["mean_tokens_test"], dtype=np.float64)
-        for index, first in enumerate(seeds):
-            for second in seeds[index + 1:]:
-                key = f"{first}-{second}"
-                try:
-                    rows[key] = {
-                        "value": linear_cka(features[first], features[second]),
-                        "status": "computed",
-                    }
-                except ValueError as error:
-                    rows[key] = {"value": None, "status": str(error)}
+        missing = [
+            int(seed) for seed in seeds
+            if not entry["seeds"][seed].get("embedding_path")
+            or not Path(entry["seeds"][seed]["embedding_path"]).is_file()
+        ]
+        if missing:
+            cka[arm] = {
+                "pairs": rows,
+                "mean": None,
+                "status": "not_evaluable",
+                "reason": "embeddings_missing",
+                "missing_seeds": missing,
+                "note": (
+                    "linear CKA between seeds of the same arm on probe-test "
+                    "embeddings; embeddings.npz is not present in every run, "
+                    "so CKA alone is not_evaluable"
+                ),
+            }
+            continue
+        stream_error = None
+        try:
+            for index, first in enumerate(seeds):
+                for second in seeds[index + 1:]:
+                    key = f"{first}-{second}"
+                    with np.load(
+                        entry["seeds"][first]["embedding_path"]
+                    ) as data:
+                        first_features = np.asarray(
+                            data["mean_tokens_test"], dtype=np.float64
+                        )
+                    with np.load(
+                        entry["seeds"][second]["embedding_path"]
+                    ) as data:
+                        second_features = np.asarray(
+                            data["mean_tokens_test"], dtype=np.float64
+                        )
+                    try:
+                        rows[key] = {
+                            "value": linear_cka(
+                                first_features, second_features
+                            ),
+                            "status": "computed",
+                        }
+                    except ValueError as pair_error:
+                        rows[key] = {"value": None, "status": str(pair_error)}
+                    del first_features, second_features
+        except (OSError, ValueError, KeyError) as stream_error:
+            pass
         values = [row["value"] for row in rows.values() if row["value"] is not None]
+        readable = stream_error is None
         cka[arm] = {
             "pairs": rows,
             "mean": float(np.mean(values)) if values else None,
+            "status": (
+                "computed" if readable and values
+                else "not_evaluable"
+            ),
+            "reason": (
+                None if readable
+                else (
+                    "embeddings_unreadable:"
+                    f"{type(stream_error).__name__}:{stream_error}"
+                )
+            ),
             "note": "linear CKA between seeds of the same arm on probe-test embeddings",
         }
     return cka
@@ -2289,18 +2419,20 @@ def build_aggregate(
     )
     required = ("sigreg_jepa", "sigreg_jepa_anchored")
     missing_arms = [arm for arm in required if arm not in arms]
-    incomplete_arms = [
-        arm for arm in required
-        if arm in arms
-        and not arms.get(arm, {}).get("nuisance_target_set_complete", False)
-    ]
+    missing_targets: List[str] = []
+    for arm in required:
+        if arm not in arms:
+            continue
+        for target in arms[arm].get("nuisance_missing_targets", []):
+            if target not in missing_targets:
+                missing_targets.append(target)
     if missing_arms:
         aggregate_incomplete_reason = (
             "missing_required_arm:" + ",".join(missing_arms)
         )
-    elif incomplete_arms:
+    elif missing_targets:
         aggregate_incomplete_reason = (
-            "missing_required_nuisance_target:" + ",".join(incomplete_arms)
+            "missing_required_nuisance_target:" + ",".join(missing_targets)
         )
     else:
         aggregate_incomplete_reason = None
@@ -2308,6 +2440,7 @@ def build_aggregate(
         for key in ("B1", "R7"):
             verdicts[key]["status"] = "not_evaluable"
             verdicts[key]["reason"] = aggregate_incomplete_reason
+            verdicts[key]["nuisance_missing_targets"] = list(missing_targets)
     mae = arms.get("mae_chi2", {})
     aggregate = {
         "schema": SCHEMA_AGGREGATE,
@@ -2358,6 +2491,12 @@ def build_aggregate(
             "largest of SD_a, SD_b and the median SD over all arms in the cell "
             "(v4 §3.5.8; SD uses ddof=1)"
         ),
+        "nuisance_defined_targets": list(DEFINED_NUISANCE_TARGETS),
+        "nuisance_defined_targets_note": (
+            "B1/R7 use the cell's defined nuisance target set at line = 0 "
+            "({common_0, common_1}); line_I/line_Q are undefined there and "
+            "are never averaged in (v4 §3.2.8)"
+        ),
         "seed_cka": _seed_cka(arms),
         "verdicts": verdicts,
         "files": {"manifest_rows": len(results)},
@@ -2366,7 +2505,7 @@ def build_aggregate(
 
 
 def predictions_fragment(
-    aggregate: dict, *, out_dir: Path
+    aggregate: dict, *, out_dir: Path, mode: str = "grid"
 ) -> str:
     b1 = aggregate["verdicts"]["B1"]
     r7 = aggregate["verdicts"]["R7"]
@@ -2381,7 +2520,7 @@ def predictions_fragment(
         "# PREDICTIONS_UPDATE — WP4a Tier-1 bridge",
         "",
         f"Generated {aggregate['generated_at_utc']} by "
-        f"`jepa_noise.bridge_run grid`; config sha256 "
+        f"`jepa_noise.bridge_run {mode}`; config sha256 "
         f"`{aggregate['config_sha256']}`; code `{aggregate['code_sha']}`.",
         "",
         "Registration: runbook v4 §3.5.9 B1 and the bridge half of R7. "
@@ -3069,9 +3208,23 @@ def run_aggregate(
     rows: Dict[str, dict] = {}
     sources: List[dict] = []
     anomalies: List[dict] = []
+    damaged: List[str] = []
     for root in roots:
         root_rows = load_manifest_rows(root)
         root_results = collect_results(root)
+        collected = {entry["manifest"]["run_id"] for entry in root_results}
+        for run_id, row in sorted(root_rows.items()):
+            if row.get("outcome") != "complete" or run_id in collected:
+                continue
+            run_dir = root / "runs" / run_id
+            absent = [
+                name for name in ("probes.json", "embeddings.npz")
+                if not (run_dir / name).exists()
+            ]
+            if absent:
+                damaged.append(
+                    f"{run_id} (manifest complete but missing {', '.join(absent)})"
+                )
         declared_complete = getattr(args, "complete_run", None) or []
         if root_results:
             for result in root_results:
@@ -3092,12 +3245,11 @@ def run_aggregate(
                             "resolution": "--complete-run declaration",
                         })
                     else:
-                        anomalies.append({
-                            "run_id": run_id,
-                            "manifest_outcome": "complete",
-                            "run_status_outcome": status.get("outcome"),
-                            "resolution": "accepted on manifest evidence; declared complete by the caller",
-                        })
+                        damaged.append(
+                            f"{run_id} (run_status outcome {status.get('outcome')!r}, "
+                            "manifest outcome 'complete')"
+                        )
+                        continue
                 results.append(result)
         rows.update(root_rows)
         sources.append({
@@ -3113,6 +3265,14 @@ def run_aggregate(
                 for result in root_results
             ],
         })
+    if damaged:
+        raise RuntimeError(
+            "run status disagrees with the job-level manifest for: "
+            + "; ".join(damaged)
+            + ". Refusing to guess: re-run the aggregate with "
+            "--complete-run <run_id ...> for runs whose metrics are intact and "
+            "whose status file was damaged after the run finished."
+        )
     if not results:
         raise RuntimeError("no completed runs found under the given --runs-root values")
     requested = [
@@ -3158,6 +3318,13 @@ def run_aggregate(
     ]
     aggregate["aggregation_sources"] = sources
     aggregate["status_anomalies"] = anomalies
+    if getattr(args, "allow_partial", False):
+        for key in ("B1", "R7"):
+            aggregate["verdicts"][key]["status"] = "not_evaluable"
+            aggregate["verdicts"][key]["reason"] = (
+                "partial_set: --allow-partial forbids a cross-arm verdict; "
+                f"missing {', '.join(aggregate['pending_runs']) or 'none'}"
+            )
     aggregate["aggregation_mode"] = "aggregate-only (read-only; no run directory written)"
     aggregate["data_footprint"] = _footprint_roots(roots)
     out_root = Path(args.out)

@@ -454,11 +454,30 @@ def test_aggregate_is_read_only_and_reports_missing_arm(tmp_path):
     assert payload["aggregation_mode"].startswith("aggregate-only")
     b1 = payload["verdicts"]["B1"]
     assert b1["status"] == "not_evaluable"
-    assert b1["reason"] == "missing_required_arm:sigreg_jepa_anchored"
+    assert "partial_set" in b1["reason"]
+    assert b1["status"] == "not_evaluable"
     assert payload["status_anomalies"] == []
+    assert payload["verdicts"]["B1"]["reason"].startswith("partial_set") \
+        or "partial_set" in payload["verdicts"]["B1"]["reason"]
 
 
-def test_aggregate_records_a_damaged_run_status_as_anomaly(tmp_path):
+def test_aggregate_refuses_a_damaged_run_status_without_declaration(tmp_path):
+    out_root = _tiny_two_arm_tree(tmp_path)
+    status_path = (out_root / "runs" / "wp4a_eval_sigreg_jepa_s0"
+                   / "run_status.json")
+    status = json.loads(status_path.read_text())
+    status["outcome"] = "interrupted"
+    status_path.write_text(json.dumps(status))
+    rc = bridge_run.main([
+        "aggregate", "--out", str(tmp_path / "combined"),
+        "--runs-root", str(out_root), "--config", str(CONFIG_PATH),
+        "--data-root", str(tmp_path / "agg" / "data"),
+        "--fixture", "synthetic", "--allow-partial",
+    ])
+    assert rc == 2, "a damaged run_status must be refused unless declared"
+
+
+def test_aggregate_records_a_declared_damaged_run_status_as_anomaly(tmp_path):
     out_root = _tiny_two_arm_tree(tmp_path)
     status_path = (out_root / "runs" / "wp4a_eval_sigreg_jepa_s0"
                    / "run_status.json")
@@ -470,6 +489,7 @@ def test_aggregate_records_a_damaged_run_status_as_anomaly(tmp_path):
         "aggregate", "--out", str(dest), "--runs-root", str(out_root),
         "--config", str(CONFIG_PATH), "--data-root", str(tmp_path / "agg" / "data"),
         "--fixture", "synthetic", "--allow-partial",
+        "--complete-run", "wp4a_eval_sigreg_jepa_s0",
     ])
     assert rc == 0
     payload = json.loads((dest / "aggregate.json").read_text())
