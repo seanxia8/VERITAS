@@ -1,0 +1,465 @@
+{
+  "diagnostic": {
+    "20 ns, dark on": {
+      "split": "validation",
+      "n_train": 192,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 0.9908740179310788,
+          "direction": 9.895350456237793,
+          "energy": 0.7650051730944988,
+          "vertex_worst": 1.0230794271705617,
+          "energy_worst": 0.9505868623669859,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.990874 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.02308 > 1.0"
+          ],
+          "best_epoch": 26
+        },
+        {
+          "seed": 31,
+          "vertex": 0.9926334868571591,
+          "direction": 9.565787315368652,
+          "energy": 0.6273578933515462,
+          "vertex_worst": 1.0376765374465027,
+          "energy_worst": 0.6969606821947031,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.992633 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.03768 > 1.0"
+          ],
+          "best_epoch": 44
+        },
+        {
+          "seed": 32,
+          "vertex": 1.0043105246640525,
+          "direction": 10.310324668884277,
+          "energy": 0.591477684430312,
+          "vertex_worst": 1.0828860538524279,
+          "energy_worst": 0.6642770762142338,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.00431 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.08289 > 1.0"
+          ],
+          "best_epoch": 48
+        }
+      ],
+      "charge": 0.09235035980037404
+    },
+    "20 ns, dark off": {
+      "split": "validation",
+      "n_train": 192,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 0.9356860975040191,
+          "direction": 10.917607307434082,
+          "energy": 0.49120287841485355,
+          "vertex_worst": 1.0021484384204102,
+          "energy_worst": 0.5278696049926475,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.935686 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.00215 > 1.0"
+          ],
+          "best_epoch": 98
+        },
+        {
+          "seed": 31,
+          "vertex": 0.953653759336182,
+          "direction": 10.093931198120117,
+          "energy": 0.48985412861837024,
+          "vertex_worst": 0.9620778500676,
+          "energy_worst": 0.5200330487414148,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.953654 > 0.8"
+          ],
+          "best_epoch": 54
+        },
+        {
+          "seed": 32,
+          "vertex": 0.9546491658157485,
+          "direction": 9.40358829498291,
+          "energy": 0.460264652289504,
+          "vertex_worst": 1.000782644764564,
+          "energy_worst": 0.5439534042992886,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.954649 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.00078 > 1.0"
+          ],
+          "best_epoch": 74
+        }
+      ],
+      "charge": 0.09235708354474333
+    },
+    "1 \u00b5s, dark on": {
+      "split": "validation",
+      "n_train": 192,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 0.9618207437379673,
+          "direction": 9.36611557006836,
+          "energy": 0.5496733069884371,
+          "vertex_worst": 1.0088655079027256,
+          "energy_worst": 0.5804878279674063,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.961821 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.00887 > 1.0"
+          ],
+          "best_epoch": 52
+        },
+        {
+          "seed": 31,
+          "vertex": 0.9493184975842579,
+          "direction": 9.28498363494873,
+          "energy": 0.6553799402532293,
+          "vertex_worst": 0.9803327729656273,
+          "energy_worst": 0.7207399385587168,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.949318 > 0.8"
+          ],
+          "best_epoch": 49
+        },
+        {
+          "seed": 32,
+          "vertex": 0.9808566296745583,
+          "direction": 8.664178848266602,
+          "energy": 0.6933719889286935,
+          "vertex_worst": 1.0145052627085294,
+          "energy_worst": 0.8315573781995683,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.980857 > 0.8",
+            "subgroup 1000 vertex RMSE / constant: 1.00896 > 1.0",
+            "subgroup 500 vertex RMSE / constant: 1.01451 > 1.0"
+          ],
+          "best_epoch": 38
+        }
+      ],
+      "charge": 0.09235035980037404
+    },
+    "1 \u00b5s, dark off": {
+      "split": "validation",
+      "n_train": 192,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 0.972226783001823,
+          "direction": 9.586213111877441,
+          "energy": 0.5187862656291695,
+          "vertex_worst": 0.9956257729928639,
+          "energy_worst": 0.6061344654705221,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.972227 > 0.8"
+          ],
+          "best_epoch": 40
+        },
+        {
+          "seed": 31,
+          "vertex": 0.957447505330015,
+          "direction": 9.526717185974121,
+          "energy": 0.5138597318937791,
+          "vertex_worst": 0.9717704507164594,
+          "energy_worst": 0.6170390377956831,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.957448 > 0.8"
+          ],
+          "best_epoch": 54
+        },
+        {
+          "seed": 32,
+          "vertex": 0.9778024703466337,
+          "direction": 9.235855102539062,
+          "energy": 0.543918089809498,
+          "vertex_worst": 1.0249286679820397,
+          "energy_worst": 0.5585983397956407,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.977802 > 0.8",
+            "subgroup 1000 vertex RMSE / constant: 1.00965 > 1.0",
+            "subgroup 500 vertex RMSE / constant: 1.02493 > 1.0"
+          ],
+          "best_epoch": 58
+        }
+      ],
+      "charge": 0.09235708354474333
+    }
+  },
+  "learning_curve": {
+    "4": {
+      "split": "validation",
+      "n_train": 96,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 1.0209448774397554,
+          "direction": 11.638667106628418,
+          "energy": 0.8134612204805782,
+          "vertex_worst": 1.088087834398741,
+          "energy_worst": 0.875800789157077,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.02094 > 0.8",
+            "pooled deposited_energy_in_volume relative MAE / constant: 0.813461 > 0.8",
+            "subgroup 1000 vertex RMSE / constant: 1.00472 > 1.0",
+            "subgroup 500 vertex RMSE / constant: 1.08809 > 1.0"
+          ],
+          "best_epoch": 47
+        },
+        {
+          "seed": 31,
+          "vertex": 1.017229526110496,
+          "direction": 11.664535522460938,
+          "energy": 1.004998986246415,
+          "vertex_worst": 1.0753008284017138,
+          "energy_worst": 1.1233579827125217,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.01723 > 0.8",
+            "pooled deposited_energy_in_volume relative MAE / constant: 1.005 > 0.8",
+            "subgroup 1000 deposited_energy_in_volume relative MAE / constant: 1.12336 > 1.0",
+            "subgroup 1500 deposited_energy_in_volume relative MAE / constant: 1.00286 > 1.0",
+            "subgroup 500 vertex RMSE / constant: 1.0753 > 1.0"
+          ],
+          "best_epoch": 32
+        },
+        {
+          "seed": 32,
+          "vertex": 1.0312543183227143,
+          "direction": 11.897374153137207,
+          "energy": 0.8444162846226376,
+          "vertex_worst": 1.1184257194892113,
+          "energy_worst": 0.9641044663148749,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.03125 > 0.8",
+            "pooled deposited_energy_in_volume relative MAE / constant: 0.844416 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.11843 > 1.0"
+          ],
+          "best_epoch": 42
+        }
+      ],
+      "charge": 0.09235035980037404
+    },
+    "6": {
+      "split": "validation",
+      "n_train": 144,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 1.0105972585820884,
+          "direction": 10.416972160339355,
+          "energy": 0.7405750683111988,
+          "vertex_worst": 1.0796923755290035,
+          "energy_worst": 0.7859662300014136,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.0106 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.07969 > 1.0"
+          ],
+          "best_epoch": 39
+        },
+        {
+          "seed": 31,
+          "vertex": 1.0352916214054075,
+          "direction": 10.528044700622559,
+          "energy": 0.7905645754085,
+          "vertex_worst": 1.069675873178087,
+          "energy_worst": 0.8191479634174406,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.03529 > 0.8",
+            "subgroup 1000 vertex RMSE / constant: 1.06583 > 1.0",
+            "subgroup 500 vertex RMSE / constant: 1.06968 > 1.0"
+          ],
+          "best_epoch": 42
+        },
+        {
+          "seed": 32,
+          "vertex": 1.0015309427484773,
+          "direction": 10.118270874023438,
+          "energy": 0.8995083515430087,
+          "vertex_worst": 1.0408989446803487,
+          "energy_worst": 0.9362517738887475,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.00153 > 0.8",
+            "pooled deposited_energy_in_volume relative MAE / constant: 0.899508 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.0409 > 1.0"
+          ],
+          "best_epoch": 30
+        }
+      ],
+      "charge": 0.09235035980037404
+    },
+    "8": {
+      "split": "validation",
+      "n_train": 192,
+      "n_eval": 96,
+      "seeds": [
+        {
+          "seed": 30,
+          "vertex": 0.9908740179310788,
+          "direction": 9.895350456237793,
+          "energy": 0.7650051730944988,
+          "vertex_worst": 1.0230794271705617,
+          "energy_worst": 0.9505868623669859,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.990874 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.02308 > 1.0"
+          ],
+          "best_epoch": 26
+        },
+        {
+          "seed": 31,
+          "vertex": 0.9926334868571591,
+          "direction": 9.565787315368652,
+          "energy": 0.6273578933515462,
+          "vertex_worst": 1.0376765374465027,
+          "energy_worst": 0.6969606821947031,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 0.992633 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.03768 > 1.0"
+          ],
+          "best_epoch": 44
+        },
+        {
+          "seed": 32,
+          "vertex": 1.0043105246640525,
+          "direction": 10.310324668884277,
+          "energy": 0.591477684430312,
+          "vertex_worst": 1.0828860538524279,
+          "energy_worst": 0.6642770762142338,
+          "passed": false,
+          "failures": [
+            "pooled vertex RMSE / constant: 1.00431 > 0.8",
+            "subgroup 500 vertex RMSE / constant: 1.08289 > 1.0"
+          ],
+          "best_epoch": 48
+        }
+      ],
+      "charge": 0.09235035980037404
+    }
+  },
+  "R-4 (1 \u00b5s)": {
+    "split": "test",
+    "n_train": null,
+    "n_eval": null,
+    "seeds": [
+      {
+        "seed": 30,
+        "vertex": 0.9645111459014974,
+        "direction": 9.01059627532959,
+        "energy": 0.6444256562536952,
+        "vertex_worst": 0.9726927696401791,
+        "energy_worst": 0.7853446544305686,
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.964511 > 0.8"
+        ],
+        "best_epoch": 52
+      },
+      {
+        "seed": 31,
+        "vertex": 0.9604551962537299,
+        "direction": 9.635903358459473,
+        "energy": 0.6723229678316889,
+        "vertex_worst": 0.9742556220991687,
+        "energy_worst": 0.7312047646969619,
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.960455 > 0.8"
+        ],
+        "best_epoch": 49
+      },
+      {
+        "seed": 32,
+        "vertex": 0.9984165376536609,
+        "direction": 9.476075172424316,
+        "energy": 0.8769354699576168,
+        "vertex_worst": 1.033158865906171,
+        "energy_worst": 1.3151543095302145,
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.998417 > 0.8",
+          "pooled deposited_energy_in_volume relative MAE / constant: 0.876935 > 0.8",
+          "subgroup 1500 vertex RMSE / constant: 1.03316 > 1.0",
+          "subgroup 500 deposited_energy_in_volume relative MAE / constant: 1.31515 > 1.0"
+        ],
+        "best_epoch": 38
+      }
+    ],
+    "charge": 0.09142417325107337
+  },
+  "R-4b (20 ns rule)": {
+    "split": "test",
+    "n_train": 192,
+    "n_eval": 96,
+    "seeds": [
+      {
+        "seed": 30,
+        "vertex": 0.9915525298559713,
+        "direction": 9.967778205871582,
+        "energy": 0.9430106549118946,
+        "vertex_worst": 1.0165922150480777,
+        "energy_worst": 1.1251286977504993,
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.991553 > 0.8",
+          "pooled deposited_energy_in_volume relative MAE / constant: 0.943011 > 0.8",
+          "subgroup 1000 vertex RMSE / constant: 1.00497 > 1.0",
+          "subgroup 1500 vertex RMSE / constant: 1.01659 > 1.0",
+          "subgroup 500 deposited_energy_in_volume relative MAE / constant: 1.12513 > 1.0"
+        ],
+        "best_epoch": 26
+      },
+      {
+        "seed": 31,
+        "vertex": 0.9976506010208511,
+        "direction": 10.113080024719238,
+        "energy": 0.6728788899813432,
+        "vertex_worst": 1.004942108421274,
+        "energy_worst": 0.9878982211339911,
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.997651 > 0.8",
+          "subgroup 1500 vertex RMSE / constant: 1.00494 > 1.0"
+        ],
+        "best_epoch": 44
+      },
+      {
+        "seed": 32,
+        "vertex": 0.9995119189316288,
+        "direction": 10.33334732055664,
+        "energy": 0.6869209290185759,
+        "vertex_worst": 1.0185213494555025,
+        "energy_worst": 0.9373655834943744,
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.999512 > 0.8",
+          "subgroup 500 vertex RMSE / constant: 1.01852 > 1.0"
+        ],
+        "best_epoch": 48
+      }
+    ],
+    "charge": 0.09142417325107337
+  }
+}

@@ -229,6 +229,15 @@ _One line each, logged as made (18 Oct 2026)._
   - The exit point is found by bisection on the first boundary crossing.
   - Re-entries are counted, not added (none occurred).
   - `Segment_Edep` inside the volume is recorded as a cross-check only.
+- E37 (R-4b). Results:
+  - The 2×2 diagnostic (validation only) rules out the time unit as the cause, and dark counts as more than a small effect (about 0.05). All arms give vertex 0.95–1.00 × constant.
+  - With dark counts off, the inputs equal those of `56179eb` except for a per-event constant time offset (+9.9 to +10.3 units on hits; unhit sensors stay at 0) and the energy column.
+  - The cause is not identified. The open candidates are the time origin, the energy-target switch and the model seeds.
+  - R-4b (test, 20 ns rule) fails vertex in all seeds (0.99–1.00) and E_dep in seed 30.
+  - Vertex is not data-limited at 96–192 training placements; E_dep is.
+  - Recorded beside R-4; nothing was retuned.
+- E38 (κ_m). The precision study (32 readout re-draws × 96 validation placements, frozen R-4b checkpoints) gives SD_K = 0.040 for K = max(K_vertex, K_energy), with SD = 0.028 for vertex and 0.064 for energy. Then 1 + 2·SD_K = 1.080, so **κ_m = 1.10**, frozen in `wp6_contract_v2.json`.
+- E39 (R-4b, data). The 1 µs + dark arm reuses the R-4 data set (`track_closure_01`): its settings are identical, (t − lo)/(hi − lo) with hi − lo = 1000 ns. The diagnostic uses the validation split for both checkpoint selection and evaluation. That flatters every arm equally and is used only to compare arms.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -249,6 +258,12 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | R-4 primary-segment extraction (`segments_01`) | 56 s | 0 | 91.2 MB |
 | 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | R-4 data generation (`track_closure_01`), existing photon sources | 14 min 26 s | 0 | 0 |
 | 18 Oct 2026 | deepthought (GPU 3, TITAN X, 25% memory) | R-4 training, 3 seeds × 100 epochs (`training_01`) | 55 s | 0.015 | 0 |
+
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | R-4b generation: `data_u20_dark`, `data_u20_nodark`, `data_u1000_nodark`, `data_precision` | 16:52, 17:02, 15:10, 6:45 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 3, TITAN X, 25% memory) | R-4b GPU sequence: 2×2 diagnostic, 2 train-subset arms, R-4b (7 runs × 3 seeds) | 338 s in total | 0.094 | 0 |
+| 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | κ_m precision inference (`precision_01`) | 30 s | 0 | 0 |
+
+R-4b totals: 0.094 GPU-hours, with no new source reads. Before the run, a 5-minute sample showed all GPUs at 0%, no process above 1 GB, and no `jepa_*` training session. Cumulative GPU use in this session: 0.109 GPU-hours. Cumulative source reads: about 92.5 MB.
 
 R-4 totals: 0.015 GPU-hours, about 92.5 MB of source reads against the 5 GB cap. Before training, a 5-minute sample showed every GPU at 0% mean utilisation, no process above 1 GB, and no `jepa_*` training session. Only `jepa_guard` was running. No other process was touched, signalled or reniced. Nothing was written under `/ceph`.
 

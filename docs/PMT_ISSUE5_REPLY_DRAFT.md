@@ -50,25 +50,26 @@ Setup: the same 60 PhotonSim events (500, 1000 and 1500 MeV μ⁻, 8 placements 
 - **Direction** is fine.
 - **Energy:** deposited energy is learnable, but total charge alone does as well (0.09 relative MAE). For escaping tracks it mostly measures path length inside the volume: about 340–370 MeV at every energy.
 - **Vertex** fails the new gate: it is barely better than a constant, and worse than our earlier run. Two input changes landed together: we changed the time feature to stay robust to dark hits, and added dark counts. We think one of them is responsible, and we'll test which on a validation split, not the test events.
+- **Vertex, follow-up:** switching the time unit back to 20 ns and dark counts off did not restore it (still 0.95–1.00 × constant), and a re-run on the test events failed the same way. The remaining suspect is the time-feature origin, now at the readout-window start; we're still checking that.
 - All of this is development evidence on synthetic response values, not a WCTE calibration.
 
 ## Decisions we need from you
 
-1. **D-E, the energy endpoint.** Should K's energy endpoint be:
-   - (A) energy deposited inside the instrumented volume, as above, with initial energy only on contained events (100–350 MeV μ⁻);
-   - (B) dropped, keeping vertex and direction only;
-   - (C) something else you prefer?
+1. **D-E, the energy endpoint.** Our preference is **(A)**, with K's energy endpoint on **contained μ⁻ at 100–300 MeV kinetic**, where deposited energy equals initial energy. E_dep on escaping tracks (primary muon only) would stay as a diagnostic. Do you agree, or would you prefer:
+   - (B) dropping energy, keeping vertex and direction only;
+   - (C) something else?
 
-   If (A), is primary-muon kinetic-energy loss the right truth, or should it include the secondaries' deposits too?
+   If (A), is primary-muon kinetic-energy loss the right truth for the diagnostic, or should it include the secondaries' deposits too?
 2. **A measured T-Q curve.** Can you give us a measured or thesis-derived walk curve for the target PMT, in forward time and PE? An Eq. 5.13-type fit with its charge-coordinate conversion would do. Until then, a = 0, b = 2 ns and q_sat = 50 PE are synthetic placeholders.
 3. **Target QE and CE for the WCTE 3-inch PMTs.** Could you send QE(λ) (≥ 3 wavelength points) and the collection efficiency? The current curve is synthetic.
 4. **Crate and cable map.** Is there a channel-to-crate or channel-to-cable map for WCTE? The module response currently uses mPMT modules; crates would follow your original request more closely.
 5. **Dark rate.** What dark rate per PMT should we use for the WCTE 3-inch PMTs, and does it depend on temperature or channel?
 6. **Portfolio decisions:**
    - **D-T:** keep NuRadioMC or move to JAXTPC.
-   - **D-L:** LUCiD as an attribution control and harm replication, or out of the paper.
+   - **D-L:** LUCiD as an attribution control and harm replication, or out of the paper (for Paper 3 / ORACLE; the JEPA study uses LUCiD regardless).
    - **D-M:** exclude simulation-model changes from the N/S cells.
    - **D-S:** the clean signal family and held-out definition for TIDMAD.
+7. **Realistic drift sizes.** Are module gain drifts of 2/5/10% per run, an independent per-PMT gain spread of 5%, and a 10% attenuation-length change realistic for WCTE?
 
 Thanks,
 Dowling

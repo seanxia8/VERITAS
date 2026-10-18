@@ -1,9 +1,9 @@
-"""WP6 frozen contract v1: required cells present, D-E-dependent entries pending, modules partitioned."""
+"""WP6 frozen contract v2 (v1 kept as history): required cells present, D-E-dependent entries pending, modules partitioned."""
 import json
 from pathlib import Path
 import numpy as np
 
-PATH = Path(__file__).resolve().parents[3] / "configs/lucid_pmt/wp6_contract_v1.json"
+PATH = Path(__file__).resolve().parents[3] / "configs/lucid_pmt/wp6_contract_v2.json"
 
 
 def contract():
@@ -12,7 +12,7 @@ def contract():
 
 def test_frozen_with_required_cells():
     c = contract()
-    assert c["status"] == "frozen_v1"
+    assert c["status"] == "frozen_v2" and c["held_out"]["status"].startswith("confirmed")
     ids = {x["id"] for x in c["cells"]}
     # runbook v2 §5: QE shape, T-Q slope, width, coupled mPMT gain + width, offset and module-loss
     # controls, identity and exact-degeneracy controls.
@@ -27,7 +27,8 @@ def test_de_dependent_entries_are_pending():
     c = contract()
     assert c["consequence"]["K_energy"]["status"] == "pending_D-E" and c["consequence"]["K"]["status"] == "pending_D-E"
     assert c["consequence"]["K_vertex"]["status"] == "frozen" and c["event_support"]["status"] == "pending_D-E"
-    assert c["consequence"]["kappa_m"]["status"] == "provisional_dev"
+    k = c["consequence"]["kappa_m"]
+    assert k["status"] == "frozen_v2" and k["value"] == max(1.10, round(1 + 2*k["precision_study"]["SD_K"], 3))
 
 
 def test_module_sets_partition_the_105_modules():

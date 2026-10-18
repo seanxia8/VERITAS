@@ -1,0 +1,218 @@
+{
+  "schema": "pmt-wp6-contract-v2",
+  "status": "frozen_v2",
+  "frozen": "18 Oct 2026, v2: kappa_m frozen from the precision study; held-out choices confirmed by the author; time-feature rule added (author decisions, docs/PMT_DECISIONS_LOG.md, third message)",
+  "pending_marker": "pending_D-E",
+  "amendment_rule": "changes only by a recorded, dated amendment before any held-out evaluation; never after inspecting held-out scores",
+  "claims": "unchanged: PREREGISTRATION.md §§1-8 and GENERIC_COMMITTED",
+  "detector": {
+    "geometry": "pinned LUCiD WCTE (upstream eaf2e89), 1995 PMTs in 105 mPMT modules",
+    "transport": "prompt direct light; uniform angular acceptance; no concentrators; scattering, reflection, absorption and dispersion off",
+    "reference_response": "configs/lucid_pmt/reference.json schema pmt-response-v2, built by response_manifest.reference_response with mPMT groups (D-G)",
+    "adopted": {
+      "D-Q": "charge domain [0.25, 1000] PE; overflow clamped and counted; below-domain charge rejected and counted",
+      "D-J": "Gaussian timing kernel; digits before photon arrival reported per cell",
+      "D-G": "intervention groups are mPMT modules",
+      "D-K": "a cell is unevaluable if the fit-failure rate exceeds 10% in its clean or shifted half; otherwise complete-case K with the failure-rate difference as a co-primary column (consequence.DK_MAX_FAILURE_RATE)",
+      "D-TQ": "form a + b/sqrt(q) adopted; values a=0, b=2 ns, q_sat=50 PE remain synthetic_dev"
+    },
+    "synthetic_dev": [
+      "QE(lambda) and CE",
+      "T-Q values",
+      "timing-width table",
+      "group gain/width factors",
+      "dark rate 1 kHz per PMT",
+      "readout window [-200, 800] ns"
+    ],
+    "time_feature": "(digit time - readout-window start) / 20 ns (author rule, recorded at fca0af9 before any R-4b run)"
+  },
+  "modules": {
+    "index": "dense mPMT index = response_manifest.module_groups(mpmt_id), 0..104",
+    "training_permitted": "index mod 3 in {0, 1} (70 modules)",
+    "held_out": "index mod 3 == 2 (35 modules)",
+    "affected_set_per_cell": "5 modules drawn without replacement from the permitted (or held-out) set with numpy default_rng(perturbation_seed)",
+    "perturbation_seeds": {
+      "attribution_train": [
+        101,
+        102,
+        103
+      ],
+      "development": [
+        201,
+        202
+      ],
+      "evaluation": [
+        301,
+        302,
+        303
+      ]
+    }
+  },
+  "cells": [
+    {
+      "id": "reference",
+      "role": "clean",
+      "change": "none"
+    },
+    {
+      "id": "identity",
+      "role": "control",
+      "change": "reference parameters rebuilt; output must be bit-identical"
+    },
+    {
+      "id": "exact_qe_ce_product",
+      "role": "control",
+      "change": "response_manifest.exact_product_control (QE x 2, CE / 2); output must be bit-identical"
+    },
+    {
+      "id": "charge_matched_not_exact",
+      "role": "supporting",
+      "change": "CE x 0.8 with gain rescaled to match reference-fit total charge; not an exact degeneracy"
+    },
+    {
+      "id": "qe_shape",
+      "role": "N",
+      "change": "QE_ref(lambda) * (1 + a h(lambda)), h anchors [0, -1, 0, 1, 0] on 200..800 nm, all channels",
+      "severity": {
+        "a": [
+          0.15,
+          0.3
+        ]
+      }
+    },
+    {
+      "id": "tq_slope",
+      "role": "N",
+      "change": "walk b -> b * s, reference walk frozen, all channels; charge and membership must be unchanged",
+      "severity": {
+        "s": [
+          0.8,
+          1.2
+        ]
+      }
+    },
+    {
+      "id": "timing_width",
+      "role": "N",
+      "change": "timing_width_factor x w on the affected modules",
+      "severity": {
+        "w": [
+          1.25,
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "group_coupled",
+      "role": "N",
+      "change": "gain x g and timing_width_factor x w jointly on the affected modules (one causal control, two declared fields)",
+      "severity": {
+        "(g, w)": [
+          [
+            0.9,
+            1.25
+          ],
+          [
+            0.8,
+            1.5
+          ]
+        ]
+      }
+    },
+    {
+      "id": "group_gain_only",
+      "role": "supporting",
+      "change": "gain x g on the affected modules",
+      "severity": {
+        "g": [
+          0.8
+        ]
+      }
+    },
+    {
+      "id": "group_width_only",
+      "role": "supporting",
+      "change": "timing_width_factor x w on the affected modules",
+      "severity": {
+        "w": [
+          1.5
+        ]
+      }
+    },
+    {
+      "id": "tq_offset_control",
+      "role": "control",
+      "change": "walk a -> a + 1 ns (offset only), all channels"
+    },
+    {
+      "id": "module_loss",
+      "role": "supporting",
+      "change": "k affected mPMT modules dead",
+      "severity": {
+        "k": [
+          1,
+          5
+        ]
+      }
+    }
+  ],
+  "held_out": {
+    "family": "timing_width",
+    "severity": "the larger grid point of every N family",
+    "modules": "the held-out module set above",
+    "perturbation_seeds": "the evaluation seeds above",
+    "status": "confirmed by the author, 18 Oct 2026"
+  },
+  "consequence": {
+    "K_vertex": {
+      "status": "frozen",
+      "endpoint": "frozen vertex reconstruction against the primary starting position",
+      "paired": "same physical events, shared keyed draws"
+    },
+    "K_energy": {
+      "status": "pending_D-E",
+      "endpoint": "D-E deposited energy (development default); initial energy only on contained events"
+    },
+    "K": {
+      "status": "pending_D-E",
+      "aggregate": "max(K_vertex, K_energy); unevaluable if either endpoint is undefined"
+    },
+    "kappa_m": {
+      "value": 1.1,
+      "status": "frozen_v2",
+      "rule": "kappa_m = max(1.10, 1 + 2 SD_K) (author, 18 Oct 2026)",
+      "precision_study": {
+        "result": "results/pmt_r4b_dev_2026-10-18/precision_01/precision.json",
+        "SD_K": 0.04,
+        "SD_K_vertex": 0.0277,
+        "SD_K_energy_diagnostic": 0.064,
+        "1_plus_2SD_K": 1.08,
+        "basis": "32 independent keyed readout re-draws of the 96 validation placements (12 physical events), frozen R-4b checkpoints seeds 30-32, 48 disjoint pairs; readout noise only, transport and placement fixed",
+        "scope": "SD_K scales roughly as 1/sqrt(events per cell); re-check if the WP7 evaluation cells hold fewer than 12 physical events"
+      }
+    }
+  },
+  "trainability_gates": "configs/lucid_pmt/trainability_gates.json (R-3; energy gates pending_D-E)",
+  "splits": {
+    "unit": "physical event, all placements and twins together",
+    "roles": "configs/lucid_pmt/split_contract.json fractions (reference_fit 0.30, attribution_train 0.20, development 0.15, calibration 0.15, evaluation 0.20)",
+    "event_counts": "pending: set by the WP7 precision plan before generation"
+  },
+  "event_support": {
+    "status": "pending_D-E",
+    "contained_initial_energy": "mu- 100-350 MeV kinetic reach >= 50% containment (range-based, results/pmt_r4_dev_2026-10-18/containment); new contained tracks are a WP7 planning item",
+    "S_families": "valid rare positions, directions and energies within the same detector and medium; confirmation with Junjie pending"
+  },
+  "excluded": [
+    "front-end electronics families",
+    "simulation-model changes (D-M draft)",
+    "latent wavelength origin labels"
+  ],
+  "supersedes": "configs/lucid_pmt/wp6_contract_v1.json (kept as history)",
+  "not_frozen_here": [
+    "WP7 event counts and compute plan",
+    "S-family support (Junjie)",
+    "D-T/L/M/S (Junjie)",
+    "D-E (Junjie); energy-dependent entries stay pending_D-E"
+  ]
+}

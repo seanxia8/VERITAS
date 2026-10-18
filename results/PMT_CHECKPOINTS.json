@@ -70,6 +70,27 @@
       "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_32.pt",
       "sha256": "6116ff09c1d018cae25f50e0b6a34698fae48f1150ba40a878b90404bab2d1f2",
       "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+    },
+    {
+      "run": "e0a9e61 R-4b (20 ns rule), used by the kappa_m precision study",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4b_training/seed_30.pt",
+      "sha256": "81a1690e69bbc30cafe98262757bf8fc481217a637f5e634365db2e2acacd519",
+      "recorded_in": "results/pmt_r4b_dev_2026-10-18/r4b_training/training.json; re-hashed in precision_01/precision.json"
+    },
+    {
+      "run": "e0a9e61 R-4b (20 ns rule), used by the kappa_m precision study",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4b_training/seed_31.pt",
+      "sha256": "15e2befd131b124dda3c974eaff50d31662f80f2a1c18af0defd4478bf27b363",
+      "recorded_in": "results/pmt_r4b_dev_2026-10-18/r4b_training/training.json; re-hashed in precision_01/precision.json"
+    },
+    {
+      "run": "e0a9e61 R-4b (20 ns rule), used by the kappa_m precision study",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4b_training/seed_32.pt",
+      "sha256": "b48be1b36c9f0bab17565b9e1c6f200cc561eb97a51dfddc1b6a8c4412bc3ece",
+      "recorded_in": "results/pmt_r4b_dev_2026-10-18/r4b_training/training.json; re-hashed in precision_01/precision.json"
     }
   ],
   "datasets": [
@@ -78,5 +99,6 @@
       "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/track_closure_01/digits.npz",
       "sha256": "8c39ed1bb269242c10dc61a90683a1b1899ce6714dcaeb2bd5de26306e12b7ff"
     }
-  ]
+  ],
+  "diagnostic_checkpoints": "R-4b 2x2 and train-subset arms: hashes in each results/pmt_r4b_dev_2026-10-18/<arm>/training.json; files under /work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/<arm>/"
 }

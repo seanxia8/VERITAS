@@ -1,0 +1,23 @@
+{
+  "method": "least squares charge-to-deposited_energy_in_volume, intercept included",
+  "fit_physical_event_ids": [
+    "1000:0",
+    "1000:1",
+    "1000:2",
+    "1000:3",
+    "1500:0",
+    "1500:1",
+    "1500:2",
+    "1500:3",
+    "500:0",
+    "500:1",
+    "500:2",
+    "500:3"
+  ],
+  "coefficients": [
+    0.03956882101140638,
+    131.61590284127215
+  ],
+  "source_dataset_sha256": "3c2a6ac4721d95bb31da7bd9a221a169cfcffbf6f1038c06176be00eed15910d",
+  "sha256": "80262ec773baad84506ab6691078ca71a69af67574fecdb6c6f648fb54dbceb7"
+}

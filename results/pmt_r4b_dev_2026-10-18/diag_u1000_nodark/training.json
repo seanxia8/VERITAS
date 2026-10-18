@@ -1,0 +1,1034 @@
+{
+  "evaluate_split": "validation",
+  "n_train_placements": 192,
+  "n_eval_placements": 96,
+  "results": [
+    {
+      "seed": 30,
+      "metrics": {
+        "n": 96,
+        "vertex_rmse_m": 0.33264994621276855,
+        "vertex_median_m": 0.3292118310928345,
+        "direction_mean_deg": 9.586213111877441,
+        "direction_median_deg": 8.681428909301758,
+        "energy_relative_mae": 0.07430755347013474,
+        "energy_bias_fraction": -0.006707717198878527,
+        "direction_mse": 0.011455095373094082,
+        "vertex_mse": 0.036885324865579605,
+        "log_energy_mse": 0.008920949883759022,
+        "finite": true
+      },
+      "gates": {
+        "direction": true,
+        "vertex": true,
+        "log_energy": true,
+        "r3_vertex_pooled": false,
+        "r3_direction_pooled": true,
+        "r3_energy_pooled": true,
+        "r3_vertex_subgroup_1000": true,
+        "r3_direction_subgroup_1000": true,
+        "r3_energy_subgroup_1000": true,
+        "r3_vertex_subgroup_1500": true,
+        "r3_direction_subgroup_1500": true,
+        "r3_energy_subgroup_1500": true,
+        "r3_vertex_subgroup_500": true,
+        "r3_direction_subgroup_500": true,
+        "r3_energy_subgroup_500": true
+      },
+      "relative_gates": {
+        "energy_endpoint": "deposited_energy_in_volume",
+        "energy_column": 6,
+        "constant": [
+          0.03542987257242203,
+          0.035632986575365067,
+          -0.0023338866885751486,
+          0.017562242224812508,
+          0.016274021938443184,
+          0.011305897496640682,
+          -1.0640274286270142
+        ],
+        "table": {
+          "pooled": {
+            "n": 96,
+            "vertex_rmse_m": {
+              "model": 0.33264994621276855,
+              "constant": 0.3421526253223419,
+              "ratio": 0.972226783001823,
+              "undefined": null
+            },
+            "direction_mean_deg": {
+              "model": 9.586213111877441,
+              "constant": 87.9063720703125,
+              "ratio": 0.1090502643449993,
+              "undefined": null
+            },
+            "energy_relative_mae": {
+              "model": 0.07430755347013474,
+              "constant": 0.14323346316814423,
+              "ratio": 0.5187862656291695,
+              "undefined": null
+            }
+          },
+          "subgroups": {
+            "1000": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.3409859836101532,
+                "constant": 0.34248408675193787,
+                "ratio": 0.9956257729928639,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 9.131420135498047,
+                "constant": 86.53594207763672,
+                "ratio": 0.10552170481146074,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.053141068667173386,
+                "constant": 0.10617345571517944,
+                "ratio": 0.5005118116314254,
+                "undefined": null
+              }
+            },
+            "1500": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.34246358275413513,
+                "constant": 0.36039549112319946,
+                "ratio": 0.9502438049011707,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 10.599624633789062,
+                "constant": 95.28163146972656,
+                "ratio": 0.11124520508611187,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.07004474848508835,
+                "constant": 0.15898120403289795,
+                "ratio": 0.4405850925030987,
+                "undefined": null
+              }
+            },
+            "500": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.3137119710445404,
+                "constant": 0.32252904772758484,
+                "ratio": 0.9726626896238768,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 9.027595520019531,
+                "constant": 81.90158081054688,
+                "ratio": 0.1102249239963022,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.09973684698343277,
+                "constant": 0.16454574465751648,
+                "ratio": 0.6061344654705221,
+                "undefined": null
+              }
+            }
+          }
+        },
+        "gates": {
+          "vertex_pooled": {
+            "passed": false,
+            "value": 0.972226783001823,
+            "limit": 0.8,
+            "reason": "pooled vertex RMSE / constant: 0.972227 > 0.8"
+          },
+          "direction_pooled": {
+            "passed": true,
+            "value": 9.586213111877441,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_pooled": {
+            "passed": true,
+            "value": 0.5187862656291695,
+            "limit": 0.8,
+            "reason": null
+          },
+          "vertex_subgroup_1000": {
+            "passed": true,
+            "value": 0.9956257729928639,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_1000": {
+            "passed": true,
+            "value": 9.131420135498047,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_1000": {
+            "passed": true,
+            "value": 0.5005118116314254,
+            "limit": 1.0,
+            "reason": null
+          },
+          "vertex_subgroup_1500": {
+            "passed": true,
+            "value": 0.9502438049011707,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_1500": {
+            "passed": true,
+            "value": 10.599624633789062,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_1500": {
+            "passed": true,
+            "value": 0.4405850925030987,
+            "limit": 1.0,
+            "reason": null
+          },
+          "vertex_subgroup_500": {
+            "passed": true,
+            "value": 0.9726626896238768,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_500": {
+            "passed": true,
+            "value": 9.027595520019531,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_500": {
+            "passed": true,
+            "value": 0.6061344654705221,
+            "limit": 1.0,
+            "reason": null
+          }
+        },
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.972227 > 0.8"
+        ],
+        "gate_config": {
+          "source": "runbook v2 \u00a74 R-3",
+          "status": "development",
+          "applies_to": "future runs only; past runs keep their recorded verdicts",
+          "constant_predictor": "pooled training-split mean of the target vector, applied unchanged to every subgroup",
+          "subgroup": "energy_MeV",
+          "vertex_rmse_ratio_max_pooled": 0.8,
+          "vertex_rmse_ratio_max_subgroup": 1.0,
+          "direction_mean_deg_max": 20,
+          "direction_comparison": "strict less-than, pooled and every subgroup",
+          "energy_relative_mae_ratio_max_pooled": 0.8,
+          "energy_subgroup_ratios": "gated: <= 1.0 x constant in every energy subgroup (author decision 18 Oct 2026, docs/PMT_DECISIONS_LOG.md)",
+          "energy_endpoint_required": "D-E deposited energy inside the instrumented volume, log(E/1000 MeV) encoded",
+          "energy_endpoint_id_required": "deposited_energy_in_volume",
+          "energy_relative_mae_ratio_max_subgroup": 1.0
+        }
+      },
+      "passed": false,
+      "best_epoch": 40,
+      "parameters": 102023,
+      "checkpoint_sha256": "8a8d095d6d675ca48335d8b1c7077aa0d6818a8ef3814e8267e2e6f77f73b8fe",
+      "by_energy": {
+        "500": {
+          "n": 32,
+          "vertex_rmse_m": 0.3137119710445404,
+          "vertex_median_m": 0.30887287855148315,
+          "direction_mean_deg": 9.027595520019531,
+          "direction_median_deg": 7.86933708190918,
+          "energy_relative_mae": 0.09973684698343277,
+          "energy_bias_fraction": -0.03111998364329338,
+          "direction_mse": 0.010463427752256393,
+          "vertex_mse": 0.03280506655573845,
+          "log_energy_mse": 0.01580626890063286,
+          "finite": true
+        },
+        "1000": {
+          "n": 32,
+          "vertex_rmse_m": 0.3409859836101532,
+          "vertex_median_m": 0.34605488181114197,
+          "direction_mean_deg": 9.131420135498047,
+          "direction_median_deg": 7.9615302085876465,
+          "energy_relative_mae": 0.053141068667173386,
+          "energy_bias_fraction": -0.014021795243024826,
+          "direction_mse": 0.010889790952205658,
+          "vertex_mse": 0.038757141679525375,
+          "log_energy_mse": 0.004516889341175556,
+          "finite": true
+        },
+        "1500": {
+          "n": 32,
+          "vertex_rmse_m": 0.34246358275413513,
+          "vertex_median_m": 0.3157352805137634,
+          "direction_mean_deg": 10.599624633789062,
+          "direction_median_deg": 10.798169136047363,
+          "energy_relative_mae": 0.07004474848508835,
+          "energy_bias_fraction": 0.02501862682402134,
+          "direction_mse": 0.013012070208787918,
+          "vertex_mse": 0.03909376636147499,
+          "log_energy_mse": 0.0064396932721138,
+          "finite": true
+        }
+      },
+      "by_containment": {
+        "False": {
+          "n": 96,
+          "vertex_rmse_m": 0.33264994621276855,
+          "vertex_median_m": 0.3292118310928345,
+          "direction_mean_deg": 9.586213111877441,
+          "direction_median_deg": 8.681428909301758,
+          "energy_relative_mae": 0.07430755347013474,
+          "energy_bias_fraction": -0.006707717198878527,
+          "direction_mse": 0.011455095373094082,
+          "vertex_mse": 0.036885324865579605,
+          "log_energy_mse": 0.008920949883759022,
+          "finite": true
+        }
+      }
+    },
+    {
+      "seed": 31,
+      "metrics": {
+        "n": 96,
+        "vertex_rmse_m": 0.3275931775569916,
+        "vertex_median_m": 0.3094280958175659,
+        "direction_mean_deg": 9.526717185974121,
+        "direction_median_deg": 9.440580368041992,
+        "energy_relative_mae": 0.07360190898180008,
+        "energy_bias_fraction": 0.005689967889338732,
+        "direction_mse": 0.010938991792500019,
+        "vertex_mse": 0.035772427916526794,
+        "log_energy_mse": 0.008731822483241558,
+        "finite": true
+      },
+      "gates": {
+        "direction": true,
+        "vertex": true,
+        "log_energy": true,
+        "r3_vertex_pooled": false,
+        "r3_direction_pooled": true,
+        "r3_energy_pooled": true,
+        "r3_vertex_subgroup_1000": true,
+        "r3_direction_subgroup_1000": true,
+        "r3_energy_subgroup_1000": true,
+        "r3_vertex_subgroup_1500": true,
+        "r3_direction_subgroup_1500": true,
+        "r3_energy_subgroup_1500": true,
+        "r3_vertex_subgroup_500": true,
+        "r3_direction_subgroup_500": true,
+        "r3_energy_subgroup_500": true
+      },
+      "relative_gates": {
+        "energy_endpoint": "deposited_energy_in_volume",
+        "energy_column": 6,
+        "constant": [
+          0.03542987257242203,
+          0.035632986575365067,
+          -0.0023338866885751486,
+          0.017562242224812508,
+          0.016274021938443184,
+          0.011305897496640682,
+          -1.0640274286270142
+        ],
+        "table": {
+          "pooled": {
+            "n": 96,
+            "vertex_rmse_m": {
+              "model": 0.3275931775569916,
+              "constant": 0.3421526253223419,
+              "ratio": 0.957447505330015,
+              "undefined": null
+            },
+            "direction_mean_deg": {
+              "model": 9.526717185974121,
+              "constant": 87.9063720703125,
+              "ratio": 0.10837345418320884,
+              "undefined": null
+            },
+            "energy_relative_mae": {
+              "model": 0.07360190898180008,
+              "constant": 0.14323346316814423,
+              "ratio": 0.5138597318937791,
+              "undefined": null
+            }
+          },
+          "subgroups": {
+            "1000": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.33281591534614563,
+                "constant": 0.34248408675193787,
+                "ratio": 0.9717704507164594,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 8.86286449432373,
+                "constant": 86.53594207763672,
+                "ratio": 0.10241830482844122,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.0500471293926239,
+                "constant": 0.10617345571517944,
+                "ratio": 0.47137138991576355,
+                "undefined": null
+              }
+            },
+            "1500": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.3380383849143982,
+                "constant": 0.36039549112319946,
+                "ratio": 0.9379650779228017,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 10.339925765991211,
+                "constant": 95.28163146972656,
+                "ratio": 0.10851961292535668,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.0692274421453476,
+                "constant": 0.15898120403289795,
+                "ratio": 0.4354441933338382,
+                "undefined": null
+              }
+            },
+            "500": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.31131258606910706,
+                "constant": 0.32252904772758484,
+                "ratio": 0.9652234062714516,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 9.377362251281738,
+                "constant": 81.90158081054688,
+                "ratio": 0.11449549762627009,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.10153114795684814,
+                "constant": 0.16454574465751648,
+                "ratio": 0.6170390377956831,
+                "undefined": null
+              }
+            }
+          }
+        },
+        "gates": {
+          "vertex_pooled": {
+            "passed": false,
+            "value": 0.957447505330015,
+            "limit": 0.8,
+            "reason": "pooled vertex RMSE / constant: 0.957448 > 0.8"
+          },
+          "direction_pooled": {
+            "passed": true,
+            "value": 9.526717185974121,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_pooled": {
+            "passed": true,
+            "value": 0.5138597318937791,
+            "limit": 0.8,
+            "reason": null
+          },
+          "vertex_subgroup_1000": {
+            "passed": true,
+            "value": 0.9717704507164594,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_1000": {
+            "passed": true,
+            "value": 8.86286449432373,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_1000": {
+            "passed": true,
+            "value": 0.47137138991576355,
+            "limit": 1.0,
+            "reason": null
+          },
+          "vertex_subgroup_1500": {
+            "passed": true,
+            "value": 0.9379650779228017,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_1500": {
+            "passed": true,
+            "value": 10.339925765991211,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_1500": {
+            "passed": true,
+            "value": 0.4354441933338382,
+            "limit": 1.0,
+            "reason": null
+          },
+          "vertex_subgroup_500": {
+            "passed": true,
+            "value": 0.9652234062714516,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_500": {
+            "passed": true,
+            "value": 9.377362251281738,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_500": {
+            "passed": true,
+            "value": 0.6170390377956831,
+            "limit": 1.0,
+            "reason": null
+          }
+        },
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.957448 > 0.8"
+        ],
+        "gate_config": {
+          "source": "runbook v2 \u00a74 R-3",
+          "status": "development",
+          "applies_to": "future runs only; past runs keep their recorded verdicts",
+          "constant_predictor": "pooled training-split mean of the target vector, applied unchanged to every subgroup",
+          "subgroup": "energy_MeV",
+          "vertex_rmse_ratio_max_pooled": 0.8,
+          "vertex_rmse_ratio_max_subgroup": 1.0,
+          "direction_mean_deg_max": 20,
+          "direction_comparison": "strict less-than, pooled and every subgroup",
+          "energy_relative_mae_ratio_max_pooled": 0.8,
+          "energy_subgroup_ratios": "gated: <= 1.0 x constant in every energy subgroup (author decision 18 Oct 2026, docs/PMT_DECISIONS_LOG.md)",
+          "energy_endpoint_required": "D-E deposited energy inside the instrumented volume, log(E/1000 MeV) encoded",
+          "energy_endpoint_id_required": "deposited_energy_in_volume",
+          "energy_relative_mae_ratio_max_subgroup": 1.0
+        }
+      },
+      "passed": false,
+      "best_epoch": 54,
+      "parameters": 102023,
+      "checkpoint_sha256": "796871df1d45a879c211957d236e829546ae4559b2d7917c1d81cf335fab98d1",
+      "by_energy": {
+        "500": {
+          "n": 32,
+          "vertex_rmse_m": 0.31131258606910706,
+          "vertex_median_m": 0.2967316508293152,
+          "direction_mean_deg": 9.377362251281738,
+          "direction_median_deg": 9.352911949157715,
+          "energy_relative_mae": 0.10153114795684814,
+          "energy_bias_fraction": -0.017339911311864853,
+          "direction_mse": 0.00999703910201788,
+          "vertex_mse": 0.03230517357587814,
+          "log_energy_mse": 0.015433430671691895,
+          "finite": true
+        },
+        "1000": {
+          "n": 32,
+          "vertex_rmse_m": 0.33281591534614563,
+          "vertex_median_m": 0.3312407433986664,
+          "direction_mean_deg": 8.86286449432373,
+          "direction_median_deg": 7.8417439460754395,
+          "energy_relative_mae": 0.0500471293926239,
+          "energy_bias_fraction": 0.0023352820426225662,
+          "direction_mse": 0.009854856878519058,
+          "vertex_mse": 0.036922141909599304,
+          "log_energy_mse": 0.003930675331503153,
+          "finite": true
+        },
+        "1500": {
+          "n": 32,
+          "vertex_rmse_m": 0.3380383849143982,
+          "vertex_median_m": 0.3094280958175659,
+          "direction_mean_deg": 10.339925765991211,
+          "direction_median_deg": 9.945175170898438,
+          "energy_relative_mae": 0.0692274421453476,
+          "energy_bias_fraction": 0.03207453340291977,
+          "direction_mse": 0.012965080328285694,
+          "vertex_mse": 0.03808998316526413,
+          "log_energy_mse": 0.006831360049545765,
+          "finite": true
+        }
+      },
+      "by_containment": {
+        "False": {
+          "n": 96,
+          "vertex_rmse_m": 0.3275931775569916,
+          "vertex_median_m": 0.3094280958175659,
+          "direction_mean_deg": 9.526717185974121,
+          "direction_median_deg": 9.440580368041992,
+          "energy_relative_mae": 0.07360190898180008,
+          "energy_bias_fraction": 0.005689967889338732,
+          "direction_mse": 0.010938991792500019,
+          "vertex_mse": 0.035772427916526794,
+          "log_energy_mse": 0.008731822483241558,
+          "finite": true
+        }
+      }
+    },
+    {
+      "seed": 32,
+      "metrics": {
+        "n": 96,
+        "vertex_rmse_m": 0.3345576822757721,
+        "vertex_median_m": 0.29765447974205017,
+        "direction_mean_deg": 9.235855102539062,
+        "direction_median_deg": 8.300516128540039,
+        "energy_relative_mae": 0.0779072716832161,
+        "energy_bias_fraction": -0.0021278366912156343,
+        "direction_mse": 0.010997019708156586,
+        "vertex_mse": 0.037309613078832626,
+        "log_energy_mse": 0.00925073865801096,
+        "finite": true
+      },
+      "gates": {
+        "direction": true,
+        "vertex": true,
+        "log_energy": true,
+        "r3_vertex_pooled": false,
+        "r3_direction_pooled": true,
+        "r3_energy_pooled": true,
+        "r3_vertex_subgroup_1000": false,
+        "r3_direction_subgroup_1000": true,
+        "r3_energy_subgroup_1000": true,
+        "r3_vertex_subgroup_1500": true,
+        "r3_direction_subgroup_1500": true,
+        "r3_energy_subgroup_1500": true,
+        "r3_vertex_subgroup_500": false,
+        "r3_direction_subgroup_500": true,
+        "r3_energy_subgroup_500": true
+      },
+      "relative_gates": {
+        "energy_endpoint": "deposited_energy_in_volume",
+        "energy_column": 6,
+        "constant": [
+          0.03542987257242203,
+          0.035632986575365067,
+          -0.0023338866885751486,
+          0.017562242224812508,
+          0.016274021938443184,
+          0.011305897496640682,
+          -1.0640274286270142
+        ],
+        "table": {
+          "pooled": {
+            "n": 96,
+            "vertex_rmse_m": {
+              "model": 0.3345576822757721,
+              "constant": 0.3421526253223419,
+              "ratio": 0.9778024703466337,
+              "undefined": null
+            },
+            "direction_mean_deg": {
+              "model": 9.235855102539062,
+              "constant": 87.9063720703125,
+              "ratio": 0.10506468285543284,
+              "undefined": null
+            },
+            "energy_relative_mae": {
+              "model": 0.0779072716832161,
+              "constant": 0.14323346316814423,
+              "ratio": 0.543918089809498,
+              "undefined": null
+            }
+          },
+          "subgroups": {
+            "1000": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.34579023718833923,
+                "constant": 0.34248408675193787,
+                "ratio": 1.0096534424935077,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 9.082557678222656,
+                "constant": 86.53594207763672,
+                "ratio": 0.10495705553276505,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.05707310512661934,
+                "constant": 0.10617345571517944,
+                "ratio": 0.5375458935774254,
+                "undefined": null
+              }
+            },
+            "1500": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.3270161747932434,
+                "constant": 0.36039549112319946,
+                "ratio": 0.9073814263715483,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 10.330031394958496,
+                "constant": 95.28163146972656,
+                "ratio": 0.10841576949950331,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.0888066366314888,
+                "constant": 0.15898120403289795,
+                "ratio": 0.5585983397956407,
+                "undefined": null
+              }
+            },
+            "500": {
+              "n": 32,
+              "vertex_rmse_m": {
+                "model": 0.3305692672729492,
+                "constant": 0.32252904772758484,
+                "ratio": 1.0249286679820397,
+                "undefined": null
+              },
+              "direction_mean_deg": {
+                "model": 8.294974327087402,
+                "constant": 81.90158081054688,
+                "ratio": 0.1012797829418601,
+                "undefined": null
+              },
+              "energy_relative_mae": {
+                "model": 0.08784207701683044,
+                "constant": 0.16454574465751648,
+                "ratio": 0.5338459356677007,
+                "undefined": null
+              }
+            }
+          }
+        },
+        "gates": {
+          "vertex_pooled": {
+            "passed": false,
+            "value": 0.9778024703466337,
+            "limit": 0.8,
+            "reason": "pooled vertex RMSE / constant: 0.977802 > 0.8"
+          },
+          "direction_pooled": {
+            "passed": true,
+            "value": 9.235855102539062,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_pooled": {
+            "passed": true,
+            "value": 0.543918089809498,
+            "limit": 0.8,
+            "reason": null
+          },
+          "vertex_subgroup_1000": {
+            "passed": false,
+            "value": 1.0096534424935077,
+            "limit": 1.0,
+            "reason": "subgroup 1000 vertex RMSE / constant: 1.00965 > 1.0"
+          },
+          "direction_subgroup_1000": {
+            "passed": true,
+            "value": 9.082557678222656,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_1000": {
+            "passed": true,
+            "value": 0.5375458935774254,
+            "limit": 1.0,
+            "reason": null
+          },
+          "vertex_subgroup_1500": {
+            "passed": true,
+            "value": 0.9073814263715483,
+            "limit": 1.0,
+            "reason": null
+          },
+          "direction_subgroup_1500": {
+            "passed": true,
+            "value": 10.330031394958496,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_1500": {
+            "passed": true,
+            "value": 0.5585983397956407,
+            "limit": 1.0,
+            "reason": null
+          },
+          "vertex_subgroup_500": {
+            "passed": false,
+            "value": 1.0249286679820397,
+            "limit": 1.0,
+            "reason": "subgroup 500 vertex RMSE / constant: 1.02493 > 1.0"
+          },
+          "direction_subgroup_500": {
+            "passed": true,
+            "value": 8.294974327087402,
+            "limit": 20,
+            "reason": null
+          },
+          "energy_subgroup_500": {
+            "passed": true,
+            "value": 0.5338459356677007,
+            "limit": 1.0,
+            "reason": null
+          }
+        },
+        "passed": false,
+        "failures": [
+          "pooled vertex RMSE / constant: 0.977802 > 0.8",
+          "subgroup 1000 vertex RMSE / constant: 1.00965 > 1.0",
+          "subgroup 500 vertex RMSE / constant: 1.02493 > 1.0"
+        ],
+        "gate_config": {
+          "source": "runbook v2 \u00a74 R-3",
+          "status": "development",
+          "applies_to": "future runs only; past runs keep their recorded verdicts",
+          "constant_predictor": "pooled training-split mean of the target vector, applied unchanged to every subgroup",
+          "subgroup": "energy_MeV",
+          "vertex_rmse_ratio_max_pooled": 0.8,
+          "vertex_rmse_ratio_max_subgroup": 1.0,
+          "direction_mean_deg_max": 20,
+          "direction_comparison": "strict less-than, pooled and every subgroup",
+          "energy_relative_mae_ratio_max_pooled": 0.8,
+          "energy_subgroup_ratios": "gated: <= 1.0 x constant in every energy subgroup (author decision 18 Oct 2026, docs/PMT_DECISIONS_LOG.md)",
+          "energy_endpoint_required": "D-E deposited energy inside the instrumented volume, log(E/1000 MeV) encoded",
+          "energy_endpoint_id_required": "deposited_energy_in_volume",
+          "energy_relative_mae_ratio_max_subgroup": 1.0
+        }
+      },
+      "passed": false,
+      "best_epoch": 58,
+      "parameters": 102023,
+      "checkpoint_sha256": "28e17ef03091af6e95740dc85afc6cb2cc1a531311446af38a5ada2a17d9ca95",
+      "by_energy": {
+        "500": {
+          "n": 32,
+          "vertex_rmse_m": 0.3305692672729492,
+          "vertex_median_m": 0.31592807173728943,
+          "direction_mean_deg": 8.294974327087402,
+          "direction_median_deg": 7.719910621643066,
+          "energy_relative_mae": 0.08784207701683044,
+          "energy_bias_fraction": -0.024557147175073624,
+          "direction_mse": 0.009130874648690224,
+          "vertex_mse": 0.03642534837126732,
+          "log_energy_mse": 0.012327803298830986,
+          "finite": true
+        },
+        "1000": {
+          "n": 32,
+          "vertex_rmse_m": 0.34579023718833923,
+          "vertex_median_m": 0.2888725996017456,
+          "direction_mean_deg": 9.082557678222656,
+          "direction_median_deg": 9.02426528930664,
+          "energy_relative_mae": 0.05707310512661934,
+          "energy_bias_fraction": -0.012550119310617447,
+          "direction_mse": 0.010287555865943432,
+          "vertex_mse": 0.03985696658492088,
+          "log_energy_mse": 0.005539643578231335,
+          "finite": true
+        },
+        "1500": {
+          "n": 32,
+          "vertex_rmse_m": 0.3270161747932434,
+          "vertex_median_m": 0.2749354839324951,
+          "direction_mean_deg": 10.330031394958496,
+          "direction_median_deg": 9.709005355834961,
+          "energy_relative_mae": 0.0888066366314888,
+          "energy_bias_fraction": 0.030723758041858673,
+          "direction_mse": 0.013572628609836102,
+          "vertex_mse": 0.03564652428030968,
+          "log_energy_mse": 0.009884769096970558,
+          "finite": true
+        }
+      },
+      "by_containment": {
+        "False": {
+          "n": 96,
+          "vertex_rmse_m": 0.3345576822757721,
+          "vertex_median_m": 0.29765447974205017,
+          "direction_mean_deg": 9.235855102539062,
+          "direction_median_deg": 8.300516128540039,
+          "energy_relative_mae": 0.0779072716832161,
+          "energy_bias_fraction": -0.0021278366912156343,
+          "direction_mse": 0.010997019708156586,
+          "vertex_mse": 0.037309613078832626,
+          "log_energy_mse": 0.00925073865801096,
+          "finite": true
+        }
+      }
+    }
+  ],
+  "passed": false,
+  "constant_metrics": {
+    "n": 96,
+    "vertex_rmse_m": 0.3421526253223419,
+    "vertex_median_m": 0.3277847468852997,
+    "direction_mean_deg": 87.9063720703125,
+    "direction_median_deg": 86.23725891113281,
+    "energy_relative_mae": 0.14323346316814423,
+    "energy_bias_fraction": 0.02617328055202961,
+    "direction_mse": 0.33305418491363525,
+    "vertex_mse": 0.03902280330657959,
+    "log_energy_mse": 0.028957905247807503,
+    "finite": true
+  },
+  "constant_vector": [
+    0.03542987257242203,
+    0.035632986575365067,
+    -0.0023338866885751486,
+    0.017562242224812508,
+    0.016274021938443184,
+    0.011305897496640682,
+    -1.0640274286270142
+  ],
+  "trainability_gates": {
+    "source": "runbook v2 \u00a74 R-3",
+    "status": "development",
+    "applies_to": "future runs only; past runs keep their recorded verdicts",
+    "constant_predictor": "pooled training-split mean of the target vector, applied unchanged to every subgroup",
+    "subgroup": "energy_MeV",
+    "vertex_rmse_ratio_max_pooled": 0.8,
+    "vertex_rmse_ratio_max_subgroup": 1.0,
+    "direction_mean_deg_max": 20,
+    "direction_comparison": "strict less-than, pooled and every subgroup",
+    "energy_relative_mae_ratio_max_pooled": 0.8,
+    "energy_subgroup_ratios": "gated: <= 1.0 x constant in every energy subgroup (author decision 18 Oct 2026, docs/PMT_DECISIONS_LOG.md)",
+    "energy_endpoint_required": "D-E deposited energy inside the instrumented volume, log(E/1000 MeV) encoded",
+    "energy_endpoint_id_required": "deposited_energy_in_volume",
+    "energy_relative_mae_ratio_max_subgroup": 1.0
+  },
+  "charge_benchmark": {
+    "endpoint": "deposited_energy_in_volume",
+    "relative_mae": 0.09235708354474333,
+    "negative_predictions": 0,
+    "by_energy": {
+      "500": 0.11031838529650749,
+      "1000": 0.06233816860072472,
+      "1500": 0.10441469673699778
+    }
+  },
+  "config": {
+    "evidence_stage": "development",
+    "non_citable": true,
+    "energies_MeV": [
+      500,
+      1000,
+      1500
+    ],
+    "events_per_energy": 20,
+    "rotations_per_event": 8,
+    "source_read_cap_bytes": 939524096,
+    "source_wall_seconds": 1800,
+    "generation_wall_seconds": 1800,
+    "training_wall_seconds": 1800,
+    "splits": {
+      "response_fit": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "train": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "validation": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "test": [
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    "model_seeds": [
+      30,
+      31,
+      32
+    ],
+    "epochs": 100,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "gpu_memory_fraction": 0.25,
+    "cpu_threads": 4,
+    "placement": "primary vertex uniform [-0.35,0.35] m in each coordinate; uniform SO(3); no shower centring",
+    "targets": [
+      "primary starting position in metres",
+      "primary initial direction",
+      "log(E_dep / 1000 MeV), D-E development endpoint"
+    ],
+    "geometry": "pinned WCTE; unchanged calibrated-engineering transport",
+    "geometry_check_rays": 256,
+    "geometry_agreement_required": 1.0,
+    "max_time_residual_ns": 0.0001,
+    "max_sphere_residual_m": 0.0001,
+    "calibration": "charge-to-primary-energy least squares with intercept fitted on response_fit only; supporting benchmark; no PMT calibration claim",
+    "checkpoint": "minimum equal-weight validation loss; test once per seed; no threshold tuning",
+    "augmentation_seed": 202610170,
+    "prior_500MeV_data": "same development source events as previous pilot; never promoted to pristine confirmation",
+    "primary_claims_evaluated": false,
+    "architecture": "6->128->128->128 per sensor; masked mean/max plus measured total charge/1000 and occupancy fraction; 258->256->7",
+    "loss": "MSE(unit direction) + MSE(vertex/0.35m) + MSE(log(E_dep/1000MeV))",
+    "grouping": "upstream physical mpmt_id aligned by Cylinder loader; gain/width factors remain synthetic; electronics crate map unavailable",
+    "geometry_approximation": "upstream spherical PMTs snapped to cylinder boundary; raw-to-model displacement reported",
+    "cohort_amendment": "Before reconstruction/training: balanced first 20 physical events per energy after source read-cap STOP; original 24-event plan preserved; no score inspected; thresholds unchanged",
+    "water_source_domain": "inside upstream cylinder and outside spherical sensor volumes; omitted counts retained",
+    "max_candidates_per_ray": 64,
+    "transport_repair": "After retained 16-candidate transport failure, increase candidate search to 64 through upstream API; no target, split, training setting or acceptance tolerance changed",
+    "run": "R-4b diagnostic: 1 us unit, dark counts off",
+    "authorization": "author decisions 18 Oct 2026 (third message, docs/PMT_DECISIONS_LOG.md) under C2 and the runbook v2 \u00a72 shared-server rules",
+    "energy_target": "deposited_energy_in_volume",
+    "energy_endpoint": "deposited_energy_in_volume",
+    "energy_column": 6,
+    "energy_definition": "D-E development default (author 18 Oct 2026): E_dep = T(vertex) - T(first exit), 0 exit for a stopped track; primary muon; per-segment beta; noise_module_lucid.deposited_energy",
+    "trainability_gates": "configs/lucid_pmt/trainability_gates.json (R-3, energy per subgroup)",
+    "segment_read_cap_bytes": 1073741824,
+    "photon_source": "existing /work/dwong/pmt_multienergy_20261016/source_balanced (56179eb cohort); no new photon reads",
+    "response": "configs/lucid_pmt/reference.json schema v2 at the R-4 commit (R-1 manifest, R-2 walk, R-6 dark counts 1 kHz)",
+    "time_feature": "(digit time - readout window start) / 20 ns (author rule 18 Oct 2026, recorded at fca0af9 before any R-4b run)",
+    "prior_use": "same 60 physical events and placements as 56179eb; that run's scores were inspected, so this re-run is development evidence only",
+    "changes_from_56179eb": [
+      "energy target initial -> deposited (D-E)",
+      "R-1 manifest response with mPMT grouping",
+      "R-2 inverse-sqrt walk",
+      "R-6 dark counts",
+      "time feature origin",
+      "R-3 relative gates",
+      "new model seeds 30-32"
+    ],
+    "time_feature_unit_ns": 1000.0,
+    "dark_counts": false,
+    "evaluate_split": "validation",
+    "purpose": "2x2 diagnostic of the R-4 vertex regression; validation split only; diagnoses the cause, does not choose the fix"
+  },
+  "elapsed_seconds": 44.90815589483827,
+  "dataset_sha256": "35f36095576417e8699da041798a18ac83a2b4d39f6ca91d2695f02cbc8b5776",
+  "peak_gpu_bytes": 236972032,
+  "torch": "2.5.1+cu121",
+  "gpu": "NVIDIA GeForce GTX TITAN X",
+  "evidence_stage": "development",
+  "non_citable": true,
+  "primary_claims_evaluated": false
+}

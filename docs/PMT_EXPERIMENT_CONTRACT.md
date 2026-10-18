@@ -1,5 +1,13 @@
 # PMT experiment contract
 
+## WP6 freeze v2 (18 October 2026)
+
+**FROZEN v2: `configs/lucid_pmt/wp6_contract_v2.json` supersedes v1.**
+- **κ_m = 1.10** is frozen from the precision study: SD_K = 0.040, so max(1.10, 1 + 2·SD_K) = 1.10 (`results/pmt_r4b_dev_2026-10-18/precision_01`).
+- The held-out choices are confirmed by the author: the `timing_width` family, and modules with index mod 3 = 2.
+- The time-feature rule, (t − window start) / 20 ns, is added.
+- D-E-dependent entries stay `pending_D-E`.
+
 ## WP6 freeze v1 (18 October 2026)
 
 **FROZEN v1.** The binding contract is `configs/lucid_pmt/wp6_contract_v1.json`, checked by `src/noise_module_lucid/tests/test_wp6_contract.py`. It was frozen under the author's instruction of 18 Oct 2026 to freeze WP6 with every decision adopted that day (`docs/PMT_DECISIONS_LOG.md`). Changes need a recorded, dated amendment before any held-out evaluation. The draft text below (16 Oct) is kept as history; where it conflicts, the JSON wins.
