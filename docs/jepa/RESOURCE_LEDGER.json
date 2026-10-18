@@ -6,7 +6,7 @@
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
       "cap_gpu_hours": 170.0,
-      "charged_gpu_hours": 0.0361,
+      "charged_gpu_hours": 0.0634,
       "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
       "cap_history": [
         {
@@ -733,6 +733,81 @@
       "extension": "R5-ext",
       "evidence": "results/jepa/20261018_wp3_e1c_ext_r5ext2/",
       "note": "R5-ext re-run after the R-6 detectability freeze (deterministic same result): 7 pass / 3 not_evaluable"
+    },
+    {
+      "id": "wp5_lucid_smoke_l40s",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0329,
+      "wall_seconds": 118.6,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "c87b31b/3e739b6",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "fp32 500-step smoke, 0.23014 s/step"
+    },
+    {
+      "id": "wp5_scaling_l40s_40k",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0019,
+      "wall_seconds": 6.66,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "c87b31b/3e739b6",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "40k scaling fit, peak 14577.9 MB"
+    },
+    {
+      "id": "wp5_env_equivalence_probe",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0011,
+      "wall_seconds": null,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "c87b31b/3e739b6",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "overlay equivalence probe on the L40S"
+    },
+    {
+      "id": "wp5_lucid_smoke_l40s_tf32",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.027,
+      "wall_seconds": 97.24,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "c87b31b/3e739b6",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "TF32 speed experiment: 0.18808 s/step = 1.224x, below 1.5x -> fp32 kept"
+    },
+    {
+      "id": "wp5_lucid_import_attempt",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0005,
+      "wall_seconds": 1.87,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "c87b31b/3e739b6",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "failed at import (no scipy) - 0 GPU, charged by the failed-attempt rule"
     }
   ]
 }

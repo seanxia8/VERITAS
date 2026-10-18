@@ -1282,3 +1282,22 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   The bridge results keep their recorded precision.
 - **Overlay provenance:** record every overlaid package's version and file hashes and re-verify
   them before each batch of runs; on any change, stop the batch and report.
+
+## TF32 experiment verdict: keep fp32 (18 Oct 2026)
+
+- **2026-10-18 — TF32 measured on the L40S and rejected on speed.** 500-step smoke with `--tf32`
+  (code `c87b31b`, same warm root): **0.18808 s/step average / 0.18578 s/step steady** (5.317 /
+  5.383 steps/s) versus fp32 **0.23014 / 0.21388** → ratio **1.224× average, 1.151× steady**, both
+  **below the author's 1.5× threshold**. Peak memory unchanged (5 365 MiB). Per the G2 ruling, all
+  LUCiD runs stay **fp32**; the experiment cost 0.027 GPU-h of the allowed 0.1. For the record only
+  (not a decision): TF32 would have put the 201-run grid at 105.0 h versus 128.5 h.
+- **2026-10-18 — overlay provenance recorded and re-verified.** `/ceph/dwong/jepa/env_overlay/
+  PROVENANCE.json` (sha256 `0746e7ce…`) records the symlink targets, versions (torch 2.5.1+cu124 /
+  CUDA 12.4; scipy 1.13.1; sklearn 1.5.1; joblib 1.4.2; threadpoolctl 3.5.0; numpy 1.26.4; Python
+  3.12.2) and per-package file hashes (`scipy/__init__.py f09d8a34…`, `sklearn/__init__.py
+  42723229…`, `joblib/__init__.py 1169bab9…`, `threadpoolctl.py f07b9a0e…`). All hashes re-verified
+  unchanged before the TF32 batch; the operator re-verifies before every batch and stops on change.
+- **2026-10-18 — L40S GPU-hours to date:** fp32 smoke 0.0329 + 40k scaling 0.0019 + equivalence
+  probe ~0.0011 + failed import attempt 0.0005 + TF32 smoke 0.0270 ≈ **0.063 of the 170 h cap**.
+  With fp32 kept: 17 dev runs ≈ 10.9 h + 201-run grid ≈ 128.5 h ≈ 139.4 h (~82 % of the cap before
+  evaluation overhead).
