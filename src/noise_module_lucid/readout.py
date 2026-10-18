@@ -341,6 +341,68 @@ def dark_noise_window(params: ReadoutParams, n_channels: int, *, seed: int, run:
                          photon_batch=empty, stream=f"dark_window:{int(window)}")
 
 
+NHITS_N = 4             # author decision, 18 Oct 2026 (sixth message); N = 3 superseded
+NHITS_WINDOW_NS = 20.0
+# Prompt window around the trigger (author rule, 18 Oct 2026, sixth message): maximum direct time
+# of flight in WCTE (~4.2 m / 0.225 m/ns ~ 19 ns), plus walk (<= 4 ns), jitter and the
+# early-trigger tail (<= 6 ns), with margin.
+PROMPT_WINDOW_NS = (-20.0, 60.0)
+
+
+def nhits_trigger_time(digits, n: int = NHITS_N, window_ns: float = NHITS_WINDOW_NS) -> float | None:
+    """NHits trigger: the earliest digit time t with at least ``n`` digits in [t, t + window_ns].
+
+    ``digits`` is a :class:`Digits` or an array of digit times (ns). Returns ``None`` when no
+    such cluster exists; the caller then falls back to the window start and counts it. Only
+    digit times are used, never truth. A dark digit can only move the trigger earlier, and only
+    when it completes a cluster with ``n - 1`` later digits.
+    """
+    if not isinstance(n, (int, np.integer)) or isinstance(n, bool) or n < 1:
+        raise ValueError("n must be a positive integer")
+    if not (np.isfinite(window_ns) and window_ns >= 0):
+        raise ValueError("finite non-negative window_ns required")
+    t = np.sort(np.asarray(digits.time if isinstance(digits, Digits) else digits, dtype=float).ravel())
+    if not np.all(np.isfinite(t)):
+        raise ValueError("finite digit times required")
+    if t.size < n:
+        return None
+    ok = np.flatnonzero(t[n-1:] - t[:t.size-n+1] <= window_ns)
+    return float(t[ok[0]]) if ok.size else None
+
+
+def prompt_window_mask(digits, trigger_ns: float | None,
+                       window_ns: tuple[float, float] = PROMPT_WINDOW_NS) -> np.ndarray:
+    """In-time digits: ``t - trigger_ns`` inside the closed ``window_ns`` (default [-20, +60] ns).
+
+    ``digits`` is a :class:`Digits` or an array of digit times (ns); ``trigger_ns`` is normally
+    :func:`nhits_trigger_time`. Out-of-time digits are dropped from the model input and counted
+    by the caller. With no trigger (``None``, the fallback) every digit is kept. Only digit
+    times are used, never truth.
+    """
+    lo, hi = (float(w) for w in window_ns)
+    if not (np.isfinite(lo) and np.isfinite(hi) and lo <= 0.0 <= hi):
+        raise ValueError("finite window_ns with lo <= 0 <= hi required")
+    t = np.asarray(digits.time if isinstance(digits, Digits) else digits, dtype=float).ravel()
+    if not np.all(np.isfinite(t)):
+        raise ValueError("finite digit times required")
+    if trigger_ns is None:
+        return np.ones(t.size, dtype=bool)
+    if not np.isfinite(trigger_ns):
+        raise ValueError("finite trigger_ns required")
+    dt = t - float(trigger_ns)
+    return (dt >= lo) & (dt <= hi)
+
+
+def select_digits(digits: Digits, keep: np.ndarray) -> Digits:
+    """The digits where ``keep`` is true; counts are carried over unchanged."""
+    keep = np.asarray(keep, dtype=bool)
+    if keep.shape != digits.sensor.shape:
+        raise ValueError("keep must have one entry per digit")
+    return Digits(sensor=digits.sensor[keep], charge=digits.charge[keep], time=digits.time[keep],
+                  n_pe_true=digits.n_pe_true[keep], counts=dict(digits.counts),
+                  n_dark_true=None if digits.n_dark_true is None else digits.n_dark_true[keep])
+
+
 def with_change(ref: ReadoutParams, **change) -> ReadoutParams:
     """``ref`` with exactly the given fields changed (one field for a valid N cell)."""
     out = replace(ref, **change)

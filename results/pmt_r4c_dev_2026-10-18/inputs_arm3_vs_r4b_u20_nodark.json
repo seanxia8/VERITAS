@@ -1,0 +1,103 @@
+{
+  "x": {
+    "shape_old": [
+      480,
+      1995,
+      6
+    ],
+    "shape_new": [
+      480,
+      1995,
+      6
+    ],
+    "identical": true
+  },
+  "y": {
+    "shape_old": [
+      480,
+      7
+    ],
+    "shape_new": [
+      480,
+      7
+    ],
+    "identical": false,
+    "max_abs_diff": 1.9188158214092255,
+    "n_diff": 477,
+    "columns_identical": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "role": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "physical_event_id": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "energy_MeV": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "contained": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "charge": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "target_MeV": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": false,
+    "max_abs_diff": 1279.8289956827248,
+    "n_diff": 477
+  },
+  "energy_target": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": false
+  },
+  "new_only": []
+}

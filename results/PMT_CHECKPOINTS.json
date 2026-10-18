@@ -1,53 +1,253 @@
 {
-  "policy": "runbook v2 R-5: checkpoints stay on the host; paths and hashes recorded here",
-  "status": "C1 (A): development evidence",
-  "host_reverification": "pending; done read-only during R-4 under PMT_REMOTE=yes",
-  "path_sources": {
-    "181b747": "root /work/dwong/pmt_lucid_20261016 from results/pmt_lucid_integration_dev_2026-10-16/README.md joined with the receipt's relative paths; inferred, confirm on the host",
-    "56179eb": "results/pmt_multienergy_dev_2026-10-16/execution_scripts/run_final_pilot.sh (cd root + --out evidence/training_01)"
+ "policy": "runbook v2 R-5: checkpoints stay on the host; paths and hashes recorded here",
+ "status": "C1 (A): development evidence",
+ "host_reverification": "done 18 Oct 2026 (read-only sha256sum on deepthought): all nine checkpoints match the recorded hashes",
+ "path_sources": {
+  "181b747": "root /work/dwong/pmt_lucid_20261016 confirmed on the host 18 Oct 2026 (hashes match)",
+  "56179eb": "results/pmt_multienergy_dev_2026-10-16/execution_scripts/run_final_pilot.sh (cd root + --out evidence/training_01)",
+  "72985f2": "R-4 run directory /work/dwong/pmt_multienergy_20261016/r4_20261018 (code staged from git archive 72985f2)",
+  "91ef3f4": "E40 run directory /work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm*",
+  "1d9845f": "NHits validation directory /work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_*"
+ },
+ "checkpoints": [
+  {
+   "run": "181b747 LUCiD integration direction pilot",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_10.pt",
+   "sha256": "fd0b1b83c2ea7b825b1adc52a5a1ef763a74cc42f1f701fdbb10eeeb80bd7c20",
+   "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
   },
-  "checkpoints": [
-    {
-      "run": "181b747 LUCiD integration direction pilot",
-      "host": "deepthought",
-      "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_10.pt",
-      "sha256": "fd0b1b83c2ea7b825b1adc52a5a1ef763a74cc42f1f701fdbb10eeeb80bd7c20",
-      "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
-    },
-    {
-      "run": "181b747 LUCiD integration direction pilot",
-      "host": "deepthought",
-      "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_11.pt",
-      "sha256": "5ab97c9b450b1d225f90cdd73e4c5bdae3099d3f4d1a70af6c3c8e38d7ceebed",
-      "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
-    },
-    {
-      "run": "181b747 LUCiD integration direction pilot",
-      "host": "deepthought",
-      "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_12.pt",
-      "sha256": "11a5bce6d23faecb4e38256c13734d6cfded61c0eaa8d51cd2d223d1806187dc",
-      "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
-    },
-    {
-      "run": "56179eb multi-energy pilot",
-      "host": "deepthought",
-      "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_20.pt",
-      "sha256": "70d7af4e1c9331bf1ca95e4a98a5c3028dc3954856cd5a62c53cea7e8fc67eed",
-      "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
-    },
-    {
-      "run": "56179eb multi-energy pilot",
-      "host": "deepthought",
-      "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_21.pt",
-      "sha256": "4dae4639f763750406bf3bb33effaa2a6089be984b7b9196a8024241b51c7d27",
-      "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
-    },
-    {
-      "run": "56179eb multi-energy pilot",
-      "host": "deepthought",
-      "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_22.pt",
-      "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
-      "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
-    }
-  ]
+  {
+   "run": "181b747 LUCiD integration direction pilot",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_11.pt",
+   "sha256": "5ab97c9b450b1d225f90cdd73e4c5bdae3099d3f4d1a70af6c3c8e38d7ceebed",
+   "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
+  },
+  {
+   "run": "181b747 LUCiD integration direction pilot",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_lucid_20261016/evidence/training_01/seed_12.pt",
+   "sha256": "11a5bce6d23faecb4e38256c13734d6cfded61c0eaa8d51cd2d223d1806187dc",
+   "recorded_in": "results/pmt_lucid_integration_dev_2026-10-16/checkpoint_verification_02.json (remote verification at the time)"
+  },
+  {
+   "run": "56179eb multi-energy pilot",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_20.pt",
+   "sha256": "70d7af4e1c9331bf1ca95e4a98a5c3028dc3954856cd5a62c53cea7e8fc67eed",
+   "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+  },
+  {
+   "run": "56179eb multi-energy pilot",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_21.pt",
+   "sha256": "4dae4639f763750406bf3bb33effaa2a6089be984b7b9196a8024241b51c7d27",
+   "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+  },
+  {
+   "run": "56179eb multi-energy pilot",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_22.pt",
+   "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
+   "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+  },
+  {
+   "run": "72985f2 R-4 development re-run (D-E deposited energy)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_30.pt",
+   "sha256": "1c8a59ce409baee4bd762e65fca421b58bad159bbab0a9308e77d7df00fef63f",
+   "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+  },
+  {
+   "run": "72985f2 R-4 development re-run (D-E deposited energy)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_31.pt",
+   "sha256": "51ba70d5b8978597163848c227a78a1e23febd42bad0142a2b7d1f8fcdf99a82",
+   "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+  },
+  {
+   "run": "72985f2 R-4 development re-run (D-E deposited energy)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_32.pt",
+   "sha256": "6116ff09c1d018cae25f50e0b6a34698fae48f1150ba40a878b90404bab2d1f2",
+   "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+  },
+  {
+   "run": "e0a9e61 R-4b (20 ns rule), used by the kappa_m precision study",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4b_training/seed_30.pt",
+   "sha256": "81a1690e69bbc30cafe98262757bf8fc481217a637f5e634365db2e2acacd519",
+   "recorded_in": "results/pmt_r4b_dev_2026-10-18/r4b_training/training.json; re-hashed in precision_01/precision.json"
+  },
+  {
+   "run": "e0a9e61 R-4b (20 ns rule), used by the kappa_m precision study",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4b_training/seed_31.pt",
+   "sha256": "15e2befd131b124dda3c974eaff50d31662f80f2a1c18af0defd4478bf27b363",
+   "recorded_in": "results/pmt_r4b_dev_2026-10-18/r4b_training/training.json; re-hashed in precision_01/precision.json"
+  },
+  {
+   "run": "e0a9e61 R-4b (20 ns rule), used by the kappa_m precision study",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4b_training/seed_32.pt",
+   "sha256": "b48be1b36c9f0bab17565b9e1c6f200cc561eb97a51dfddc1b6a8c4412bc3ece",
+   "recorded_in": "results/pmt_r4b_dev_2026-10-18/r4b_training/training.json; re-hashed in precision_01/precision.json"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm0/seed_20.pt",
+   "sha256": "70d7af4e1c9331bf1ca95e4a98a5c3028dc3954856cd5a62c53cea7e8fc67eed",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm0/seed_21.pt",
+   "sha256": "4dae4639f763750406bf3bb33effaa2a6089be984b7b9196a8024241b51c7d27",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm0/seed_22.pt",
+   "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm1/seed_20.pt",
+   "sha256": "7f37305f56ba61a59bb6b260a17f9459143306e747aba353bb16a327dca3ae21",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm1/seed_21.pt",
+   "sha256": "afa1eceffd5ecb0801c8e22a730084496c6dd487302d9b6c750d2c38ede42acf",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm1/seed_22.pt",
+   "sha256": "4b1a036b2c132baf80feed86336f34ff8ef098eb220a99be2f94005445015178",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm2/seed_20.pt",
+   "sha256": "46eb3bcbc896e0ceba640f9d50e9f1c68747fa2bb329812f2be46cd1b5686f37",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm2/seed_21.pt",
+   "sha256": "7a42f5aeb829ceeb69607aa54852d4cd9f41eb07005fe76ec1f00dde702d7101",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm2/seed_22.pt",
+   "sha256": "8821cab072efc02a7b8a0deae43959a86820d691edabc52a3bb5d9d816729565",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm3/seed_20.pt",
+   "sha256": "cce7e9aeb96a8c58ec4d4a3c3e49e08d490a6a51e76c617a98757bc8f1ee72b5",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm3/seed_21.pt",
+   "sha256": "3c3ed505d7a94d855a1e8d85e03db6b87f6f170283aa2c41e1b662df2cefed1f",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm3/seed_22.pt",
+   "sha256": "5bf6435b1f8ebc1473b666c4c380e5b0c1373a3f7ecd49fb6646f05ffef174a5",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm4/seed_20.pt",
+   "sha256": "bfdb45cc324d84a8e8fec6117e445ae08b5525148ba56d3d8821fda9d29c1588",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm4/seed_21.pt",
+   "sha256": "488356a557d66b397d91af3915603394189eaa19449036adeb47a6fa0abc9f9f",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "91ef3f4 E40 vertex diagnostic (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/r4c_arm4/seed_22.pt",
+   "sha256": "edbf8ddddd9f8467af0ffd4dd6e6036a29a4a27e0a78577c73f8a98eb0242f90",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/checkpoints.sha256 (sha256sum on the host after training)"
+  },
+  {
+   "run": "1d9845f NHits rule validation (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_dark/seed_20.pt",
+   "sha256": "d108b8b771c8976c766f8a7ea9f25eb78cb08c015cf2ae5239d3839b30e8197a",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/nhits_validation/checkpoints.sha256"
+  },
+  {
+   "run": "1d9845f NHits rule validation (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_dark/seed_21.pt",
+   "sha256": "d6d9ec1abe679a1f411064e77d72716aeca400ec29c1f309d1cb1b7337ab982f",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/nhits_validation/checkpoints.sha256"
+  },
+  {
+   "run": "1d9845f NHits rule validation (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_dark/seed_22.pt",
+   "sha256": "7b1aa562d13deb526aa19926e915183d0076b3202f37542102507b4afcda8827",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/nhits_validation/checkpoints.sha256"
+  },
+  {
+   "run": "1d9845f NHits rule validation (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_nodark/seed_20.pt",
+   "sha256": "b6338f168652d77912f40933c2b66a2c997878f305db641d8faa69ba00910618",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/nhits_validation/checkpoints.sha256"
+  },
+  {
+   "run": "1d9845f NHits rule validation (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_nodark/seed_21.pt",
+   "sha256": "a3f2280ad1ad08bfd99ed111228cc85f5f046fb039bc5c98a1f27c6feba93f94",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/nhits_validation/checkpoints.sha256"
+  },
+  {
+   "run": "1d9845f NHits rule validation (validation only)",
+   "host": "deepthought",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/nhits_val_nodark/seed_22.pt",
+   "sha256": "b6c4386bf6946b45a8adfd3874e884a9de8ef3cf943ea8d5bdbece8e81d73316",
+   "recorded_in": "results/pmt_r4c_dev_2026-10-18/nhits_validation/checkpoints.sha256"
+  }
+ ],
+ "datasets": [
+  {
+   "run": "R-4",
+   "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/track_closure_01/digits.npz",
+   "sha256": "8c39ed1bb269242c10dc61a90683a1b1899ce6714dcaeb2bd5de26306e12b7ff"
+  }
+ ],
+ "diagnostic_checkpoints": "R-4b 2x2 and train-subset arms: hashes in each results/pmt_r4b_dev_2026-10-18/<arm>/training.json; files under /work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/<arm>/"
 }

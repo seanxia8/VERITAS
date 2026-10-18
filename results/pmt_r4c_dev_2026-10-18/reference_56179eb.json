@@ -1,0 +1,102 @@
+{
+  "dataset": "/work/dwong/pmt_multienergy_20261016/evidence/track_closure_02/digits.npz",
+  "dataset_sha256": "d0cf3d1be4b9333dccd8d28a151e1ec030e6b57a0f96678899c31a0d2ac5d93a",
+  "split": "validation",
+  "n": 96,
+  "constant_metrics": {
+    "n": 96,
+    "vertex_rmse_m": 0.3421526253223419,
+    "vertex_median_m": 0.3277847468852997,
+    "direction_mean_deg": 87.9063720703125,
+    "direction_median_deg": 86.23725891113281,
+    "energy_relative_mae": 0.4342844486236572,
+    "energy_bias_fraction": 0.11046227067708969,
+    "direction_mse": 0.33305418491363525,
+    "vertex_mse": 0.03902280330657959,
+    "log_energy_mse": 0.20575599372386932,
+    "finite": true
+  },
+  "constant_heads": {
+    "direction": 0.33305418491363525,
+    "vertex": 0.31855353713035583,
+    "energy": 0.20575599372386932
+  },
+  "results": [
+    {
+      "checkpoint": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_20.pt",
+      "sha256": "70d7af4e1c9331bf1ca95e4a98a5c3028dc3954856cd5a62c53cea7e8fc67eed",
+      "vertex_ratio": 0.7695920566771977,
+      "direction_deg": 7.394659042358398,
+      "energy_ratio": 0.8198681212020065,
+      "validation_heads": {
+        "direction": 0.006898826919496059,
+        "vertex": 0.1886703222990036,
+        "energy": 0.17411327362060547
+      },
+      "metrics": {
+        "n": 96,
+        "vertex_rmse_m": 0.26331794261932373,
+        "vertex_median_m": 0.24397623538970947,
+        "direction_mean_deg": 7.394659042358398,
+        "direction_median_deg": 6.699608325958252,
+        "energy_relative_mae": 0.35605597496032715,
+        "energy_bias_fraction": 0.06796710938215256,
+        "direction_mse": 0.006898826919496059,
+        "vertex_mse": 0.023112112656235695,
+        "log_energy_mse": 0.17411327362060547,
+        "finite": true
+      }
+    },
+    {
+      "checkpoint": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_21.pt",
+      "sha256": "4dae4639f763750406bf3bb33effaa2a6089be984b7b9196a8024241b51c7d27",
+      "vertex_ratio": 0.7254821707003654,
+      "direction_deg": 7.069997787475586,
+      "energy_ratio": 0.8032542583917506,
+      "validation_heads": {
+        "direction": 0.006192953325808048,
+        "vertex": 0.16766250133514404,
+        "energy": 0.16318592429161072
+      },
+      "metrics": {
+        "n": 96,
+        "vertex_rmse_m": 0.2482256293296814,
+        "vertex_median_m": 0.22511997818946838,
+        "direction_mean_deg": 7.069997787475586,
+        "direction_median_deg": 6.875517845153809,
+        "energy_relative_mae": 0.3488408327102661,
+        "energy_bias_fraction": 0.06165853142738342,
+        "direction_mse": 0.006192953325808048,
+        "vertex_mse": 0.020538654178380966,
+        "log_energy_mse": 0.16318592429161072,
+        "finite": true
+      }
+    },
+    {
+      "checkpoint": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_22.pt",
+      "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
+      "vertex_ratio": 0.84977793673002,
+      "direction_deg": 7.891664028167725,
+      "energy_ratio": 0.8452180897173296,
+      "validation_heads": {
+        "direction": 0.0078040361404418945,
+        "vertex": 0.2300346940755844,
+        "energy": 0.16437844932079315
+      },
+      "metrics": {
+        "n": 96,
+        "vertex_rmse_m": 0.2907537519931793,
+        "vertex_median_m": 0.27361124753952026,
+        "direction_mean_deg": 7.891664028167725,
+        "direction_median_deg": 7.462772369384766,
+        "energy_relative_mae": 0.36706507205963135,
+        "energy_bias_fraction": 0.13121028244495392,
+        "direction_mse": 0.0078040361404418945,
+        "vertex_mse": 0.028179248794913292,
+        "log_energy_mse": 0.16437844932079315,
+        "finite": true
+      }
+    }
+  ],
+  "caveat": "the validation split also selected these checkpoints"
+}

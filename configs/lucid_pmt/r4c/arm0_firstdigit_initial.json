@@ -1,0 +1,95 @@
+{
+  "evidence_stage": "development",
+  "non_citable": true,
+  "energies_MeV": [
+    500,
+    1000,
+    1500
+  ],
+  "events_per_energy": 20,
+  "rotations_per_event": 8,
+  "source_read_cap_bytes": 939524096,
+  "source_wall_seconds": 1800,
+  "generation_wall_seconds": 1800,
+  "training_wall_seconds": 1800,
+  "splits": {
+    "response_fit": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "train": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "validation": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "test": [
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  "model_seeds": [
+    20,
+    21,
+    22
+  ],
+  "epochs": 100,
+  "batch_size": 16,
+  "learning_rate": 0.001,
+  "gpu_memory_fraction": 0.25,
+  "cpu_threads": 4,
+  "placement": "primary vertex uniform [-0.35,0.35] m in each coordinate; uniform SO(3); no shower centring",
+  "targets": [
+    "primary starting position in metres",
+    "primary initial direction",
+    "log(primary energy / 1000 MeV), as in 56179eb"
+  ],
+  "geometry": "pinned WCTE; unchanged calibrated-engineering transport",
+  "geometry_check_rays": 256,
+  "geometry_agreement_required": 1.0,
+  "max_time_residual_ns": 0.0001,
+  "max_sphere_residual_m": 0.0001,
+  "calibration": "charge-to-primary-energy least squares with intercept fitted on response_fit only; supporting benchmark; no PMT calibration claim",
+  "checkpoint": "minimum equal-weight validation loss; test once per seed; no threshold tuning",
+  "augmentation_seed": 202610170,
+  "prior_500MeV_data": "same development source events as previous pilot; never promoted to pristine confirmation",
+  "primary_claims_evaluated": false,
+  "architecture": "6->128->128->128 per sensor; masked mean/max plus measured total charge/1000 and occupancy fraction; 258->256->7",
+  "loss": "MSE(unit direction) + MSE(vertex/0.35m) + MSE(log(primary energy/1000MeV))",
+  "grouping": "upstream physical mpmt_id aligned by Cylinder loader; gain/width factors remain synthetic; electronics crate map unavailable",
+  "geometry_approximation": "upstream spherical PMTs snapped to cylinder boundary; raw-to-model displacement reported",
+  "cohort_amendment": "Before reconstruction/training: balanced first 20 physical events per energy after source read-cap STOP; original 24-event plan preserved; no score inspected; thresholds unchanged",
+  "water_source_domain": "inside upstream cylinder and outside spherical sensor volumes; omitted counts retained",
+  "max_candidates_per_ray": 64,
+  "transport_repair": "After retained 16-candidate transport failure, increase candidate search to 64 through upstream API; no target, split, training setting or acceptance tolerance changed",
+  "run": "Arm 0: exact reproduction of 56179eb under the current code",
+  "authorization": "author decisions 18 Oct 2026 (fourth message, docs/PMT_DECISIONS_LOG.md) under C2 and the runbook v2 \u00a72 shared-server rules",
+  "energy_target": "initial_energy",
+  "energy_endpoint": "initial_energy",
+  "energy_column": 6,
+  "trainability_gates": "configs/lucid_pmt/trainability_gates.json (R-3, energy per subgroup)",
+  "segment_read_cap_bytes": 1073741824,
+  "photon_source": "existing /work/dwong/pmt_multienergy_20261016/source_balanced (56179eb cohort); no new photon reads",
+  "response": "configs/lucid_pmt/reference.json schema v2 at the R-4 commit (R-1 manifest, R-2 walk, R-6 dark counts 1 kHz)",
+  "time_feature": "(digit time - earliest digit time) / 20 ns, the 56179eb formula",
+  "prior_use": "same 60 physical events and placements as 56179eb; that run's scores were inspected, so this re-run is development evidence only",
+  "time_feature_unit_ns": 20.0,
+  "dark_counts": false,
+  "evaluate_split": "validation",
+  "purpose": "validation-only diagnostic of the vertex regression (E40); diagnoses the cause, does not pick a fix; test split never predicted",
+  "time_origin": "first_digit"
+}

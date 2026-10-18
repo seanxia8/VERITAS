@@ -10,7 +10,7 @@ import time
 import numpy as np
 from scipy.spatial.transform import Rotation
 from .lucid_transport import PromptTransport
-from .readout import readout_chain
+from .readout import nhits_trigger_time, readout_chain
 from . import response_manifest
 
 
@@ -21,14 +21,41 @@ def response(geometry):
     return response_manifest.reference_response(len(module),response_manifest.module_groups(module))
 
 
-def time_feature(time_ns, window_ns):
-    """Digit time from the declared readout-window start, in window lengths (R-6).
+TIME_FEATURE_UNIT_NS = 20.0  # author rule, 18 Oct 2026 (recorded at fca0af9 before R-4b)
 
-    The origin is the trigger-defined window, so dark hits cannot move it, unlike the
-    pre-R-6 ``(time - time.min()) / 20 ns``.
+
+TIME_ORIGINS = ("window_start", "trigger", "first_digit", "nhits")
+
+
+def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS, origin="window_start"):
+    """Digit time from a declared origin, in units of ``unit_ns``.
+
+    The default origin is the trigger-defined window start, so dark hits cannot move it, unlike the
+    pre-R-6 ``(time - time.min()) / 20 ns``. The author's rule fixes the unit at 20 ns,
+    comparable to the prompt-light spread; ``unit_ns=None`` gives the R-4 (E33) unit, the
+    window length (1 us). The other origins exist for the validation-only diagnostic (E40):
+    ``"trigger"`` is t = 0, to which ``window_ns`` is referred, and ``"first_digit"`` is the
+    earliest digit time, as in ``56179eb``. ``"nhits"`` is the author-approved rule (18 Oct 2026,
+    fifth message): :func:`readout.nhits_trigger_time`, falling back to the window start when
+    nothing triggers (callers count those placements).
     """
     lo, hi = (float(x) for x in window_ns)
-    return (np.asarray(time_ns, dtype=float) - lo) / (hi - lo)
+    unit = (hi - lo) if unit_ns is None else float(unit_ns)
+    if not unit > 0:
+        raise ValueError("positive time-feature unit required")
+    t = np.asarray(time_ns, dtype=float)
+    if origin == "window_start":
+        zero = lo
+    elif origin == "trigger":
+        zero = 0.0
+    elif origin == "first_digit":
+        zero = t.min() if t.size else 0.0
+    elif origin == "nhits":
+        trig = nhits_trigger_time(t)
+        zero = lo if trig is None else trig
+    else:
+        raise ValueError(f"unknown time origin {origin!r}")
+    return (t - zero) / unit
 
 
 def analytic_first(origins,directions,centres,radius,detector):

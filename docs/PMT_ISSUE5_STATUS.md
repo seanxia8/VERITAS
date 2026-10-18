@@ -34,5 +34,12 @@ Physics review with Junjie has not happened for any row. "Evaluated" means a pri
 | R-6 dark counts | Done. Keyed dark-count stage in the readout, rate in the manifest (1 kHz per PMT, `synthetic_dev`), `readout.dark_noise_window` for dark-only windows; fixture re-run in `results/pmt_r6_dev_2026-10-18` |
 | E26 sub-domain threshold | Fixed: counted as `below_charge_domain`, not raised |
 | `endpoint_identifiability.py` | Committed as `dev_unreviewed` with analytic tests; supports the D-E containment preflight |
-| R-4 re-run | Pending |
+| R-4 re-run | Done (development): containment range-based (100–350 MeV ≥ 50%); D-E deposited-energy target; 3 seeds. **Gates FAIL**: vertex in all seeds (0.96–1.00 × constant); E_dep in seed 32. Retained, not retuned. `results/pmt_r4_dev_2026-10-18` |
+| R-4b | Done (development). The 2×2 validation diagnostic rules out the time unit and finds only a small dark-count effect; cause not identified. R-4b test run **FAILS** vertex in all seeds (0.99–1.00 × constant). `results/pmt_r4b_dev_2026-10-18` |
+| Vertex diagnostic E40 | Done (development, validation only). Arm 0 reproduces `56179eb` exactly (inputs bit-identical, checkpoints byte-identical), so there is no code regression. **Cause: the window-start time origin** (+10-unit offset on hits; conditioning). Vertex ÷ constant is 0.65–0.68 with the trigger origin and 0.94–0.96 with window start. The energy target does not starve vertex. A fix rule is proposed in the decisions log and awaits the author; no test re-run. `results/pmt_r4c_dev_2026-10-18` |
+| NHits time-origin rule | Function `readout.nhits_trigger_time` at `1d9845f` (N = 3; measured dark-only rate 1.2×10⁻³ per window, above the stated bound; N = 4 gives none). Validation (E44): dark off 0.75–0.81 × constant; dark on 0.89–0.92, which **fails** the ≤ 0.88 criterion; fallback 0%. **R-4c not run.** `results/pmt_r4c_dev_2026-10-18/nhits_validation` |
+| κ_m precision study | Done: SD_K = 0.040, so κ_m = 1.10, **accepted** by the author (re-check if any WP7 cell holds fewer than 12 physical events) |
+| WP6 contract | Frozen v2, `configs/lucid_pmt/wp6_contract_v2.json` (κ_m = 1.10; held-out choices confirmed); D-E-dependent entries `pending_D-E` |
+| WP8 reply | Draft only, `docs/PMT_ISSUE5_REPLY_DRAFT.md`, not posted |
+| WP7 | Not started. Waits for the vertex diagnostic (done; fix rule pending the author), Junjie's D-E answer and "launch WP7" |
 | R-5 hygiene | Runs 03/04 removed (history `56179eb`); every results directory ≤ 20 MB; checkpoint paths and hashes in `results/PMT_CHECKPOINTS.json` (host re-verification in R-4); this file rewritten |

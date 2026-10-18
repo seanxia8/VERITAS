@@ -1,6 +1,42 @@
 # PMT experiment contract
 
-16 October 2026. **DRAFT — UNFROZEN.** This document prepares WP6. The user subsequently authorized real LUCiD integration, prompt Cherenkov validation and baseline GPU training on Deepthought on 16 October 2026. The bounded engineering pilot is specified in `configs/lucid_pmt/integration_pilot.json`; this is not a scientific protocol freeze or authorization for a new transfer arm. Claims, labels and `GENERIC_COMMITTED` remain as in `PREREGISTRATION.md` §§1–8.
+## WP6 freeze v2 (18 October 2026)
+
+**FROZEN v2: `configs/lucid_pmt/wp6_contract_v2.json` supersedes v1.**
+- **κ_m = 1.10** is frozen from the precision study: SD_K = 0.040, so max(1.10, 1 + 2·SD_K) = 1.10 (`results/pmt_r4b_dev_2026-10-18/precision_01`).
+- The held-out choices are confirmed by the author: the `timing_width` family, and modules with index mod 3 = 2.
+- The time-feature rule, (t − window start) / 20 ns, is added.
+- D-E-dependent entries stay `pending_D-E`.
+
+## WP6 freeze v1 (18 October 2026)
+
+**FROZEN v1.** The binding contract is `configs/lucid_pmt/wp6_contract_v1.json`, checked by `src/noise_module_lucid/tests/test_wp6_contract.py`. It was frozen under the author's instruction of 18 Oct 2026 to freeze WP6 with every decision adopted that day (`docs/PMT_DECISIONS_LOG.md`). Changes need a recorded, dated amendment before any held-out evaluation. The draft text below (16 Oct) is kept as history; where it conflicts, the JSON wins.
+
+**What is frozen**
+- **Adopted decisions:** D-Q, D-J, D-G and D-K, and the form of D-TQ (its values stay `synthetic_dev`).
+- **Reference response:** `reference.json` v2, with mPMT groups and 1 kHz synthetic dark counts.
+- **Cells:**
+  - N cells: QE shape (a = 0.15, 0.30); T-Q slope (b × 0.8, × 1.2); timing width (× 1.25, × 1.5 on affected modules); coupled mPMT gain + width ((0.9, 1.25), (0.8, 1.5)).
+  - Supporting cells: isolated gain and width; module loss (1 or 5 modules); the charge-matched, not exact, control.
+  - Controls: offset only (+1 ns); identity; exact QE×CE product.
+- **Held-out units:**
+  - the `timing_width` family;
+  - the larger severity point of every N family;
+  - mPMT modules with index mod 3 = 2 (35 of 105);
+  - evaluation perturbation seeds 301–303.
+- **Consequence and gates:** K_vertex, the R-3 gates for vertex and direction, and the split roles.
+
+**Pending D-E (`pending_D-E`):** K_energy, the aggregate K = max(K_vertex, K_energy), the energy gates, and event support (contained initial energy and S families). The development default for D-E is deposited energy (A).
+
+**Not frozen:**
+- κ_m = 1.10 (`provisional_dev`; the author must confirm or replace it at this freeze);
+- WP7 event counts and the compute plan;
+- the precision study, which has not been run, so the severity grids are not yet shown to cross the harm boundary;
+- D-T/L/M/S.
+
+---
+
+16 October 2026. **DRAFT — UNFROZEN (superseded by WP6 freeze v1 above).** This document prepares WP6. The user subsequently authorized real LUCiD integration, prompt Cherenkov validation and baseline GPU training on Deepthought on 16 October 2026. The bounded engineering pilot is specified in `configs/lucid_pmt/integration_pilot.json`; this is not a scientific protocol freeze or authorization for a new transfer arm. Claims, labels and `GENERIC_COMMITTED` remain as in `PREREGISTRATION.md` §§1–8.
 
 ## 🔌 Interfaces and baseline
 

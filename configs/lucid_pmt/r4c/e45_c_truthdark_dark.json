@@ -1,0 +1,100 @@
+{
+  "evidence_stage": "development",
+  "non_citable": true,
+  "energies_MeV": [
+    500,
+    1000,
+    1500
+  ],
+  "events_per_energy": 20,
+  "rotations_per_event": 8,
+  "source_read_cap_bytes": 939524096,
+  "source_wall_seconds": 1800,
+  "generation_wall_seconds": 1800,
+  "training_wall_seconds": 1800,
+  "splits": {
+    "response_fit": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "train": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "validation": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "test": [
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  "model_seeds": [
+    20,
+    21,
+    22
+  ],
+  "epochs": 100,
+  "batch_size": 16,
+  "learning_rate": 0.001,
+  "gpu_memory_fraction": 0.25,
+  "cpu_threads": 4,
+  "placement": "primary vertex uniform [-0.35,0.35] m in each coordinate; uniform SO(3); no shower centring",
+  "targets": [
+    "primary starting position in metres",
+    "primary initial direction",
+    "log(E_dep / 1000 MeV), D-E development endpoint"
+  ],
+  "geometry": "pinned WCTE; unchanged calibrated-engineering transport",
+  "geometry_check_rays": 256,
+  "geometry_agreement_required": 1.0,
+  "max_time_residual_ns": 0.0001,
+  "max_sphere_residual_m": 0.0001,
+  "calibration": "charge-to-primary-energy least squares with intercept fitted on response_fit only; supporting benchmark; no PMT calibration claim",
+  "checkpoint": "minimum equal-weight validation loss; test once per seed; no threshold tuning",
+  "augmentation_seed": 202610170,
+  "prior_500MeV_data": "same development source events as previous pilot; never promoted to pristine confirmation",
+  "primary_claims_evaluated": false,
+  "architecture": "6->128->128->128 per sensor; masked mean/max plus measured total charge/1000 and occupancy fraction; 258->256->7",
+  "loss": "MSE(unit direction) + MSE(vertex/0.35m) + MSE(log(E_dep/1000MeV))",
+  "grouping": "upstream physical mpmt_id aligned by Cylinder loader; gain/width factors remain synthetic; electronics crate map unavailable",
+  "geometry_approximation": "upstream spherical PMTs snapped to cylinder boundary; raw-to-model displacement reported",
+  "cohort_amendment": "Before reconstruction/training: balanced first 20 physical events per energy after source read-cap STOP; original 24-event plan preserved; no score inspected; thresholds unchanged",
+  "water_source_domain": "inside upstream cylinder and outside spherical sensor volumes; omitted counts retained",
+  "max_candidates_per_ray": 64,
+  "transport_repair": "After retained 16-candidate transport failure, increase candidate search to 64 through upstream API; no target, split, training setting or acceptance tolerance changed",
+  "run": "E45 arm (c): diagnostic upper bound, dark counts on, truth-labelled dark digits removed, then NHits N = 4 + prompt window",
+  "authorization": "author decisions 18 Oct 2026 (sixth message, docs/PMT_DECISIONS_LOG.md E45) under C2 and the runbook v2 \u00a72 shared-server rules",
+  "energy_target": "deposited_energy_in_volume",
+  "energy_endpoint": "deposited_energy_in_volume",
+  "energy_column": 6,
+  "trainability_gates": "configs/lucid_pmt/trainability_gates.json (R-3, energy per subgroup)",
+  "segment_read_cap_bytes": 1073741824,
+  "photon_source": "existing /work/dwong/pmt_multienergy_20261016/source_balanced (56179eb cohort); no new photon reads",
+  "response": "configs/lucid_pmt/reference.json schema v2 at the R-4 commit (R-1 manifest, R-2 walk, R-6 dark counts 1 kHz)",
+  "time_feature": "(digit time - NHits trigger time) / 20 ns; trigger = earliest digit t with >= 4 digits in [t, t + 20 ns]; fallback window start, counted (author rule, 18 Oct 2026, sixth message; N = 3 superseded)",
+  "prior_use": "same 60 physical events and placements as 56179eb; that run's scores were inspected, so this re-run is development evidence only",
+  "time_feature_unit_ns": 20.0,
+  "dark_counts": true,
+  "evaluate_split": "validation",
+  "purpose": "E45 validation-only arm; pass mark recorded before the run (arm a <= 0.88 vertex/constant in every seed and within 0.05 of arm b in the seed mean); tunes nothing; test split never predicted",
+  "energy_definition": "D-E development default (author 18 Oct 2026): E_dep = T(vertex) - T(first exit), 0 exit for a stopped track; primary muon; per-segment beta; noise_module_lucid.deposited_energy",
+  "time_origin": "nhits",
+  "prompt_window": true,
+  "drop_truth_dark_digits": true,
+  "prompt_window_rule": "digits with t - t_trig outside [-20, +60] ns are out-of-time, dropped from the model input and counted per cell; no trigger: keep the window start, drop nothing, count it",
+  "truth_dark_removal": "diagnostic upper bound only: digits whose photoelectrons are all truth-labelled dark are removed before the trigger; uses truth; never a candidate fix"
+}

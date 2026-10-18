@@ -1,0 +1,75 @@
+{
+  "x": {
+    "shape_old": [
+      480,
+      1995,
+      6
+    ],
+    "shape_new": [
+      480,
+      1995,
+      6
+    ],
+    "identical": true
+  },
+  "y": {
+    "shape_old": [
+      480,
+      7
+    ],
+    "shape_new": [
+      480,
+      7
+    ],
+    "identical": true
+  },
+  "role": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "physical_event_id": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "energy_MeV": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "contained": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "charge": {
+    "shape_old": [
+      480
+    ],
+    "shape_new": [
+      480
+    ],
+    "identical": true
+  },
+  "new_only": [
+    "energy_target",
+    "target_MeV"
+  ]
+}

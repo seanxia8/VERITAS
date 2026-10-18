@@ -1,0 +1,46 @@
+{
+  "K_vertex": {
+    "n_pairs": 48,
+    "mean": 0.9988429989625339,
+    "sd": 0.027740233195748476,
+    "min": 0.9490623607643657,
+    "max": 1.0798955343530312
+  },
+  "K_energy": {
+    "n_pairs": 48,
+    "mean": 1.0001560204343787,
+    "sd": 0.06396021194267526,
+    "min": 0.8374949469870167,
+    "max": 1.1374609112843745
+  },
+  "K": {
+    "n_pairs": 48,
+    "mean": 1.0248412940829048,
+    "sd": 0.04001641292963066,
+    "min": 0.9490623607643657,
+    "max": 1.1374609112843745
+  },
+  "kappa_m": 1.1,
+  "kappa_m_if_vertex_only": 1.1,
+  "n_placements": 96,
+  "n_physical_events": 12,
+  "n_realisations": 32,
+  "roles": [
+    "validation"
+  ],
+  "checkpoints": {
+    "evidence/r4b_training/seed_30.pt": "81a1690e69bbc30cafe98262757bf8fc481217a637f5e634365db2e2acacd519",
+    "evidence/r4b_training/seed_31.pt": "15e2befd131b124dda3c974eaff50d31662f80f2a1c18af0defd4478bf27b363",
+    "evidence/r4b_training/seed_32.pt": "b48be1b36c9f0bab17565b9e1c6f200cc561eb97a51dfddc1b6a8c4412bc3ece"
+  },
+  "dataset_sha256": "ec36d6ed21e45337cf9fc3e1a20361e92ff70942cda69fc93d06185f38b8ab38",
+  "energy_endpoint": "D-E deposited energy (pending_D-E; diagnostic)",
+  "rule": "kappa_m = max(1.10, 1 + 2 SD_K), author 18 Oct 2026",
+  "per_seed_mean_vertex_error_m": [
+    0.32417147731702206,
+    0.32911607984597985,
+    0.3315651529420052
+  ],
+  "evidence_stage": "development",
+  "non_citable": true
+}

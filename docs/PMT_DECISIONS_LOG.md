@@ -86,6 +86,231 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 ---
 
+## Author message, 18 Oct 2026, second (verbatim)
+
+> Option 1. Run the range-based check now, then continue with the R-4 re-run, WP6 and the WP8 draft.
+>
+> - Energies are kinetic. Use 100–400 MeV kinetic, in steps of 50 MeV.
+> - Cross-check your range function against the PDG table of muon CSDA range in water at 2–3
+>   energies, cite the source, and state the multiple-scattering caveat.
+> - Report the contained fraction per energy, with the same vertex and direction sampling as the
+>   pilot, on the pinned WCTE cylinder (R = 1.577 m, H = 2.777 m).
+> - Do not build PhotonSim now. If some range reaches ≥ 50% containment, record it, and leave
+>   generating new contained tracks as a WP7 planning item.
+> - D-E development definition: E_dep = kinetic energy on entering the volume (or at the vertex)
+>   minus kinetic energy on exiting, with exit energy 0 for a stopped track. Primary muon only,
+>   from PhotonSim's per-segment β. Record it in the decisions log.
+>
+> Record this message verbatim (author, 18 Oct 2026). Report after R-4 and WP8 in the agreed format.
+
+**Containment result (R-4 step 1, 18 Oct 2026; `results/pmt_r4_dev_2026-10-18/containment/containment.json`).**
+- Method: range-based and straight-track, with pilot sampling, on the pinned WCTE cylinder (R = 1.5771 m, H = 2.7770 m).
+- Contained fraction at 100, 150, 200 and 250 MeV kinetic: 1.000 at each.
+- At 300 MeV: 0.938. At 350 MeV: 0.687. At 400 MeV: 0.346. The binomial SE is ≤ 0.0011 at every energy.
+- **μ− kinetic energies 100–350 MeV reach ≥ 50% containment; 400 MeV does not.**
+- With ±5% range, 350 MeV gives 0.58–0.78 and 400 MeV gives 0.24–0.47.
+- The CSDA range agrees with the PDG muon table in liquid water to ≤ 0.07% at 100–400 MeV.
+- Caveat: multiple scattering and straggling are ignored, so the straight-track fraction is approximately a lower bound. At 500 MeV it gives 1.2%, against the pilot's Geant4 count of 3/160 (1.9%).
+- **WP7 planning item:** generate new contained μ− tracks at 100–350 MeV kinetic. No PhotonSim source exists below 500 MeV, and the author said not to build PhotonSim now.
+
+**D-E development definition (author, 18 Oct 2026):** E_dep = T(entry, or vertex) − T(exit), with T(exit) = 0 for a stopped track. Kinetic energies, primary muon only, from PhotonSim's per-segment β. Development default, labelled as such; the endpoint itself is pending Junjie.
+
+---
+
+## Author message, 18 Oct 2026, third (verbatim)
+
+> Recorded decisions (author, 18 Oct 2026). Record this message verbatim in the decisions log.
+>
+> 1. Vertex: the validation-split diagnostic is approved, with the fix fixed in advance by principle.
+>    - The time feature keeps its origin at the readout-window start, so dark hits cannot move it,
+>      but uses a fixed 20 ns unit, comparable to the prompt-light spread, instead of 1 µs. Record
+>      this rule before running anything.
+>    - On the validation split only, run 2×2: unit {20 ns, 1 µs} × dark counts {on, off}. It
+>      diagnoses the cause; it does not choose the fix.
+>    - Then re-run R-4 once on the test events with the rule above, as R-4b, under the same gates and
+>      3 seeds. Report it beside the failed R-4, which stays as recorded.
+>    - State that training uses only 480 placements, and whether the gates look data-limited.
+> 2. κ_m: run the precision study first: repeat reference runs and measure the SD of K. Then
+>    κ_m = max(1.10, 1 + 2·SD_K). Freeze it in WP6 v2.
+> 3. WP6 held-out choices are confirmed: timing_width as the held-out family, and modules with
+>    index mod 3 = 2.
+> 4. WP8 draft:
+>    - Do not post. Update it after R-4b with one line on the vertex cause and result.
+>    - In D-L, add "(for Paper 3 / ORACLE; the JEPA study uses LUCiD regardless)".
+>    - Add a question 7: are module gain drifts of 2/5/10% per run, an independent per-PMT gain
+>      spread of 5%, and a 10% attenuation-length change realistic for WCTE?
+>    - In D-E, state our preference: (A), with the energy endpoint on contained μ⁻ at 100–300 MeV
+>      kinetic, where deposited equals initial energy. E_dep on escaping tracks is kept as a
+>      diagnostic (primary only).
+> 5. WP7 waits for R-4b, the precision study and Junjie's D-E answer.
+>
+> Report after R-4b and the precision study.
+
+**Time-feature rule, recorded before any R-4b diagnostic or run (18 Oct 2026):** the digit time feature is `(t − readout-window start) / 20 ns`. The origin is the trigger-defined readout-window start, so dark hits cannot move it. The unit is a fixed 20 ns, comparable to the prompt-light spread. This replaces E33's 1 µs unit (window length) for R-4b and every later run. The 2×2 validation diagnostic, unit {20 ns, 1 µs} × dark counts {on, off}, diagnoses the cause only and does not choose the fix.
+
+---
+
+## Author message, 18 Oct 2026, fourth (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim. κ_m = 1.10 is accepted; re-check it if any
+> WP7 cell holds fewer than 12 physical events.
+>
+> One more validation-only diagnostic is approved, extended so that it can be decisive. 3 seeds each,
+> test events untouched, checkpoint selection as before (state the caveat).
+>
+> Arm 0, exact reproduction of 56179eb under the current code: first-digit time origin, initial-energy
+> target, dark counts off, seeds 20–22, same loss weights and checkpoint rule.
+> - If it does not reach about 0.73–0.88, there is a code regression between 56179eb and now. Then
+>   bisect the commits on validation only, and report the commit that breaks it.
+>
+> Arms 1–4: time origin {trigger time, window start} × energy target {initial, deposited}, dark
+> counts off.
+>
+> Also log, for every arm, each head's loss at initialisation and at the selected checkpoint (vertex,
+> direction, energy), and the relative scale of the energy target. A change of target can unbalance
+> the multi-task loss and starve the vertex head. Report whether that happened.
+>
+> This diagnoses the cause; it does not pick a fix. Propose the fix afterwards as a principle-based
+> rule, recorded before any test-event re-run, as with the 20 ns rule. R-4 and R-4b stay as recorded.
+> WP7 waits for this, for Junjie's D-E answer and for my "launch WP7". Update the WP8 draft with one
+> line on the outcome; do not post it.
+
+**Diagnostic design, recorded before any arm runs (18 Oct 2026, agent; E40):**
+- All five arms: dark counts off, 20 ns unit, seeds 20–22, the `56179eb` loss (equal weights; vertex in 0.35 m units) and checkpoint rule (minimum validation loss). Evaluation on the validation split only; the test split is never predicted. Caveat: the validation split also selects the checkpoint, which flatters every arm equally.
+- Time origins:
+  - first digit: `(t − earliest digit time) / 20 ns`, the `56179eb` formula;
+  - trigger time: `t / 20 ns`, where t = 0 is the trigger to which `readout_window_ns` = [−200, 800] ns is referred (in this simulation it coincides with the primary interaction time), so prompt hits sit near 0;
+  - window start: `(t + 200 ns) / 20 ns`, the R-4b rule, so prompt hits sit near +10.
+- Every arm uses seeds 20–22, so the seed is not a confound between arms. The window-start × deposited arm repeats R-4b's `diag_u20_nodark` (seeds 30–32) with seeds 20–22, which isolates the seed effect.
+- Arm 0 checks:
+  - its inputs are compared bit for bit with the `56179eb` data set, and its checkpoint hashes with the recorded `56179eb` hashes (deterministic algorithms, same GPU model);
+  - like-for-like reference: the `56179eb` checkpoints are also scored on the validation split (CPU inference only), because the 0.73–0.88 range was measured on test;
+  - the author's criterion is applied to arm 0's pooled validation vertex ratio. If it is not about 0.73–0.88, the commits between `56179eb` and now that touch the data or training path are bisected on validation only.
+- Loss logging, every arm and seed:
+  - per-head loss (direction MSE, vertex MSE in 0.35 m units, log-energy MSE) on train and validation, at initialisation and at the selected checkpoint, plus per epoch;
+  - each head's gradient norm on the shared per-sensor encoder at those two points;
+  - the scale of each target: the training-split constant-predictor loss per head, and the SD of the log-energy target.
+- Starvation reading, fixed in advance: the target switch starves the vertex head if, with the deposited target, energy's share of the initial loss or of the encoder gradient rises clearly above its share with the initial target, and vertex fails only with the deposited target.
+- The logging adds no random draws and keeps the summed loss in the same order, so the training trajectory is unchanged.
+
+
+**Proposed time-feature rule (agent, 18 Oct 2026).** Approved by the author on 18 Oct 2026 (fifth message), with N = 3; see E43 for the corrected dark bound. Recorded before any test-event re-run.
+
+- **Principles.** The time feature's origin must be:
+  1. operational: computed from the digits alone, never from truth;
+  2. robust to dark hits;
+  3. centred, so prompt hits sit near 0 on the 20 ns unit, like the other input features.
+
+  Each origin tested so far fails one principle:
+  - the window start fails (3), which E42 shows is the cause of the vertex regression;
+  - the first digit fails (2), as E33 found;
+  - the trigger time t = 0 meets (2) and (3) but fails (1) in this simulation, because it is the true interaction time.
+- **Rule.** The origin is a simulated NHits trigger: the earliest digit time t such that at least N digits lie in [t, t + 20 ns]. N is the smallest integer for which the dark-only probability of such a coincidence anywhere in the 1 µs readout window is below 10⁻³, at the manifest dark rate and channel count. At 1 kHz × 1995 PMTs (0.040 expected dark digits per 20 ns), N = 3 (P ≈ 5×10⁻⁴; N = 2 gives 0.039). The unit stays 20 ns.
+- **No trigger.** If no such cluster exists, the origin is the window start and the placement is counted as untriggered. The count is reported, never dropped silently.
+- **Expectation.** Arm 1 (truth t = 0) is an optimistic bound: about 0.68 × constant on validation. The first-digit arm (0.78) is closer to what a hit-derived origin should give without dark counts.
+- **Open choice for the author.** Run one validation-only check of this rule (dark counts on and off, seeds 20–22) before the single test-event re-run, or go straight to the test re-run.
+
+---
+
+## Author message, 18 Oct 2026, fifth (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim.
+>
+> 1. The NHits time-origin rule is approved as proposed:
+>    - origin = the earliest digit time t with ≥ N digits in [t, t + 20 ns];
+>    - N = 3, from the stated dark-coincidence bound (< 1e-3 per 1 µs window at 1 kHz and 1995 PMTs);
+>    - fallback to the window start, counted per cell.
+>    Implement it in the readout package as a public function, for example
+>    nhits_trigger_time(digits, n=3, window_ns=20), with tests:
+>    - a dark-only window almost never triggers (measure the rate);
+>    - a prompt event triggers within 1 ns of its first true prompt cluster;
+>    - the result is unchanged when dark counts are added to an event that has a prompt cluster.
+> 2. Validate first, on the validation split only: dark counts on and off, seeds 20–22. This checks
+>    that the rule works and reports the fallback rate; it does not tune anything.
+>    - If both arms are within the 0.73–0.88 band of arm 0 and the fallback rate is < 1%, re-run
+>      once on the test events as R-4c, beside R-4 and R-4b.
+>    - Otherwise, report and stop.
+> 3. Commit, push, and report the SHA that contains the function. The JEPA study will adopt the same
+>    origin for its tokens.
+> 4. WP7 still waits for Junjie's D-E answer and my "launch WP7". Update the WP8 draft with one line on
+>    R-4c; do not post it.
+
+**Implementation findings and validation design, recorded before any validation run (18 Oct 2026, agent; E43):**
+- `readout.nhits_trigger_time(digits, n=3, window_ns=20.0)` implements the rule as approved. The time-feature origin `"nhits"` falls back to the window start, and `multienergy_data` counts fallbacks per placement and per (role, energy) cell.
+- **Three measured properties differ from the approval's premises** (`results/pmt_r4c_dev_2026-10-18/nhits_rule/nhits_measured.json`):
+  1. **Dark-only rate at N = 3:** about 1.2×10⁻³ per 1 µs window, above the stated < 10⁻³. The proposal's 5×10⁻⁴ counted 50 fixed 20 ns bins, but the rule slides from every digit: about 2.0 dark digits × P(≥ 2 more within 20 ns). Applied correctly, the principle gives N = 4, which shows no triggers in 20 000 windows. **This was my error in the proposal.**
+  2. **Prompt accuracy:** with the timing width off, the trigger is within 1 ns of the true first prompt cluster. With the reference width it is early by a median of 0.6–3.3 ns (worst 5.8 ns), more so with more hit PMTs, because the earliest of many jittered digits sits in the low tail. That is 0.03–0.17 time-feature units at the median.
+  3. **Dark invariance:** adding dark counts changes the trigger in 26 of 600 prompt events (4.3%, 95% CI 2.8–6.3%). A dark digit up to 20 ns before the prompt cluster can complete an earlier cluster, so the move is at most 20 ns (1 unit). 22 changes move the trigger more than 1 ns earlier; 21 of those have a dark digit in the preceding 20 ns. The remaining one (event 85) is a dark-only three-fold coincidence at −164 ns, which set the trigger 262 ns (13 units) before the prompt light. That is the N = 3 false-trigger mode of finding 1, and N = 4 would have excluded it.
+
+  The tests assert these measured properties, not the stated ones.
+- **Validation, as approved:** N = 3, origin `"nhits"`, 20 ns unit, deposited-energy target (the R-4 endpoint), dark counts on and off, seeds 20–22, validation split only. Checkpoint selection is unchanged, with the same caveat.
+- **Criterion, fixed now:**
+  - each arm passes if every seed's pooled validation vertex ratio is ≤ 0.88, the upper edge of arm 0's band (a value below 0.73 is better than arm 0 and counts as passing);
+  - and the fallback rate over all placements is < 1%.
+- **Test-event re-run held for the author** even if the criterion is met, because finding 1 shows the approved N rests on a bound that does not hold. The test events are single-use, and the author may prefer N = 4. Nothing is tuned.
+
+---
+
+## Author message, 18 Oct 2026, sixth (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim.
+>
+> 1. N = 4, as the stated dark-coincidence principle requires once the window slides from every digit.
+>    N = 3 is superseded. Update the tests to assert the bound (0 dark-only triggers in ≥ 20 000
+>    windows is acceptable evidence).
+> 2. Before any run, commit this principle-based prompt-window rule:
+>    - a digit with t − t_trig outside [−20 ns, +60 ns] is out-of-time; it is dropped from the model
+>      input and counted per cell;
+>    - basis: maximum direct time of flight in WCTE (about 4.2 m / 0.225 m/ns ≈ 19 ns), plus the walk
+>      (≤ 4 ns), jitter and the early-trigger tail (≤ 6 ns), with margin;
+>    - with no trigger (fallback), keep the window start and drop nothing; count it.
+> 3. Validation split only, seeds 20–22, three arms:
+>    (a) NHits N = 4 + prompt-window rule, dark on;
+>    (b) the same, dark off;
+>    (c) diagnostic upper bound: dark on, but only truth-labelled dark digits removed (uses truth;
+>        never a candidate fix).
+>    Pass mark, recorded before the run: arm (a) ≤ 0.88 in every seed, and within 0.05 of arm (b)
+>    in the seed mean. Report the dropped-digit counts and how many source digits were dropped
+>    (should be about 0).
+> 4. If (a) passes, run R-4c once on the test events with the rule, beside R-4 and R-4b. If it fails,
+>    report and stop.
+> 5. Commit and push, and report one SHA containing nhits_trigger_time(n=4) and the prompt-window rule
+>    as a public function. The JEPA study adopts both from that SHA.
+> 6. WP7 still waits for Junjie's D-E answer and my "launch WP7". WP8: one line on R-4c; do not post.
+
+**Implementation and validation design, recorded and committed before any run (18 Oct 2026, agent; E45):**
+- **Rule code.**
+  - `readout.NHITS_N = 4`; N = 3 is superseded.
+  - New public functions: `readout.prompt_window_mask(digits, trigger_ns, window_ns=PROMPT_WINDOW_NS)`, with `PROMPT_WINDOW_NS = (-20.0, 60.0)` as a closed interval, and `readout.select_digits(digits, keep)`. With no trigger (`None`) every digit is kept.
+  - `multienergy_data` (config `prompt_window: true`, needs origin `"nhits"`):
+    - computes the trigger on the digits;
+    - drops out-of-time digits from the model input (charge, time and mask columns);
+    - counts per placement and per (role, energy) cell, plus fallbacks:
+      - `prompt_dropped`;
+      - `prompt_dropped_source`: dropped digits holding at least one source photoelectron, from evaluation-only truth;
+      - `prompt_dropped_source_no_dark`: the same, but with no dark photoelectron.
+  - A source digit can be out-of-time when an earlier dark photoelectron on the same PMT set its measured time. The test suite saw this in 2 of 40 synthetic events, at −250 and −56 ns. The rule then drops it correctly, because its time is dark, so the two source counts are reported separately.
+  - Restricting to [t_trig − 20, t_trig + 60] never moves the trigger: no earlier ≥ 4 cluster exists, and the cluster at t_trig is kept. A test checks this.
+- **Tests.**
+  - 0 dark-only triggers at N = 4 in 20 000 keyed windows (95% upper limit 1.5×10⁻⁴).
+  - The window's bounds and basis.
+  - The fallback drops nothing.
+  - No pure-source digit is dropped in 40 synthetic prompt events with dark counts. Any dropped source digit lies before the trigger, with its time set by dark. The window leaves the trigger unchanged.
+- **Arms** (validation split only, seeds 20–22; deposited-energy target, 20 ns unit, origin `"nhits"` with N = 4; `configs/lucid_pmt/r4c/e45_*.json`):
+  - (a) prompt window, dark on;
+  - (b) prompt window, dark off;
+  - (c) dark on; digits whose photoelectrons are all truth-labelled dark are removed *before* the trigger, then the trigger and prompt window are applied as in (a). So (c) differs from (a) only by perfect dark removal, and from (b) only by dark photoelectrons that merged into source digits. **Diagnostic upper bound; uses truth; never a candidate fix.** Counted as `truth_dark_dropped`.
+  - Checkpoint selection is unchanged, with the same caveat: the validation split also selects the checkpoint.
+- **Pass mark** (the author's, fixed now):
+  - arm (a)'s pooled validation vertex ÷ constant is ≤ 0.88 in every seed;
+  - and |mean(a) − mean(b)| ≤ 0.05 over seeds 20–22.
+
+  Arm (c) is reported, not gated. Reported counts: dropped digits per cell, dropped source digits (expected about 0), and fallbacks.
+- **R-4c, only if (a) passes:**
+  - once on the test events (`r4c_test.json`), on the arm (a) data set;
+  - seeds 30–32, the same seeds and gates as R-4 and R-4b, so the three sit side by side;
+  - the checkpoint rule is unchanged. If (a) fails: report and stop.
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
@@ -94,7 +319,7 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 | D-Q | Charge domain | [0.25, 1000] PE everywhere; overflow clamped and counted | **Adopted, binding** (18 Oct) |
 | D-J | Timing kernel | Gaussian approximation; fraction of digits before photon arrival reported per cell | **Adopted, binding** (18 Oct) |
 | D-G | Intervention groups | mPMT modules (physical map from pinned file) | **Adopted, binding** (18 Oct) |
-| D-K | Fit failures | Unevaluable if failure rate > 10%; otherwise complete-case K with failure-rate difference reported | **Adopted, binding** (18 Oct); κ_m = 1.10 stays `provisional_dev` until the WP6 freeze |
+| D-K | Fit failures | Unevaluable if failure rate > 10%; otherwise complete-case K with failure-rate difference reported | **Adopted, binding** (18 Oct); κ_m = 1.10 **accepted** (author, 18 Oct, fourth message); re-check if any WP7 cell holds fewer than 12 physical events |
 | D-E | Energy endpoint | (A) Deposited energy inside instrumented volume; initial energy supporting on contained events only; containment preflight before training | **Pending Junjie**; (A) is the labelled development default |
 | R-3 energy gate | Energy MAE gate | ≤ 0.8 × constant pooled **and** ≤ 1.0 × constant in every energy subgroup | **Author decision** (18 Oct), replaces E17 |
 | D-T/L/M/S | Portfolio | Unchanged from v1 WP8 | open with Junjie |
@@ -157,6 +382,48 @@ _One line each, logged as made (18 Oct 2026)._
   - The `n_pe_true` comment now says it includes dark photoelectrons.
   - The `endpoint_identifiability()` docstring now states its constant: the evaluated set's mean energy in MeV. The code is unchanged and the test distinguishes the two definitions.
   - Known and left: `below_charge_domain` is counted before the dead-channel mask.
+- E35 (R-4). The run config is `configs/lucid_pmt/r4_pilot.json`. It keeps the `56179eb` splits, placements (augmentation seed) and architecture, and changes the energy target to D-E, with new model seeds 30–32. Code is staged on the host from `git archive 72985f2`. The trainer's gate failure stops the run as designed; it is retained and nothing is retuned.
+- E36 (R-4). D-E implementation:
+  - T is taken from β at each segment start.
+  - Along a segment, T is linear in path length.
+  - At the vertex, T is the generator kinetic energy.
+  - The exit point is found by bisection on the first boundary crossing.
+  - Re-entries are counted, not added (none occurred).
+  - `Segment_Edep` inside the volume is recorded as a cross-check only.
+- E37 (R-4b). Results:
+  - The 2×2 diagnostic (validation only) rules out the time unit as the cause, and dark counts as more than a small effect (about 0.05). All arms give vertex 0.95–1.00 × constant.
+  - With dark counts off, the inputs equal those of `56179eb` except for a per-event constant time offset (+9.9 to +10.3 units on hits; unhit sensors stay at 0) and the energy column.
+  - The cause is not identified. The open candidates are the time origin, the energy-target switch and the model seeds.
+  - R-4b (test, 20 ns rule) fails vertex in all seeds (0.99–1.00) and E_dep in seed 30.
+  - Vertex is not data-limited at 96–192 training placements; E_dep is.
+  - Recorded beside R-4; nothing was retuned.
+- E38 (κ_m). The precision study (32 readout re-draws × 96 validation placements, frozen R-4b checkpoints) gives SD_K = 0.040 for K = max(K_vertex, K_energy), with SD = 0.028 for vertex and 0.064 for energy. Then 1 + 2·SD_K = 1.080, so **κ_m = 1.10**, frozen in `wp6_contract_v2.json`.
+- E39 (R-4b, data). The 1 µs + dark arm reuses the R-4 data set (`track_closure_01`): its settings are identical, (t − lo)/(hi − lo) with hi − lo = 1000 ns. The diagnostic uses the validation split for both checkpoint selection and evaluation. That flatters every arm equally and is used only to compare arms.
+- E41 (E40 run). The first arm 2 generation (code `65fba28`) failed on its second placement: in the deposited-energy branch of `multienergy_data`, `origin=raw['vertex_m']` shadowed the new time-origin variable. Fixed at `91ef3f4` (renamed `time_origin`). Arms 0, 1 and 3 never enter that branch. Every arm was generated or trained with `91ef3f4`, apart from arms 0, 1 and 3's data, which came from `65fba28`. Their generation path is identical, and arm 0's bit-identical match with `56179eb` confirms it.
+- E42 (E40 result, validation only). Vertex RMSE ÷ constant, seeds 20–22:
+  - arm 0 (first digit, initial) 0.782;
+  - arm 1 (trigger, initial) 0.681;
+  - arm 2 (trigger, deposited) 0.652;
+  - arm 3 (window start, initial) 0.961;
+  - arm 4 (window start, deposited) 0.936.
+
+  Findings:
+  - Arm 0's inputs are bit-identical to `56179eb`'s, and its checkpoints byte-identical, so there is no code regression and no bisection.
+  - **The cause is the window-start origin:** a constant +10-unit offset on hit sensors against an unhit 0. It is a conditioning effect; the timing information is unchanged.
+  - The energy target does not starve the vertex head. Vertex is slightly better with the deposited target, and energy takes 4–14% of the loss at the selected checkpoint.
+  - The seed effect is small (arm 4: 0.936 against R-4b's 0.948 with seeds 30–32).
+
+  Details: `results/pmt_r4c_dev_2026-10-18`. Nothing was retuned, and the test split was not predicted.
+- E44 (NHits validation, validation only; code `1d9845f`). Vertex ÷ constant, seeds 20–22:
+  - dark off: 0.797, 0.748, 0.814;
+  - dark on: 0.886, 0.921, 0.924;
+  - fallback 0 of 480 placements in both arms.
+
+  **The E43 criterion fails** (dark on is above 0.88 in every seed), so R-4c was not run, as the author's rule requires.
+  - The rule fixes the conditioning problem without dark counts.
+  - With dark counts, vertex loses about 0.12. An untested hypothesis is that dark-digit time features (about −15 to +35 units against prompt hits near 0–2) act as outliers under masked max pooling.
+
+  Nothing was tuned. Details: `results/pmt_r4c_dev_2026-10-18/nhits_validation`.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -169,4 +436,32 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | local | R-1 fixture re-run (`results/pmt_r1_r3_dev_2026-10-18/fixture_run_01`, pre-review) | 6.4 s | 0 | 0 |
 | 18 Oct 2026 | local | R-1 fixture re-run after review fixes (`fixture_run_02`, final) | 5.3 s | 0 | 0 |
 
-_No remote or GPU job for R-1 to R-3; they ran on local CPU._
+| 18 Oct 2026 | local | R-6 fixture runs (`results/pmt_r6_dev_2026-10-18/fixture_run_01`, `_02`) | 5.7 s, 6.9 s | 0 | 0 |
+| 18 Oct 2026 | local | R-4 containment check (range-based, `results/pmt_r4_dev_2026-10-18/containment`) | about 1 min | 0 | 0 |
+| 18 Oct 2026 | deepthought (CPU, read-only) | geometry query; directory listings; `nvidia-smi`; checkpoint re-hash | < 3 min total | 0 | 0 |
+| 18 Oct 2026 | CERNBox (WebDAV) | PhotonSim directory listing (PROPFIND) | seconds | 0 | a few KB |
+| 18 Oct 2026 | deepthought (CPU, 2 threads) | segment-ordering probe, one 500 MeV event | < 1 min | 0 | 1.2 MB |
+| 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | R-4 primary-segment extraction (`segments_01`) | 56 s | 0 | 91.2 MB |
+| 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | R-4 data generation (`track_closure_01`), existing photon sources | 14 min 26 s | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 3, TITAN X, 25% memory) | R-4 training, 3 seeds × 100 epochs (`training_01`) | 55 s | 0.015 | 0 |
+
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | R-4b generation: `data_u20_dark`, `data_u20_nodark`, `data_u1000_nodark`, `data_precision` | 16:52, 17:02, 15:10, 6:45 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 3, TITAN X, 25% memory) | R-4b GPU sequence: 2×2 diagnostic, 2 train-subset arms, R-4b (7 runs × 3 seeds) | 338 s in total | 0.094 | 0 |
+| 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | κ_m precision inference (`precision_01`) | 30 s | 0 | 0 |
+
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | E40 generation: `r4c_data_arm0`, `_arm1`, `_arm3`; `_arm2` failed (E41); `_arm2b` retry | 14:34, 14:45, 13:15; 0:56; 13:17 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | E40 training: 5 arms × 3 seeds, validation only (`r4c_arm0`–`4`) | 280 s in total | 0.078 | 0 |
+| 18 Oct 2026 | deepthought (CPU, nice 10) | E40 input comparisons and `56179eb` validation reference | < 2 min | 0 | 0 |
+| 18 Oct 2026 | local | NHits rule measurement (`nhits_rule/measure_nhits.py`, 20 000 dark windows, 600 prompt events) | about 4 min | 0 | 0 |
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | NHits validation generation: `nhits_data_dark`, `nhits_data_nodark` | 14:46, 14:18 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | NHits validation training: 2 arms × 3 seeds, validation only | 111 s | 0.031 | 0 |
+
+NHits totals: 0.031 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0%, no `jepa_*` training session, and only another user's notebook kernel at ≤ 802 MiB per card. Cumulative GPU use in this session: 0.218 GPU-hours. Cumulative source reads: about 92.5 MB.
+
+E40 totals: 0.078 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0% mean utilisation and no `jepa_*` training session. The only other GPU process was another user's notebook kernel, at ≤ 802 MiB per card. GPU 0 was used, the same index as `56179eb`. Cumulative GPU use in this session: 0.187 GPU-hours. Cumulative source reads: about 92.5 MB.
+
+R-4b totals: 0.094 GPU-hours, with no new source reads. Before the run, a 5-minute sample showed all GPUs at 0%, no process above 1 GB, and no `jepa_*` training session. Cumulative GPU use in this session: 0.109 GPU-hours. Cumulative source reads: about 92.5 MB.
+
+R-4 totals: 0.015 GPU-hours, about 92.5 MB of source reads against the 5 GB cap. Before training, a 5-minute sample showed every GPU at 0% mean utilisation, no process above 1 GB, and no `jepa_*` training session. Only `jepa_guard` was running. No other process was touched, signalled or reniced. Nothing was written under `/ceph`.
+
+_R-1 to R-3 used no remote or GPU job; they ran on local CPU._

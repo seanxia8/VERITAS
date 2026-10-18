@@ -1,0 +1,23 @@
+{
+  "method": "least squares charge-to-initial_energy, intercept included",
+  "fit_physical_event_ids": [
+    "1000:0",
+    "1000:1",
+    "1000:2",
+    "1000:3",
+    "1500:0",
+    "1500:1",
+    "1500:2",
+    "1500:3",
+    "500:0",
+    "500:1",
+    "500:2",
+    "500:3"
+  ],
+  "coefficients": [
+    0.17179281699908683,
+    33.26201400718269
+  ],
+  "source_dataset_sha256": "ddf2f79fa326e6d3f34da4f8e224ae06f8809729813a53c32071e6fc9d6a91ee",
+  "sha256": "20c62937276cfa794da0e58aebeecd3ae6071af12f8b35076f70a209d1c1d3b3"
+}
