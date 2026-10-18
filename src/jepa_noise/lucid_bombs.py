@@ -1839,12 +1839,15 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     # the source-derived digits alone; when a dark coincidence moves it, count it and report the
     # rate.  Source-derived digits use only the prompt light (n_photon > 0) through the same
     # width/jitter chain, so a constant photon-time shift moves them exactly.
+    source_trigger = trigger  # no dark digit exists: the source trigger is the trigger
     if dark_sensor.size:
         source_first = np.where(n_photon > 0,
                                 propagation_time_ns(geometry, draws.vertex_m, cfg) + emission_offset_ns,
                                 np.inf)
         source_times = source_first + sigma_t * draws.transit_z + residual
-        source_digits = source_times[index]
+        # A dark-only digit has no source time: the counterfactual uses the source-digit PMTs
+        # only, never an infinite time (the imported rule requires finite digit times).
+        source_digits = source_times[index[n_photon[index] > 0]]
         source_trigger = nhits_trigger_time(source_digits, n=nhits_n, window_ns=nhits_window_ns)
         if source_trigger is not None:
             moved = trigger is None or abs(float(trigger) - float(source_trigger)) > 1e-9
@@ -1860,14 +1863,19 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     else:
         origin = float(trigger)
     token = digit_times - origin
-    keep = (token >= prompt_window_ns[0]) & (token <= prompt_window_ns[1])
+    # The imported prompt-window mask keeps every digit when there is no trigger (its window is
+    # defined around a trigger); with a trigger, digits outside the window are dropped and counted.
+    if trigger is None:
+        keep = np.ones(digit_times.size, dtype=bool)
+    else:
+        keep = (token >= prompt_window_ns[0]) & (token <= prompt_window_ns[1])
     if accounting is not None:
         accounting.n_events += 1
         accounting.n_prompt_dropped += int(np.count_nonzero(~keep))
     kept = index[keep]
     return HitReadout(kept, q[kept], token[keep], absolute_time_ns=digit_times[keep],
                       trigger_ns=(None if trigger is None else float(trigger)),
-                      source_trigger_ns=(None if dark_sensor.size == 0 or source_trigger is None
+                      source_trigger_ns=(None if source_trigger is None
                                          else float(source_trigger)))
 
 def make_readout(geometry, cfg: GeneratorConfig, accounting: ReadoutRecord | None = None) -> ReadoutCallable:
@@ -1983,6 +1991,9 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
                "store_time_ns": "digit - trigger (A9 token time, after the prompt-window cut)",
                "n_no_trigger": int(record.n_no_trigger),
                "n_prompt_dropped": int(record.n_prompt_dropped),
+               "n_dark_moved_trigger": int(record.n_dark_moved_trigger),
+               "dark_moved_trigger_rate": (float(record.n_dark_moved_trigger) / record.n_events
+                                           if record.n_events else 0.0),
                "n_readout_events": int(record.n_events),
                "emission_offset_truth": "events.npz:emission_offset_ns (truth only; never a feature)",
                "event_truth_sha256": _sha(truth.read_bytes())})
@@ -2031,6 +2042,7 @@ def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000
         stores.append(sparse_from_readouts(generated.event_ids, generated.twin_hits))
     bytes_hits = int(sum(a.nbytes for st in stores
                          for a in (st.event_ids, st.offsets, st.pmt_id, st.charge_pe, st.time_ns)))
+    record = generated.readout_record or ReadoutRecord()
     rate = float(generated.n_events) / seconds if seconds > 0 else float("inf")
     hours_1 = REGISTERED_VOLUME_EVENTS / rate / 3600.0 if rate else float("inf")
     return {"benchmark_events": int(generated.n_events), "with_twin": with_twin,
@@ -2044,8 +2056,9 @@ def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000
             "readout_window_ns": list(cfg.readout_window_ns),
             "window_ns": float(cfg.window_ns), "v_dark": V_DARK_READOUT,
             "time_rule": time_rule_record(),
-            "n_no_trigger": int((generated.readout_record or ReadoutRecord()).n_no_trigger),
-            "n_prompt_dropped": int((generated.readout_record or ReadoutRecord()).n_prompt_dropped),
+            "n_no_trigger": int(record.n_no_trigger),
+            "n_prompt_dropped": int(record.n_prompt_dropped),
+            "n_dark_moved_trigger": int(record.n_dark_moved_trigger),
             "fixed_response": reference_provenance(cfg),
             "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
             "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,

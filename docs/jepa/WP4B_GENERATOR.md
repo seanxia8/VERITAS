@@ -72,7 +72,7 @@ generated in this iteration.
    sha256**, geometry source/config hashes, the generator-config sha256, the readout label, the
    code SHA, `reported_results=false`, the yield range and its status, the fiducial fraction,
    threshold, spectrum label, clipped counts, the twin flag, the **`time_rule` block** and the
-   counted `n_no_trigger` / `n_prompt_dropped`.
+   counted `n_no_trigger` / `n_prompt_dropped` / `n_dark_moved_trigger`.
 6. **1000-event benchmark** — `benchmark_generation` (CLI below) times 1000 events at the
    default yield range with the nominal twin, records peak RSS and sparse-store bytes, and
    returns the §3.5.3 per-yield-tercile table (hit PMTs, module charge, hit fraction).
@@ -146,10 +146,17 @@ keep: -20 ns <= t_token <= +60 ns (PROMPT_WINDOW_NS); the rest are dropped and c
   the constant shift. A dark-only event gives bit-identical tokens and absolute times for any
   emission offset (dark draws do not see it). Two draws differing only in `emission_offset_ns`
   therefore give identical tokens: the true emission time cannot reach a token.
-- **Counters.** `ReadoutRecord` counts `n_events`, `n_no_trigger` and `n_prompt_dropped` per
-  run (measured readout only; the nominal twin has its own readout and is not counted). They
-  are written to the run manifest (`n_no_trigger`, `n_prompt_dropped`, `n_readout_events`) and
-  to the benchmark payload.
+- **Counters and the dark-hit clause.** `ReadoutRecord` counts `n_events`, `n_no_trigger`,
+  `n_prompt_dropped` and `n_dark_moved_trigger` per run (measured readout only; the nominal
+  twin has its own readout and is not counted). `HitReadout.trigger_ns` /
+  `HitReadout.source_trigger_ns` expose the trigger used and the counterfactual trigger on the
+  **source-derived digits alone** (dark-only PMTs excluded, so the imported rule never sees an
+  infinite time); a dark coincidence that makes the full trigger differ is counted and its rate
+  reported. This is the "bit-identical apart from dark-hit draws" clause: the tokens are
+  bit-identical under a photon-time shift *except* where a dark digit moves the trigger, and
+  those events are counted rather than hidden. All counters are written to the run manifest
+  (`n_no_trigger`, `n_prompt_dropped`, `n_dark_moved_trigger`, `dark_moved_trigger_rate`,
+  `n_readout_events`) and to the benchmark payload.
 - **Pending the named SHA — no datasets generated.** The author named neither the PMT SHA nor
   its validation report; the branch head `5f4ecc0` carries the N = 4 / prompt-window code, but
   it is **not merged**. Until it is, `pmt_time_rule()` raises
@@ -251,8 +258,9 @@ for generated in lb.generate_events(geometry, cfg, runs, with_twin=True):
   `readout_synthetic_unrepaired` / `make_readout` / `generate_run` call) raises until that SHA
   is merged. The dataset-generating integration tests outside this WP that go through the
   generator readout (`test_lucid_run.py`: 9 tests, and
-  `test_lucid_detectability.py::test_occupancy_n_min_check_at_low_yield`) are blocked by the
-  same merge; they are not changed here because they are outside this WP's edit scope. The
+  `test_lucid_detectability.py::test_occupancy_n_min_check_at_low_yield`) would be blocked by
+  the same merge, so they **skip explicitly** through
+  `lucid_bombs.pmt_time_rule_available()` instead of silently using another convention. The
   unit tests of this module install the documented interface stub and are green (below).
 - **`Y_lo`, `Y_hi`, `N_min` and the detectability check** (§3.5.6 step 1): the config values
   `6000`/`320000` and `N_min = 20` are labelled placeholders pending the §3.5.3a ceilings on
@@ -335,7 +343,7 @@ for generated in lb.generate_events(geometry, cfg, runs, with_twin=True):
 ```sh
 export PYTHONPATH=src
 /private/tmp/jepa-venv-cpu311/bin/python -m pytest src/jepa_noise/tests/test_lucid_bombs.py -q
-# 56 passed in ~6 s (CPU, single-threaded BLAS; the PMT rule is the interface stub)
+# 57 passed in ~6 s (CPU, single-threaded BLAS; the PMT rule is the interface stub)
 ```
 
 New coverage: geometry schema/counts/sparse ids/1-based within-module ids, JSON-pointer and
@@ -350,9 +358,10 @@ the prompt cut drops and counts out-of-window digits (and takes its bounds from 
 constant); `None` falls back to the window-start origin and increments the counter; the trigger
 is called with the imported `n`/`window_ns` on the *shifted* digit times; a missing merge raises
 the actionable `RuntimeError`; the leak guard (source-photon shift leaves bit-identical stored
-tokens, dark-only events invariant, dark draws unshifted); the emission-offset distribution
-(uniform, keyed) and its truth-only `events.npz` field; the manifest `time_rule`/counters and
-their tamper checks; the config `time_rule` block.
+tokens, dark-only events invariant, dark draws unshifted); the dark-moved-trigger counter (the
+counterfactual uses finite source digits only and the strict stub would refuse an infinite
+one); the emission-offset distribution (uniform, keyed) and its truth-only `events.npz` field;
+the manifest `time_rule`/counters and their tamper checks; the config `time_rule` block.
 
 
 ## Frozen yield range (2026-10-17, after the §3.5.3a detectability check)

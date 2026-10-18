@@ -27,6 +27,8 @@ TTS_SIGMA_NS = 1.0
 def nhits_trigger_time_stub(digits, n=4, window_ns=20.0):
     """Test stub of the documented interface: earliest t with n digits in [t, t + window]."""
     t = np.sort(np.asarray(digits, dtype=float).ravel())
+    if not np.all(np.isfinite(t)):  # the merged rule refuses non-finite digit times
+        raise ValueError("finite digit times required")
     if t.size < n:
         return None
     ok = np.flatnonzero(t[n - 1:] - t[:t.size - n + 1] <= window_ns)
@@ -989,6 +991,7 @@ def test_token_time_is_the_digit_time_minus_the_trigger():
     assert np.allclose(hits.absolute_time_ns, absolute, rtol=0.0, atol=1e-12)
     assert np.array_equal(hits.time_ns, hits.absolute_time_ns - trigger)  # t_digit - t_trigger
     assert np.allclose(hits.time_ns, absolute - absolute.min())
+    assert hits.trigger_ns == trigger and hits.source_trigger_ns == trigger  # no dark digits
     assert record.as_dict() == {"n_events": 1, "n_no_trigger": 0, "n_prompt_dropped": 0,
                                 "n_dark_moved_trigger": 0, "dark_moved_trigger_rate": 0.0}
 
@@ -1028,13 +1031,15 @@ def test_no_trigger_falls_back_to_the_window_start_and_is_counted():
     assert nhits_trigger_time_stub(_crafted_times(draws, cfg)[pmts]) is None
     record = lb.ReadoutRecord()
     hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg, accounting=record)
-    assert record.as_dict() == {"n_events": 1, "n_no_trigger": 1, "n_prompt_dropped": 1,
+    # the imported prompt-window mask keeps every digit when there is no trigger, so nothing is
+    # dropped and the fallback is counted only through n_no_trigger
+    assert record.as_dict() == {"n_events": 1, "n_no_trigger": 1, "n_prompt_dropped": 0,
                                 "n_dark_moved_trigger": 0, "dark_moved_trigger_rate": 0.0}
-    assert hits.pmt_id.tolist() == sorted(pmts[:2])
-    assert np.allclose(hits.absolute_time_ns, targets[:2], atol=1e-9)
+    assert hits.pmt_id.tolist() == sorted(pmts)
+    assert np.allclose(hits.absolute_time_ns, targets, atol=1e-9)
     # the origin is the readout-window start (-200 ns), not a truth time
-    assert np.allclose(hits.time_ns, targets[:2] + 200.0, atol=1e-9)
-    assert np.all((hits.time_ns >= -20.0) & (hits.time_ns <= 60.0))
+    assert np.allclose(hits.time_ns, targets + 200.0, atol=1e-9)
+    # without a trigger the imported mask keeps every digit, so no prompt-window assertion applies
 
 
 def test_trigger_uses_the_imported_constants_and_the_shifted_digit_times(monkeypatch):
@@ -1121,6 +1126,30 @@ def test_leak_guard_the_emission_offset_never_enters_the_tokens():
     second = readout(state, replace(dark_only, emission_offset_ns=49.0))
     assert np.array_equal(first.time_ns, second.time_ns)
     assert np.array_equal(first.absolute_time_ns, second.absolute_time_ns)
+
+
+def test_dark_moved_trigger_is_counted_and_never_feeds_an_infinite_digit():
+    """The counterfactual source trigger counts a dark-moved trigger, on finite source digits."""
+    cfg = _a9_cfg()
+    source = _module_pmts(60, 4)      # tau ~ 6.9 ns: their tokens stay inside [-20, 60]
+    dark_pmts = _module_pmts(44, 4)   # dark only: these PMTs have no source photon
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in source})
+    dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
+    dark[dark_pmts] = 1
+    draws = replace(draws, dark_counts=dark,
+                    dark_times=np.array([-50.0, -49.0, -48.0, -47.0]))
+    record = lb.ReadoutRecord()
+    hits = lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id), draws,
+                                           SYNTH, cfg, accounting=record)
+    tau = lb.propagation_time_ns(SYNTH, draws.vertex_m, cfg)
+    assert hits.trigger_ns == pytest.approx(-50.0)  # the dark coincidence moves it earlier
+    assert hits.source_trigger_ns == pytest.approx(tau[source].min())
+    assert record.n_dark_moved_trigger == 1
+    # the counterfactual digit set excludes dark-only PMTs: the strict stub refuses non-finite
+    # times, so an infinite source time would have raised here
+    assert np.all(np.isfinite(hits.time_ns))
+    assert np.all((hits.time_ns >= -20.0) & (hits.time_ns <= 60.0))
+    assert hits.pmt_id.tolist() == sorted(dark_pmts + source)
 
 
 def test_emission_offset_is_uniform_in_minus50_plus50_and_keyed():
