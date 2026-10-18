@@ -1666,3 +1666,31 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   so no migration is possible until the HOLD clears; killing would only lose in-flight progress.
   Decision: keep waiting; GPU-hours are unaffected (wall × 1 GPU) and the 170 h cap is not at risk.
   Nothing is interrupted, nothing is retuned, and the grid still waits for the author's review.
+
+- **2026-10-19 — contention cleared; guard semantics and the grid plan verified (two corrections).**
+  `mbinder`'s four processes (~10.3 GiB on GPU 0, ~100 % util) left; the guard returned OK and the
+  step-3 rate recovered to **0.25 s/step** without any kill or migration. **Correction to my earlier
+  reading: GPU-hours are charged as *job wall-clock × 1 GPU* (§6.1), so sustained contention inflates
+  the charged hours as well as calendar time** — the operator is right, and the grid will only start
+  cells with the guard OK and book actual walls.
+- **2026-10-19 — start-gate semantics (read from the code): HOLD is host-wide, there is no per-GPU
+  start path.** `jepa_guard.evaluate()` builds host-wide `hold_reasons` (any foreign process
+  >2048 MiB on any GPU we use, unattributed memory, duplicate/mismatch/missing inputs) and sets
+  `start_gpu=None` whenever the level is HOLD; `status_is_usable()` refuses non-OK; `jepa_run.sh`
+  exits 3 on a non-OK/refused status. Migration to a free GPU is therefore impossible while HOLD
+  stands, and unnecessary when it clears (the running job speeds up by itself).
+- **2026-10-19 — grid dry-run plan accepted (no execution; waits for the author's review).**
+  Data-sharing groups and order: **G1** main s=0.02 across+within (54 runs, 5 datasets ≈5 420
+  entries), **G2** main s=0.05 across+within + occupancy (57), **G3** main s=0.10 across+within +
+  dark anchor (57), **G4** r11 + r11b (24, ≈3 616 entries), **G5** law-T aging last (9, ≈4 216
+  entries). Per group: pre-batch verification (HEAD == review SHA, clean tree, overlay hashes,
+  config sha, guard ts+level, free entries) → launch job 1 alone to generate the group datasets
+  (wait for every manifest+SHA256SUMS; `ensure_dataset` has no lock, so two jobs must never generate
+  the same dataset concurrently) → launch job 2 on the other GPU (read-only reuse) → verify every
+  run `complete` with `probes.json` → write the group's dataset evidence JSON (dir, manifest sha256,
+  per-run state hashes) → entry checkpoint → delete only that group's dataset dirs and confirm the
+  drop → next group. Gap-filling uses `--arms`/`--seeds` subsets. Stop rules: no start unless guard OK
+  with status <2 min; HOLD → report; free entries <32 000 → HOLD flag; <30 000 → stop the batch;
+  ledger+projection ≥170 h → option A fallback (no new gate). **Projection: ≈126–140 GPU-h**
+  (main ≈100–108, secondary ≈26–27; mae_chi2/ijepa_ema/anchor_only/oracle estimates to be refined on
+  the first cells), **calendar ≈75–80 h (~3.2 days) on 2 GPUs**, margin ≈30–44 h to the cap.
