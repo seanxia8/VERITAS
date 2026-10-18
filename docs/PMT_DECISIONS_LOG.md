@@ -188,6 +188,14 @@ _One line each, logged as made (18 Oct 2026)._
   - The `n_pe_true` comment now says it includes dark photoelectrons.
   - The `endpoint_identifiability()` docstring now states its constant: the evaluated set's mean energy in MeV. The code is unchanged and the test distinguishes the two definitions.
   - Known and left: `below_charge_domain` is counted before the dead-channel mask.
+- E35 (R-4). The run config is `configs/lucid_pmt/r4_pilot.json`. It keeps the `56179eb` splits, placements (augmentation seed) and architecture, and changes the energy target to D-E, with new model seeds 30–32. Code is staged on the host from `git archive 72985f2`. The trainer's gate failure stops the run as designed; it is retained and nothing is retuned.
+- E36 (R-4). D-E implementation:
+  - T is taken from β at each segment start.
+  - Along a segment, T is linear in path length.
+  - At the vertex, T is the generator kinetic energy.
+  - The exit point is found by bisection on the first boundary crossing.
+  - Re-entries are counted, not added (none occurred).
+  - `Segment_Edep` inside the volume is recorded as a cross-check only.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -200,4 +208,15 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | local | R-1 fixture re-run (`results/pmt_r1_r3_dev_2026-10-18/fixture_run_01`, pre-review) | 6.4 s | 0 | 0 |
 | 18 Oct 2026 | local | R-1 fixture re-run after review fixes (`fixture_run_02`, final) | 5.3 s | 0 | 0 |
 
-_No remote or GPU job for R-1 to R-3; they ran on local CPU._
+| 18 Oct 2026 | local | R-6 fixture runs (`results/pmt_r6_dev_2026-10-18/fixture_run_01`, `_02`) | 5.7 s, 6.9 s | 0 | 0 |
+| 18 Oct 2026 | local | R-4 containment check (range-based, `results/pmt_r4_dev_2026-10-18/containment`) | about 1 min | 0 | 0 |
+| 18 Oct 2026 | deepthought (CPU, read-only) | geometry query; directory listings; `nvidia-smi`; checkpoint re-hash | < 3 min total | 0 | 0 |
+| 18 Oct 2026 | CERNBox (WebDAV) | PhotonSim directory listing (PROPFIND) | seconds | 0 | a few KB |
+| 18 Oct 2026 | deepthought (CPU, 2 threads) | segment-ordering probe, one 500 MeV event | < 1 min | 0 | 1.2 MB |
+| 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | R-4 primary-segment extraction (`segments_01`) | 56 s | 0 | 91.2 MB |
+| 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | R-4 data generation (`track_closure_01`), existing photon sources | 14 min 26 s | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 3, TITAN X, 25% memory) | R-4 training, 3 seeds × 100 epochs (`training_01`) | 55 s | 0.015 | 0 |
+
+R-4 totals: 0.015 GPU-hours, about 92.5 MB of source reads against the 5 GB cap. Before training, a 5-minute sample showed every GPU at 0% mean utilisation, no process above 1 GB, and no `jepa_*` training session. Only `jepa_guard` was running. No other process was touched, signalled or reniced. Nothing was written under `/ceph`.
+
+_R-1 to R-3 used no remote or GPU job; they ran on local CPU._

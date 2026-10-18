@@ -34,5 +34,8 @@ Physics review with Junjie has not happened for any row. "Evaluated" means a pri
 | R-6 dark counts | Done. Keyed dark-count stage in the readout, rate in the manifest (1 kHz per PMT, `synthetic_dev`), `readout.dark_noise_window` for dark-only windows; fixture re-run in `results/pmt_r6_dev_2026-10-18` |
 | E26 sub-domain threshold | Fixed: counted as `below_charge_domain`, not raised |
 | `endpoint_identifiability.py` | Committed as `dev_unreviewed` with analytic tests; supports the D-E containment preflight |
-| R-4 re-run | Pending |
+| R-4 re-run | Done (development): containment range-based (100–350 MeV ≥ 50%); D-E deposited-energy target; 3 seeds. **Gates FAIL**: vertex in all seeds (0.96–1.00 × constant); E_dep in seed 32. Retained, not retuned. `results/pmt_r4_dev_2026-10-18` |
+| WP6 contract | Frozen v1, `configs/lucid_pmt/wp6_contract_v1.json`; D-E-dependent entries `pending_D-E`; κ_m `provisional_dev` |
+| WP8 reply | Draft only, `docs/PMT_ISSUE5_REPLY_DRAFT.md`, not posted |
+| WP7 | Not started; waits for "launch WP7" |
 | R-5 hygiene | Runs 03/04 removed (history `56179eb`); every results directory ≤ 20 MB; checkpoint paths and hashes in `results/PMT_CHECKPOINTS.json` (host re-verification in R-4); this file rewritten |

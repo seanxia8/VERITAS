@@ -1,10 +1,11 @@
 {
   "policy": "runbook v2 R-5: checkpoints stay on the host; paths and hashes recorded here",
   "status": "C1 (A): development evidence",
-  "host_reverification": "pending; done read-only during R-4 under PMT_REMOTE=yes",
+  "host_reverification": "done 18 Oct 2026 (read-only sha256sum on deepthought): all nine checkpoints match the recorded hashes",
   "path_sources": {
-    "181b747": "root /work/dwong/pmt_lucid_20261016 from results/pmt_lucid_integration_dev_2026-10-16/README.md joined with the receipt's relative paths; inferred, confirm on the host",
-    "56179eb": "results/pmt_multienergy_dev_2026-10-16/execution_scripts/run_final_pilot.sh (cd root + --out evidence/training_01)"
+    "181b747": "root /work/dwong/pmt_lucid_20261016 confirmed on the host 18 Oct 2026 (hashes match)",
+    "56179eb": "results/pmt_multienergy_dev_2026-10-16/execution_scripts/run_final_pilot.sh (cd root + --out evidence/training_01)",
+    "72985f2": "R-4 run directory /work/dwong/pmt_multienergy_20261016/r4_20261018 (code staged from git archive 72985f2)"
   },
   "checkpoints": [
     {
@@ -48,6 +49,34 @@
       "path": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_22.pt",
       "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
       "recorded_in": "results/pmt_multienergy_dev_2026-10-16/training_01/training.json (hash at save time)"
+    },
+    {
+      "run": "72985f2 R-4 development re-run (D-E deposited energy)",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_30.pt",
+      "sha256": "1c8a59ce409baee4bd762e65fca421b58bad159bbab0a9308e77d7df00fef63f",
+      "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+    },
+    {
+      "run": "72985f2 R-4 development re-run (D-E deposited energy)",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_31.pt",
+      "sha256": "51ba70d5b8978597163848c227a78a1e23febd42bad0142a2b7d1f8fcdf99a82",
+      "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+    },
+    {
+      "run": "72985f2 R-4 development re-run (D-E deposited energy)",
+      "host": "deepthought",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/training_01/seed_32.pt",
+      "sha256": "6116ff09c1d018cae25f50e0b6a34698fae48f1150ba40a878b90404bab2d1f2",
+      "recorded_in": "results/pmt_r4_dev_2026-10-18/training_01/training.json (hash at save time; re-hashed on host 18 Oct)"
+    }
+  ],
+  "datasets": [
+    {
+      "run": "R-4",
+      "path": "/work/dwong/pmt_multienergy_20261016/r4_20261018/evidence/track_closure_01/digits.npz",
+      "sha256": "8c39ed1bb269242c10dc61a90683a1b1899ce6714dcaeb2bd5de26306e12b7ff"
     }
   ]
 }
