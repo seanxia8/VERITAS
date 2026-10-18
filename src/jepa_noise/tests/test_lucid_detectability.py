@@ -153,7 +153,7 @@ def test_median_yield_policy_and_config_consistency():
     payload = json.loads(CONFIG.read_text())
     assert payload["schema"] == ld.SCHEMA and payload["readout_label"] == lb.READOUT_LABEL
     assert payload["reported_results"] is False
-    assert payload["dark_counts"] == "off" and payload["f3_marginalised"] is True
+    assert payload["dark_counts"] == "on" and payload["f3_marginalised"] is True
     assert payload["variance_formula"] == ld.VARIANCE_FORMULA == lb.VARIANCE_FORMULA
     assert payload["fixed_response"]["sha256"] == lb.reference_response().sha256
     assert payload["previous_decision"]["path"].endswith("wp4b_detectability_wcte_v2.json")
@@ -162,10 +162,10 @@ def test_median_yield_policy_and_config_consistency():
     assert not recorded.is_absolute()  # portable in the config
     assert Path(lb.__file__).resolve().parents[2] / recorded == ld.PREVIOUS_DECISION_PATH
     assert Path(ld.previous_ceilings()["path"]) == ld.PREVIOUS_DECISION_PATH
-    assert payload["superseded_decisions"]["status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert payload["superseded_decisions"]["status"] == lb.SUPERSEDED_PENDING_R6_FREEZE
     assert check.f1_spreads == lb.F1_SPREADS and check.f2_spreads == lb.F2_SPREADS
     assert check.f2p_spreads == lb.F2P_SPREADS and check.f3_spread == lb.F3_SPREAD_DEFAULT
-    assert check.v_dark == lb.V_DARK_READOUT == 0.0
+    assert check.v_dark == lb.V_DARK_READOUT == 0.00109
     assert check.f3_marginalised_spread == lb.F3_SPREAD
     assert check.y_lo == lb.Y_LO_PHOTONS_PLACEHOLDER
     assert check.y_hi_initial == lb.Y_HI_PHOTONS_PLACEHOLDER
@@ -244,6 +244,76 @@ def test_decision_f3_shortfall_raises_spread_then_r12_not_evaluable():
     _, _, br2 = ld.apply_fallbacks(_fake_fn(tables), ld.CheckConfig(), y_lo=6000.0,
                                    y_hi_initial=320000.0, y_hi_bound=380000.0)
     assert br2["r12_status"] == "not_evaluable" and br2["r12_gate"] is None
+
+
+def _recording_fn(mapping, calls, default=None):
+    base = _fake_fn(mapping, default)
+    def fn(y_hi, law, setting, spread):
+        calls.append({"y_hi": float(y_hi), "law": law, "setting": float(setting),
+                      "spread": float(spread)})
+        return base(y_hi, law, setting, spread)
+    return fn
+
+
+def test_s_p_starts_at_the_registered_default_and_is_never_raised_first():
+    """§3.5.3a ladder order: Y_hi, then the F2 a values, then (only then) s_p up to 0.10."""
+    check = ld.load_check_config(CONFIG)
+    assert check.f3_marginalised_spread == check.f3_spread == lb.F3_SPREAD == 0.05
+    assert check.f3_max_spread == lb.F3_SPREAD_MAX == 0.10
+    # a table that already passes F3 leaves s_p at 0.05: no step, no 0.10 table requested
+    calls = []
+    _, steps, br = ld.apply_fallbacks(_recording_fn({}, calls), check, y_lo=6000.0,
+                                      y_hi_initial=320000.0, y_hi_bound=380000.0)
+    assert steps == [] and br["f3_choice"] == {"spread": 0.05}
+    assert {c["spread"] for c in calls} == {0.05}
+    # F2 short as well: the s_p raise is the *last* action, after Y_hi and every F2 a
+    tables = {(law, a, 0.05): _table(f2=0.1, f3=0.2, law=law, setting=a)
+              for law, a in (("F2", 0.10), ("F2", 0.20), ("F2", 0.50),
+                             ("F2p", 0.05), ("F2p", 0.10))}
+    tables[("F2p", 0.10, 0.05)] = _table(f2=0.9, f3=0.2, law="F2p", setting=0.10)
+    raised = _table(f2=0.9, f3=0.9, law="F2p", setting=0.10)
+    raised.f3["setting"] = 0.10
+    tables[("F2p", 0.10, 0.10)] = raised
+    calls = []
+    _, steps, br = ld.apply_fallbacks(_recording_fn(tables, calls), check, y_lo=6000.0,
+                                      y_hi_initial=320000.0, y_hi_bound=380000.0)
+    actions = [s["action"] for s in steps]
+    assert actions[0] == "raise_y_hi"
+    assert actions[-1] == "raise_F3_spread"
+    assert "raise_F3_spread" not in actions[:-1]
+    # the s_p raise is step 3 and comes after the F2 ladder has been exhausted
+    assert [s["step"] for s in steps] == sorted(s["step"] for s in steps)
+    assert steps[-1]["step"] == 3 and all(s["step"] in (1, 2) for s in steps[:-1])
+    spreads = [c["spread"] for c in calls]
+    assert spreads[0] == 0.05 and spreads[-1] == 0.10 and spreads.count(0.10) == 1
+    assert calls[-1]["y_hi"] == 380000.0          # Y_hi was raised before s_p
+    assert calls[-1]["law"] == "F2p"              # the F2 ladder ran before s_p
+    # and an F3 table that already passes keeps s_p at 0.05 even if F2 had to move
+    passing_f3 = {(law, a, 0.05): _table(f2=0.1, f3=0.9, law=law, setting=a)
+                  for law, a in (("F2", 0.10), ("F2", 0.20), ("F2", 0.50))}
+    passing_f3[("F2", 0.50, 0.05)] = _table(f2=0.9, f3=0.9, law="F2", setting=0.50)
+    _, steps2, br2 = ld.apply_fallbacks(_fake_fn(passing_f3), check, y_lo=6000.0,
+                                        y_hi_initial=320000.0, y_hi_bound=380000.0)
+    assert "raise_F3_spread" not in [s["action"] for s in steps2]
+    assert br2["f3_choice"] == {"spread": 0.05}
+
+
+def test_f3_marginalised_variance_uses_the_r6_dark_variance():
+    """v_dark = 0.00109 PE^2 is in the per-PMT variance and the JSON records its derivation."""
+    check = ld.load_check_config(CONFIG)
+    assert check.v_dark == ld.CheckConfig().v_dark == lb.V_DARK_READOUT == 0.00109
+    lam = lb.R6_DARK_RATE_HZ * lb.R6_WINDOW_NS * 1e-9
+    assert check.v_dark == pytest.approx(lam * (1.0 + lb.R6_SPE_SIGMA ** 2))
+    mu = np.array([0.0, 4.0])
+    variance = ld.per_pmt_variance(mu, check.sigma_spe, check.v_dark, check.f3_marginalised_spread)
+    assert variance[0] == pytest.approx(0.00109)      # positive even at mu = 0
+    assert variance[1] == pytest.approx(4.0 * 1.09 + 0.00109 + 0.05 ** 2 * 16.0)
+    assert np.all(np.isfinite(ld.poisson_weights(mu, check.sigma_spe, check.v_dark, 0.05)))
+    payload = json.loads(CONFIG.read_text())
+    assert payload["s_p_restart"]["previous"] == 0.10 and payload["s_p_restart"]["new"] == 0.05
+    assert payload["s_p_restart"]["registered_default"] == 0.05
+    assert "superseded_by_r6_dark_counts" in payload["s_p_restart"]["previous_source"]
+    assert payload["check"]["v_dark"] == check.v_dark
 
 
 # --------------------------------------------------------------------------- frozen JSON
@@ -351,14 +421,16 @@ def test_decision_json_records_readout_response_and_marginalisation(tmp_path):
                                       "reason": "all pass"},
         yields, occupancy, frozen=False, code_sha="deadbeef")
     back = ld.read_decision(ld.write_decision(tmp_path / "decision.json", payload))
-    assert back["readout_label"] == "readout_dark_off"
-    assert back["dark_counts"] == "off" and back["v_dark"] == 0.0
+    assert back["readout_label"] == "readout_pmt_r6"
+    assert back["dark_counts"] == "on" and back["v_dark"] == lb.V_DARK_READOUT == 0.00109
+    assert back["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
     assert back["sigma_spe"] == lb.SIGMA_SPE
     assert back["f3_marginalised"] is True
     assert back["variance_formula"] == ld.VARIANCE_FORMULA
     assert back["variance_formula"] == "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2"
-    assert back["f3_marginalised_spread"] == lb.F3_SPREAD
-    assert back["decision_freeze_status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert back["f3_marginalised_spread"] == lb.F3_SPREAD == 0.05
+    assert back["decision_freeze_status"] == lb.SUPERSEDED_PENDING_R6_FREEZE
+    assert back["s_p_restart"]["previous"] == 0.10 and back["s_p_restart"]["new"] == 0.05
     ref = lb.reference_response()
     assert back["fixed_response"]["sha256"] == ref.sha256
     assert back["fixed_response"]["relpath"] == lb.FIXED_RESPONSE_RELPATH
@@ -366,7 +438,10 @@ def test_decision_json_records_readout_response_and_marginalisation(tmp_path):
     assert back["fixed_response"]["timing_width_factor_rule"] == ref.timing_width_rule
     prev = back["previous_decision"]
     assert prev["omitted"] is False
-    assert prev["recorded_as"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert prev["recorded_as"] == lb.SUPERSEDED_PENDING_R6_FREEZE
+    assert prev["intermediate_run"]["sha"] == "28e24c8"
+    assert prev["intermediate_run"]["recorded_as"] == lb.SUPERSEDED_BY_R6_DARK_COUNTS
+    assert prev["intermediate_run"]["status"] == "never_frozen"
     assert Path(prev["path"]).is_file() and len(prev["sha256"]) == 64
     assert prev["readout_label"] == "readout_synthetic_unrepaired"  # the old artefact
     assert {"F1", "F3", "F2", "T"} <= {row["factor"] for row in prev["rows"]}
@@ -380,7 +455,11 @@ def test_decision_json_records_readout_response_and_marginalisation(tmp_path):
     assert f1["delta_r2_run_median"] == pytest.approx(f1["new_r2_run_median"] - f1["previous_r2_run_median"])
     assert "F3 marginalised: true" in back["decisions_md"]
     assert "F3 marginalised" in back["decisions_md"]
-    assert "superseded_pending_merged_readout" in back["decisions_md"]
+    assert "superseded_pending_r6_freeze" in back["decisions_md"]
+    assert f1["new_s_p"] == lb.F3_SPREAD == 0.05
+    assert "s_p restart: 0.1 -> 0.05" in back["decisions_md"]
+    assert back["s_p_restart"]["ladder_order"] == ["raise_y_hi", "set_F2_a/switch_F2p_b",
+                                                   "raise_F3_spread"]
     assert "previous frozen R" in back["decisions_md"]
 
 
@@ -406,7 +485,7 @@ def test_previous_decision_absent_is_recorded_with_a_reason(tmp_path):
          "across_target_median_hits": 90.0, "across_initial_below_nmin_rate": 0.0},
         code_sha="deadbeef", previous_path=missing)  # the default: do not freeze
     assert payload["frozen"] is False
-    assert payload["decision_freeze_status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+    assert payload["decision_freeze_status"] == lb.SUPERSEDED_PENDING_R6_FREEZE
     assert payload["previous_decision"]["omitted"] is True
     assert payload["previous_decision"]["reason"]
     assert payload["ceiling_comparison"] == []

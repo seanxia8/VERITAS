@@ -4,9 +4,9 @@
   "date": "2026-10-17",
   "scope": "WP5 LUCiD arm objectives, anchor penalty and probe forms, runbook v4 \u00a73.5.6",
   "status": "development_only",
-  "readout_label": "readout_dark_off",
+  "readout_label": "readout_pmt_r6",
   "reported_results": false,
-  "note": "Objective/penalty layer only: no cohorts, checkpoints or trainer. Numerics marked pending_review are frozen by the WP5 config review before any outcome.",
+  "note": "Objective/penalty layer only: no cohorts, checkpoints or trainer. Numerics marked pending_review are frozen by the WP5 config review before any outcome. Readout: merged PMT R-6, dark counts ON.",
   "arms": [
     "mae_mse",
     "mae_chi2",
@@ -71,13 +71,13 @@
     "loss": "0.5 * sum_m (r^T C_m^-1 r + ln det C_m) per event, mean over the batch; Woodbury inverse and determinant lemma",
     "sigma_spe": 0.3,
     "sigma_spe_source": "lucid_bombs.SIGMA_SPE = 0.3; lucid_bombs_v0.json generator.sigma_spe",
-    "v_dark": 0.0,
-    "v_dark_source": "dark counts are off in the merged PMT response (author 2026-10-18): v_dark = 0. C_m stays positive definite because the head parameterises mu = softplus(.) > 0; a zero-mean true PMT has deterministic zero charge and is excluded from the log-det as a limit, not floored.",
+    "v_dark": 0.00109,
+    "v_dark_source": "R-6 dark-charge variance derived from configs/lucid_pmt/reference.json: lambda = 1000 Hz x 1 us = 0.001 counts per PMT, each SPE-smeared, so v_dark = lambda (1 + sigma_spe^2) = 0.001 x 1.09 = 0.00109 PE^2 (lucid_bombs.V_DARK_READOUT, never typed in).",
     "time_sigma_ns": 1.5,
     "time_sigma_source": "lucid_bombs GeneratorConfig.tts_sigma_ns = 1.5 (reference transit-time spread); converted to 0.015 in the 100 ns token unit",
     "variance_floor_pe2": 0.0,
-    "variance_floor_status": "inactive_on_readout_dark_off",
-    "variance_floor_note": "The reference v_dark = 0 and a hidden unhit PMT has mu = 0, so C_m is singular and ln det C_m diverges. The floor keeps the loss finite but changes the log-determinant term for zero-mean PMTs; reported to the lead as an ambiguity in the registered covariance, not decided in WP5.",
+    "variance_floor_status": "inactive_on_readout_pmt_r6",
+    "variance_floor_note": "v_dark = 0.00109 PE^2 > 0 keeps C_m positive definite even for a hidden unhit PMT with mu = 0, so the registered floor stays 0 and no log-determinant limit is needed.",
     "censoring": "threshold censoring ignored (registered second-moment approximation)",
     "labelled": "uses noise-model (oracle) information: the cell's true s and s_p and the reference sigma_spe, v_dark",
     "status": "covariance formula registered; variance floor flagged"
@@ -101,10 +101,10 @@
   },
   "cell": {
     "s": 0.05,
-    "s_p": 0.1,
-    "note": "s and s_p are the cell's TRUE spreads, passed per cell at build time; these values are the development cell (s = 0.05) with F3 in force (s_p = 0.10, lucid_bombs.F3_SPREAD).",
-    "f3_in_force": 0.1,
-    "f3_note": "lucid_bombs.F3_SPREAD = 0.10 after the \u00a73.5.3a check; F3 still failed, R12 not_evaluable, no gate"
+    "s_p": 0.05,
+    "note": "s and s_p are the cell's TRUE spreads, passed per cell at build time; these values are the development cell (s = 0.05) with F3 marginalised at the restarted registered default (s_p = 0.05, lucid_bombs.F3_SPREAD).",
+    "f3_in_force": 0.05,
+    "f3_note": "lucid_bombs.F3_SPREAD = 0.05 after the 2026-10-18 restart from the registered default; the superseded 0.10 came from the run that treated F3 as known. \u00a73.5.3a step 3 may raise it to 0.10 only after the Y_hi and F2 steps."
   },
   "training": {
     "steps": 10000,

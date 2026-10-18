@@ -10,6 +10,7 @@ import pytest
 import torch
 
 from jepa_noise import lucid_run as lr, lucid_bombs as lb, lucid_arms as la
+from jepa_noise import point_encoder as pe
 
 CONFIG = lr.load_run_config()
 GEOM = lb.from_synthetic({"module_ids": tuple(range(4)),
@@ -47,7 +48,7 @@ def test_cell_and_development_enumeration_matches_the_registered_numbers():
     dev = lr.development_runs(CONFIG)
     assert len(dev) == 17 and sum(r["step"] == 2 for r in dev) == 2
     assert {round(c.setting, 2) for c in main} == {0.02, 0.05, 0.10}
-    assert all(c.s_p == 0.10 for c in cells)       # frozen F3 spread in every cell
+    assert all(c.s_p == 0.05 for c in cells)       # s_p restarted at the registered default
     assert not any(c.s_p == 0 for c in cells)      # no unregistered s_p = 0 cell
     assert [c.cell_id for c in main if c.r6_r7_eligible] == ["main_s005_across", "main_s005_within",
                                                              "main_s010_across", "main_s010_within"]
@@ -338,9 +339,11 @@ def test_verdict_wiring_pass_fail_and_not_evaluable():
     verdicts = lr.evaluate_verdicts(tables, CONFIG)
     assert verdicts["R6"]["status"] == "pass"
     assert verdicts["R7"]["status"] == "pass"
-    # readout_dark_off: the dark overlay is the identity, so R7b is not evaluable
-    assert verdicts["R7b"]["status"] == "not_evaluable"
-    assert verdicts["R7b"]["reason"] == "readout_dark_off_dark_overlay_is_identity"
+    # R-6: dark counts are on, so the dark-anchor verdict is evaluable again
+    assert verdicts["R7b"]["status"] == "pass"
+    assert verdicts["R7b"]["values"]["mean_dark"] >= verdicts["R7b"]["values"]["threshold"]
+    # the companion number is reported beside R7b (absent in this synthetic table)
+    assert verdicts["R7b"]["values"]["dark_only_embedding_change"]["status"] == "not_evaluable"
     assert verdicts["R11"]["status"] == "pass"
     assert verdicts["R11b"]["status"] == "fail"       # co-trained models keep both conditions
     assert verdicts["R12"]["status"] == "not_evaluable"  # F3 failed the frozen check
@@ -516,6 +519,94 @@ def test_oracle_nominal_twin_probes_read_the_twin_input(tmp_path):
     twin = lr.probe_tables(model, dataset, GEOM, split="within", kinds_by_form=kinds,
                            mask_seed=0, twin=True)[("module_gain", "run_mean")].x
     assert not np.allclose(real, twin)
+
+
+# ---------------------------------------------------------------- R-6 dark bank / R7b
+def test_dark_bank_draws_real_dark_noise_only_windows(tmp_path):
+    """R-6: the bank is a real dark-noise-only draw, not the legacy all-zero window."""
+    directory = lr.ensure_dark_bank(data_root=tmp_path, geometry=GEOM, generator_config=GEN,
+                                    seed=3, records=150)
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["readout_method"] == "noise_module_lucid.readout.dark_noise_window"
+    assert "dark_noise_window" in manifest["method"] and "keyed" in manifest["method"]
+    assert manifest["readout_label"] == lr.READOUT_LABEL == "readout_pmt_r6"
+    assert manifest["status"] == "real_dark_noise_only_windows"
+    assert manifest["v_dark"] == lb.V_DARK_READOUT == 0.00109
+    assert manifest["readout_params"]["dark_rate_hz"] == 1000.0
+    assert manifest["readout_params"]["readout_window_ns"] == [-200.0, 800.0]
+    assert manifest["expected_dark_hits_per_record"] == pytest.approx(GEOM.n_pmt * 0.001)
+    store = lb.read_sparse_hits(directory / "hits.npz")
+    counts = np.diff(store.offsets)
+    assert counts.sum() > 0                       # the legacy bank was all zero
+    assert manifest["measured_dark_hits_per_record_mean"] == pytest.approx(counts.mean())
+    assert np.all(store.charge_pe > 0.0) and np.all(np.isfinite(store.time_ns))
+    assert np.abs(store.time_ns).max() < 1000.0   # drawn in [-200, 800] plus the digit width
+    # keyed by seed/run/window: the cache is reused, another seed is a different draw
+    assert lr.ensure_dark_bank(data_root=tmp_path, geometry=GEOM, generator_config=GEN,
+                               seed=3, records=150) == directory
+    other = lr.ensure_dark_bank(data_root=tmp_path, geometry=GEOM, generator_config=GEN,
+                                seed=4, records=150)
+    assert not np.array_equal(lb.read_sparse_hits(other / "hits.npz").pmt_id, store.pmt_id)
+    # a cached all-zero (legacy) bank is refused rather than silently overlaid
+    legacy = tmp_path / "lucid" / "dark_noise__s9__n2"
+    legacy.mkdir(parents=True)
+    (legacy / "manifest.json").write_text(json.dumps(
+        {"geometry_sha256": GEOM.digest, "readout_label": lr.READOUT_LABEL,
+         "method": "generator readout at yield_photons = 0, nominal state",
+         "readout_method": "lucid_bombs.make_readout"}))
+    with pytest.raises(RuntimeError, match="method"):
+        lr.ensure_dark_bank(data_root=tmp_path, geometry=GEOM, generator_config=GEN,
+                            seed=9, records=2)
+
+
+def test_r7b_dark_only_embedding_change_on_a_tiny_fixture(tmp_path):
+    """The companion number next to R7b: the dark-only draw's measured embedding change."""
+    bank_dir = lr.ensure_dark_bank(data_root=tmp_path / "data", geometry=GEOM,
+                                   generator_config=GEN, seed=3, records=400)
+    store = lb.read_sparse_hits(bank_dir / "hits.npz")
+    full_bank = la.dark_bank_from_store(store, GEOM)
+    assert full_bank.hit.any()
+    # keep only the records that carry dark hits (~2 hits/event means many are empty)
+    keep = full_bank.hit.any(axis=1)
+    bank = la.DarkBank(full_bank.charge_pe[keep], full_bank.time_100ns[keep], full_bank.hit[keep])
+    assert bank.hit.shape[0] >= 5
+    dataset = _tiny_dataset(tmp_path, "r7b")
+    cell = next(c for c in lr.enumerate_cells(CONFIG) if c.role == "dark_anchor")
+    arm = lr.build_arm(la.DARK_VARIANT, GEOM, ARMS, cell, 0, beta=10.0, dark_bank=bank)
+    scaling = pe.FeatureScaling.from_geometry(GEOM)
+    batches = [lr._probe_batch(dataset.directory / "runs" / row["run_dir"], GEOM, split="within",
+                               mask_seed=0, occupancy="natural", scaling=scaling)
+               for row in dataset.runs]
+    change = lr.dark_only_embedding_change(arm, batches, device=CPU)
+    assert change["status"] == "evaluated" and change["n_dark_records"] == bank.hit.shape[0]
+    assert change["n_events"] > 0
+    assert 0.0 < change["module_pooled_relative_l2_mean"] < 1.0
+    assert change["full_input_relative_l2_mean"] > 0.0
+    assert change["dark_hits_per_event_mean"] > 0.0
+    assert "module-pooled" in change["definition"] and "full-input" in change["definition"]
+    # the legacy all-zero bank is the identity: exactly zero change
+    empty = lr.build_arm(la.DARK_VARIANT, GEOM, ARMS, cell, 0, beta=10.0,
+                         dark_bank=la.DarkBank.empty(GEOM.n_pmt))
+    zero = lr.dark_only_embedding_change(empty, batches, device=CPU)
+    assert zero["module_pooled_relative_l2_mean"] == 0.0
+    assert zero["full_input_relative_l2_mean"] == 0.0
+    assert zero["dark_hits_per_event_mean"] == 0.0
+    # evaluate_arm_run records it in the R7b run's probes.json
+    (tmp_path / "run").mkdir()
+    payload = lr.evaluate_arm_run(arm, arm_name=la.DARK_VARIANT, cell=cell, geometry=GEOM,
+                                  probe_datasets={"train": dataset, "test": dataset},
+                                  config=CONFIG, device=CPU, mask_seed=0,
+                                  run_dir=tmp_path / "run")
+    assert lr.DARK_CHANGE_KEY in payload
+    back = json.loads((tmp_path / "run" / "probes.json").read_text())
+    assert back[lr.DARK_CHANGE_KEY]["status"] == "evaluated"
+    assert back[lr.DARK_CHANGE_KEY]["module_pooled_relative_l2_mean"] == pytest.approx(
+        payload[lr.DARK_CHANGE_KEY]["module_pooled_relative_l2_mean"])
+    # a non-anchored arm has no dark bank and no diagnostic
+    plain = lr.build_arm("sigreg_jepa", GEOM, ARMS, cell, 0)
+    assert lr.evaluate_arm_run(plain, arm_name="sigreg_jepa", cell=cell, geometry=GEOM,
+                               probe_datasets={"train": dataset, "test": dataset},
+                               config=CONFIG, device=CPU, mask_seed=0) .get(lr.DARK_CHANGE_KEY) is None
 
 
 # ---------------------------------------------------------------- dev cohort

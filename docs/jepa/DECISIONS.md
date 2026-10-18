@@ -1086,3 +1086,26 @@ stopped/labelled a replication, not a second verdict.
 - **2026-10-18 — host observation (not ours):** a `pmt_r4_data` session appeared on deepthought
   (CPU-only, JAX_PLATFORMS=cpu, outside `/ceph/dwong/jepa/`, not in the guard's `our_jobs`) —
   flagged as the PMT implementer's background work; the guard is unaffected.
+
+## R-6 readout restored across the LUCiD stack (18 Oct 2026)
+
+- **2026-10-18 — the merged R-6 response (dark counts on) is now the in-force readout.** Label
+  **`readout_pmt_r6`**; dark rate **1 kHz/PMT**, readout window **[-200, 800] ns** (duration 1 µs,
+  ~2 dark hits/event), dark PE uniform in the window measured from the window start, bypassing QE/CE
+  and passing through the same SPE smearing, gains, fixed parity gain, discriminator and T-Q walk as
+  source PE; the twin keeps the fixed response and cancels only the injected gains. `v_dark`
+  restored as the derived R-6 dark-charge variance **0.00109 PE²** in the detectability ceilings and
+  the `mae_chi2` covariance (floor remains 0; positive definite). The dark-window anchor draws real
+  dark-only windows through `noise_module_lucid.readout.dark_noise_window`, so **R7b is evaluable
+  again**; and the runner now records the **dark-only draw's measured embedding change** next to
+  R7b (`r7b_dark_only_embedding_change`) so a pass cannot be over-read (~2 dark hits vs ~900 source
+  hits).
+- **2026-10-18 — s_p ladder restart implemented:** the detectability check starts F3 marginalisation
+  at the registered default **s_p = 0.05** and applies the §3.5.3a order from the defaults (Y_hi
+  first, then F2 `a`, then s_p up to 0.10 only if still short); the decision JSON records the old
+  (0.10, known-F3) and new values side by side and compares against the last frozen v2 run, noting
+  that the intermediate `28e24c8` run was never frozen.
+- **2026-10-18 — values in the configs:** bombs/generator `dark_counts: "on"`, `dark_rate_hz 1000`,
+  `readout_window_ns [-200, 800]`; detectability `v_dark 0.00109`, `f3_marginalised_spread 0.05`;
+  arms `mae_chi2.v_dark 0.00109`; runner `readout_dark_pmt_r6` / dark on. 106 tests pass across the
+  four LUCiD suites.

@@ -23,7 +23,7 @@ CONFIG = la.CONFIG_PATH
 SMALL = lb.from_synthetic({"module_ids": tuple(range(4)),
                            "surface_counts": {"top": 16, "barrel": 44, "bottom": 16}})
 N_PMT, N_MOD, D_PROBE = SMALL.n_pmt, SMALL.n_modules, 8
-CHI2 = dict(s=0.10, s_p=0.10, sigma_spe=lb.SIGMA_SPE, v_dark=lb.V_DARK)
+CHI2 = dict(s=0.10, s_p=0.05, sigma_spe=lb.SIGMA_SPE, v_dark=lb.V_DARK_READOUT)
 
 
 def _run(path, *, events=2, hits=60, seed=0):
@@ -99,12 +99,22 @@ def test_config_freezes_the_registered_numerics():
         == (1024, 17, 3.0)
     assert settings.coefficient_lambda == settings.sigreg.coefficient_lambda == 0.02
     assert settings.sigma_spe == lb.SIGMA_SPE == 0.3
-    assert settings.v_dark == 0.0  # readout_dark_off: dark counts are off
+    assert settings.v_dark == lb.V_DARK_READOUT == 0.00109  # R-6 dark counts on
+    assert settings.v_dark == pytest.approx(0.001 * 1.09)
+    assert (settings.s, settings.s_p) == (0.05, 0.05)       # s_p restarted at 0.05
     generator = lb.load_generator_config(Path(CONFIG).parent / "lucid_bombs_v0.json")
     assert settings.time_sigma_ns == generator.tts_sigma_ns == 1.5
     assert settings.rescale_sd == 0.01 and settings.variance_floor_pe2 == 0.0
-    assert config["mae_chi2"]["variance_floor_status"] == "inactive_on_readout_dark_off"
-    assert settings.v_dark == 0.0
+    assert config["mae_chi2"]["variance_floor_status"] == "inactive_on_readout_pmt_r6"
+    assert config["mae_chi2"]["v_dark"] == settings.v_dark == lb.V_DARK_READOUT
+    assert config["cell"]["s_p"] == settings.s_p == lb.F3_SPREAD == 0.05
+    assert config["cell"]["f3_in_force"] == 0.05
+    assert config["readout_label"] == lb.READOUT_LABEL == "readout_pmt_r6"
+    with pytest.raises(ValueError):  # a v_dark that is not the R-6 value is refused
+        la.ArmSettings.from_config({**config, "mae_chi2": {**config["mae_chi2"], "v_dark": 0.0}})
+    with pytest.raises(ValueError):  # the floor stays 0: v_dark > 0 is the positivity argument
+        la.ArmSettings.from_config({**config, "mae_chi2": {**config["mae_chi2"],
+                                                           "variance_floor_pe2": 1e-6}})
     assert config["anchor"]["dark_overlay"]["draws"] == 2
     assert config["anchor"]["dark_overlay"]["dark_only_draws"] == 1
     assert config["training"]["optimizer"] == "pending_review"
@@ -147,8 +157,8 @@ def test_chi2_woodbury_matches_dense_on_one_module():
                                  n_modules=2, pmts_per_module=19, floor=1e-6, **CHI2)
     assert np.isclose(float(terms[0, 0]), dense, rtol=1e-9, atol=1e-12)
     assert float(terms[0, 1]) == 0.0          # a module with no hidden PMTs is neutral
-    # the generator's dark-charge variance keeps C_m positive definite at mu = 0
-    assert CHI2["v_dark"] > 0.0
+    # the R-6 dark-charge variance keeps C_m positive definite at mu = 0 with no floor
+    assert CHI2["v_dark"] == lb.V_DARK_READOUT == 0.00109
     assert np.isfinite(la.chi2_dense_module(np.zeros(1), np.zeros(1), floor=0.0, **CHI2))
     # a non-registered v_dark = 0 covariance is only usable with a positive floor
     with pytest.raises(ValueError):

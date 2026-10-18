@@ -1,16 +1,18 @@
 # SPDX-License-Identifier: MIT
 """Runbook v4 §3.5.3a detectability check for the LUCiD photon bombs (WP4b).
 
-Development-only (``readout_dark_off``, §3.5.2).  The WCTE geometry is read from
+Development-only (``readout_pmt_r6``, §3.5.2).  The WCTE geometry is read from
 LUCiD's ``config/WCTE_geom_config.json``/``.npz`` path; no LUCiD import, nothing
 redistributed.  True expected charge before threshold, no threshold censoring:
 ``mu_p = Y QE CE Omega_p/(4pi) exp(-d_p/lambda) gains_p`` **times the fixed parity
 charge gain** of the merged PMT reference response (odd dense module index x1.03).
-Dark counts are off (``v_dark = 0``): the anchor's dark window is not physical
-until the PMT R-6 SHA lands.  F3 is treated as random, not known: each PMT's
-variance is ``mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2`` (the §3.5.6
-``mae_chi2`` covariance term), so a zero-mean PMT has zero variance and carries no
-information (skipped, no NaN).  The factor information is the profiled/effective
+Dark counts are **on** (PMT R-6, merged ``2c932ee``): ``v_dark = 0.00109 PE^2`` is
+``lambda (1 + sigma_spe^2)`` with ``lambda = 1000 Hz x 1 us = 0.001`` read from the
+reference manifest, never a literal.  F3 is treated as random, not known: each
+PMT's variance is ``mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2`` (the §3.5.6
+``mae_chi2`` covariance term).  With ``v_dark > 0`` a zero-mean PMT already has
+positive variance; it still carries no information, so exactly-zero-``mu`` PMTs are
+skipped (weight 0, no NaN) for convenience, not for positivity.  The factor information is the profiled/effective
 ``1/(c^T I^+ c)`` with the vertex (3), yield (1) and smooth co-varying factors
 profiled.  ``R2_max = sigma_f^2/(sigma_f^2+1/I)`` per event and per run (50 events,
 ``I_run = sum I_event``); profiling ignores the yield/module-gain priors, so the
@@ -47,7 +49,7 @@ AMBIGUITIES = (
     "F3 per-PMT gains are marginalised as a random gain (s_p^2 mu_p^2 added to every "
     "PMT variance) rather than profiled: one free gain per PMT is an incidental-parameter "
     "block that would make every other factor's profiled information exactly zero. s_p is "
-    "the spread in force (lb.F3_SPREAD = 0.10), not the candidate spread of an F3 ceiling "
+    "the spread in force (lb.F3_SPREAD = 0.05), not the candidate spread of an F3 ceiling "
     "scan, because that is the F3 actually present in the simulated data.",
     "F2/F2' share the F1 module-gain nuisance block (the runbook's explicit joint "
     "profiling), so only their within-module variation survives; conservative.",
@@ -57,9 +59,9 @@ AMBIGUITIES = (
     "beside it for R11.",
     "Profiling is per event, not run-jointly; I_run = sum I_event is the registered "
     "approximation and biases the ceilings down.",
-    "Dark counts are off for readout_dark_off (v_dark = 0): the anchor's dark-window draw "
-    "and the private dark noise are not physical until the PMT R-6 SHA lands, so no "
-    "dark-bank information enters any ceiling.",
+    "Dark counts are on for readout_pmt_r6: v_dark = 0.00109 PE^2 is the R-6 dark-charge "
+    "variance derived from the reference manifest (1000 Hz x 1 us = 0.001 counts, each "
+    "SPE-smeared by 1 + sigma_spe^2). It is a per-PMT white term, not a profiled nuisance.",
     "The fixed parity charge gain is detector response: it is part of mu here and in the "
     "nominal twin, so the twin cancels only the injected F1/F3 (and F2/F2'/R11b/T) gains.",
 )
@@ -72,9 +74,10 @@ def _median(values) -> float:
 @dataclass(frozen=True)
 class CheckConfig:
     sigma_spe: float = lb.SIGMA_SPE
-    #: readout_dark_off: no dark counts are drawn, so v_dark = 0 (PMT R-6 SHA pending).
+    #: readout_pmt_r6: v_dark = lambda (1 + sigma_spe^2) from the reference manifest.
     v_dark: float = lb.V_DARK_READOUT
-    #: F3 is marginalised at the spread in force, not at an F3 ceiling candidate.
+    #: F3 is marginalised at the spread in force (restarted at the registered 0.05), not at
+    #: an F3 ceiling candidate; §3.5.3a step 3 may raise the candidate to 0.10.
     f3_marginalised_spread: float = lb.F3_SPREAD
     run_events: int = RUN_EVENTS
     n_events: int = 50
@@ -82,7 +85,7 @@ class CheckConfig:
     threshold: float = THRESHOLD
     f1_spreads: tuple = lb.F1_SPREADS
     f3_spread: float = lb.F3_SPREAD_DEFAULT
-    f3_max_spread: float = 0.10
+    f3_max_spread: float = lb.F3_SPREAD_MAX
     f2_spreads: tuple = lb.F2_SPREADS
     f2p_spreads: tuple = lb.F2P_SPREADS
     t_spread: float = lb.T_SPREAD
@@ -126,8 +129,8 @@ def load_check_config(path: Path | str = DEFAULT_CONFIG) -> CheckConfig:
     if payload.get("readout_label", READOUT_LABEL) != READOUT_LABEL:
         raise ValueError(f"{path}: readout_label {payload.get('readout_label')!r} != "
                          f"{READOUT_LABEL!r} (the merged readout is dark-off)")
-    if payload.get("dark_counts", lb.DARK_COUNTS_OFF) != lb.DARK_COUNTS_OFF:
-        raise ValueError(f"{path}: dark_counts must be {lb.DARK_COUNTS_OFF!r}")
+    if payload.get("dark_counts", lb.DARK_COUNTS_ON) != lb.DARK_COUNTS_ON:
+        raise ValueError(f"{path}: dark_counts must be {lb.DARK_COUNTS_ON!r} (PMT R-6)")
     if payload.get("f3_marginalised") is not True:
         raise ValueError(f"{path}: f3_marginalised must be true")
     if payload.get("variance_formula", VARIANCE_FORMULA) != VARIANCE_FORMULA:
@@ -185,7 +188,11 @@ def true_expected_charge(geometry, gen_cfg, state, event: EventTruth, *,
     return mu * lb.fixed_charge_gain(geometry, ref) * np.asarray(state.gains, dtype=float)
 def per_pmt_variance(mu, sigma_spe: float = lb.SIGMA_SPE, v_dark: float = lb.V_DARK_READOUT,
                      s_p: float = lb.F3_SPREAD) -> np.ndarray:
-    """``mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2`` (F3 marginalised, §3.5.6)."""
+    """``mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2`` (F3 marginalised, §3.5.6).
+
+    ``v_dark`` is the R-6 dark-charge variance (0.00109 PE^2), so a zero-mean PMT has a
+    positive variance; the zero-mean skip in :func:`poisson_weights` is a convenience.
+    """
     mu = np.asarray(mu, dtype=float)
     if mu.ndim != 1 or not np.isfinite(mu).all() or np.any(mu < 0.0) \
             or sigma_spe < 0 or v_dark < 0 or s_p < 0:
@@ -195,8 +202,9 @@ def poisson_weights(mu, sigma_spe: float = lb.SIGMA_SPE, v_dark: float = lb.V_DA
                     s_p: float = lb.F3_SPREAD) -> np.ndarray:
     """Fisher weights ``mu^2/(mu(1+sigma_spe^2)+v_dark+s_p^2 mu^2)`` for log-derivatives.
 
-    A zero-mean PMT has zero variance when ``v_dark = 0`` and carries no information,
-    so exactly-zero-``mu`` PMTs are skipped (weight 0, no NaN, no division by zero).
+    With ``v_dark > 0`` a zero-mean PMT has positive variance but still carries no
+    information, so exactly-zero-``mu`` PMTs are skipped (weight 0, no NaN); the skip is
+    no longer needed for positivity.
     """
     mu = np.asarray(mu, dtype=float)
     var = per_pmt_variance(mu, sigma_spe, v_dark, s_p)
@@ -615,15 +623,36 @@ def previous_ceilings(path: Path | str | None = None) -> dict:
             for row in payload.get("table", [])]
     return {"omitted": False, "path": str(target), "sha256": _sha_file(target),
             "schema": payload.get("schema"), "status": payload.get("status"),
-            "recorded_as": lb.SUPERSEDED_PENDING_MERGED_READOUT,
+            "recorded_as": lb.SUPERSEDED_PENDING_R6_FREEZE,
             "content_sha256": payload.get("content_sha256"),
             "readout_label": payload.get("readout_label"),
             "sigma_spe": payload.get("sigma_spe"), "v_dark": payload.get("v_dark"),
+            "s_p": payload.get("f3_marginalised_spread"),
             "y_lo": yields.get("y_lo"), "y_hi": yields.get("y_hi"),
             "median_yield": yields.get("median_yield"),
             "f2_choice": branches.get("f2_choice"), "f3_choice": branches.get("f3_choice"),
-            "rows": rows}
-def ceiling_comparison(table: CeilingTable, previous: dict) -> list:
+            "rows": rows,
+            "intermediate_run": {
+                "sha": "28e24c8", "status": "never_frozen",
+                "recorded_as": lb.SUPERSEDED_BY_R6_DARK_COUNTS,
+                "note": "the intermediate detectability run was never frozen and is "
+                        "superseded_by_r6_dark_counts; the last frozen values are this v2 file"}}
+def s_p_restart(check: CheckConfig, previous: dict) -> dict:
+    """The s_p restart recorded beside the old value: 0.10 (superseded) -> 0.05 (registered).
+
+    The 0.10 value came from the superseded run that treated F3 as *known* and was never
+    frozen (``28e24c8``); with F3 marginalised the §3.5.3a ladder restarts from the
+    registered default 0.05 and may raise it to ``f3_max_spread`` at step 3 only.
+    """
+    return {"previous": 0.10, "new": float(check.f3_marginalised_spread),
+            "registered_default": float(lb.F3_SPREAD_DEFAULT),
+            "step3_cap": float(check.f3_max_spread),
+            "previous_source": (f"{lb.SUPERSEDED_BY_R6_DARK_COUNTS} (28e24c8, never frozen)"),
+            "previous_recorded_in_frozen_v2": previous.get("s_p"),
+            "reason": ("the 0.10 value came from the superseded run that treated F3 as known; "
+                       "with F3 marginalised the ladder restarts from the registered default"),
+            "ladder_order": ["raise_y_hi", "set_F2_a/switch_F2p_b", "raise_F3_spread"]}
+def ceiling_comparison(table: CeilingTable, previous: dict, check: CheckConfig | None = None) -> list:
     """Pair each new ceiling with the previously frozen one on (factor, setting)."""
     if previous.get("omitted"):
         return []
@@ -639,7 +668,9 @@ def ceiling_comparison(table: CeilingTable, previous: dict) -> list:
                                             row["r2_run_median"] - before["r2_run_median"]),
                     "previous_passes": None if before is None else before["passes"],
                     "new_passes": row["passes"], "matched": before is not None,
-                    "previous_readout_label": previous.get("readout_label")})
+                    "previous_readout_label": previous.get("readout_label"),
+                    "previous_s_p": previous.get("s_p"),
+                    "new_s_p": None if check is None else float(check.f3_marginalised_spread)})
     return out
 def _decisions_md(payload: dict) -> str:
     geo, yields, occ, br = payload["geometry"], payload["yields"], payload["occupancy"], payload["branches"]
@@ -685,6 +716,17 @@ def _decisions_md(payload: dict) -> str:
                      f"`Y_hi = {previous['y_hi']:.6g}`, F2 {previous['f2_choice']}, "
                      f"F3 {previous['f3_choice']}, v_dark {previous['v_dark']}, readout "
                      f"`{previous['readout_label']}`.")
+        intermediate = previous.get("intermediate_run", {})
+        if intermediate:
+            lines.append(f"- Intermediate run `{intermediate.get('sha')}`: "
+                         f"{intermediate.get('status')} "
+                         f"({intermediate.get('recorded_as')}); {intermediate.get('note')}.")
+    restart = payload.get("s_p_restart", {})
+    if restart:
+        lines.append(f"- s_p restart: {restart['previous']:g} -> {restart['new']:g} "
+                     f"(registered default {restart['registered_default']:g}, step-3 cap "
+                     f"{restart['step3_cap']:g}); previous {restart['previous_source']}; "
+                     f"ladder {restart['ladder_order']}.")
     lines += ["", f"- Fallback steps: {len(payload['fallback_steps'])} "
               f"({', '.join(s['action'] for s in payload['fallback_steps']) or 'none'}).",
               f"- F1 eligible: {br['f1_eligible_settings']}; excluded: {br['f1_excluded_settings']}.",
@@ -710,8 +752,9 @@ def build_decision_payload(geometry, gen_cfg, check: CheckConfig, table: Ceiling
         "schema": DECISION_SCHEMA, "status": "frozen" if frozen else "development_only",
         "readout_label": lb.READOUT_LABEL, "reported_results": False, "frozen": bool(frozen),
         "decision_freeze_status": ("frozen_by_this_re_run" if frozen else
-                                   lb.SUPERSEDED_PENDING_MERGED_READOUT),
-        "dark_counts": lb.DARK_COUNTS_OFF,
+                                   lb.SUPERSEDED_PENDING_R6_FREEZE),
+        "dark_counts": lb.DARK_COUNTS_ON,
+        "readout_window_ns": list(lb.R6_READOUT_WINDOW_NS),
         "fixed_response": lb.reference_provenance(gen_cfg),
         "f3_marginalised": True, "variance_formula": VARIANCE_FORMULA,
         "f3_marginalised_spread": check.f3_marginalised_spread,
@@ -725,15 +768,17 @@ def build_decision_payload(geometry, gen_cfg, check: CheckConfig, table: Ceiling
         "nuisance_policy": {k: list(v) for k, v in NUISANCE_POLICY.items()},
         "table": _table_rows(table), "fallback_steps": list(steps), "branches": dict(branches),
         "previous_decision": previous,
-        "ceiling_comparison": ceiling_comparison(table, previous),
+        "s_p_restart": s_p_restart(check, previous),
+        "ceiling_comparison": ceiling_comparison(table, previous, check),
         "rebenchmark": {"y_lo": float(yields["y_lo"]), "y_hi": float(yields["y_hi"]),
                         "median_yield": table.median_yield, "volume_events": lb.REGISTERED_VOLUME_EVENTS,
                         "volume_breakdown": dict(lb.REGISTERED_VOLUME_BREAKDOWN),
                         "cores_at_most": lb.BENCHMARK_CORES, "cpu_cap_wall_hours": lb.CPU_CAP_WALL_HOURS,
                         "note": "repeat benchmark_generation at the frozen yields"},
         "pending": ["the frozen 2026-10-17 yields, F2-vs-F2' and s_p are "
-                    "superseded_pending_merged_readout until this merged-readout re-run is "
-                    "accepted; the author has not frozen the new values"],
+                    "superseded_pending_r6_freeze until this R-6 re-run is accepted; the "
+                    "intermediate 28e24c8 run was never frozen and is "
+                    "superseded_by_r6_dark_counts; the author has not frozen the new values"],
         "ambiguities": AMBIGUITIES,
     }
     payload["decisions_md"] = _decisions_md(payload)
@@ -744,14 +789,21 @@ def validate_decision(payload: Mapping) -> None:
     required = ("status", "readout_label", "reported_results", "frozen", "geometry", "yields",
                 "occupancy", "table", "fallback_steps", "branches", "rebenchmark", "content_sha256",
                 "decisions_md", "dark_counts", "fixed_response", "f3_marginalised",
-                "variance_formula", "previous_decision", "ceiling_comparison")
+                "variance_formula", "previous_decision", "ceiling_comparison", "s_p_restart",
+                "readout_window_ns", "decision_freeze_status")
     missing = [k for k in required if k not in payload]
     if missing:
         raise ValueError(f"decision payload missing {missing}")
     if payload["readout_label"] != lb.READOUT_LABEL:
         raise ValueError(f"decision readout_label must be {lb.READOUT_LABEL!r}")
-    if payload["dark_counts"] != lb.DARK_COUNTS_OFF or float(payload["v_dark"]) != 0.0:
-        raise ValueError("decision is not a dark-off readout")
+    if payload["dark_counts"] != lb.DARK_COUNTS_ON:
+        raise ValueError("decision is not the R-6 dark-on readout")
+    if float(payload["v_dark"]) != float(lb.V_DARK_READOUT):
+        raise ValueError(f"decision v_dark {payload['v_dark']!r} != the R-6 value "
+                         f"{lb.V_DARK_READOUT!r}")
+    if float(payload["f3_marginalised_spread"]) != float(lb.F3_SPREAD):
+        raise ValueError(f"decision s_p {payload['f3_marginalised_spread']!r} != the "
+                         f"registered default {lb.F3_SPREAD!r}")
     if payload["f3_marginalised"] is not True or payload["variance_formula"] != VARIANCE_FORMULA:
         raise ValueError("decision does not marginalise F3 with the registered variance")
     if payload["fixed_response"].get("sha256") != lb.reference_response().sha256:

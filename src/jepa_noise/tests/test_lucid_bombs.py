@@ -54,8 +54,8 @@ def _fraction_draws(geometry, cfg, fractions, *, vertex=None, yield_photons=1.0)
         key=f"{lb.NS_DRAWS}/crafted", run_id="lucid/probe_train/0000", event_id=0,
         vertex_m=vertex, yield_photons=float(yield_photons), qe_eff=qe, poisson_u=u,
         charge_z=np.zeros(geometry.n_pmt), transit_z=np.zeros(geometry.n_pmt),
-        dark_counts=np.zeros(geometry.n_pmt, dtype=np.int64), window_ns=float(cfg.window_ns),
-        capacity=capacity)
+        dark_counts=np.zeros(geometry.n_pmt, dtype=np.int64), dark_times=np.zeros(0),
+        window_ns=float(cfg.window_ns), capacity=capacity)
 
 
 def _standin(state, draws):
@@ -118,7 +118,7 @@ def test_r11b_covariation_and_namespace_independence():
     k = lb.k_R11b(GEOM)
     assert np.allclose(state.module_gain, np.clip(1.0 + 0.05 * c * k, *lb.GAIN_CLIP))
     assert np.corrcoef(state.module_gain, k)[0, 1] == pytest.approx(np.sign(c))
-    assert 0.05 < state.pmt_gain.std() < 0.12  # F3 present at the frozen s_p = 0.10
+    assert 0.03 < state.pmt_gain.std() < 0.08  # F3 present at the restarted s_p = 0.05
     # the two persistent vectors are independent draws
     k_r11b, k_t = lb.k_R11b(BIG), lb.k_T(BIG)
     assert not np.allclose(k_r11b, k_t)
@@ -380,17 +380,20 @@ def test_nothing_imports_lucid():
 
 def test_config_matches_module_constants():
     config = json.loads(CONFIG.read_text())
-    assert config["readout_label"] == lb.READOUT_LABEL
-    assert config["dark_counts"] == lb.DARK_COUNTS_OFF == "off"
-    assert config["fixed_response"]["dark_counts"] == "off"
+    assert config["readout_label"] == lb.READOUT_LABEL == "readout_pmt_r6"
+    assert config["dark_counts"] == lb.DARK_COUNTS_ON == "on"
+    assert config["fixed_response"]["dark_counts"] == "on"
+    assert config["fixed_response"]["sha256"] == lb.REFERENCE_RESPONSE_SHA256
+    assert config["fixed_response"]["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
     assert config["lambda0_m"] == lb.LAMBDA0_M
     assert config["gain_clip"] == list(lb.GAIN_CLIP)
     assert config["views"] == {"n_min": lb.N_MIN, "max_redraws": lb.MAX_REDRAWS}
     assert config["detectability"]["sigma_spe"] == lb.SIGMA_SPE
-    assert config["detectability"]["v_dark"] == lb.V_DARK_READOUT == 0.0
-    assert config["detectability"]["dark_counts"] == "off"
+    assert config["detectability"]["v_dark"] == lb.V_DARK_READOUT > 0.0
+    assert config["detectability"]["dark_counts"] == "on"
     assert config["detectability"]["f3_marginalised"] is True
-    assert config["detectability"]["f3_marginalised_spread"] == lb.F3_SPREAD
+    assert config["detectability"]["f3_marginalised_spread"] == lb.F3_SPREAD == 0.05
+    assert config["detectability"]["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
     assert (config["detectability"]["variance_formula"] == lb.VARIANCE_FORMULA
             == "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2")
     assert config["detector_state_laws"]["F1"]["spreads"] == list(lb.F1_SPREADS)
@@ -402,10 +405,11 @@ def test_config_matches_module_constants():
     assert config["detector_state_laws"]["T"]["runs"] == lb.T_RUNS
     for law in ("F1", "F3", "F2", "F2p"):
         assert config["detector_state_laws"][law]["decision_status"] == \
-            lb.SUPERSEDED_PENDING_MERGED_READOUT
-    assert config["superseded_decisions"]["status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
+            lb.SUPERSEDED_PENDING_R6_FREEZE
+    assert config["superseded_decisions"]["status"] == lb.SUPERSEDED_PENDING_R6_FREEZE
+    assert "superseded_by_r6_dark_counts" in config["superseded_decisions"]["reason"]
     assert config["generator"]["yield_range_decision"]["status"] == \
-        lb.SUPERSEDED_PENDING_MERGED_READOUT
+        lb.SUPERSEDED_PENDING_R6_FREEZE
     for name, cohort in lb.COHORTS.items():
         entry = config["cohorts"][name]
         assert (entry["namespace"], entry["event_start"], entry["n_events"],
@@ -421,8 +425,13 @@ def test_config_matches_module_constants():
     assert geo["mpmt_id_gaps"] == [45] and geo["pmt_id_in_mpmt_base"] == 1
     assert generator["y_lo"] == lb.Y_LO_PHOTONS and generator["y_hi"] == lb.Y_HI_PHOTONS
     assert generator["yield_range_status"] == lb.YIELD_RANGE_STATUS_IN_FORCE
-    assert generator["dark_rate_hz"] == lb.DARK_RATE_HZ_OFF == 0.0
-    assert generator["dark_counts"] == lb.DARK_COUNTS_OFF
+    assert generator["dark_rate_hz"] == lb.DARK_RATE_HZ_ON == 1000.0
+    assert generator["dark_counts"] == lb.DARK_COUNTS_ON
+    assert generator["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
+    assert generator["window_ns"] == lb.R6_WINDOW_NS == 1000.0
+    assert generator["sigma_spe"] == lb.R6_SPE_SIGMA == 0.3
+    assert generator["threshold_pe"] == lb.R6_THRESHOLD_PE == 0.25
+    assert generator["reference_response_sha256"] == lb.REFERENCE_RESPONSE_SHA256
     assert lb.load_generator_config(CONFIG) == lb.GeneratorConfig()
     assert config["benchmark"]["volume_events"] == lb.REGISTERED_VOLUME_EVENTS
     assert config["benchmark"]["cpu_cap_wall_hours"] == lb.CPU_CAP_WALL_HOURS
@@ -686,49 +695,149 @@ def test_twin_ratios_cancel_only_the_injected_gain():
     assert common_hits > 0
 
 
-def test_dark_counts_are_off_and_enforced():
-    assert GEN_CFG.dark_counts == "off" and GEN_CFG.dark_rate_hz == 0.0
-    assert lb.dark_charge_variance(GEN_CFG.dark_rate_hz, GEN_CFG.window_ns,
-                                   GEN_CFG.sigma_spe) == 0.0
-    assert lb.V_DARK_READOUT == 0.0
-    for event_id in range(5):
-        draws = lb.draw_event(SYNTH, GEN_CFG, "lucid/probe_train/0000", event_id)
-        assert draws.dark_counts.shape == (SYNTH.n_pmt,)
-        assert draws.dark_counts.sum() == 0
-    with pytest.raises(ValueError):  # dark off and a non-zero rate is refused
+def test_dark_counts_are_on_and_derived_from_the_manifest():
+    """R-6: dark counts on, every value derived from configs/lucid_pmt/reference.json."""
+    ref = lb.reference_response()
+    assert GEN_CFG.dark_counts == lb.DARK_COUNTS_ON == "on"
+    assert GEN_CFG.dark_rate_hz == ref.dark_rate_hz == 1000.0
+    assert GEN_CFG.readout_window_ns == ref.readout_window_ns == (-200.0, 800.0)
+    assert GEN_CFG.window_ns == ref.window_ns == 1000.0
+    assert GEN_CFG.sigma_spe == ref.spe_sigma == 0.3
+    assert GEN_CFG.threshold_pe == ref.threshold_pe == 0.25
+    assert "R-6" in ref.dark_stage_owner and "bypass QE/CE" in ref.dark_stage_owner
+    # v_dark = lambda (1 + sigma_spe^2) = 0.001 x 1.09 = 0.00109 PE^2, not a literal
+    lam = GEN_CFG.dark_rate_hz * GEN_CFG.window_ns * 1e-9
+    assert lam == pytest.approx(0.001)
+    assert lb.V_DARK_READOUT == pytest.approx(0.00109)
+    assert lb.V_DARK_READOUT == pytest.approx(lam * (1.0 + GEN_CFG.sigma_spe ** 2))
+    assert lb.V_DARK_READOUT != lb.V_DARK  # the 4200 Hz scaffold value is history
+    with pytest.raises(ValueError):  # a rate that is not the manifest's is refused
         replace(GEN_CFG, dark_rate_hz=4200.0)
-    with pytest.raises(ValueError):  # this readout has no dark-on mode
-        replace(GEN_CFG, dark_counts="on")
-    # a stale dark-on draw can never be read out under the dark-off label
-    draws = lb.draw_event(SYNTH, GEN_CFG, "lucid/probe_train/0000", 0)
+    with pytest.raises(ValueError):  # R-6 has no dark-off mode in this module
+        replace(GEN_CFG, dark_counts="off")
+    with pytest.raises(ValueError):  # the window is the manifest's, not a choice
+        replace(GEN_CFG, readout_window_ns=(-100.0, 900.0))
+    with pytest.raises(ValueError):  # an inconsistent pair is refused too
+        replace(GEN_CFG, readout_window_ns=(0.0, 0.0))
+
+
+def test_dark_hits_per_event_are_about_two_on_a_wcte_sized_geometry():
+    """R-6 expectation: 1995 PMTs x 0.001 = ~2 dark hits per event (zero is common)."""
+    # a small yield range keeps the shared Poisson columns small; dark draws do not depend on it
+    cfg = replace(GEN_CFG, y_lo=100.0, y_hi=200.0)
+    totals, times = [], []
+    for event_id in range(200):
+        draws = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", event_id)
+        assert draws.dark_counts.shape == (SYNTH.n_pmt,)
+        assert np.all(draws.dark_counts >= 0)
+        assert draws.dark_times.shape == (int(draws.dark_counts.sum()),)
+        assert draws.dark_counts.max() <= 2  # a zero count on ~99.9% of PMTs
+        totals.append(int(draws.dark_counts.sum()))
+        times.append(draws.dark_times)
+    mean = float(np.mean(totals))
+    expected = SYNTH.n_pmt * cfg.dark_rate_hz * cfg.window_ns * 1e-9
+    assert 1.5 <= mean <= 2.6, (mean, expected)  # ~2/event, Poisson scatter over 200 events
+    assert mean == pytest.approx(expected, rel=0.25)
+    times = np.concatenate(times)
+    start, end = cfg.readout_window_ns
+    assert times.size > 300 and np.all(times >= start) and np.all(times <= end)
+    # uniform in the window, measured from the window start
+    assert times.mean() == pytest.approx(0.5 * (start + end), abs=0.12 * (end - start))
+    # the draw is keyed: the same event reproduces, a different event does not
+    again = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 0)
+    other = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 1)
+    assert np.array_equal(again.dark_counts, lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 0).dark_counts)
+    assert not (np.array_equal(again.dark_counts, other.dark_counts)
+                and np.array_equal(again.dark_times, other.dark_times))
+
+
+def test_a_dark_hit_can_make_a_pmt_fire_and_sets_its_time():
+    """Dark PE join before digitisation and share the gain/threshold/walk path."""
+    cfg = replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
+    # no source photon anywhere; one dark PE on a +3% module and one on a 1.00 module
+    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])   # dense 45 -> x1.03
+    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])  # dense 44 -> x1.00
+    assert even < odd                       # dark times are ordered like the PMT indices
+    early, late = -150.0, 640.0             # both inside the R-6 window [-200, 800]
+    draws = _fraction_draws(SYNTH, cfg, {})
     dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
-    dark[3] = 1
-    with pytest.raises(ValueError, match="dark"):
-        lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id),
-                                        replace(draws, dark_counts=dark), SYNTH, GEN_CFG)
+    dark[[even, odd]] = 1
+    draws = replace(draws, dark_counts=dark, dark_times=np.array([early, late]))
+    nominal = lb.nominal_state(SYNTH, draws.run_id)
+    hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg)
+    assert sorted(hits.pmt_id.tolist()) == sorted([odd, even])  # dark alone crosses it
+    q = dict(zip(hits.pmt_id.tolist(), hits.charge_pe.tolist()))
+    # one dark PE is one recorded PE on either module (the fixed parity gain scales the
+    # *expected source* charge, exactly as for every other recorded digit in this readout)
+    assert q[odd] == pytest.approx(1.0) and q[even] == pytest.approx(1.0)
+    t = dict(zip(hits.pmt_id.tolist(), hits.time_ns.tolist()))
+    # the dark PE sets the digit time, measured from the window start (transit_z = 0 here)
+    assert t[even] == pytest.approx(early) and t[odd] == pytest.approx(late)
+    # the injected gain is applied to dark charge too: a 0.1 gain loses the dark hit
+    killed = replace(nominal, gains=np.where(np.arange(SYNTH.n_pmt) == even, 0.1, 1.0))
+    assert lb.readout_synthetic_unrepaired(killed, draws, SYNTH, cfg).pmt_id.tolist() == [odd]
+    # a dark PE on an already-hit PMT adds charge like any other photoelectron
+    with_source = _fraction_draws(SYNTH, cfg, {even: [0.30]})
+    both = replace(with_source, dark_counts=dark, dark_times=np.array([early, late]))
+    hits_both = lb.readout_synthetic_unrepaired(nominal, both, SYNTH, cfg)
+    charge = dict(zip(hits_both.pmt_id.tolist(), hits_both.charge_pe.tolist()))
+    assert charge[even] == pytest.approx(2.0)   # 1 source + 1 dark PE, no SPE smearing
+    # times outside the manifest window are refused rather than silently accepted
+    with pytest.raises(ValueError, match="window"):
+        lb.readout_synthetic_unrepaired(nominal, replace(both, dark_times=np.array([900.0, 0.0])),
+                                        SYNTH, cfg)
+    with pytest.raises(ValueError, match="dark_times"):
+        lb.readout_synthetic_unrepaired(nominal, replace(both, dark_times=np.zeros(1)), SYNTH, cfg)
 
 
-def test_readout_label_is_dark_off_everywhere(tmp_path):
-    assert lb.READOUT_LABEL == "readout_dark_off"
+def test_readout_label_is_r6_everywhere(tmp_path):
+    assert lb.READOUT_LABEL == "readout_pmt_r6"
     assert lb.READOUT_LABEL_LEGACY == "readout_synthetic_unrepaired"
+    assert lb.READOUT_LABEL_LEGACY_DARK_OFF == "readout_dark_off"
     config = json.loads(CONFIG.read_text())
-    assert config["readout_label"] == "readout_dark_off"
+    assert config["readout_label"] == "readout_pmt_r6"
     run = lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F1", 0.05, 0, 4, 7)
     generated = lb.generate_run(SYNTH, GEN_CFG, run, with_twin=False)
     payload = lb.write_generated_run(tmp_path / "run", generated, SYNTH, GEN_CFG,
                                      code_sha="deadbeef")
-    assert payload["readout_label"] == "readout_dark_off"
-    assert payload["dark_counts"] == "off"
+    assert payload["readout_label"] == "readout_pmt_r6"
+    assert payload["dark_counts"] == "on"
+    assert payload["dark_rate_hz"] == 1000.0
+    assert payload["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
+    assert payload["window_ns"] == 1000.0
+    assert payload["v_dark"] == lb.V_DARK_READOUT
     assert payload["fixed_response"]["sha256"] == lb.reference_response().sha256
     assert payload["fixed_response"]["relpath"] == lb.FIXED_RESPONSE_RELPATH
-    assert payload["yield_range_decision_status"] == lb.SUPERSEDED_PENDING_MERGED_READOUT
-    assert lb.read_sparse_hits(tmp_path / "run" / "hits.npz").readout_label == "readout_dark_off"
+    assert payload["fixed_response"]["dark_counts"] == "on"
+    assert payload["yield_range_decision_status"] == lb.SUPERSEDED_PENDING_R6_FREEZE
+    assert lb.read_sparse_hits(tmp_path / "run" / "hits.npz").readout_label == "readout_pmt_r6"
+    # R7b depends on the dark bank being real: the run records dark hits, not zeros
+    assert payload["n_hits"] == generated.n_hits
     benchmark = lb.benchmark_generation(SYNTH, GEN_CFG, n_events=4, with_twin=False)
-    assert benchmark["readout_label"] == "readout_dark_off"
-    assert benchmark["dark_counts"] == "off" and benchmark["dark_rate_hz"] == 0.0
+    assert benchmark["readout_label"] == "readout_pmt_r6"
+    assert benchmark["dark_counts"] == "on" and benchmark["dark_rate_hz"] == 1000.0
+    assert benchmark["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
+    assert benchmark["v_dark"] == lb.V_DARK_READOUT
     assert benchmark["fixed_response"]["sha256"] == lb.reference_response().sha256
-    text = json.dumps([config, payload, benchmark])
+    # the legacy labels are constants only: no written artefact carries them as its label
+    text = json.dumps([payload, benchmark])
     assert "readout_synthetic_unrepaired" not in text
+    assert "readout_dark_off" not in text
+    assert "readout_pmt_r6" in text
+
+
+def test_verify_manifest_checks_the_r6_dark_provenance(tmp_path):
+    runs = (lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F1", 0.05, 0, 2, 7),)
+    payload = lb.write_manifest(tmp_path / "manifest.json", runs, GEOM, seed=7,
+                                code_sha="deadbeef")
+    lb.verify_manifest(payload, runs, GEOM, seed=7)
+    for key, value in (("dark_counts", "off"), ("dark_rate_hz", 0.0),
+                       ("readout_window_ns", [-200.0, 900.0]), ("window_ns", 900.0),
+                       ("v_dark", 0.0), ("readout_label", "readout_dark_off")):
+        broken = dict(payload)
+        broken[key] = value
+        with pytest.raises(ValueError):
+            lb.verify_manifest(broken, runs, GEOM, seed=7)
 
 
 def test_generator_config_records_the_fixed_response_source_and_hash():
@@ -741,7 +850,7 @@ def test_generator_config_records_the_fixed_response_source_and_hash():
     assert block["sha256"] == lb.REFERENCE_RESPONSE_SHA256
     assert block["path"] == generator["reference_response_path"] == lb.FIXED_RESPONSE_RELPATH
     ref = lb.reference_response()
-    assert ref.sha256 == actual and ref.dark_counts == "off"
+    assert ref.sha256 == actual and ref.dark_counts == "on"
     assert ref.gain_rule == block["gain"] == ref.parameters["gain"]
     assert ref.timing_width_rule == block["timing_width_factor"]
     assert GEN_CFG.reference_response_sha256 == actual

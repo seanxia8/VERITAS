@@ -61,7 +61,8 @@ import torch.nn.functional as F
 from torch import Tensor
 
 from . import probes as ridge
-from .lucid_bombs import LAMBDA0_M, ORACLE_ARM, DetectorState, read_sparse_hits, state_for_run
+from .lucid_bombs import (LAMBDA0_M, ORACLE_ARM, V_DARK_READOUT, DetectorState,
+                          read_sparse_hits, state_for_run)
 from .point_encoder import (HIT_INDEX, LOG_CHARGE_INDEX, N_FEATURES, TIME_INDEX,
                             EncoderConfig, FeatureScaling, LucidBatch, LucidPointJepa)
 from .sigreg import SIGReg, SIGRegConfig
@@ -154,15 +155,18 @@ class ArmSettings:
             variance_floor_pe2=float(chi2["variance_floor_pe2"]),
             time_sigma_ns=float(chi2["time_sigma_ns"]), rescale_sd=float(anchor["rescale_sd"]),
             s=s, s_p=s_p)
-        if (settings.sigma_spe < 0 or settings.v_dark < 0 or settings.time_sigma_ns <= 0
+        if (settings.sigma_spe <= 0 or settings.v_dark < 0 or settings.time_sigma_ns <= 0
                 or settings.variance_floor_pe2 < 0 or settings.rescale_sd <= 0):
             raise ValueError("mae_chi2 noise settings and rescale SD must be non-negative/positive")
-        if settings.sigma_spe == 0:
-            raise ValueError("sigma_spe must be positive")
-        # readout_dark_off (author 2026-10-18): v_dark = 0 and no floor is the
-        # registered configuration.  The head parameterises mu = softplus(.) > 0,
-        # so C_m is positive definite; a true zero-mean PMT has deterministic zero
-        # charge and is handled as a limit, not floored.
+        # readout_pmt_r6 (author 2026-10-18): the dark-charge variance is the R-6 value
+        # lambda (1 + sigma_spe^2) = 0.001 x 1.09 = 0.00109 PE^2, derived from
+        # configs/lucid_pmt/reference.json and never typed in; the variance floor stays 0
+        # because v_dark > 0 makes C_m positive definite even at mu = 0.
+        if float(settings.v_dark) != float(V_DARK_READOUT):
+            raise ValueError(f"mae_chi2.v_dark {settings.v_dark!r} != the R-6 dark-charge "
+                             f"variance {V_DARK_READOUT!r} derived from the reference manifest")
+        if settings.variance_floor_pe2 != 0.0:
+            raise ValueError("the variance floor stays 0: v_dark > 0 keeps C_m positive definite")
         if config["probes"]["primary_form"] != PRIMARY_PROBE_FORM:
             raise ValueError("run_mean must stay the primary probe form")
         return settings

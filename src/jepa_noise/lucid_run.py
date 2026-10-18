@@ -424,33 +424,98 @@ class TrainingLoader:
                 twin_rows.append(np.flatnonzero(np.isin(entry["twin"].event_ids,
                                                         entry["batch"].event_ids[found])))
         return _stack(entries, rows), (_stack(twins, twin_rows) if self.twin else None)
-def ensure_dark_bank(*, data_root, geometry, generator_config, seed, records, code_sha=None):
-    """Noise-only windows from the generator's own readout at yield = 0 (flagged choice).
+def dark_bank_readout_params(geometry, generator_config):
+    """The readout-chain parameters the dark-noise-only windows are drawn with.
 
-    On ``readout_dark_off`` (the merged PMT response has dark counts off) the drawn windows are
-    all-zero, so the dark overlay and the R7b dark-window anchor are **not physical**; the bank is
-    kept only so the draw-sharing code paths stay runnable, and R7b is reported ``not_evaluable``.
+    They are the generator's own bound values (R-6 rate/window/SPE/threshold from the merged
+    manifest) plus the fixed per-PMT parity charge gain and digit timing-width factor, so a
+    dark-only window is measured by the *same* chain as a physics event.
     """
+    from noise_module_lucid.readout import ReadoutParams
+    reference = lb.generator_reference(generator_config)
+    charge_domain = reference.parameters.get("charge_domain_pe")
+    return ReadoutParams(
+        threshold_pe=float(generator_config.threshold_pe),
+        walk_calibration_pe=float(generator_config.walk_calibration_pe),
+        spe_sigma=float(generator_config.sigma_spe),
+        mv_per_pe=float(generator_config.mv_per_pe),
+        gain=lb.fixed_charge_gain(geometry, reference),
+        timing_width_factor=lb.fixed_timing_width_factor(geometry, reference),
+        charge_domain_pe=(None if charge_domain is None
+                          else tuple(float(v) for v in charge_domain)),
+        # the generator's digit width is the Gaussian tts_sigma_ns * width factor; the chain
+        # takes it as a charge-independent width callable so the factor multiplies it exactly
+        timing_width=(lambda charge: np.full(np.shape(charge),
+                                             float(generator_config.tts_sigma_ns))),
+        dark_rate_hz=float(generator_config.dark_rate_hz),
+        readout_window_ns=tuple(float(v) for v in generator_config.readout_window_ns))
+
+
+def ensure_dark_bank(*, data_root, geometry, generator_config, seed, records, code_sha=None,
+                     run_index=0):
+    """Real **dark-noise-only** readout windows for PMT R-6, keyed by seed/run/window.
+
+    ``noise_module_lucid.readout.dark_noise_window(params, n_channels, seed=, run=, window=)``
+    draws each record on the ``dark_window:<window>`` stream with ``run`` as the event ID, so
+    the bank is disjoint from every physics event of the same seed.  Each record is a complete
+    readout window: Poisson dark PE per PMT (1 kHz x 1 us, ~2 hits on WCTE), the SPE charge
+    smear, the fixed parity gain, the discriminator and the T-Q walk.  The R7b dark-window
+    anchor overlays these records; they are no longer all-zero draws.
+    """
+    from noise_module_lucid.readout import dark_noise_window
     directory = Path(data_root).resolve() / "lucid" / f"dark_noise__s{int(seed)}__n{int(records)}"
     manifest_path = directory / "manifest.json"
+    method = ("noise_module_lucid.readout.dark_noise_window(params, n_channels, seed=, run=, "
+              "window=); keyed dark_window:<window> stream, run = dark-bank run index")
     if manifest_path.exists():
-        if json.loads(manifest_path.read_text())["geometry_sha256"] != geometry.digest:
+        cached = json.loads(manifest_path.read_text())
+        if cached.get("geometry_sha256") != geometry.digest:
             raise RuntimeError("dark bank: cached geometry differs; refusing silently")
+        if cached.get("method") != method or cached.get("readout_method") !=                 "noise_module_lucid.readout.dark_noise_window":
+            raise RuntimeError("dark bank: cached draw method differs (all-zero legacy bank?); "
+                               "refusing silently")
+        if cached.get("readout_label") != READOUT_LABEL:
+            raise RuntimeError("dark bank: cached readout label differs; refusing silently")
         return directory
     directory.mkdir(parents=True, exist_ok=True)
-    state = lb.nominal_state(geometry, "lucid/dark", seed=int(seed))
-    readout = lb.make_readout(geometry, generator_config)
-    hits = [readout(state, replace(lb.draw_event(geometry, generator_config, "lucid/dark", i,
-                                                 seed=int(seed)), yield_photons=0.0))
-            for i in range(int(records))]
-    lb.write_sparse_hits(directory / "hits.npz", lb.sparse_from_readouts(np.arange(int(records), np.int64), hits))
+    params = dark_bank_readout_params(geometry, generator_config)
+    hits, n_hits = [], []
+    for window in range(int(records)):
+        digits = dark_noise_window(params, int(geometry.n_pmt), seed=int(seed),
+                                   run=int(run_index), window=int(window))
+        hits.append(lb.HitReadout(np.asarray(digits.sensor, np.int64),
+                                  np.asarray(digits.charge, np.float64),
+                                  np.asarray(digits.time, np.float64)))
+        n_hits.append(int(digits.sensor.size))
+    lb.write_sparse_hits(directory / "hits.npz",
+                         lb.sparse_from_readouts(np.arange(int(records), dtype=np.int64), hits))
+    reference = lb.generator_reference(generator_config)
     atomic_write_json(manifest_path, {
-        "schema": "jepa-lucid-dark-bank-v0", "seed": int(seed), "n_records": int(records),
-        "readout_label": READOUT_LABEL, "reported_results": False, "geometry_sha256": geometry.digest,
+        "schema": "jepa-lucid-dark-bank-v1", "seed": int(seed), "n_records": int(records),
+        "run_index": int(run_index),
+        "readout_label": READOUT_LABEL, "reported_results": False,
+        "geometry_sha256": geometry.digest,
         "generator_config_sha256": generator_config.digest,
-        "method": "generator readout at yield_photons = 0, nominal state",
-        "status": ("non_physical_on_readout_dark_off" if READOUT_LABEL == "readout_dark_off"
-                   else "engineering_choice_flagged"),
+        "reference_response_sha256": reference.sha256,
+        "method": method,
+        "readout_method": "noise_module_lucid.readout.dark_noise_window",
+        "readout_params": {
+            "dark_rate_hz": float(params.dark_rate_hz),
+            "readout_window_ns": list(params.readout_window_ns),
+            "spe_sigma": float(params.spe_sigma), "threshold_pe": float(params.threshold_pe),
+            "walk_calibration_pe": float(params.walk_calibration_pe),
+            "mv_per_pe": float(params.mv_per_pe),
+            "charge_domain_pe": (None if params.charge_domain_pe is None
+                                 else list(params.charge_domain_pe)),
+            "gain": "fixed per-module parity charge gain (base + 0.03 * (module % 2))",
+            "timing_width_factor": "fixed per-module parity digit width (base + 0.05 * (module % 2))",
+        },
+        "v_dark": lb.V_DARK_READOUT,
+        "expected_dark_hits_per_record": (geometry.n_pmt * params.dark_rate_hz
+                                          * (params.readout_window_ns[1]
+                                             - params.readout_window_ns[0]) * 1e-9),
+        "measured_dark_hits_per_record_mean": float(np.mean(n_hits)) if n_hits else 0.0,
+        "status": "real_dark_noise_only_windows",
         "dark_counts": getattr(generator_config, "dark_counts", None),
         "code_sha": code_sha, "created_utc": utcnow()})
     write_sha256sums(directory)
@@ -899,10 +964,23 @@ def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, d
                                   "'robustness ratio'; law T has no extrapolation criterion); the set "
                                   "is generated and cached but is not scored"}
                   for key in ("robustness", "baseline", "extrapolation") if key in probe_datasets}
+    # R7b's companion number: the dark-only draw's measured embedding change, recorded in
+    # this run's probes.json next to R7b so a pass is not over-read (~2 dark hits vs ~900).
+    r7b_change = None
+    if arm_name == la.DARK_VARIANT and hasattr(arm, "perturb"):
+        scaling = pe.FeatureScaling.from_geometry(geometry)
+        dark_batches = [
+            _probe_batch(probe_datasets["test"].directory / "runs" / row["run_dir"], geometry,
+                         split=cell.split, mask_seed=mask_seed, occupancy="natural",
+                         scaling=scaling, limit=max_events)
+            for row in probe_datasets["test"].runs]
+        r7b_change = dark_only_embedding_change(arm, dark_batches, device=device)
     payload = {"schema": "jepa-lucid-probes-v0", "arm": arm_name, "cell_id": cell.cell_id,
                "split": cell.split, "primary_form": la.PRIMARY_PROBE_FORM, "results": results,
                "physics": physics, "r11": r11, "extra_sets": extra_sets,
                "registered": False, "readout_label": READOUT_LABEL}
+    if r7b_change is not None:
+        payload[DARK_CHANGE_KEY] = r7b_change
     if run_dir is not None:
         if save_embeddings:
             means = _embedding_means(model, probe_datasets["test"], geometry, split=cell.split,
@@ -1138,15 +1216,98 @@ def verdict_r7(tables, config):
                     seed_floor=core["floor"], every_seed_less=core["every"],
                     plain_resolution=plain_res, anchored_resolution=anchor_res,
                     resolution_ratio=ratio, physics_ok=physics) | {"missing": []}
+# --- R7b diagnostic: the dark-only draw's measured embedding change ---------------------
+DARK_CHANGE_DEFINITION = (
+    "for each R7b (dark-anchor) run: mean relative L2 distance "
+    "||z(x~_dark) - z(x)|| / ||z(x)|| between the clean and the dark-only-overlaid read-out "
+    "on the probe events, with the dark overlay ALONE (one dark-noise-only window per event, "
+    "no per-module rescale); reported for the module-pooled read-out z_m (the object of the "
+    "R7b anchor penalty) and for the token-level full-input read-out. Because ~2 dark hits "
+    "sit against ~900 source hits, this number accompanies R7b so a pass is not over-read")
+DARK_CHANGE_KEY = "r7b_dark_only_embedding_change"
+
+
+def _relative_l2_events(candidate, reference, *, eps=1e-12):
+    """Per-event ``||candidate - reference|| / ||reference||`` over the last axis."""
+    numerator = (candidate - reference).pow(2).sum(-1).flatten(1).sqrt()
+    denominator = reference.pow(2).sum(-1).flatten(1).sqrt().clamp_min(eps)
+    return numerator / denominator
+
+
+def dark_only_embedding_change(arm, batches, *, device=None) -> dict:
+    """The module-pooled / full-input read-out change caused by the dark-only overlay alone.
+
+    ``arm.perturb(..., with_dark=True, with_rescale=False)`` applies one dark-noise-only
+    window per event, drawn deterministically (event ``i`` uses record ``i % n_records``) so
+    the number is reproducible; the same dark records the anchor penalty sees are used.
+    """
+    model = getattr(arm, "jepa", arm)
+    if not hasattr(arm, "perturb") or not hasattr(arm, "dark_hit"):
+        raise ValueError("the R7b diagnostic needs a dark-anchored arm with a dark bank")
+    device = torch.device("cpu") if device is None else device
+    n_records = int(arm.dark_charge.size(0))
+    if n_records < 1:
+        raise ValueError("the R7b diagnostic needs at least one dark record")
+    module, token, hits, n_events = [], [], [], 0
+    for batch in batches:
+        features = _to_device(batch.features, device)
+        if features.size(0) == 0:
+            continue
+        # event i of the probe set uses record i % n_records: one pass over the bank
+        index = (torch.arange(features.size(0), device=features.device) + n_events) % n_records
+        with torch.no_grad():
+            clean = model.encode(features)
+            overlaid = model.encode(arm.perturb(features, with_dark=True, with_rescale=False,
+                                                dark_index=index))
+            module.append(_relative_l2_events(arm._module_tokens(overlaid),
+                                              arm._module_tokens(clean)).cpu().numpy())
+            token.append(_relative_l2_events(overlaid, clean).cpu().numpy())
+        hits.append(arm.dark_hit[index].float().sum(1).cpu().numpy())
+        n_events += int(features.size(0))
+    if not module:
+        return {"status": "not_evaluable", "reason": "no probe events", "definition": DARK_CHANGE_DEFINITION}
+    module_values = np.concatenate([m.ravel() for m in module])
+    token_values = np.concatenate([t.ravel() for t in token])
+    dark_hits = np.concatenate(hits) if hits else np.zeros(0)
+    return {"status": "evaluated", "definition": DARK_CHANGE_DEFINITION,
+            "module_pooled_relative_l2_mean": float(module_values.mean()),
+            "module_pooled_relative_l2_median": float(np.median(module_values)),
+            "module_pooled_relative_l2_max": float(module_values.max()),
+            "full_input_relative_l2_mean": float(token_values.mean()),
+            "full_input_relative_l2_median": float(np.median(token_values)),
+            "n_events": int(n_events), "n_dark_records": int(n_records),
+            "dark_hits_per_event_mean": float(dark_hits.mean()) if dark_hits.size else 0.0,
+            "dark_index_policy": "event i of the probe set uses dark record i % n_dark_records",
+            "overlay": "dark only (with_dark=True, with_rescale=False)"}
+
+
+def dark_only_change_summary(tables, cell, seeds) -> dict:
+    """R7b's companion number: the per-seed dark-only embedding change, from probes.json."""
+    per_run, module, token, hits = {}, [], [], []
+    for seed in range(int(seeds)):
+        run_id = run_id_for(cell, la.DARK_VARIANT, seed)
+        value = tables.get("probes", {}).get(run_id, {}).get(DARK_CHANGE_KEY)
+        per_run[run_id] = value
+        if value and value.get("status") == "evaluated":
+            module.append(value["module_pooled_relative_l2_mean"])
+            token.append(value["full_input_relative_l2_mean"])
+            hits.append(value.get("dark_hits_per_event_mean"))
+    return {"definition": DARK_CHANGE_DEFINITION, "per_run": per_run,
+            "mean_module_pooled_relative_l2": _mean(module),
+            "mean_full_input_relative_l2": _mean(token),
+            "mean_dark_hits_per_event": _mean(hits),
+            "status": "evaluated" if module else "not_evaluable",
+            "reason": None if module else "no R7b probes.json carries the dark-only embedding change"}
+
+
 def verdict_r7b(tables, config):
     """§3.5.9 R7b: the dark-only anchor does not remove module drift (seeds 0-2).
 
-    On ``readout_dark_off`` the dark overlay is the identity (dark counts are off), so R7b's
-    premise is absent: the verdict is ``not_evaluable`` with that reason, never a pass or a fail.
+    PMT R-6 turns dark counts on, so the dark bank is a real dark-noise-only draw and the
+    verdict is evaluable again.  Because ~2 dark hits sit against ~900 source hits, the
+    dark-only draw's measured embedding change is recorded beside the verdict
+    (:func:`dark_only_embedding_change`) so a pass is not over-read.
     """
-    if READOUT_LABEL == "readout_dark_off":
-        return {"status": "not_evaluable", "reason": "readout_dark_off_dark_overlay_is_identity",
-                "criterion": "R7b"}
     cell, seeds = "main_s010_within", 3
     core, missing = _gain_verdict(tables, config, cell, seeds, "sigreg_jepa",
                                   "sigreg_jepa_anchored_dark", 1, "R7b")
@@ -1156,9 +1317,11 @@ def verdict_r7b(tables, config):
                  if _mean(core["a"]) is not None and core["floor"] is not None else None)
     passed = bool(threshold is not None and _mean(core["b"]) is not None
                   and _mean(core["b"]) >= threshold)
+    dark_change = dark_only_change_summary(tables, cell, seeds)
     return _verdict(passed, "dark anchor removed the drift", plain=core["a"],
                     dark_anchor=core["b"], mean_plain=_mean(core["a"]), mean_dark=_mean(core["b"]),
-                    threshold=threshold, seed_floor=core["floor"]) | {"missing": []}
+                    threshold=threshold, seed_floor=core["floor"],
+                    dark_only_embedding_change=dark_change) | {"missing": []}
 def _r11_conditions(tables, cell_id, arm, seeds, cell_arm_seeds):
     f1 = _values(tables, cell_id, arm, seeds, "module_gain", "run_mean")
     f2 = _values(tables, cell_id, arm, seeds, "f2_variable", "run_mean")
@@ -1341,9 +1504,16 @@ def registered_reports(tables, config) -> dict:
                      for m in (("module_gain", "run_mean"), ("module_gain", "propagated"))},
         "status": "reported_without_criterion",
         "note": "§3.5.6 item 5 / §3.5.9: natural-vs-balanced context views, recorded"}
+    r7b_dark_change = dark_only_change_summary(tables, "main_s010_within", 3)
+    r7b_dark_change["status"] = ("reported_with_criterion"
+                                 if r7b_dark_change["status"] == "evaluated"
+                                 else "not_evaluable")
+    r7b_dark_change["note"] = ("reported NEXT TO R7b: ~2 dark hits against ~900 source hits, so a "
+                               "R7b pass must be read together with this embedding change")
     return {
         "R6_full_input_module_gain_minus_floor": r6_full,
         "R7b_attenuation_anchored_vs_plain": r7b_attenuation,
+        "R7b_dark_only_embedding_change": r7b_dark_change,
         "R12_full_input_per_pmt_gain": r12_full,
         "occupancy_natural_vs_balanced": occupancy,
         "R8_robustness": {

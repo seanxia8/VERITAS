@@ -1256,3 +1256,60 @@ readout `readout_synthetic_unrepaired`, `with_twin true`, volume 1,070,000 event
 running afterwards (no jepa process), only `jepa_guard` in tmux, guard level OK with `our_jobs []`,
 all four GPUs idle (655/653/653/653 MiB at 0 %; both jobs contain zero torch/cuda use), and nothing
 was written outside `/ceph/dwong/jepa/`.
+
+---
+
+## 21. B1-ext labelled follow-up: β-dev (complete) and anchored grid (stopped on author instruction)
+
+Provenance pair for both: **`git rev-parse HEAD` = `46c0adb17908b4cd4a8d9ddeb93f7a2c8692bbbd`**,
+**`git status --porcelain` empty**. Everything below is `extension: B1-ext`,
+`role: development_beta_tradeoff`, **`registered: false`** — it does not replace the registered B1.
+
+### β-dev decision (`returns/wp4a_b1ext_beta_dev/`)
+
+Exit 0, wall **5622.49 s**, 3 runs complete (1868.38 / 1859.08 / 1874.18 s). Decision JSON
+`beta_decision.json` (6,119 B): **selected β = 10.0**, status "selected; B1-ext follow-up beta
+(labelled, registered: false; does not replace B1)", `registered: false`, `tolerance 1.1`,
+`budget_gpu_hours_cap 4.0`, `code_sha 46c0adb…`. Plain seed-0 reference (host copy = committed
+record, sha256 `8a03c2ae…`): nuisance R² 0.542285, physics mean MSE/CRLB 3.868947.
+
+| β | nuisance R² (defined_mean_r2) | physics MSE amp / t0 / tau_t | MSE/CRLB amp / t0 / tau_t | ratio to plain amp / t0 / tau_t | qualifies | score | wall (s) | GPU-h |
+|---|---|---|---|---|---|---|---|---|
+| 10 | **0.609399** | 0.080874 / 1.474e-06 / 2.412e-05 | 1.0605 / 2.9816 / 1.0067 | **0.9522 / 0.3167 / 0.9331** | **true** | 0.097206 | 1868.36 | 0.5190 |
+| 100 | 0.607889 | 0.092041 / 1.134e-05 / 2.708e-05 | 1.2069 / 22.9439 / 1.1303 | 1.0836 / **2.4372** / 1.0477 | false | 0.113567 | 1859.05 | 0.5164 |
+| 1000 | 0.445222 | 0.149784 / 3.572e-05 / 4.350e-05 | 1.9641 / 72.2368 / 1.8159 | **1.7634 / 7.6732 / 1.6831** | false | 0.190298 | 1874.15 | 0.5206 |
+
+β=100 exceeds tolerance on **t0 only** (2.437×); β=1000 exceeds on **t0 (7.673×), amplitude (1.763×)
+and tau_t (1.683×)**. β=1000 also *lowers* the nuisance R² below the plain reference (0.445 < 0.542).
+
+### Anchored grid — STOPPED on author instruction (`returns/wp4a_b1ext_anchored/`)
+
+Started 23:08:40Z, stopped with **SIGTERM** (launcher recorded `forwarded_signal: 15`,
+`outcome: signalled`, `exit_status: 0`, `timed_out: false`, **wall 3191.6 s**), finished 00:01:52Z.
+The driver completed its current stage before exiting, so it auto-wrote an `aggregate.json` — per the
+Lead's instruction this is **not** used as a B1-ext verdict, and it could not be one anyway:
+`completed_runs 1, pending_runs 2, interrupted_runs 2`, `anchored_mean: null`.
+
+| seed | steps_completed | outcome | wall (s) |
+|---|---|---|---|
+| 0 | 10 000 | complete | 1981.15 |
+| 1 | 5 459 | interrupted | 1071.02 |
+| 2 | 616 | interrupted | 120.71 |
+
+Files kept on disk: `aggregate.json` 17,264 B, `PREDICTIONS_UPDATE.md` 4,886 B,
+`manifest.jsonl` 9,970 B, `run_status.json` 373 B, `runs/` with the three run dirs (checkpoint/
+partial artefacts preserved). Nothing was deleted.
+
+**Cumulative B1-ext GPU-hours: 5622.49 + 3191.6 s = 8814.09 s = 2.4484 h** (of the ≤ 4 h budget;
+wall × 1 GPU, §6.1).
+
+### Two host notes
+
+- The detectability run at `28e24c8` was **never started** (the clone was deliberately held at
+  `46c0adb` while the grid was using it). No `wp4b_detectability_wcte_merged_f3marg.json` exists, so
+  there is no superseded JSON to record; nothing to delete.
+- A tmux session **not started by me** appeared on the host at 23:58:47Z: `pmt_r4_data`, running as
+  `dwong` from `/work/dwong/pmt_multienergy_20261016/r4_20261018`, CPU-only
+  (`JAX_PLATFORMS=cpu`, `nice -n 10`, `timeout 2400`, `noise_module_lucid.multienergy_data`). It uses
+  no GPU, is outside `/ceph/dwong/jepa/`, and is not in the guard's `our_jobs`; I did not touch it.
+  Flagged so it is not mistaken for one of my jobs.

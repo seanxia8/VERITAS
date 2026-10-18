@@ -4,7 +4,7 @@
   "date": "2026-10-17",
   "scope": "WP5 LUCiD runner: cells/cohorts, cached generation, per-cell independent training, probes/floors/verdicts, development cohort, smoke and scaling (runbook v4 \u00a73.5.3-\u00a73.5.9, \u00a76.1-\u00a76.2)",
   "status": "development_only",
-  "readout_label": "readout_dark_off",
+  "readout_label": "readout_pmt_r6",
   "reported_results": false,
   "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
   "detectability_decision": "results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
@@ -85,8 +85,8 @@
         "across",
         "within"
       ],
-      "s_p": 0.1,
-      "s_p_note": "\u00a73.5.3 registers s_p = 0.05 adjusted only through \u00a73.5.3a; the frozen check raised it to 0.10 for every cell, including R11/R11b/T",
+      "s_p": 0.05,
+      "s_p_note": "\u00a73.5.3 registers s_p = 0.05 adjusted only through \u00a73.5.3a; the 2026-10-17 check raised it to 0.10 on the superseded run that treated F3 as known, so on 2026-10-18 the ladder restarted from the registered default 0.05 and may raise it to 0.10 only at step 3",
       "r6_r7_eligible_spreads": [
         0.05,
         0.1
@@ -124,7 +124,7 @@
         "law": "F2",
         "setting": 0.5,
         "split": "within",
-        "s_p": 0.1,
+        "s_p": 0.05,
         "arms": [
           "sigreg_jepa",
           "sigreg_jepa_anchored",
@@ -140,7 +140,7 @@
         "law": "R11b",
         "setting": 0.5,
         "split": "within",
-        "s_p": 0.1,
+        "s_p": 0.05,
         "arms": [
           "sigreg_jepa",
           "sigreg_jepa_anchored",
@@ -156,7 +156,7 @@
         "law": "F1",
         "setting": 0.1,
         "split": "within",
-        "s_p": 0.1,
+        "s_p": 0.05,
         "arms": [
           "sigreg_jepa_anchored_dark"
         ],
@@ -171,7 +171,7 @@
         "setting": null,
         "settings_source": "law_T_training_ratios",
         "split": "within",
-        "s_p": 0.1,
+        "s_p": 0.05,
         "arms": [
           "sigreg_jepa",
           "sigreg_jepa_anchored",
@@ -188,7 +188,7 @@
         "law": "F1",
         "setting": 0.05,
         "split": "within",
-        "s_p": 0.1,
+        "s_p": 0.05,
         "arms": [
           "sigreg_jepa"
         ],
@@ -203,7 +203,7 @@
     "development": {
       "spread": 0.05,
       "split": "within",
-      "s_p": 0.1,
+      "s_p": 0.05,
       "train_cohort": "dev_train",
       "probe_set": "dev_main",
       "steps": 10000,
@@ -283,9 +283,11 @@
     "storage": "one directory per (cohort, law, setting, dataset seed) with the generator's per-run hits.npz/twin_hits.npz/events.npz/manifest.json/SHA256SUMS and a dataset-level manifest.json; cached and verified, never regenerated silently",
     "dark_noise": {
       "records": 512,
-      "method": "noise-only windows from the generator's own readout with yield = 0 on keyed draws (readout_synthetic_unrepaired); nominal detector state; labelled engineering pending the Lead's confirmation of the no-source convention",
-      "status": "non_physical_on_readout_dark_off",
-      "note": "dark counts are off in the merged PMT response; the dark window is an all-zero draw, so the anchor dark overlay is the identity and R7b (dark-window anchor) is not evaluable on this readout until the PMT R-6 SHA lands"
+      "method": "noise_module_lucid.readout.dark_noise_window(params, n_channels, seed=, run=, window=), keyed on the dark_window:<window> stream",
+      "status": "real_dark_noise_only_windows",
+      "note": "PMT R-6 turns dark counts on, so the bank is a real dark-noise-only draw (no source photons): ~2 dark hits per WTE-sized record against ~900 source hits per physics event. The anchor overlays one record per perturbed copy; R7b is evaluable again and is reported together with the dark-only draw's measured embedding change.",
+      "source": "noise_module_lucid.readout.dark_noise_window",
+      "readout_params": "the generator's bound R-6 values (1 kHz per PMT, window [-200, 800] ns, SPE sigma 0.3, threshold 0.25 PE, charge domain [0.25, 1000]) plus the fixed per-module parity charge gain and digit timing-width factor"
     },
     "cohorts": {
       "train": {
@@ -479,12 +481,11 @@
     "The per-event vs run-mean probe-form decision with a 1.2x CRLB ratio and a 1.1x expected-SE criterion is not in \u00a73.5.6. The runbook fixes run_mean as the primary form for every registered criterion and dev step 2 as the physics-probe type (ridge vs MLP at 3x the reference fit). That rule is not implemented.",
     "R6's within-excess 'seed floor' is not spelled out; the runner uses the within-cell \u00a73.5.8 floor and records it. R12's 'both splits' does not name s; the runner reads both splits at every R6-eligible s (0.05, 0.10). Both readings need confirmation.",
     "Probe sets reuse the single registered 10k probe-train/probe-test event-ID ranges across drift settings (distinct dataset directories and state hashes). If disjoint ranges per setting are intended, the runbook does not name them.",
-    "The generator has no no-source (dark-only) writer. The runner generates noise-only windows from the generator's own readout with yield = 0 on keyed draws (nominal state, 512 records); the convention needs the Lead's confirmation.",
     "The physics reference v_group from reference.json is not available locally (PMT branch pending); until a path is named the reference resolution is not_evaluable.",
     "R11/R11b: the criterion does not name a probe form; the runner uses run_mean per the \u00a73.5.9 preamble ('all LUCiD detector-state R2 values are run-mean') and the seed-mean leakage (each seed's value recorded).",
     "The occupancy ablation's arm label 'LeJEPA' is read as sigreg_jepa on natural-vs-balanced context views; the natural-view baseline is the main s = 0.05 within cell.",
     "The mae_chi2 covariance needs one cell spread s; law T's module-gain spread scales with r/R and the runbook fixes no single s. The runner passes s = 0.10 (T_SPREAD) for the law-T cell and s = 0.05 for R11b; both readings need confirmation.",
     "ijepa_ema target-encoder input (reported, not patched): lucid_arms.py:469-480 feeds the EMA target encoder the full input and gathers the masked target tokens, while v3 WP4 line 233 asks for the masked target-token input. The fix is inside lucid_arms.py, which is outside the WP5 runner fix's file scope; it is reported to the Lead and no silent patch is applied."
   ],
-  "dark_counts": "off"
+  "dark_counts": "on"
 }

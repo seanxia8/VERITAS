@@ -1,16 +1,16 @@
 {
   "schema": "jepa-lucid-detectability-v0",
   "status": "development_only",
-  "readout_label": "readout_dark_off",
+  "readout_label": "readout_pmt_r6",
   "reported_results": false,
-  "note": "Runbook v4 \u00a73.5.3a detectability check on the merged PMT readout (dark counts off). The geometry is read from LUCiD's own config/WCTE_geom_config.json at the pinned revision; local tests use the schema-identical synthetic fixture from jepa_noise.lucid_bombs.from_synthetic. No LUCiD import, nothing redistributed. Every number is development-only; the 2026-10-17 frozen yields, F2-vs-F2' and s_p are superseded_pending_merged_readout and the author has not frozen replacements.",
-  "dark_counts": "off",
+  "note": "Runbook v4 \u00a73.5.3a detectability check on the merged PMT R-6 readout (dark counts ON, 1 kHz per PMT in [-200, 800] ns). The geometry is read from LUCiD's own config/WCTE_geom_config.json at the pinned revision; local tests use the schema-identical synthetic fixture from jepa_noise.lucid_bombs.from_synthetic. No LUCiD import, nothing redistributed. Every number is development-only; the 2026-10-17 frozen yields, F2-vs-F2' and s_p are superseded_pending_r6_freeze and the author has not frozen replacements. s_p is restarted from the registered default 0.05.",
+  "dark_counts": "on",
   "f3_marginalised": true,
   "variance_formula": "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2",
-  "f3_marginalised_note": "F3 is a random per-PMT gain, not known: s_p^2 * mu_p^2 is added to every PMT variance (the \u00a73.5.6 mae_chi2 covariance term). s_p is the spread in force (lb.F3_SPREAD = 0.10), not the candidate spread of an F3 ceiling scan.",
+  "f3_marginalised_note": "F3 is a random per-PMT gain, not known: s_p^2 * mu_p^2 is added to every PMT variance (the \u00a73.5.6 mae_chi2 covariance term). s_p is the spread in force, restarted at the registered default lb.F3_SPREAD = 0.05 (the 0.10 value came from the superseded run that treated F3 as known). Step 3 of the ladder may raise it to 0.10 only after the Y_hi and F2 steps have been tried.",
   "fixed_response": {
     "path": "configs/lucid_pmt/reference.json",
-    "sha256": "522f556c59ec75f86918d6181d392eb389a6826c5984e23949db981cd1a318e2",
+    "sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68",
     "schema": "pmt-response-v2",
     "gain": {
       "rule": "group_parity",
@@ -23,23 +23,29 @@
       "odd_group_delta": 0.05
     },
     "module_index": "dense mPMT module index: response_manifest.module_groups(mpmt_id) over the sparse WCTE ids (0..105 with id 45 absent)",
-    "use_here": "the charge gain multiplies mu_p in every ceiling (detector response, present in the nominal twin too)",
-    "dark_counts": "off"
+    "use_here": "the charge gain multiplies mu_p in every ceiling (detector response, present in the nominal twin too); the R-6 dark-charge variance v_dark = 0.00109 PE^2 enters every per-PMT variance",
+    "dark_counts": "on",
+    "dark_rate_hz": 1000.0,
+    "readout_window_ns": [
+      -200.0,
+      800.0
+    ],
+    "v_dark": 0.00109
   },
   "previous_decision": {
     "path": "results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
-    "use": "read-only input: the previously frozen ceilings are recorded beside the new ones so the Lead can report them side by side",
-    "recorded_as": "superseded_pending_merged_readout"
+    "use": "read-only input: the last frozen ceilings (v2) are recorded beside the new ones so the Lead can report them side by side; the intermediate 28e24c8 run was never frozen and is superseded_by_r6_dark_counts",
+    "recorded_as": "superseded_pending_r6_freeze"
   },
   "superseded_decisions": {
-    "status": "superseded_pending_merged_readout",
+    "status": "superseded_pending_r6_freeze",
     "items": [
-      "Y_lo, Y_hi (frozen 2026-10-17 on the pre-merge readout)",
+      "Y_lo, Y_hi (frozen 2026-10-17 on the pre-R-6 readout)",
       "F2-vs-F2' selection",
-      "F3 spread s_p",
-      "v_dark (0.004578 -> 0.0, dark off)"
+      "F3 spread s_p (restarted at 0.05; the 0.10 value is superseded)",
+      "v_dark (0.004578 scaffold -> 0.0 dark off -> 0.00109 R-6)"
     ],
-    "refreeze_condition": "this check re-run on the merged readout; the author freezes the new values"
+    "refreeze_condition": "this check re-run on readout_pmt_r6; the author freezes the new values"
   },
   "geometry": {
     "lucid_pin": "eaf2e89f579d6679e90020c732ac2c846895d691",
@@ -55,8 +61,8 @@
   "generator_config": "lucid_bombs_v0.json",
   "check": {
     "sigma_spe": 0.3,
-    "v_dark": 0.0,
-    "f3_marginalised_spread": 0.1,
+    "v_dark": 0.00109,
+    "f3_marginalised_spread": 0.05,
     "run_events": 50,
     "n_events": 50,
     "seed": 20261017,
@@ -95,9 +101,9 @@
     "run_level_ceiling_min": 0.6,
     "note": "Every factor used by a registered criterion needs a run-level ceiling >= 0.6 at the median yield. F1 cells below 0.6 stay in the grid but are excluded from R6/R7; no F1 cell -> G6 for the dependent predictions. F2/F2' cannot -> G6. F3 cannot -> R12 not_evaluable (no gate).",
     "fallback_order": [
-      "raise Y_hi to its \u00a73.5.3 bound (lower of 300 PE median module charge and 0.95 median hit fraction)",
-      "F2: next a in {0.10, 0.20, 0.50}, then switch to F2' with b = 0.05, then 0.10",
-      "F3: s_p up to 0.10"
+      "step 1: raise Y_hi to its \u00a73.5.3 bound (lower of 300 PE median module charge and 0.95 median hit fraction)",
+      "step 2: F2: next a in {0.10, 0.20, 0.50}, then switch to F2' with b = 0.05, then 0.10",
+      "step 3 (only if still short): s_p up to 0.10"
     ]
   },
   "nuisance_policy": {
@@ -137,5 +143,22 @@
     },
     "cores_at_most": 16,
     "cpu_cap_wall_hours": 48.0
+  },
+  "readout_window_ns": [
+    -200.0,
+    800.0
+  ],
+  "s_p_restart": {
+    "previous": 0.1,
+    "new": 0.05,
+    "registered_default": 0.05,
+    "step3_cap": 0.1,
+    "previous_source": "superseded_by_r6_dark_counts (28e24c8, never frozen)",
+    "reason": "the 0.10 value came from the superseded run that treated F3 as known; with F3 marginalised the ladder restarts from the registered default 0.05",
+    "ladder_order": [
+      "raise Y_hi first",
+      "then the F2 a values",
+      "then (only if still short) s_p up to 0.10"
+    ]
   }
 }

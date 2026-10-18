@@ -2,11 +2,10 @@
 """Development-only LUCiD photon-bomb generator contract (WP4b).
 
 Binding: ``docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md`` §3.5.2--§3.5.4,
-§3.5.3a and v3 §6 WP5.  Everything is labelled ``readout_dark_off`` (the
-merged PMT reference response with dark counts off, author decision
-2026-10-18); the physical WCTE geometry (105 mPMT × 19 PMTs, physical
-``mpmt_id`` map) and pinned LUCiD revision are unavailable locally, so nothing
-produced here is a reported result.
+§3.5.3a and v3 §6 WP5.  Everything is labelled ``readout_pmt_r6`` (the merged
+PMT R-6 response, dark counts **on**, author decision 2026-10-18); the physical
+WCTE geometry (105 mPMT × 19 PMTs, physical ``mpmt_id`` map) and pinned LUCiD
+revision are unavailable locally, so nothing produced here is a reported result.
 
 Implemented: the WCTE geometry reader (``load_wcte_geometry``: the physical
 ``mpmt_id`` map from LUCiD's own ``config/WCTE_geom_config.json`` at the pinned
@@ -19,11 +18,14 @@ spread, fixed-PE threshold, the ``noise_module_lucid.response`` walk primitive)
 with the merged fixed detector response from
 ``configs/lucid_pmt/reference.json`` (per-module parity charge gain and digit
 timing-width factor, present in the measured readout **and** the nominal twin)
-and dark counts **off**; the nominal twin on shared keyed draws; run structure,
-v3 §6 ID ranges under the ``lucid/`` prefix, manifest and sparse-hit storage;
-N_min exclusion accounting (§3.5.4); §3.5.3a Fisher/ceiling numerics; and the
-1000-event benchmark.  The synthetic schema fixture is *not* WCTE; no LUCiD
-data is redistributed.
+and the R-6 **dark bank**: a keyed Poisson count per PMT (mean
+``rate x window = 0.001``, so ~2 dark hits per WCTE-sized event), times uniform
+in ``readout_window_ns``, joined to the detected PE before digitisation and then
+sharing the SPE charge, gain, discriminator and T-Q walk/width; the nominal twin
+on shared keyed draws; run structure, v3 §6 ID ranges under the ``lucid/``
+prefix, manifest and sparse-hit storage; N_min exclusion accounting (§3.5.4);
+§3.5.3a Fisher/ceiling numerics; and the 1000-event benchmark.  The synthetic
+schema fixture is *not* WCTE; no LUCiD data is redistributed.
 """
 from __future__ import annotations
 
@@ -37,17 +39,73 @@ from typing import Callable, Sequence
 
 import numpy as np
 
-#: This readout is the merged PMT reference response with **dark counts off**; the
-#: label travels with every config, manifest, benchmark and decision payload.
-READOUT_LABEL = "readout_dark_off"
-#: The pre-merge label.  Never written: it only makes a stale artefact recognisable.
+#: The merged PMT reference response is bound by repo-relative path (never a literal copy).
+FIXED_RESPONSE_RELPATH = "configs/lucid_pmt/reference.json"
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def resolve_reference_path(path: Path | str | None = None) -> Path:
+    """Resolve the reference-response path; a repo-relative path stays portable."""
+    if path is None:
+        return _repo_root() / FIXED_RESPONSE_RELPATH
+    candidate = Path(path)
+    return candidate if candidate.is_absolute() else _repo_root() / candidate
+
+
+try:  # the hash is read from the file, never typed in
+    REFERENCE_RESPONSE_SHA256 = hashlib.sha256(
+        resolve_reference_path().read_bytes()).hexdigest()
+except OSError:  # pragma: no cover - checkout without the manifest
+    REFERENCE_RESPONSE_SHA256 = ""
+
+
+def reference_parameter_values(path: Path | str | None = None) -> dict:
+    """The manifest's declared parameter values, keyed by name (R-6 binds these here).
+
+    Read from the merged manifest itself (``configs/lucid_pmt/reference.json``), so the
+    generator's dark-count, SPE, threshold and window values are **derived, not typed**.
+    The full per-value hash validation happens in :func:`reference_response`.
+    """
+    payload = json.loads(resolve_reference_path(path).read_text())
+    try:
+        return {name: entry["value"] for name, entry in payload["parameters"].items()}
+    except (KeyError, TypeError) as error:  # pragma: no cover - malformed manifest
+        raise ValueError(f"{path or FIXED_RESPONSE_RELPATH}: malformed parameters block: "
+                         f"{error}")
+
+
+MANIFEST_PARAMETERS = reference_parameter_values()
+#: PMT R-6 (merged): keyed Poisson dark photoelectrons per PMT, uniform in
+#: ``readout_window_ns``, bypassing QE/CE, then the same SPE charge, gain,
+#: discriminator, T-Q walk and width as every other photoelectron.
+R6_DARK_RATE_HZ = float(MANIFEST_PARAMETERS["dark_rate_hz"])
+R6_READOUT_WINDOW_NS = tuple(float(v) for v in MANIFEST_PARAMETERS["readout_window_ns"])
+#: Window duration: ``end - start`` (the 1 us [-200, 800] ns window, never a literal).
+R6_WINDOW_NS = float(R6_READOUT_WINDOW_NS[1] - R6_READOUT_WINDOW_NS[0])
+R6_SPE_SIGMA = float(MANIFEST_PARAMETERS["spe_sigma"])
+R6_THRESHOLD_PE = float(MANIFEST_PARAMETERS["threshold_pe"])
+
+#: This readout is the merged PMT **R-6** response with dark counts **on**; the label
+#: travels with every config, manifest, benchmark and decision payload.
+READOUT_LABEL = "readout_pmt_r6"
+#: Legacy labels.  Kept as constants so a stale artefact is recognisable; **never written**.
+READOUT_LABEL_LEGACY_DARK_OFF = "readout_dark_off"
 READOUT_LABEL_LEGACY = "readout_synthetic_unrepaired"
-DARK_COUNTS_OFF = "off"
-DARK_RATE_HZ_OFF = 0.0
-#: A frozen decision that the merged-readout re-run must replace.  The old values stay
-#: recorded; they are never re-frozen as new values without the author.
-SUPERSEDED_PENDING_MERGED_READOUT = "superseded_pending_merged_readout"
+DARK_COUNTS_ON = "on"
+DARK_COUNTS_OFF = "off"  # legacy: only a stale pre-R-6 artefact carries it
+DARK_RATE_HZ_ON = R6_DARK_RATE_HZ
+DARK_RATE_HZ_OFF = 0.0  # legacy: the pre-R-6 dark-off rate
+#: A frozen decision that the R-6 re-run must replace.  The old values stay recorded;
+#: they are never re-frozen as new values without the author.
+SUPERSEDED_PENDING_R6_FREEZE = "superseded_pending_r6_freeze"
+#: The intermediate ``28e24c8`` detectability run was never frozen; R-6 supersedes it.
+SUPERSEDED_BY_R6_DARK_COUNTS = "superseded_by_r6_dark_counts"
+#: Every artefact of this module is a development artefact, never a reported result.
 DEVELOPMENT_ONLY = True
+
 DEFAULT_SEED = 20261017
 #: Placeholder: §3.5.3 fixes F2's form but no lambda0, and the PMT reference
 #: fixture has absorption off.
@@ -56,9 +114,12 @@ GAIN_CLIP = (0.5, 1.5)
 F1_SPREADS = (0.02, 0.05, 0.10)
 #: Registered default per v4 §3.5.3 (``s_p = 0.05``), adjustable only through §3.5.3a step 3.
 F3_SPREAD_DEFAULT = 0.05
-#: In force after the §3.5.3a detectability check (2026-10-17: raised to 0.10; F3 still fails,
-#: so R12 is ``not_evaluable`` with no gate).  Recorded in DECISIONS and in the generator config.
-F3_SPREAD = 0.10
+#: Restarted from the registered default on 2026-10-18 (author correction): the 0.10 value
+#: came from the superseded run that treated F3 as *known*; with F3 marginalised the §3.5.3a
+#: ladder starts again from 0.05 and may raise s_p to ``F3_SPREAD_MAX`` only at step 3.
+F3_SPREAD = F3_SPREAD_DEFAULT
+#: The §3.5.3a step-3 cap: s_p may rise to 0.10 only after the Y_hi and F2 steps.
+F3_SPREAD_MAX = 0.10
 F2_SPREADS = (0.10, 0.20, 0.50)
 F2P_SPREADS = (0.05, 0.10)
 R11B_SPREAD = 0.05
@@ -67,29 +128,30 @@ T_RUNS = 100
 N_MIN = 20
 MAX_REDRAWS = 3
 RUN_EVENTS = 50
-SIGMA_SPE = 0.3
+#: The merged manifest's SPE resolution (0.3), not a literal.
+SIGMA_SPE = R6_SPE_SIGMA
+
+
 def dark_charge_variance(dark_rate_hz: float, window_ns: float,
                          sigma_spe: float) -> float:
     """Per-PMT dark-charge variance in one readout window (PE^2).
 
     Compound-Poisson: a dark count rate over the window gives lambda counts, each
     smeared by the SPE charge resolution, so Var = lambda * (1 + sigma_spe^2).
-    v4 §3.5.6/§3.5.3 define ``v_dark`` as this reference dark-charge variance; the
-    earlier scaffold constant 0.0 was a placeholder taken before the generator
-    actually drew dark counts.
+    v4 §3.5.6/§3.5.3 define ``v_dark`` as this reference dark-charge variance; under
+    PMT R-6 ``lambda = 0.001`` per PMT-window, so ``v_dark = 0.001 x 1.09 = 0.00109``.
     """
     lam = float(dark_rate_hz) * float(window_ns) * 1e-9
     return lam * (1.0 + float(sigma_spe) ** 2)
 
 
-#: Legacy dark-*on* window variance (4200 Hz, 1000 ns, sigma_spe 0.3).  The merged
-#: reference response declares ``dark_counts: off``, so this is NOT the readout's
-#: variance and must not be used for a reported ceiling; it survives only because the
-#: ``lucid_arms`` MAE-chi2 config and its test (outside this task's edit scope) still
-#: cite it as ``mae_chi2.v_dark``.
+#: Legacy history: the 4200 Hz / 1000 ns / sigma_spe 0.3 scaffold variance (0.004578 PE^2).
+#: It was never the merged reference response's variance and is recorded here only so an
+#: old artefact is recognisable; it must not be used for a reported ceiling.
 V_DARK = round(dark_charge_variance(4200.0, 1000.0, 0.3), 6)  # 0.004578 PE^2
-#: ``v_dark`` for ``readout_dark_off``: derived from the zero dark rate, not a literal.
-V_DARK_READOUT = round(dark_charge_variance(DARK_RATE_HZ_OFF, 1000.0, 0.3), 12)  # 0.0
+#: ``v_dark`` for **readout_pmt_r6**, derived from the merged manifest (never a literal):
+#: ``dark_charge_variance(1000 Hz, 1000 ns, 0.3) = 0.001 x 1.09 = 0.00109 PE^2``.
+V_DARK_READOUT = round(dark_charge_variance(R6_DARK_RATE_HZ, R6_WINDOW_NS, R6_SPE_SIGMA), 12)
 #: The registered per-PMT variance with F3 marginalised as a random gain (§3.5.6).
 VARIANCE_FORMULA = "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2"
 ORACLE_ARM = "oracle_nominal_twin"
@@ -347,7 +409,7 @@ class Draws:
     charge_z: np.ndarray  # (n_pmt,)
     transit_z: np.ndarray  # (n_pmt,)
     dark_counts: np.ndarray  # (n_pmt,)
-    window_ns: float = 1000.0
+    window_ns: float = R6_WINDOW_NS
 
 @dataclass(frozen=True)
 class HitReadout:
@@ -457,7 +519,11 @@ def write_manifest(path: Path | str, runs: Sequence[RunSpec], geometry: Geometry
     payload = {"schema": "jepa-lucid-bombs-manifest-v0",
                "status": "development_only" if DEVELOPMENT_ONLY else "production",
                "readout_label": READOUT_LABEL, "reported_results": False,
-               "dark_counts": DARK_COUNTS_OFF,
+               "dark_counts": DARK_COUNTS_ON,
+               "dark_rate_hz": R6_DARK_RATE_HZ,
+               "readout_window_ns": list(R6_READOUT_WINDOW_NS),
+               "window_ns": R6_WINDOW_NS,
+               "v_dark": V_DARK_READOUT,
                "fixed_response": reference_provenance(),
                "yield_range_decision_status": YIELD_RANGE_DECISION_STATUS_IN_FORCE,
                "geometry_name": geometry.name, "geometry_sha256": geometry.digest,
@@ -474,11 +540,19 @@ def write_manifest(path: Path | str, runs: Sequence[RunSpec], geometry: Geometry
 
 def verify_manifest(payload: dict, runs: Sequence[RunSpec], geometry: Geometry,
                     seed: int = DEFAULT_SEED) -> None:
-    """Recompute every state/event hash and raise on the first mismatch."""
+    """Recompute every state/event hash and the R-6 dark provenance; raise on a mismatch."""
     if payload.get("readout_label") != READOUT_LABEL:
         raise ValueError("manifest readout label mismatch")
-    if payload.get("dark_counts") != DARK_COUNTS_OFF:
-        raise ValueError("manifest dark_counts mismatch (this readout is dark-off)")
+    if payload.get("dark_counts") != DARK_COUNTS_ON:
+        raise ValueError(f"manifest dark_counts must be {DARK_COUNTS_ON!r} (PMT R-6)")
+    if float(payload.get("dark_rate_hz", -1.0)) != R6_DARK_RATE_HZ:
+        raise ValueError("manifest dark_rate_hz mismatch")
+    if tuple(float(v) for v in payload.get("readout_window_ns", ())) != R6_READOUT_WINDOW_NS:
+        raise ValueError("manifest readout_window_ns mismatch")
+    if float(payload.get("window_ns", -1.0)) != R6_WINDOW_NS:
+        raise ValueError("manifest window_ns (end - start) mismatch")
+    if float(payload.get("v_dark", -1.0)) != V_DARK_READOUT:
+        raise ValueError("manifest v_dark mismatch (it is derived from the R-6 manifest)")
     if payload.get("fixed_response", {}).get("sha256") != reference_response().sha256:
         raise ValueError("manifest fixed-response hash mismatch")
     if payload.get("geometry_sha256") != geometry.digest:
@@ -1011,9 +1085,9 @@ FROZEN_YIELD_RANGE_STATUS = "frozen_by_detectability_check"
 VALID_YIELD_RANGE_STATUSES = (YIELD_RANGE_STATUS, FROZEN_YIELD_RANGE_STATUS)
 #: The status in force for manifests and benchmarks (the frozen check has been run).
 YIELD_RANGE_STATUS_IN_FORCE = FROZEN_YIELD_RANGE_STATUS
-#: The frozen 2026-10-17 range predates the merged readout, so it is *superseded*:
-#: recorded everywhere, re-frozen only after the merged-readout §3.5.3a re-run.
-YIELD_RANGE_DECISION_STATUS_IN_FORCE = SUPERSEDED_PENDING_MERGED_READOUT
+#: The frozen 2026-10-17 range predates the R-6 dark-on readout, so it is *superseded*:
+#: recorded everywhere, re-frozen only after the R-6 §3.5.3a re-run.
+YIELD_RANGE_DECISION_STATUS_IN_FORCE = SUPERSEDED_PENDING_R6_FREEZE
 CPU_CAP_WALL_HOURS = 48.0
 BENCHMARK_CORES = 16
 #: §3.5.3 volume enumerated for the 48 h projection (see WP4B_GENERATOR.md).
@@ -1034,27 +1108,7 @@ def leading_edge_time(charges, threshold_mv, **kw):
     return _readout_primitive(charges, threshold_mv, **kw)
 
 # ======================================================================= fixed detector response
-#: The merged PMT reference response (PMT R-5): ``configs/lucid_pmt/reference.json``.
-FIXED_RESPONSE_RELPATH = "configs/lucid_pmt/reference.json"
-
-
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
-def resolve_reference_path(path: Path | str | None = None) -> Path:
-    """Resolve the reference-response path; a repo-relative path stays portable."""
-    if path is None:
-        return _repo_root() / FIXED_RESPONSE_RELPATH
-    candidate = Path(path)
-    return candidate if candidate.is_absolute() else _repo_root() / candidate
-
-
-try:  # the hash is read from the file, never typed in
-    REFERENCE_RESPONSE_SHA256 = hashlib.sha256(
-        resolve_reference_path().read_bytes()).hexdigest()
-except OSError:  # pragma: no cover - checkout without the manifest
-    REFERENCE_RESPONSE_SHA256 = ""
+#: The merged PMT reference response (PMT R-6): path + hash bound at the top of the module.
 
 
 @dataclass(frozen=True)
@@ -1065,7 +1119,9 @@ class ReferenceResponse:
     **and** in the nominal twin, which therefore cancels only the injected F1/F3 (and
     F2/F2'/R11b/T) gains.  Every number is reproduced from the manifest, never a
     literal: ``factor = base + odd_group_delta * (g % 2)`` on the **dense** module
-    index ``g`` (``response_manifest.module_groups(mpmt_id)`` over the sparse ids).
+    index ``g`` (``response_manifest.module_groups(mpmt_id)`` over the sparse ids), and
+    the R-6 dark-count settings (rate, window, SPE sigma, threshold) are bound from the
+    same manifest.
     """
 
     path: str
@@ -1077,6 +1133,28 @@ class ReferenceResponse:
     timing_width_rule: dict
     dark_counts: str
     parameters: dict
+    dark_stage_owner: str = ""
+
+    @property
+    def dark_rate_hz(self) -> float:
+        return float(self.parameters["dark_rate_hz"])
+
+    @property
+    def readout_window_ns(self) -> tuple:
+        return tuple(float(v) for v in self.parameters["readout_window_ns"])
+
+    @property
+    def window_ns(self) -> float:
+        start, end = self.readout_window_ns
+        return float(end - start)
+
+    @property
+    def spe_sigma(self) -> float:
+        return float(self.parameters["spe_sigma"])
+
+    @property
+    def threshold_pe(self) -> float:
+        return float(self.parameters["threshold_pe"])
 
     def gain(self, module_index) -> np.ndarray:
         """Per-PMT fixed charge gain on the dense module index."""
@@ -1090,7 +1168,14 @@ class ReferenceResponse:
     def provenance(self) -> dict:
         return {"path": str(self.path), "relpath": self.relpath, "sha256": self.sha256,
                 "schema": self.schema, "status": self.status,
-                "dark_counts": self.dark_counts, "gain_rule": dict(self.gain_rule),
+                "dark_counts": self.dark_counts, "dark_rate_hz": self.dark_rate_hz,
+                "readout_window_ns": list(self.readout_window_ns),
+                "window_ns": self.window_ns, "spe_sigma": self.spe_sigma,
+                "threshold_pe": self.threshold_pe,
+                "v_dark": round(dark_charge_variance(self.dark_rate_hz, self.window_ns,
+                                                     self.spe_sigma), 12),
+                "dark_stage_owner": self.dark_stage_owner,
+                "gain_rule": dict(self.gain_rule),
                 "timing_width_factor_rule": dict(self.timing_width_rule)}
 
 
@@ -1136,13 +1221,17 @@ def _reference_response_cached(path: str) -> ReferenceResponse:
         relpath = str(resolved.resolve().relative_to(_repo_root()))
     except ValueError:  # pragma: no cover - response outside the repo (tests)
         relpath = str(resolved)
+    stage_owner = str(manifest.get("stage_owners", {}).get("dark_counts", ""))
+    # R-6 declares dark counts as a *stage*, not an on/off flag: the rate is the truth.
+    dark_counts = DARK_COUNTS_ON if float(values["dark_rate_hz"]) > 0.0 else DARK_COUNTS_OFF
+    if dark_counts == DARK_COUNTS_ON and not stage_owner:
+        raise ValueError(f"{resolved}: dark_rate_hz > 0 without a dark_counts stage owner")
     return ReferenceResponse(
         path=str(resolved.resolve()), relpath=relpath,
         sha256=hashlib.sha256(resolved.read_bytes()).hexdigest(), schema=manifest["schema"],
         status=manifest["status"], gain_rule=dict(values["gain"]),
         timing_width_rule=dict(values["timing_width_factor"]),
-        dark_counts=str(manifest.get("stage_owners", {}).get("dark_counts", DARK_COUNTS_OFF)),
-        parameters=values)
+        dark_counts=dark_counts, parameters=values, dark_stage_owner=stage_owner)
 
 
 def reference_response(path: Path | str | None = None) -> ReferenceResponse:
@@ -1187,12 +1276,15 @@ class GeneratorConfig:
     n_wavelength_samples: int = 1
     sigma_spe: float = SIGMA_SPE
     tts_sigma_ns: float = 1.5
-    #: Dark counts are off for ``readout_dark_off``: zero rate and the policy string.
-    dark_rate_hz: float = DARK_RATE_HZ_OFF
-    dark_counts: str = DARK_COUNTS_OFF
-    window_ns: float = 1000.0
-    threshold_pe: float = 0.25
-    walk_calibration_pe: float = 0.25
+    #: PMT R-6 (merged): dark counts are **on**.  Rate, window and the response values are
+    #: bound to the manifest (``configs/lucid_pmt/reference.json``), never typed again.
+    dark_counts: str = DARK_COUNTS_ON
+    dark_rate_hz: float = DARK_RATE_HZ_ON
+    #: ``[start, end]`` ns, event time origin; dark hits are uniform in it and their times
+    #: are measured from the window start.  The duration (``end - start``) is ``window_ns``.
+    readout_window_ns: tuple = R6_READOUT_WINDOW_NS
+    threshold_pe: float = R6_THRESHOLD_PE
+    walk_calibration_pe: float = R6_THRESHOLD_PE
     mv_per_pe: float = 4.0
     n_group: float = 1.33
     lambda0_m: float = LAMBDA0_M
@@ -1202,8 +1294,17 @@ class GeneratorConfig:
     reference_response_path: str = FIXED_RESPONSE_RELPATH
     reference_response_sha256: str = REFERENCE_RESPONSE_SHA256
 
+    @property
+    def window_ns(self) -> float:
+        """Readout-window duration ``end - start`` (1 us for R-6), derived not stored."""
+        start, end = (float(v) for v in self.readout_window_ns)
+        return float(end - start)
+
     def __post_init__(self):
+        object.__setattr__(self, "readout_window_ns",
+                           tuple(float(v) for v in self.readout_window_ns))
         pairs = list(zip(self.qe_curve_nm, self.qe_curve))
+        window = self.readout_window_ns
         checks = [("y_lo", self.y_lo > 0), ("y_hi > y_lo", self.y_hi > self.y_lo),
                   ("0 < fiducial_fraction <= 1", 0.0 < self.fiducial_fraction <= 1.0),
                   ("qe curve lengths", len(self.qe_curve_nm) == len(self.qe_curve) >= 2),
@@ -1214,9 +1315,11 @@ class GeneratorConfig:
                   ("sigma_spe >= 0", self.sigma_spe >= 0.0),
                   ("tts_sigma_ns >= 0", self.tts_sigma_ns >= 0.0),
                   ("dark_rate_hz >= 0", self.dark_rate_hz >= 0.0),
-                  ("dark_counts off", self.dark_counts == DARK_COUNTS_OFF),
-                  ("dark off needs a zero rate",
-                   self.dark_counts != DARK_COUNTS_OFF or float(self.dark_rate_hz) == 0.0),
+                  ("dark_counts on", self.dark_counts == DARK_COUNTS_ON),
+                  ("dark on needs a positive rate",
+                   self.dark_counts != DARK_COUNTS_ON or float(self.dark_rate_hz) > 0.0),
+                  ("readout_window_ns is a finite [start, end] pair",
+                   len(window) == 2 and all(np.isfinite(window)) and window[0] < window[1]),
                   ("window_ns > 0", self.window_ns > 0.0),
                   ("threshold_pe > 0", self.threshold_pe > 0.0),
                   ("walk_calibration_pe > 0", self.walk_calibration_pe > 0.0),
@@ -1236,6 +1339,17 @@ class GeneratorConfig:
         if _sha(fixed_path.read_bytes()) != str(self.reference_response_sha256):
             raise ValueError(f"generator config: fixed response sha256 does not match "
                              f"{fixed_path}; re-read the file instead of editing the hash")
+        # R-6 provenance: the dark stage and its window are the manifest's, not this file's.
+        ref = reference_response(fixed_path)
+        if ref.dark_counts != self.dark_counts:
+            raise ValueError(f"generator config: dark_counts {self.dark_counts!r} but the "
+                             f"manifest declares {ref.dark_counts!r}")
+        if float(self.dark_rate_hz) != ref.dark_rate_hz:
+            raise ValueError(f"generator config: dark_rate_hz {self.dark_rate_hz!r} != the "
+                             f"manifest's {ref.dark_rate_hz!r}")
+        if tuple(self.readout_window_ns) != tuple(ref.readout_window_ns):
+            raise ValueError(f"generator config: readout_window_ns {self.readout_window_ns!r} "
+                             f"!= the manifest's {ref.readout_window_ns!r}")
 
     @property
     def digest(self) -> str:
@@ -1262,22 +1376,41 @@ def load_generator_config(path: Path | str) -> GeneratorConfig:
         )
     if decision_block is not None and not decision_block.get("status"):
         raise ValueError("config: the yield_range_decision block must record its status")
-    allowed = set(GeneratorConfig.__dataclass_fields__)
+    allowed = set(GeneratorConfig.__dataclass_fields__) | {"window_ns"}
     unknown = sorted(set(kwargs) - allowed)
     if unknown:
         raise ValueError(f"config: unknown generator keys {unknown}")
     kwargs["qe_curve_nm"] = tuple(kwargs["qe_curve_nm"])
     kwargs["qe_curve"] = tuple(kwargs["qe_curve"])
     kwargs["spectrum_nm"] = tuple(kwargs["spectrum_nm"])
+    #: ``window_ns`` is the derived duration ``end - start``; the config records the pair.
+    if "window_ns" in kwargs:
+        recorded_window = float(kwargs.pop("window_ns"))
+        derived = (float(kwargs["readout_window_ns"][1])
+                   - float(kwargs["readout_window_ns"][0]))
+        if abs(recorded_window - derived) > 1e-9:
+            raise ValueError(f"config: generator.window_ns {recorded_window} != the "
+                             f"readout_window_ns duration {derived}")
+    kwargs["readout_window_ns"] = tuple(kwargs["readout_window_ns"])
     if payload.get("lambda0_m") is not None and float(payload["lambda0_m"]) != float(kwargs["lambda0_m"]):
         raise ValueError("config: top-level lambda0_m and generator.lambda0_m disagree")
     if payload.get("readout_label") != READOUT_LABEL:
         raise ValueError(f"config: readout_label {payload.get('readout_label')!r} != "
-                         f"{READOUT_LABEL!r} (the merged readout is dark-off)")
+                         f"{READOUT_LABEL!r} (the merged R-6 readout has dark counts on)")
+    if payload.get("dark_counts") != DARK_COUNTS_ON:
+        raise ValueError(f"config: dark_counts {payload.get('dark_counts')!r} must be "
+                         f"{DARK_COUNTS_ON!r} (PMT R-6)")
     cfg = GeneratorConfig(**kwargs)
+    #: The response values are bound from the manifest, not copied into the config.
+    manifest = generator_reference(cfg)
+    for config_name, manifest_name in (("sigma_spe", "spe_sigma"),
+                                       ("threshold_pe", "threshold_pe")):
+        if float(getattr(cfg, config_name)) != float(getattr(manifest, manifest_name)):
+            raise ValueError(f"config: generator.{config_name} {getattr(cfg, config_name)!r} != "
+                             f"the manifest's {getattr(manifest, manifest_name)!r}")
     fixed = payload.get("fixed_response")
     if fixed is not None:
-        ref = generator_reference(cfg)
+        ref = manifest
         if not fixed.get("path") or \
                 resolve_reference_path(fixed["path"]).resolve() != Path(ref.path):
             raise ValueError("config: fixed_response.path does not name the recorded response")
@@ -1287,8 +1420,10 @@ def load_generator_config(path: Path | str) -> GeneratorConfig:
         if fixed.get("gain") != ref.gain_rule or \
                 fixed.get("timing_width_factor") != ref.timing_width_rule:
             raise ValueError("config: fixed_response rules disagree with the manifest")
-        if fixed.get("dark_counts") != DARK_COUNTS_OFF:
-            raise ValueError("config: fixed_response.dark_counts must be 'off'")
+        if fixed.get("dark_counts") != DARK_COUNTS_ON:
+            raise ValueError(f"config: fixed_response.dark_counts must be {DARK_COUNTS_ON!r}")
+        if fixed.get("readout_window_ns") not in (None, list(ref.readout_window_ns)):
+            raise ValueError("config: fixed_response.readout_window_ns disagrees with the manifest")
     return cfg
 
 def qe_at(wavelength_nm, cfg: GeneratorConfig) -> np.ndarray:
@@ -1384,21 +1519,48 @@ class SensorDraws:
     poisson_u: np.ndarray       # (n_pmt, n_cap)
     charge_z: np.ndarray        # (n_pmt,)
     transit_z: np.ndarray       # (n_pmt,)
-    dark_counts: np.ndarray     # (n_pmt,), always zeros under readout_dark_off
+    dark_counts: np.ndarray     # (n_pmt,), keyed Poisson dark photoelectrons per PMT
+    #: (n_dark_total,) ns, event time origin: uniform in ``readout_window_ns`` and ordered
+    #: like ``np.repeat(np.arange(n_pmt), dark_counts)``.  Shared by the nominal twin.
+    dark_times: np.ndarray
     window_ns: float
     capacity: int
+
+
+def dark_photoelectrons(geometry, cfg: GeneratorConfig, rng_counts, rng_times) -> tuple:
+    """Keyed PMT R-6 dark bank: Poisson(rate x duration) per PMT, times uniform in the window.
+
+    ``rate x duration = 1000 Hz x 1 us = 0.001`` per PMT, so a zero count is common and a
+    WCTE-sized event carries **~2 dark hits in total** (1995 x 0.001).  Dark photoelectrons
+    bypass QE/CE; they join the detected PE before digitisation.  Times are measured from
+    the window start and returned as absolute event times in ``[start, end]``.
+    """
+    start, end = (float(v) for v in cfg.readout_window_ns)
+    mean = float(cfg.dark_rate_hz) * (end - start) * 1e-9
+    if mean < 0.0 or not np.isfinite(mean):
+        raise ValueError("dark count mean must be finite and non-negative")
+    from scipy.stats import poisson
+    # The keyed uniform can round to exactly 1.0 (p = 2**-53), where the Poisson ppf is inf.
+    uniform = np.minimum(np.asarray(rng_counts.random(geometry.n_pmt), dtype=float),
+                         np.nextafter(1.0, 0.0))
+    counts = poisson.ppf(uniform, mean).astype(np.int64)
+    total = int(counts.sum())
+    times = start + (end - start) * np.asarray(rng_times.random(total), dtype=float)
+    return counts, times
+
 
 def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
                seed: int = DEFAULT_SEED) -> SensorDraws:
     """Vertex, log-uniform yield, spectrum, and every shared normal/Poisson draw.
 
-    The dark bank is neutralised for ``readout_dark_off``: no dark RNG namespace is
-    consumed and ``dark_counts`` is an empty (all-zero) array.  The anchor's
-    dark-window draw is not physical until the PMT R-6 SHA lands, so nothing may
-    report it.
+    PMT R-6 turns the dark bank back on: this consumes the keyed ``dark`` (per-PMT
+    Poisson) and ``dark_time`` (uniform-in-window) namespaces and returns real
+    ``dark_counts`` and ``dark_times``.  On a WCTE-sized geometry (~1995 PMTs) the
+    expected number of dark hits per event is **~2** (1995 x 1000 Hz x 1 us), with a
+    zero count on most PMTs; a small fixture scales with its PMT count.
     """
-    if cfg.dark_counts != DARK_COUNTS_OFF:
-        raise ValueError(f"{READOUT_LABEL}: dark counts must be off, got {cfg.dark_counts!r}")
+    if cfg.dark_counts != DARK_COUNTS_ON:
+        raise ValueError(f"{READOUT_LABEL}: dark counts must be on, got {cfg.dark_counts!r}")
 
     def rng(role):
         return keyed_rng(seed, NS_DRAWS, run_id, event_id, role)
@@ -1410,35 +1572,49 @@ def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
     capacity = count_capacity(float(bound.max()))
     poisson_u = np.clip(rng("poisson").random((geometry.n_pmt, capacity)),
                         np.finfo(float).tiny, 1.0)
+    dark_counts, dark_times = dark_photoelectrons(geometry, cfg, rng("dark"), rng("dark_time"))
     return SensorDraws(key=f"{NS_DRAWS}/{run_id}/{event_id}", run_id=run_id, event_id=int(event_id),
                        vertex_m=vertex, yield_photons=yield_photons, qe_eff=qe_eff,
                        poisson_u=poisson_u, charge_z=rng("charge").standard_normal(geometry.n_pmt),
                        transit_z=rng("transit").standard_normal(geometry.n_pmt),
-                       dark_counts=np.zeros(geometry.n_pmt, dtype=np.int64),
+                       dark_counts=dark_counts, dark_times=dark_times,
                        window_ns=float(cfg.window_ns), capacity=capacity)
 
 def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geometry,
                                  cfg: GeneratorConfig,
                                  reference: ReferenceResponse | None = None) -> HitReadout:
-    """The unrepaired PMT chain with the fixed merged response and dark counts off.
+    """The unrepaired PMT chain with the merged fixed R-6 response and dark counts on.
 
-    QE/CE -> Poisson (mean carries the fixed per-module parity gain) -> SPE smear ->
-    injected gain -> threshold+walk.  Injected gains act on the charge **before** the
-    fixed-PE threshold, so a gain change can move a PMT between hit and unhit.  The
-    fixed response is applied here, not in :class:`DetectorState`, so the nominal twin
-    keeps both the parity charge gain and the timing-width factor and cancels only the
-    injected F1/F3 (and F2/F2'/R11b/T) gains.
+    QE/CE -> Poisson source PE (mean carries the fixed per-module parity gain) **joined
+    with the keyed dark PE before digitisation** -> SPE smear -> injected gain ->
+    threshold+walk.  Per the merged manifest, dark photoelectrons bypass QE/CE and then
+    get the *same* SPE charge smearing, the injected gains, the fixed parity gain, the
+    discriminator and the T-Q walk/width as every other photoelectron; their times are
+    uniform in the readout window.  Because one digit is recorded per PMT, a dark PE
+    earlier than the source light sets that digit's time, and a dark PE can make an
+    otherwise-unhit PMT fire.  Injected gains act on the charge **before** the fixed-PE
+    threshold, so a gain change can move a PMT between hit and unhit.  The fixed response
+    is applied here, not in :class:`DetectorState`, so the nominal twin keeps both the
+    parity charge gain and the timing-width factor and cancels only the injected F1/F3
+    (and F2/F2'/R11b/T) gains; the twin also shares the same dark draw.
 
     The digit Gaussian width is ``tts_sigma_ns * timing_width_factor`` per PMT (odd
     dense module +5%).  The walk curve is ``response.leading_edge_time`` at the actual
     threshold, corrected by the same curve at the training-time calibration threshold;
     with ``threshold_pe == walk_calibration_pe`` the residual is exactly zero.
     """
-    if cfg.dark_counts != DARK_COUNTS_OFF:
-        raise ValueError(f"{READOUT_LABEL}: dark counts must be off, got {cfg.dark_counts!r}")
-    if np.any(np.asarray(draws.dark_counts, dtype=np.int64)):
-        raise ValueError(f"{READOUT_LABEL}: the shared draw carries dark charge; the dark "
-                         "bank is empty for this readout (PMT R-6 SHA pending)")
+    if cfg.dark_counts != DARK_COUNTS_ON:
+        raise ValueError(f"{READOUT_LABEL}: dark counts must be on, got {cfg.dark_counts!r}")
+    n_dark = np.asarray(draws.dark_counts, dtype=np.int64)
+    if n_dark.shape != (geometry.n_pmt,) or np.any(n_dark < 0):
+        raise ValueError("dark_counts must be one non-negative count per PMT")
+    dark_sensor = np.repeat(np.arange(geometry.n_pmt, dtype=np.int64), n_dark)
+    dark_times = np.asarray(draws.dark_times, dtype=float)
+    if dark_times.shape != (dark_sensor.size,) or not np.all(np.isfinite(dark_times)):
+        raise ValueError("dark_times must be one finite time per dark photoelectron")
+    start, end = (float(v) for v in cfg.readout_window_ns)
+    if dark_times.size and (dark_times.min() < start - 1e-9 or dark_times.max() > end + 1e-9):
+        raise ValueError("dark times must lie in the readout window")
     ref = generator_reference(cfg) if reference is None else reference
     mu = (expected_charge(geometry, draws.vertex_m, draws.yield_photons, draws.qe_eff,
                           state.attenuation_length_m, cfg)
@@ -1446,7 +1622,9 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     n_photon = poisson_counts_from_uniform(draws.poisson_u, mu)
     if int(n_photon.max()) >= int(draws.capacity):
         raise RuntimeError("photon count reached the shared-draw capacity; enlarge count_capacity")
-    n = n_photon
+    # Dark PE join the detected PE *before* digitisation (R-6): the same SPE charge smear
+    # acts on the total count, so a dark PE adds charge like any other photoelectron.
+    n = n_photon + n_dark
     charge = np.clip(n + np.sqrt(n) * float(cfg.sigma_spe) * draws.charge_z, 0.0, None)
     q = charge * np.asarray(state.gains, dtype=float)
     thr_mv = float(cfg.threshold_pe) * float(cfg.mv_per_pe)
@@ -1456,8 +1634,14 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     fired = np.isfinite(walk)
     residual = np.where(np.isfinite(walk_cal), walk - np.where(np.isfinite(walk_cal), walk_cal, 0.0), 0.0)
     sigma_t = float(cfg.tts_sigma_ns) * fixed_timing_width_factor(geometry, ref)
-    times = (propagation_time_ns(geometry, draws.vertex_m, cfg)
-             + sigma_t * draws.transit_z + residual)
+    # Earliest *photoelectron* arrival per PMT: the prompt source light (only where a source
+    # PE was detected) or an earlier dark hit; the digit width/jitter is applied afterwards.
+    first = np.where(n_photon > 0, propagation_time_ns(geometry, draws.vertex_m, cfg), np.inf)
+    dark_first = np.full(geometry.n_pmt, np.inf)
+    if dark_sensor.size:
+        np.minimum.at(dark_first, dark_sensor, dark_times)
+    first = np.where(np.isfinite(dark_first), np.minimum(first, dark_first), first)
+    times = first + sigma_t * draws.transit_z + residual
     index = np.flatnonzero(fired)
     return HitReadout(index, q[index], times[index])
 
@@ -1549,7 +1733,6 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
                "geometry_summary": geometry.summary(),
                "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
                "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,
-               "dark_rate_hz": float(cfg.dark_rate_hz),
                "expected_pe_includes_fixed_response": True,
                "fiducial_fraction": float(cfg.fiducial_fraction),
                "threshold_pe": float(cfg.threshold_pe), "spectrum_label": cfg.spectrum_label,
@@ -1609,8 +1792,10 @@ def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000
             "hits_per_event": float(generated.n_hits) / max(generated.n_events, 1),
             "is_synthetic_geometry": bool(geometry.synthetic),
             "geometry_name": geometry.name, "geometry_sha256": geometry.digest,
-            "readout_label": READOUT_LABEL, "dark_counts": DARK_COUNTS_OFF,
+            "readout_label": READOUT_LABEL, "dark_counts": DARK_COUNTS_ON,
             "dark_rate_hz": float(cfg.dark_rate_hz),
+            "readout_window_ns": list(cfg.readout_window_ns),
+            "window_ns": float(cfg.window_ns), "v_dark": V_DARK_READOUT,
             "fixed_response": reference_provenance(cfg),
             "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
             "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,
