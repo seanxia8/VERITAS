@@ -1109,3 +1109,40 @@ stopped/labelled a replication, not a second verdict.
   `readout_window_ns [-200, 800]`; detectability `v_dark 0.00109`, `f3_marginalised_spread 0.05`;
   arms `mae_chi2.v_dark 0.00109`; runner `readout_dark_pmt_r6` / dark on. 106 tests pass across the
   four LUCiD suites.
+
+## Detectability check FROZEN on the R-6 readout (18 Oct 2026)
+
+Run at code `0ab86e6`, real WCTE geometry re-verified (config `9943d602…`, npz `0a75b035…`, layout
+`8b46bd3c…`, `synthetic: false`, 1995/105/19, `module_ids_contiguous: false`), readout
+**`readout_pmt_r6`** (dark counts on, 1 kHz, [-200, 800] ns, `v_dark = 0.00109 PE²`), F3
+**marginalised** at `s_p` starting from the registered default **0.05**. Decision JSON
+`/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json` (26 014 B, sha256 `1e4407ac…`, content sha
+`307a0771…`, `status: frozen`, `decision_freeze_status: frozen_by_this_re_run`), wall 124 s, CPU only.
+The intermediate `28e24c8` run was never frozen and is recorded as
+`superseded_by_r6_dark_counts`; the dark-off v1/v2 decisions are superseded.
+
+**Ceilings, old (v2, dark-off, F3 treated as known) → new (R-6, dark on, F3 marginalised, s_p 0.05 start):**
+
+| factor | setting | old R²_run | new R²_run | Δ | pass |
+|---|---|---|---|---|---|
+| F1 | 0.02 | 0.260945 | **0.260901** | −4.4e−5 | false → false |
+| F1 | 0.05 | 0.685515 | **0.686492** | +9.8e−4 | true → true |
+| F1 | 0.10 | 0.890838 | **0.893069** | +2.2e−3 | true → true |
+| F3 | 0.10 | 0.323420 | **0.324621** | +1.2e−3 | false → false |
+| F2 | 0.50 | 0.920896 | **0.921345** | +4.5e−4 | true → true |
+| T | 0.50 | 0.986021 | **0.986084** | +6.3e−5 | true → true |
+
+No pass/fail changes; the largest shift is +2.2e−3.
+
+**Frozen values:** `Y_lo = 6298.436828` (median 199.0 hit PMTs, hit fraction 0.0997), `Y_hi =
+539 433.964527` (0.95 hit-fraction bound; the 300 PE bound would allow 834 189.16), median yield
+**58 288.856**. Fallback steps in order: (1) raise Y_hi 320 000 → 539 433.96; (2) F2 a 0.1 → 0.2;
+(3) F2 a 0.2 → 0.5; (4) raise F3 spread **0.05 → 0.10** (F3 still fails at 0.325). `s_p` restart
+recorded: previous 0.10 → started at the registered 0.05 → raised to the 0.10 cap only at ladder
+step 4; the 0.10 end value therefore survives, but now with the marginalised variance and the
+correct order. Branches: F1 eligible {0.05, 0.10}, excluded {0.02}; **F2 chosen at a = 0.50**;
+F2′ not used; F3 `f3_ok = false` → **R12 not_evaluable, no gate**; R6/R7 evaluable; law T ok;
+**G6 false**. Occupancy at Y_lo (64 events): within target median 105.5 hit PMTs (min 84, exclusion
+0.0), across proxy median 97.5 (min 61, below-N_min 0.0, exclusion after 3 redraws 0.0).
+Both configs now point at this decision (yields, F2/f1/s_p, readout label, hashes); the generation
+benchmark must be re-run at the new frozen yields (§3.5.6).

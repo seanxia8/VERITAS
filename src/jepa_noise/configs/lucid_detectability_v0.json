@@ -162,5 +162,37 @@
     ],
     "decision_freeze_status": "superseded_pending_r6_freeze"
   },
-  "decision_freeze_status": "superseded_pending_r6_freeze"
+  "decision_freeze_status": "superseded_pending_r6_freeze",
+  "frozen_decision": {
+    "path": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
+    "sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64",
+    "content_sha256": "307a0771f5406e0e0542ca11442a9a7471033ad9fe967d293ce082f035d74bc6",
+    "status": "frozen",
+    "frozen_at_code": "0ab86e6df7e7a187d7d4b31f02a5aab7ada09a21",
+    "y_lo": 6298.436828,
+    "y_hi": 539433.964527,
+    "median_yield_photons": 58288.856,
+    "s_p": 0.1,
+    "s_p_started_at": 0.05,
+    "v_dark": 0.00109,
+    "readout_label": "readout_pmt_r6",
+    "branches": {
+      "f1_eligible": [
+        0.05,
+        0.1
+      ],
+      "f1_excluded": [
+        0.02
+      ],
+      "f2": {
+        "law": "F2",
+        "a": 0.5
+      },
+      "f2p_used": false,
+      "f3_ok": false,
+      "r12": "not_evaluable_no_gate",
+      "g6": false
+    },
+    "superseded_decisions": "the 2026-10-17 dark-off decisions and the intermediate 28e24c8 run"
+  }
 }

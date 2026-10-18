@@ -90,7 +90,7 @@
       "superseded_note": "eligible/excluded spreads come from the 2026-10-17 pre-R-6 check"
     },
     "F3": {
-      "spread": 0.05,
+      "spread": 0.1,
       "namespace": "lucid/F3",
       "r12_status": "not_evaluable_no_gate",
       "decision_status": "superseded_pending_r6_freeze",
@@ -133,8 +133,8 @@
     1.5
   ],
   "generator": {
-    "y_lo": 6249.708098,
-    "y_hi": 541560.544764,
+    "y_lo": 6298.436828,
+    "y_hi": 539433.964527,
     "yield_range_status": "frozen_by_detectability_check",
     "fiducial_fraction": 0.8,
     "spectrum_kind": "uniform_synthetic",
@@ -179,12 +179,12 @@
       "status": "superseded_pending_r6_freeze",
       "superseded_reason": "frozen on 2026-10-17 before the merged PMT R-6 dark-on readout; Y_lo/Y_hi must be re-derived by the section 3.5.3a check on readout_pmt_r6 before use",
       "decisions": "../DECISIONS.md section 'WP4b \u00a73.5.3a detectability check \u2014 FROZEN'",
-      "decision_json": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_v2.json",
-      "decision_json_sha256": "540e9b2e0acd6858e3269bb90732a912ac9462f734d79f7b21b38dbb89c9f03c",
-      "decision_content_sha256": "17bd075fa13c0503c1860abaed36abf72a43f7dd497ec13429bf89ec5c413243",
-      "y_lo_basis": "median 200.5 hit PMTs at Y_lo (hit fraction 0.1005)",
-      "y_hi_basis": "hit_fraction_0.95 bound (median 0.9499; the 300 PE bound would allow 846767.8)",
-      "median_yield_photons": 58177.275,
+      "decision_json": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
+      "decision_json_sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64",
+      "decision_content_sha256": "307a0771f5406e0e0542ca11442a9a7471033ad9fe967d293ce082f035d74bc6",
+      "y_lo_basis": "median 199.0 hit PMTs at Y_lo (hit fraction 0.0997)",
+      "y_hi_basis": "hit_fraction_0.95 bound (median 0.9501; the 300 PE bound would allow 834189.16)",
+      "median_yield_photons": 58288.856,
       "rebenchmark_required": true,
       "decision_rerun_note": "v2 adds the F2-branch f1_joint evidence (105 per-module joint F1/F2 ceilings); decisions identical to v1, ceilings shifted by <=0.0013",
       "module_index_convention": "f1_joint rows are indexed by dense position 0..104; map to mpmt_id through DetectorGeometry.module_ids (id 45 absent) - never assume position == mpmt_id",
@@ -197,7 +197,36 @@
         "fraction_of_48h_cap": 0.00782,
         "evidence": "/ceph/dwong/jepa/jobs/wp4b_benchmark_wcte_frozen_yields_1000.json",
         "evidence_sha256": "a2b34ae942b2b80ecb006f24999f18128d53ddbcd21fc3a4d1f3db50da46d372"
-      }
+      },
+      "decision_status": "frozen_by_r6_rerun_0ab86e6",
+      "supersedes": [
+        "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json (v1, dark-off)",
+        "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_v2.json (v2, dark-off, F3 known)",
+        "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6_at989773c.json (intermediate, superseded)"
+      ],
+      "readout_label": "readout_pmt_r6",
+      "v_dark": 0.00109,
+      "s_p": 0.1,
+      "s_p_restart": {
+        "previous": 0.1,
+        "new_at_start": 0.05,
+        "raised_to": 0.1,
+        "reason": "ladder step 4 after Y_hi and F2 (F3 fails at both 0.05 and 0.10)"
+      },
+      "f1_eligible": [
+        0.05,
+        0.1
+      ],
+      "f1_excluded": [
+        0.02
+      ],
+      "f2": {
+        "law": "F2",
+        "a": 0.5
+      },
+      "f2p_used": false,
+      "g6": false,
+      "r12": "not_evaluable_no_gate"
     },
     "readout_window_ns": [
       -200.0,
