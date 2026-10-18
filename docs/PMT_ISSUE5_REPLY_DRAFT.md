@@ -76,7 +76,13 @@ Setup: the same 60 PhotonSim events (500, 1000 and 1500 MeV μ⁻, 8 placements 
    - **D-L:** LUCiD as an attribution control and harm replication, or out of the paper (for Paper 3 / ORACLE; the JEPA study uses LUCiD regardless).
    - **D-M:** exclude simulation-model changes from the N/S cells.
    - **D-S:** the clean signal family and held-out definition for TIDMAD.
-7. **Realistic drift sizes.** Are module gain drifts of 2/5/10% per run, an independent per-PMT gain spread of 5%, and a 10% attenuation-length change realistic for WCTE?
+7. **Realistic drift sizes (for the JEPA study).** We inject module gain drifts of 2/5/10% per run;
+   only 5% and 10% are visible enough in single WCTE runs to test. An independent per-PMT gain spread
+   stays undetectable even at 10%. A water-quality-like attenuation change only becomes visible at
+   a 50% change in attenuation length, because WCTE is small. Are 5–10% module drifts and 10%
+   per-PMT spreads realistic? Is a 50% attenuation change plausible at all? If not, would you
+   prefer a different smooth second factor, for example a vertical gain gradient from temperature
+   stratification?
 
 Thanks,
 Dowling

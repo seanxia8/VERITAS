@@ -333,6 +333,18 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 - WP8 draft: the vertex part of the R-4 section is rewritten as one paragraph and a table. The trigger-time arm carries the caveat that t = 0 is the true emission time and is not available in data.
 - Nothing new on the hosts.
 
+## Author message, 18 Oct 2026, eighth (verbatim)
+
+> 7. **Realistic drift sizes (for the JEPA study).** We inject module gain drifts of 2/5/10% per run;
+>    only 5% and 10% are visible enough in single WCTE runs to test. An independent per-PMT gain spread
+>    stays undetectable even at 10%. A water-quality-like attenuation change only becomes visible at
+>    a 50% change in attenuation length, because WCTE is small. Are 5–10% module drifts and 10%
+>    per-PMT spreads realistic? Is a 50% attenuation change plausible at all? If not, would you
+>    prefer a different smooth second factor, for example a vertical gain gradient from temperature
+>    stratification?
+
+**Action (agent, 18 Oct 2026):** this replaces question 7 in the WP8 draft word for word. The visibility statements come from the JEPA study and were not re-derived here. The draft is not posted.
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
