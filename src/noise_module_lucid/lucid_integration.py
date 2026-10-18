@@ -24,19 +24,33 @@ def response(geometry):
 TIME_FEATURE_UNIT_NS = 20.0  # author rule, 18 Oct 2026 (recorded at fca0af9 before R-4b)
 
 
-def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS):
-    """Digit time from the declared readout-window start, in units of ``unit_ns``.
+TIME_ORIGINS = ("window_start", "trigger", "first_digit")
 
-    The origin is the trigger-defined window, so dark hits cannot move it, unlike the
+
+def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS, origin="window_start"):
+    """Digit time from a declared origin, in units of ``unit_ns``.
+
+    The default origin is the trigger-defined window start, so dark hits cannot move it, unlike the
     pre-R-6 ``(time - time.min()) / 20 ns``. The author's rule fixes the unit at 20 ns,
     comparable to the prompt-light spread; ``unit_ns=None`` gives the R-4 (E33) unit, the
-    window length (1 us).
+    window length (1 us). The other origins exist for the validation-only diagnostic (E40):
+    ``"trigger"`` is t = 0, to which ``window_ns`` is referred, and ``"first_digit"`` is the
+    earliest digit time, as in ``56179eb``.
     """
     lo, hi = (float(x) for x in window_ns)
     unit = (hi - lo) if unit_ns is None else float(unit_ns)
     if not unit > 0:
         raise ValueError("positive time-feature unit required")
-    return (np.asarray(time_ns, dtype=float) - lo) / unit
+    t = np.asarray(time_ns, dtype=float)
+    if origin == "window_start":
+        zero = lo
+    elif origin == "trigger":
+        zero = 0.0
+    elif origin == "first_digit":
+        zero = t.min() if t.size else 0.0
+    else:
+        raise ValueError(f"unknown time origin {origin!r}")
+    return (t - zero) / unit
 
 
 def analytic_first(origins,directions,centres,radius,detector):

@@ -139,3 +139,15 @@ def test_time_feature_origin_is_the_window_not_the_first_digit():
     for unit in (20.0, None):
         np.testing.assert_array_equal(time_feature(with_dark, (-200, 800), unit)[1:], time_feature(source, (-200, 800), unit))
     with pytest.raises(ValueError): time_feature(source, (-200, 800), 0.0)
+
+
+def test_diagnostic_time_origins():
+    from noise_module_lucid.lucid_integration import time_feature
+    t = np.array([3.0, 13.0, 43.0])
+    # E40 diagnostic origins: trigger (t = 0), window start (the default), first digit (56179eb).
+    np.testing.assert_allclose(time_feature(t, (-200.0, 800.0), origin="trigger"), t / 20)
+    np.testing.assert_allclose(time_feature(t, (-200.0, 800.0)) - time_feature(t, (-200.0, 800.0), origin="trigger"), 10.0)
+    # The first-digit origin is bit-identical to the 56179eb formula.
+    np.testing.assert_array_equal(time_feature(t, (-200.0, 800.0), origin="first_digit"), (t - t.min()) / 20)
+    assert time_feature(np.array([]), (-200.0, 800.0), origin="first_digit").size == 0
+    with pytest.raises(ValueError, match="origin"): time_feature(t, (-200.0, 800.0), origin="vertex")

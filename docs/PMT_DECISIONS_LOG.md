@@ -150,6 +150,51 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 ---
 
+## Author message, 18 Oct 2026, fourth (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim. κ_m = 1.10 is accepted; re-check it if any
+> WP7 cell holds fewer than 12 physical events.
+>
+> One more validation-only diagnostic is approved, extended so that it can be decisive. 3 seeds each,
+> test events untouched, checkpoint selection as before (state the caveat).
+>
+> Arm 0, exact reproduction of 56179eb under the current code: first-digit time origin, initial-energy
+> target, dark counts off, seeds 20–22, same loss weights and checkpoint rule.
+> - If it does not reach about 0.73–0.88, there is a code regression between 56179eb and now. Then
+>   bisect the commits on validation only, and report the commit that breaks it.
+>
+> Arms 1–4: time origin {trigger time, window start} × energy target {initial, deposited}, dark
+> counts off.
+>
+> Also log, for every arm, each head's loss at initialisation and at the selected checkpoint (vertex,
+> direction, energy), and the relative scale of the energy target. A change of target can unbalance
+> the multi-task loss and starve the vertex head. Report whether that happened.
+>
+> This diagnoses the cause; it does not pick a fix. Propose the fix afterwards as a principle-based
+> rule, recorded before any test-event re-run, as with the 20 ns rule. R-4 and R-4b stay as recorded.
+> WP7 waits for this, for Junjie's D-E answer and for my "launch WP7". Update the WP8 draft with one
+> line on the outcome; do not post it.
+
+**Diagnostic design, recorded before any arm runs (18 Oct 2026, agent; E40):**
+- All five arms: dark counts off, 20 ns unit, seeds 20–22, the `56179eb` loss (equal weights; vertex in 0.35 m units) and checkpoint rule (minimum validation loss). Evaluation on the validation split only; the test split is never predicted. Caveat: the validation split also selects the checkpoint, which flatters every arm equally.
+- Time origins:
+  - first digit: `(t − earliest digit time) / 20 ns`, the `56179eb` formula;
+  - trigger time: `t / 20 ns`, where t = 0 is the trigger to which `readout_window_ns` = [−200, 800] ns is referred (in this simulation it coincides with the primary interaction time), so prompt hits sit near 0;
+  - window start: `(t + 200 ns) / 20 ns`, the R-4b rule, so prompt hits sit near +10.
+- Every arm uses seeds 20–22, so the seed is not a confound between arms. The window-start × deposited arm repeats R-4b's `diag_u20_nodark` (seeds 30–32) with seeds 20–22, which isolates the seed effect.
+- Arm 0 checks:
+  - its inputs are compared bit for bit with the `56179eb` data set, and its checkpoint hashes with the recorded `56179eb` hashes (deterministic algorithms, same GPU model);
+  - like-for-like reference: the `56179eb` checkpoints are also scored on the validation split (CPU inference only), because the 0.73–0.88 range was measured on test;
+  - the author's criterion is applied to arm 0's pooled validation vertex ratio. If it is not about 0.73–0.88, the commits between `56179eb` and now that touch the data or training path are bisected on validation only.
+- Loss logging, every arm and seed:
+  - per-head loss (direction MSE, vertex MSE in 0.35 m units, log-energy MSE) on train and validation, at initialisation and at the selected checkpoint, plus per epoch;
+  - each head's gradient norm on the shared per-sensor encoder at those two points;
+  - the scale of each target: the training-split constant-predictor loss per head, and the SD of the log-energy target.
+- Starvation reading, fixed in advance: the target switch starves the vertex head if, with the deposited target, energy's share of the initial loss or of the encoder gradient rises clearly above its share with the initial target, and vertex fails only with the deposited target.
+- The logging adds no random draws and keeps the summed loss in the same order, so the training trajectory is unchanged.
+
+---
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
@@ -158,7 +203,7 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 | D-Q | Charge domain | [0.25, 1000] PE everywhere; overflow clamped and counted | **Adopted, binding** (18 Oct) |
 | D-J | Timing kernel | Gaussian approximation; fraction of digits before photon arrival reported per cell | **Adopted, binding** (18 Oct) |
 | D-G | Intervention groups | mPMT modules (physical map from pinned file) | **Adopted, binding** (18 Oct) |
-| D-K | Fit failures | Unevaluable if failure rate > 10%; otherwise complete-case K with failure-rate difference reported | **Adopted, binding** (18 Oct); κ_m = 1.10 stays `provisional_dev` until the WP6 freeze |
+| D-K | Fit failures | Unevaluable if failure rate > 10%; otherwise complete-case K with failure-rate difference reported | **Adopted, binding** (18 Oct); κ_m = 1.10 **accepted** (author, 18 Oct, fourth message); re-check if any WP7 cell holds fewer than 12 physical events |
 | D-E | Energy endpoint | (A) Deposited energy inside instrumented volume; initial energy supporting on contained events only; containment preflight before training | **Pending Junjie**; (A) is the labelled development default |
 | R-3 energy gate | Energy MAE gate | ≤ 0.8 × constant pooled **and** ≤ 1.0 × constant in every energy subgroup | **Author decision** (18 Oct), replaces E17 |
 | D-T/L/M/S | Portfolio | Unchanged from v1 WP8 | open with Junjie |
