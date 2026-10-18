@@ -1436,3 +1436,19 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   then remove that cell's datasets before the next cell) and the author will be told in the next
   report. No dataset is deleted without its hashes being recorded first.
 - **2026-10-18 — ledger:** L40S **2.8717 / 170 GPU-h**; CPU generation **0.4452 / 48 wall-h**.
+
+- **2026-10-18 — grid sizing and the reclaim plan (rolling per-cell lifecycle approved).** Measured
+  at s_p = 0.10: one **main-cell dataset = 5 420 entries / 2.247 GB** (train 100 runs 604;
+  probe_train 200 1 204; probe_test 200 1 204; robustness 1 204; baseline 1 204); secondary cells
+  are smaller (r11/r11b/occupancy ≈3 012, dark_anchor ≈3 016, law_t ≈4 216). One completed run's
+  returns cost ≈8 entries / 15 MB; the 201-run grid out ≈1 608 entries / 3.0 GB. With 31 792 free
+  the rolling plan cannot start (a single main cell would cross the 30 000 write-stop), so the
+  following **regenerable artefacts are released at grid start**, each recorded with its manifest
+  sha256 before deletion and none of them a result: the archived s_p = 0.05 cache (3 157 entries;
+  its manifests recorded), the dev datasets after their decisions are committed (3 012), the three
+  old code clones `72add60e`/`6468582`/`89af5af` (1 551; re-clonable by SHA), and the stale smoke
+  sets (144; regenerable in seconds) — **7 864 entries / ~4.1 GB**, taking free space to ≈39.6 k.
+  Under the rolling plan (generate one cell → run every arm/seed of it → record the dataset hashes
+  in the run manifests → remove that cell's datasets → next cell) the projection stays above 32 k
+  for every cell (final after all 201 runs ≈33.0 k). `work`, returns, jobs, the evidence JSONs and
+  the full ledger are kept. Nothing is deleted without its hashes being recorded first.
