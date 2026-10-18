@@ -1462,3 +1462,36 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   entries returned to **34 880**. Nothing else was deleted; the dev datasets, old code clones and
   stale smoke sets remain untouched until grid start. Two transient guard HOLDs (another user's GPU
   usage 40 % then 32 % on a GPU we use) did not affect the running job and produced no SHED.
+
+## Author rulings, 18 Oct 2026 (verbatim)
+
+> Good work: the loader fix and streaming evaluation saved the campaign. Rulings (author, 18 Oct
+> 2026; record verbatim).
+>
+> 1. Stop step 3 (β selection) now, and keep its partial runs as superseded development evidence.
+>    Reason: the token time origin is changing. Trigger t = 0 is the true emission time, and the dev
+>    result shows the effect: mae_mse's linear vertex (0.093 m) beats the time-of-flight fit
+>    (0.142 m), which must estimate t0.
+> 2. Adopt the PMT readout's final time rule from the SHA I will name: NHits with N = 4 in 20 ns,
+>    and the prompt window [−20, +60] ns around the trigger. Digits outside it are dropped and
+>    counted; with no trigger, the origin falls back to the window start. Import it; do not
+>    reimplement it. This is part of A9.
+> 3. After the SHA is merged, redo development steps 2 (probe form) and 3 (β) on the new input. The
+>    ~14 GPU-h fits inside the 170 h cap. Detectability does not depend on time; do not re-run it.
+> 4. In DECISIONS.md, cite the authorisation you relied on for deleting the archived s_p = 0.05
+>    cache. If there is none, record it as an engineering decision inside our own area, with the
+>    evidence file it left.
+> 5. As planned: report the β table, then stop for my review before the 201-run grid.
+
+### Lead records under §4 (authorisation for the reclaim)
+
+- **2026-10-18 — the archived s_p = 0.05 cache reclaim was an engineering decision by the Lead, not
+  covered by G-QUOTA (A).** G-QUOTA (A) authorised exactly two paths (the failed venvs); it does not
+  cover datasets. The deletion was authorised by the Lead in-session as normal hygiene for a
+  **regenerable, non-result** artefact inside our own area (`/ceph/dwong/jepa/data/lucid_r6_v2`), and
+  was executed early only because free entries crossed the Lead's own 32 000 HOLD line. The evidence
+  retained: `ARCHIVED_s005_EVIDENCE.json` (200 910 B, sha256 `f7126f74…`; 6 datasets, 522 runs, each
+  with the dataset manifest sha256 and per-run manifest/state/event-id hashes) plus the kept
+  `manifest.json` + `SHA256SUMS` copies (17 entries). No result, code or log was deleted; the
+  reclaimed 3 157 entries / 1.97 GB returned free space to 34 880. Recorded here explicitly for the
+  author's audit.
