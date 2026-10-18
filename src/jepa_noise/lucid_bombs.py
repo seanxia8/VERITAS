@@ -26,6 +26,15 @@ on shared keyed draws; run structure, v3 §6 ID ranges under the ``lucid/``
 prefix, manifest and sparse-hit storage; N_min exclusion accounting (§3.5.4);
 §3.5.3a Fisher/ceiling numerics; and the 1000-event benchmark.  The synthetic
 schema fixture is *not* WCTE; no LUCiD data is redistributed.
+
+**A9 time convention** (author 2026-10-18): the token time is
+``digit - NHits trigger`` after the prompt-window cut; the true emission time is
+truth only (a keyed per-event offset uniform in [-50, +50] ns, recorded in
+``events.npz`` and never in a feature).  The NHits rule is **imported lazily**
+from the PMT readout (``noise_module_lucid.readout``) and never reimplemented
+here; until the author names the SHA that module is unmerged, so the import
+raises :class:`RuntimeError` and **no dataset may be generated**.  Tests inject
+the documented interface stub; nothing falls back to another convention.
 """
 from __future__ import annotations
 
@@ -160,6 +169,117 @@ ORACLE_ARM = "oracle_nominal_twin"
 NS_F1, NS_F3, NS_F2, NS_F2P = "lucid/F1", "lucid/F3", "lucid/F2", "lucid/F2p"
 NS_R11B, NS_K_R11B, NS_K_T = "lucid/R11b", "lucid/k_R11b", "lucid/k_T"
 NS_T_RATIOS, NS_DRAWS, NS_NOMINAL = "lucid/T_ratios", "lucid/draws", "lucid/nominal"
+#: New keyed role for the A9 leak guard: one emission-time offset per event.  It is its own
+#: keyed stream, so it perturbs no existing draw (vertex, yield, Poisson, dark, charge, transit).
+NS_EMISSION_OFFSET = "emission_offset"
+
+# --------------------------------------------------------------------------- A9 time convention
+#: The author's registered convention (2026-10-18, part of A9), recorded by the config, the
+#: manifest and the benchmark.  The **values used are the imported PMT readout's**; these are
+#: only the record they are validated against (no second implementation of the rule).
+TIME_RULE = {
+    "trigger": "NHits",
+    "n": 4,
+    "trigger_window_ns": 20.0,
+    "prompt_window_ns": (-20.0, 60.0),
+    "no_trigger": "window_start",
+    "emission_offset_ns": (-50.0, 50.0),
+    "token_time": "digit - trigger",
+    "source": "author 2026-10-18, A9; imported from the PMT readout, not reimplemented",
+}
+#: The emission-time offset interval (truth only): uniform per event, keyed RNG.
+EMISSION_OFFSET_NS = tuple(float(v) for v in TIME_RULE["emission_offset_ns"])
+#: Raised until the author names and merges the PMT SHA: an unvalidated time rule must not
+#: silently become the generator's convention.
+PENDING_TIME_RULE_MESSAGE = (
+    "the PMT NHits time rule is pending the author-named R-6.5 SHA; merge it before generating")
+
+#: Cached ``(nhits_trigger_time, n, trigger_window_ns, prompt_window_ns)`` from the PMT readout.
+#: Tests install the documented interface stub here; production code only ever fills it through
+#: the lazy import below, so a missing merge raises instead of falling back to a local rule.
+_PMT_TIME_RULE = None
+
+
+def pmt_time_rule_available() -> bool:
+    """True iff the author-named PMT SHA (the NHits time rule) is merged and importable.
+
+    Until then the generator must not produce digits (the convention would be undefined);
+    dataset-generating tests skip with this predicate rather than silently using another rule.
+    """
+    try:
+        pmt_time_rule()
+        return True
+    except RuntimeError:
+        return False
+
+
+def pmt_time_rule():
+    """The merged PMT readout's NHits time rule, imported lazily (never reimplemented).
+
+    Returns ``(nhits_trigger_time, n, trigger_window_ns, prompt_window_ns)``.  Raises a clear
+    :class:`RuntimeError` while the author-named PMT SHA is unmerged, so no code path can
+    silently use a different time convention.
+    """
+    global _PMT_TIME_RULE
+    if _PMT_TIME_RULE is not None:
+        return _PMT_TIME_RULE
+    try:  # the merged PMT branch's public interface; do not copy its code
+        from noise_module_lucid.readout import (NHITS_N, NHITS_WINDOW_NS, PROMPT_WINDOW_NS,
+                                                nhits_trigger_time)
+    except Exception as error:  # ImportError, or a module that does not yet expose the rule
+        raise RuntimeError(PENDING_TIME_RULE_MESSAGE) from error
+    rule = (nhits_trigger_time, int(NHITS_N), float(NHITS_WINDOW_NS),
+            tuple(float(v) for v in PROMPT_WINDOW_NS))
+    # No silent convention drift: the imported rule must be the registered one.
+    registered = (int(TIME_RULE["n"]), float(TIME_RULE["trigger_window_ns"]),
+                  tuple(float(v) for v in TIME_RULE["prompt_window_ns"]))
+    if rule[1:] != registered:
+        raise RuntimeError(
+            f"the PMT readout's time rule (n={rule[1]}, window_ns={rule[2]}, "
+            f"prompt_window_ns={rule[3]}) differs from the registered A9 convention "
+            f"{registered}; an author decision is required before generating")
+    _PMT_TIME_RULE = rule
+    return _PMT_TIME_RULE
+
+
+def time_rule_record() -> dict:
+    """The A9 convention as JSON-ready provenance (config, manifest, benchmark)."""
+    return {"trigger": str(TIME_RULE["trigger"]), "n": int(TIME_RULE["n"]),
+            "trigger_window_ns": float(TIME_RULE["trigger_window_ns"]),
+            "prompt_window_ns": [float(v) for v in TIME_RULE["prompt_window_ns"]],
+            "no_trigger": str(TIME_RULE["no_trigger"]),
+            "emission_offset_ns": [float(v) for v in TIME_RULE["emission_offset_ns"]],
+            "token_time": str(TIME_RULE["token_time"]),
+            "source": str(TIME_RULE["source"])}
+
+
+def validate_time_rule(block) -> dict:
+    """Check a recorded ``time_rule`` block against the registered A9 convention.
+
+    The readout still calls the **imported** PMT rule; this only guarantees that the recorded
+    convention cannot drift from the one the code is written against.
+    """
+    if not isinstance(block, dict):
+        raise ValueError("config: the 'time_rule' block is missing (author 2026-10-18, A9)")
+    for key, expected in TIME_RULE.items():
+        if key not in block:
+            raise ValueError(f"config: time_rule.{key} is missing (A9 convention)")
+        value = block[key]
+        try:
+            if isinstance(expected, tuple):
+                value = tuple(float(v) for v in value)
+            elif isinstance(expected, int):
+                number = float(value)
+                value = int(number) if number.is_integer() else number
+            elif isinstance(expected, float):
+                value = float(value)
+            else:
+                value = str(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"config: time_rule.{key}={value!r} has the wrong shape") from None
+        if value != expected:
+            raise ValueError(f"config: time_rule.{key}={value!r} != the registered {expected!r}")
+    return dict(block)
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -412,13 +532,51 @@ class Draws:
     dark_counts: np.ndarray  # (n_pmt,)
     window_ns: float = R6_WINDOW_NS
 
+@dataclass
+class ReadoutRecord:
+    """Per-run readout accounting for the A9 time convention (mutable counter).
+
+    ``n_events`` counts readouts, ``n_no_trigger`` the events where
+    :func:`nhits_trigger_time` returned ``None`` (origin falls back to the readout-window
+    start), ``n_prompt_dropped`` the digits dropped by the prompt-window cut, and
+    ``n_dark_moved_trigger`` the events in which a dark coincidence moves the trigger (the
+    full-digit trigger differs from the trigger computed on the source-derived digits alone).
+    It is written to the run manifest, never into a feature.
+    """
+
+    n_events: int = 0
+    n_no_trigger: int = 0
+    n_prompt_dropped: int = 0
+    n_dark_moved_trigger: int = 0
+
+    def as_dict(self) -> dict:
+        return {"n_events": int(self.n_events), "n_no_trigger": int(self.n_no_trigger),
+                "n_prompt_dropped": int(self.n_prompt_dropped),
+                "n_dark_moved_trigger": int(self.n_dark_moved_trigger),
+                "dark_moved_trigger_rate": (float(self.n_dark_moved_trigger) / float(self.n_events)
+                                            if self.n_events else 0.0)}
+
+
 @dataclass(frozen=True)
 class HitReadout:
-    """Observable hits for one event, sorted by PMT index."""
+    """Observable hits for one event, sorted by PMT index.
+
+    ``time_ns`` is the A9 **token time** ``digit - trigger`` after the prompt-window cut (the
+    per-digit time stored in the sparse hit store).  ``absolute_time_ns`` (additive) carries
+    the same digits' absolute readout times, so a ToF estimator that needs absolute times is
+    unaffected; no estimator is changed here (it estimates t0, so trigger-relative times are
+    admissible too).
+    """
 
     pmt_id: np.ndarray
     charge_pe: np.ndarray
     time_ns: np.ndarray
+    absolute_time_ns: np.ndarray | None = None
+    #: The imported-rule trigger used for this event (``None`` = window-start fallback).
+    trigger_ns: float | None = None
+    #: The trigger the rule would return on the **source-derived** digits alone; equal to
+    #: ``trigger_ns`` unless a dark coincidence moved it (see ``n_dark_moved_trigger``).
+    source_trigger_ns: float | None = None
 
     def __len__(self) -> int:
         return int(self.pmt_id.size)
@@ -556,6 +714,8 @@ def verify_manifest(payload: dict, runs: Sequence[RunSpec], geometry: Geometry,
         raise ValueError("manifest v_dark mismatch (it is derived from the R-6 manifest)")
     if payload.get("fixed_response", {}).get("sha256") != reference_response().sha256:
         raise ValueError("manifest fixed-response hash mismatch")
+    if "time_rule" in payload and payload["time_rule"] != time_rule_record():
+        raise ValueError("manifest time_rule mismatch (A9 convention)")
     if payload.get("geometry_sha256") != geometry.digest:
         raise ValueError("manifest geometry hash mismatch")
     if int(payload.get("dataset_seed", -1)) != int(seed):
@@ -1401,6 +1561,7 @@ def load_generator_config(path: Path | str) -> GeneratorConfig:
     if payload.get("dark_counts") != DARK_COUNTS_ON:
         raise ValueError(f"config: dark_counts {payload.get('dark_counts')!r} must be "
                          f"{DARK_COUNTS_ON!r} (PMT R-6)")
+    validate_time_rule(payload.get("time_rule"))
     cfg = GeneratorConfig(**kwargs)
     #: The response values are bound from the manifest, not copied into the config.
     manifest = generator_reference(cfg)
@@ -1526,6 +1687,10 @@ class SensorDraws:
     dark_times: np.ndarray
     window_ns: float
     capacity: int
+    #: A9 truth: per-event emission-time offset in [-50, +50] ns (keyed RNG).  It shifts every
+    #: **source photon** arrival time (never a dark time) and is never a feature; the readout
+    #: token time is trigger-relative, so the offset cancels.
+    emission_offset_ns: float = 0.0
 
 
 def dark_photoelectrons(geometry, cfg: GeneratorConfig, rng_counts, rng_times) -> tuple:
@@ -1559,6 +1724,9 @@ def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
     ``dark_counts`` and ``dark_times``.  On a WCTE-sized geometry (~1995 PMTs) the
     expected number of dark hits per event is **~2** (1995 x 1000 Hz x 1 us), with a
     zero count on most PMTs; a small fixture scales with its PMT count.
+
+    A9: the event also draws an **emission-time offset** uniform in [-50, +50] ns from its
+    own ``emission_offset`` keyed role (truth only, recorded in ``events.npz``).
     """
     if cfg.dark_counts != DARK_COUNTS_ON:
         raise ValueError(f"{READOUT_LABEL}: dark counts must be on, got {cfg.dark_counts!r}")
@@ -1574,16 +1742,19 @@ def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
     poisson_u = np.clip(rng("poisson").random((geometry.n_pmt, capacity)),
                         np.finfo(float).tiny, 1.0)
     dark_counts, dark_times = dark_photoelectrons(geometry, cfg, rng("dark"), rng("dark_time"))
+    emission_offset_ns = float(rng(NS_EMISSION_OFFSET).uniform(*EMISSION_OFFSET_NS))
     return SensorDraws(key=f"{NS_DRAWS}/{run_id}/{event_id}", run_id=run_id, event_id=int(event_id),
                        vertex_m=vertex, yield_photons=yield_photons, qe_eff=qe_eff,
                        poisson_u=poisson_u, charge_z=rng("charge").standard_normal(geometry.n_pmt),
                        transit_z=rng("transit").standard_normal(geometry.n_pmt),
                        dark_counts=dark_counts, dark_times=dark_times,
-                       window_ns=float(cfg.window_ns), capacity=capacity)
+                       window_ns=float(cfg.window_ns), capacity=capacity,
+                       emission_offset_ns=emission_offset_ns)
 
 def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geometry,
                                  cfg: GeneratorConfig,
-                                 reference: ReferenceResponse | None = None) -> HitReadout:
+                                 reference: ReferenceResponse | None = None, *,
+                                 accounting: ReadoutRecord | None = None) -> HitReadout:
     """The unrepaired PMT chain with the merged fixed R-6 response and dark counts on.
 
     QE/CE -> Poisson source PE (mean carries the fixed per-module parity gain) **joined
@@ -1603,9 +1774,20 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     dense module +5%).  The walk curve is ``response.leading_edge_time`` at the actual
     threshold, corrected by the same curve at the training-time calibration threshold;
     with ``threshold_pe == walk_calibration_pe`` the residual is exactly zero.
+
+    **A9 time convention.**  The source photon arrival time is
+    ``d*n_group/c + emission_offset_ns`` (the truth offset shifts every source photon, never a
+    dark time).  After digitisation, the trigger is
+    ``nhits_trigger_time(digit_times, n=NHITS_N, window_ns=NHITS_WINDOW_NS)`` imported from
+    the PMT readout; ``None`` falls back to the readout-window start (counted).  The token
+    time is ``t_token = t_digit - t_trigger`` and digits outside the imported prompt window
+    (default [-20, +60] ns) are **dropped and counted**.  ``HitReadout.time_ns`` holds the
+    tokens; ``HitReadout.absolute_time_ns`` keeps the same digits' absolute times additively.
+    No truth (vertex, emission offset) enters the token computation.
     """
     if cfg.dark_counts != DARK_COUNTS_ON:
         raise ValueError(f"{READOUT_LABEL}: dark counts must be on, got {cfg.dark_counts!r}")
+    nhits_trigger_time, nhits_n, nhits_window_ns, prompt_window_ns = pmt_time_rule()
     n_dark = np.asarray(draws.dark_counts, dtype=np.int64)
     if n_dark.shape != (geometry.n_pmt,) or np.any(n_dark < 0):
         raise ValueError("dark_counts must be one non-negative count per PMT")
@@ -1613,6 +1795,9 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     dark_times = np.asarray(draws.dark_times, dtype=float)
     if dark_times.shape != (dark_sensor.size,) or not np.all(np.isfinite(dark_times)):
         raise ValueError("dark_times must be one finite time per dark photoelectron")
+    emission_offset_ns = float(draws.emission_offset_ns)
+    if not np.isfinite(emission_offset_ns):
+        raise ValueError("emission_offset_ns must be finite (it is truth, not a feature)")
     start, end = (float(v) for v in cfg.readout_window_ns)
     if dark_times.size and (dark_times.min() < start - 1e-9 or dark_times.max() > end + 1e-9):
         raise ValueError("dark times must lie in the readout window")
@@ -1636,21 +1821,66 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     residual = np.where(np.isfinite(walk_cal), walk - np.where(np.isfinite(walk_cal), walk_cal, 0.0), 0.0)
     sigma_t = float(cfg.tts_sigma_ns) * fixed_timing_width_factor(geometry, ref)
     # Earliest *photoelectron* arrival per PMT: the prompt source light (only where a source
-    # PE was detected) or an earlier dark hit; the digit width/jitter is applied afterwards.
-    first = np.where(n_photon > 0, propagation_time_ns(geometry, draws.vertex_m, cfg), np.inf)
+    # PE was detected, shifted by the truth emission offset) or an earlier dark hit; the digit
+    # width/jitter is applied afterwards.  Dark times are not shifted by the emission offset.
+    first = np.where(n_photon > 0,
+                     propagation_time_ns(geometry, draws.vertex_m, cfg) + emission_offset_ns,
+                     np.inf)
     dark_first = np.full(geometry.n_pmt, np.inf)
     if dark_sensor.size:
         np.minimum.at(dark_first, dark_sensor, dark_times)
     first = np.where(np.isfinite(dark_first), np.minimum(first, dark_first), first)
     times = first + sigma_t * draws.transit_z + residual
     index = np.flatnonzero(fired)
-    return HitReadout(index, q[index], times[index])
+    digit_times = times[index]  # absolute readout digit times, before any time-origin change
+    # A9: the trigger comes from the imported PMT rule, on the digit times only (no truth).
+    trigger = nhits_trigger_time(digit_times, n=nhits_n, window_ns=nhits_window_ns)
+    # The author's invariance refinement: with dark counts on, the trigger must be identical on
+    # the source-derived digits alone; when a dark coincidence moves it, count it and report the
+    # rate.  Source-derived digits use only the prompt light (n_photon > 0) through the same
+    # width/jitter chain, so a constant photon-time shift moves them exactly.
+    if dark_sensor.size:
+        source_first = np.where(n_photon > 0,
+                                propagation_time_ns(geometry, draws.vertex_m, cfg) + emission_offset_ns,
+                                np.inf)
+        source_times = source_first + sigma_t * draws.transit_z + residual
+        source_digits = source_times[index]
+        source_trigger = nhits_trigger_time(source_digits, n=nhits_n, window_ns=nhits_window_ns)
+        if source_trigger is not None:
+            moved = trigger is None or abs(float(trigger) - float(source_trigger)) > 1e-9
+            if moved and accounting is not None:
+                accounting.n_dark_moved_trigger += 1
+    if trigger is not None and not np.isfinite(trigger):
+        raise ValueError("nhits_trigger_time returned a non-finite trigger")
+    if trigger is None:
+        # A9 fallback: the readout-window start is the origin.  Counted, never silent.
+        origin = start
+        if accounting is not None:
+            accounting.n_no_trigger += 1
+    else:
+        origin = float(trigger)
+    token = digit_times - origin
+    keep = (token >= prompt_window_ns[0]) & (token <= prompt_window_ns[1])
+    if accounting is not None:
+        accounting.n_events += 1
+        accounting.n_prompt_dropped += int(np.count_nonzero(~keep))
+    kept = index[keep]
+    return HitReadout(kept, q[kept], token[keep], absolute_time_ns=digit_times[keep],
+                      trigger_ns=(None if trigger is None else float(trigger)),
+                      source_trigger_ns=(None if dark_sensor.size == 0 or source_trigger is None
+                                         else float(source_trigger)))
 
-def make_readout(geometry, cfg: GeneratorConfig) -> ReadoutCallable:
-    """Bind the real readout to a geometry/config, for :func:`nominal_twin`."""
+def make_readout(geometry, cfg: GeneratorConfig, accounting: ReadoutRecord | None = None) -> ReadoutCallable:
+    """Bind the real readout to a geometry/config, for :func:`nominal_twin`.
+
+    ``accounting`` is the run's :class:`ReadoutRecord`; the nominal twin gets its own readout
+    (without this counter) so the record describes the measured readout only.
+    """
     reference = generator_reference(cfg)  # read once, then shared by every event
     def readout(state, draws):
-        return readout_synthetic_unrepaired(state, draws, geometry, cfg, reference)
+        return readout_synthetic_unrepaired(state, draws, geometry, cfg, reference,
+                                            accounting=accounting)
+    readout.accounting = accounting
     return readout
 
 # ======================================================================= generated runs/storage
@@ -1664,8 +1894,10 @@ class GeneratedRun:
     vertices_m: np.ndarray
     yields_photons: np.ndarray
     expected_pe: np.ndarray
+    emission_offsets_ns: np.ndarray  # A9 truth, one per event; never a feature
     hits: tuple
     twin_hits: tuple | None = None
+    readout_record: ReadoutRecord | None = None
 
     @property
     def n_events(self) -> int:
@@ -1683,23 +1915,27 @@ def generate_run(geometry, cfg: GeneratorConfig, run: RunSpec, *, seed: int | No
     state = run.state(geometry)
     reference = generator_reference(cfg)
     fixed_gain = fixed_charge_gain(geometry, reference)
-    readout = make_readout(geometry, cfg)
+    record = ReadoutRecord()
+    readout = make_readout(geometry, cfg, accounting=record)
+    twin_readout = make_readout(geometry, cfg)  # its own counter: the record is the measured path
     event_ids = np.arange(run.event_start, run.event_stop, dtype=np.int64)
     vertices = np.zeros((event_ids.size, 3))
     yields = np.zeros(event_ids.size)
     expected = np.zeros(event_ids.size)
+    offsets = np.zeros(event_ids.size)
     hits, twin_hits = [], []
     for i, event_id in enumerate(event_ids):
         draws = draw_event(geometry, cfg, run.run_id, int(event_id), seed=seed)
         vertices[i], yields[i] = draws.vertex_m, draws.yield_photons
+        offsets[i] = float(draws.emission_offset_ns)
         expected[i] = float((expected_charge(geometry, draws.vertex_m, draws.yield_photons,
                                              draws.qe_eff, state.attenuation_length_m, cfg)
                              * fixed_gain).sum())
         hits.append(readout(state, draws))
         if with_twin:
-            twin_hits.append(nominal_twin(draws, geometry, readout, arm=ORACLE_ARM))
-    return GeneratedRun(run, state, event_ids, vertices, yields, expected, tuple(hits),
-                        tuple(twin_hits) if with_twin else None)
+            twin_hits.append(nominal_twin(draws, geometry, twin_readout, arm=ORACLE_ARM))
+    return GeneratedRun(run, state, event_ids, vertices, yields, expected, offsets,
+                        tuple(hits), tuple(twin_hits) if with_twin else None, record)
 
 def generate_events(geometry, cfg: GeneratorConfig, runs, *, seed: int | None = None,
                     with_twin: bool | None = None):
@@ -1722,7 +1958,10 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
         np.savez_compressed(handle, event_ids=generated.event_ids,
                             vertex_m=generated.vertices_m.astype(np.float64),
                             yield_photons=generated.yields_photons.astype(np.float64),
-                            expected_pe=generated.expected_pe.astype(np.float32))
+                            expected_pe=generated.expected_pe.astype(np.float32),
+                            # A9 truth: the per-event emission-time offset.  Never a feature.
+                            emission_offset_ns=generated.emission_offsets_ns.astype(np.float64))
+    record = generated.readout_record or ReadoutRecord()
     payload = write_manifest(
         directory / "manifest.json", (generated.run,), geometry,
         seed=int(generated.run.seed if seed is None else seed), code_sha=code_sha,
@@ -1739,6 +1978,13 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
                "threshold_pe": float(cfg.threshold_pe), "spectrum_label": cfg.spectrum_label,
                "state_clipped": dict(generated.state.clipped), "n_hits": generated.n_hits,
                "twin_present": generated.twin_hits is not None,
+               # A9: the convention and the counted no-trigger / prompt-window drops.
+               "time_rule": time_rule_record(),
+               "store_time_ns": "digit - trigger (A9 token time, after the prompt-window cut)",
+               "n_no_trigger": int(record.n_no_trigger),
+               "n_prompt_dropped": int(record.n_prompt_dropped),
+               "n_readout_events": int(record.n_events),
+               "emission_offset_truth": "events.npz:emission_offset_ns (truth only; never a feature)",
                "event_truth_sha256": _sha(truth.read_bytes())})
     write_sha256sums(directory)
     return payload
@@ -1797,6 +2043,9 @@ def benchmark_generation(geometry, cfg: GeneratorConfig, *, n_events: int = 1000
             "dark_rate_hz": float(cfg.dark_rate_hz),
             "readout_window_ns": list(cfg.readout_window_ns),
             "window_ns": float(cfg.window_ns), "v_dark": V_DARK_READOUT,
+            "time_rule": time_rule_record(),
+            "n_no_trigger": int((generated.readout_record or ReadoutRecord()).n_no_trigger),
+            "n_prompt_dropped": int((generated.readout_record or ReadoutRecord()).n_prompt_dropped),
             "fixed_response": reference_provenance(cfg),
             "yield_range_photons": [float(cfg.y_lo), float(cfg.y_hi)],
             "yield_range_status": YIELD_RANGE_STATUS_IN_FORCE,

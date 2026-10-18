@@ -2,6 +2,8 @@
 import ast
 import hashlib
 import json
+import sys
+import types
 from dataclasses import replace
 from pathlib import Path
 
@@ -15,6 +17,39 @@ BIG = lb.synthetic_cylinder_geometry(64, 3)
 CONFIG = Path(__file__).resolve().parents[1] / "configs" / "lucid_bombs_v0.json"
 THRESHOLD_PE = 0.25
 TTS_SIGMA_NS = 1.0
+
+
+# --------------------------------------------------------------- A9 PMT time-rule interface stub
+#: The author-named PMT SHA is unmerged (DECISIONS 2026-10-18, A9).  Every test therefore runs
+#: the readout against the **documented interface** through the module-level hook: a stub
+#: ``nhits_trigger_time`` plus the constants.  ``test_missing_merge_raises_the_pending_error``
+#: removes the stub and asserts that the real import path raises the actionable RuntimeError.
+def nhits_trigger_time_stub(digits, n=4, window_ns=20.0):
+    """Test stub of the documented interface: earliest t with n digits in [t, t + window]."""
+    t = np.sort(np.asarray(digits, dtype=float).ravel())
+    if t.size < n:
+        return None
+    ok = np.flatnonzero(t[n - 1:] - t[:t.size - n + 1] <= window_ns)
+    return float(t[ok[0]]) if ok.size else None
+
+
+def install_time_rule(monkeypatch, trigger=None, n=4, window_ns=20.0,
+                      prompt_window_ns=(-20.0, 60.0)):
+    """Install the interface stub in place of the unmerged import (test hook)."""
+    rule = (trigger or nhits_trigger_time_stub, int(n), float(window_ns),
+            tuple(float(v) for v in prompt_window_ns))
+    monkeypatch.setattr(lb, "_PMT_TIME_RULE", rule)
+    return rule
+
+
+@pytest.fixture(autouse=True)
+def _stub_pmt_time_rule(monkeypatch):
+    install_time_rule(monkeypatch)
+
+
+def _module_pmts(module, count):
+    """PMT indices of one dense module (their propagation times are nearly identical)."""
+    return [int(p) for p in np.flatnonzero(SYNTH.module_index == int(module))[:int(count)]]
 
 
 def _draws(geometry=GEOM, event_id=7, run_id="lucid/probe_train/0000", n_photons=400,
@@ -33,14 +68,15 @@ def _draws(geometry=GEOM, event_id=7, run_id="lucid/probe_train/0000", n_photons
         dark_counts=rng("dark").poisson(dark_mean, geometry.n_pmt).astype(np.int64))
 
 
-def _fraction_draws(geometry, cfg, fractions, *, vertex=None, yield_photons=1.0):
+def _fraction_draws(geometry, cfg, fractions, *, vertex=None, yield_photons=1.0,
+                    transit_z=None, emission_offset_ns=0.0):
     """SensorDraws whose Poisson arrivals sit at fixed fractions of the raw mean.
 
     ``fractions[pmt] = [f0, f1, ...]`` puts the k-th arrival at ``f_k * mu_p`` of the
     **no-fixed-response** mean, so an arrival at ``1.02 * mu_p`` is counted on a +3%
     module and not on a 1.00 module: the fixed response is applied to the expected
     charge, exactly and deterministically (charge_z is zero, so the realised charge is
-    the count).
+    the count).  ``transit_z`` and ``emission_offset_ns`` set the digit times directly.
     """
     vertex = np.array([0.10, -0.20, 0.05]) if vertex is None else np.asarray(vertex, float)
     qe = np.full(geometry.n_pmt, 0.2)
@@ -50,12 +86,15 @@ def _fraction_draws(geometry, cfg, fractions, *, vertex=None, yield_photons=1.0)
     for pmt, fracs in fractions.items():
         for j, fraction in enumerate(fracs):
             u[int(pmt), j] = np.exp(-float(fraction) * mu_raw[int(pmt)])
+    z = (np.zeros(geometry.n_pmt) if transit_z is None
+         else np.asarray(transit_z, dtype=float))
     return lb.SensorDraws(
         key=f"{lb.NS_DRAWS}/crafted", run_id="lucid/probe_train/0000", event_id=0,
         vertex_m=vertex, yield_photons=float(yield_photons), qe_eff=qe, poisson_u=u,
-        charge_z=np.zeros(geometry.n_pmt), transit_z=np.zeros(geometry.n_pmt),
+        charge_z=np.zeros(geometry.n_pmt), transit_z=z,
         dark_counts=np.zeros(geometry.n_pmt, dtype=np.int64), dark_times=np.zeros(0),
-        window_ns=float(cfg.window_ns), capacity=capacity)
+        window_ns=float(cfg.window_ns), capacity=capacity,
+        emission_offset_ns=float(emission_offset_ns))
 
 
 def _standin(state, draws):
@@ -596,17 +635,19 @@ def test_nominal_twin_equals_the_undrifted_readout():
 def test_threshold_is_applied_after_gain_and_unhit_hits_are_not_recorded():
     cfg = replace(GEN_CFG, threshold_pe=1.5, walk_calibration_pe=1.5)
     odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])
-    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])
-    # exact 1 PE and 2 PE pulses, no SPE smearing: the 1 PE pulse is below 1.5 PE
-    draws = _fraction_draws(SYNTH, cfg, {odd: [0.5], even: [0.3, 0.3]})
+    # four 2 PE pulses on one even module: their digits provide the NHits trigger, so the
+    # 1 PE pulse (below the 1.5 PE threshold) is the only thing that can move
+    cluster = _module_pmts(44, 4)
+    fractions = {odd: [0.5], **{p: [0.3, 0.3] for p in cluster}}
+    draws = _fraction_draws(SYNTH, cfg, fractions)
     nominal = lb.nominal_state(SYNTH, draws.run_id)
     hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg)
-    assert hits.pmt_id.tolist() == [even]
-    assert hits.charge_pe[0] == pytest.approx(2.0)
+    assert hits.pmt_id.tolist() == sorted(cluster)
+    assert np.allclose(hits.charge_pe, 2.0)
     gains = np.ones(SYNTH.n_pmt)
     gains[odd] = 1.5  # gain acts before the threshold: 1 PE x 1.03 x 1.5 now crosses
     lifted = lb.readout_synthetic_unrepaired(replace(nominal, gains=gains), draws, SYNTH, cfg)
-    assert odd in lifted.pmt_id.tolist() and even in lifted.pmt_id.tolist()
+    assert odd in lifted.pmt_id.tolist() and set(cluster) <= set(lifted.pmt_id.tolist())
 
 
 # ===================================================================== WP4b: fixed response
@@ -656,28 +697,28 @@ def test_fixed_response_values_come_from_the_manifest(tmp_path):
 
 def test_readout_applies_the_parity_gain_and_the_twin_keeps_it(monkeypatch):
     cfg = replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
-    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])   # dense 45 -> x1.03
-    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])  # dense 44 -> x1.00
+    odd = _module_pmts(45, 4)   # dense 45 -> x1.03
+    even = _module_pmts(44, 4)  # dense 44 -> x1.00
     # arrive at 1.02 x the gain-included mean: only the +3% module counts the arrival
-    draws = _fraction_draws(SYNTH, cfg, {odd: [1.02], even: [1.02]})
+    draws = _fraction_draws(SYNTH, cfg, {p: [1.02] for p in odd + even})
     nominal = lb.nominal_state(SYNTH, draws.run_id)
     readout = lb.make_readout(SYNTH, cfg)
     measured = readout(nominal, draws)
-    assert measured.pmt_id.tolist() == [odd]
-    assert measured.charge_pe[0] == pytest.approx(1.0)  # 1 PE, no SPE smearing
+    assert measured.pmt_id.tolist() == sorted(odd)
+    assert np.allclose(measured.charge_pe, 1.0)  # 1 PE, no SPE smearing
     # the nominal twin keeps the fixed response: it is detector response, not drift
     twin = lb.nominal_twin(draws, SYNTH, readout, arm=lb.ORACLE_ARM)
-    assert twin.pmt_id.tolist() == [odd]
-    assert twin.charge_pe[0] == pytest.approx(1.0)
+    assert twin.pmt_id.tolist() == sorted(odd)
+    assert np.allclose(twin.charge_pe, 1.0)
     # without the fixed gain the same arrival is lost: the gain moved the expected charge
-    monkeypatch.setattr(lb, "fixed_charge_gain",
-                        lambda geometry, reference=None: np.ones(geometry.n_pmt))
-    assert readout(nominal, draws).pmt_id.size == 0
-    monkeypatch.undo()
-    # the twin cancels exactly the injected F1/F3 gain: an injected 0.2 drops the hit
-    drifted = replace(nominal, gains=np.where(np.arange(SYNTH.n_pmt) == odd, 0.2, 1.0))
+    with monkeypatch.context() as patch:
+        patch.setattr(lb, "fixed_charge_gain",
+                      lambda geometry, reference=None: np.ones(geometry.n_pmt))
+        assert readout(nominal, draws).pmt_id.size == 0
+    # the twin cancels exactly the injected F1/F3 gain: an injected 0.2 drops the hits
+    drifted = replace(nominal, gains=np.where(np.isin(np.arange(SYNTH.n_pmt), odd), 0.2, 1.0))
     assert readout(drifted, draws).pmt_id.size == 0
-    assert lb.nominal_twin(draws, SYNTH, readout, arm=lb.ORACLE_ARM).pmt_id.tolist() == [odd]
+    assert lb.nominal_twin(draws, SYNTH, readout, arm=lb.ORACLE_ARM).pmt_id.tolist() == sorted(odd)
 
 
 def test_twin_ratios_cancel_only_the_injected_gain():
@@ -781,38 +822,47 @@ def test_dark_hits_per_event_are_about_two_on_a_wcte_sized_geometry():
 def test_a_dark_hit_can_make_a_pmt_fire_and_sets_its_time():
     """Dark PE join before digitisation and share the gain/threshold/walk path."""
     cfg = replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
-    # no source photon anywhere; one dark PE on a +3% module and one on a 1.00 module
-    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])   # dense 45 -> x1.03
-    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])  # dense 44 -> x1.00
-    assert even < odd                       # dark times are ordered like the PMT indices
-    early, late = -150.0, 640.0             # both inside the R-6 window [-200, 800]
+    # no source photon anywhere: four dark PE on a +3% module and a 1.00 module
+    even = _module_pmts(44, 2)  # dense 44 -> x1.00
+    odd = _module_pmts(45, 2)   # dense 45 -> x1.03
+    pmts = even + odd
+    assert pmts == sorted(pmts) and len(pmts) == 4
+    # dark times are ordered like the PMT indices; four digits within 20 ns give a trigger
+    dark_times = np.array([-150.0, -148.0, -146.0, -144.0])
     draws = _fraction_draws(SYNTH, cfg, {})
     dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
-    dark[[even, odd]] = 1
-    draws = replace(draws, dark_counts=dark, dark_times=np.array([early, late]))
+    dark[pmts] = 1
+    draws = replace(draws, dark_counts=dark, dark_times=dark_times)
     nominal = lb.nominal_state(SYNTH, draws.run_id)
     hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg)
-    assert sorted(hits.pmt_id.tolist()) == sorted([odd, even])  # dark alone crosses it
+    assert hits.pmt_id.tolist() == sorted(pmts)  # dark alone crosses the threshold
     q = dict(zip(hits.pmt_id.tolist(), hits.charge_pe.tolist()))
-    # one dark PE is one recorded PE on either module (the fixed parity gain scales the
-    # *expected source* charge, exactly as for every other recorded digit in this readout)
-    assert q[odd] == pytest.approx(1.0) and q[even] == pytest.approx(1.0)
-    t = dict(zip(hits.pmt_id.tolist(), hits.time_ns.tolist()))
-    # the dark PE sets the digit time, measured from the window start (transit_z = 0 here)
-    assert t[even] == pytest.approx(early) and t[odd] == pytest.approx(late)
-    # the injected gain is applied to dark charge too: a 0.1 gain loses the dark hit
-    killed = replace(nominal, gains=np.where(np.arange(SYNTH.n_pmt) == even, 0.1, 1.0))
-    assert lb.readout_synthetic_unrepaired(killed, draws, SYNTH, cfg).pmt_id.tolist() == [odd]
+    for p in pmts:
+        # one dark PE is one recorded PE on either module (the fixed parity gain scales the
+        # *expected source* charge, exactly as for every other recorded digit in this readout)
+        assert q[p] == pytest.approx(1.0)
+    t = dict(zip(hits.pmt_id.tolist(), hits.absolute_time_ns.tolist()))
+    for p, expected in zip(pmts, dark_times):
+        # the dark PE sets the digit time, measured from the window start (transit_z = 0 here)
+        assert t[p] == pytest.approx(expected)
+    # A9: the stored time is the trigger-relative token, the absolute times stay additive
+    trigger = nhits_trigger_time_stub(hits.absolute_time_ns)
+    assert trigger == pytest.approx(-150.0)
+    assert np.allclose(hits.time_ns, hits.absolute_time_ns - trigger)
+    # the injected gain is applied to dark charge too: a 0.1 gain loses that dark hit
+    killed = replace(nominal, gains=np.where(np.arange(SYNTH.n_pmt) == even[0], 0.1, 1.0))
+    left = lb.readout_synthetic_unrepaired(killed, draws, SYNTH, cfg)
+    assert even[0] not in left.pmt_id.tolist() and even[1] in left.pmt_id.tolist()
     # a dark PE on an already-hit PMT adds charge like any other photoelectron
-    with_source = _fraction_draws(SYNTH, cfg, {even: [0.30]})
-    both = replace(with_source, dark_counts=dark, dark_times=np.array([early, late]))
+    with_source = _fraction_draws(SYNTH, cfg, {even[0]: [0.30]})
+    both = replace(with_source, dark_counts=dark, dark_times=dark_times)
     hits_both = lb.readout_synthetic_unrepaired(nominal, both, SYNTH, cfg)
     charge = dict(zip(hits_both.pmt_id.tolist(), hits_both.charge_pe.tolist()))
-    assert charge[even] == pytest.approx(2.0)   # 1 source + 1 dark PE, no SPE smearing
+    assert charge[even[0]] == pytest.approx(2.0)   # 1 source + 1 dark PE, no SPE smearing
     # times outside the manifest window are refused rather than silently accepted
     with pytest.raises(ValueError, match="window"):
-        lb.readout_synthetic_unrepaired(nominal, replace(both, dark_times=np.array([900.0, 0.0])),
-                                        SYNTH, cfg)
+        lb.readout_synthetic_unrepaired(
+            nominal, replace(both, dark_times=np.array([900.0, 0.0, 0.0, 0.0])), SYNTH, cfg)
     with pytest.raises(ValueError, match="dark_times"):
         lb.readout_synthetic_unrepaired(nominal, replace(both, dark_times=np.zeros(1)), SYNTH, cfg)
 
@@ -889,17 +939,253 @@ def test_generator_config_records_the_fixed_response_source_and_hash():
 
 def test_timing_width_factor_scales_the_digit_gaussian_width():
     cfg = replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
-    odd = int(np.flatnonzero(SYNTH.module_index == 45)[0])   # dense 45 -> x1.05
-    even = int(np.flatnonzero(SYNTH.module_index == 44)[0])  # dense 44 -> x1.00
-    draws = _fraction_draws(SYNTH, cfg, {odd: [0.5], even: [0.5]})
+    odd = _module_pmts(45, 2)   # dense 45 -> x1.05
+    even = _module_pmts(44, 2)  # dense 44 -> x1.00
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in odd + even})
     draws = replace(draws, transit_z=np.ones(SYNTH.n_pmt))
     hits = lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id), draws,
                                            SYNTH, cfg)
     tau = lb.propagation_time_ns(SYNTH, draws.vertex_m, cfg)
-    times = dict(zip(hits.pmt_id.tolist(), hits.time_ns.tolist()))
+    width = lb.fixed_timing_width_factor(SYNTH)
     sigma = GEN_CFG.tts_sigma_ns
-    assert times[odd] == pytest.approx(tau[odd] + sigma * 1.05)
-    assert times[even] == pytest.approx(tau[even] + sigma * 1.00)
+    all_times = {p: tau[p] + sigma * width[p] * 1.0 for p in odd + even}
+    trigger = nhits_trigger_time_stub(list(all_times.values()))
+    assert trigger is not None
+    keep = {p for p, t in all_times.items() if -20.0 <= t - trigger <= 60.0}
+    assert set(hits.pmt_id.tolist()) == keep
+    times = dict(zip(hits.pmt_id.tolist(), hits.absolute_time_ns.tolist()))
+    for p in odd:
+        assert times[p] == pytest.approx(tau[p] + sigma * 1.05)
+    for p in even:
+        assert times[p] == pytest.approx(tau[p] + sigma * 1.00)
+    # A9: the stored time is trigger-relative and the absolute times stay additive
+    absolute = np.array([times[p] for p in hits.pmt_id.tolist()])
+    assert np.array_equal(hits.time_ns, absolute - trigger)
+
+
+# ===================================================================== WP4b: A9 time convention
+def _a9_cfg():
+    return replace(GEN_CFG, threshold_pe=0.25, walk_calibration_pe=0.25)
+
+
+def _crafted_times(draws, cfg):
+    """Absolute digit times of a crafted draw: ``tau + offset + sigma_t * transit_z``."""
+    tau = lb.propagation_time_ns(SYNTH, draws.vertex_m, cfg)
+    sigma = cfg.tts_sigma_ns * lb.fixed_timing_width_factor(SYNTH)
+    return tau + float(draws.emission_offset_ns) + sigma * np.asarray(draws.transit_z, float)
+
+
+def test_token_time_is_the_digit_time_minus_the_trigger():
+    cfg = _a9_cfg()
+    pmts = _module_pmts(44, 4)
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in pmts})
+    nominal = lb.nominal_state(SYNTH, draws.run_id)
+    record = lb.ReadoutRecord()
+    hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg, accounting=record)
+    absolute = _crafted_times(draws, cfg)[pmts]
+    trigger = nhits_trigger_time_stub(absolute)
+    assert trigger is not None and trigger == absolute.min()
+    assert np.array_equal(hits.pmt_id, np.array(sorted(pmts)))
+    assert np.allclose(hits.absolute_time_ns, absolute, rtol=0.0, atol=1e-12)
+    assert np.array_equal(hits.time_ns, hits.absolute_time_ns - trigger)  # t_digit - t_trigger
+    assert np.allclose(hits.time_ns, absolute - absolute.min())
+    assert record.as_dict() == {"n_events": 1, "n_no_trigger": 0, "n_prompt_dropped": 0,
+                                "n_dark_moved_trigger": 0, "dark_moved_trigger_rate": 0.0}
+
+
+def test_prompt_window_cut_drops_and_counts_out_of_window_digits():
+    cfg = _a9_cfg()
+    pmts = _module_pmts(45, 6)
+    cluster, early, late = pmts[:4], pmts[4], pmts[5]
+    z = np.zeros(SYNTH.n_pmt)
+    z[early], z[late] = -20.0, 70.0  # ~ -31.5 ns and +110 ns relative to the cluster
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in pmts}, transit_z=z)
+    nominal = lb.nominal_state(SYNTH, draws.run_id)
+    record = lb.ReadoutRecord()
+    hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg, accounting=record)
+    absolute = _crafted_times(draws, cfg)
+    trigger = nhits_trigger_time_stub(absolute[pmts])
+    assert trigger is not None
+    token = absolute[pmts] - trigger
+    assert token[pmts.index(early)] < -20.0 and token[pmts.index(late)] > 60.0
+    assert hits.pmt_id.tolist() == sorted(cluster)
+    assert record.as_dict() == {"n_events": 1, "n_no_trigger": 0, "n_prompt_dropped": 2,
+                                "n_dark_moved_trigger": 0, "dark_moved_trigger_rate": 0.0}
+    assert np.allclose(hits.time_ns, absolute[cluster] - trigger)
+    assert np.all((hits.time_ns >= -20.0) & (hits.time_ns <= 60.0))
+
+
+def test_no_trigger_falls_back_to_the_window_start_and_is_counted():
+    cfg = _a9_cfg()
+    pmts = _module_pmts(44, 3)  # only three digits: no NHits cluster exists
+    tau = lb.propagation_time_ns(SYNTH, np.array([0.10, -0.20, 0.05]), cfg)
+    sigma = cfg.tts_sigma_ns * lb.fixed_timing_width_factor(SYNTH)
+    targets = np.array([-150.0, -145.0, -100.0])  # two inside [start-20, start+60], one outside
+    z = np.zeros(SYNTH.n_pmt)
+    z[pmts] = (targets - tau[pmts]) / sigma[pmts]
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in pmts}, transit_z=z)
+    nominal = lb.nominal_state(SYNTH, draws.run_id)
+    assert nhits_trigger_time_stub(_crafted_times(draws, cfg)[pmts]) is None
+    record = lb.ReadoutRecord()
+    hits = lb.readout_synthetic_unrepaired(nominal, draws, SYNTH, cfg, accounting=record)
+    assert record.as_dict() == {"n_events": 1, "n_no_trigger": 1, "n_prompt_dropped": 1,
+                                "n_dark_moved_trigger": 0, "dark_moved_trigger_rate": 0.0}
+    assert hits.pmt_id.tolist() == sorted(pmts[:2])
+    assert np.allclose(hits.absolute_time_ns, targets[:2], atol=1e-9)
+    # the origin is the readout-window start (-200 ns), not a truth time
+    assert np.allclose(hits.time_ns, targets[:2] + 200.0, atol=1e-9)
+    assert np.all((hits.time_ns >= -20.0) & (hits.time_ns <= 60.0))
+
+
+def test_trigger_uses_the_imported_constants_and_the_shifted_digit_times(monkeypatch):
+    calls = []
+
+    def spy(digits, n=4, window_ns=20.0):
+        calls.append((np.asarray(digits, dtype=float).copy(), n, window_ns))
+        return float(np.min(np.asarray(digits, dtype=float)))
+
+    install_time_rule(monkeypatch, trigger=spy)
+    cfg = _a9_cfg()
+    pmts = _module_pmts(44, 4)
+    offset = 23.5
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in pmts}, emission_offset_ns=offset)
+    hits = lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id), draws,
+                                           SYNTH, cfg)
+    assert len(calls) == 1
+    digits, n, window_ns = calls[0]
+    expected = _crafted_times(draws, cfg)[pmts]
+    assert n == lb.TIME_RULE["n"] == 4 and window_ns == lb.TIME_RULE["trigger_window_ns"] == 20.0
+    # the rule sees the emission-offset-shifted digit times (the offset is added before it)
+    assert np.allclose(digits, expected)
+    assert np.allclose(hits.absolute_time_ns, expected)
+    # ... and the token is the difference of two shifted times: the offset cancels
+    assert np.allclose(hits.time_ns, expected - expected.min())
+
+
+def test_prompt_window_bounds_come_from_the_imported_constant(monkeypatch):
+    install_time_rule(monkeypatch, prompt_window_ns=(-5.0, 10.0))
+    cfg = _a9_cfg()
+    pmts = _module_pmts(45, 5)
+    z = np.zeros(SYNTH.n_pmt)
+    z[pmts[4]] = 13.0  # ~ +20 ns relative to the cluster: inside [-20, 60], outside [-5, 10]
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in pmts}, transit_z=z)
+    record = lb.ReadoutRecord()
+    hits = lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id), draws,
+                                           SYNTH, cfg, accounting=record)
+    assert hits.pmt_id.tolist() == sorted(pmts[:4])
+    assert record.n_prompt_dropped == 1
+
+
+def test_missing_merge_raises_the_pending_error(monkeypatch):
+    monkeypatch.setattr(lb, "_PMT_TIME_RULE", None)
+    monkeypatch.setitem(sys.modules, "noise_module_lucid.readout",
+                        types.ModuleType("noise_module_lucid.readout"))
+    with pytest.raises(RuntimeError, match="pending the author-named"):
+        lb.pmt_time_rule()
+    cfg = _a9_cfg()
+    draws = _fraction_draws(SYNTH, cfg, {p: [0.5] for p in _module_pmts(44, 4)})
+    with pytest.raises(RuntimeError, match="PMT NHits time rule"):
+        lb.readout_synthetic_unrepaired(lb.nominal_state(SYNTH, draws.run_id), draws, SYNTH, cfg)
+
+
+def test_leak_guard_the_emission_offset_never_enters_the_tokens():
+    cfg = replace(GEN_CFG, y_lo=3000.0, y_hi=6000.0)
+    # a real keyed event with its dark bank removed: the guard is about the source photons
+    draws = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 5, seed=11)
+    draws = replace(draws, dark_counts=np.zeros(SYNTH.n_pmt, dtype=np.int64),
+                    dark_times=np.zeros(0))
+    state = lb.nominal_state(SYNTH, draws.run_id)
+    readout = lb.make_readout(SYNTH, cfg)
+    base = readout(state, draws)
+    assert base.pmt_id.size >= 20
+    base_store = lb.sparse_from_readouts([0], [base])
+    for delta in (-37.25, 0.0, 12.5):
+        shifted = replace(draws, emission_offset_ns=draws.emission_offset_ns + delta)
+        hit = readout(state, shifted)
+        # one constant shift of every source photon: the same digits, the same trigger
+        assert np.array_equal(hit.pmt_id, base.pmt_id)
+        assert np.allclose(hit.absolute_time_ns, base.absolute_time_ns + delta, atol=1e-9)
+        # trigger-relative times are unchanged: the only difference is the float64 rounding
+        # of the offset (<= a few ulp of the absolute times, measured <= 2e-14 ns)
+        assert np.allclose(hit.time_ns, base.time_ns, rtol=0.0,
+                           atol=8.0 * np.spacing(np.abs(base.absolute_time_ns).max()))
+        # the stored token (float32, the model input) is bit-identical
+        assert np.array_equal(lb.sparse_from_readouts([0], [hit]).time_ns, base_store.time_ns)
+    # dark photoelectrons use their own keys and are not shifted by the emission offset
+    dark = np.zeros(SYNTH.n_pmt, dtype=np.int64)
+    dark[_module_pmts(44, 2) + _module_pmts(45, 2)] = 1
+    dark_only = replace(_fraction_draws(SYNTH, cfg, {}), dark_counts=dark,
+                        dark_times=np.array([-150.0, -148.0, -146.0, -144.0]),
+                        emission_offset_ns=-31.0)
+    first = readout(state, dark_only)
+    second = readout(state, replace(dark_only, emission_offset_ns=49.0))
+    assert np.array_equal(first.time_ns, second.time_ns)
+    assert np.array_equal(first.absolute_time_ns, second.absolute_time_ns)
+
+
+def test_emission_offset_is_uniform_in_minus50_plus50_and_keyed():
+    cfg = replace(GEN_CFG, y_lo=100.0, y_hi=200.0)
+    offsets = np.array([lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", e).emission_offset_ns
+                        for e in range(1000)])
+    assert np.all(offsets >= -50.0) and np.all(offsets <= 50.0)
+    assert offsets.min() < -45.0 and offsets.max() > 45.0  # both tails are populated
+    assert abs(offsets.mean()) < 3.0                        # SE = 50/sqrt(3*1000) = 0.91 ns
+    from scipy.stats import kstest
+    assert kstest((offsets + 50.0) / 100.0, "uniform").pvalue > 1e-3
+    # keyed and reproducible; its own role, so the other draws are untouched
+    again = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 0)
+    assert again.emission_offset_ns == offsets[0]
+    assert lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 1).emission_offset_ns != offsets[0]
+    a = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 3)
+    b = lb.draw_event(SYNTH, cfg, "lucid/probe_train/0000", 3)
+    assert np.array_equal(a.poisson_u, b.poisson_u) and np.array_equal(a.charge_z, b.charge_z)
+    assert np.array_equal(a.transit_z, b.transit_z) and np.array_equal(a.dark_times, b.dark_times)
+
+
+def test_events_npz_carries_the_emission_offset_as_truth(tmp_path):
+    run = lb.RunSpec("lucid/probe_train/0000", "lucid/probe_train", "F1", 0.05, 0, 6, 7)
+    generated = lb.generate_run(SYNTH, GEN_CFG, run, with_twin=False)
+    payload = lb.write_generated_run(tmp_path / "run", generated, SYNTH, GEN_CFG,
+                                     code_sha="deadbeef")
+    truth = np.load(tmp_path / "run" / "events.npz")
+    assert "emission_offset_ns" in truth.files
+    event_ids = np.arange(run.event_start, run.event_stop)
+    expected = np.array([lb.draw_event(SYNTH, GEN_CFG, run.run_id, int(e), seed=7).emission_offset_ns
+                         for e in event_ids])
+    assert np.array_equal(truth["emission_offset_ns"], expected)
+    assert np.all((truth["emission_offset_ns"] >= -50.0)
+                  & (truth["emission_offset_ns"] <= 50.0))
+    # truth only: the token store has no offset field, and the manifest records the convention
+    store = lb.read_sparse_hits(tmp_path / "run" / "hits.npz")
+    assert not hasattr(store, "emission_offset_ns")
+    assert payload["time_rule"] == lb.time_rule_record()
+    assert payload["n_readout_events"] == 6
+    assert payload["n_no_trigger"] == generated.readout_record.n_no_trigger
+    assert payload["n_prompt_dropped"] == generated.readout_record.n_prompt_dropped
+    assert "trigger" in payload["store_time_ns"]
+    broken = dict(payload)
+    broken["time_rule"] = dict(payload["time_rule"], n=3)
+    with pytest.raises(ValueError, match="time_rule"):
+        lb.verify_manifest(broken, (run,), SYNTH, seed=7)
+
+
+def test_config_records_the_a9_time_rule(tmp_path):
+    rule = json.loads(CONFIG.read_text())["time_rule"]
+    assert rule["trigger"] == "NHits" and rule["n"] == 4
+    assert rule["trigger_window_ns"] == 20.0
+    assert rule["prompt_window_ns"] == [-20.0, 60.0]
+    assert rule["no_trigger"] == "window_start"
+    assert rule["emission_offset_ns"] == [-50.0, 50.0]
+    assert rule["token_time"] == "digit - trigger"
+    assert "author 2026-10-18" in rule["source"] and "not reimplemented" in rule["source"]
+    assert lb.validate_time_rule(rule) == rule
+    assert lb.load_generator_config(CONFIG) == lb.GeneratorConfig()
+    payload = json.loads(CONFIG.read_text())
+    payload["time_rule"]["n"] = 3
+    broken = tmp_path / "broken_time_rule.json"
+    broken.write_text(json.dumps(payload))
+    with pytest.raises(ValueError, match="time_rule.n"):
+        lb.load_generator_config(broken)
 
 
 # ===================================================================== WP4b: storage/benchmark

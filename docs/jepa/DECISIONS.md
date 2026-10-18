@@ -1557,3 +1557,23 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   the same on the source-derived digits, and a recorded diagnostic counts the events in which a dark
   coincidence moves the trigger (full-digital trigger ≠ source-only trigger) — that rate is reported
   with the run/readout record, not hidden.
+
+- **2026-10-18 — A9 token-time implementation landed in the generator (pending the named PMT SHA).**
+  `lucid_bombs` now carries the A9 time convention: a `time_rule` record and a lazy `pmt_time_rule()`
+  import of `nhits_trigger_time`/`NHITS_N`/`NHITS_WINDOW_NS`/prompt-window from
+  `noise_module_lucid.readout` (a clear `RuntimeError` when the named SHA is absent — **no silent
+  fallback**, and dataset generation refuses), a keyed per-event `emission_offset_ns` uniform in
+  [−50, +50] ns added to source photon arrivals only and recorded as truth (`events.npz`
+  `emission_offset_ns`, `GeneratedRun.emission_offsets_ns`, never a feature), `HitReadout.time_ns` =
+  digit − trigger after the prompt-window cut, additive `absolute_time_ns` for the ToF estimator
+  (which estimates t0 and is unaffected), `trigger_ns`/`source_trigger_ns` diagnostics, and
+  `ReadoutRecord` counters `n_events`, `n_no_trigger`, `n_prompt_dropped`,
+  **`n_dark_moved_trigger`/`dark_moved_trigger_rate`** for the author's refinement. The config
+  records the rule; `pmt_time_rule_available()` lets dataset-generating tests skip with an explicit
+  reason until the merge. Tests: the bombs suite is green (56+ tests: token = digit − trigger,
+  prompt cut + counting, `None` → window-start + counter, missing-merge error, leak guard
+  bit-identical tokens, emission-offset uniformity/keying/truth field, config/manifest check,
+  constant-shift invariance with the exact trigger shift, source-digit invariance and the
+  dark-moved-trigger rate); the 10 dataset-generating integration tests in the other suites are
+  **skipped explicitly pending the author-named SHA** (they cannot generate coherent data before
+  the merge). No datasets were generated.

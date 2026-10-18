@@ -20,6 +20,11 @@ ARMS = la.load_config()
 CPU = torch.device("cpu")
 
 
+from jepa_noise import lucid_bombs as _lb_for_rule
+_NEEDS_PMT_TIME_RULE = pytest.mark.skipif(
+    not _lb_for_rule.pmt_time_rule_available(),
+    reason="pending the author-named PMT SHA (NHits time rule); no datasets are generated")
+
 def _args(**kw):
     base = dict(arm="sigreg_jepa", runs=2, run_events=4, steps=2, micro_batch=None, resume=None,
                 stop_after=None, evaluate=False, probe_events=8, probe_run_events=4,
@@ -162,6 +167,7 @@ def _tiny_config():
     return config
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_grid_runs_end_to_end_and_threads_physics_method(tmp_path):
     config = _tiny_config()
     decision = tmp_path / "step2_decision.json"
@@ -192,6 +198,7 @@ def test_grid_runs_end_to_end_and_threads_physics_method(tmp_path):
 
 
 # ---------------------------------------------------------------- smoke / resume / determinism
+@_NEEDS_PMT_TIME_RULE
 def test_smoke_writes_manifest_status_checkpoint_and_is_deterministic(tmp_path):
     a = _smoke(tmp_path, "a")
     run_dir = tmp_path / "a" / "runs" / a["run_id"]
@@ -220,6 +227,7 @@ def test_smoke_writes_manifest_status_checkpoint_and_is_deterministic(tmp_path):
         {p.relative_to(tmp_path).parts[0] for p in tmp_path.rglob("*")} <= {"a", "b", "data"}
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_resume_is_bit_identical_and_automatic(tmp_path):
     direct = _smoke(tmp_path, "direct")
     stopped = _smoke(tmp_path, "stopped", stop_after=1)
@@ -233,6 +241,7 @@ def test_resume_is_bit_identical_and_automatic(tmp_path):
     assert all(torch.equal(a[k], b[k]) for k in a)
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_sigterm_checkpoints_and_interrupts(tmp_path):
     def callback(step):
         if step == 1:
@@ -502,6 +511,7 @@ def _tiny_dataset(tmp_path, tag="tiny", runs=5, run_events=4):
         log=lambda *_: None)
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_floor_cache_identity_includes_mask_seed_and_probe_cap(tmp_path):
     dataset = _tiny_dataset(tmp_path)
     cell = next(c for c in lr.enumerate_cells(CONFIG) if c.cell_id == "main_s005_within")
@@ -515,6 +525,7 @@ def test_floor_cache_identity_includes_mask_seed_and_probe_cap(tmp_path):
             lr.ensure_floor(**dict(base, **changed))
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_oracle_nominal_twin_probes_read_the_twin_input(tmp_path):
     dataset = _tiny_dataset(tmp_path, "twin")
     model = la.random_init_floor("oracle_nominal_twin", GEOM, seed=0)
@@ -527,6 +538,7 @@ def test_oracle_nominal_twin_probes_read_the_twin_input(tmp_path):
 
 
 # ------------------------------------------------- streaming probe evaluation
+@_NEEDS_PMT_TIME_RULE
 def test_probe_evaluation_streams_equivalently_and_records_memory(tmp_path):
     """The streamed sufficient-statistics path matches the legacy full-matrix path.
 
@@ -557,6 +569,7 @@ def test_probe_evaluation_streams_equivalently_and_records_memory(tmp_path):
     assert memory["peak_delta_mb"] is not None and memory["resident_delta_mb"] is not None
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_probe_max_events_keeps_its_per_run_cap(tmp_path):
     dataset = _tiny_dataset(tmp_path, "cap", runs=6, run_events=4)
     model = la.random_init_floor("sigreg_jepa", GEOM, seed=0)
@@ -613,6 +626,7 @@ def test_dark_bank_draws_real_dark_noise_only_windows(tmp_path):
                             seed=9, records=2)
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_r7b_dark_only_embedding_change_on_a_tiny_fixture(tmp_path):
     """The companion number next to R7b: the dark-only draw's measured embedding change."""
     bank_dir = lr.ensure_dark_bank(data_root=tmp_path / "data", geometry=GEOM,

@@ -14,6 +14,10 @@ our own code** — 1995 sensors in 105 modules × 19 PMTs, surfaces 399/1197/399
 id 45 absent, 1-based `pmt_id_in_mpmt` — clearly labelled `NOT WCTE` in its name and in
 `geometry_synthetic`/`is_synthetic_geometry` in every output. The readout is the unrepaired PMT
 chain, so nothing here may be entered in `PREDICTIONS.md`, a registered cell or a gate.
+**A9 (2026-10-18):** the per-digit input is now the **token time** `digit - NHits trigger`
+after the prompt-window cut; the rule is imported from the PMT readout, which is **not merged**
+(author-named SHA pending), so the generator raises instead of generating. No dataset was
+generated in this iteration.
 
 ## What this iteration implements
 
@@ -49,7 +53,8 @@ chain, so nothing here may be entered in `PREDICTIONS.md`, a registered cell or 
    the threshold, the fixed threshold in PE, and the walk curve imported from
    `noise_module_lucid.response.leading_edge_time` (never forked). Gains are the product of the
    existing F1/F3/F2′ factors, each clipped to [0.5, 1.5] separately with counts recorded in
-   `DetectorState.clipped` and in the run manifest (`state_clipped`).
+   `DetectorState.clipped` and in the run manifest (`state_clipped`). The digit time is the
+   absolute readout time; the stored time is the A9 **token time** (next section).
 4. **Nominal twin** — for every event `generate_run(..., with_twin=True)` also writes the
    nominal readout (all gains 1, λ = λ0) through the existing private contract
    `nominal_twin(draws, geometry, readout, arm="oracle_nominal_twin")`, which raises
@@ -60,13 +65,14 @@ chain, so nothing here may be entered in `PREDICTIONS.md`, a registered cell or 
    events, every event of a run sharing one state (`RunSpec.state`), event ids from the
    registered `lucid/` ranges. `generate_events` yields one `GeneratedRun` at a time (memory
    holds one run); `write_generated_run` writes `hits.npz` (CSR-like sparse: event ids,
-   offsets, PMT indices, charges, times), `twin_hits.npz` when the twin is generated,
-   `events.npz` (per-event truth: vertex, yield, total expected PE — needed for the probe
-   targets), `manifest.json` and `SHA256SUMS`. The manifest records run spans, law/setting,
-   per-run state hash, event-id hash, **geometry sha256**, geometry source/config hashes, the
-   generator-config sha256, the readout label, the code SHA, `reported_results=false`,
-   the yield range and its status, the fiducial fraction, threshold, spectrum label, clipped
-   counts and the twin flag.
+   offsets, PMT indices, charges, **token times**), `twin_hits.npz` when the twin is generated,
+   `events.npz` (per-event truth: vertex, yield, total expected PE, **`emission_offset_ns`** —
+   needed for the probe targets and the A9 leak guard), `manifest.json` and `SHA256SUMS`. The
+   manifest records run spans, law/setting, per-run state hash, event-id hash, **geometry
+   sha256**, geometry source/config hashes, the generator-config sha256, the readout label, the
+   code SHA, `reported_results=false`, the yield range and its status, the fiducial fraction,
+   threshold, spectrum label, clipped counts, the twin flag, the **`time_rule` block** and the
+   counted `n_no_trigger` / `n_prompt_dropped`.
 6. **1000-event benchmark** — `benchmark_generation` (CLI below) times 1000 events at the
    default yield range with the nominal twin, records peak RSS and sparse-store bytes, and
    returns the §3.5.3 per-yield-tercile table (hit PMTs, module charge, hit fraction).
@@ -100,6 +106,58 @@ chain, so nothing here may be entered in `PREDICTIONS.md`, a registered cell or 
   is the preset's bi-exponential SPE; its `mv_per_pe` is a placeholder like the rest.
 - **Gain clipping.** Each factor is clipped separately to [0.5, 1.5]; the number of clipped
   module/PMT/gradient factors per run is recorded (never silently dropped).
+
+## A9 time convention (token time; author 2026-10-18; PMT SHA pending)
+
+The generator no longer stores absolute digit times as the per-digit model input. The binding
+rule (author corrections of 18 Oct 2026, verbatim in `DECISIONS.md`, part of A9) is:
+
+```
+t_token = t_digit - t_trigger
+t_trigger = nhits_trigger_time(digit_times, n=NHITS_N, window_ns=NHITS_WINDOW_NS)
+            # earliest digit time with >= NHITS_N digits in [t, t + NHITS_WINDOW_NS]
+            # None -> the readout-window start (-200 ns), counted as n_no_trigger
+keep: -20 ns <= t_token <= +60 ns (PROMPT_WINDOW_NS); the rest are dropped and counted
+```
+
+- **The rule is imported, never reimplemented.** `lucid_bombs.pmt_time_rule()` does a lazy
+  `from noise_module_lucid.readout import nhits_trigger_time, NHITS_N, NHITS_WINDOW_NS,
+  PROMPT_WINDOW_NS` and caches the tuple. The trigger call and the prompt-window bounds used
+  by the readout are the imported values; a local rule is never substituted. `TIME_RULE` in
+  `lucid_bombs.py` and the `time_rule` block in `lucid_bombs_v0.json` are the **registered
+  record**, validated against the imported values (a mismatch raises) and written into every
+  run manifest and benchmark payload. `HitReadout.time_ns` is the token; the token features
+  contain no truth.
+- **The store's `time_ns` now holds trigger-relative token times** after the prompt-window cut
+  (float32). `HitReadout.absolute_time_ns` (additive) carries the same digits' absolute
+  readout times. The time-of-flight reference fit is unchanged: it consumes digit times and
+  estimates t0, so trigger-relative times are admissible; if an estimator needs absolute
+  times it can take `absolute_time_ns`, and its estimator is not modified here.
+- **Emission offset (leak guard), truth only.** Each event draws `emission_offset_ns` uniform
+  in [−50, +50] ns from its own keyed role (`lucid/draws/<run>/<event>/emission_offset`), adds
+  it to every **source photon** arrival time before digitisation (dark photoelectron times are
+  untouched, they have their own keyed bank) and writes it to `events.npz` as
+  `emission_offset_ns`. It never enters a feature, token, mask or probe.
+- **Leak-guard evidence (unit tests, CPU, synthetic fixture).** A real keyed event with its
+  dark bank removed is read out, then re-read out with the emission offset shifted by
+  −37.25 / +12.5 / +49 / −49 ns: the hit PMT list is identical, the stored float32 token array
+  is **bit-identical** (`np.array_equal`), and the internal float64 trigger-relative times
+  differ by at most 8 ulp of the absolute times (measured max 1.8e-14 ns) from the rounding of
+  the constant shift. A dark-only event gives bit-identical tokens and absolute times for any
+  emission offset (dark draws do not see it). Two draws differing only in `emission_offset_ns`
+  therefore give identical tokens: the true emission time cannot reach a token.
+- **Counters.** `ReadoutRecord` counts `n_events`, `n_no_trigger` and `n_prompt_dropped` per
+  run (measured readout only; the nominal twin has its own readout and is not counted). They
+  are written to the run manifest (`n_no_trigger`, `n_prompt_dropped`, `n_readout_events`) and
+  to the benchmark payload.
+- **Pending the named SHA — no datasets generated.** The author named neither the PMT SHA nor
+  its validation report; the branch head `5f4ecc0` carries the N = 4 / prompt-window code, but
+  it is **not merged**. Until it is, `pmt_time_rule()` raises
+  `RuntimeError("the PMT NHits time rule is pending the author-named R-6.5 SHA; merge it
+  before generating")` — including through `readout_synthetic_unrepaired`, so no generator or
+  runner path can silently produce a dataset with a different convention. The unit tests
+  install the documented interface stub (`nhits_trigger_time` + the constants) through the
+  module-level hook; one test removes it and asserts the error. **No dataset was generated.**
 
 ## Local 1000-event benchmark (synthetic schema fixture — **not WCTE**)
 
@@ -188,7 +246,14 @@ for generated in lb.generate_events(geometry, cfg, runs, with_twin=True):
 
 - **PMT SHA and the repaired readout** (§3.5.2): the readout remains
   `readout_synthetic_unrepaired`; after the merge the label changes, the detectability check is
-  re-run and the benchmark repeated. Nothing here is a reported result.
+  re-run and the benchmark repeated. Nothing here is a reported result. **A9 consequence:** the
+  token time needs the author-named PMT NHits rule, so `pmt_time_rule()` (and therefore every
+  `readout_synthetic_unrepaired` / `make_readout` / `generate_run` call) raises until that SHA
+  is merged. The dataset-generating integration tests outside this WP that go through the
+  generator readout (`test_lucid_run.py`: 9 tests, and
+  `test_lucid_detectability.py::test_occupancy_n_min_check_at_low_yield`) are blocked by the
+  same merge; they are not changed here because they are outside this WP's edit scope. The
+  unit tests of this module install the documented interface stub and are green (below).
 - **`Y_lo`, `Y_hi`, `N_min` and the detectability check** (§3.5.6 step 1): the config values
   `6000`/`320000` and `N_min = 20` are labelled placeholders pending the §3.5.3a ceilings on
   development data; only that check may change them.
@@ -201,30 +266,41 @@ for generated in lb.generate_events(geometry, cfg, runs, with_twin=True):
 
 ## Ambiguities (for the lead)
 
-1. **Two "geometry shas".** The manifest keeps `geometry_sha256` = the layout `digest`
+1. **No-trigger prompt cut.** With `nhits_trigger_time` returning `None` the origin is the
+   readout-window start (author A9) and, as the task specifies, the prompt-window cut is
+   applied around that origin: a no-trigger event keeps only digits in
+   `[start - 20, start + 60] = [-220, -140] ns` (usually none) and counts the drops. The
+   unmerged PMT `prompt_window_mask` keeps *everything* when the trigger is `None`; say which
+   behaviour the readout should have for no-trigger events (it only affects < 4-digit events,
+   which `N_min = 20` excludes anyway).
+2. **Prompt-window constant name.** The interface statement names `nhits_trigger_time`,
+   `NHITS_N` and `NHITS_WINDOW_NS` but not the prompt-window symbol; the lazy import assumes
+   `PROMPT_WINDOW_NS` (a `(lo, hi)` pair), matching the branch head `5f4ecc0`. If the merged
+   module names it differently, the import raises the same actionable error — say the name.
+3. **Two "geometry shas".** The manifest keeps `geometry_sha256` = the layout `digest`
    (existing `verify_manifest` contract) and records the file hashes separately as
    `geometry_source_sha256` (the npz, expected prefix `0a75b035`) and `geometry_config_sha256`
    (the pointer, `9943d602…`). Say if a registered field should carry the file hash instead.
-2. **`surfaces` encoding.** We require `top`/`barrel`/`bottom` labels (case-insensitive) and
+4. **`surfaces` encoding.** We require `top`/`barrel`/`bottom` labels (case-insensitive) and
    offer `surface_map` for other encodings. The real npz dtype was not inspectable on this Mac;
    if it stores integers, the host operator must pass the mapping once.
-3. **Twin storage and access.** `twin_hits.npz` sits beside `hits.npz`; the oracle-only rule is
+5. **Twin storage and access.** `twin_hits.npz` sits beside `hits.npz`; the oracle-only rule is
    enforced by `nominal_twin` (API), not by the filesystem. If the lead wants filesystem
    separation, write the twin under an oracle-only directory instead.
-4. **"Same photon draws" with a changed λ.** We share the *underlying Poisson uniforms* (so
+6. **"Same photon draws" with a changed λ.** We share the *underlying Poisson uniforms* (so
    counts are correlated and identical for gains-only factors), not the realised counts, which
    cannot be identical when λ changes. This is our reading of "same photon, SPE, transit-time
    and dark-count draws (keyed RNG)".
-5. **Dark counts.** One keyed Poisson draw per event (state-independent), added to the signal
+7. **Dark counts.** One keyed Poisson draw per event (state-independent), added to the signal
    before smearing; the 4.2 kHz rate is the `noise_module_lucid.presets.LUCID_DARK_RATE_HZ`
    convention, config-driven.
-6. **Event truth arrays.** `events.npz` (vertex, yield, expected PE) is an addition beyond
+8. **Event truth arrays.** `events.npz` (vertex, yield, expected PE) is an addition beyond
    "hits only", required by the §3.5.6 vertex/yield probes; it is hashed in the manifest.
-7. **Robustness ID range.** `lucid/robustness` 220000–229999 remains a WP4b extension (v3 §6 has
+9. **Robustness ID range.** `lucid/robustness` 220000–229999 remains a WP4b extension (v3 §6 has
    no range); unchanged from the previous iteration.
-8. **R11b setting.** Still interpreted as the F2 attenuation `a` of the co-varying law (previous
+10. **R11b setting.** Still interpreted as the F2 attenuation `a` of the co-varying law (previous
    iteration's ambiguity; unchanged).
-9. **Second pending input for a cohort run.** The per-run writer is implemented; the cohort
+11. **Second pending input for a cohort run.** The per-run writer is implemented; the cohort
    driver is a short host-side loop (above), not a module entry point, to keep this WP focused.
 
 ## Engineering decisions (one line each)
@@ -243,13 +319,23 @@ for generated in lb.generate_events(geometry, cfg, runs, with_twin=True):
 - The benchmark reports the process peak RSS and the sparse-store bytes, not a modelled number.
 - `λ0` is frozen to the module constant and the config is checked against it, so a silent
   mismatch cannot change F2 between generation and detection.
+- The NHits rule is imported lazily from the PMT readout and raises until the author names the
+  SHA, so an unvalidated time convention cannot generate a dataset.
+- The token time is `digit - trigger` from the imported rule; the prompt cut uses the imported
+  window and every dropped digit and no-trigger fallback is counted in the run manifest.
+- The emission offset is its own keyed role added to source arrivals only, so it cancels in the
+  token, leaves the dark bank untouched and cannot enter a feature.
+- Absolute digit times stay on the readout additively (`HitReadout.absolute_time_ns`), so the
+  ToF estimator is untouched; the store's `time_ns` is the token.
+- The trigger is called once per event on the absolute digit times (before any origin change)
+  and the prompt window is closed on both ends, matching the PMT readout's mask.
 
 ## Tests
 
 ```sh
 export PYTHONPATH=src
 /private/tmp/jepa-venv-cpu311/bin/python -m pytest src/jepa_noise/tests/test_lucid_bombs.py -q
-# 34 passed in ~2 s
+# 56 passed in ~6 s (CPU, single-threaded BLAS; the PMT rule is the interface stub)
 ```
 
 New coverage: geometry schema/counts/sparse ids/1-based within-module ids, JSON-pointer and
@@ -259,7 +345,14 @@ signal conservation and distance-dependent attenuation; exact Poisson inversion 
 ordering; reproducibility and one state per run; nominal twin == undrifted readout (bitwise) and
 the oracle-only `PermissionError`; threshold-after-gain behaviour with an unhit 1 PE pulse;
 generated-run storage with manifest provenance and `SHA256SUMS`; benchmark shape and terciles;
-config-to-module constant checks.
+config-to-module constant checks. **A9 time rule:** token == digit − trigger against the stub;
+the prompt cut drops and counts out-of-window digits (and takes its bounds from the imported
+constant); `None` falls back to the window-start origin and increments the counter; the trigger
+is called with the imported `n`/`window_ns` on the *shifted* digit times; a missing merge raises
+the actionable `RuntimeError`; the leak guard (source-photon shift leaves bit-identical stored
+tokens, dark-only events invariant, dark draws unshifted); the emission-offset distribution
+(uniform, keyed) and its truth-only `events.npz` field; the manifest `time_rule`/counters and
+their tamper checks; the config `time_rule` block.
 
 
 ## Frozen yield range (2026-10-17, after the §3.5.3a detectability check)

@@ -16,6 +16,11 @@ GEOM = lb.from_synthetic()
 GEN = lb.load_generator_config(GEN_CONFIG)
 
 
+from jepa_noise import lucid_bombs as _lb_for_rule
+_NEEDS_PMT_TIME_RULE = pytest.mark.skipif(
+    not _lb_for_rule.pmt_time_rule_available(),
+    reason="pending the author-named PMT SHA (NHits time rule); no datasets are generated")
+
 def _row(factor, setting, r2, threshold=0.6):
     return {"factor": factor, "setting": float(setting), "law": factor,
             "sigma_f": 0.05, "n_events": 4, "i_event_median": 1.0, "i_run_median": 1.0,
@@ -382,6 +387,7 @@ def test_geometry_loaded_from_npz_path_without_lucid(tmp_path):
     assert "noise_module_lucid" not in source.split("from . import")[0]
 
 
+@_NEEDS_PMT_TIME_RULE
 def test_occupancy_n_min_check_at_low_yield():
     check = replace(ld.load_check_config(CONFIG), occupancy_events=4)
     result = ld.occupancy_n_min(GEOM, GEN, check, 6000.0, seed=check.seed)
