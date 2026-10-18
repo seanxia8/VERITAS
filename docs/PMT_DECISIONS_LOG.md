@@ -311,6 +311,28 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
   - seeds 30–32, the same seeds and gates as R-4 and R-4b, so the three sit side by side;
   - the checkpoint rule is unchanged. If (a) fails: report and stop.
 
+## Author message, 18 Oct 2026, seventh (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim.
+>
+> 1. 5f4ecc0 is named for the JEPA study; it supersedes b341037.
+> 2. The R-4 series is closed. R-4, R-4b and R-4c are recorded as development fails on the 60-event
+>    pilot. Run nothing more on those test events. The vertex gate is re-evaluated in WP7 on fresh
+>    events with the frozen rule (NHits N = 4, prompt window [−20, +60] ns, 20 ns unit).
+> 3. WP8: rewrite the vertex part of the R-4 section as one compact paragraph and a table (R-4 /
+>    R-4b / R-4c, vertex pooled per seed). Include the cause (window-start origin; conditioning), the
+>    final rule, and the outcome (0.81–0.88, gate missed).
+>    - Wherever the trigger-time arm (0.65–0.68) is mentioned, state that t = 0 is the true emission
+>      time in this simulation and is not available in data.
+>    - Do not post it; tell me when it is ready and I will post it myself.
+> 4. WP7 still waits for Junjie's D-E answer and my "launch WP7". Until then, nothing new on the hosts.
+
+**Actions (agent, 18 Oct 2026):**
+- The R-4 series is closed. The R-4, R-4b and R-4c verdicts stand as development fails on the 60-event pilot, and those test events are retired.
+- WP7's frozen time rule is NHits N = 4, the prompt window [−20, +60] ns and a 20 ns unit, from `5f4ecc0`.
+- WP8 draft: the vertex part of the R-4 section is rewritten as one paragraph and a table. The trigger-time arm carries the caveat that t = 0 is the true emission time and is not available in data.
+- Nothing new on the hosts.
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |

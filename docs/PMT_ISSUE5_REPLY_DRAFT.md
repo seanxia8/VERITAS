@@ -49,10 +49,15 @@ Setup: the same 60 PhotonSim events (500, 1000 and 1500 MeV μ⁻, 8 placements 
 
 - **Direction** is fine.
 - **Energy:** deposited energy is learnable, but total charge alone does as well (0.09 relative MAE). For escaping tracks it mostly measures path length inside the volume: about 340–370 MeV at every energy.
-- **Vertex** fails the new gate: it is barely better than a constant, and worse than our earlier run. Two input changes landed together: we changed the time feature to stay robust to dark hits, and added dark counts. We think one of them is responsible, and we'll test which on a validation split, not the test events.
-- **Vertex, follow-up:** switching the time unit back to 20 ns and dark counts off did not restore it (still 0.95–1.00 × constant), and a re-run on the test events failed the same way. The remaining suspect is the time-feature origin, now at the readout-window start; we're still checking that.
-- **Vertex, outcome:** the cause is the time origin. Putting it at the window start offsets every hit time by 10 units, which spoils training. With the origin at the trigger time, vertex recovers to 0.65–0.68 × constant on the validation split, and an exact rerun of our earlier code reproduces it bit for bit, so nothing else regressed.
-- **R-4c:** a hit-based trigger (≥ 4 digits in 20 ns), dropping digits outside −20 to +60 ns of it. Vertex recovers to 0.81–0.88 × constant on the test events, against 0.96–1.00 before. That still misses the 0.8 gate in all three seeds, and we report it as a fail; direction and deposited energy pass.
+- **Vertex.** Vertex failed the gate in R-4. The cause was the time-feature origin, not dark counts or the time unit. We had moved the origin to the readout-window start, which puts every hit time about 200 ns (10 units at the 20 ns unit) away from the 0 given to unhit sensors. That is a conditioning problem: the timing information was unchanged, but training suffered. With the origin at t = 0, vertex reached 0.65–0.68 × constant on a validation split. In this simulation t = 0 is the true emission time, which is not available in data, so that is only an optimistic bound. The final rule uses a hit-based trigger: the earliest digit with at least 4 digits within 20 ns, falling back to the window start if there is none. Digits outside −20 to +60 ns of the trigger are dropped, and the unit is 20 ns. On the validation split this brings vertex to 0.79–0.84 × constant with dark counts on. On the test events (R-4c) it gives 0.81–0.88, still above the 0.8 gate in all three seeds. R-4, R-4b and R-4c are recorded as development fails on this 60-event pilot, and we will run nothing more on those events. The vertex gate will be re-evaluated in the next stage on fresh events, with the rule frozen.
+
+  | Run (test events, vertex RMSE ÷ constant, pooled) | Seed 30 | Seed 31 | Seed 32 |
+  |---|---|---|---|
+  | R-4: window-start origin, 1 µs unit, dark counts on | 0.965 | 0.960 | 0.998 |
+  | R-4b: window-start origin, 20 ns unit, dark counts on | 0.992 | 0.998 | 1.000 |
+  | R-4c: hit trigger (N = 4) + prompt window, 20 ns unit, dark counts on | 0.812 | 0.877 | 0.883 |
+
+  Direction and deposited energy pass in R-4c.
 - All of this is development evidence on synthetic response values, not a WCTE calibration.
 
 ## Decisions we need from you
