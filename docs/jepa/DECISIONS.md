@@ -1213,3 +1213,32 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   which would otherwise have been gate **G-ENV**. The overlay's provenance and an equivalence
   evidence set (import line, the committed environment probe, and a CPU numeric identity check of
   the scipy-dependent probe/CRLB path) must be recorded before any L40S training number is used.
+
+## L40S environment overlay and the decisive WP5 numbers (18 Oct 2026)
+
+- **2026-10-18 — read-only PYTHONPATH overlay works and is equivalent.** `/ceph/dwong/jepa/env_overlay`
+  (5 symlinks: scipy, scipy.libs, sklearn, joblib, threadpoolctl.py, into the host anaconda env,
+  Python 3.12.2; 1 CephFS entry). Import: torch **2.5.1+cu124** (the pin kept), CUDA 12.4, scipy
+  1.13.1, sklearn 1.5.1, both resolving inside the overlay. Equivalence evidence: (i) the committed
+  environment probe re-run under the overlay matches the committed host record on 50 common scalars
+  with **max abs diff 0.0** (determinism 0.0); (ii) the scipy-dependent WP5 path (`linear.invsqrt`,
+  `crlb.crlb`, `subspace_angles`) is **bit-identical** between the venv+overlay and the host
+  anaconda interpreter on a fixed SPD input. The cu121 interpreter alternative is therefore not
+  needed, and gate G-ENV is avoided.
+- **2026-10-18 — L40S 500-step smoke PASSED:** 0.23014 s/step average (0.21388 s/step steady state,
+  4.676 steps/s), peak memory 5 365 MiB, frozen numerics and `readout_pmt_r6` recorded, 0.0329 GPU-h.
+- **2026-10-18 — L40S 40k scaling FITS:** 1.997 events/s, peak 14 577.9 MB (cap 21 000 MB), 0.0019 GPU-h.
+- **2026-10-18 — projection: the 201-run grid does NOT fit the 80 L40S GPU-hour cap.**
+  10 000 steps/run at the measured rate = **0.6393 h (average) / 0.5941 h (steady)**; 201 runs =
+  **128.5 / 119.4 GPU-h = 160.6 % / 149.3 % of the cap** (training only, excluding probe/evaluation,
+  so a lower bound). The runbook's LUCiD fallback order (§3.5.6) is: (1) 3 seeds for every main
+  arm; (2) drop secondary runs from the end of the list; (3) reduce every LUCiD arm to 5 000 steps;
+  (4) G2 — recording each step. Applying it: (1) main 162 → **126 runs** (80.5 h, still over);
+  (2) dropping secondary runs from the end (occupancy 3, aging 9, dark-window 3, R11b 9, R11 15)
+  reaches 79.7 h only by dropping **all** secondary runs, i.e. it makes R11, R11b, R7b, R8 and the
+  aging-trend ratio `not_evaluable`, and still leaves no margin for probe/evaluation overhead;
+  (3) 5 000 steps halves every run — with 3 seeds and the secondary runs retained the projection is
+  ≈52.8 h training (≈63 h with evaluation, ~79 % of the cap). Because the ladder's step-2/step-3
+  interaction changes which registered predictions are evaluable, this is a **G2 budget gate**
+  (see `docs/jepa/GATE_G2_BUDGET.md`), not an engineering choice: no criterion run starts until the
+  author rules.
