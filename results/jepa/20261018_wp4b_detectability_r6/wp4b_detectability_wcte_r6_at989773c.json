@@ -1,0 +1,821 @@
+{
+ "ambiguities": [
+  "F3 per-PMT gains are marginalised as a random gain (s_p^2 mu_p^2 added to every PMT variance) rather than profiled: one free gain per PMT is an incidental-parameter block that would make every other factor's profiled information exactly zero. s_p is the spread in force (lb.F3_SPREAD = 0.05), not the candidate spread of an F3 ceiling scan, because that is the F3 actually present in the simulated data.",
+  "F2/F2' share the F1 module-gain nuisance block (the runbook's explicit joint profiling), so only their within-module variation survives; conservative.",
+  "The across view used for the N_min check is a random module half, not the contiguous Hilbert half (view_masks is still a WP4c stub).",
+  "F1 acceptance uses the main-cell (F2-free) ceiling; the joint F1/F2' row is recorded beside it for R11.",
+  "Profiling is per event, not run-jointly; I_run = sum I_event is the registered approximation and biases the ceilings down.",
+  "Dark counts are on for readout_pmt_r6: v_dark = 0.00109 PE^2 is the R-6 dark-charge variance derived from the reference manifest (1000 Hz x 1 us = 0.001 counts, each SPE-smeared by 1 + sigma_spe^2). It is a per-PMT white term, not a profiled nuisance.",
+  "The fixed parity charge gain is detector response: it is part of mu here and in the nominal twin, so the twin cancels only the injected F1/F3 (and F2/F2'/R11b/T) gains."
+ ],
+ "branches": {
+  "f1_all_below_threshold": false,
+  "f1_eligible_settings": [
+   0.05,
+   0.1
+  ],
+  "f1_excluded_settings": [
+   0.02
+  ],
+  "f2_attempted": [
+   0.1,
+   0.2,
+   0.5
+  ],
+  "f2_choice": {
+   "law": "F2",
+   "setting": 0.5
+  },
+  "f2_ok": true,
+  "f3_attempted": [
+   0.05,
+   0.1
+  ],
+  "f3_choice": null,
+  "f3_ok": false,
+  "g6": false,
+  "g6_dependent_predictions": [],
+  "law_T_ok": true,
+  "r12_gate": null,
+  "r12_status": "not_evaluable",
+  "r6_status": "evaluable",
+  "r7_status": "evaluable",
+  "reason": "F3 cannot reach 0.6: R12 not_evaluable, no gate"
+ },
+ "ceiling_comparison": [],
+ "code_sha": "989773cf2ad687a24fc6707b002b2e55f7ceca96",
+ "config_digest": "4e922aced793ea465d40e167e0eb5649b0d217e3b0521dd711bafb1be6a52663",
+ "content_sha256": "9c0ff26e9f99bf561fd3b1d3f14552d2657a0e0881b8a1e8868748ec10def8fb",
+ "dark_counts": "on",
+ "decision_freeze_status": "frozen_by_this_re_run",
+ "decisions_md": "### \u00a73.5.3a detectability check \u2014 frozen (WCTE LUCiD eaf2e89f config/WCTE_geom_config.json)\n\n- Geometry: `WCTE LUCiD eaf2e89f config/WCTE_geom_config.json`, digest `8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1`, synthetic=false; readout `readout_pmt_r6`; code `989773cf2ad687a24fc6707b002b2e55f7ceca96`.\n- Response: `configs/lucid_pmt/reference.json` sha256 `17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68` (charge gain {'rule': 'group_parity', 'base': 1.0, 'odd_group_delta': 0.03}, timing width {'rule': 'group_parity', 'base': 1.0, 'odd_group_delta': 0.05}); dark counts on (v_dark = 0.00109).\n- F3 marginalised: true at s_p = 0.05; variance `mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2`.\n- Yield range: `Y_lo = 6298.44`, `Y_hi = 539434` photons (hit_fraction_0.95); median yield `58288.9` (population_median_of_log_uniform).\n- N_min = 20 at Y_lo: within target median 106 hits (exclusion 0); across proxy median 98 hits (below-N_min 0).\n\n| factor | setting | R\u00b2_run (lower bound) | previous frozen R\u00b2_run | \u0394 | pass |\n|---|---|---|---|---|---|\n| F1 | 0.02 | 0.261 | \u2014 | \u2014 | false |\n| F1 | 0.05 | 0.686 | \u2014 | \u2014 | true |\n| F1 | 0.1 | 0.893 | \u2014 | \u2014 | true |\n| F3 | 0.1 | 0.325 | \u2014 | \u2014 | false |\n| F2 | 0.5 | 0.921 | \u2014 | \u2014 | true |\n| T | 0.5 | 0.986 | \u2014 | \u2014 | true |\n\n- Previous frozen ceilings omitted: previous frozen decision JSON absent; no side-by-side ceilings (`/ceph/dwong/jepa/code/work/results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json`).\n- s_p restart: 0.1 -> 0.05 (registered default 0.05, step-3 cap 0.1); previous superseded_by_r6_dark_counts (28e24c8, never frozen); ladder ['raise_y_hi', 'set_F2_a/switch_F2p_b', 'raise_F3_spread'].\n\n- Fallback steps: 4 (raise_y_hi, set_F2_a, set_F2_a, raise_F3_spread).\n- F1 eligible: [0.05, 0.1]; excluded: [0.02].\n- F2 choice: {'law': 'F2', 'setting': 0.5} (attempted [0.1, 0.2, 0.5]); F3 choice: None.\n- R12: not_evaluable (no gate); law T >= 0.6: true.\n- G6: false for [].\n- One line: F3 cannot reach 0.6: R12 not_evaluable, no gate.",
+ "f3_marginalised": true,
+ "f3_marginalised_spread": 0.05,
+ "fallback_steps": [
+  {
+   "action": "raise_y_hi",
+   "changed": true,
+   "from": 320000.0,
+   "reason": "factor(s) below the 0.6 run ceiling",
+   "short_before": [
+    "F1 s=0.02",
+    "F3 s_p=0.05",
+    "F2 0.1"
+   ],
+   "step": 1,
+   "to": 539433.9645268649
+  },
+  {
+   "action": "set_F2_a",
+   "from": 0.1,
+   "law": "F2",
+   "reason": "F2 below the 0.6 run ceiling",
+   "step": 2,
+   "to": 0.2
+  },
+  {
+   "action": "set_F2_a",
+   "from": 0.2,
+   "law": "F2",
+   "reason": "F2 below the 0.6 run ceiling",
+   "step": 2,
+   "to": 0.5
+  },
+  {
+   "action": "raise_F3_spread",
+   "from": 0.05,
+   "reason": "F3 below the 0.6 run ceiling",
+   "step": 3,
+   "to": 0.1
+  }
+ ],
+ "fixed_response": {
+  "dark_counts": "on",
+  "dark_rate_hz": 1000.0,
+  "dark_stage_owner": "readout (R-6): keyed Poisson dark photoelectrons per PMT, uniform in readout_window_ns, bypass QE/CE, then the same SPE charge, gain, discriminator, T-Q walk and width",
+  "gain_rule": {
+   "base": 1.0,
+   "odd_group_delta": 0.03,
+   "rule": "group_parity"
+  },
+  "path": "/ceph/dwong/jepa/code/work/configs/lucid_pmt/reference.json",
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ],
+  "relpath": "configs/lucid_pmt/reference.json",
+  "schema": "pmt-response-v2",
+  "sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68",
+  "spe_sigma": 0.3,
+  "status": "synthetic_dev",
+  "threshold_pe": 0.25,
+  "timing_width_factor_rule": {
+   "base": 1.0,
+   "odd_group_delta": 0.05,
+   "rule": "group_parity"
+  },
+  "v_dark": 0.00109,
+  "window_ns": 1000.0
+ },
+ "frozen": true,
+ "generator_config_digest": "6779146ff4b3f17c460e07edbd20208dd3dcfc5e4a11f238898bf8bdc0ff868e",
+ "geometry": {
+  "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+  "geometry_sha256": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+  "height_m": 2.77697099384,
+  "module_ids_contiguous": false,
+  "n_modules": 105,
+  "n_sensors": 1995,
+  "name": "WCTE LUCiD eaf2e89f config/WCTE_geom_config.json",
+  "pmts_per_module": 19,
+  "radius_m": 1.5771308488246254,
+  "sensor_radius_m": 0.04,
+  "source_path": "/ceph/dwong/jepa/external/LUCiD/config/wcte_geometry.npz",
+  "source_sha256": "0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8",
+  "surface_counts": {
+   "barrel": 1197,
+   "bottom": 399,
+   "top": 399
+  },
+  "synthetic": false
+ },
+ "median_yield_policy": {
+  "policy": "population_median_of_log_uniform",
+  "value_photons": 58288.85612518364
+ },
+ "n_events": 50,
+ "nuisance_policy": {
+  "F1": [
+   "vertex",
+   "yield",
+   "other module gains"
+  ],
+  "F2": [
+   "vertex",
+   "yield",
+   "F1 module gains"
+  ],
+  "F2p": [
+   "vertex",
+   "yield",
+   "F1 module gains"
+  ],
+  "F3": [
+   "vertex",
+   "yield",
+   "F1 module gains"
+  ],
+  "T": [
+   "vertex",
+   "yield"
+  ]
+ },
+ "occupancy": {
+  "across_exclusion_rate_after_3_redraws_estimate": 0.0,
+  "across_initial_below_nmin_rate": 0.0,
+  "across_target_median_hits": 97.5,
+  "across_target_min_hits": 61,
+  "n_events": 64,
+  "n_min": 20,
+  "note": "across split is a random module half (proxy); view_masks is a WP4c stub",
+  "within_exclusion_rate": 0.0,
+  "within_target_median_hits": 105.5,
+  "within_target_min_hits": 84
+ },
+ "pending": [
+  "the frozen 2026-10-17 yields, F2-vs-F2' and s_p are superseded_pending_r6_freeze until this R-6 re-run is accepted; the intermediate 28e24c8 run was never frozen and is superseded_by_r6_dark_counts; the author has not frozen the new values"
+ ],
+ "previous_decision": {
+  "omitted": true,
+  "path": "/ceph/dwong/jepa/code/work/results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
+  "reason": "previous frozen decision JSON absent; no side-by-side ceilings"
+ },
+ "readout_label": "readout_pmt_r6",
+ "readout_window_ns": [
+  -200.0,
+  800.0
+ ],
+ "rebenchmark": {
+  "cores_at_most": 16,
+  "cpu_cap_wall_hours": 48.0,
+  "median_yield": 58288.85612518364,
+  "note": "repeat benchmark_generation at the frozen yields",
+  "volume_breakdown": {
+   "dev_train_100k": 100000,
+   "main_grid_train_3x100k": 300000,
+   "probe_and_robustness_17x10k": 170000,
+   "secondary_train_5x100k": 500000
+  },
+  "volume_events": 1070000,
+  "y_hi": 539433.9645268649,
+  "y_lo": 6298.4368278745105
+ },
+ "reported_results": false,
+ "run_events": 50,
+ "s_p_restart": {
+  "ladder_order": [
+   "raise_y_hi",
+   "set_F2_a/switch_F2p_b",
+   "raise_F3_spread"
+  ],
+  "new": 0.05,
+  "previous": 0.1,
+  "previous_recorded_in_frozen_v2": null,
+  "previous_source": "superseded_by_r6_dark_counts (28e24c8, never frozen)",
+  "reason": "the 0.10 value came from the superseded run that treated F3 as known; with F3 marginalised the ladder restarts from the registered default",
+  "registered_default": 0.05,
+  "step3_cap": 0.1
+ },
+ "schema": "jepa-lucid-detectability-decision-v0",
+ "seed": 20261017,
+ "sigma_spe": 0.3,
+ "status": "frozen",
+ "table": [
+  {
+   "factor": "F1",
+   "i_event_median": 11.651986882713484,
+   "i_run_median": 885.5014693612185,
+   "law": "F1",
+   "n_events": 50,
+   "passes": false,
+   "profiled": [
+    "vertex",
+    "yield",
+    "other module gains"
+   ],
+   "r2_event_median": 0.004638965589774585,
+   "r2_run_max": 0.40311363184739796,
+   "r2_run_median": 0.26090080121545206,
+   "r2_run_min": 0.17788128922389884,
+   "setting": 0.02,
+   "sigma_f": 0.02,
+   "signal": "module-gain zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "factor": "F1",
+   "i_event_median": 11.666393840641277,
+   "i_run_median": 894.7233798037934,
+   "law": "F1",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield",
+    "other module gains"
+   ],
+   "r2_event_median": 0.028331716757813895,
+   "r2_run_max": 0.8012373112695292,
+   "r2_run_median": 0.6864921316345194,
+   "r2_run_min": 0.5800929488680215,
+   "setting": 0.05,
+   "sigma_f": 0.05,
+   "signal": "module-gain zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "factor": "F1",
+   "i_event_median": 11.58928724881725,
+   "i_run_median": 908.1121516439642,
+   "law": "F1",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield",
+    "other module gains"
+   ],
+   "r2_event_median": 0.10375301939208359,
+   "r2_run_max": 0.9369149900437865,
+   "r2_run_median": 0.89306929313491,
+   "r2_run_min": 0.8357763180308226,
+   "setting": 0.1,
+   "sigma_f": 0.1,
+   "signal": "module-gain zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "factor": "F3",
+   "i_event_median": 0.6113766893988573,
+   "i_run_median": 49.38368046752606,
+   "law": "F3",
+   "n_events": 50,
+   "passes": false,
+   "profiled": [
+    "vertex",
+    "yield",
+    "F1 module gains"
+   ],
+   "r2_event_median": 0.006074565147494134,
+   "r2_run_max": 0.501681416645875,
+   "r2_run_median": 0.32462093916332385,
+   "r2_run_min": 0.15103931999019737,
+   "setting": 0.1,
+   "sigma_f": 0.1,
+   "signal": "within-module per-PMT zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "f1_joint": [
+    {
+     "module": 0,
+     "r2_run": 0.790117684033864
+    },
+    {
+     "module": 1,
+     "r2_run": 0.7378573585521192
+    },
+    {
+     "module": 2,
+     "r2_run": 0.7805379275535779
+    },
+    {
+     "module": 3,
+     "r2_run": 0.8117576543527876
+    },
+    {
+     "module": 4,
+     "r2_run": 0.756025763223281
+    },
+    {
+     "module": 5,
+     "r2_run": 0.7595841649439954
+    },
+    {
+     "module": 6,
+     "r2_run": 0.6938110327480421
+    },
+    {
+     "module": 7,
+     "r2_run": 0.7236985261568705
+    },
+    {
+     "module": 8,
+     "r2_run": 0.7156774286653498
+    },
+    {
+     "module": 9,
+     "r2_run": 0.6686581734692283
+    },
+    {
+     "module": 10,
+     "r2_run": 0.6558539119609192
+    },
+    {
+     "module": 11,
+     "r2_run": 0.704250069298697
+    },
+    {
+     "module": 12,
+     "r2_run": 0.7046442304418572
+    },
+    {
+     "module": 13,
+     "r2_run": 0.6739278283439244
+    },
+    {
+     "module": 14,
+     "r2_run": 0.6414887314436174
+    },
+    {
+     "module": 15,
+     "r2_run": 0.6576731829088671
+    },
+    {
+     "module": 16,
+     "r2_run": 0.6039925346513855
+    },
+    {
+     "module": 17,
+     "r2_run": 0.5965960081236493
+    },
+    {
+     "module": 18,
+     "r2_run": 0.6364702659253214
+    },
+    {
+     "module": 19,
+     "r2_run": 0.6086699696248685
+    },
+    {
+     "module": 20,
+     "r2_run": 0.641851069894935
+    },
+    {
+     "module": 21,
+     "r2_run": 0.6670147704288797
+    },
+    {
+     "module": 22,
+     "r2_run": 0.6812482508555144
+    },
+    {
+     "module": 23,
+     "r2_run": 0.7438250171976785
+    },
+    {
+     "module": 24,
+     "r2_run": 0.7127949733218509
+    },
+    {
+     "module": 25,
+     "r2_run": 0.7312957533799408
+    },
+    {
+     "module": 26,
+     "r2_run": 0.7183917638797241
+    },
+    {
+     "module": 27,
+     "r2_run": 0.6776707053480131
+    },
+    {
+     "module": 28,
+     "r2_run": 0.6764417181109276
+    },
+    {
+     "module": 29,
+     "r2_run": 0.6501423068753833
+    },
+    {
+     "module": 30,
+     "r2_run": 0.6492556200826286
+    },
+    {
+     "module": 31,
+     "r2_run": 0.6729547578266445
+    },
+    {
+     "module": 32,
+     "r2_run": 0.6468520214768864
+    },
+    {
+     "module": 33,
+     "r2_run": 0.6519373365318684
+    },
+    {
+     "module": 34,
+     "r2_run": 0.6386524020614733
+    },
+    {
+     "module": 35,
+     "r2_run": 0.6686097326276309
+    },
+    {
+     "module": 36,
+     "r2_run": 0.6535313324475759
+    },
+    {
+     "module": 37,
+     "r2_run": 0.6994731339150843
+    },
+    {
+     "module": 38,
+     "r2_run": 0.6913445543484736
+    },
+    {
+     "module": 39,
+     "r2_run": 0.6892114674734001
+    },
+    {
+     "module": 40,
+     "r2_run": 0.7085789453329268
+    },
+    {
+     "module": 41,
+     "r2_run": 0.7249466217346364
+    },
+    {
+     "module": 42,
+     "r2_run": 0.7303488457137198
+    },
+    {
+     "module": 43,
+     "r2_run": 0.7626002517214442
+    },
+    {
+     "module": 44,
+     "r2_run": 0.7537930751865162
+    },
+    {
+     "module": 45,
+     "r2_run": 0.688476350233636
+    },
+    {
+     "module": 46,
+     "r2_run": 0.6855399820847248
+    },
+    {
+     "module": 47,
+     "r2_run": 0.7324830610431348
+    },
+    {
+     "module": 48,
+     "r2_run": 0.7627163460946575
+    },
+    {
+     "module": 49,
+     "r2_run": 0.7189819075948585
+    },
+    {
+     "module": 50,
+     "r2_run": 0.6754680106966581
+    },
+    {
+     "module": 51,
+     "r2_run": 0.6903847007117082
+    },
+    {
+     "module": 52,
+     "r2_run": 0.7198448336854457
+    },
+    {
+     "module": 53,
+     "r2_run": 0.6855471393085085
+    },
+    {
+     "module": 54,
+     "r2_run": 0.6608922011194956
+    },
+    {
+     "module": 55,
+     "r2_run": 0.6914853606968809
+    },
+    {
+     "module": 56,
+     "r2_run": 0.6903181095168675
+    },
+    {
+     "module": 57,
+     "r2_run": 0.7372296287847819
+    },
+    {
+     "module": 58,
+     "r2_run": 0.730440228523359
+    },
+    {
+     "module": 59,
+     "r2_run": 0.7475958970392151
+    },
+    {
+     "module": 60,
+     "r2_run": 0.7275898359567469
+    },
+    {
+     "module": 61,
+     "r2_run": 0.7062285687254478
+    },
+    {
+     "module": 62,
+     "r2_run": 0.7305336985712829
+    },
+    {
+     "module": 63,
+     "r2_run": 0.7551700442430698
+    },
+    {
+     "module": 64,
+     "r2_run": 0.7749161314007529
+    },
+    {
+     "module": 65,
+     "r2_run": 0.7159861472037666
+    },
+    {
+     "module": 66,
+     "r2_run": 0.6728084559660825
+    },
+    {
+     "module": 67,
+     "r2_run": 0.7115574139986023
+    },
+    {
+     "module": 68,
+     "r2_run": 0.6786604902098726
+    },
+    {
+     "module": 69,
+     "r2_run": 0.6646882887304418
+    },
+    {
+     "module": 70,
+     "r2_run": 0.668840543360939
+    },
+    {
+     "module": 71,
+     "r2_run": 0.6435521338771539
+    },
+    {
+     "module": 72,
+     "r2_run": 0.639157176689131
+    },
+    {
+     "module": 73,
+     "r2_run": 0.656321067189313
+    },
+    {
+     "module": 74,
+     "r2_run": 0.6695047327166991
+    },
+    {
+     "module": 75,
+     "r2_run": 0.6743516946481483
+    },
+    {
+     "module": 76,
+     "r2_run": 0.6499370334028015
+    },
+    {
+     "module": 77,
+     "r2_run": 0.6726923668036594
+    },
+    {
+     "module": 78,
+     "r2_run": 0.6840197207014911
+    },
+    {
+     "module": 79,
+     "r2_run": 0.7045367461894355
+    },
+    {
+     "module": 80,
+     "r2_run": 0.725201613365288
+    },
+    {
+     "module": 81,
+     "r2_run": 0.6930339842778863
+    },
+    {
+     "module": 82,
+     "r2_run": 0.6625412663703552
+    },
+    {
+     "module": 83,
+     "r2_run": 0.6666159940785127
+    },
+    {
+     "module": 84,
+     "r2_run": 0.7602930977074983
+    },
+    {
+     "module": 85,
+     "r2_run": 0.7276572064091615
+    },
+    {
+     "module": 86,
+     "r2_run": 0.674478096794147
+    },
+    {
+     "module": 87,
+     "r2_run": 0.7077998488974959
+    },
+    {
+     "module": 88,
+     "r2_run": 0.6747653458732106
+    },
+    {
+     "module": 89,
+     "r2_run": 0.7422112350121951
+    },
+    {
+     "module": 90,
+     "r2_run": 0.7097703008871042
+    },
+    {
+     "module": 91,
+     "r2_run": 0.7264910424586153
+    },
+    {
+     "module": 92,
+     "r2_run": 0.7024598404954312
+    },
+    {
+     "module": 93,
+     "r2_run": 0.6251816738983527
+    },
+    {
+     "module": 94,
+     "r2_run": 0.5991700355384881
+    },
+    {
+     "module": 95,
+     "r2_run": 0.5422871467832616
+    },
+    {
+     "module": 96,
+     "r2_run": 0.5794404067479393
+    },
+    {
+     "module": 97,
+     "r2_run": 0.6064212266781365
+    },
+    {
+     "module": 98,
+     "r2_run": 0.5718002823825012
+    },
+    {
+     "module": 99,
+     "r2_run": 0.6289946131912377
+    },
+    {
+     "module": 100,
+     "r2_run": 0.5935564677939793
+    },
+    {
+     "module": 101,
+     "r2_run": 0.6144642675263874
+    },
+    {
+     "module": 102,
+     "r2_run": 0.6421013506692934
+    },
+    {
+     "module": 103,
+     "r2_run": 0.6016216798073539
+    },
+    {
+     "module": 104,
+     "r2_run": 0.6375138956552849
+    }
+   ],
+   "factor": "F2",
+   "i_event_median": 0.001195550535688073,
+   "i_run_median": 11.713721471936456,
+   "law": "F2",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield",
+    "F1 module gains"
+   ],
+   "r2_event_median": 0.001194122898254207,
+   "r2_run_max": 0.9213448239992246,
+   "r2_run_median": 0.9213448239992246,
+   "r2_run_min": 0.9213448239992246,
+   "setting": 0.5,
+   "sigma_f": 1.0,
+   "signal": "N(0,1) attenuation/gradient variable v",
+   "threshold": 0.6
+  },
+  {
+   "factor": "T",
+   "i_event_median": 15.877148502399812,
+   "i_run_median": 850.290043483081,
+   "law": "T",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield"
+   ],
+   "r2_event_median": 0.569539898963014,
+   "r2_run_max": 0.9860835688748905,
+   "r2_run_median": 0.9860835688748905,
+   "r2_run_min": 0.9860835688748905,
+   "setting": 0.5,
+   "sigma_f": 0.28867513459481287,
+   "signal": "in-range age t=r/R, median 1/2",
+   "threshold": 0.6
+  }
+ ],
+ "v_dark": 0.00109,
+ "variance_formula": "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2",
+ "yields": {
+  "median_policy": "population_median_of_log_uniform",
+  "median_yield": 58288.85612518364,
+  "y_hi": 539433.9645268649,
+  "y_hi_bound": 539433.9645268649,
+  "y_hi_bound_source": "hit_fraction_0.95",
+  "y_hi_bounds": {
+   "bound_events": 48,
+   "bound_iterations": 10,
+   "targets": {
+    "hit_fraction": 0.95,
+    "median_hit_pmts": 200.0,
+    "module_charge_pe": 300.0
+   },
+   "y_at_hit_fraction_0.95": 539433.9645268649,
+   "y_at_module_charge_300pe": 834189.1591471274,
+   "y_hi": 539433.9645268649,
+   "y_hi_bound_source": "hit_fraction_0.95",
+   "y_hi_check": {
+    "median_hit_fraction": 0.950125313283208,
+    "median_hit_pmts": 1895.5,
+    "median_module_charge_pe": 193.7217274907594,
+    "n_events": 48,
+    "yield_photons": 539433.9645268649
+   },
+   "y_lo": 6298.4368278745105,
+   "y_lo_check": {
+    "median_hit_fraction": 0.09974937343358395,
+    "median_hit_pmts": 199.0,
+    "median_module_charge_pe": 2.281091597272827,
+    "n_events": 48,
+    "yield_photons": 6298.4368278745105
+   }
+  },
+  "y_hi_initial": 320000.0,
+  "y_lo": 6298.4368278745105
+ }
+}

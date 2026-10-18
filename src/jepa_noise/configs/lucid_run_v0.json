@@ -7,7 +7,7 @@
   "readout_label": "readout_pmt_r6",
   "reported_results": false,
   "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
-  "detectability_decision": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
+  "detectability_decision": "results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6.json",
   "training": {
     "steps": 10000,
     "batch": 32,
@@ -490,5 +490,6 @@
   ],
   "dark_counts": "on",
   "decision_freeze_status": "superseded_pending_r6_freeze",
-  "detectability_decision_sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64"
+  "detectability_decision_sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64",
+  "detectability_decision_host_copy": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json"
 }
