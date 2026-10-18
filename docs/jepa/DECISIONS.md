@@ -1627,3 +1627,20 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   real merged rule). The development datasets are invalid under the new convention and are being
   regenerated at s_p = 0.10; development steps 2 and 3 will be redone (~14 GPU-h), then the β table
   is reported and the grid waits for the author's review.
+
+- **2026-10-18 — dev step 2 redone on the A9 token-time input at `d073639`: probe form = `ridge`.**
+  Datasets regenerated under the new convention (old dev/smoke sets recorded in
+  `/ceph/dwong/jepa/data/lucid_r6_v2/DEV_TIME_LEGACY_EVIDENCE.json`, sha256 `b4ceab6a…`, 7 datasets /
+  522 runs with per-run manifests and state hashes, then deleted; new dev_train 100 runs + probe
+  train/test 200+200, ~12.5 min CPU, 3 012 entries / ~1.9 GB). Decision JSON
+  `wp5_lucid_dev_v7/dev/step2_probe_decision.json` sha256 `8c6f5de3…`, `registered: false`: the MLP
+  rule requires **both** linear resolutions above 3× the reference — sigreg_jepa **0.32363 m**
+  (ratio **2.272**), mae_mse **0.11349 m** (ratio **0.797**), reference **0.142446 m** (n = 10 000,
+  failure 4e-4) fitted with the required `fit_config` (grid 5, scale_ns 3.0, t0_quantile 0.2,
+  v_group 0.2172409115942029) — so **ridge**, primary form `run_mean`. Walls: sigreg_jepa 2 674 s,
+  mae_mse 1 536 s; job 1.4189 GPU-h. Streaming probes at production scale: **69 182 980 rows,
+  Δpeak 432.5 MiB** (sigreg) / 76.1 MiB (mae_mse). Ledger: L40S **6.8763 / 170 GPU-h**, CPU
+  generation **0.6535 / 48 wall-h**. Note the new convention moved the linear resolutions
+  (mae_mse 0.093 → 0.113 m; sigreg 0.315 → 0.324 m; reference 0.14231 → 0.14245 m) without changing
+  the ridge decision. Dev step 3 (15 β runs) is running; the β table follows and the grid waits for
+  the author's review.
