@@ -1,11 +1,13 @@
-"""NHits trigger time-origin rule (author decision, 18 Oct 2026, fifth message).
+"""NHits trigger and prompt window (author decisions, 18 Oct 2026, fifth and sixth messages).
 
-origin = the earliest digit time t with >= 3 digits in [t, t + 20 ns]; fallback to the window
-start, counted. The three requested properties are tested as measured, not as hoped:
+origin = the earliest digit time t with >= 4 digits in [t, t + 20 ns]; fallback to the window
+start, counted. N = 3 is superseded (sixth message). Digits outside [-20, +60] ns of the trigger
+are out-of-time and dropped from the model input; with no trigger nothing is dropped.
+The requested properties are tested as measured, not as hoped:
 
-- dark-only windows: 1.2e-3 triggers per 1 us window at N = 3 over 20000 windows, above the
-  1e-3 bound in the proposal (which counted fixed 20 ns bins; the rule slides from every digit).
-  N = 4 gave none. Here: a smaller sample with a loose bound, and N = 4 never triggering.
+- dark-only windows: the dark-coincidence bound (< 1e-3 per 1 us window) holds at N = 4: no
+  trigger in 20000 windows (acceptable evidence, sixth message). N = 3 gave 1.2e-3, because the
+  rule slides from every digit; the proposal's estimate counted fixed 20 ns bins.
 - prompt events: within 1 ns of the true first prompt cluster with the timing width off; with
   the reference width the trigger is early by a median of 0.6-3.3 ns (the earliest of many
   jittered digits), so that case is bounded, not held to 1 ns.
@@ -17,7 +19,8 @@ import numpy as np
 import pytest
 from noise_module_lucid import response_manifest
 from noise_module_lucid.photon_contract import PhotonBatch
-from noise_module_lucid.readout import Digits, NHITS_N, NHITS_WINDOW_NS, dark_noise_window, nhits_trigger_time, readout_chain
+from noise_module_lucid.readout import (Digits, NHITS_N, NHITS_WINDOW_NS, PROMPT_WINDOW_NS, dark_noise_window,
+                                       nhits_trigger_time, prompt_window_mask, readout_chain, select_digits)
 
 N = 1995
 
@@ -45,27 +48,26 @@ def true_cluster(b):
 
 
 def test_rule_constants_and_definition():
-    assert (NHITS_N, NHITS_WINDOW_NS) == (3, 20.0)
+    assert (NHITS_N, NHITS_WINDOW_NS) == (4, 20.0)
     assert nhits_trigger_time([50.0, 0.0, 30.0, 45.0, 49.0]) == 30.0   # 0 is isolated; [30, 50] holds 4
-    assert nhits_trigger_time([0.0, 10.0, 20.0]) == 0.0                 # closed window
-    assert nhits_trigger_time([0.0, 10.0, 20.5]) is None
+    assert nhits_trigger_time([0.0, 5.0, 10.0, 20.0]) == 0.0           # closed window
+    assert nhits_trigger_time([0.0, 5.0, 10.0, 20.5]) is None
+    assert nhits_trigger_time([0.0, 10.0, 20.0]) is None and nhits_trigger_time([0.0, 10.0, 20.0], n=3) == 0.0
     assert nhits_trigger_time([1.0, 2.0]) is None and nhits_trigger_time([]) is None
     assert nhits_trigger_time([5.0, 7.0], n=2, window_ns=2.0) == 5.0
-    d = Digits(sensor=np.arange(3), charge=np.ones(3), time=np.array([9.0, 3.0, 4.0]), n_pe_true=np.ones(3, int))
+    d = Digits(sensor=np.arange(4), charge=np.ones(4), time=np.array([9.0, 3.0, 4.0, 22.0]), n_pe_true=np.ones(4, int))
     assert nhits_trigger_time(d) == 3.0
     for bad in (dict(n=0), dict(n=2.5), dict(n=True), dict(window_ns=-1.0), dict(window_ns=np.inf)):
         with pytest.raises(ValueError): nhits_trigger_time([1.0, 2.0, 3.0], **bad)
     with pytest.raises(ValueError): nhits_trigger_time([1.0, np.nan, 3.0])
 
 
-def test_dark_only_windows_almost_never_trigger():
-    p = reference(); windows = 1000
+def test_dark_only_windows_never_trigger_at_n4():
+    # The bound, asserted: no dark-only trigger in 20000 windows (95% upper limit 1.5e-4 < 1e-3).
+    p = reference(); windows = 20000
     times = [dark_noise_window(p, N, seed=9, run=78, window=w).time for w in range(windows)]
-    rate3 = sum(nhits_trigger_time(t) is not None for t in times) / windows
-    rate4 = sum(nhits_trigger_time(t, n=4) is not None for t in times) / windows
-    assert rate3 < 5e-3     # measured 1.2e-3 over 20000 windows
-    assert rate4 == 0.0
-    assert sum(nhits_trigger_time(t, n=2) is not None for t in times) / windows > 0.02   # the window does see dark pairs
+    assert sum(nhits_trigger_time(t) is not None for t in times) == 0
+    assert sum(nhits_trigger_time(t, n=3) is not None for t in times) / windows > 2e-4   # N = 3 does see dark triples
 
 
 def test_prompt_event_triggers_within_1ns_of_true_cluster_without_jitter():
@@ -102,3 +104,42 @@ def test_dark_digits_after_the_cluster_never_move_it_and_an_early_one_can():
     prompt = np.array([100.0, 100.4, 101.0, 102.0, 105.0])
     assert nhits_trigger_time(np.r_[prompt, 300.0, 650.0, -150.0]) == 100.0
     assert nhits_trigger_time(np.r_[prompt, 85.0]) == 85.0   # 85 + the first two prompt digits within 20 ns
+
+
+def test_prompt_window_rule_and_basis():
+    assert PROMPT_WINDOW_NS == (-20.0, 60.0)
+    # Basis: direct time of flight across WCTE (~4.2 m at 0.225 m/ns), walk, jitter and the
+    # early-trigger tail all fit, with margin.
+    assert PROMPT_WINDOW_NS[1] > 4.2 / 0.225 + 4.0 + 6.0 and PROMPT_WINDOW_NS[0] < -6.0
+    t = np.array([79.0, 80.0, 100.0, 160.0, 160.5, -300.0])
+    np.testing.assert_array_equal(prompt_window_mask(t, 100.0), [False, True, True, True, False, False])  # closed
+    assert prompt_window_mask(t, None).all()                       # fallback: drop nothing
+    assert prompt_window_mask(np.array([]), 1.0).size == 0
+    for bad in (dict(trigger_ns=np.nan), dict(trigger_ns=0.0, window_ns=(5.0, 60.0)), dict(trigger_ns=0.0, window_ns=(-20.0, np.inf))):
+        with pytest.raises(ValueError): prompt_window_mask(t, **bad)
+    with pytest.raises(ValueError): prompt_window_mask(np.array([np.nan]), 0.0)
+
+
+def test_select_digits_keeps_fields_aligned():
+    d = Digits(sensor=np.array([4, 7, 9]), charge=np.array([1.0, 2.0, 3.0]), time=np.array([0.0, 1.0, 2.0]),
+               n_pe_true=np.array([1, 2, 3]), counts={"x": 1}, n_dark_true=np.array([0, 2, 0]))
+    s = select_digits(d, np.array([True, False, True]))
+    np.testing.assert_array_equal(s.sensor, [4, 9]); np.testing.assert_array_equal(s.n_dark_true, [0, 0])
+    np.testing.assert_array_equal(s.charge, [1.0, 3.0]); assert s.counts == {"x": 1} and s.counts is not d.counts
+    with pytest.raises(ValueError): select_digits(d, np.array([True]))
+
+
+def test_prompt_window_drops_dark_digits_not_source_and_keeps_the_trigger():
+    p = reference(); dropped_dark = kept_dark = 0
+    for k in range(40):
+        d = read(prompt_event(k), p)
+        trig = nhits_trigger_time(d); keep = prompt_window_mask(d, trig)
+        source = d.n_pe_true > d.n_dark_true
+        # No pure-source digit is out-of-time. A source digit can be, when an earlier dark PE on the
+        # same PMT set its time (measured: 2 of 40 events, at -250 and -56 ns).
+        assert not np.any(source & (d.n_dark_true == 0) & ~keep)
+        assert np.all(d.time[source & ~keep] < trig)
+        dropped_dark += int((~source & ~keep).sum()); kept_dark += int((~source & keep).sum())
+        assert nhits_trigger_time(select_digits(d, keep)) == trig   # the window never moves the trigger
+    # A 1 us window keeps about 80/1000 of the uniform dark digits.
+    assert dropped_dark > 30 and kept_dark / (kept_dark + dropped_dark) < 0.2

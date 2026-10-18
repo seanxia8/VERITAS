@@ -251,6 +251,66 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 ---
 
+## Author message, 18 Oct 2026, sixth (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim.
+>
+> 1. N = 4, as the stated dark-coincidence principle requires once the window slides from every digit.
+>    N = 3 is superseded. Update the tests to assert the bound (0 dark-only triggers in ≥ 20 000
+>    windows is acceptable evidence).
+> 2. Before any run, commit this principle-based prompt-window rule:
+>    - a digit with t − t_trig outside [−20 ns, +60 ns] is out-of-time; it is dropped from the model
+>      input and counted per cell;
+>    - basis: maximum direct time of flight in WCTE (about 4.2 m / 0.225 m/ns ≈ 19 ns), plus the walk
+>      (≤ 4 ns), jitter and the early-trigger tail (≤ 6 ns), with margin;
+>    - with no trigger (fallback), keep the window start and drop nothing; count it.
+> 3. Validation split only, seeds 20–22, three arms:
+>    (a) NHits N = 4 + prompt-window rule, dark on;
+>    (b) the same, dark off;
+>    (c) diagnostic upper bound: dark on, but only truth-labelled dark digits removed (uses truth;
+>        never a candidate fix).
+>    Pass mark, recorded before the run: arm (a) ≤ 0.88 in every seed, and within 0.05 of arm (b)
+>    in the seed mean. Report the dropped-digit counts and how many source digits were dropped
+>    (should be about 0).
+> 4. If (a) passes, run R-4c once on the test events with the rule, beside R-4 and R-4b. If it fails,
+>    report and stop.
+> 5. Commit and push, and report one SHA containing nhits_trigger_time(n=4) and the prompt-window rule
+>    as a public function. The JEPA study adopts both from that SHA.
+> 6. WP7 still waits for Junjie's D-E answer and my "launch WP7". WP8: one line on R-4c; do not post.
+
+**Implementation and validation design, recorded and committed before any run (18 Oct 2026, agent; E45):**
+- **Rule code.**
+  - `readout.NHITS_N = 4`; N = 3 is superseded.
+  - New public functions: `readout.prompt_window_mask(digits, trigger_ns, window_ns=PROMPT_WINDOW_NS)`, with `PROMPT_WINDOW_NS = (-20.0, 60.0)` as a closed interval, and `readout.select_digits(digits, keep)`. With no trigger (`None`) every digit is kept.
+  - `multienergy_data` (config `prompt_window: true`, needs origin `"nhits"`):
+    - computes the trigger on the digits;
+    - drops out-of-time digits from the model input (charge, time and mask columns);
+    - counts per placement and per (role, energy) cell, plus fallbacks:
+      - `prompt_dropped`;
+      - `prompt_dropped_source`: dropped digits holding at least one source photoelectron, from evaluation-only truth;
+      - `prompt_dropped_source_no_dark`: the same, but with no dark photoelectron.
+  - A source digit can be out-of-time when an earlier dark photoelectron on the same PMT set its measured time. The test suite saw this in 2 of 40 synthetic events, at −250 and −56 ns. The rule then drops it correctly, because its time is dark, so the two source counts are reported separately.
+  - Restricting to [t_trig − 20, t_trig + 60] never moves the trigger: no earlier ≥ 4 cluster exists, and the cluster at t_trig is kept. A test checks this.
+- **Tests.**
+  - 0 dark-only triggers at N = 4 in 20 000 keyed windows (95% upper limit 1.5×10⁻⁴).
+  - The window's bounds and basis.
+  - The fallback drops nothing.
+  - No pure-source digit is dropped in 40 synthetic prompt events with dark counts. Any dropped source digit lies before the trigger, with its time set by dark. The window leaves the trigger unchanged.
+- **Arms** (validation split only, seeds 20–22; deposited-energy target, 20 ns unit, origin `"nhits"` with N = 4; `configs/lucid_pmt/r4c/e45_*.json`):
+  - (a) prompt window, dark on;
+  - (b) prompt window, dark off;
+  - (c) dark on; digits whose photoelectrons are all truth-labelled dark are removed *before* the trigger, then the trigger and prompt window are applied as in (a). So (c) differs from (a) only by perfect dark removal, and from (b) only by dark photoelectrons that merged into source digits. **Diagnostic upper bound; uses truth; never a candidate fix.** Counted as `truth_dark_dropped`.
+  - Checkpoint selection is unchanged, with the same caveat: the validation split also selects the checkpoint.
+- **Pass mark** (the author's, fixed now):
+  - arm (a)'s pooled validation vertex ÷ constant is ≤ 0.88 in every seed;
+  - and |mean(a) − mean(b)| ≤ 0.05 over seeds 20–22.
+
+  Arm (c) is reported, not gated. Reported counts: dropped digits per cell, dropped source digits (expected about 0), and fallbacks.
+- **R-4c, only if (a) passes:**
+  - once on the test events (`r4c_test.json`), on the arm (a) data set;
+  - seeds 30–32, the same seeds and gates as R-4 and R-4b, so the three sit side by side;
+  - the checkpoint rule is unchanged. If (a) fails: report and stop.
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
