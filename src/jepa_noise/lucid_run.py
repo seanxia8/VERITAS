@@ -1018,14 +1018,27 @@ def _reference_vertex_resolution(dataset, geometry, config):
         from noise_module_lucid.consequence import FitConfig, fit_vertex
     except Exception as error:
         return {"status": "not_evaluable", "reason": f"consequence unavailable: {error}", "resolution": None}
-    path = config["evaluation"].get("physics_reference_path"); v_group = None
+    path = config["evaluation"].get("physics_reference_path"); v_group = None; fit_block = {}
     if path:
         try:
-            payload = json.loads(Path(path).read_text())
-            v_group = payload.get("v_group") or payload.get("v_group_m_per_ns")
+            reference_path = Path(path)
+            if not reference_path.is_absolute():
+                reference_path = (ROOT / reference_path)
+            payload = json.loads(reference_path.read_text())
+            # The PMT reference JSON carries the fit settings under `fit_config`
+            # (v_group, scale_ns, t0_quantile, grid, min_digits, max_iter); the older
+            # top-level keys stay supported.
+            fit_block = dict(payload.get("fit_config") or {})
+            v_group = (payload.get("v_group") or payload.get("v_group_m_per_ns")
+                       or fit_block.get("v_group"))
         except Exception as error:
             return {"status": "not_evaluable", "reason": f"reference.json unreadable: {error}", "resolution": None}
-    fit_config = FitConfig(v_group=float(v_group)) if v_group else FitConfig()
+    fit_kwargs = {key: fit_block[key] for key in
+                  ("v_group", "scale_ns", "t0_quantile", "grid", "min_digits", "max_iter")
+                  if key in fit_block}
+    if v_group is not None:
+        fit_kwargs["v_group"] = float(v_group)
+    fit_config = FitConfig(**fit_kwargs) if fit_kwargs else FitConfig()
     errors, failures, total = [], 0, 0
     for row in dataset.runs:
         directory = dataset.directory / "runs" / row["run_dir"]; store = lb.read_sparse_hits(directory / "hits.npz")
@@ -1044,6 +1057,9 @@ def _reference_vertex_resolution(dataset, geometry, config):
             "resolution": float(np.mean(errors)) if errors else None,
             "failure_rate": failures / max(1, total), "n_ok": len(errors), "n_events": total,
             "v_group": float(fit_config.v_group),
+            "fit_config": {"v_group": float(fit_config.v_group), "grid": int(fit_config.grid),
+                           "scale_ns": float(fit_config.scale_ns),
+                           "t0_quantile": float(fit_config.t0_quantile)},
             "v_group_source": str(path) if path else "FitConfig default"}
 def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed, config_sha, out_root,
                  data_root, max_events=None, device=None, log=print):

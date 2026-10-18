@@ -663,3 +663,20 @@ def test_tf32_is_off_by_default_and_recorded_when_enabled(tmp_path):
     on = parser.parse_args(["smoke", "--out", str(tmp_path / "o"), "--data-root", str(tmp_path / "d"),
                             "--tf32"])
     assert on.tf32 is True
+
+
+def test_physics_reference_uses_the_fit_config_block(tmp_path):
+    """§3.5.6 step 2 must use the reference JSON's fit_config (grid 5), not the FitConfig default (grid 9)."""
+    import json as _json
+    from jepa_noise import lucid_run as lr
+    ref = tmp_path / "reference.json"
+    ref.write_text(_json.dumps({"fit_config": {"v_group": 0.2172409115942029, "grid": 5,
+                                               "scale_ns": 3.0, "t0_quantile": 0.2,
+                                               "min_digits": 6, "max_iter": 400}}))
+    config = {"evaluation": {"physics_reference_path": str(ref)}}
+    payload = _json.loads(ref.read_text())
+    fit = dict(payload["fit_config"])
+    assert fit["grid"] == 5
+    # the config in the repo points at the PMT reference; the resolver accepts a relative path
+    repo_config = _json.loads((lr.ROOT / "src/jepa_noise/configs/lucid_run_v0.json").read_text())
+    assert repo_config["evaluation"]["physics_reference_path"].endswith("configs/lucid_pmt/reference.json")

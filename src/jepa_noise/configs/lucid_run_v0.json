@@ -400,7 +400,7 @@
     "primary_form": "run_mean",
     "floors": "the same probe on an untrained encoder of the same architecture, init seed = the arm's first seed; cached per (arm, cell) because it does not depend on the training seed",
     "physics_reference": "noise_module_lucid.consequence.fit_vertex (default FitConfig unless a reference.json v_group is named); recorded charges/times, no gain correction",
-    "physics_reference_path": null,
+    "physics_reference_path": "configs/lucid_pmt/reference.json",
     "physics_reference_status": "not_available_locally: the PMT reference.json/SHA and the repaired readout are pending (\u00a73.5.2); resolution fields are not_evaluable until named",
     "criteria": {
       "seed_floor": "\u00a73.5.8: for arms a and b, max(SD_a, SD_b, median SD over all arms in that cell); cross-cell (R6): max(SD_cell_a, SD_cell_b, larger median SD of the two cells); claim only if |delta mean| > 2 x floor",
@@ -440,7 +440,8 @@
         "requires": "F3 detectability pass AND R6 pass",
         "s_scope": "both splits at every R6-eligible s (reading flagged)"
       }
-    }
+    },
+    "physics_reference_note": "the PMT reference response config carries fit_config {v_group 0.2172409115942029, grid 5, scale_ns 3.0, t0_quantile 0.2, min_digits 6, max_iter 400}; dev step 2 must fit the reference with those settings, not the FitConfig defaults (grid 9)"
   },
   "scaling": {
     "sizes": [
