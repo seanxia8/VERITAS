@@ -1170,3 +1170,26 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   root `/ceph/dwong/jepa/data/lucid_r6_v2` (~31 MB, ~22 entries). The first attempt also OOM'd on the
   Titan at batch 32 before step 0, hence the micro-batch 8 × accumulation 4 shape (effective batch
   unchanged at 32).
+
+## WP5 smoke and scaling on the Titan (18 Oct 2026) — and the cost question it raises
+
+- **2026-10-18 — 500-step real-geometry smoke PASSED** (code `3e739b6`, readout `readout_pmt_r6`,
+  dataset digest `61fdafa6…` matching the frozen generator config): 500 steps in 795.8 s on a Titan
+  = **1.59 s/step (0.628 steps/s)**, micro-batch 8 × accumulation 4 (effective batch 32), allocator
+  peak not recorded by the manifest; 1 s-sampler peak 5 589 MiB ≈ 58 % of the 9.54 GiB cap. The
+  manifest recorded the frozen numerics exactly (`muon_adamw`, lr 1e-3, eps 1e-8, betas
+  (0.9, 0.999), wd 0, constant schedule, warmup 0, clip null, fused true; Muon lr 1e-3, momentum
+  0.95, nesterov, ns_steps 5; groups adamw 57 / muon 24). The smoke ran without `--evaluate`, so it
+  produced no probe/floor values (a separate, longer run).
+- **2026-10-18 — scaling on the Titan PASSED at both sizes:** 2 000 PMTs → 764 MB peak, 9.53
+  events/s; 10 000 PMTs → 3 694 MB peak, 2.39 events/s; neither `does_not_fit` under the 9.6 GB cap.
+  The 40k size belongs on the L40S and is measured there next.
+- **2026-10-18 — cost projection flag (budget risk, not yet a gate):** 1.59 s/step on a Titan X
+  implies **4.4 h per 10 000-step run**, i.e. ~888 GPU-h for the 201-run LUCiD grid — far beyond the
+  Titan 300 GPU-h cap. The model-only scaling suggests ~0.30 s/step at 2 000 PMTs (9.5 events/s ÷ 32
+  events/step), so roughly 5× of the smoke's step time is data-path overhead (tokenisation, mask/key
+  construction, Hilbert sort, per-batch cache lookups). The L40S is ~15× the Titan's fp32 throughput,
+  so an optimised L40S run should be far below 1.59 s/step — the decisive measurement is the same
+  500-step smoke on deepthought2, which is requested now. Until it lands, the grid's cost against
+  the 80 GPU-h L40S cap is unprojected and **no criterion run starts**; if the optimised L40S
+  projection still exceeds the caps, the honest outcome is G2 with options, not a quiet run.
