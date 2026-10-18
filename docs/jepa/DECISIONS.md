@@ -1546,3 +1546,14 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   and leave the trigger-relative times unchanged.
 - **The time-of-flight reference fit is unchanged**: it consumes digit times and estimates t0, so
   the trigger-relative convention does not affect its resolution.
+
+- **2026-10-18 — invariance test made precise (author).** Recorded verbatim: "Invariance test, made
+  precise: with dark counts off, a constant shift of all photon times must give bit-identical tokens
+  and a trigger time shifted by exactly that constant. With dark counts on, assert the same for the
+  source-derived digits only, and record how often a dark coincidence moves the trigger."
+  Implementation consequence: the readout must expose the **source-derived** digit times separately
+  from dark digits (or recompute the source-only trigger for the test), the dark-off test asserts
+  token bit-identity **and** `trigger(shifted) − trigger(original) == shift`, the dark-on test asserts
+  the same on the source-derived digits, and a recorded diagnostic counts the events in which a dark
+  coincidence moves the trigger (full-digital trigger ≠ source-only trigger) — that rate is reported
+  with the run/readout record, not hidden.
