@@ -1495,3 +1495,15 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   `manifest.json` + `SHA256SUMS` copies (17 entries). No result, code or log was deleted; the
   reclaimed 3 157 entries / 1.97 GB returned free space to 34 880. Recorded here explicitly for the
   author's audit.
+
+- **2026-10-18 — development step 3 stopped on the author ruling (clean SIGTERM, exit 0).** Wall
+  9 308.48 s = **2.5857 GPU-h**; the runner checkpointed and exited 0 without a forced kill or SHED.
+  All 17 dev runs (step 2 and step 3) are kept in place and marked
+  `superseded_by_token_time_origin_change` (record
+  `returns/wp5_lucid_dev_v6/SUPERSEDED_BY_TOKEN_TIME_ORIGIN.json`, sha256 `743b0c1d…`), with the step-2
+  and step-3 decisions marked superseded (`bc525bba…`, `3435892f…` — the latter invalid, written from
+  interrupted runs). Dev datasets kept for the merge decision. **Partial β values (superseded
+  evidence only, anchored arm vertex resolution):** β = 0.1 → 0.30604 m, β = 1 → 0.28374 m,
+  β = 10 → 0.25750 m (all `ridge`, n = 10 000, failure rate 0); the β selection will be redone on the
+  new time-origin input. L40S charged **5.4574 / 170 GPU-h**, of which **3.8606 h superseded** by this
+  ruling; CPU generation 0.4452/48; free entries 34 859; nothing running.
