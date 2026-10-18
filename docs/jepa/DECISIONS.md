@@ -1577,3 +1577,17 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   dark-moved-trigger rate); the 10 dataset-generating integration tests in the other suites are
   **skipped explicitly pending the author-named SHA** (they cannot generate coherent data before
   the merge). No datasets were generated.
+
+- **2026-10-18 — invariance refinement finalised (two readings recorded).** (i) The dark-moved-trigger
+  counterfactual is computed on the **finite source-derived digits only**
+  (`index[n_photon[index] > 0]`): a dark-only PMT has no source time, and the imported rule rejects
+  non-finite digit times, so feeding it an infinite time would crash on ordinary events; when no dark
+  digit exists the counterfactual trigger is the trigger itself. `n_dark_moved_trigger` and
+  `dark_moved_trigger_rate` are written to the run manifest and the benchmark payload. (ii) The
+  **no-trigger case follows the imported prompt-window mask**: when the window is undefined (no
+  trigger), every digit is kept and only `n_no_trigger` counts the fallback — our implementation does
+  not invent a cut around the window-start origin. Evidence: the bombs suite is green (57 tests,
+  including a dark-coincidence test that proves the trigger moves, is counted, and never feeds an
+  infinite digit; a strict stub mirrors the interface's finite-time requirement) and the full package
+  suite is **446 passed, 10 skipped** (the skips are the dataset-generating tests pending the
+  author-named PMT SHA). No datasets were generated.
