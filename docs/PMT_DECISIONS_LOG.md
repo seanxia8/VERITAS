@@ -354,6 +354,16 @@ _One line each, logged as made (18 Oct 2026)._
   - The seed effect is small (arm 4: 0.936 against R-4b's 0.948 with seeds 30–32).
 
   Details: `results/pmt_r4c_dev_2026-10-18`. Nothing was retuned, and the test split was not predicted.
+- E44 (NHits validation, validation only; code `1d9845f`). Vertex ÷ constant, seeds 20–22:
+  - dark off: 0.797, 0.748, 0.814;
+  - dark on: 0.886, 0.921, 0.924;
+  - fallback 0 of 480 placements in both arms.
+
+  **The E43 criterion fails** (dark on is above 0.88 in every seed), so R-4c was not run, as the author's rule requires.
+  - The rule fixes the conditioning problem without dark counts.
+  - With dark counts, vertex loses about 0.12. An untested hypothesis is that dark-digit time features (about −15 to +35 units against prompt hits near 0–2) act as outliers under masked max pooling.
+
+  Nothing was tuned. Details: `results/pmt_r4c_dev_2026-10-18/nhits_validation`.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -382,6 +392,11 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | E40 generation: `r4c_data_arm0`, `_arm1`, `_arm3`; `_arm2` failed (E41); `_arm2b` retry | 14:34, 14:45, 13:15; 0:56; 13:17 | 0 | 0 |
 | 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | E40 training: 5 arms × 3 seeds, validation only (`r4c_arm0`–`4`) | 280 s in total | 0.078 | 0 |
 | 18 Oct 2026 | deepthought (CPU, nice 10) | E40 input comparisons and `56179eb` validation reference | < 2 min | 0 | 0 |
+| 18 Oct 2026 | local | NHits rule measurement (`nhits_rule/measure_nhits.py`, 20 000 dark windows, 600 prompt events) | about 4 min | 0 | 0 |
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | NHits validation generation: `nhits_data_dark`, `nhits_data_nodark` | 14:46, 14:18 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | NHits validation training: 2 arms × 3 seeds, validation only | 111 s | 0.031 | 0 |
+
+NHits totals: 0.031 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0%, no `jepa_*` training session, and only another user's notebook kernel at ≤ 802 MiB per card. Cumulative GPU use in this session: 0.218 GPU-hours. Cumulative source reads: about 92.5 MB.
 
 E40 totals: 0.078 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0% mean utilisation and no `jepa_*` training session. The only other GPU process was another user's notebook kernel, at ≤ 802 MiB per card. GPU 0 was used, the same index as `56179eb`. Cumulative GPU use in this session: 0.187 GPU-hours. Cumulative source reads: about 92.5 MB.
 

@@ -52,6 +52,7 @@ Setup: the same 60 PhotonSim events (500, 1000 and 1500 MeV μ⁻, 8 placements 
 - **Vertex** fails the new gate: it is barely better than a constant, and worse than our earlier run. Two input changes landed together: we changed the time feature to stay robust to dark hits, and added dark counts. We think one of them is responsible, and we'll test which on a validation split, not the test events.
 - **Vertex, follow-up:** switching the time unit back to 20 ns and dark counts off did not restore it (still 0.95–1.00 × constant), and a re-run on the test events failed the same way. The remaining suspect is the time-feature origin, now at the readout-window start; we're still checking that.
 - **Vertex, outcome:** the cause is the time origin. Putting it at the window start offsets every hit time by 10 units, which spoils training. With the origin at the trigger time, vertex recovers to 0.65–0.68 × constant on the validation split, and an exact rerun of our earlier code reproduces it bit for bit, so nothing else regressed.
+- **R-4c (not run):** a hit-based trigger origin (≥ 3 digits in 20 ns) restores vertex without dark counts (0.75–0.81 × constant on validation). With dark counts it reaches only 0.89–0.92, so we have not re-run on the test events yet.
 - All of this is development evidence on synthetic response values, not a WCTE calibration.
 
 ## Decisions we need from you
