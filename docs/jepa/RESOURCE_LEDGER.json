@@ -6,7 +6,7 @@
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
       "cap_gpu_hours": 170.0,
-      "charged_gpu_hours": 1.349,
+      "charged_gpu_hours": 5.4574,
       "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
       "cap_history": [
         {
@@ -26,9 +26,10 @@
     },
     "lucid_generation_cpu": {
       "cap_wall_hours": 48,
-      "charged_wall_hours": 0.262,
+      "charged_wall_hours": 0.4452,
       "cores_at_most": 16,
-      "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs."
+      "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
+      "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded"
     },
     "e1_cpu_wall_hours": {
       "cap_wall_hours": 24,
@@ -869,6 +870,111 @@
       "job_kind": "wp5",
       "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
       "note": "guard SHED at 66.1 GiB RAM > 64 GiB cap during inline probe evaluation (per-event pmt_gain tables: 10k events x 1995 PMTs x 128 dims x float64 = 20.4 GB per split); training run 1 completed 10k steps at 0.2195 s/step (final.pt + checkpoint saved), run 2 not started; resumable from checkpoint once the eval memory blocker is resolved; invalid result, not reused"
+    },
+    {
+      "id": "wp5_validate_stream_eval",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0363,
+      "wall_seconds": 130.75,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "5f838065d30a7f26eba3422d91cc727390732864",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "non-registered streaming-evaluation validation (500-step smoke --evaluate): process peak 1852.0 MiB / resident peak 1660.2 MiB vs 1580.9 baseline (delta 271.1 / 79.4 MiB), probe_memory chunk 64, 3,455,840 rows, sufficient_statistics true; exit 0; training 108.39 s of the 130.75 s wall"
+    },
+    {
+      "id": "wp5_lucid_dev_step2_v5",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.1689,
+      "wall_seconds": 608.19,
+      "status": "killed",
+      "exit_status": 143,
+      "code_sha": "5f838065d30a7f26eba3422d91cc727390732864",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "superseded by the 615421c F3-spread coherence fix; ran 608 s (run 1 reached ~2500 steps); invalid, not reused"
+    },
+    {
+      "id": "wp5_validate_stream_eval_v2",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0083,
+      "wall_seconds": 29.87,
+      "status": "killed",
+      "exit_status": 0,
+      "code_sha": "615421c8e799118f7b47148d9f01dd100f924c0b",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "superseded by 3dd4715 mid-run (only the ~30 s data-generation phase ran; no validation result)"
+    },
+    {
+      "id": "wp5_validate_stream_eval_v3",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0343,
+      "wall_seconds": 123.35,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "3dd4715655f515e0daebd4396cb9ab587b435864",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "streaming-evaluation acceptance (500-step smoke --evaluate): probe_memory chunk 64, peak_mb 1853.1, peak_delta 283.8 MiB, resident_delta 134.7 MiB, n_rows_total 3,455,670, sufficient_statistics true; eval+setup 14.9 s of 123.35 s wall (training 108.42 s)"
+    },
+    {
+      "id": "wp4b_detectability_refreeze",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "cpu",
+      "gpu_count": 0,
+      "gpu_hours": 0.0,
+      "wall_seconds": 37.0,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "615421c8e799118f7b47148d9f01dd100f924c0b",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6_consistency.json (file sha256 411190bc2cfac55a6009e6e329485fe2905cc0c2bc9bae6262277433f1a807a7, content 8c9b96d25606eec8d7a973c9377da73352150fbe66d4d8fe694efa7abf6b35ae)",
+      "note": "CPU-only detectability re-freeze at s_p=0.10 (no GPU); ~37 s wall"
+    },
+    {
+      "id": "wp5_lucid_dev_step2_v6",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 1.2749,
+      "wall_seconds": 4589.51,
+      "status": "superseded_by_token_time_origin_change",
+      "exit_status": 0,
+      "code_sha": "3dd4715655f515e0daebd4396cb9ab587b435864",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v6/dev/step2_probe_decision.json (sha256 bc525bba554f8b7d1b354f4b2b60c795925e397a6a41b277c4eecec69c9f2d39)",
+      "note": "dev step 2 valid: sigreg_jepa 10k steps 2463.51 s, mae_mse 10k steps 1264.53 s; decision ridge (ratios mae_mse 0.657, sigreg_jepa 2.216 vs 3x ref 0.14231); reference fit_config grid 5 v_group 0.2172409115942029; streaming probes 69.2M rows, peak_delta 426 MB; includes the s_p=0.10 dataset regeneration (~11 min CPU) charged to the CPU-generation cap; SUPERSEDED by the author token-time-origin ruling (A9): the ridge decision is not used; runs kept as evidence"
+    },
+    {
+      "id": "wp5_lucid_dev_step3_v6",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 2.5857,
+      "wall_seconds": 9308.48,
+      "status": "superseded_by_token_time_origin_change",
+      "exit_status": 0,
+      "code_sha": "3dd4715655f515e0daebd4396cb9ab587b435864",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v6/SUPERSEDED_BY_TOKEN_TIME_ORIGIN.json (sha256 743b0c1db709951986def9605424bd55092c80d94cf56de227b9df344cacb779)",
+      "note": "stopped by SIGTERM on the author token-time-origin ruling after 2 completed and 1 partial anchored runs + 12 interrupted: sigreg_jepa_anchored b0.1 3053.59 s, b1 3010.50 s, b10 2828.34 s complete; b100 interrupted at step 1200 (362.99 s); b1000 and all anchor_only/anchored_dark runs interrupted at step 0 (3.4-6.0 s). The step3_beta_decision it wrote from interrupted runs (sha256 3435892f...) is invalid; step2 decision (sha256 bc525bba...) also superseded; all runs kept as evidence, not reused"
     }
   ]
 }
