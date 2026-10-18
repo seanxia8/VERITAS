@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 02:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 02:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -145,10 +145,17 @@ Updated: 2026-10-18 02:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   dark windows; **R7b evaluable again** with the dark-only draw's measured embedding change recorded
   beside it; **s_p restarts at the registered default 0.05** with the ladder order Y_hi → F2 → s_p.
   Full suite **432 passed**; four LUCiD suites 106 passed.
-- **Running**: host detectability **freeze** on the R-6 readout (`--freeze`, this gates the report),
-  then the WP5 500-step real-geometry smoke and the 2k/10k scaling at the same SHA; then the R5-ext
-  re-run. B1-ext closed as a development β trade-off (β=10 selected; anchored grid stopped as a
-  replication; 2.4484 of 4 GPU-h).
+- **Detectability FROZEN on the R-6 readout** (decision JSON committed under
+  `results/jepa/20261018_wp4b_detectability_r6/`, sha256 `1e4407ac…`): ceilings old→new recorded
+  (max shift +2.2e-3, no pass/fail change); **Y_lo 6298.436828, Y_hi 539 433.964527**, median yield
+  58 288.856; ladder 4 steps (Y_hi → F2 a=0.2 → F2 a=0.5 → s_p 0.05→0.10); F1 {0.05,0.10}; F2
+  a=0.50; F3 fails at 0.325 → R12 `not_evaluable` no gate; G6 false; occupancy fine at Y_lo;
+  readout `readout_pmt_r6`, v_dark 0.00109.
+- **R5-ext re-run after the freeze**: 7 pass / 3 not_evaluable (identical, deterministic);
+  γ=1.0 2/5 wins → fail, γ=0.5 2/5 evaluable → not_evaluable; E1 CPU 8.94 of 24 h. B1-ext closed as
+  a development β trade-off (β=10; 2.4484 of 4 GPU-h). **WP5 smoke** first attempt OOM at batch 32;
+  micro-batch 8 × accumulation 4 (effective batch 32) committed (`3e739b6`), retry + 2k/10k scaling
+  requested. Quota 38 467 free entries.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
