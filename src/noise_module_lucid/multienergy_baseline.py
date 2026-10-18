@@ -39,11 +39,19 @@ def run(config,data,out,gates=None):
         if not len(ia):raise ValueError('empty split')
         for kb,ib in indices.items():
             if ka!=kb and set(groups[ia])&set(groups[ib]):raise ValueError('physical event split leakage')
+    # R-4b diagnostics: evaluate on the validation split only (the test split is then never predicted),
+    # and optionally train on the first k training events per energy (data-limitation check).
+    split=cfg.get('evaluate_split','test')
+    if split not in ('test','validation'):raise ValueError('evaluate_split must be test or validation')
+    if cfg.get('train_events_per_energy') is not None:
+        keep_ids=set(cfg['splits']['train'][:int(cfg['train_events_per_energy'])])
+        indices['train']=np.array([i for i in indices['train'] if int(str(groups[i]).split(':')[1]) in keep_ids],dtype=int)
+        if not len(indices['train']):raise ValueError('empty training subset')
     # Energy truth is the declared target (D-E deposited energy in R-4); subgroups stay nominal energy.
     etrue=a['target_MeV'] if 'target_MeV' in a.files else a['energy_MeV'];target_name=cfg.get('energy_endpoint','initial_energy')
     fit=indices['response_fit'];design=np.column_stack((a['charge'][fit],np.ones(len(fit))));coef=np.linalg.lstsq(design,etrue[fit],rcond=None)[0]
     cal=dict(method=f'least squares charge-to-{target_name}, intercept included',fit_physical_event_ids=sorted(set(groups[fit])),coefficients=coef.tolist(),source_dataset_sha256=hashlib.sha256(data.read_bytes()).hexdigest());cal['sha256']=hashlib.sha256(json.dumps(cal,sort_keys=True).encode()).hexdigest();(out/'charge_calibration.json').write_text(json.dumps(cal,indent=2))
-    test=indices['test'];constant_vector=constant_predictor(a['y'],indices['train']);constant=np.tile(constant_vector,(len(test),1));constant_metrics=metrics(constant,a['y'][test])
+    test=indices[split];constant_vector=constant_predictor(a['y'],indices['train']);constant=np.tile(constant_vector,(len(test),1));constant_metrics=metrics(constant,a['y'][test])
     q_pred=coef[0]*a['charge'][test]+coef[1];sel={e:a['energy_MeV'][test]==e for e in cfg['energies_MeV']};charge_benchmark=dict(endpoint=target_name,relative_mae=float(np.mean(np.abs(q_pred/etrue[test]-1))),negative_predictions=int((q_pred<=0).sum()),by_energy={str(e):float(np.mean(np.abs(q_pred[m]/etrue[test][m]-1))) for e,m in sel.items()})
     def loss(p,t):return F.mse_loss(p[:,:3],t[:,:3])+F.mse_loss(p[:,3:6]/.35,t[:,3:6]/.35)+F.mse_loss(p[:,6],t[:,6])
     def predict(model,ix):
@@ -66,8 +74,8 @@ def run(config,data,out,gates=None):
         endpoint_gates={name:bool(m[name+'_mse']<constant_metrics[name+'_mse']) for name in ('direction','vertex','log_energy')}
         endpoint_gates.update({'r3_'+k:v['passed'] for k,v in relative['gates'].items()})
         result=dict(seed=seed,metrics=m,gates=endpoint_gates,relative_gates=relative,passed=all(endpoint_gates.values()),best_epoch=best_epoch,parameters=sum(t.numel() for t in model.parameters()),checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),by_energy={str(e):metrics(p[a['energy_MeV'][test]==e],truth[a['energy_MeV'][test]==e]) for e in cfg['energies_MeV']},by_containment={str(v):metrics(p[a['contained'][test]==v],truth[a['contained'][test]==v]) for v in (False,True) if np.any(a['contained'][test]==v)})
-        np.savez_compressed(out/f'seed_{seed}_test.npz',prediction=p,truth=truth,physical_event_id=groups[test],energy_MeV=a['energy_MeV'][test],contained=a['contained'][test]);(out/f'seed_{seed}_history.json').write_text(json.dumps(history,indent=2));results.append(result);print(json.dumps(result),flush=True)
-    report=dict(results=results,passed=all(r['passed'] for r in results),constant_metrics=constant_metrics,constant_vector=constant_vector.tolist(),trainability_gates=gate_cfg,charge_benchmark=charge_benchmark,config=cfg,elapsed_seconds=time.monotonic()-start,dataset_sha256=cal['source_dataset_sha256'],peak_gpu_bytes=torch.cuda.max_memory_allocated(),torch=torch.__version__,gpu=torch.cuda.get_device_name(),evidence_stage='development',non_citable=True,primary_claims_evaluated=False)
+        np.savez_compressed(out/f'seed_{seed}_{split}.npz',prediction=p,truth=truth,physical_event_id=groups[test],energy_MeV=a['energy_MeV'][test],contained=a['contained'][test]);(out/f'seed_{seed}_history.json').write_text(json.dumps(history,indent=2));results.append(result);print(json.dumps(result),flush=True)
+    report=dict(evaluate_split=split,n_train_placements=int(len(indices['train'])),n_eval_placements=int(len(test)),results=results,passed=all(r['passed'] for r in results),constant_metrics=constant_metrics,constant_vector=constant_vector.tolist(),trainability_gates=gate_cfg,charge_benchmark=charge_benchmark,config=cfg,elapsed_seconds=time.monotonic()-start,dataset_sha256=cal['source_dataset_sha256'],peak_gpu_bytes=torch.cuda.max_memory_allocated(),torch=torch.__version__,gpu=torch.cuda.get_device_name(),evidence_stage='development',non_citable=True,primary_claims_evaluated=False)
     (out/'training.json').write_text(json.dumps(report,indent=2));print('all_trainability_gates',report['passed'],flush=True)
     if not report['passed']:raise RuntimeError('trainability gate failure retained; no retuning')
 

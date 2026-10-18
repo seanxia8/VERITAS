@@ -1,6 +1,7 @@
 """Multi-energy prompt-track development dataset, explicit primary targets."""
 import argparse, hashlib, json, time
 from pathlib import Path
+from dataclasses import replace
 import numpy as np
 from scipy.spatial.transform import Rotation
 from scipy.spatial import cKDTree
@@ -30,6 +31,10 @@ def run(config,source,upstream,manifest,out,segments=None):
     cfg=json.loads(Path(config).read_text());source=Path(source);out=Path(out);out.mkdir(parents=True,exist_ok=False)
     start=time.monotonic();receipt=json.loads((source/'manifest.json').read_text());transport=PromptTransport(Path(upstream)/'config/WCTE_geom_config.json',manifest,max_candidates_per_ray=cfg['max_candidates_per_ray'])
     g=transport.geometry;pos=np.asarray(g.sensor_points,float);n=len(pos);ref=response(g)
+    # R-4b switches. Absent keys reproduce r4_pilot.json (R-4): dark counts on, 1 us (window-length) time unit.
+    if not cfg.get('dark_counts',True):ref=replace(ref,dark_rate_hz=0.0)
+    unit=cfg.get('time_feature_unit_ns');offsets=list(cfg.get('readout_seed_offsets',[0]));only=set(cfg.get('generate_roles',cfg['splits']))
+    if not offsets or len(set(offsets))!=len(offsets) or not all(isinstance(o,int) and o>=0 for o in offsets):raise ValueError('distinct nonnegative integer readout_seed_offsets required')
     module=np.asarray(g.detector.mpmt_id,dtype=int)
     mapping=dict(source='pinned WCTE npz metadata reordered by upstream Cylinder.from_file',channel_mpmt_id=module.tolist(),channel_pmt_id=np.asarray(g.detector.pmt_id).tolist(),physical_mpmt_groups=int(len(np.unique(module))),crate_map=None,response_factors='synthetic; not measured module calibration',snap_to_wall=bool(g.detector.snap_to_wall),max_position_snap_m=float(np.max(np.linalg.norm(pos-np.asarray(g.detector.raw_positions),axis=1))))
     (out/'physical_module_map.json').write_text(json.dumps(mapping,indent=2))
@@ -43,6 +48,7 @@ def run(config,source,upstream,manifest,out,segments=None):
         angle=np.degrees(np.arccos(np.clip(np.sum(d*raw['segment_direction'],axis=1)[eligible],-1,1)));theory=np.degrees(np.arccos(1/(beta[eligible]*float(g.medium.refractive_index))))
         cone.append(dict(energy_MeV=energy,event_id=eid,n=len(angle),median_abs_error_deg=float(np.median(np.abs(angle-theory))),p95_abs_error_deg=float(np.quantile(np.abs(angle-theory),.95))))
         role=next(k for k,v in cfg['splits'].items() if eid in v)
+        if role not in only:continue
         target=cfg.get('energy_target','initial_energy')
         if target=='deposited_energy_in_volume':
             if segments is None:raise ValueError('deposited-energy target requires --segments')
@@ -61,8 +67,14 @@ def run(config,source,upstream,manifest,out,segments=None):
                 ix=np.searchsorted(pid,batch.photon_id);travel=(batch.arrival_time_ns-raw['emission_ns'][keep][ix])*float(g.speed_of_light);oc=o[keep][ix]-pos[batch.sensor_id];dd=dirs[keep][ix];bb=np.sum(oc*dd,axis=1);direct=-bb-np.sqrt(np.maximum(bb*bb-np.sum(oc*oc,axis=1)+float(g.sensor_radius)**2,0));hit=o[keep][ix]+dd*travel[:,None]
                 sampled=np.linspace(0,len(pid)-1,cfg['geometry_check_rays'],dtype=int);expected=analytic_first(o[keep][sampled],dirs[keep][sampled],pos,float(g.sensor_radius),g.detector);observed=np.full(len(pid),-1,int);observed[ix]=batch.sensor_id
                 geometry.append(dict(energy_MeV=energy,event_id=eid,agreement=float(np.mean(expected==observed[sampled])),max_time_error_ns=float(np.max(np.abs(direct-travel))/float(g.speed_of_light)),max_sphere_error_m=float(np.max(np.abs(np.linalg.norm(hit-pos[batch.sensor_id],axis=1)-float(g.sensor_radius))))))
-            digit=readout_chain(batch.sensor_id,batch.arrival_time_ns,n,ref,seed=event_id,photon_batch=batch)
-            x=np.zeros((n,6),np.float32);x[:,2:5]=pos/2;x[digit.sensor,0]=np.log1p(digit.charge);x[digit.sensor,1]=time_feature(digit.time,ref.readout_window_ns);x[digit.sensor,5]=1
+            # Readout re-draws (precision study): the keyed seed changes, transport and placement do not.
+            xs=[]
+            for off in offsets:
+                d_=readout_chain(batch.sensor_id,batch.arrival_time_ns,n,ref,seed=event_id+off*1_000_000_000,photon_batch=batch)
+                x_=np.zeros((n,6),np.float32);x_[:,2:5]=pos/2;x_[d_.sensor,0]=np.log1p(d_.charge);x_[d_.sensor,1]=time_feature(d_.time,ref.readout_window_ns,unit);x_[d_.sensor,5]=1
+                xs.append(x_)
+                if off==offsets[0]:digit=d_
+            x=xs[0] if len(xs)==1 else np.stack(xs)
             dep=None
             if target=='deposited_energy_in_volume':
                 origin=raw['vertex_m'];ss=(sp['starts_m']-origin)@rot.T+vertex;ee=(sp['ends_m']-origin)@rot.T+vertex
@@ -73,7 +85,7 @@ def run(config,source,upstream,manifest,out,segments=None):
             rows.append(dict(event_id=event_id,physical_event_id=f'{energy}:{eid}',source_event_id=eid,energy_MeV=energy,role=role,rotation=aug,primary_track_contained=bool(inside_cylinder(track,float(g.detector.r),float(g.detector.H)).all()),source_photons=len(o),outside_volume=int((~inside).sum()),inside_sensor_volume=int(in_sensor.sum()),selected_photons=int(keep.sum()),incident_hits=len(batch.photon_id),digits=len(digit),charge_sum=float(digit.charge.sum()),overflow_clamped=int(digit.counts['overflow_clamped']),digits_before_arrival=int(digit.counts['digits_before_arrival']),energy_target=target,target_MeV=e_target,**({f'dep_{k}':v for k,v in dep.items()} if dep else {})))
         print(energy,eid,len(rows),flush=True)
     passed=all(c['agreement']==cfg['geometry_agreement_required'] and c['max_time_error_ns']<cfg['max_time_residual_ns'] and c['max_sphere_error_m']<cfg['max_sphere_residual_m'] for c in geometry)
-    report=dict(passed=passed,config=cfg,source=receipt,transport=transport.provenance(),geometry=geometry,cone=cone,events=rows,elapsed_seconds=time.monotonic()-start,response=ref.to_dict(),response_manifest=response_manifest.provenance(),readout_counts=dict(overflow_clamped=sum(r['overflow_clamped'] for r in rows),digits_before_arrival_fraction=sum(r['digits_before_arrival'] for r in rows)/max(1,sum(r['digits'] for r in rows))),evidence_stage='development',non_citable=True)
+    report=dict(passed=passed,config=cfg,readout_settings=dict(dark_rate_hz=ref.dark_rate_hz,time_feature_unit_ns=unit if unit is not None else 'window_length',readout_seed_offsets=offsets,generate_roles=sorted(only)),source=receipt,transport=transport.provenance(),geometry=geometry,cone=cone,events=rows,elapsed_seconds=time.monotonic()-start,response=ref.to_dict(),response_manifest=response_manifest.provenance(),readout_counts=dict(overflow_clamped=sum(r['overflow_clamped'] for r in rows),digits_before_arrival_fraction=sum(r['digits_before_arrival'] for r in rows)/max(1,sum(r['digits'] for r in rows))),evidence_stage='development',non_citable=True)
     (out/'validation.json').write_text(json.dumps(report,indent=2));np.savez_compressed(out/'digits.npz',x=np.asarray(xlist),y=np.asarray(ylist,dtype=np.float32),role=np.array([r['role'] for r in rows]),physical_event_id=np.array([r['physical_event_id'] for r in rows]),energy_MeV=np.array([r['energy_MeV'] for r in rows]),contained=np.array([r['primary_track_contained'] for r in rows]),charge=np.array([r['charge_sum'] for r in rows]),target_MeV=np.array([r['target_MeV'] for r in rows]),energy_target=np.array([r['energy_target'] for r in rows]))
     print('transport_gate',passed,flush=True)
     if not passed:raise RuntimeError('transport closure failed; no training')

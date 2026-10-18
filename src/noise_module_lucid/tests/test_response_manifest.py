@@ -18,6 +18,7 @@ BUILDERS = {"response_manifest.py", "timing_response.py", "quantum_efficiency.py
 LEGACY_DEFAULT = {"dataset.py", "readout.py"}
 # Declared cell/control constructions outside a ResponseCellSpec(...) call; each is an intervention, not a reference.
 DECLARED = {("pmt_development.py", "collection_efficiency"): "charge-matched weak control: 20% CE loss",
+            ("multienergy_data.py", "dark_rate_hz"): "R-4b 2x2 diagnostic dark-counts-off arm (author, 18 Oct 2026)",
             **{("dataset.py", f): "legacy response_cells: identity value (1.0/0.0) for unaffected groups inside a cell"
                for f in ("survival", "gain", "timing_offsets_ns")}}
 

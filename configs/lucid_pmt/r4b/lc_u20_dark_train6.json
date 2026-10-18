@@ -1,0 +1,105 @@
+{
+  "evidence_stage": "development",
+  "non_citable": true,
+  "energies_MeV": [
+    500,
+    1000,
+    1500
+  ],
+  "events_per_energy": 20,
+  "rotations_per_event": 8,
+  "source_read_cap_bytes": 939524096,
+  "source_wall_seconds": 1800,
+  "generation_wall_seconds": 1800,
+  "training_wall_seconds": 1800,
+  "splits": {
+    "response_fit": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "train": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "validation": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "test": [
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  "model_seeds": [
+    30,
+    31,
+    32
+  ],
+  "epochs": 100,
+  "batch_size": 16,
+  "learning_rate": 0.001,
+  "gpu_memory_fraction": 0.25,
+  "cpu_threads": 4,
+  "placement": "primary vertex uniform [-0.35,0.35] m in each coordinate; uniform SO(3); no shower centring",
+  "targets": [
+    "primary starting position in metres",
+    "primary initial direction",
+    "log(E_dep / 1000 MeV), D-E development endpoint"
+  ],
+  "geometry": "pinned WCTE; unchanged calibrated-engineering transport",
+  "geometry_check_rays": 256,
+  "geometry_agreement_required": 1.0,
+  "max_time_residual_ns": 0.0001,
+  "max_sphere_residual_m": 0.0001,
+  "calibration": "charge-to-primary-energy least squares with intercept fitted on response_fit only; supporting benchmark; no PMT calibration claim",
+  "checkpoint": "minimum equal-weight validation loss; test once per seed; no threshold tuning",
+  "augmentation_seed": 202610170,
+  "prior_500MeV_data": "same development source events as previous pilot; never promoted to pristine confirmation",
+  "primary_claims_evaluated": false,
+  "architecture": "6->128->128->128 per sensor; masked mean/max plus measured total charge/1000 and occupancy fraction; 258->256->7",
+  "loss": "MSE(unit direction) + MSE(vertex/0.35m) + MSE(log(E_dep/1000MeV))",
+  "grouping": "upstream physical mpmt_id aligned by Cylinder loader; gain/width factors remain synthetic; electronics crate map unavailable",
+  "geometry_approximation": "upstream spherical PMTs snapped to cylinder boundary; raw-to-model displacement reported",
+  "cohort_amendment": "Before reconstruction/training: balanced first 20 physical events per energy after source read-cap STOP; original 24-event plan preserved; no score inspected; thresholds unchanged",
+  "water_source_domain": "inside upstream cylinder and outside spherical sensor volumes; omitted counts retained",
+  "max_candidates_per_ray": 64,
+  "transport_repair": "After retained 16-candidate transport failure, increase candidate search to 64 through upstream API; no target, split, training setting or acceptance tolerance changed",
+  "run": "R-4b data-limitation check: first 6 of 8 training events per energy; 20 ns, dark on; validation only",
+  "authorization": "author decisions 18 Oct 2026 (third message, docs/PMT_DECISIONS_LOG.md) under C2 and the runbook v2 §2 shared-server rules",
+  "energy_target": "deposited_energy_in_volume",
+  "energy_endpoint": "deposited_energy_in_volume",
+  "energy_column": 6,
+  "energy_definition": "D-E development default (author 18 Oct 2026): E_dep = T(vertex) - T(first exit), 0 exit for a stopped track; primary muon; per-segment beta; noise_module_lucid.deposited_energy",
+  "trainability_gates": "configs/lucid_pmt/trainability_gates.json (R-3, energy per subgroup)",
+  "segment_read_cap_bytes": 1073741824,
+  "photon_source": "existing /work/dwong/pmt_multienergy_20261016/source_balanced (56179eb cohort); no new photon reads",
+  "response": "configs/lucid_pmt/reference.json schema v2 at the R-4 commit (R-1 manifest, R-2 walk, R-6 dark counts 1 kHz)",
+  "time_feature": "(digit time - readout window start) / 20 ns (author rule 18 Oct 2026, recorded at fca0af9 before any R-4b run)",
+  "prior_use": "same 60 physical events and placements as 56179eb; that run's scores were inspected, so this re-run is development evidence only",
+  "changes_from_56179eb": [
+    "energy target initial -> deposited (D-E)",
+    "R-1 manifest response with mPMT grouping",
+    "R-2 inverse-sqrt walk",
+    "R-6 dark counts",
+    "time feature origin",
+    "R-3 relative gates",
+    "new model seeds 30-32"
+  ],
+  "time_feature_unit_ns": 20.0,
+  "dark_counts": true,
+  "train_events_per_energy": 6,
+  "evaluate_split": "validation",
+  "purpose": "learning curve; not a fix"
+}

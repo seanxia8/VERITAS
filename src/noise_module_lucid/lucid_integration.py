@@ -21,14 +21,22 @@ def response(geometry):
     return response_manifest.reference_response(len(module),response_manifest.module_groups(module))
 
 
-def time_feature(time_ns, window_ns):
-    """Digit time from the declared readout-window start, in window lengths (R-6).
+TIME_FEATURE_UNIT_NS = 20.0  # author rule, 18 Oct 2026 (recorded at fca0af9 before R-4b)
+
+
+def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS):
+    """Digit time from the declared readout-window start, in units of ``unit_ns``.
 
     The origin is the trigger-defined window, so dark hits cannot move it, unlike the
-    pre-R-6 ``(time - time.min()) / 20 ns``.
+    pre-R-6 ``(time - time.min()) / 20 ns``. The author's rule fixes the unit at 20 ns,
+    comparable to the prompt-light spread; ``unit_ns=None`` gives the R-4 (E33) unit, the
+    window length (1 us).
     """
     lo, hi = (float(x) for x in window_ns)
-    return (np.asarray(time_ns, dtype=float) - lo) / (hi - lo)
+    unit = (hi - lo) if unit_ns is None else float(unit_ns)
+    if not unit > 0:
+        raise ValueError("positive time-feature unit required")
+    return (np.asarray(time_ns, dtype=float) - lo) / unit
 
 
 def analytic_first(origins,directions,centres,radius,detector):

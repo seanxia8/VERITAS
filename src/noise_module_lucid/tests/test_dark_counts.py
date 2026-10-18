@@ -128,8 +128,14 @@ def test_dark_window_without_qe_and_integer_keys():
 
 
 def test_time_feature_origin_is_the_window_not_the_first_digit():
-    from noise_module_lucid.lucid_integration import time_feature
-    np.testing.assert_allclose(time_feature([-200.0, 300.0, 800.0], (-200.0, 800.0)), [0.0, 0.5, 1.0])
+    from noise_module_lucid.lucid_integration import TIME_FEATURE_UNIT_NS, time_feature
+    # Author rule (18 Oct 2026): origin at the window start, fixed 20 ns unit.
+    assert TIME_FEATURE_UNIT_NS == 20.0
+    np.testing.assert_allclose(time_feature([-200.0, -180.0, 800.0], (-200.0, 800.0)), [0.0, 1.0, 50.0])
+    # R-4 (E33) legacy unit: the window length.
+    np.testing.assert_allclose(time_feature([-200.0, 300.0, 800.0], (-200.0, 800.0), None), [0.0, 0.5, 1.0])
     source = np.array([10.0, 20.0])
     with_dark = np.r_[-150.0, source]
-    np.testing.assert_array_equal(time_feature(with_dark, (-200, 800))[1:], time_feature(source, (-200, 800)))
+    for unit in (20.0, None):
+        np.testing.assert_array_equal(time_feature(with_dark, (-200, 800), unit)[1:], time_feature(source, (-200, 800), unit))
+    with pytest.raises(ValueError): time_feature(source, (-200, 800), 0.0)
