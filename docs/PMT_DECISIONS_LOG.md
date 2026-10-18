@@ -424,6 +424,21 @@ _One line each, logged as made (18 Oct 2026)._
   - With dark counts, vertex loses about 0.12. An untested hypothesis is that dark-digit time features (about −15 to +35 units against prompt hits near 0–2) act as outliers under masked max pooling.
 
   Nothing was tuned. Details: `results/pmt_r4c_dev_2026-10-18/nhits_validation`.
+- E46 (E45 validation result, validation only; code `5f4ecc0`). Vertex ÷ constant, pooled, seeds 20 / 21 / 22:
+  - (a) N = 4 + prompt window, dark on: 0.840 / 0.789 / 0.807 (mean 0.812);
+  - (b) the same, dark off: 0.797 / 0.748 / 0.814 (mean 0.786);
+  - (c) truth-dark removed (upper bound): 0.775 / 0.755 / 0.824 (mean 0.785).
+
+  **The pass mark is met:** every seed of (a) is ≤ 0.88 (maximum 0.840), and mean(a) − mean(b) = +0.026 (≤ 0.05). So R-4c runs once on the test events, as recorded in E45.
+  - Fallback: 0 of 480 placements in every arm.
+  - **Dropped digits, arm (a):**
+    - 710 of 197 455 digits in all roles; 147 of 39 557 in validation; per validation cell 59, 45 and 43 (500, 1000 and 1500 MeV).
+    - Source digits dropped: 32, every one holding a dark photoelectron that set its time before the trigger. Pure-source digits dropped: 0.
+  - Arm (c) removed 736 truth-dark digits; its prompt window then dropped only those same 32 dark-timed source digits.
+  - Arm (b)'s checkpoints are byte-identical to E44's dark-off checkpoints. With dark counts off, N = 4 and N = 3 give the same trigger on every placement, and the window drops nothing.
+  - **Reading:** the window recovers most of the dark-count loss. (a) is within 0.03 of both (b) and the truth upper bound (c), against a loss of 0.12 in E44. The direction and E_dep gates are unchanged in character. Nothing was tuned.
+
+  Details: `results/pmt_r4c_dev_2026-10-18/e45`.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
