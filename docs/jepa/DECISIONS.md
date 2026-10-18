@@ -1146,3 +1146,11 @@ F2′ not used; F3 `f3_ok = false` → **R12 not_evaluable, no gate**; R6/R7 eva
 0.0), across proxy median 97.5 (min 61, below-N_min 0.0, exclusion after 3 redraws 0.0).
 Both configs now point at this decision (yields, F2/f1/s_p, readout label, hashes); the generation
 benchmark must be re-run at the new frozen yields (§3.5.6).
+
+- **2026-10-18 — Titan memory shape for LUCiD training (engineering, no numeric change).** The first
+  500-step smoke at `0ab86e6` failed with CUDA OOM before step 0: batch 32 over 1995 PMTs allocated
+  9.19 GiB and requested a further 2.18 GiB against the 0.8 × 11.92 = 9.54 GiB per-process cap.
+  The registered effective batch stays **32**; the micro-batch is **8 with gradient accumulation 4**
+  (loss divided by 4, one optimizer step per 4 micro-batches; the manifest records both). Steps,
+  optimizer, schedule and the effective batch are unchanged, so no registered numeric moved. The R-6
+  smoke data cache is intact (`/ceph/dwong/jepa/data/lucid_r6`, readout `readout_pmt_r6`).

@@ -7,12 +7,12 @@
   "readout_label": "readout_pmt_r6",
   "reported_results": false,
   "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md",
-  "detectability_decision": "results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
+  "detectability_decision": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
   "training": {
     "steps": 10000,
     "batch": 32,
-    "micro_batch": null,
-    "gradient_accumulation": "auto: one micro-batch of 32 fits the \u00a76.2 caps per WP4c (~2.8 GiB at batch 32 on CPU); use --micro-batch/--accum-steps if a host profile says otherwise, keeping the effective batch at 32",
+    "micro_batch": 8,
+    "gradient_accumulation": 4,
     "fp32": true,
     "tf32": false,
     "checkpoint_minutes": 30.0,
@@ -72,7 +72,8 @@
         "note": "\u00a73.5.6 budget fallback step 1: 3 seeds for every main arm; accepted by load_run_config and recorded as a non-primary run (registered=false)."
       },
       "recorded_in": "docs/jepa/DECISIONS.md (each fallback step must be recorded there when activated)"
-    }
+    },
+    "gradient_accumulation_note": "Titan 12 GiB profile (2026-10-18 smoke): batch 32 over 1995 PMTs allocated 9.19 GiB and then requested 2.18 GiB, exceeding the 0.8 x 11.92 = 9.54 GiB per-process cap before completing step 0. micro_batch 8 x accum 4 keeps the registered effective batch of 32 (loss divided by 4, one optimizer step per 4 micro-batches); the manifest records micro_batch and the accumulation factor. No registered numeric changes: the effective batch, steps, optimizer and schedule are unchanged."
   },
   "cells": {
     "main": {
@@ -488,5 +489,6 @@
     "ijepa_ema target-encoder input (reported, not patched): lucid_arms.py:469-480 feeds the EMA target encoder the full input and gathers the masked target tokens, while v3 WP4 line 233 asks for the masked target-token input. The fix is inside lucid_arms.py, which is outside the WP5 runner fix's file scope; it is reported to the Lead and no silent patch is applied."
   ],
   "dark_counts": "on",
-  "decision_freeze_status": "superseded_pending_r6_freeze"
+  "decision_freeze_status": "superseded_pending_r6_freeze",
+  "detectability_decision_sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64"
 }
