@@ -1644,3 +1644,15 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   (mae_mse 0.093 → 0.113 m; sigreg 0.315 → 0.324 m; reference 0.14231 → 0.14245 m) without changing
   the ridge decision. Dev step 3 (15 β runs) is running; the β table follows and the grid waits for
   the author's review.
+
+- **2026-10-18 — shared-GPU contention during the dev step-3 redo (no budget impact).** Another user
+  (`mbinder`) started `neo-1p1q/train.py` (~3.9 GiB) plus two evaluate processes on GPU 0 at ~21:00Z,
+  taking the card to 100 % utilisation alongside our 5.9 GiB job; the guard moved to **HOLD**
+  ("GPU 0: another user's processes hold 5174 MiB > 2048 MiB on a GPU we use") and our rate fell from
+  0.215–0.29 s/step to ~0.906 s/step (≈0.85 → ≈2.5 h per run while it lasts). **HOLD blocks new
+  starts only; the running job continues and no SHED occurred.** GPU-hours are charged as wall × 1
+  GPU, so contention costs calendar time, not the 170 h cap. Contingency agreed: if the contention
+  persists beyond ~1 h and GPU 1 is genuinely free, migrate after the next 30-minute checkpoint (kill
+  cleanly, wait for the HOLD to clear, restart at the same `--out` on `cuda:1`; completed runs skip
+  and the interrupted run auto-resumes, bounding the loss to one checkpoint interval). Default
+  remains to let it run.
