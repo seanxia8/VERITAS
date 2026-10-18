@@ -1378,3 +1378,13 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
 - **Consequence:** the config sha changes with this fix, so the dev step-2 run checkpoint from
   `wp5_lucid_dev_v3` no longer matches and **run 1 retrains (~0.6 h)** in the step-2 rerun; the v3
   directory stays as evidence.
+
+- **2026-10-18 — s_p coherence and the supersession of the 0.05-marginalised decision JSON.** The
+  frozen R-6 decision marginalised F3 at 0.05 (the restart start), but the in-force cell spread after
+  the §3.5.3a ladder is **0.10** — the same `s_p` the §3.5.6 `mae_chi2` covariance uses. The stack is
+  now coherent: `F3_SPREAD = F3_SPREAD_MAX = 0.10` (in force, cells and variance term),
+  `F3_SPREAD_DEFAULT = 0.05` (the detectability check's tested-signal start, ladder may raise it to
+  0.10); configs (`lucid_bombs` detector-state and detectability block, arms cells, runner cells,
+  detectability check) and tests aligned (119 tests across the four LUCiD suites). The committed
+  decision JSON marginalised at 0.05 is therefore superseded and is being re-run at the in-force
+  marginalisation; the committed copy will be replaced and the yields re-frozen from the re-run.
