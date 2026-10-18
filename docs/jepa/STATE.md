@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 02:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 03:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -153,9 +153,18 @@ Updated: 2026-10-18 02:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   readout `readout_pmt_r6`, v_dark 0.00109.
 - **R5-ext re-run after the freeze**: 7 pass / 3 not_evaluable (identical, deterministic);
   γ=1.0 2/5 wins → fail, γ=0.5 2/5 evaluable → not_evaluable; E1 CPU 8.94 of 24 h. B1-ext closed as
-  a development β trade-off (β=10; 2.4484 of 4 GPU-h). **WP5 smoke** first attempt OOM at batch 32;
-  micro-batch 8 × accumulation 4 (effective batch 32) committed (`3e739b6`), retry + 2k/10k scaling
-  requested. Quota 38 467 free entries.
+  a development β trade-off (β=10; 2.4484 of 4 GPU-h).
+- **Titan smoke + scaling passed** (`3e739b6`): 1.59 s/step, 2k/10k fit (764 MB / 3.69 GB peak).
+  **L40S stage passed** with a read-only scipy/sklearn PYTHONPATH overlay (torch pin kept,
+  equivalence: probe max diff 0.0, scipy path bit-identical): smoke **0.23014 s/step**
+  (0.21388 steady), peak 5 365 MiB; 40k scaling **fits** (14.6 GB peak).
+- **G2 BUDGET GATE OPEN (`docs/jepa/GATE_G2_BUDGET.md`)**: the 201-run grid projects to
+  **128.5 L40S GPU-h = 160.6 % of the 80 h cap** (training only). Registered ladder options
+  computed: A = 3 seeds + 5 000 steps with secondary retained (≈52.8 h training, ≈63 h with eval,
+  ~79 % of cap; 5k recorded as a weaker protocol), B = literal ladder (drop all secondary → R11,
+  R11b, R7b, R8, aging ratio not_evaluable; no eval margin), C = split hosts (comparability
+  exception), D = optimise (unlikely to close the gap). Lead recommends A. **No criterion run starts
+  until the author rules.** Quota 38 373 free entries.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
