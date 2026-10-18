@@ -1615,3 +1615,15 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
 > 4. Regenerate the development datasets and redo development steps 2 (probe form) and 3 (β).
 >    Detectability stays frozen.
 > 5. Report the β table, then stop for my review before the 201-run grid.
+
+- **2026-10-18 — `5f4ecc0` merged (merge commit `4e07c0c`) and the A9 time convention is live
+  (`d073639`).** The generator now imports **both** `readout.nhits_trigger_time` and
+  `readout.prompt_window_mask` (validated against the registered A9 record) and applies the imported
+  mask for the prompt-window cut — never reimplemented; the temporary "pending the named SHA" error
+  and the 10 test skips are gone. Token time = digit time − NHits trigger after the cut; emission
+  offset U[−50, +50] ns keyed, truth-only; trigger-relative tokens in `hits.npz`, absolute times kept
+  additively; counters (`n_no_trigger`, `n_prompt_dropped`, `n_dark_moved_trigger`, rate) recorded.
+  The full package suite is **456 passed, 0 skipped** (the dataset-generating tests now exercise the
+  real merged rule). The development datasets are invalid under the new convention and are being
+  regenerated at s_p = 0.10; development steps 2 and 3 will be redone (~14 GPU-h), then the β table
+  is reported and the grid waits for the author's review.
