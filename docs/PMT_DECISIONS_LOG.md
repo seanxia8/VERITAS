@@ -439,6 +439,17 @@ _One line each, logged as made (18 Oct 2026)._
   - **Reading:** the window recovers most of the dark-count loss. (a) is within 0.03 of both (b) and the truth upper bound (c), against a loss of 0.12 in E44. The direction and E_dep gates are unchanged in character. Nothing was tuned.
 
   Details: `results/pmt_r4c_dev_2026-10-18/e45`.
+- E47 (R-4c, test events, once; code `5f4ecc0`). NHits N = 4 + prompt window, dark on, deposited-energy target, seeds 30–32, on the E45 arm (a) data set; same gates and checkpoint rule as R-4 and R-4b.
+
+  | Seed | Vertex, pooled | Vertex, worst energy | Direction | E_dep, pooled | E_dep, worst energy | Verdict |
+  |---|---|---|---|---|---|---|
+  | 30 | 0.812 | 0.88 (500 MeV) | 7.8° | 0.642 | 0.67 | FAIL (vertex pooled) |
+  | 31 | 0.877 | 0.93 (1000 MeV) | 9.2° | 0.570 | 0.72 | FAIL (vertex pooled) |
+  | 32 | 0.883 | 1.02 (500 MeV) | 7.8° | 0.640 | 0.69 | FAIL (vertex pooled and 500 MeV) |
+
+  **R-4c fails the vertex gate (≤ 0.8 × constant pooled) in all three seeds.** Direction and E_dep pass in every seed and cell. Vertex is much better than R-4 (0.96–1.00) and R-4b (0.99–1.00), but not enough for the gate.
+  - On test, seeds 30–32 sit about 0.04 above E45 (a) on validation (0.81–0.88 against 0.79–0.84, seeds 20–22). Different seeds and splits, and the validation split also selected the checkpoints.
+  - The verdict is retained, with no retuning and no further test-event run. Details: `results/pmt_r4c_dev_2026-10-18/r4c_test`.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -470,6 +481,12 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | local | NHits rule measurement (`nhits_rule/measure_nhits.py`, 20 000 dark windows, 600 prompt events) | about 4 min | 0 | 0 |
 | 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | NHits validation generation: `nhits_data_dark`, `nhits_data_nodark` | 14:46, 14:18 | 0 | 0 |
 | 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | NHits validation training: 2 arms × 3 seeds, validation only | 111 s | 0.031 | 0 |
+| 18 Oct 2026 | local | E45 test suite (20 000 dark windows at N = 4) | about 3 min | 0 | 0 |
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, then 4 threads, nice 10) | E45 generation: `e45_data_a`, `_b`, `_c` | 14:32, 14:43, 13:22 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | E45 training: 3 arms × 3 seeds, validation only | 169 s | 0.047 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | R-4c training and test evaluation, 3 seeds (`r4c_test`) | 56 s | 0.016 | 0 |
+
+E45 and R-4c totals: 0.063 GPU-hours, with no new source reads. Before each GPU job, a 5-minute sample (`gpu_sample_pre_e45.csv`, `gpu_sample_pre_r4c_test.csv`) showed all GPUs at 0%, no `jepa_*` training session, and only another user's notebook kernel at ≤ 802 MiB per card. Cumulative GPU use in this session: 0.281 GPU-hours. Cumulative source reads: about 92.5 MB.
 
 NHits totals: 0.031 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0%, no `jepa_*` training session, and only another user's notebook kernel at ≤ 802 MiB per card. Cumulative GPU use in this session: 0.218 GPU-hours. Cumulative source reads: about 92.5 MB.
 
