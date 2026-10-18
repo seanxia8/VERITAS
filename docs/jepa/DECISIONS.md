@@ -1591,3 +1591,27 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   infinite digit; a strict stub mirrors the interface's finite-time requirement) and the full package
   suite is **446 passed, 10 skipped** (the skips are the dataset-generating tests pending the
   author-named PMT SHA). No datasets were generated.
+
+## PMT SHA named (author, 18 Oct 2026) — verbatim
+
+> PMT SHA named (author, 18 Oct 2026; record verbatim): "5f4ecc0 on codex/junjie-pmt-response is
+> accepted for JEPA reported runs; it supersedes b341037."
+>
+> It contains readout.nhits_trigger_time(n=4, window_ns=20), readout.prompt_window_mask(trigger,
+> (−20, 60)) and readout.select_digits. It passed the PMT validation: dark-on vertex within 0.026 of
+> dark-off, 0 fallbacks, and 32 source digits dropped, each correctly because an earlier dark
+> photoelectron on the same PMT set its time. Commits after 5f4ecc0 change only results and docs, not
+> src/.
+>
+> Proceed as agreed:
+> 1. Merge 5f4ecc0.
+> 2. Token time = digit time − NHits trigger time, after the prompt-window cut. The true emission time
+>    and the per-event offset are truth/diagnostic fields only.
+> 3. Emission-time offset U[−50, +50] ns per event (keyed RNG), with the invariance test made precise:
+>    - dark counts off: a constant shift of all photon times gives bit-identical tokens, and a trigger
+>      time shifted by exactly that constant;
+>    - dark counts on: assert the same for the source-derived digits only, and record how often a dark
+>      coincidence moves the trigger.
+> 4. Regenerate the development datasets and redo development steps 2 (probe form) and 3 (β).
+>    Detectability stays frozen.
+> 5. Report the β table, then stop for my review before the 201-run grid.
