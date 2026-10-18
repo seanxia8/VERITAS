@@ -1409,3 +1409,30 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   cached runs. The old cache is being moved aside (kept as evidence, not deleted) and regenerated at
   s_p = 0.10 (~11–12 min CPU, ~1.9 GB, ~3 k entries; CPU-generation cap ≈0.45/48 h). No retained
   dataset from the 0.05 era is usable.
+
+## Development step 2 — physics-probe form frozen: ridge (18 Oct 2026)
+
+- **2026-10-18 — dev step 2 decision: `ridge`, not MLP** (`wp5_lucid_dev_v6/dev/step2_probe_decision.json`,
+  sha256 `bc525bba…`, `registered: false`). The registered rule is "MLP iff BOTH linear vertex
+  resolutions exceed 3× the reference fit": sigreg_jepa **0.31541 m** (ratio **2.216**) and mae_mse
+  **0.09345 m** (ratio **0.657**), reference resolution **0.14231 m** (n = 10 000, failure rate
+  3e-4) → not both above 3× → ridge. The reference was fitted with the PMT reference JSON's own
+  `fit_config` — **grid 5, scale_ns 3.0, t0_quantile 0.2, v_group 0.2172409115942029**, source
+  `configs/lucid_pmt/reference.json` — exactly as required by the 2026-10-18 fix. Primary form is
+  `run_mean`. Runs: sigreg_jepa 10 000 steps / 2 463.51 s (vertex per-event R² 0.898, propagated
+  0.969, pmt_gain ≈ 0), mae_mse 10 000 steps / 1 264.53 s (0.103 s/step); job 1.2749 GPU-h.
+- **2026-10-18 — streaming-evaluation acceptance measured at production scale:** run 1's
+  `probe_memory` records **chunk 64, n_rows_total 69 226 156, peak_delta 426 MiB, resident_delta
+  244 MiB, sufficient_statistics true** (process peak 13.3 GiB is the loader cache, not the
+  evaluation) — the 66.1 GiB blow-up is gone. The separate validation job measured peak_delta
+  283.8 MiB / resident_delta 134.7 MiB with 3 455 670 rows.
+- **2026-10-18 — data coherence:** the s_p = 0.05 cache (1.9 GB, ~3 k entries) is archived at
+  `/ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded` and the datasets were regenerated at
+  s_p = 0.10 (11.0 min CPU, 1 core). The run manifests record the new state hashes.
+- **2026-10-18 — quota headroom flag:** entries are now 468 193 with **31 807 free**, against the
+  30 000 write-stop. The full grid's dataset volume (~20 k entries by the operator's estimate) would
+  cross the write-stop, so the grid will run with a **rolling per-cell data lifecycle** (generate a
+  cell's datasets, run every arm/seed of that cell, record the dataset hashes in the run manifests,
+  then remove that cell's datasets before the next cell) and the author will be told in the next
+  report. No dataset is deleted without its hashes being recorded first.
+- **2026-10-18 — ledger:** L40S **2.8717 / 170 GPU-h**; CPU generation **0.4452 / 48 wall-h**.
