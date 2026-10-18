@@ -1301,3 +1301,12 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   probe ~0.0011 + failed import attempt 0.0005 + TF32 smoke 0.0270 ≈ **0.063 of the 170 h cap**.
   With fp32 kept: 17 dev runs ≈ 10.9 h + 201-run grid ≈ 128.5 h ≈ 139.4 h (~82 % of the cap before
   evaluation overhead).
+
+- **2026-10-18 — dev step-2 reference fix.** The physics-probe reference must be fitted with the PMT
+  reference JSON's own settings: `configs/lucid_pmt/reference.json` carries
+  `fit_config = {v_group 0.2172409115942029, grid 5, scale_ns 3.0, t0_quantile 0.2, min_digits 6,
+  max_iter 400}`, while the runner was using `FitConfig` defaults (**grid 9**). The resolver now
+  reads the `fit_config` block (top-level keys still accepted), the config's
+  `physics_reference_path` points at the PMT reference, and every run records the fit settings it
+  actually used plus their source. Any dev step-2 result produced before this fix (`c87b31b`) is
+  superseded and must be re-run (`f824075`).
