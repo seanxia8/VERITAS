@@ -342,7 +342,9 @@
     },
     "probe_event_id_reuse": "the single registered 10k probe ranges are reused across drift settings (same event IDs, keyed draws -> identical vertices/yields); each setting has its own dataset directory and state hashes",
     "train_loader": "each 32-event batch draws 4 events from each of 8 runs chosen without replacement, so no batch comes from a single run and every event has equal probability",
-    "verify_on_reuse": "manifest and per-run state hashes; SHA256SUMS verified only with --verify-hashes"
+    "verify_on_reuse": "manifest and per-run state hashes; SHA256SUMS verified only with --verify-hashes",
+    "loader_cache_runs": 128,
+    "loader_cache_note": "The training loader caches tokenised runs in RAM. The default 12 was a smoke-scale value: with 100-run cohorts a 32-event batch draws 4 events from 8 runs chosen out of 100, so ~88% of chosen runs missed the cache and were re-tokenised from CephFS every step (measured 3.07 s/step on the L40S vs 0.23 s/step with the cache warm; GPU utilisation oscillating 0-97%). 128 caches every run of a 100-run cohort (~13 GB RAM per job; two concurrent jobs ~26 GB). This is an engineering cache parameter, not frozen numerics."
   },
   "views": {
     "n_min": 20,

@@ -1310,3 +1310,23 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   `physics_reference_path` points at the PMT reference, and every run records the fit settings it
   actually used plus their source. Any dev step-2 result produced before this fix (`c87b31b`) is
   superseded and must be re-run (`f824075`).
+
+## Loader-cache thrash on 100-run cohorts (18 Oct 2026) — stop-the-line and fix
+
+- **2026-10-18 — the smoke-based projection was optimistic because the smoke had only 2 runs.** On the
+  real development cohort (100 training runs) the L40S trained at **3.07 s/step** instead of
+  0.23 s/step (GPU utilisation oscillating 0↔97 %, data-starved). Measured cause: the training
+  loader's run cache defaults to `loader_cache_runs = 12` and the config had no such key, while every
+  32-event batch draws 4 events from **8 runs chosen out of 100** — so ~88 % of chosen runs miss the
+  cache and are re-tokenised from CephFS every step (one tokenised run ≈ **101.75 MB**). Unfixed,
+  that is 8.55 h per 10 000-step run, ≈1 718 GPU-h for the 201-run grid — far past any cap.
+- **2026-10-18 — fix: `loader_cache_runs: 128`** in the `data` block of `lucid_run_v0.json` (caches
+  every run of a 100-run cohort; ~13 GB per job; deepthought2 has 1 006 GB RAM with ~664 GB free, so
+  the two-job limit is unaffected). This is an engineering cache parameter, not frozen numerics; the
+  sampler semantics are unchanged. **The projection must be re-measured on a dev-cohort (100-run)
+  smoke before the dev cohort or the grid is quoted again**; the G2 ruling's 170 h cap and the
+  fallback rule are unchanged.
+- **2026-10-18 — two L40S attempts killed and recorded (not results):** wrong-SHA step 2
+  (0.1544 GPU-h, `superseded_by_reference_fit_config_fix`) and the cache-thrash step 2
+  (0.3949 GPU-h). L40S ledger **0.6127 of 170 GPU-h**. The dev datasets are complete and reusable
+  (code-SHA-independent; geometry/generator digests only).
