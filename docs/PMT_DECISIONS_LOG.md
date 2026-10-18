@@ -117,6 +117,39 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 ---
 
+## Author message, 18 Oct 2026, third (verbatim)
+
+> Recorded decisions (author, 18 Oct 2026). Record this message verbatim in the decisions log.
+>
+> 1. Vertex: the validation-split diagnostic is approved, with the fix fixed in advance by principle.
+>    - The time feature keeps its origin at the readout-window start, so dark hits cannot move it,
+>      but uses a fixed 20 ns unit, comparable to the prompt-light spread, instead of 1 µs. Record
+>      this rule before running anything.
+>    - On the validation split only, run 2×2: unit {20 ns, 1 µs} × dark counts {on, off}. It
+>      diagnoses the cause; it does not choose the fix.
+>    - Then re-run R-4 once on the test events with the rule above, as R-4b, under the same gates and
+>      3 seeds. Report it beside the failed R-4, which stays as recorded.
+>    - State that training uses only 480 placements, and whether the gates look data-limited.
+> 2. κ_m: run the precision study first: repeat reference runs and measure the SD of K. Then
+>    κ_m = max(1.10, 1 + 2·SD_K). Freeze it in WP6 v2.
+> 3. WP6 held-out choices are confirmed: timing_width as the held-out family, and modules with
+>    index mod 3 = 2.
+> 4. WP8 draft:
+>    - Do not post. Update it after R-4b with one line on the vertex cause and result.
+>    - In D-L, add "(for Paper 3 / ORACLE; the JEPA study uses LUCiD regardless)".
+>    - Add a question 7: are module gain drifts of 2/5/10% per run, an independent per-PMT gain
+>      spread of 5%, and a 10% attenuation-length change realistic for WCTE?
+>    - In D-E, state our preference: (A), with the energy endpoint on contained μ⁻ at 100–300 MeV
+>      kinetic, where deposited equals initial energy. E_dep on escaping tracks is kept as a
+>      diagnostic (primary only).
+> 5. WP7 waits for R-4b, the precision study and Junjie's D-E answer.
+>
+> Report after R-4b and the precision study.
+
+**Time-feature rule, recorded before any R-4b diagnostic or run (18 Oct 2026):** the digit time feature is `(t − readout-window start) / 20 ns`. The origin is the trigger-defined readout-window start, so dark hits cannot move it. The unit is a fixed 20 ns, comparable to the prompt-light spread. This replaces E33's 1 µs unit (window length) for R-4b and every later run. The 2×2 validation diagnostic, unit {20 ns, 1 µs} × dark counts {on, off}, diagnoses the cause only and does not choose the fix.
+
+---
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
