@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 03:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 11:50Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -158,13 +158,15 @@ Updated: 2026-10-18 03:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   **L40S stage passed** with a read-only scipy/sklearn PYTHONPATH overlay (torch pin kept,
   equivalence: probe max diff 0.0, scipy path bit-identical): smoke **0.23014 s/step**
   (0.21388 steady), peak 5 365 MiB; 40k scaling **fits** (14.6 GB peak).
-- **G2 BUDGET GATE OPEN (`docs/jepa/GATE_G2_BUDGET.md`)**: the 201-run grid projects to
-  **128.5 L40S GPU-h = 160.6 % of the 80 h cap** (training only). Registered ladder options
-  computed: A = 3 seeds + 5 000 steps with secondary retained (≈52.8 h training, ≈63 h with eval,
-  ~79 % of cap; 5k recorded as a weaker protocol), B = literal ladder (drop all secondary → R11,
-  R11b, R7b, R8, aging ratio not_evaluable; no eval margin), C = split hosts (comparability
-  exception), D = optimise (unlikely to close the gap). Lead recommends A. **No criterion run starts
-  until the author rules.** Quota 38 373 free entries.
+- **G2 ANSWERED — Option E (author, 18 Oct 2026)**: keep the registered 10 000-step / 5-3-seed
+  protocol with all secondary runs and **raise the L40S cap from 80 to 170 GPU-h** (planning number
+  superseded); shared-server rules unchanged (≤2 jobs on deepthought2); if ledger+projection reaches
+  170 h apply option A (3 seeds, 5 000 steps) as a recorded weaker protocol, no new gate; TF32 is a
+  speed-only experiment (≤0.1 GPU-h; enable for all LUCiD L40S runs only if ≥1.5× steps/s); overlay
+  hashes recorded and re-verified before each batch. Runner gains `--tf32` (default off, recorded
+  per run); 25 runner tests pass. **Next: TF32 benchmark, then the development cohort (2 probe-form
+  runs + 15 β runs), then the 201-run main grid** (~128.5 h training + evaluation, within 170 h).
+  Quota 38 373 free entries.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
