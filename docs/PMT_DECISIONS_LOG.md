@@ -345,6 +345,16 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 **Action (agent, 18 Oct 2026):** this replaces question 7 in the WP8 draft word for word. The visibility statements come from the JEPA study and were not re-derived here. The draft is not posted.
 
+## Author message, 18 Oct 2026, ninth (verbatim, SHA statement)
+
+> PMT SHA named (author, 18 Oct 2026; record verbatim): "5f4ecc0 on codex/junjie-pmt-response is
+> accepted for JEPA reported runs; it supersedes b341037."
+
+**Action (agent, 18 Oct 2026):**
+- Recorded the statement above.
+- Checked `git diff 5f4ecc0 HEAD`: no changes under `src/` or `configs/`. The commits after `5f4ecc0` touch only `docs/` (3 files) and `results/` (45 files).
+- The rest of that message (merge `5f4ecc0`, token time, emission-time offset and invariance tests, regenerating datasets, the β table, the 201-run grid) is addressed to the JEPA study. It is not acted on in this branch (runbook §6: never touch the JEPA branch, its files or its jobs).
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
