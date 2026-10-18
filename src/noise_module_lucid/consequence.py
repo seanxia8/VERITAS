@@ -131,11 +131,18 @@ def energy_error(charge_total: float, true_energy: float, calibration: float) ->
     return float(abs(calibration * charge_total - true_energy) / true_energy)
 
 
+#: D-K (adopted, binding, author 18 Oct 2026): a cell is unevaluable when the fit-failure rate
+#: exceeds this in its clean (reference) or shifted (cell) half.
+DK_MAX_FAILURE_RATE = 0.10
+
+
 def cell_consequence(cell_errors: Sequence[float], reference_errors: Sequence[float], *,
                      n_boot: int = 0, seed: int = 0) -> dict:
     """K for a cell: mean event error over the mean reference error on the same events.
 
-    Failed fits make K unevaluable; a separately named complete-case diagnostic is retained.
+    D-K (adopted): unevaluable if the failure rate is above 10% in either half; otherwise K is
+    the complete-case K over events with both fits, and ``failure_rate_difference`` (cell minus
+    reference) is reported as a co-primary column.
     Returns ``K`` (ratio), the two means, the paired event count and the
     failure counts; with ``n_boot`` > 0 also a paired percentile bootstrap 95 %
     interval over events (``K_lo``, ``K_hi``). ``K`` is NaN when the reference
@@ -149,13 +156,15 @@ def cell_consequence(cell_errors: Sequence[float], reference_errors: Sequence[fl
     mc, mr = (float(c[ok].mean()), float(r[ok].mean())) if ok.any() else (float("nan"), float("nan"))
     K = mc / mr if ok.any() and mr > 0 else float("nan")
     conditional = K
-    failed = not bool(np.all(ok))
+    rate_c, rate_r = float(np.mean(~np.isfinite(c))), float(np.mean(~np.isfinite(r)))
+    failed = max(rate_c, rate_r) > DK_MAX_FAILURE_RATE
     if failed:
         K = float("nan")
-    out = {"K": K, "K_complete_case": conditional,
-           "status": "unevaluable_fit_failure" if failed else ("ok" if np.isfinite(K) else "undefined_denominator"),
-           "failure_rate_cell": float(np.mean(~np.isfinite(c))) if c.size else None,
-           "failure_rate_reference": float(np.mean(~np.isfinite(r))) if r.size else None, "mean_error_cell": mc, "mean_error_reference": mr, "n_paired": int(ok.sum()),
+    status = ("unevaluable_fit_failure" if failed else "undefined_denominator" if not np.isfinite(K)
+              else "ok_complete_case" if not np.all(ok) else "ok")
+    out = {"K": K, "K_complete_case": conditional, "status": status, "dk_max_failure_rate": DK_MAX_FAILURE_RATE,
+           "failure_rate_cell": rate_c, "failure_rate_reference": rate_r, "failure_rate_difference": rate_c - rate_r,
+           "mean_error_cell": mc, "mean_error_reference": mr, "n_paired": int(ok.sum()),
            "n_failed_cell": int((~np.isfinite(c)).sum()), "n_failed_reference": int((~np.isfinite(r)).sum())}
     if n_boot > 0 and not failed and ok.sum() > 1 and mr > 0:
         cc, rr = c[ok], r[ok]

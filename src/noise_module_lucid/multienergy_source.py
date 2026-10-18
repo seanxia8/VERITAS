@@ -87,8 +87,37 @@ def extract(config,out,old_500,resume=None):
                 print(energy,event,len(o),budget['used'],flush=True)
     (out/'manifest.json').write_text(json.dumps({'events':rows,'bytes_read':budget['used'],'source_cap_bytes':budget['cap'],'source_base':BASE,'source_sizes':SIZES,'old_500':str(old_500),'units':['m','ns','nm'],'evidence_stage':'development'},indent=2))
 
+def extract_primary_segments(config,out):
+    """R-4 (D-E): ordered primary-muon segments with per-segment beta; metadata branches only, no photons."""
+    cfg=json.loads(Path(config).read_text());out=Path(out);out.mkdir(parents=True,exist_ok=False)
+    budget={'used':0,'cap':cfg['segment_read_cap_bytes'],'deadline':time.monotonic()+cfg['source_wall_seconds']};rows=[]
+    keys=['EventID','PrimaryEnergy','Segment_TrackID','Segment_BetaStart','Segment_Edep']+[f'Segment_{q}{a}' for q in ('Start','End') for a in 'XYZ']+['TrackInfo_TrackID','TrackInfo_ParentTrackID','TrackInfo_Energy']+[f'TrackInfo_Pos{a}' for a in 'XYZ']
+    for energy in cfg['energies_MeV']:
+        with uproot.open(Ranges(energy,budget)) as f:
+            meta=f['OpticalPhotons']
+            for event in range(cfg['events_per_energy']):
+                b=meta.arrays(keys,entry_start=event,entry_stop=event+1,library='np')
+                primary=np.flatnonzero(b['TrackInfo_ParentTrackID'][0]==0)
+                if len(primary)!=1 or int(b['EventID'][0])!=event:raise ValueError('one primary and matching event ID required')
+                j=primary[0];m=b['Segment_TrackID'][0]==b['TrackInfo_TrackID'][0][j]
+                vals=dict(starts_m=np.column_stack([b['Segment_Start'+k][0][m] for k in 'XYZ'])/1000,ends_m=np.column_stack([b['Segment_End'+k][0][m] for k in 'XYZ'])/1000,
+                          beta_start=np.asarray(b['Segment_BetaStart'][0][m],float),edep_mev=np.asarray(b['Segment_Edep'][0][m],float),
+                          t0_mev=float(b['PrimaryEnergy'][0]),track_initial_energy_MeV=float(b['TrackInfo_Energy'][0][j]),vertex_m=np.array([b['TrackInfo_Pos'+k][0][j] for k in 'XYZ'])/1000)
+                gap=float(np.max(np.linalg.norm(vals['starts_m'][1:]-vals['ends_m'][:-1],axis=1),initial=0.0))
+                dest=out/f'e{energy}_{event:03d}_primary.npz';np.savez_compressed(dest,**vals)
+                rows.append(dict(energy_MeV=energy,event_id=event,n_segments=int(m.sum()),max_gap_m=gap,beta_first=float(vals['beta_start'][0]),beta_last=float(vals['beta_start'][-1]),
+                                 path_m=float(np.linalg.norm(vals['ends_m']-vals['starts_m'],axis=1).sum()),sha256=hashlib.sha256(dest.read_bytes()).hexdigest()))
+                (out/'progress.json').write_text(json.dumps({'events':rows,'bytes_read':budget['used']},indent=2))
+                print(energy,event,int(m.sum()),budget['used'],flush=True)
+    (out/'manifest.json').write_text(json.dumps({'events':rows,'bytes_read':budget['used'],'segment_read_cap_bytes':budget['cap'],'source_base':BASE,'branches':keys,'units':['m','MeV'],'evidence_stage':'development'},indent=2))
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser()
-    for arg in ('config','out','old_500'):p.add_argument('--'+arg.replace('_','-'),required=True)
-    p.add_argument('--resume')
-    extract(**vars(p.parse_args()))
+    for arg in ('config','out'):p.add_argument('--'+arg,required=True)
+    p.add_argument('--old-500');p.add_argument('--resume');p.add_argument('--primary-segments',action='store_true')
+    a=p.parse_args()
+    if a.primary_segments:extract_primary_segments(a.config,a.out)
+    else:
+        if not a.old_500:p.error('--old-500 required for photon extraction')
+        extract(a.config,a.out,a.old_500,a.resume)

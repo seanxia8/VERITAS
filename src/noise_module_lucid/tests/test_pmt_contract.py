@@ -215,3 +215,19 @@ def test_lucid_name_does_not_make_development_citable():
 def test_duplicate_dead_channels_cannot_double_count_correction():
     with pytest.raises(ValueError, match="dead channels"):
         read(batch(10),replace(reference(),dead_channels=(1,1)))
+
+
+def test_dk_adopted_failure_rule():
+    """D-K (author, 18 Oct 2026): unevaluable above 10% failures in either half; else complete-case K."""
+    ref = np.ones(20)
+    one = np.r_[2.0*np.ones(19), np.nan]                       # 5% failures in the cell
+    r = cell_consequence(one, ref)
+    assert r["status"] == "ok_complete_case" and r["K"] == pytest.approx(2.0)
+    assert r["failure_rate_difference"] == pytest.approx(0.05)
+    two = np.r_[2.0*np.ones(18), np.nan, np.nan]               # exactly 10%: still evaluable
+    assert cell_consequence(two, ref)["status"] == "ok_complete_case"
+    three = np.r_[2.0*np.ones(17), np.nan, np.nan, np.nan]     # 15%: unevaluable
+    t = cell_consequence(three, ref)
+    assert t["status"] == "unevaluable_fit_failure" and np.isnan(t["K"]) and t["K_complete_case"] == pytest.approx(2.0)
+    bad_ref = cell_consequence(2.0*np.ones(20), np.r_[np.ones(17), np.nan, np.nan, np.nan])
+    assert bad_ref["status"] == "unevaluable_fit_failure"

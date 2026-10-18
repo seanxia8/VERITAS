@@ -39,10 +39,12 @@ def run(config,data,out,gates=None):
         if not len(ia):raise ValueError('empty split')
         for kb,ib in indices.items():
             if ka!=kb and set(groups[ia])&set(groups[ib]):raise ValueError('physical event split leakage')
-    fit=indices['response_fit'];design=np.column_stack((a['charge'][fit],np.ones(len(fit))));coef=np.linalg.lstsq(design,a['energy_MeV'][fit],rcond=None)[0]
-    cal=dict(method='least squares charge-to-primary-energy, intercept included',fit_physical_event_ids=sorted(set(groups[fit])),coefficients=coef.tolist(),source_dataset_sha256=hashlib.sha256(data.read_bytes()).hexdigest());cal['sha256']=hashlib.sha256(json.dumps(cal,sort_keys=True).encode()).hexdigest();(out/'charge_calibration.json').write_text(json.dumps(cal,indent=2))
+    # Energy truth is the declared target (D-E deposited energy in R-4); subgroups stay nominal energy.
+    etrue=a['target_MeV'] if 'target_MeV' in a.files else a['energy_MeV'];target_name=cfg.get('energy_endpoint','initial_energy')
+    fit=indices['response_fit'];design=np.column_stack((a['charge'][fit],np.ones(len(fit))));coef=np.linalg.lstsq(design,etrue[fit],rcond=None)[0]
+    cal=dict(method=f'least squares charge-to-{target_name}, intercept included',fit_physical_event_ids=sorted(set(groups[fit])),coefficients=coef.tolist(),source_dataset_sha256=hashlib.sha256(data.read_bytes()).hexdigest());cal['sha256']=hashlib.sha256(json.dumps(cal,sort_keys=True).encode()).hexdigest();(out/'charge_calibration.json').write_text(json.dumps(cal,indent=2))
     test=indices['test'];constant_vector=constant_predictor(a['y'],indices['train']);constant=np.tile(constant_vector,(len(test),1));constant_metrics=metrics(constant,a['y'][test])
-    q_pred=coef[0]*a['charge'][test]+coef[1];charge_benchmark=dict(relative_mae=float(np.mean(np.abs(q_pred/a['energy_MeV'][test]-1))),negative_predictions=int((q_pred<=0).sum()),by_energy={str(e):float(np.mean(np.abs(q_pred[a['energy_MeV'][test]==e]/e-1))) for e in cfg['energies_MeV']})
+    q_pred=coef[0]*a['charge'][test]+coef[1];sel={e:a['energy_MeV'][test]==e for e in cfg['energies_MeV']};charge_benchmark=dict(endpoint=target_name,relative_mae=float(np.mean(np.abs(q_pred/etrue[test]-1))),negative_predictions=int((q_pred<=0).sum()),by_energy={str(e):float(np.mean(np.abs(q_pred[m]/etrue[test][m]-1))) for e,m in sel.items()})
     def loss(p,t):return F.mse_loss(p[:,:3],t[:,:3])+F.mse_loss(p[:,3:6]/.35,t[:,3:6]/.35)+F.mse_loss(p[:,6],t[:,6])
     def predict(model,ix):
         model.eval();p=[]

@@ -86,6 +86,37 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 
 ---
 
+## Author message, 18 Oct 2026, second (verbatim)
+
+> Option 1. Run the range-based check now, then continue with the R-4 re-run, WP6 and the WP8 draft.
+>
+> - Energies are kinetic. Use 100–400 MeV kinetic, in steps of 50 MeV.
+> - Cross-check your range function against the PDG table of muon CSDA range in water at 2–3
+>   energies, cite the source, and state the multiple-scattering caveat.
+> - Report the contained fraction per energy, with the same vertex and direction sampling as the
+>   pilot, on the pinned WCTE cylinder (R = 1.577 m, H = 2.777 m).
+> - Do not build PhotonSim now. If some range reaches ≥ 50% containment, record it, and leave
+>   generating new contained tracks as a WP7 planning item.
+> - D-E development definition: E_dep = kinetic energy on entering the volume (or at the vertex)
+>   minus kinetic energy on exiting, with exit energy 0 for a stopped track. Primary muon only,
+>   from PhotonSim's per-segment β. Record it in the decisions log.
+>
+> Record this message verbatim (author, 18 Oct 2026). Report after R-4 and WP8 in the agreed format.
+
+**Containment result (R-4 step 1, 18 Oct 2026; `results/pmt_r4_dev_2026-10-18/containment/containment.json`).**
+- Method: range-based and straight-track, with pilot sampling, on the pinned WCTE cylinder (R = 1.5771 m, H = 2.7770 m).
+- Contained fraction at 100, 150, 200 and 250 MeV kinetic: 1.000 at each.
+- At 300 MeV: 0.938. At 350 MeV: 0.687. At 400 MeV: 0.346. The binomial SE is ≤ 0.0011 at every energy.
+- **μ− kinetic energies 100–350 MeV reach ≥ 50% containment; 400 MeV does not.**
+- With ±5% range, 350 MeV gives 0.58–0.78 and 400 MeV gives 0.24–0.47.
+- The CSDA range agrees with the PDG muon table in liquid water to ≤ 0.07% at 100–400 MeV.
+- Caveat: multiple scattering and straggling are ignored, so the straight-track fraction is approximately a lower bound. At 500 MeV it gives 1.2%, against the pilot's Geant4 count of 3/160 (1.9%).
+- **WP7 planning item:** generate new contained μ− tracks at 100–350 MeV kinetic. No PhotonSim source exists below 500 MeV, and the author said not to build PhotonSim now.
+
+**D-E development definition (author, 18 Oct 2026):** E_dep = T(entry, or vertex) − T(exit), with T(exit) = 0 for a stopped track. Kinetic energies, primary muon only, from PhotonSim's per-segment β. Development default, labelled as such; the endpoint itself is pending Junjie.
+
+---
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |

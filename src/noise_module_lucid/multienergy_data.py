@@ -8,6 +8,7 @@ from .lucid_transport import PromptTransport
 from .lucid_integration import analytic_first,response,time_feature
 from .readout import readout_chain
 from . import response_manifest
+from .deposited_energy import deposited_energy
 
 
 def inside_cylinder(points,radius,height):
@@ -25,7 +26,7 @@ def transform_event(raw,rotation,vertex):
     return p,d@rotation.T,track,direction@rotation.T
 
 
-def run(config,source,upstream,manifest,out):
+def run(config,source,upstream,manifest,out,segments=None):
     cfg=json.loads(Path(config).read_text());source=Path(source);out=Path(out);out.mkdir(parents=True,exist_ok=False)
     start=time.monotonic();receipt=json.loads((source/'manifest.json').read_text());transport=PromptTransport(Path(upstream)/'config/WCTE_geom_config.json',manifest,max_candidates_per_ray=cfg['max_candidates_per_ray'])
     g=transport.geometry;pos=np.asarray(g.sensor_points,float);n=len(pos);ref=response(g)
@@ -42,6 +43,12 @@ def run(config,source,upstream,manifest,out):
         angle=np.degrees(np.arccos(np.clip(np.sum(d*raw['segment_direction'],axis=1)[eligible],-1,1)));theory=np.degrees(np.arccos(1/(beta[eligible]*float(g.medium.refractive_index))))
         cone.append(dict(energy_MeV=energy,event_id=eid,n=len(angle),median_abs_error_deg=float(np.median(np.abs(angle-theory))),p95_abs_error_deg=float(np.quantile(np.abs(angle-theory),.95))))
         role=next(k for k,v in cfg['splits'].items() if eid in v)
+        target=cfg.get('energy_target','initial_energy')
+        if target=='deposited_energy_in_volume':
+            if segments is None:raise ValueError('deposited-energy target requires --segments')
+            sp=np.load(Path(segments)/f'e{energy}_{eid:03d}_primary.npz')
+            if not np.allclose(sp['vertex_m'],raw['vertex_m'],atol=1e-9,rtol=0) or float(sp['t0_mev'])!=float(raw['energy_MeV']):raise ValueError('segment file does not match photon source event')
+        elif target!='initial_energy':raise ValueError(f'unknown energy target {target!r}')
         for aug in range(cfg['rotations_per_event']):
             if time.monotonic()-start>cfg['generation_wall_seconds']:raise RuntimeError('generation wall cap')
             rng=np.random.default_rng(cfg['augmentation_seed']+energy*10000+eid*100+aug);rot=Rotation.random(random_state=rng).as_matrix();vertex=rng.uniform(-.35,.35,3)
@@ -56,16 +63,23 @@ def run(config,source,upstream,manifest,out):
                 geometry.append(dict(energy_MeV=energy,event_id=eid,agreement=float(np.mean(expected==observed[sampled])),max_time_error_ns=float(np.max(np.abs(direct-travel))/float(g.speed_of_light)),max_sphere_error_m=float(np.max(np.abs(np.linalg.norm(hit-pos[batch.sensor_id],axis=1)-float(g.sensor_radius))))))
             digit=readout_chain(batch.sensor_id,batch.arrival_time_ns,n,ref,seed=event_id,photon_batch=batch)
             x=np.zeros((n,6),np.float32);x[:,2:5]=pos/2;x[digit.sensor,0]=np.log1p(digit.charge);x[digit.sensor,1]=time_feature(digit.time,ref.readout_window_ns);x[digit.sensor,5]=1
-            xlist.append(x);ylist.append(np.r_[axis,vertex,np.log(float(raw['energy_MeV'])/1000)])
-            rows.append(dict(event_id=event_id,physical_event_id=f'{energy}:{eid}',source_event_id=eid,energy_MeV=energy,role=role,rotation=aug,primary_track_contained=bool(inside_cylinder(track,float(g.detector.r),float(g.detector.H)).all()),source_photons=len(o),outside_volume=int((~inside).sum()),inside_sensor_volume=int(in_sensor.sum()),selected_photons=int(keep.sum()),incident_hits=len(batch.photon_id),digits=len(digit),charge_sum=float(digit.charge.sum()),overflow_clamped=int(digit.counts['overflow_clamped']),digits_before_arrival=int(digit.counts['digits_before_arrival'])))
+            dep=None
+            if target=='deposited_energy_in_volume':
+                origin=raw['vertex_m'];ss=(sp['starts_m']-origin)@rot.T+vertex;ee=(sp['ends_m']-origin)@rot.T+vertex
+                dep=deposited_energy(ss,ee,sp['beta_start'],float(sp['t0_mev']),float(g.detector.r),float(g.detector.H))
+                mid=(ss+ee)/2;dep['segment_edep_inside_mev']=float(sp['edep_mev'][inside_cylinder(mid,float(g.detector.r),float(g.detector.H))].sum())  # supporting cross-check only
+            e_target=dep['e_dep_mev'] if dep else float(raw['energy_MeV'])
+            xlist.append(x);ylist.append(np.r_[axis,vertex,np.log(e_target/1000)])
+            rows.append(dict(event_id=event_id,physical_event_id=f'{energy}:{eid}',source_event_id=eid,energy_MeV=energy,role=role,rotation=aug,primary_track_contained=bool(inside_cylinder(track,float(g.detector.r),float(g.detector.H)).all()),source_photons=len(o),outside_volume=int((~inside).sum()),inside_sensor_volume=int(in_sensor.sum()),selected_photons=int(keep.sum()),incident_hits=len(batch.photon_id),digits=len(digit),charge_sum=float(digit.charge.sum()),overflow_clamped=int(digit.counts['overflow_clamped']),digits_before_arrival=int(digit.counts['digits_before_arrival']),energy_target=target,target_MeV=e_target,**({f'dep_{k}':v for k,v in dep.items()} if dep else {})))
         print(energy,eid,len(rows),flush=True)
     passed=all(c['agreement']==cfg['geometry_agreement_required'] and c['max_time_error_ns']<cfg['max_time_residual_ns'] and c['max_sphere_error_m']<cfg['max_sphere_residual_m'] for c in geometry)
     report=dict(passed=passed,config=cfg,source=receipt,transport=transport.provenance(),geometry=geometry,cone=cone,events=rows,elapsed_seconds=time.monotonic()-start,response=ref.to_dict(),response_manifest=response_manifest.provenance(),readout_counts=dict(overflow_clamped=sum(r['overflow_clamped'] for r in rows),digits_before_arrival_fraction=sum(r['digits_before_arrival'] for r in rows)/max(1,sum(r['digits'] for r in rows))),evidence_stage='development',non_citable=True)
-    (out/'validation.json').write_text(json.dumps(report,indent=2));np.savez_compressed(out/'digits.npz',x=np.asarray(xlist),y=np.asarray(ylist,dtype=np.float32),role=np.array([r['role'] for r in rows]),physical_event_id=np.array([r['physical_event_id'] for r in rows]),energy_MeV=np.array([r['energy_MeV'] for r in rows]),contained=np.array([r['primary_track_contained'] for r in rows]),charge=np.array([r['charge_sum'] for r in rows]))
+    (out/'validation.json').write_text(json.dumps(report,indent=2));np.savez_compressed(out/'digits.npz',x=np.asarray(xlist),y=np.asarray(ylist,dtype=np.float32),role=np.array([r['role'] for r in rows]),physical_event_id=np.array([r['physical_event_id'] for r in rows]),energy_MeV=np.array([r['energy_MeV'] for r in rows]),contained=np.array([r['primary_track_contained'] for r in rows]),charge=np.array([r['charge_sum'] for r in rows]),target_MeV=np.array([r['target_MeV'] for r in rows]),energy_target=np.array([r['energy_target'] for r in rows]))
     print('transport_gate',passed,flush=True)
     if not passed:raise RuntimeError('transport closure failed; no training')
 
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for a in ('config','source','upstream','manifest','out'):p.add_argument('--'+a,required=True)
+    p.add_argument('--segments')
     run(**vars(p.parse_args()))

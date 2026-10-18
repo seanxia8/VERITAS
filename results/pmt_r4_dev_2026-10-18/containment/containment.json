@@ -1,0 +1,125 @@
+{
+  "question": "does any mu- kinetic energy in 100-400 MeV reach >= 50% containment in WCTE?",
+  "answer": [
+    100.0,
+    150.0,
+    200.0,
+    250.0,
+    300.0,
+    350.0
+  ],
+  "cylinder": {
+    "radius_m": 1.5771308488246254,
+    "height_m": 2.77697099384,
+    "source": "pinned WCTE geometry, upstream eaf2e89, PromptTransport"
+  },
+  "sampling": "vertex uniform in [-0.35, 0.35]^3 m; uniform SO(3) rotation of +z (isotropic); 200000 tracks per energy, seed 20261018",
+  "containment": "straight track of CSDA length; end point strictly inside x^2+y^2<R^2, |z|<H/2",
+  "range_check": [
+    {
+      "kinetic_mev": 100.0,
+      "pdg_csda_g_cm2": 31.24,
+      "this_g_cm2": 31.238142011730936,
+      "relative": -5.9474656500024814e-05
+    },
+    {
+      "kinetic_mev": 200.0,
+      "pdg_csda_g_cm2": 78.94,
+      "this_g_cm2": 78.95603911236415,
+      "relative": 0.00020318105351102567
+    },
+    {
+      "kinetic_mev": 300.0,
+      "pdg_csda_g_cm2": 129.1,
+      "this_g_cm2": 129.19146832305515,
+      "relative": 0.0007085075372204042
+    },
+    {
+      "kinetic_mev": 400.0,
+      "pdg_csda_g_cm2": 179.6,
+      "this_g_cm2": 179.66418470517075,
+      "relative": 0.0003573758639796587
+    }
+  ],
+  "pdg_source": "PDG Atomic and Nuclear Properties, Muon energy loss in water (liquid), https://pdg.lbl.gov/2024/AtomicNuclearProperties/MUE/muE_water_liquid.txt (sha256 2cebc6a422ad9f8fa90b0e06a2e3c6e9ae68c2ecbe49d0717f85514b698599c2)",
+  "rows": [
+    {
+      "kinetic_mev": 100.0,
+      "csda_range_m": 0.31238142011730935,
+      "n": 200000,
+      "contained_fraction": 1.0,
+      "binomial_se": 0.0
+    },
+    {
+      "kinetic_mev": 150.0,
+      "csda_range_m": 0.5446741993818246,
+      "n": 200000,
+      "contained_fraction": 1.0,
+      "binomial_se": 0.0
+    },
+    {
+      "kinetic_mev": 200.0,
+      "csda_range_m": 0.7895603911236415,
+      "n": 200000,
+      "contained_fraction": 1.0,
+      "binomial_se": 0.0
+    },
+    {
+      "kinetic_mev": 250.0,
+      "csda_range_m": 1.0397367427404969,
+      "n": 200000,
+      "contained_fraction": 1.0,
+      "binomial_se": 0.0
+    },
+    {
+      "kinetic_mev": 300.0,
+      "csda_range_m": 1.2919146832305515,
+      "n": 200000,
+      "contained_fraction": 0.93817,
+      "binomial_se": 0.0005385492136286156
+    },
+    {
+      "kinetic_mev": 350.0,
+      "csda_range_m": 1.5444899112860875,
+      "n": 200000,
+      "contained_fraction": 0.686825,
+      "binomial_se": 0.0010370545293642952
+    },
+    {
+      "kinetic_mev": 400.0,
+      "csda_range_m": 1.7966418470517076,
+      "n": 200000,
+      "contained_fraction": 0.346495,
+      "binomial_se": 0.0010640399780435883
+    }
+  ],
+  "range_sensitivity": {
+    "range_x0.95": {
+      "100": 1.0,
+      "150": 1.0,
+      "200": 1.0,
+      "250": 1.0,
+      "300": 0.97136,
+      "350": 0.778485,
+      "400": 0.468535
+    },
+    "range_x1.05": {
+      "100": 1.0,
+      "150": 1.0,
+      "200": 1.0,
+      "250": 0.997955,
+      "300": 0.88957,
+      "350": 0.585075,
+      "400": 0.236235
+    }
+  },
+  "pilot_energies_straight_track": {
+    "500": 0.01213,
+    "1000": 0.0,
+    "1500": 0.0
+  },
+  "pilot_geant4_contained": "500 MeV: 3/160 placements (56179eb); 1000, 1500 MeV: 0/160",
+  "caveat": "Multiple scattering and range straggling are ignored. Scattering shortens the net displacement, so the straight-track contained fraction is approximately a lower bound; straggling (a few % of the range) moves it either way (see range_sensitivity). Not a Geant4 result.",
+  "evidence_stage": "development",
+  "non_citable": true
+}
