@@ -6,7 +6,7 @@
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
       "cap_gpu_hours": 170.0,
-      "charged_gpu_hours": 0.0634,
+      "charged_gpu_hours": 1.349,
       "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
       "cap_history": [
         {
@@ -26,8 +26,9 @@
     },
     "lucid_generation_cpu": {
       "cap_wall_hours": 48,
-      "charged_wall_hours": 0.07142,
-      "cores_at_most": 16
+      "charged_wall_hours": 0.262,
+      "cores_at_most": 16,
+      "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs."
     },
     "e1_cpu_wall_hours": {
       "cap_wall_hours": 24,
@@ -808,6 +809,66 @@
       "job_kind": "wp5",
       "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
       "note": "failed at import (no scipy) - 0 GPU, charged by the failed-attempt rule"
+    },
+    {
+      "id": "wp5_lucid_dev_step2",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.1544,
+      "wall_seconds": 555.67,
+      "status": "killed",
+      "exit_status": 143,
+      "code_sha": "c87b31b84a3bebeb103aecabbbaf2df908f56573",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "superseded_by_reference_fit_config_fix; invalid result, not reused; killed by SIGTERM after the shared dev_train cache completed (most of the 555.67 s wall was CPU dataset generation, which is reused by f824075)"
+    },
+    {
+      "id": "wp5_lucid_dev_step2_v2",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.3949,
+      "wall_seconds": 1421.47,
+      "status": "killed",
+      "exit_status": 143,
+      "code_sha": "f824075726497d59d76f068fd7d856dfeb323e1d",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "loader cache thrash: 3.07 s/step with loader_cache_runs default 12 against a 100-run train cohort (tokenised run = 101.75 MB; smoke had only 2 runs so was fully cached at 0.23 s/step); run 1 reached step 400, run 2 interrupted; superseded by the loader_cache_runs fix; invalid result, not reused"
+    },
+    {
+      "id": "wp5_lucid_dev_ratecheck",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.0487,
+      "wall_seconds": 175.21,
+      "status": "killed",
+      "exit_status": 143,
+      "code_sha": "327c66d88408fd2d423163adedcaaaea68ecaaf1",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "loader_cache_runs=128 rate check on the dev cohort: 500 steps in 147.66 s, steady 0.217 s/step after a 61 s cache-fill warm-up (first 100 steps 0.61 s/step), job RSS 12.56 GiB; fix validated (3.07 -> 0.217). Killed after measurement; --stop-after is not honoured by dev mode."
+    },
+    {
+      "id": "wp5_lucid_dev_step2_v3",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.6876,
+      "wall_seconds": 2475.24,
+      "status": "killed_guard_shed",
+      "exit_status": 143,
+      "code_sha": "327c66d88408fd2d423163adedcaaaea68ecaaf1",
+      "job_kind": "wp5",
+      "evidence": "docs/jepa/PREFLIGHT_A8_deepthought2.md",
+      "note": "guard SHED at 66.1 GiB RAM > 64 GiB cap during inline probe evaluation (per-event pmt_gain tables: 10k events x 1995 PMTs x 128 dims x float64 = 20.4 GB per split); training run 1 completed 10k steps at 0.2195 s/step (final.pt + checkpoint saved), run 2 not started; resumable from checkpoint once the eval memory blocker is resolved; invalid result, not reused"
     }
   ]
 }

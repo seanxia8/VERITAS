@@ -1313,3 +1313,178 @@ wall × 1 GPU, §6.1).
   (`JAX_PLATFORMS=cpu`, `nice -n 10`, `timeout 2400`, `noise_module_lucid.multienergy_data`). It uses
   no GPU, is outside `/ceph/dwong/jepa/`, and is not in the guard's `our_jobs`; I did not touch it.
   Flagged so it is not mistaken for one of my jobs.
+
+---
+
+## 22. R-6 readout freeze and WP5 smoke attempt (`0ab86e6d`), 18 Oct 2026 00:10–00:26Z
+
+### Job 1 — detectability FREEZE on `readout_pmt_r6` (PASS)
+
+Provenance pair: **`git rev-parse HEAD` = `0ab86e6df7e7a187d7d4b31f02a5aab7ada09a21`**,
+**`git status --porcelain` empty**. Exit 0, wall **124 s**, CPU only.
+**`/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json`** — 26,014 B,
+`sha256 1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64`,
+`content_sha256 307a0771f5406e0e0542ca11442a9a7471033ad9fe967d293ce082f035d74bc6`,
+`status frozen`, `decision_freeze_status frozen_by_this_re_run`, readout **`readout_pmt_r6`**.
+
+Two layout deviations were required and are recorded: (i) the first attempt failed with
+`FileNotFoundError: .../configs/lucid_pmt/reference.json` because the sparse checkout had only
+`src scripts` — `configs` was added; (ii) to let the engine produce its old-vs-new block, the nested
+path `results/jepa/20261017_wp4b_detectability` was also added. Sparse paths are now
+`src scripts configs results/jepa/20261017_wp4b_detectability`. The 989773c attempt also succeeded
+(135 s) and is preserved as `wp4b_detectability_wcte_r6_at989773c.json`
+(`sha256 b52093cb…`, `content_sha256 9c0ff26e…`), superseded but not deleted.
+
+Ceilings, old (v2, `readout_synthetic_unrepaired`, v_dark 0.0) → new (r6, v_dark 0.00109, F3
+marginalised at s_p 0.05): F1 0.02 0.260945→**0.260901**; F1 0.05 0.685515→**0.686492**; F1 0.10
+0.890838→**0.893069**; F3 0.323420→**0.324621**; F2 0.920896→**0.921345**; T 0.986021→**0.986084**.
+No pass/fail changes.
+
+Frozen: **Y_lo 6298.436828**, **Y_hi 539,433.964527** (hit_fraction_0.95; the 300 PE bound would be
+834,189.16), median yield **58,288.856**. Fallback ladder: raise_y_hi 320,000→539,433.96; set_F2_a
+0.1→0.2; 0.2→0.5; **raise_F3_spread 0.05→0.10**. F1 eligible {0.05, 0.10}, excluded {0.02}; F2 chosen
+(F2, a=0.5), F2′ unused; F3 0.324621 fail → **R12 not_evaluable, no gate**; G6 false; R6/R7
+evaluable; law T ok. Occupancy (n_min 20): within median 105.5 (min 84), exclusion 0.0; across proxy
+97.5 (min 61), below-N_min 0.0. Response `configs/lucid_pmt/reference.json`
+`sha256 17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68`, dark counts **on**,
+1000 Hz, window [−200, 800] ns, spe_sigma 0.3, threshold 0.25 PE, parity gains ±0.03 / widths ±0.05.
+`v_dark = 0.001 × 1.09 = 0.00109 PE²` (derived, not literal), variance
+`mu_p(1+σ²) + v_dark + s_p²mu_p²`, F3 marginalised true at s_p 0.05. Geometry re-verified
+(9943d602 / 8b46bd3c / 0a75b035, synthetic false). The JSON's `pending` still states the author has
+not frozen the new values.
+
+### Job 2 — WP5 500-step smoke (FAILED: CUDA OOM at step 0)
+
+Provenance pair unchanged (`0ab86e6d…`, clean; run.log records `clean_sha=0ab86e6d…`).
+Exit **2**, `outcome exited`, `timed_out false`, job wall **66.07 s**; the training run
+`wall_seconds 7.49`, **`steps_completed 0`**. Exact failure:
+
+> CUDA out of memory. Tried to allocate 2.18 GiB. GPU 0 has a total capacity of 11.92 GiB of which
+> 1.92 GiB is free. Process 3559938 has 652.00 MiB memory in use. Including non-PyTorch memory, this
+> process has 9.35 GiB memory in use. 9.54 GiB allowed; Of the allocated memory 9.19 GiB is allocated
+> by PyTorch, and 49.34 MiB is reserved but unallocated.
+
+i.e. at the §6.2 launcher cap (0.8 × 11.92 = 9.54 GiB) the first step already needed
+9.19 + 2.18 = 11.37 GiB: batch 32 over 1995 PMTs does not fit a 12 GiB Titan in this implementation
+before any step completes. The manifest still recorded the frozen numerics correctly
+(`muon_adamw`, lr 0.001, eps 1e-8, betas [0.9, 0.999], weight_decay 0, decay none, constant schedule,
+warmup 0, clip null, fused true, muon lr 0.001 / momentum 0.95 / nesterov / ns_steps 5,
+adamw groups 57 / muon 24), `readout_label readout_pmt_r6`, batch/micro-batch 32, clean tree.
+The fresh data root **was created and is complete**: `/ceph/dwong/jepa/data/lucid_r6` = 31 MB,
+12 files (dataset `smoke_train__F1__0.05__s20261017__n2000x1000`, manifest + SHA256SUMS + 2 runs with
+hits/twin_hits/events npz), so the cache is warm and r6-labelled. No retry was attempted.
+
+Peak-memory caveat: a 3 s `nvidia-smi` sampler saw at most 760 MiB (GPU 0) / 805 MiB (GPU 1) during
+the run — a 7.5 s process can hide a sub-second spike, so the allocator figures are authoritative and
+the sampler cannot bound the peak. Job 3 (scaling) was **not** run, per the abort instruction.
+
+Quota: Job 1 + sparse additions + smoke artifacts took rfiles 409,730 → 409,765 and rsubdirs
+51,755 → 51,768; free entries **38,467**. Guard OK with `our_jobs []`; all GPUs idle.
+
+---
+
+## 23. WP5 smoke retry at `3e739b65` — refused because the data cache is stale (not an OOM)
+
+Provenance pair: **`git rev-parse HEAD` = `3e739b656548e63760f1a460ece1c90fc9a917f9`**
+("use the config's micro_batch as the default (Titan 8 x 4 accumulation), CLI still overrides"),
+**`git status --porcelain` empty**. `run.log` records `clean_sha=3e739b656548e63760f1a460ece1c90fc9a917f9`.
+
+Config verified in the checkout before launching: `micro_batch: 8`, `gradient_accumulation: 4`, with a
+note recording the 2026-10-18 Titan OOM arithmetic; `detectability_decision` points at
+`results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6.json` with
+`detectability_decision_sha256 1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64` —
+**identical to the JSON this host produced in §22**, so the committed freeze file is the host artefact.
+
+Launch through `jepa_run.sh` (guard fresh, age 3 s, OK; launcher chose GPU 0; timeout 2250 s): **exit 2**
+after **6.5 s**, `outcome exited`, `timed_out false`. **No GPU work happened** — the job died before any
+CUDA call (the GPU sampler saw only idle levels). Exact error:
+
+> `lucid_run: refused/failed: dataset smoke_train__F1__0.05__s20261017__n2000x1000:
+> generator_config_sha256 '6779146ff4b3f17c460e07edbd20208dd3dcfc5e4a11f238898bf8bdc0ff868e'
+> != cached '61fdafa612b4398fe7dada7a98079a6a74d32ec32b9388ce101a9bbc2999f666';
+> refusing to regenerate silently`
+
+Reading the guard code (`_verify_dataset`): the first operand is the value recorded in the cached
+dataset manifest, the second is the digest of the generator config at this SHA. **The "warm cache" is
+not reusable at this SHA**, and legitimately so: `git diff 0ab86e6 3e739b6 -- src/jepa_noise/configs/lucid_bombs_v0.json`
+changes the generator itself — `F3.spread 0.05 → 0.1`, `generator.y_lo 6249.708098 → 6298.436828`,
+`generator.y_hi 541560.544764 → 539433.964527` (the R-6 frozen yields), and the decision-JSON pointer.
+The cache under `/ceph/dwong/jepa/data/lucid_r6` was written during the failed 0ab86e6 run with the
+pre-R-6-freeze generator config (digest `6779146f…`) while the new config hashes to `61fdafa6…`.
+
+There is **no `--force`/`--regenerate`/`--overwrite` flag** in `lucid_run`'s CLI for the smoke path
+(only `--out`, `--data-root`, …), so the only clean route is a fresh data root — cost ≈ 31 MB /
+~22 entries and ≈40 s of CPU generation for 2×1000 events. Per the standing abort rule the retry was
+**not** attempted with another root; the decision is the Lead's:
+(A) `--data-root /ceph/dwong/jepa/data/lucid_r6_v2` (keeps the stale cache as evidence), or
+(B) delete the stale `lucid_r6` cache and reuse the name (destructive, needs explicit authorisation).
+
+Job 3 (scaling 2k/10k) was not started: it is synthetic and does not depend on the data root, but it
+follows the smoke in the instructed order. State afterwards: guard OK, `our_jobs []`, no jepa process,
+GPUs idle (655/805/653/653 MiB), free entries **38,458**; sampler killed.
+
+---
+
+## 24. WP5 scaling (PASS) and WP5 smoke at the fresh root (PASS), `3e739b65`
+
+Provenance pair for both: **`git rev-parse HEAD` = `3e739b656548e63760f1a460ece1c90fc9a917f9`**,
+**`git status --porcelain` empty** (`run.log` records `clean_sha=3e739b65…`).
+
+### Job 3 — scaling 2k/10k (PASS)
+
+First attempt at the Lead's pasted command **exited 2 in 5 s**: `--data-root` is a *required* argument
+of `lucid_run` for every subcommand (`common.add_argument("--data-root", required=True)`), and the
+pasted block omitted it; the runner doc's block includes `--data-root /ceph/dwong/jepa/data`. Re-ran
+with the doc-faithful flag. **Exit 0, wall 10.24 s.** No GPU incident; `--data-root` is not written by
+scaling.
+
+`/ceph/dwong/jepa/returns/wp5_scaling_titan_r6/scaling.json` (schema `jepa-lucid-scaling-v0`,
+`no_training true`, `registered false`, `memory_cap_mb 9600`):
+
+| size (PMTs) | batch | hit frac | params | peak memory (allocator) | est. activations | wall | events/s | status |
+|---|---|---|---|---|---|---|---|---|
+| 2 000 | 8 | 0.2 | 911,296 | **764.0 MB** | 442.4 MB | **0.84 s** | **9.525** | **fit** (`does_not_fit false`) |
+| 10 000 | 8 | 0.2 | 911,296 | **3,693.7 MB** | 2,211.8 MB | **3.347 s** | **2.390** | **fit** (`does_not_fit false`) |
+
+Neither size hit `does_not_fit`. Secondary 1 s `nvidia-smi` sampler peaked at 5,053 MiB on GPU 0
+(allocation + CUDA context + the resident foreign 652 MiB), vs 3,693.7 MB allocator-reported.
+
+### Job 2 retry — 500-step smoke on the fresh root (PASS)
+
+Fresh root `/ceph/dwong/jepa/data/lucid_r6_v2` (stale cache left untouched as evidence, option A).
+**Exit 0**, job wall **854.55 s** (launcher start 00:37:14Z, finish 00:51:29Z); the run itself
+`wall_seconds 798.18`, `steps_completed 500`, `final_step 500`, `outcome complete`,
+`final_checkpoint_sha256 2fb01bc0…`. **Training throughput 500 steps / 795.83 s = 0.628 steps/s
+(1.59 s/step)** at micro-batch 8 × accumulation 4.
+
+Manifest (`/ceph/dwong/jepa/returns/wp5_lucid_smoke_r6_v2/manifest.jsonl`) — the numbers that matter:
+
+| field | value |
+|---|---|
+| batch (effective) | **32** |
+| **micro_batch / gradient_accumulation** | **8 / 4** |
+| arm / cell / seed | sigreg_jepa / smoke_s005_within / 0 |
+| steps | 500 (`final_step 500`) |
+| clean_tree / git_status | true / "" |
+| code_sha | 3e739b656548e63760f1a460ece1c90fc9a917f9 |
+| config_sha256 | c55f36d30689a769e3e8fc20469321d62f36df0dd692c1c3374f8e000de0cc0f |
+| readout_label | **readout_pmt_r6** |
+| s_arm / s_p | 0.05 / 0.05 |
+| loader dataset | smoke_train__F1__0.05__s20261017__n2000x1000, manifest sha `a4ce3efb…` |
+| fallback | inactive, steps 10 000 recorded, no steps/seed fallback |
+| probe_datasets / probe_dataset_sha256 | **{} / {} — no probes** (no `--evaluate`, so no probe or floor values exist for this smoke) |
+| optimizer | muon_adamw: lr 0.001, eps 1e-08, betas [0.9, 0.999], weight_decay 0.0, decay none, schedule constant ("no-op constant; no warmup, no decay"), warmup_steps 0, gradient_clip null, fused true, Muon lr 0.001 / momentum 0.95 / nesterov true / ns_steps 5, groups adamw 57 / muon 24 |
+
+Artefacts in `runs/smoke_s005_within__sigreg_jepa__s0000/`: `checkpoint.pt` (7,486,126 B),
+`final.pt` (7,484,701 B), `SHA256SUMS` (319 B), `run_status.json` (970 B), `train_log.jsonl`
+(21,906 B, 100 lines to step 500). Peak memory: the manifest carries **no allocator peak field** for
+the smoke; secondary 1 s sampler peak was **5,589 MiB on GPU 0** (~58 % of the 9.54 GiB §6.2 cap), i.e.
+the 8×4 shape is comfortable where batch 32 alone needed 11.37 GiB.
+
+Dataset manifest in the fresh root: `generator_config_sha256 61fdafa6…` (the new config, matching the
+refusal diagnostic), `readout_label readout_pmt_r6`, `yield_range_photons [6298.436828, 539433.964527]`,
+`yield_range_status frozen_by_detectability_check`, `code_sha 3e739b65…`, 31 MB / 12 files.
+
+Costs/state: scaling 10.24 s + smoke 854.55 s ≈ 0.2403 Titan GPU-h; quota rfiles 409,784 → 409,810,
+rsubdirs 51,770 → 51,781; free entries **38,409**; guard OK with `our_jobs []`, all GPUs idle, both
+samplers killed.
