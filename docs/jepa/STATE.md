@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 15:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 18:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -173,11 +173,19 @@ Updated: 2026-10-18 15:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   0.9189; T 0.9855), no pass/fail change, **yields unchanged** (Y_lo 6298.44, Y_hi 539 433.965,
   median 58 288.856), branches unchanged (F1 {0.05,0.10}, F2 a=0.50, F3 null → R12 not_evaluable,
   G6 false). Dataset cache regenerated at s_p=0.10 (old archived).
-- **Dev step 2 DONE — probe form = ridge** (`0.31541` m = 2.216× vs reference `0.14231` m,
-  mae_mse 0.09345 = 0.657×; reference `fit_config` grid 5, v_group 0.2172409115942029). Streaming
-  evaluation accepted at scale: 69.2 M rows, peak_delta 426 MiB (was 66.1 GiB). L40S **2.8717/170**;
-  CPU generation **0.4452/48**; entries 468 193 (31 807 free — grid will use a rolling per-cell data
-  lifecycle). **Dev step 3 (15 β runs) running**; report then stop for review before the grid.
+- **Dev step 2 = ridge** (superseded by the author's token-time ruling) and **dev step 3 stopped**
+  cleanly at the author's word (2.5857 GPU-h, all 17 dev runs kept as superseded evidence, record
+  sha256 `743b0c1d…`; partial anchored β vertex values 0.30604/0.28374/0.25750 m for β=0.1/1/10).
+  L40S **5.4574/170** (3.8606 superseded); CPU generation 0.4452/48; entries 34,861 free.
+- **A9 token-time implementation landed (`471909a`)**: token time = digit − NHits trigger from the
+  **imported** readout rule (lazy import; clear error and **dataset generation refuses** until the
+  author-named PMT SHA), emission offset uniform [−50,+50] ns as **truth only**, prompt window
+  [−20,+60] ns with drop/count, exact-shift invariance test (dark off: bit-identical tokens and
+  trigger shifted by exactly the constant; dark on: source-digit invariance + recorded
+  dark-moved-trigger rate), ToF estimator unaffected. Full suite **445 passed, 10 skipped**
+  (dataset-generating tests explicitly pending the merge). No datasets generated.
+- **Waiting on the author-named PMT SHA.** Then: merge → regenerate dev datasets → redo dev steps
+  2 and 3 (~14 GPU-h) → report the β table → stop for review before the 201-run grid.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
