@@ -35,11 +35,25 @@ def nhits_trigger_time_stub(digits, n=4, window_ns=20.0):
     return float(t[ok[0]]) if ok.size else None
 
 
-def install_time_rule(monkeypatch, trigger=None, n=4, window_ns=20.0,
+def prompt_window_mask_stub(digits, trigger_ns, window_ns=(-20.0, 60.0)):
+    """Test stub of the merged ``readout.prompt_window_mask`` (keeps everything on ``None``)."""
+    t = np.asarray(digits, dtype=float).ravel()
+    if not np.all(np.isfinite(t)):
+        raise ValueError("finite digit times required")
+    if trigger_ns is None:
+        return np.ones(t.size, dtype=bool)
+    lo, hi = (float(w) for w in window_ns)
+    dt = t - float(trigger_ns)
+    return (dt >= lo) & (dt <= hi)
+
+
+def install_time_rule(monkeypatch, trigger=None, mask=None, n=4, window_ns=20.0,
                       prompt_window_ns=(-20.0, 60.0)):
     """Install the interface stub in place of the unmerged import (test hook)."""
-    rule = (trigger or nhits_trigger_time_stub, int(n), float(window_ns),
-            tuple(float(v) for v in prompt_window_ns))
+    window = tuple(float(v) for v in prompt_window_ns)
+    rule = (trigger or nhits_trigger_time_stub,
+            mask or (lambda digits, trigger_ns: prompt_window_mask_stub(digits, trigger_ns, window)),
+            int(n), float(window_ns), window)
     monkeypatch.setattr(lb, "_PMT_TIME_RULE", rule)
     return rule
 

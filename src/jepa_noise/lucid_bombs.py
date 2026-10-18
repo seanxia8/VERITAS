@@ -216,27 +216,28 @@ def pmt_time_rule_available() -> bool:
 def pmt_time_rule():
     """The merged PMT readout's NHits time rule, imported lazily (never reimplemented).
 
-    Returns ``(nhits_trigger_time, n, trigger_window_ns, prompt_window_ns)``.  Raises a clear
-    :class:`RuntimeError` while the author-named PMT SHA is unmerged, so no code path can
-    silently use a different time convention.
+    Returns ``(nhits_trigger_time, prompt_window_mask, n, trigger_window_ns, prompt_window_ns)``.
+    The prompt-window **cut** is the imported function, never reimplemented here.  Raises a clear
+    :class:`RuntimeError` while the author-named PMT SHA is unmerged, so no code path can silently
+    use a different time convention.
     """
     global _PMT_TIME_RULE
     if _PMT_TIME_RULE is not None:
         return _PMT_TIME_RULE
     try:  # the merged PMT branch's public interface; do not copy its code
         from noise_module_lucid.readout import (NHITS_N, NHITS_WINDOW_NS, PROMPT_WINDOW_NS,
-                                                nhits_trigger_time)
+                                                nhits_trigger_time, prompt_window_mask)
     except Exception as error:  # ImportError, or a module that does not yet expose the rule
         raise RuntimeError(PENDING_TIME_RULE_MESSAGE) from error
-    rule = (nhits_trigger_time, int(NHITS_N), float(NHITS_WINDOW_NS),
+    rule = (nhits_trigger_time, prompt_window_mask, int(NHITS_N), float(NHITS_WINDOW_NS),
             tuple(float(v) for v in PROMPT_WINDOW_NS))
     # No silent convention drift: the imported rule must be the registered one.
     registered = (int(TIME_RULE["n"]), float(TIME_RULE["trigger_window_ns"]),
                   tuple(float(v) for v in TIME_RULE["prompt_window_ns"]))
-    if rule[1:] != registered:
+    if rule[2:] != registered:
         raise RuntimeError(
-            f"the PMT readout's time rule (n={rule[1]}, window_ns={rule[2]}, "
-            f"prompt_window_ns={rule[3]}) differs from the registered A9 convention "
+            f"the PMT readout's time rule (n={rule[2]}, window_ns={rule[3]}, "
+            f"prompt_window_ns={rule[4]}) differs from the registered A9 convention "
             f"{registered}; an author decision is required before generating")
     _PMT_TIME_RULE = rule
     return _PMT_TIME_RULE
@@ -1787,7 +1788,8 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     """
     if cfg.dark_counts != DARK_COUNTS_ON:
         raise ValueError(f"{READOUT_LABEL}: dark counts must be on, got {cfg.dark_counts!r}")
-    nhits_trigger_time, nhits_n, nhits_window_ns, prompt_window_ns = pmt_time_rule()
+    (nhits_trigger_time, prompt_window_mask, nhits_n, nhits_window_ns,
+     prompt_window_ns) = pmt_time_rule()
     n_dark = np.asarray(draws.dark_counts, dtype=np.int64)
     if n_dark.shape != (geometry.n_pmt,) or np.any(n_dark < 0):
         raise ValueError("dark_counts must be one non-negative count per PMT")
@@ -1863,12 +1865,9 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     else:
         origin = float(trigger)
     token = digit_times - origin
-    # The imported prompt-window mask keeps every digit when there is no trigger (its window is
-    # defined around a trigger); with a trigger, digits outside the window are dropped and counted.
-    if trigger is None:
-        keep = np.ones(digit_times.size, dtype=bool)
-    else:
-        keep = (token >= prompt_window_ns[0]) & (token <= prompt_window_ns[1])
+    # A9: the prompt-window cut is the **imported** mask (it keeps every digit when there is no
+    # trigger and validates finite digit times); never reimplemented here.
+    keep = np.asarray(prompt_window_mask(digit_times, None if trigger is None else float(trigger)))
     if accounting is not None:
         accounting.n_events += 1
         accounting.n_prompt_dropped += int(np.count_nonzero(~keep))
