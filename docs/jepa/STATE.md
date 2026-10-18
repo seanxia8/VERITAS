@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 01:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 02:20Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -139,9 +139,16 @@ Updated: 2026-10-18 01:55Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
 - **R2 recompute verdict recorded** (fresh reviewer, verdict (a): seed-mean is the registered
   estimator; R2 = 5/6 failing θ0.1/η3; 4/6 median is a non-registered post-hoc sensitivity) beside
   R2 in `PREDICTION_STATUS.json`, whose R1–R5/R3b rows are now the evaluated statuses.
-- **Running**: host detectability re-run on the merged readout with `--freeze` (this is the freeze
-  that gates the report), B1-ext anchored grid + aggregate (~00:37Z), then WP5 smoke + scaling at
-  the same SHA, then the R5-ext re-run.
+- **PMT R-6 `b341037` merged (`2c932ee`)** — 1 kHz dark counts, 1 µs window [-200, 800] ns, ~2 dark
+  hits/event; the readout is now **`readout_pmt_r6`** (dark on). The LUCiD stack is restored at
+  `989773c`: `v_dark = 0.00109 PE²` in the ceilings and `mae_chi2`; the dark-window anchor draws real
+  dark windows; **R7b evaluable again** with the dark-only draw's measured embedding change recorded
+  beside it; **s_p restarts at the registered default 0.05** with the ladder order Y_hi → F2 → s_p.
+  Full suite **432 passed**; four LUCiD suites 106 passed.
+- **Running**: host detectability **freeze** on the R-6 readout (`--freeze`, this gates the report),
+  then the WP5 500-step real-geometry smoke and the 2k/10k scaling at the same SHA; then the R5-ext
+  re-run. B1-ext closed as a development β trade-off (β=10 selected; anchored grid stopped as a
+  replication; 2.4484 of 4 GPU-h).
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
