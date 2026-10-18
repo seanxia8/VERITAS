@@ -732,7 +732,11 @@ def run_one(*, arm_name, cell, seed, beta, config, arms_config, geometry, loader
     run_id = run_id_for(cell.cell_id, arm_name, seed, beta)
     run_dir = _guard(out_root / "runs" / run_id, out_root, data_root); run_dir.mkdir(parents=True, exist_ok=True)
     steps = int(config["training"]["steps"] if steps is None else steps)
-    batch = int(config["training"]["batch"]); micro = batch if micro_batch is None else int(micro_batch)
+    batch = int(config["training"]["batch"])
+    # The config's micro_batch is the host-profile default (Titan 12 GiB: 8 with
+    # accumulation 4 keeps the registered effective batch of 32); the CLI overrides it.
+    configured_micro = config["training"].get("micro_batch")
+    micro = (int(configured_micro) if configured_micro else batch) if micro_batch is None else int(micro_batch)
     if micro < 1 or batch % micro:
         raise ValueError(f"micro_batch {micro} must divide {batch}")
     started_at, started_epoch = utcnow(), time.time()
