@@ -86,7 +86,7 @@
         "across",
         "within"
       ],
-      "s_p": 0.05,
+      "s_p": 0.1,
       "s_p_note": "\u00a73.5.3 registers s_p = 0.05 adjusted only through \u00a73.5.3a; the 2026-10-17 check raised it to 0.10 on the superseded run that treated F3 as known, so on 2026-10-18 the ladder restarted from the registered default 0.05 and may raise it to 0.10 only at step 3",
       "r6_r7_eligible_spreads": [
         0.05,
@@ -125,7 +125,7 @@
         "law": "F2",
         "setting": 0.5,
         "split": "within",
-        "s_p": 0.05,
+        "s_p": 0.1,
         "arms": [
           "sigreg_jepa",
           "sigreg_jepa_anchored",
@@ -141,7 +141,7 @@
         "law": "R11b",
         "setting": 0.5,
         "split": "within",
-        "s_p": 0.05,
+        "s_p": 0.1,
         "arms": [
           "sigreg_jepa",
           "sigreg_jepa_anchored",
@@ -157,7 +157,7 @@
         "law": "F1",
         "setting": 0.1,
         "split": "within",
-        "s_p": 0.05,
+        "s_p": 0.1,
         "arms": [
           "sigreg_jepa_anchored_dark"
         ],
@@ -172,7 +172,7 @@
         "setting": null,
         "settings_source": "law_T_training_ratios",
         "split": "within",
-        "s_p": 0.05,
+        "s_p": 0.1,
         "arms": [
           "sigreg_jepa",
           "sigreg_jepa_anchored",
@@ -189,7 +189,7 @@
         "law": "F1",
         "setting": 0.05,
         "split": "within",
-        "s_p": 0.05,
+        "s_p": 0.1,
         "arms": [
           "sigreg_jepa"
         ],
@@ -204,7 +204,7 @@
     "development": {
       "spread": 0.05,
       "split": "within",
-      "s_p": 0.05,
+      "s_p": 0.1,
       "train_cohort": "dev_train",
       "probe_set": "dev_main",
       "steps": 10000,
@@ -496,5 +496,6 @@
   "dark_counts": "on",
   "decision_freeze_status": "superseded_pending_r6_freeze",
   "detectability_decision_sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64",
-  "detectability_decision_host_copy": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json"
+  "detectability_decision_host_copy": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
+  "s_p_note": "all LUCiD cells use the frozen \u00a73.5.3a end value s_p = 0.10 (the ladder started at the registered default 0.05 and raised it at step 3); the detectability check's own start value remains 0.05 in lucid_detectability_v0.json"
 }

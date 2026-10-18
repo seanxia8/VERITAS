@@ -296,10 +296,10 @@
     "run_events": 50,
     "dark_counts": "on",
     "f3_marginalised": true,
-    "f3_marginalised_spread": 0.05,
+    "f3_marginalised_spread": 0.1,
     "variance_formula": "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2",
     "v_dark_source": "v_dark = lambda_dark*(1+sigma_spe^2) with lambda_dark = 1000 Hz x 1000 ns = 0.001 from configs/lucid_pmt/reference.json (R-6): 0.001 x 1.09 = 0.00109 PE^2, derived not literal",
-    "f3_source": "F3 is a random per-PMT gain, not known: it is marginalised by adding s_p^2 * mu_p^2 per PMT (the section 3.5.6 mae_chi2 covariance term) with s_p restarted at the registered default lucid_bombs.F3_SPREAD = 0.05; step 3 of the section 3.5.3a ladder may raise it to 0.10 only after the Y_hi and F2 steps",
+    "f3_source": "F3 is marginalised with the in-force spread (0.10, the frozen section 3.5.3a ladder end): variance_p = mu_p(1+sigma_spe^2) + v_dark + s_p^2 mu_p^2; the tested F3 signal strength started at the registered default 0.05 and the ladder raised it to 0.10",
     "readout_window_ns": [
       -200.0,
       800.0

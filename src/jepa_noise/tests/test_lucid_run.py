@@ -48,7 +48,7 @@ def test_cell_and_development_enumeration_matches_the_registered_numbers():
     dev = lr.development_runs(CONFIG)
     assert len(dev) == 17 and sum(r["step"] == 2 for r in dev) == 2
     assert {round(c.setting, 2) for c in main} == {0.02, 0.05, 0.10}
-    assert all(c.s_p == 0.05 for c in cells)       # s_p restarted at the registered default
+    assert all(c.s_p == 0.1 for c in cells)        # frozen s_p (ladder ended at 0.10)
     assert not any(c.s_p == 0 for c in cells)      # no unregistered s_p = 0 cell
     assert [c.cell_id for c in main if c.r6_r7_eligible] == ["main_s005_across", "main_s005_within",
                                                              "main_s010_across", "main_s010_within"]

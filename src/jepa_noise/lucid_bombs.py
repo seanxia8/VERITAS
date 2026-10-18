@@ -116,10 +116,11 @@ F1_SPREADS = (0.02, 0.05, 0.10)
 F3_SPREAD_DEFAULT = 0.05
 #: Restarted from the registered default on 2026-10-18 (author correction): the 0.10 value
 #: came from the superseded run that treated F3 as *known*; with F3 marginalised the §3.5.3a
-#: ladder starts again from 0.05 and may raise s_p to ``F3_SPREAD_MAX`` only at step 3.
-F3_SPREAD = F3_SPREAD_DEFAULT
+#: The registered cells use the value the frozen §3.5.3a ladder ended on, s_p = 0.10 (the ladder
+#: starts at the default 0.05 and may raise s_p to ``F3_SPREAD_MAX`` only at step 3).
 #: The §3.5.3a step-3 cap: s_p may rise to 0.10 only after the Y_hi and F2 steps.
 F3_SPREAD_MAX = 0.10
+F3_SPREAD = F3_SPREAD_MAX
 F2_SPREADS = (0.10, 0.20, 0.50)
 F2P_SPREADS = (0.05, 0.10)
 R11B_SPREAD = 0.05
@@ -1077,7 +1078,7 @@ NS_EVENT = "lucid/event"
 Y_LO_PHOTONS_PLACEHOLDER, Y_HI_PHOTONS_PLACEHOLDER = 6000.0, 320_000.0
 #: In force after the §3.5.3a detectability check of 2026-10-17 on the real WCTE geometry
 #: (Y_lo at ~200 median hit PMTs; Y_hi at the 0.95 hit-fraction bound; fallback step 1).
-Y_LO_PHOTONS, Y_HI_PHOTONS = 6249.708098, 541_560.544764
+Y_LO_PHOTONS, Y_HI_PHOTONS = 6298.436828, 539_433.964527
 #: Placeholder before §3.5.3a has run; "frozen_by_detectability_check" afterwards.  Both
 #: are valid states of the generator contract; the frozen state must carry the decision record.
 YIELD_RANGE_STATUS = "placeholder_pending_detectability_check"

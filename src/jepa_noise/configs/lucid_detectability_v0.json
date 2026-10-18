@@ -62,7 +62,7 @@
   "check": {
     "sigma_spe": 0.3,
     "v_dark": 0.00109,
-    "f3_marginalised_spread": 0.05,
+    "f3_marginalised_spread": 0.1,
     "run_events": 50,
     "n_events": 50,
     "seed": 20261017,

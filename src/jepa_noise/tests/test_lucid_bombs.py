@@ -118,7 +118,7 @@ def test_r11b_covariation_and_namespace_independence():
     k = lb.k_R11b(GEOM)
     assert np.allclose(state.module_gain, np.clip(1.0 + 0.05 * c * k, *lb.GAIN_CLIP))
     assert np.corrcoef(state.module_gain, k)[0, 1] == pytest.approx(np.sign(c))
-    assert 0.03 < state.pmt_gain.std() < 0.08  # F3 present at the restarted s_p = 0.05
+    assert 0.03 < state.pmt_gain.std() < 0.12  # F3 present at the frozen s_p = 0.10
     # the two persistent vectors are independent draws
     k_r11b, k_t = lb.k_R11b(BIG), lb.k_T(BIG)
     assert not np.allclose(k_r11b, k_t)
@@ -392,7 +392,7 @@ def test_config_matches_module_constants():
     assert config["detectability"]["v_dark"] == lb.V_DARK_READOUT > 0.0
     assert config["detectability"]["dark_counts"] == "on"
     assert config["detectability"]["f3_marginalised"] is True
-    assert config["detectability"]["f3_marginalised_spread"] == lb.F3_SPREAD == 0.05
+    assert config["detectability"]["f3_marginalised_spread"] == lb.F3_SPREAD == 0.1
     assert config["detectability"]["readout_window_ns"] == list(lb.R6_READOUT_WINDOW_NS)
     assert (config["detectability"]["variance_formula"] == lb.VARIANCE_FORMULA
             == "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2")

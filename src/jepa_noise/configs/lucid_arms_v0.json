@@ -101,7 +101,7 @@
   },
   "cell": {
     "s": 0.05,
-    "s_p": 0.05,
+    "s_p": 0.1,
     "note": "s and s_p are the cell's TRUE spreads, passed per cell at build time; these values are the development cell (s = 0.05) with F3 marginalised at the restarted registered default (s_p = 0.05, lucid_bombs.F3_SPREAD).",
     "f3_in_force": 0.05,
     "f3_note": "lucid_bombs.F3_SPREAD = 0.05 after the 2026-10-18 restart from the registered default; the superseded 0.10 came from the run that treated F3 as known. \u00a73.5.3a step 3 may raise it to 0.10 only after the Y_hi and F2 steps."

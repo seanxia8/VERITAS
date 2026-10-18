@@ -101,13 +101,13 @@ def test_config_freezes_the_registered_numerics():
     assert settings.sigma_spe == lb.SIGMA_SPE == 0.3
     assert settings.v_dark == lb.V_DARK_READOUT == 0.00109  # R-6 dark counts on
     assert settings.v_dark == pytest.approx(0.001 * 1.09)
-    assert (settings.s, settings.s_p) == (0.05, 0.05)       # s_p restarted at 0.05
+    assert (settings.s, settings.s_p) == (0.05, 0.1)        # frozen s_p after the ladder
     generator = lb.load_generator_config(Path(CONFIG).parent / "lucid_bombs_v0.json")
     assert settings.time_sigma_ns == generator.tts_sigma_ns == 1.5
     assert settings.rescale_sd == 0.01 and settings.variance_floor_pe2 == 0.0
     assert config["mae_chi2"]["variance_floor_status"] == "inactive_on_readout_pmt_r6"
     assert config["mae_chi2"]["v_dark"] == settings.v_dark == lb.V_DARK_READOUT
-    assert config["cell"]["s_p"] == settings.s_p == lb.F3_SPREAD == 0.05
+    assert config["cell"]["s_p"] == settings.s_p == lb.F3_SPREAD == 0.1
     assert config["cell"]["f3_in_force"] == 0.05
     assert config["readout_label"] == lb.READOUT_LABEL == "readout_pmt_r6"
     with pytest.raises(ValueError):  # a v_dark that is not the R-6 value is refused
