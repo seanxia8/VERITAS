@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 18:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 20:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -184,8 +184,14 @@ Updated: 2026-10-18 18:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   trigger shifted by exactly the constant; dark on: source-digit invariance + recorded
   dark-moved-trigger rate), ToF estimator unaffected. Full suite **445 passed, 10 skipped**
   (dataset-generating tests explicitly pending the merge). No datasets generated.
-- **Waiting on the author-named PMT SHA.** Then: merge → regenerate dev datasets → redo dev steps
-  2 and 3 (~14 GPU-h) → report the β table → stop for review before the 201-run grid.
+- **PMT SHA `5f4ecc0` merged (`4e07c0c`, author-named, supersedes b341037) and the A9 token time is
+  live (`d073639`)**: the generator imports `readout.nhits_trigger_time` **and**
+  `readout.prompt_window_mask` (never reimplemented), token time = digit − trigger after the
+  `[−20,+60]` ns cut, emission offset U[−50,+50] ns truth-only, trigger-relative tokens with
+  absolute times kept additively, counters recorded. Full suite **456 passed, 0 skipped**.
+- **Dev redo running** (`wp5_lucid_dev_v7`): step 2 rerunning (sigreg_jepa 2 674 s complete,
+  mae_mse running) → step 3 (15 β runs) → then the β table and stop for the author's review before
+  the 201-run grid.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
