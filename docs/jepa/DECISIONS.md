@@ -1656,3 +1656,13 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   cleanly, wait for the HOLD to clear, restart at the same `--out` on `cuda:1`; completed runs skip
   and the interrupted run auto-resumes, bounding the loss to one checkpoint interval). Default
   remains to let it run.
+
+- **2026-10-19 — contention persisted >2 h (calendar risk only; no SHED).** `mbinder`
+  (`/work/mbinder/src/neo-1p1q/train.py`, four processes ≈10.3 GiB on GPU 0, ~100 % util) has held
+  GPU 0 since ~21:00Z; the guard has been in HOLD almost continuously since ~22:43Z (45 HOLD
+  evaluations) and **never SHED this job**. Our step-3 rate is 0.92–0.98 s/step (baseline
+  0.215–0.29), i.e. ≈2.9 h/anchored run → the remaining 14 runs are ≈35–40 h under contention versus
+  ≈12 h if it clears. GPU 1 is free, but a host-level HOLD blocks new starts (the launcher refuses),
+  so no migration is possible until the HOLD clears; killing would only lose in-flight progress.
+  Decision: keep waiting; GPU-hours are unaffected (wall × 1 GPU) and the 170 h cap is not at risk.
+  Nothing is interrupted, nothing is retuned, and the grid still waits for the author's review.
