@@ -103,6 +103,12 @@ def load_run_config(path=None) -> dict:
     if set(forms) != set(la.PROBE_FORMS) or c["evaluation"]["primary_form"] != "run_mean" \
             or any(set(k) - set(la.PROBE_KINDS) for k in forms.values()):
         raise ValueError(f"{target}: probe forms/kinds differ from §3.5.6")
+    # Engineering-only streaming chunk (no registered numeric depends on it).
+    if "probe_chunk_events" in c["evaluation"] and int(c["evaluation"]["probe_chunk_events"]) < 1:
+        raise ValueError(f"{target}: evaluation.probe_chunk_events must be positive")
+    if [float(x) for x in c["evaluation"]["alpha_grid"]] != list(la.ridge.ALPHAS):
+        raise ValueError(f"{target}: evaluation.alpha_grid differs from the registered §1.3 grid "
+                         f"{list(la.ridge.ALPHAS)}")
     return c
 # --- cells ------------------------------------------------------------------
 @dataclass(frozen=True)
@@ -855,10 +861,12 @@ def available_kinds(cell, config):
         if cell.law != "T" and "age" in names:
             names.remove("age")
     return kinds
-def _probe_batch(run_dir, geometry, *, split, mask_seed, occupancy, scaling, limit=None):
+def _probe_batch(run_dir, geometry, *, split, mask_seed, occupancy, scaling, limit=None,
+                 event_ids=None):
     return pe.tokenise(run_dir, geometry, split=split, seed=mask_seed, occupancy=occupancy,
                        scaling=scaling, masker=ViewMasker(geometry, split, seed=mask_seed,
-                                                          occupancy=occupancy, n_min=0), limit=limit)
+                                                          occupancy=occupancy, n_min=0),
+                       limit=limit, event_ids=event_ids)
 def _f32(data):
     return la.RunProbeData(data.run_id, data.event_ids, np.asarray(data.tokens, np.float32),
                            np.asarray(data.context_tokens, np.float32), np.asarray(data.raw, np.float32),
@@ -891,6 +899,233 @@ def probe_tables(model, dataset, geometry, *, split, kinds_by_form, mask_seed, m
         for kind in kinds:
             tables[(kind, form)] = _concat(accum[kind])
     return tables
+# --- memory-bounded probe evaluation ----------------------------------------
+def _probe_chunk_events(config) -> int:
+    """The configured evaluation chunk (events); validated, never silently ignored."""
+    value = config.get("evaluation", {}).get("probe_chunk_events", 64)
+    try:
+        chunk = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"evaluation.probe_chunk_events must be an integer, got {value!r}")
+    if chunk < 1:
+        raise ValueError(f"evaluation.probe_chunk_events must be positive, got {chunk}")
+    return chunk
+def _rss_peak_mb():
+    """Process peak RSS in MiB (``ru_maxrss`` is bytes on macOS, KiB on Linux)."""
+    try:
+        import resource
+        value = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    except Exception:
+        return None
+    return value / (1024.0 * 1024.0) if sys.platform == "darwin" else value / 1024.0
+def _rss_current_mb():
+    """Current resident set in MiB (Linux /proc, macOS ps); None where unavailable."""
+    try:
+        if sys.platform.startswith("linux"):
+            with open("/proc/self/statm") as handle:
+                resident_pages = int(handle.read().split()[1])
+            return resident_pages * os.sysconf("SC_PAGE_SIZE") / (1024.0 * 1024.0)
+        if sys.platform == "darwin":
+            import subprocess
+            sample = subprocess.run(["ps", "-o", "rss=", "-p", str(os.getpid())],
+                                    capture_output=True, text=True, timeout=5)
+            return float(sample.stdout.strip()) / 1024.0 if sample.stdout.strip() else None
+    except Exception:
+        return None
+    return None
+def _probe_source(dataset, row, twin):
+    directory = dataset.directory / "runs" / row["run_dir"]
+    return (directory / "twin_hits.npz") if twin else directory
+def _run_event_ids(source):
+    path = Path(source)
+    path = (path / "hits.npz") if path.is_dir() else path
+    return np.asarray(lb.read_sparse_hits(path).event_ids, dtype=np.int64)
+def _probe_representations(form):
+    """Only the representation the form reads is encoded (raw_input skips the encoder)."""
+    if form == "raw_input":
+        return frozenset({"raw"})
+    if form == "propagated":
+        return frozenset({"context"})
+    return frozenset({"tokens"})
+def _chunk_probe_data(model, batch, truth, geometry, *, run_id, representations):
+    """Freeze one event chunk's needed representation(s) as float32, never float64."""
+    was_training = model.training
+    model.eval()
+    tokens = context = raw = None
+    with torch.no_grad():
+        if "tokens" in representations:
+            tokens = model.encode(batch.features).cpu().numpy().astype(np.float32, copy=False)
+        if "context" in representations:
+            context = model.encode(batch.features, hidden_mask=batch.hidden).cpu().numpy() \
+                .astype(np.float32, copy=False)
+    if "raw" in representations:
+        raw = batch.features.cpu().numpy().astype(np.float32, copy=False)
+    if was_training:
+        model.train()
+    return la.RunProbeData(run_id=str(run_id), event_ids=np.asarray(batch.event_ids),
+                           tokens=tokens, context_tokens=context, raw=raw,
+                           hit=np.asarray(batch.hit_flags, bool),
+                           hidden=np.asarray(batch.hidden.cpu(), bool),
+                           module_index=np.asarray(geometry.module_index, np.int64),
+                           truth=la._select_truth(truth, np.asarray(batch.event_ids)))
+def _capture_rows(capture, kind, run_id, x, y, key):
+    if capture is None or kind not in capture:
+        return
+    out = capture[kind]
+    out["x"].append(np.asarray(x, float))
+    out["y"].append(np.asarray(y, float).reshape(len(x), -1))
+    out["run"].append(np.full(len(x), run_id, dtype=object))
+    out["key"].append(np.asarray(key, dtype=np.int64))
+def _ingest_probe_chunks(model, dataset, accumulators, *, geometry, form, split, mask_seed,
+                         max_events, device, twin, chunk_events, capture=None, ids_cache=None):
+    """One streaming pass over a probe dataset for one form, in event chunks."""
+    scaling = pe.FeatureScaling.from_geometry(geometry)
+    representations = _probe_representations(form)
+    for row in dataset.runs:
+        source = _probe_source(dataset, row, twin)
+        truth = _run_truth(row, dataset, geometry)
+        cache_key = str(source)
+        if ids_cache is not None and cache_key in ids_cache:
+            ids = ids_cache[cache_key]
+        else:
+            ids = _run_event_ids(source)
+            if ids_cache is not None:
+                ids_cache[cache_key] = ids
+        if max_events is not None:                     # the debug cap keeps its per-run meaning
+            ids = ids[:int(max_events)]
+        # run_mean rows aggregate over every event of a run, so partial sums are
+        # merged across the run's chunks and finalised once per run below.
+        partials = ({kind: None for kind in accumulators}
+                    if form == la.PRIMARY_PROBE_FORM else None)
+        for start in range(0, int(ids.size), int(chunk_events)):
+            batch = _probe_batch(source, geometry, split=split, mask_seed=mask_seed,
+                                 occupancy="natural", scaling=scaling,
+                                 event_ids=ids[start:start + int(chunk_events)])
+            if batch.event_ids.size == 0:
+                continue
+            data = _chunk_probe_data(model, _to_device(batch, device), truth, geometry,
+                                     run_id=row["run_id"], representations=representations)
+            if partials is not None:
+                for kind in accumulators:
+                    part = la.probe_run_mean_partial(data, kind)
+                    partials[kind] = (part if partials[kind] is None
+                                      else la._merge_run_mean_partial(partials[kind], part))
+            else:
+                for kind, accum in accumulators.items():
+                    x, y, key, names = la.probe_rows(data, kind, form)
+                    if x.shape[0] == 0:
+                        continue
+                    accum.target_names = names
+                    accum.add(row["run_id"], x, y)
+                    _capture_rows(capture, kind, row["run_id"], x, y, key)
+            del data
+        if partials is not None:
+            for kind, accum in accumulators.items():
+                if partials[kind] is None:
+                    continue
+                x, y, key, names = la.finalise_run_mean(partials[kind])
+                if x.shape[0] == 0:
+                    continue
+                accum.target_names = names
+                accum.add(row["run_id"], x, y)
+                _capture_rows(capture, kind, row["run_id"], x, y, key)
+def _captured_dataset(capture, kind, form):
+    if not capture.get("x"):
+        return None
+    return la.ProbeDataset(kind=kind, form=form, x=np.concatenate(capture["x"]),
+                           y=np.concatenate(capture["y"]),
+                           run_ids=np.concatenate(capture["run"]),
+                           target_names=(), meta={"key": np.concatenate(capture["key"])})
+def probe_scores(model, train_dataset, test_dataset, geometry, *, split, kinds_by_form, mask_seed,
+                 max_events=None, device=None, twin=False, chunk_events=None,
+                 materialise=(), legacy_materialised=False):
+    """Memory-bounded replacement for ``probe_tables(train)+probe_tables(test)+_score``.
+
+    One form at a time: its train and test tables are accumulated as per-run
+    sufficient statistics over ``chunk_events`` chunks of events, scored, and freed
+    before the next form starts.  Only the (small) tables named in ``materialise``
+    keep their rows (vertex per-event is ``n_events`` rows; the run_mean r11 tables
+    are ``n_runs x n_modules`` rows).  ``legacy_materialised=True`` is the
+    debug/equivalence path and materialises every table exactly as the old code did.
+    """
+    device = device or torch.device("cpu")
+    materialise = {tuple(entry) for entry in materialise}
+    if legacy_materialised:
+        train = probe_tables(model, train_dataset, geometry, split=split,
+                             kinds_by_form=kinds_by_form, mask_seed=mask_seed,
+                             max_events=max_events, device=device, twin=twin)
+        test = probe_tables(model, test_dataset, geometry, split=split,
+                            kinds_by_form=kinds_by_form, mask_seed=mask_seed,
+                            max_events=max_events, device=device, twin=twin)
+        return {"results": _score(train, test),
+                "tables": {"train": {key: train[key] for key in train if key in materialise},
+                           "test": {key: test[key] for key in test if key in materialise}},
+                "n_rows": {f"{kind}::{form}": [train[(kind, form)].n_rows,
+                                               test[(kind, form)].n_rows]
+                           for kind, form in train},
+                "n_rows_total": int(sum(t.n_rows for t in train.values())
+                                    + sum(t.n_rows for t in test.values())),
+                "memory": None}
+    chunk_events = int(chunk_events or 64)
+    results, n_rows, tables = {}, {}, {"train": {}, "test": {}}
+    baseline = _rss_peak_mb()
+    sampled_baseline = _rss_current_mb()
+    sampled_peak = sampled_baseline
+    ids_cache = {}
+    def sample():
+        nonlocal sampled_peak
+        current = _rss_current_mb()
+        if current is not None:
+            sampled_peak = current if sampled_peak is None else max(sampled_peak, current)
+    for form, kinds in kinds_by_form.items():
+        train_accum = {kind: la.ProbeAccumulator(kind, form) for kind in kinds}
+        test_accum = {kind: la.ProbeAccumulator(kind, form) for kind in kinds}
+        capture_train = {kind: {"x": [], "y": [], "run": [], "key": []} for kind in kinds
+                         if (kind, form) in materialise}
+        capture_test = {kind: {"x": [], "y": [], "run": [], "key": []} for kind in kinds
+                        if (kind, form) in materialise}
+        _ingest_probe_chunks(model, train_dataset, train_accum, geometry=geometry, form=form,
+                             split=split, mask_seed=mask_seed, max_events=max_events,
+                             device=device, twin=twin, chunk_events=chunk_events,
+                             capture=capture_train or None, ids_cache=ids_cache)
+        sample()
+        _ingest_probe_chunks(model, test_dataset, test_accum, geometry=geometry, form=form,
+                             split=split, mask_seed=mask_seed, max_events=max_events,
+                             device=device, twin=twin, chunk_events=chunk_events,
+                             capture=capture_test or None, ids_cache=ids_cache)
+        sample()
+        for kind in kinds:
+            key = f"{kind}::{form}"
+            results[key] = la.probe_r2_streamed(train_accum[kind], test_accum[kind])
+            n_rows[key] = [int(train_accum[kind].n_rows), int(test_accum[kind].n_rows)]
+            if kind in capture_train:
+                captured_train = _captured_dataset(capture_train[kind], kind, form)
+                captured_test = _captured_dataset(capture_test[kind], kind, form)
+                if captured_train is not None:
+                    tables["train"][(kind, form)] = captured_train
+                if captured_test is not None:
+                    tables["test"][(kind, form)] = captured_test
+        del train_accum, test_accum, capture_train, capture_test
+        sample()
+    peak = _rss_peak_mb()
+    memory = {"chunk_events": chunk_events, "chunk": chunk_events,
+              "n_rows_total": int(sum(sum(v) for v in n_rows.values())),
+              "n_rows": n_rows, "forms": list(kinds_by_form), "unit": "MiB",
+              "peak_mb": None if peak is None else round(peak, 1),
+              "baseline_mb": None if baseline is None else round(baseline, 1),
+              "peak_delta_mb": None if peak is None or baseline is None
+              else round(max(0.0, peak - baseline), 1),
+              "resident_baseline_mb": None if sampled_baseline is None else round(sampled_baseline, 1),
+              "resident_peak_mb": None if sampled_peak is None else round(sampled_peak, 1),
+              "resident_delta_mb": (None if sampled_peak is None or sampled_baseline is None
+                                    else round(max(0.0, sampled_peak - sampled_baseline), 1)),
+              "method": "resource.getrusage(RUSAGE_SELF).ru_maxrss (process peak; peak_delta_mb "
+                        "is a lower bound when training had already peaked higher) plus sampled "
+                        "current RSS after each form (resident_delta_mb is the evaluation-attributable "
+                        "growth)",
+              "sufficient_statistics": True}
+    return {"results": results, "tables": tables, "n_rows": n_rows,
+            "n_rows_total": memory["n_rows_total"], "memory": memory}
 def _score(train, test):
     return {f"{kind}::{form}": la.probe_r2(train[(kind, form)], test[(kind, form)])
             for kind, form in sorted(train) if (kind, form) in test}
@@ -957,14 +1192,24 @@ def _r11_block(train_module, test_module, train_f2, test_f2):
 def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, device, mask_seed,
                      max_events=None, save_embeddings=True, run_dir=None, physics_method="ridge",
                      compute_reference=False, twin=False):
-    """The four probe forms over the six targets, the physics probe and R11 leakage."""
+    """The four probe forms over the six targets, the physics probe and R11 leakage.
+
+    Probe tables are never materialised: each form is streamed in
+    ``evaluation.probe_chunk_events`` chunks and reduced to per-run sufficient
+    statistics, so the §6.2 64 GB per-job cap is not approached (the old
+    full-matrix path allocated ~20.4 GB per (form, kind) at 10 000 events).
+    """
     model = getattr(arm, "jepa", arm); kinds = available_kinds(cell, config)
-    train = probe_tables(model, probe_datasets["train"], geometry, split=cell.split, kinds_by_form=kinds,
-                         mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
-    test = probe_tables(model, probe_datasets["test"], geometry, split=cell.split, kinds_by_form=kinds,
-                        mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
-    results = _score(train, test); physics = {"model_vertex_probe": physics_method}
-    if ("vertex", "per_event") in train:
+    materialise = {("vertex", "per_event")}
+    if all(m in kinds.get("run_mean", []) for m in ("module_gain", "f2_variable")):
+        materialise |= {("module_gain", "run_mean"), ("f2_variable", "run_mean")}
+    evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
+                             split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
+                             max_events=max_events, device=device, twin=twin,
+                             chunk_events=_probe_chunk_events(config), materialise=materialise)
+    results, train, test = evaluated["results"], evaluated["tables"]["train"], evaluated["tables"]["test"]
+    physics = {"model_vertex_probe": physics_method}
+    if ("vertex", "per_event") in train and ("vertex", "per_event") in test:
         physics.update(_vertex_resolution(train[("vertex", "per_event")],
                                           test[("vertex", "per_event")], method=physics_method))
     if compute_reference:
@@ -982,16 +1227,20 @@ def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, d
     r7b_change = None
     if arm_name == la.DARK_VARIANT and hasattr(arm, "perturb"):
         scaling = pe.FeatureScaling.from_geometry(geometry)
-        dark_batches = [
-            _probe_batch(probe_datasets["test"].directory / "runs" / row["run_dir"], geometry,
-                         split=cell.split, mask_seed=mask_seed, occupancy="natural",
-                         scaling=scaling, limit=max_events)
-            for row in probe_datasets["test"].runs]
-        r7b_change = dark_only_embedding_change(arm, dark_batches, device=device)
+        def dark_batches():
+            # lazily tokenised: the old code held every test run's features at once (~800 MB
+            # for the registered probe sets); the diagnostic only needs one batch at a time.
+            for row in probe_datasets["test"].runs:
+                yield _probe_batch(probe_datasets["test"].directory / "runs" / row["run_dir"],
+                                   geometry, split=cell.split, mask_seed=mask_seed,
+                                   occupancy="natural", scaling=scaling, limit=max_events)
+        r7b_change = dark_only_embedding_change(arm, dark_batches(), device=device)
     payload = {"schema": "jepa-lucid-probes-v0", "arm": arm_name, "cell_id": cell.cell_id,
                "split": cell.split, "primary_form": la.PRIMARY_PROBE_FORM, "results": results,
                "physics": physics, "r11": r11, "extra_sets": extra_sets,
                "registered": False, "readout_label": READOUT_LABEL}
+    if evaluated["memory"] is not None:
+        payload["probe_memory"] = evaluated["memory"]
     if r7b_change is not None:
         payload[DARK_CHANGE_KEY] = r7b_change
     if run_dir is not None:
@@ -1080,14 +1329,20 @@ def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed,
         return cached
     model = la.random_init_floor(arm_name, geometry, seed=0); kinds = available_kinds(cell, config)
     twin = arm_name == la.ORACLE_ARM
-    train = probe_tables(model, probe_datasets["train"], geometry, split=cell.split, kinds_by_form=kinds,
-                         mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
-    test = probe_tables(model, probe_datasets["test"], geometry, split=cell.split, kinds_by_form=kinds,
-                        mask_seed=mask_seed, max_events=max_events, device=device, twin=twin)
-    payload = {"schema": "jepa-lucid-floor-v0", "identity": identity, "results": _score(train, test),
-               "physics": (_vertex_resolution(train[("vertex", "per_event")], test[("vertex", "per_event")])
+    evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
+                             split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
+                             max_events=max_events, device=device, twin=twin,
+                             chunk_events=_probe_chunk_events(config),
+                             materialise={("vertex", "per_event")})
+    train = evaluated["tables"]["train"]
+    payload = {"schema": "jepa-lucid-floor-v0", "identity": identity,
+               "results": evaluated["results"],
+               "physics": (_vertex_resolution(train[("vertex", "per_event")],
+                                              evaluated["tables"]["test"][("vertex", "per_event")])
                            if ("vertex", "per_event") in train else {}),
                "registered": False, "readout_label": READOUT_LABEL}
+    if evaluated["memory"] is not None:
+        payload["probe_memory"] = evaluated["memory"]
     path.parent.mkdir(parents=True, exist_ok=True); atomic_write_json(path, payload); write_sha256sums(path.parent)
     log(f"[floor] {arm_name} / {cell.cell_id}: {len(payload['results'])} probe cells")
     return payload

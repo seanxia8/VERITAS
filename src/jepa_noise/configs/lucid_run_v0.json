@@ -354,6 +354,8 @@
   },
   "evaluation": {
     "folds": 5,
+    "probe_chunk_events": 64,
+    "probe_chunk_note": "Engineering-only streaming chunk (events per run): probe rows are accumulated as per-run sufficient statistics over this many events, so no full (rows x d) probe table is materialised. 64 events keeps the worst form/kind transient (module-gain pooling of a 1 995-PMT propagated view) near 0.3 GiB; the path is numerically equivalent to the legacy full-matrix path (same alpha grid, five run-grouped folds, fold-internal standardisation, R^2 definition) and changes no registered number. The chunk actually used and the measured process peak are recorded per run in probes.json under probe_memory.",
     "alpha_grid": [
       1e-06,
       0.0001,

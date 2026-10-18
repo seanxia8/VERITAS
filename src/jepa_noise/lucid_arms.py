@@ -73,6 +73,7 @@ __all__ = [
     "chi2_dense_module", "simulate_module_readout", "charge_matrix", "RunProbeData",
     "ProbeDataset", "probe_data", "truth_from_state", "build_probe_dataset", "fit_probe",
     "probe_predictions", "probe_r2", "random_init_floor", "squared_correlation",
+    "probe_rows", "ProbeAccumulator", "StreamedRidgeFit", "probe_r2_streamed",
 ]
 
 #: The seven §3.5.6 arms, in table order.
@@ -656,10 +657,17 @@ class RunProbeData:
 
     def __post_init__(self):
         n_events, n_pmt = self.hit.shape
-        if (self.tokens.shape[:2] != (n_events, n_pmt)
-                or self.context_tokens.shape != self.tokens.shape):
+        # The streaming evaluator builds one representation per form and leaves the
+        # others None (it never holds the full (E, N, d) token table); every present
+        # array is still validated against (E, N).
+        if self.tokens is not None and (self.tokens.shape[:2] != (n_events, n_pmt)
+                                        or (self.context_tokens is not None
+                                            and self.context_tokens.shape != self.tokens.shape)):
             raise ValueError("probe data: tokens/context tokens must share (E, N)")
-        if self.raw.shape[:2] != (n_events, n_pmt) or self.raw.shape[-1] != N_FEATURES:
+        if self.context_tokens is not None and self.context_tokens.shape[:2] != (n_events, n_pmt):
+            raise ValueError("probe data: context tokens must be (E, N, d)")
+        if self.raw is not None and (self.raw.shape[:2] != (n_events, n_pmt)
+                                     or self.raw.shape[-1] != N_FEATURES):
             raise ValueError("probe data: raw features must be (E, N, N_FEATURES)")
         if self.hidden.shape != self.hit.shape or self.module_index.shape != (n_pmt,):
             raise ValueError("probe data: masks and module index disagree with (E, N)")
@@ -773,12 +781,139 @@ def _rows(run_id, x, y, key, out):
     out["key"].append(np.asarray(key, dtype=np.int64))
 
 
+def _form_representation(data: RunProbeData, form: str):
+    """The one input representation a probe form reads, plus its masking rule."""
+    if form == "raw_input":
+        return data.raw, None
+    if form == "propagated":
+        return data.context_tokens, data.hidden
+    return data.tokens, None
+
+
+def probe_rows(data: RunProbeData, kind: str, form: str | None = None):
+    """One run's ``(x, y, key, target_names)`` rows for one §3.5.6 probe form.
+
+    The single-run row builder shared by :func:`build_probe_dataset` (materialised,
+    debug/test path) and :class:`ProbeAccumulator` (streaming sufficient
+    statistics), so both see byte-identical rows.  ``x`` is returned in the
+    array's natural precision (float32 for raw/token slices).
+    """
+    form = PRIMARY_PROBE_FORM if form is None else str(form)
+    if kind not in PROBE_KINDS:
+        raise ValueError(f"unknown probe kind {kind!r}; expected {PROBE_KINDS}")
+    if form not in PROBE_FORMS:
+        raise ValueError(f"unknown probe form {form!r}; expected {PROBE_FORMS}")
+    if form == "run_mean" and kind in ("vertex", "log_yield"):
+        raise ValueError(f"run-mean is undefined for the per-event target {kind!r}")
+    x, mask = _form_representation(data, form)
+    if x is None:
+        raise ValueError(f"probe data {data.run_id!r} has no {form!r} representation")
+    events = int(data.hit.shape[0])
+    if kind in ("vertex", "log_yield", "f2_variable", "age"):
+        if kind == "vertex":
+            target, names = np.asarray(data.truth["vertex"], float), ("x", "y", "z")
+        elif kind == "log_yield":
+            target = np.asarray(data.truth["log_yield"], float)[:, None]
+            names = ("log_yield",)
+        else:
+            value = data.truth.get(kind, np.nan)
+            if value is None or not np.isfinite(value):
+                raise ValueError(f"{data.run_id}: target {kind!r} is unavailable")
+            target, names = np.full((events, 1), float(value)), (kind,)
+        features = _mean_tokens(x, mask)
+        if form == "run_mean":
+            return (features.mean(0, keepdims=True), target[:1], np.zeros(1, dtype=np.int64), names)
+        return features, target, np.zeros(events, dtype=np.int64), names
+    if kind == "module_gain":
+        target, names = np.asarray(data.truth["module_gain"], float), ("log_gain_m",)
+        pooled, counts = _module_pool(x, data.module_index, target.size, mask)
+        if form == "run_mean":
+            pooled, counts = pooled.mean(0, keepdims=True), counts.sum(0, keepdims=True)
+        event_row, module_col = np.nonzero(counts > 0)
+        return (pooled[event_row, module_col], target[module_col][:, None],
+                module_col.astype(np.int64), names)
+    # pmt_gain
+    target, names = np.asarray(data.truth["pmt_gain"], float), ("log_gain_p",)
+    selected = data.hidden if form == "propagated" else data.hit
+    event_row, pmt_col = np.nonzero(selected)
+    values = x[event_row, pmt_col]
+    if form == "run_mean":
+        sums = np.zeros((target.size, values.shape[-1]))
+        np.add.at(sums, pmt_col, values)
+        counts = np.bincount(pmt_col, minlength=target.size)
+        keep = np.flatnonzero(counts > 0)
+        return sums[keep] / counts[keep][:, None], target[keep][:, None], keep.astype(np.int64), names
+    return values, target[pmt_col][:, None], pmt_col.astype(np.int64), names
+
+
+def probe_run_mean_partial(data: RunProbeData, kind: str):
+    """Partial (chunk-level) sums for one run's ``run_mean`` row.
+
+    ``run_mean`` aggregates over *all* events of a run, so a streamed run must not
+    be reduced chunk-by-chunk.  This returns the additive per-chunk pieces; merge
+    them across chunks and call :func:`finalise_run_mean` once per run.
+    """
+    if kind not in PROBE_KINDS:
+        raise ValueError(f"unknown probe kind {kind!r}; expected {PROBE_KINDS}")
+    if kind in ("vertex", "log_yield"):
+        raise ValueError(f"run-mean is undefined for the per-event target {kind!r}")
+    x, mask = _form_representation(data, PRIMARY_PROBE_FORM)
+    events = int(data.hit.shape[0])
+    if kind in ("f2_variable", "age"):
+        value = data.truth.get(kind, np.nan)
+        if value is None or not np.isfinite(value):
+            raise ValueError(f"{data.run_id}: target {kind!r} is unavailable")
+        features = _mean_tokens(x, mask)
+        return {"mode": "scalar", "sums": features.sum(0, keepdims=True), "events": int(events),
+                "counts": int(events), "target": np.full(1, float(value)), "key": None,
+                "names": (kind,)}
+    if kind == "module_gain":
+        target = np.asarray(data.truth["module_gain"], float)
+        pooled, counts = _module_pool(x, data.module_index, target.size, mask)
+        return {"mode": "module", "sums": pooled.sum(0), "events": int(events),
+                "counts": counts.sum(0), "target": target, "key": None,
+                "names": ("log_gain_m",)}
+    target = np.asarray(data.truth["pmt_gain"], float)
+    event_row, pmt_col = np.nonzero(data.hit)
+    values = x[event_row, pmt_col]
+    sums = np.zeros((target.size, values.shape[-1]), dtype=np.float64)
+    np.add.at(sums, pmt_col, values)
+    counts = np.bincount(pmt_col, minlength=target.size)
+    return {"mode": "pmt", "sums": sums, "events": int(events), "counts": counts,
+            "target": target, "key": None, "names": ("log_gain_p",)}
+
+
+def _merge_run_mean_partial(left: dict, right: dict) -> dict:
+    merged = dict(left)
+    merged["sums"] = left["sums"] + right["sums"]
+    merged["counts"] = left["counts"] + right["counts"]
+    merged["events"] = int(left.get("events", 0)) + int(right.get("events", 0))
+    return merged
+
+
+def finalise_run_mean(partial: dict):
+    """Turn merged per-run ``run_mean`` partials into ``(x, y, key, names)`` rows."""
+    if partial["mode"] == "scalar":
+        x = partial["sums"] / max(int(partial["counts"]), 1)
+        y = partial["target"][:, None]
+        return x, y, np.zeros(x.shape[0], dtype=np.int64), partial["names"]
+    target, counts = partial["target"], partial["counts"]
+    keep = counts > 0
+    if partial["mode"] == "module":
+        x = partial["sums"] / max(int(partial["events"]), 1)
+        return x[keep], target[keep][:, None], np.flatnonzero(keep).astype(np.int64), partial["names"]
+    x = partial["sums"][keep] / counts[keep][:, None]
+    return x, target[keep][:, None], np.flatnonzero(keep).astype(np.int64), partial["names"]
+
+
 def build_probe_dataset(runs: Sequence[RunProbeData], kind: str,
                         form: str | None = None) -> ProbeDataset:
-    """Assemble one §3.5.6 probe form for one target kind.
+    """Assemble one §3.5.6 probe form for one target kind (materialised).
 
     ``run_mean`` is primary; ``vertex``/``log_yield`` are per-event truths, so a
-    run-mean target is undefined for them and is refused.
+    run-mean target is undefined for them and is refused.  This is the legacy
+    full-matrix path, kept for tests and ``legacy_materialised=True``; the runner
+    evaluates with :class:`ProbeAccumulator` so no full table is materialised.
     """
     form = PRIMARY_PROBE_FORM if form is None else str(form)
     if kind not in PROBE_KINDS:
@@ -790,48 +925,8 @@ def build_probe_dataset(runs: Sequence[RunProbeData], kind: str,
     out = {"x": [], "y": [], "run": [], "key": []}
     names: tuple = ()
     for data in runs:
-        x = data.raw if form == "raw_input" else (
-            data.context_tokens if form == "propagated" else data.tokens)
-        mask = data.hidden if form == "propagated" else None
-        events = data.tokens.shape[0]
-        if kind in ("vertex", "log_yield", "f2_variable", "age"):
-            if kind == "vertex":
-                target, names = np.asarray(data.truth["vertex"], float), ("x", "y", "z")
-            elif kind == "log_yield":
-                target = np.asarray(data.truth["log_yield"], float)[:, None]
-                names = ("log_yield",)
-            else:
-                value = data.truth.get(kind, np.nan)
-                if value is None or not np.isfinite(value):
-                    raise ValueError(f"{data.run_id}: target {kind!r} is unavailable")
-                target, names = np.full((events, 1), float(value)), (kind,)
-            features = _mean_tokens(x, mask)
-            if form == "run_mean":
-                _rows(data.run_id, features.mean(0, keepdims=True), target[:1], np.zeros(1), out)
-            else:
-                _rows(data.run_id, features, target, np.zeros(events, dtype=np.int64), out)
-        elif kind == "module_gain":
-            target, names = np.asarray(data.truth["module_gain"], float), ("log_gain_m",)
-            pooled, counts = _module_pool(x, data.module_index, target.size, mask)
-            if form == "run_mean":
-                pooled, counts = pooled.mean(0, keepdims=True), counts.sum(0, keepdims=True)
-            event_row, module_col = np.nonzero(counts > 0)
-            _rows(data.run_id, pooled[event_row, module_col],
-                  target[module_col][:, None], module_col, out)
-        else:  # pmt_gain
-            target, names = np.asarray(data.truth["pmt_gain"], float), ("log_gain_p",)
-            selected = data.hidden if form == "propagated" else data.hit
-            event_row, pmt_col = np.nonzero(selected)
-            values = x[event_row, pmt_col]
-            if form == "run_mean":
-                sums = np.zeros((target.size, values.shape[-1]))
-                np.add.at(sums, pmt_col, values)
-                counts = np.bincount(pmt_col, minlength=target.size)
-                keep = np.flatnonzero(counts > 0)
-                _rows(data.run_id, sums[keep] / counts[keep][:, None],
-                      target[keep][:, None], keep, out)
-            else:
-                _rows(data.run_id, values, target[pmt_col][:, None], pmt_col, out)
+        x, y, key, names = probe_rows(data, kind, form)
+        _rows(data.run_id, x, y, key, out)
     if not out["x"]:
         raise ValueError(f"probe dataset {kind!r}/{form!r} has no rows")
     return ProbeDataset(kind=kind, form=form, x=np.concatenate(out["x"]),
@@ -845,6 +940,313 @@ def _fold_labels(run_ids: np.ndarray, n_folds: int = 5) -> np.ndarray:
     if unique.size < n_folds:
         raise ValueError("five run-grouped folds need at least five runs")
     return unique[np.arange(unique.size) % n_folds][np.searchsorted(unique, run_ids)]
+
+
+# --------------------------------------------------- streaming probe statistics
+@dataclass
+class _RunStats:
+    """One run's raw sufficient statistics for a (kind, form) probe table.
+
+    Everything is stored relative to the accumulator's fixed reference row
+    (``c`` for features, ``d`` for targets), which keeps the shifted moments
+    well conditioned: no raw first/second moment of a large-offset feature is
+    accumulated directly.
+    """
+
+    n: int
+    b: np.ndarray        # (d,)   sum(x - c)
+    gram: np.ndarray     # (d, d) sum (x - c)(x - c)^T
+    sy: np.ndarray       # (t,)   sum(y - d)
+    sxy: np.ndarray      # (d, t) sum (x - c)(y - d)^T
+    syy: np.ndarray      # (t,)   sum (y - d)^2
+    xmin: np.ndarray     # (d,)
+    xmax: np.ndarray     # (d,)
+    ymin: np.ndarray     # (t,)
+    ymax: np.ndarray     # (t,)
+
+
+def _empty_run_stats(dim: int, targets: int) -> _RunStats:
+    return _RunStats(n=0, b=np.zeros(dim), gram=np.zeros((dim, dim)),
+                     sy=np.zeros(targets), sxy=np.zeros((dim, targets)),
+                     syy=np.zeros(targets), xmin=np.full(dim, np.inf),
+                     xmax=np.full(dim, -np.inf), ymin=np.full(targets, np.inf),
+                     ymax=np.full(targets, -np.inf))
+
+
+def _sum_run_stats(stats: Sequence[_RunStats]) -> _RunStats:
+    total = None
+    for part in stats:
+        if total is None:
+            total = _empty_run_stats(part.b.size, part.sy.size)
+        total.n += part.n
+        total.b += part.b
+        total.gram += part.gram
+        total.sy += part.sy
+        total.sxy += part.sxy
+        total.syy += part.syy
+        np.minimum(total.xmin, part.xmin, out=total.xmin)
+        np.maximum(total.xmax, part.xmax, out=total.xmax)
+        np.minimum(total.ymin, part.ymin, out=total.ymin)
+        np.maximum(total.ymax, part.ymax, out=total.ymax)
+    if total is None:
+        raise ValueError("no probe statistics to combine")
+    return total
+
+
+def _standardisation(total: _RunStats, reference: np.ndarray):
+    """Fold-train mean/std (population) with the §1.3 constant-column rule."""
+    n = total.n
+    mean = reference + total.b / n
+    centred = total.gram - np.outer(total.b, total.b) / n
+    variance = np.diag(centred) / n
+    constant = total.xmin == total.xmax
+    scale = np.sqrt(np.maximum(variance, 0.0))
+    mean = np.array(mean, dtype=np.float64)
+    mean[constant] = total.xmin[constant]      # exactly x[0], as in fit_ridge
+    scale[constant] = 1.0
+    if not np.isfinite(mean).all() or not np.isfinite(scale).all() or np.any(scale <= 0):
+        raise ValueError("feature scaling numerically invalid")
+    return mean, scale, constant
+
+
+def _standardised_moments(stats: _RunStats, mean: np.ndarray, scale: np.ndarray,
+                          reference: np.ndarray, target_reference: np.ndarray):
+    """``ZᵀZ``, ``Zᵀy'`` and ``Zᵀ1`` for rows standardised by a *train* fit.
+
+    ``u = mean - reference``; the statistics are centred at ``reference`` so the
+    transform is a stable rank-one correction rather than a raw moment difference.
+    """
+    n, u, inv = stats.n, mean - reference, 1.0 / scale
+    centred = stats.gram - np.multiply.outer(u, stats.b) - np.multiply.outer(stats.b, u) \
+        + n * np.outer(u, u)
+    gram = centred * inv[:, None] * inv[None, :]
+    sxy = (stats.sxy - np.multiply.outer(u, stats.sy)) * inv[:, None]
+    b = (stats.b - n * u) * inv
+    return gram, sxy, b
+
+
+def _regression_sse(gram, sxy_column, z1, n: int, sy: float, syy: float,
+                    coefficients: np.ndarray, intercept_shift: float) -> float:
+    """SSE of ``z·β + a`` against shifted targets, from sufficient statistics only."""
+    return float(coefficients @ gram @ coefficients
+                 + 2.0 * intercept_shift * float(coefficients @ z1)
+                 - 2.0 * float(coefficients @ sxy_column)
+                 + n * intercept_shift ** 2 - 2.0 * intercept_shift * float(sy) + float(syy))
+
+
+@dataclass
+class StreamedRidgeFit:
+    """Ridge fit solved from sufficient statistics; ``predict`` for small tables."""
+
+    mean: np.ndarray
+    scale: np.ndarray
+    coefficients: np.ndarray
+    intercept: float
+    alpha: float
+
+    def predict(self, features):
+        features = np.asarray(features, dtype=float)
+        if features.ndim != 2 or features.shape[1] != len(self.mean):
+            raise ValueError("feature dimension mismatch")
+        return ((features - self.mean) / self.scale) @ self.coefficients + self.intercept
+
+
+class ProbeAccumulator:
+    """Streaming sufficient statistics for one ``(kind, form)`` probe table.
+
+    The §1.3 protocol is unchanged: the registered alpha grid, five folds grouped
+    by whole run, fold-internal standardisation and the same R² definition.  Rows
+    arrive in chunks of events (``add``) and are never all held at once: per run we
+    keep ``sum(x-c)``, ``sum (x-c)(x-c)^T``, ``sum(y-d)``, ``sum (x-c)(y-d)^T`` and
+    ``sum (y-d)^2`` in float64 (``block_rows`` bounds the transient float64 copy of
+    a chunk).  Validation and test losses are evaluated from the *same* fold-held
+    sufficient statistics, which is algebraically identical to predicting every
+    held row.
+    """
+
+    def __init__(self, kind: str, form: str | None = None, target_names: tuple = (),
+                 *, n_folds: int = 5, block_rows: int = 8192):
+        if kind not in PROBE_KINDS:
+            raise ValueError(f"unknown probe kind {kind!r}; expected {PROBE_KINDS}")
+        self.form = PRIMARY_PROBE_FORM if form is None else str(form)
+        if self.form not in PROBE_FORMS:
+            raise ValueError(f"unknown probe form {self.form!r}; expected {PROBE_FORMS}")
+        self.kind, self.target_names = str(kind), tuple(target_names)
+        self.n_folds, self.block_rows = int(n_folds), int(block_rows)
+        if self.block_rows < 1:
+            raise ValueError("block_rows must be positive")
+        self.reference = None
+        self.target_reference = None
+        self.runs: dict[str, _RunStats] = {}
+        self.n_rows = 0
+
+    def add(self, run_id, features, targets) -> None:
+        """Accumulate one chunk of rows (all from ``run_id``)."""
+        x = np.asarray(features)
+        if x.ndim != 2:
+            raise ValueError("probe chunk features must be a 2-D matrix")
+        y = np.asarray(targets, dtype=np.float64)
+        n = int(x.shape[0])
+        if n == 0:
+            return
+        y = y.reshape(n, -1)
+        if y.shape[0] != n:
+            raise ValueError("probe chunk features/targets disagree")
+        if self.reference is None:
+            self.reference = np.asarray(x[0], dtype=np.float64)
+            self.target_reference = np.array(y[0], dtype=np.float64)
+        if x.shape[1] != self.reference.size or y.shape[1] != self.target_reference.size:
+            raise ValueError("probe chunk dimension changed")
+        stats = self.runs.get(run_id)
+        if stats is None:
+            stats = _empty_run_stats(self.reference.size, self.target_reference.size)
+            self.runs[run_id] = stats
+        c, d = self.reference, self.target_reference
+        for start in range(0, n, self.block_rows):
+            stop = min(start + self.block_rows, n)
+            xb = np.asarray(x[start:stop], dtype=np.float64)
+            yb = y[start:stop]
+            if not np.isfinite(xb).all() or not np.isfinite(yb).all():
+                raise ValueError("probe chunk features and targets must be finite")
+            shifted_x, shifted_y = xb - c, yb - d
+            stats.gram += shifted_x.T @ shifted_x
+            stats.b += shifted_x.sum(0)
+            stats.sxy += shifted_x.T @ shifted_y
+            stats.sy += shifted_y.sum(0)
+            stats.syy += np.einsum("ij,ij->j", shifted_y, shifted_y)
+            stats.n += stop - start
+            np.minimum(stats.xmin, xb.min(0), out=stats.xmin)
+            np.maximum(stats.xmax, xb.max(0), out=stats.xmax)
+            np.minimum(stats.ymin, yb.min(0), out=stats.ymin)
+            np.maximum(stats.ymax, yb.max(0), out=stats.ymax)
+        self.n_rows += n
+
+    # -- fold-wise ridge ---------------------------------------------------
+    def fit(self, *, fit_intercept: bool = True) -> dict:
+        """Five grouped-fold ridge per target; same output shape as ``fit_probe``."""
+        if type(fit_intercept) is not bool:
+            raise ValueError("explicit boolean intercept required")
+        if self.n_rows == 0 or not self.runs:
+            raise ValueError(f"probe dataset {self.kind!r}/{self.form!r} has no rows")
+        unique = np.array(sorted(self.runs))
+        if unique.size < self.n_folds:
+            raise ValueError("five run-grouped folds need at least five runs")
+        fold_of = {str(run): index % self.n_folds for index, run in enumerate(unique.tolist())}
+        total = _sum_run_stats(list(self.runs.values()))
+        reference, target_reference = self.reference, self.target_reference
+        folds = []
+        for fold in range(self.n_folds):
+            held_ids = [rid for rid in unique.tolist() if fold_of[str(rid)] == fold]
+            held = _sum_run_stats([self.runs[rid] for rid in held_ids])
+            train = _sum_run_stats([self.runs[rid] for rid in unique.tolist()
+                                    if fold_of[str(rid)] != fold])
+            mean, scale, _ = _standardisation(train, reference)
+            gram, sxy, z1 = _standardised_moments(train, mean, scale, reference,
+                                                  target_reference)
+            held_gram, held_sxy, held_z1 = _standardised_moments(held, mean, scale, reference,
+                                                                 target_reference)
+            folds.append({"mean": mean, "scale": scale, "gram": gram, "sxy": sxy, "z1": z1,
+                          "held_gram": held_gram, "held_sxy": held_sxy, "held_z1": held_z1,
+                          "held": held, "train_mean_y": train.sy / train.n})
+        mean, scale, _ = _standardisation(total, reference)
+        gram, sxy, z1 = _standardised_moments(total, mean, scale, reference, target_reference)
+        raw_mean_y = target_reference + total.sy / total.n
+        results = []
+        for column in range(int(total.sy.size)):
+            if total.ymin[column] == total.ymax[column]:
+                results.append({"status": "not_evaluable",
+                                "reason": "constant_probe_train_target", "alpha": None,
+                                "fit": None, "validation_mse": None, "folds": []})
+                continue
+            squared_errors = {alpha: 0.0 for alpha in ridge.ALPHAS}
+            for fold in folds:
+                # mean(y) - target-reference, i.e. the shift the fold model's intercept
+                # is applied at (0 - d when the intercept is disabled).
+                intercept_shift = (float(fold["train_mean_y"][column]) if fit_intercept
+                                   else -float(target_reference[column]))
+                for alpha in ridge.ALPHAS:
+                    coefficients = np.linalg.solve(
+                        fold["gram"] + alpha * np.eye(gram.shape[0]),
+                        fold["sxy"][:, column] - intercept_shift * fold["z1"])
+                    squared_errors[alpha] += _regression_sse(
+                        fold["held_gram"], fold["held_sxy"][:, column], fold["held_z1"],
+                        fold["held"].n, float(fold["held"].sy[column]),
+                        float(fold["held"].syy[column]), coefficients, intercept_shift)
+            scores = {alpha: value / total.n for alpha, value in squared_errors.items()}
+            chosen = ridge.select_alpha(scores)
+            intercept = float(raw_mean_y[column]) if fit_intercept else 0.0
+            coefficients = np.linalg.solve(
+                gram + chosen * np.eye(gram.shape[0]),
+                sxy[:, column] - (intercept - float(target_reference[column])) * z1)
+            fit = StreamedRidgeFit(mean.copy(), scale.copy(), coefficients, intercept,
+                                   float(chosen))
+            results.append({"status": "fit", "reason": None, "alpha": chosen, "fit": fit,
+                            "validation_mse": scores, "folds": []})
+        return {"kind": self.kind, "form": self.form, "target_names": self.target_names,
+                "fits": results,
+                "status": "evaluated" if any(r["status"] == "fit" for r in results)
+                else "not_evaluable"}
+
+    # -- memory accounting -------------------------------------------------
+    def memory_mb(self) -> float:
+        """Approximate bytes held by the sufficient statistics, in MiB."""
+        total = 0
+        for stats in self.runs.values():
+            total += (stats.b.nbytes + stats.gram.nbytes + stats.sy.nbytes
+                      + stats.sxy.nbytes + stats.syy.nbytes + stats.xmin.nbytes
+                      + stats.xmax.nbytes + stats.ymin.nbytes + stats.ymax.nbytes)
+        return total / (1024.0 * 1024.0)
+
+
+def _test_squared_error(fit: StreamedRidgeFit, column: int, test: ProbeAccumulator) -> float:
+    """SSE of a fitted ridge probe on a streamed test table, from its statistics."""
+    total = _sum_run_stats(list(test.runs.values()))
+    mean, scale = fit.mean, fit.scale
+    gram, sxy, z1 = _standardised_moments(total, mean, scale, test.reference,
+                                          test.target_reference)
+    return _regression_sse(gram, sxy[:, column], z1, total.n, float(total.sy[column]),
+                           float(total.syy[column]), fit.coefficients,
+                           fit.intercept - float(test.target_reference[column]))
+
+
+def probe_r2_streamed(train: ProbeAccumulator, test: ProbeAccumulator, *,
+                      fit_intercept: bool = True) -> dict:
+    """Fit on probe-train and score probe-test from sufficient statistics only.
+
+    Same schema and R² definition as :func:`probe_r2`; the alpha choice is the
+    registered :func:`jepa_noise.probes.select_alpha` over the same fold-wise MSEs.
+    """
+    if (train.kind, train.form) != (test.kind, test.form):
+        raise ValueError("probe train and test sets must share kind and form")
+    base = {"kind": train.kind, "form": train.form, "target_names": train.target_names}
+    if train.n_rows == 0 or test.n_rows == 0:
+        return dict(base, status="not_evaluable", reason="empty_dataset", r2=None,
+                    r2_mean=None, alphas=None)
+    if test.n_rows < 2:
+        raise ValueError("paired target matrices with at least two rows required")
+    fitted = train.fit(fit_intercept=fit_intercept)
+    total = _sum_run_stats(list(test.runs.values()))
+    rows = []
+    for column, probe in enumerate(fitted["fits"]):
+        if probe["status"] != "fit":
+            rows.append({"status": "not_evaluable", "reason": probe["reason"]})
+            continue
+        if total.ymin[column] == total.ymax[column]:
+            rows.append({"status": "not_evaluable", "reason": "constant_probe_test_target"})
+            continue
+        sse = _test_squared_error(probe["fit"], column, test)
+        sst = float(total.syy[column]) - float(total.sy[column]) ** 2 / total.n
+        if not np.isfinite(sse) or not np.isfinite(sst) or sst <= 0:
+            raise ValueError("nuisance R2 numerically invalid")
+        rows.append({"status": "evaluated", "reason": None, "r2": float(1.0 - sse / sst)})
+    scores = [row["r2"] for row in rows if row["status"] == "evaluated"]
+    if not scores:
+        return dict(base, status="not_evaluable", reason=rows[0]["reason"], r2=None,
+                    r2_mean=None, alphas=None)
+    return dict(base, status="evaluated", reason=None, r2=scores,
+                r2_mean=float(np.mean(scores)),
+                alphas=[row["alpha"] for row in fitted["fits"] if row["status"] == "fit"],
+                n_train=train.n_rows, n_test=test.n_rows)
 
 
 def fit_probe(train: ProbeDataset, *, fit_intercept: bool = True) -> dict:

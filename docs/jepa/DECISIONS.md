@@ -1352,3 +1352,29 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   evaluation — inside the 170 h cap if evaluation is fixed and its cost stays modest. L40S charged
   **1.3490 / 170 GPU-h**; CPU generation cap charged **0.2620 / 48 wall-h** (dev datasets, single
   threaded, code-SHA-independent cache).
+
+## Probe evaluation streaming fix (18 Oct 2026)
+
+- **2026-10-18 — probe evaluation is now memory-bounded; the §6.2 cap is unchanged.** The
+  per-event tables are no longer materialised: the probes stream event chunks and accumulate
+  **per-run sufficient statistics** (Gram / Σxy / standardisation sums, float64, in 8192-row blocks),
+  one form at a time, freeing each before the next. The ridge protocol is exactly v3 §1.3 (registered
+  alpha grid validated against config, 5 run-grouped folds with the sorted round-robin rule, same
+  constant-column rule, alpha tie-break and R² definition); `run_mean` is merged over the whole run so
+  chunking cannot change a row. `evaluation.probe_chunk_events = 64`.
+- **Memory:** one per-PMT per-event table was 19.0 GiB (10 000 × 1 995 × 128, float64; 38.1 GiB with
+  the list + concatenate copy) and the measured job peak was 66.1 GiB. Now: 26.8 MiB of statistics
+  per (form, kind) per split, worst form 314 MiB; a 64-event propagated chunk transient is 204 MiB;
+  projected evaluation peak ~518 MiB (measured RSS 489 MiB); the unit regression case (2 000 events ×
+  1 995 PMTs × 128-d) peaks at 87.6 MiB against the 512 MiB budget. `probes.json` records the chunk
+  and the measured peak (additive `probe_memory`).
+- **Equivalence:** identical alpha choices and R² relative differences ≤3.9e-15 (small case) and
+  ≤2.5e-14 (runner-level, all forms, chunk splitting runs, multi-chunk run_mean); materialised tables
+  bit-identical; the no-intercept variant also matches. Tolerance asserted at rtol 1e-6.
+- **Other materialisation sites:** `ensure_floor` had the same blow-up and now streams too; the R7b
+  dark-only batches are a lazy generator (was a list of all test runs' features); the remaining
+  probes/CKA/leakage helpers were audited and are bounded per run/event. The legacy full-matrix path
+  is retained debug/test-only. 29 runner + 21 arms tests pass.
+- **Consequence:** the config sha changes with this fix, so the dev step-2 run checkpoint from
+  `wp5_lucid_dev_v3` no longer matches and **run 1 retrains (~0.6 h)** in the step-2 rerun; the v3
+  directory stays as evidence.

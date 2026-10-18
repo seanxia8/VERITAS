@@ -329,3 +329,118 @@ def test_parameter_groups_and_ema_update(batch, settings, bank):
     assert model.update_target(settings.total_steps) == 1.0
     with pytest.raises(ValueError):
         _arm("sigreg_jepa", settings, bank).update_target(0)
+
+
+# ------------------------------------------------- streaming probe statistics
+def _stream_runs(n_runs=10, events=20, dim=32, seed=7):
+    """200 events x 76 PMTs with the truth written into the token/raw channels."""
+    rng = np.random.default_rng(seed)
+    runs = []
+    for r in range(n_runs):
+        gain_m = rng.normal(0.0, 0.05, N_MOD)
+        gain_p, vertex = rng.normal(0.0, 0.05, N_PMT), rng.normal(0.0, 0.3, (events, 3))
+        log_yield, f2, age = rng.uniform(4.0, 7.0, events), float(rng.normal()), float(rng.uniform())
+        tokens = 0.01 * rng.standard_normal((events, N_PMT, dim))
+        tokens[..., 0] += gain_p
+        tokens[..., 1] += gain_m[SMALL.module_index]
+        tokens[..., 2:5] += vertex[:, None, :]
+        tokens[..., 5] += log_yield[:, None]
+        tokens[..., 6] += f2
+        tokens[..., 7] += age
+        raw = 0.01 * rng.standard_normal((events, N_PMT, pe.N_FEATURES))
+        raw[..., 6] += gain_m[SMALL.module_index]
+        raw[..., 7] += gain_p
+        hit = np.ones((events, N_PMT), bool)
+        hidden = np.broadcast_to(SMALL.pmt_id_in_mpmt % 2 == 1, (events, N_PMT)).copy()
+        truth = {"vertex": vertex, "log_yield": log_yield, "module_gain": gain_m,
+                 "pmt_gain": gain_p, "f2_variable": f2, "age": age}
+        runs.append(la.RunProbeData(f"run{r}", np.arange(events), tokens, tokens.copy(), raw,
+                                    hit, hidden, SMALL.module_index, truth))
+    return runs
+
+
+def _stream(runs, kind, form):
+    accumulator = la.ProbeAccumulator(kind, form)
+    for data in runs:
+        x, y, _key, _names = la.probe_rows(data, kind, form)
+        accumulator.add(data.run_id, x, y)
+    return accumulator
+
+
+@pytest.mark.parametrize("form", ["per_event", "propagated"])
+@pytest.mark.parametrize("kind", ["module_gain", "pmt_gain"])
+def test_streamed_sufficient_statistics_reproduce_the_full_matrix_probe(form, kind):
+    """200 events x 76 PMTs, two forms x two kinds: same alpha and R2 within rtol 1e-6."""
+    runs = _stream_runs()
+    train, test = runs[:7], runs[7:]
+    legacy = la.probe_r2(la.build_probe_dataset(train, kind, form),
+                         la.build_probe_dataset(test, kind, form))
+    streamed = la.probe_r2_streamed(_stream(train, kind, form), _stream(test, kind, form))
+    assert legacy["status"] == streamed["status"] == "evaluated"
+    assert legacy["alphas"] == streamed["alphas"]
+    assert streamed["r2"] == pytest.approx(legacy["r2"], rel=1e-6, abs=1e-12)
+    assert streamed["r2_mean"] == pytest.approx(legacy["r2_mean"], rel=1e-6)
+    assert streamed["n_train"] == legacy["n_train"] and streamed["n_test"] == legacy["n_test"]
+
+
+def test_probe_chunker_splits_a_run_without_changing_the_statistics():
+    """Chunk boundaries are an implementation detail: same stats, same R2."""
+    runs = _stream_runs(n_runs=6, events=6, dim=8)
+    data = runs[0]
+    x, y, _key, _names = la.probe_rows(data, "pmt_gain", "per_event")
+    whole = la.ProbeAccumulator("pmt_gain", "per_event")
+    whole.add("run0", x, y)
+    chunked = la.ProbeAccumulator("pmt_gain", "per_event", block_rows=7)
+    for start in range(0, x.shape[0], 7):
+        chunked.add("run0", x[start:start + 7], y[start:start + 7])
+    assert chunked.n_rows == whole.n_rows == x.shape[0]
+    for field in ("b", "gram", "sy", "sxy", "syy"):
+        np.testing.assert_allclose(getattr(whole.runs["run0"], field),
+                                   getattr(chunked.runs["run0"], field), rtol=1e-12, atol=1e-9)
+
+
+def test_streamed_peak_allocation_is_bounded_at_the_registered_row_scale():
+    """2 000 events x 1 995 PMTs (one kind) stays far below the old full table.
+
+    The old path held this one table as float64 (2000*1995*128*8 = 4.08 GB, and
+    ~20.4 GB for 10 000 events); the streamed path is only checked for its *peak*
+    allocation here -- no 4 GB array is ever created.
+    """
+    import tracemalloc
+    dim, n_pmt, n_events, chunk_events = 128, 1995, 2000, 64
+    rows_per_event = n_pmt
+    old_float64_bytes = n_events * rows_per_event * dim * 8
+    assert old_float64_bytes / 2 ** 30 > 3.5          # the case that blew the cap
+    base = np.linspace(-1.0, 1.0, dim, dtype=np.float32)
+    target = np.array([[0.5]], np.float32)
+    accumulator = la.ProbeAccumulator("pmt_gain", "per_event", block_rows=8192)
+    tracemalloc.start()
+    try:
+        for start in range(0, n_events, chunk_events):
+            events = min(chunk_events, n_events - start)
+            rows = events * rows_per_event
+            x = np.broadcast_to(base, (rows, dim)).astype(np.float32)
+            y = np.broadcast_to(target, (rows, 1))
+            accumulator.add("run0", x, y)
+            del x, y
+        _current, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    assert accumulator.n_rows == n_events * rows_per_event
+    assert accumulator.block_rows == 8192             # the float64 transient is block-bounded
+    assert accumulator.memory_mb() < 1.0              # sufficient statistics, never the rows
+    assert peak < 512 * 2 ** 20                       # measured peak allocation budget
+
+
+def test_streamed_probe_matches_the_no_intercept_fit():
+    """The validation intercept shift must follow ``fit_intercept`` (regression)."""
+    runs = _stream_runs(n_runs=8)
+    train, test = runs[:6], runs[6:]
+    for form, kind in (("per_event", "module_gain"), ("raw_input", "pmt_gain")):
+        legacy = la.probe_r2(la.build_probe_dataset(train, kind, form),
+                             la.build_probe_dataset(test, kind, form), fit_intercept=False)
+        streamed = la.probe_r2_streamed(_stream(train, kind, form), _stream(test, kind, form),
+                                        fit_intercept=False)
+        assert legacy["status"] == streamed["status"] == "evaluated"
+        assert legacy["alphas"] == streamed["alphas"]
+        assert streamed["r2_mean"] == pytest.approx(legacy["r2_mean"], rel=1e-6)

@@ -184,6 +184,11 @@ def test_grid_runs_end_to_end_and_threads_physics_method(tmp_path):
     assert (out / "floors" / "sigreg_jepa__main_s005_within.json").is_file()
     probes = json.loads((out / "runs" / run_id / "probes.json").read_text())
     assert probes["results"]["module_gain::run_mean"]["status"] == "evaluated"
+    # the memory-bounded path records the chunk actually used and the measured peak
+    memory = probes["probe_memory"]
+    assert memory["chunk_events"] == config["evaluation"]["probe_chunk_events"]
+    assert memory["n_rows_total"] > 0 and memory["peak_mb"] is not None
+    assert memory["sufficient_statistics"] is True
 
 
 # ---------------------------------------------------------------- smoke / resume / determinism
@@ -519,6 +524,55 @@ def test_oracle_nominal_twin_probes_read_the_twin_input(tmp_path):
     twin = lr.probe_tables(model, dataset, GEOM, split="within", kinds_by_form=kinds,
                            mask_seed=0, twin=True)[("module_gain", "run_mean")].x
     assert not np.allclose(real, twin)
+
+
+# ------------------------------------------------- streaming probe evaluation
+def test_probe_evaluation_streams_equivalently_and_records_memory(tmp_path):
+    """The streamed sufficient-statistics path matches the legacy full-matrix path.
+
+    chunk_events=2 against 5-event runs exercises the per-run remainder and the
+    run_mean partial-sum merge across three chunks per run.
+    """
+    dataset = _tiny_dataset(tmp_path, "probe", runs=6, run_events=5)   # chunk remainder
+    model = la.random_init_floor("sigreg_jepa", GEOM, seed=0)
+    kinds = {"per_event": ["vertex", "pmt_gain"], "run_mean": ["module_gain", "pmt_gain"]}
+    streamed = lr.probe_scores(model, dataset, dataset, GEOM, split="within", kinds_by_form=kinds,
+                               mask_seed=0, chunk_events=2)
+    legacy = lr.probe_scores(model, dataset, dataset, GEOM, split="within", kinds_by_form=kinds,
+                             mask_seed=0, legacy_materialised=True)
+    assert set(streamed["results"]) == set(legacy["results"])
+    for key, got in streamed["results"].items():
+        want = legacy["results"][key]
+        assert got["status"] == want["status"], key
+        if got["status"] == "evaluated":
+            assert got["alphas"] == want["alphas"], key
+            assert got["r2"] == pytest.approx(want["r2"], rel=1e-6, abs=1e-12), key
+            assert got["r2_mean"] == pytest.approx(want["r2_mean"], rel=1e-6), key
+    memory = streamed["memory"]
+    assert memory["chunk_events"] == memory["chunk"] == 2
+    assert memory["sufficient_statistics"] is True
+    assert memory["n_rows_total"] == legacy["n_rows_total"] > 0
+    assert memory["n_rows_total"] == sum(sum(v) for v in memory["n_rows"].values())
+    assert memory["peak_mb"] is not None and memory["resident_peak_mb"] is not None
+    assert memory["peak_delta_mb"] is not None and memory["resident_delta_mb"] is not None
+
+
+def test_probe_max_events_keeps_its_per_run_cap(tmp_path):
+    dataset = _tiny_dataset(tmp_path, "cap", runs=6, run_events=4)
+    model = la.random_init_floor("sigreg_jepa", GEOM, seed=0)
+    kinds = {"per_event": ["vertex"]}
+    capped = lr.probe_scores(model, dataset, dataset, GEOM, split="within", kinds_by_form=kinds,
+                             mask_seed=0, max_events=2)
+    assert capped["n_rows"]["vertex::per_event"] == [6 * 2, 6 * 2]
+
+
+def test_probe_chunk_events_is_config_driven_and_validated():
+    assert lr._probe_chunk_events(CONFIG) == CONFIG["evaluation"]["probe_chunk_events"] == 64
+    assert lr._probe_chunk_events({}) == 64
+    with pytest.raises(ValueError, match="probe_chunk_events"):
+        lr._probe_chunk_events({"evaluation": {"probe_chunk_events": 0}})
+    with pytest.raises(ValueError, match="probe_chunk_events"):
+        lr._probe_chunk_events({"evaluation": {"probe_chunk_events": "many"}})
 
 
 # ---------------------------------------------------------------- R-6 dark bank / R7b
