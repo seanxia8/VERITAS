@@ -1162,3 +1162,11 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   (fail); γ = 0.5 has only 2/5 evaluable seeds (depth 3 ineligible in three) → `not_evaluable`. So
   the balanced initialisation restores evaluability but does not demonstrate the depth ordering;
   reported beside R5, which remains `not_evaluable`. E1 cumulative CPU 8.94 h of 24.
+
+- **2026-10-18 — stale smoke data cache refused (expected).** The first 500-step smoke attempt
+  (before the freeze commit) wrote `/ceph/dwong/jepa/data/lucid_r6` under the pre-freeze generator
+  config (digest `6779146f…`); after the freeze the config hashes to `61fdafa6…`, so the runner
+  correctly refused to reuse it (no silent regeneration). Kept as evidence; the retry uses a fresh
+  root `/ceph/dwong/jepa/data/lucid_r6_v2` (~31 MB, ~22 entries). The first attempt also OOM'd on the
+  Titan at batch 32 before step 0, hence the micro-batch 8 × accumulation 4 shape (effective batch
+  unchanged at 32).
