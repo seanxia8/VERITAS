@@ -193,6 +193,23 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 - Starvation reading, fixed in advance: the target switch starves the vertex head if, with the deposited target, energy's share of the initial loss or of the encoder gradient rises clearly above its share with the initial target, and vertex fails only with the deposited target.
 - The logging adds no random draws and keeps the summed loss in the same order, so the training trajectory is unchanged.
 
+
+**Proposed time-feature rule (agent, 18 Oct 2026). PROPOSED, not adopted. Recorded before any test-event re-run; it needs the author's approval.**
+
+- **Principles.** The time feature's origin must be:
+  1. operational: computed from the digits alone, never from truth;
+  2. robust to dark hits;
+  3. centred, so prompt hits sit near 0 on the 20 ns unit, like the other input features.
+
+  Each origin tested so far fails one principle:
+  - the window start fails (3), which E42 shows is the cause of the vertex regression;
+  - the first digit fails (2), as E33 found;
+  - the trigger time t = 0 meets (2) and (3) but fails (1) in this simulation, because it is the true interaction time.
+- **Rule.** The origin is a simulated NHits trigger: the earliest digit time t such that at least N digits lie in [t, t + 20 ns]. N is the smallest integer for which the dark-only probability of such a coincidence anywhere in the 1 µs readout window is below 10⁻³, at the manifest dark rate and channel count. At 1 kHz × 1995 PMTs (0.040 expected dark digits per 20 ns), N = 3 (P ≈ 5×10⁻⁴; N = 2 gives 0.039). The unit stays 20 ns.
+- **No trigger.** If no such cluster exists, the origin is the window start and the placement is counted as untriggered. The count is reported, never dropped silently.
+- **Expectation.** Arm 1 (truth t = 0) is an optimistic bound: about 0.68 × constant on validation. The first-digit arm (0.78) is closer to what a hit-derived origin should give without dark counts.
+- **Open choice for the author.** Run one validation-only check of this rule (dark counts on and off, seeds 20–22) before the single test-event re-run, or go straight to the test re-run.
+
 ---
 
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
@@ -283,6 +300,21 @@ _One line each, logged as made (18 Oct 2026)._
   - Recorded beside R-4; nothing was retuned.
 - E38 (κ_m). The precision study (32 readout re-draws × 96 validation placements, frozen R-4b checkpoints) gives SD_K = 0.040 for K = max(K_vertex, K_energy), with SD = 0.028 for vertex and 0.064 for energy. Then 1 + 2·SD_K = 1.080, so **κ_m = 1.10**, frozen in `wp6_contract_v2.json`.
 - E39 (R-4b, data). The 1 µs + dark arm reuses the R-4 data set (`track_closure_01`): its settings are identical, (t − lo)/(hi − lo) with hi − lo = 1000 ns. The diagnostic uses the validation split for both checkpoint selection and evaluation. That flatters every arm equally and is used only to compare arms.
+- E41 (E40 run). The first arm 2 generation (code `65fba28`) failed on its second placement: in the deposited-energy branch of `multienergy_data`, `origin=raw['vertex_m']` shadowed the new time-origin variable. Fixed at `91ef3f4` (renamed `time_origin`). Arms 0, 1 and 3 never enter that branch. Every arm was generated or trained with `91ef3f4`, apart from arms 0, 1 and 3's data, which came from `65fba28`. Their generation path is identical, and arm 0's bit-identical match with `56179eb` confirms it.
+- E42 (E40 result, validation only). Vertex RMSE ÷ constant, seeds 20–22:
+  - arm 0 (first digit, initial) 0.782;
+  - arm 1 (trigger, initial) 0.681;
+  - arm 2 (trigger, deposited) 0.652;
+  - arm 3 (window start, initial) 0.961;
+  - arm 4 (window start, deposited) 0.936.
+
+  Findings:
+  - Arm 0's inputs are bit-identical to `56179eb`'s, and its checkpoints byte-identical, so there is no code regression and no bisection.
+  - **The cause is the window-start origin:** a constant +10-unit offset on hit sensors against an unhit 0. It is a conditioning effect; the timing information is unchanged.
+  - The energy target does not starve the vertex head. Vertex is slightly better with the deposited target, and energy takes 4–14% of the loss at the selected checkpoint.
+  - The seed effect is small (arm 4: 0.936 against R-4b's 0.948 with seeds 30–32).
+
+  Details: `results/pmt_r4c_dev_2026-10-18`. Nothing was retuned, and the test split was not predicted.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -307,6 +339,12 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | R-4b generation: `data_u20_dark`, `data_u20_nodark`, `data_u1000_nodark`, `data_precision` | 16:52, 17:02, 15:10, 6:45 | 0 | 0 |
 | 18 Oct 2026 | deepthought (GPU 3, TITAN X, 25% memory) | R-4b GPU sequence: 2×2 diagnostic, 2 train-subset arms, R-4b (7 runs × 3 seeds) | 338 s in total | 0.094 | 0 |
 | 18 Oct 2026 | deepthought (CPU, 4 threads, nice 10) | κ_m precision inference (`precision_01`) | 30 s | 0 | 0 |
+
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | E40 generation: `r4c_data_arm0`, `_arm1`, `_arm3`; `_arm2` failed (E41); `_arm2b` retry | 14:34, 14:45, 13:15; 0:56; 13:17 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | E40 training: 5 arms × 3 seeds, validation only (`r4c_arm0`–`4`) | 280 s in total | 0.078 | 0 |
+| 18 Oct 2026 | deepthought (CPU, nice 10) | E40 input comparisons and `56179eb` validation reference | < 2 min | 0 | 0 |
+
+E40 totals: 0.078 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0% mean utilisation and no `jepa_*` training session. The only other GPU process was another user's notebook kernel, at ≤ 802 MiB per card. GPU 0 was used, the same index as `56179eb`. Cumulative GPU use in this session: 0.187 GPU-hours. Cumulative source reads: about 92.5 MB.
 
 R-4b totals: 0.094 GPU-hours, with no new source reads. Before the run, a 5-minute sample showed all GPUs at 0%, no process above 1 GB, and no `jepa_*` training session. Cumulative GPU use in this session: 0.109 GPU-hours. Cumulative source reads: about 92.5 MB.
 

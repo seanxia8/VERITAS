@@ -1,0 +1,1151 @@
+{
+  "arms": {
+    "arm0": {
+      "origin": "first digit",
+      "target": "initial",
+      "seeds": [
+        {
+          "seed": 20,
+          "vertex": 0.7695920566771977,
+          "direction": 7.39465856552124,
+          "energy": 0.8198681898259751,
+          "best_epoch": 49,
+          "same_as_56179eb": true,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6391703486442566,
+                "vertex": 0.37529879808425903,
+                "energy": 0.2422013282775879
+              },
+              "validation": {
+                "direction": 0.611365556716919,
+                "vertex": 0.336117684841156,
+                "energy": 0.2417418360710144
+              },
+              "encoder_grad_norm": {
+                "direction": 0.2899111211299896,
+                "vertex": 0.45351338386535645,
+                "energy": 0.2738114297389984
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.003037168411538005,
+                "vertex": 0.06651472300291061,
+                "energy": 0.06053764000535011
+              },
+              "validation": {
+                "direction": 0.006898827850818634,
+                "vertex": 0.1886703222990036,
+                "energy": 0.17411325871944427
+              },
+              "encoder_grad_norm": {
+                "direction": 0.07638056576251984,
+                "vertex": 0.24641194939613342,
+                "energy": 0.3687992990016937
+              }
+            }
+          }
+        },
+        {
+          "seed": 21,
+          "vertex": 0.7254821707003654,
+          "direction": 7.070001125335693,
+          "energy": 0.8032543270157193,
+          "best_epoch": 60,
+          "same_as_56179eb": true,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.7069590091705322,
+                "vertex": 0.35177162289619446,
+                "energy": 0.22227813303470612
+              },
+              "validation": {
+                "direction": 0.7346753478050232,
+                "vertex": 0.3330734968185425,
+                "energy": 0.22093264758586884
+              },
+              "encoder_grad_norm": {
+                "direction": 0.7315706610679626,
+                "vertex": 0.32713109254837036,
+                "energy": 0.205282524228096
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.002530601341277361,
+                "vertex": 0.045248884707689285,
+                "energy": 0.039591893553733826
+              },
+              "validation": {
+                "direction": 0.006192952394485474,
+                "vertex": 0.16766248643398285,
+                "energy": 0.16318592429161072
+              },
+              "encoder_grad_norm": {
+                "direction": 0.1262301653623581,
+                "vertex": 0.40202629566192627,
+                "energy": 0.2895238399505615
+              }
+            }
+          }
+        },
+        {
+          "seed": 22,
+          "vertex": 0.84977793673002,
+          "direction": 7.891668796539307,
+          "energy": 0.8452181583412983,
+          "best_epoch": 48,
+          "same_as_56179eb": true,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6780292987823486,
+                "vertex": 0.475949764251709,
+                "energy": 0.21332354843616486
+              },
+              "validation": {
+                "direction": 0.6754413843154907,
+                "vertex": 0.4711070656776428,
+                "energy": 0.21538805961608887
+              },
+              "encoder_grad_norm": {
+                "direction": 0.5906193256378174,
+                "vertex": 0.8402665257453918,
+                "energy": 0.11530333757400513
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.0038400974590331316,
+                "vertex": 0.08880877494812012,
+                "energy": 0.06621544808149338
+              },
+              "validation": {
+                "direction": 0.007804038003087044,
+                "vertex": 0.2300346940755844,
+                "energy": 0.16437844932079315
+              },
+              "encoder_grad_norm": {
+                "direction": 0.1388191133737564,
+                "vertex": 0.8196625113487244,
+                "energy": 0.4994955062866211
+              }
+            }
+          }
+        }
+      ],
+      "target_scale": {
+        "constant_loss_train": {
+          "direction": 0.33248987793922424,
+          "vertex": 0.33104342222213745,
+          "energy": 0.20575600862503052
+        },
+        "constant_loss_validation": {
+          "direction": 0.33305421471595764,
+          "vertex": 0.3185535669326782,
+          "energy": 0.20575600862503052
+        },
+        "log_energy_target_sd_train": 0.4536032974720001,
+        "log_energy_target_mean_train": -0.09589403122663498,
+        "energy_target": "initial_energy"
+      }
+    },
+    "arm1": {
+      "origin": "trigger",
+      "target": "initial",
+      "seeds": [
+        {
+          "seed": 20,
+          "vertex": 0.6747762360552289,
+          "direction": 6.585866451263428,
+          "energy": 0.8490626789369983,
+          "best_epoch": 87,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6394949555397034,
+                "vertex": 0.375809907913208,
+                "energy": 0.24185635149478912
+              },
+              "validation": {
+                "direction": 0.6113893985748291,
+                "vertex": 0.33659443259239197,
+                "energy": 0.24133311212062836
+              },
+              "encoder_grad_norm": {
+                "direction": 0.2936544120311737,
+                "vertex": 0.45504939556121826,
+                "energy": 0.2716952860355377
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.0018308872822672129,
+                "vertex": 0.026245713233947754,
+                "energy": 0.01850375346839428
+              },
+              "validation": {
+                "direction": 0.005709154065698385,
+                "vertex": 0.1450447291135788,
+                "energy": 0.17165887355804443
+              },
+              "encoder_grad_norm": {
+                "direction": 0.09663558751344681,
+                "vertex": 1.0812288522720337,
+                "energy": 0.8574663400650024
+              }
+            }
+          }
+        },
+        {
+          "seed": 21,
+          "vertex": 0.6542894850739983,
+          "direction": 6.46599817276001,
+          "energy": 0.9106863851693173,
+          "best_epoch": 56,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.7075145244598389,
+                "vertex": 0.3515814542770386,
+                "energy": 0.22211752831935883
+              },
+              "validation": {
+                "direction": 0.7358481287956238,
+                "vertex": 0.33313947916030884,
+                "energy": 0.2207787185907364
+              },
+              "encoder_grad_norm": {
+                "direction": 0.7407359480857849,
+                "vertex": 0.3240818977355957,
+                "energy": 0.20752006769180298
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.002591661410406232,
+                "vertex": 0.03909546881914139,
+                "energy": 0.058201223611831665
+              },
+              "validation": {
+                "direction": 0.005480047781020403,
+                "vertex": 0.13637109100818634,
+                "energy": 0.17569895088672638
+              },
+              "encoder_grad_norm": {
+                "direction": 0.12515264749526978,
+                "vertex": 0.5278153419494629,
+                "energy": 0.6946337819099426
+              }
+            }
+          }
+        },
+        {
+          "seed": 22,
+          "vertex": 0.7146295573184892,
+          "direction": 7.3619704246521,
+          "energy": 0.8118006188234997,
+          "best_epoch": 57,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6786350011825562,
+                "vertex": 0.4775604009628296,
+                "energy": 0.21306242048740387
+              },
+              "validation": {
+                "direction": 0.6763830184936523,
+                "vertex": 0.473450243473053,
+                "energy": 0.2150423526763916
+              },
+              "encoder_grad_norm": {
+                "direction": 0.5864385962486267,
+                "vertex": 0.854091465473175,
+                "energy": 0.11444605886936188
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.0030162036418914795,
+                "vertex": 0.0602581761777401,
+                "energy": 0.065025694668293
+              },
+              "validation": {
+                "direction": 0.0069727045483887196,
+                "vertex": 0.16268382966518402,
+                "energy": 0.17473383247852325
+              },
+              "encoder_grad_norm": {
+                "direction": 0.17863242328166962,
+                "vertex": 0.7671331167221069,
+                "energy": 0.11926957964897156
+              }
+            }
+          }
+        }
+      ],
+      "target_scale": {
+        "constant_loss_train": {
+          "direction": 0.33248987793922424,
+          "vertex": 0.33104342222213745,
+          "energy": 0.20575600862503052
+        },
+        "constant_loss_validation": {
+          "direction": 0.33305421471595764,
+          "vertex": 0.3185535669326782,
+          "energy": 0.20575600862503052
+        },
+        "log_energy_target_sd_train": 0.4536032974720001,
+        "log_energy_target_mean_train": -0.09589403122663498,
+        "energy_target": "initial_energy"
+      }
+    },
+    "arm2": {
+      "origin": "trigger",
+      "target": "deposited",
+      "seeds": [
+        {
+          "seed": 20,
+          "vertex": 0.6301456517991832,
+          "direction": 7.168707370758057,
+          "energy": 0.4804575106621925,
+          "best_epoch": 85,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6394949555397034,
+                "vertex": 0.375809907913208,
+                "energy": 1.411386489868164
+              },
+              "validation": {
+                "direction": 0.6113893985748291,
+                "vertex": 0.33659443259239197,
+                "energy": 1.429823875427246
+              },
+              "encoder_grad_norm": {
+                "direction": 0.2936544120311737,
+                "vertex": 0.45504939556121826,
+                "energy": 1.5239862203598022
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.0018332890467718244,
+                "vertex": 0.02924545668065548,
+                "energy": 0.004191724117845297
+              },
+              "validation": {
+                "direction": 0.006862247362732887,
+                "vertex": 0.12649236619472504,
+                "energy": 0.006336037535220385
+              },
+              "encoder_grad_norm": {
+                "direction": 0.07640860974788666,
+                "vertex": 0.8546339273452759,
+                "energy": 0.17461833357810974
+              }
+            }
+          }
+        },
+        {
+          "seed": 21,
+          "vertex": 0.6197239776505638,
+          "direction": 6.567124843597412,
+          "energy": 0.39469501629953907,
+          "best_epoch": 98,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.7075145244598389,
+                "vertex": 0.3515814542770386,
+                "energy": 1.246735692024231
+              },
+              "validation": {
+                "direction": 0.7358481287956238,
+                "vertex": 0.33313947916030884,
+                "energy": 1.26483952999115
+              },
+              "encoder_grad_norm": {
+                "direction": 0.7407359480857849,
+                "vertex": 0.3240818977355957,
+                "energy": 1.7457259893417358
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.001220950623974204,
+                "vertex": 0.015895478427410126,
+                "energy": 0.0034611450973898172
+              },
+              "validation": {
+                "direction": 0.005963941104710102,
+                "vertex": 0.12234298139810562,
+                "energy": 0.004752190783619881
+              },
+              "encoder_grad_norm": {
+                "direction": 0.07301836460828781,
+                "vertex": 0.7172557711601257,
+                "energy": 0.03830767422914505
+              }
+            }
+          }
+        },
+        {
+          "seed": 22,
+          "vertex": 0.7066017190359818,
+          "direction": 6.737402439117432,
+          "energy": 0.4470637161908755,
+          "best_epoch": 96,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6786350011825562,
+                "vertex": 0.4775604009628296,
+                "energy": 1.0890203714370728
+              },
+              "validation": {
+                "direction": 0.6763830184936523,
+                "vertex": 0.473450243473053,
+                "energy": 1.106305480003357
+              },
+              "encoder_grad_norm": {
+                "direction": 0.5864385962486267,
+                "vertex": 0.854091465473175,
+                "energy": 2.0189318656921387
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.0011689792154356837,
+                "vertex": 0.022452490404248238,
+                "energy": 0.0035051300656050444
+              },
+              "validation": {
+                "direction": 0.005553466733545065,
+                "vertex": 0.15904930233955383,
+                "energy": 0.006033068988472223
+              },
+              "encoder_grad_norm": {
+                "direction": 0.04178379103541374,
+                "vertex": 0.6012126803398132,
+                "energy": 0.04746192693710327
+              }
+            }
+          }
+        }
+      ],
+      "target_scale": {
+        "constant_loss_train": {
+          "direction": 0.33248987793922424,
+          "vertex": 0.33104342222213745,
+          "energy": 0.03516148775815964
+        },
+        "constant_loss_validation": {
+          "direction": 0.33305421471595764,
+          "vertex": 0.3185535669326782,
+          "energy": 0.0289579089730978
+        },
+        "log_energy_target_sd_train": 0.18751396238803864,
+        "log_energy_target_mean_train": -1.064027190208435,
+        "energy_target": "deposited_energy_in_volume"
+      }
+    },
+    "arm3": {
+      "origin": "window start",
+      "target": "initial",
+      "seeds": [
+        {
+          "seed": 20,
+          "vertex": 0.9748382007182989,
+          "direction": 9.891968727111816,
+          "energy": 0.8539377942938896,
+          "best_epoch": 96,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6177946329116821,
+                "vertex": 0.43809106945991516,
+                "energy": 0.24394488334655762
+              },
+              "validation": {
+                "direction": 0.5928367972373962,
+                "vertex": 0.38373878598213196,
+                "energy": 0.24279850721359253
+              },
+              "encoder_grad_norm": {
+                "direction": 0.84324711561203,
+                "vertex": 2.3102989196777344,
+                "energy": 1.0003539323806763
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.00853659026324749,
+                "vertex": 0.19132743775844574,
+                "energy": 0.10297083854675293
+              },
+              "validation": {
+                "direction": 0.011628590524196625,
+                "vertex": 0.3027244508266449,
+                "energy": 0.162501260638237
+              },
+              "encoder_grad_norm": {
+                "direction": 0.33651378750801086,
+                "vertex": 1.0822460651397705,
+                "energy": 0.28059524297714233
+              }
+            }
+          }
+        },
+        {
+          "seed": 21,
+          "vertex": 0.949059977595515,
+          "direction": 9.060112953186035,
+          "energy": 0.876045966530169,
+          "best_epoch": 51,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6973509192466736,
+                "vertex": 0.40095606446266174,
+                "energy": 0.2143346667289734
+              },
+              "validation": {
+                "direction": 0.7288057804107666,
+                "vertex": 0.3788701593875885,
+                "energy": 0.21394377946853638
+              },
+              "encoder_grad_norm": {
+                "direction": 0.8432503938674927,
+                "vertex": 1.733100175857544,
+                "energy": 0.5159399509429932
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.008251804858446121,
+                "vertex": 0.25998470187187195,
+                "energy": 0.15845419466495514
+              },
+              "validation": {
+                "direction": 0.010263901203870773,
+                "vertex": 0.28692588210105896,
+                "energy": 0.18167757987976074
+              },
+              "encoder_grad_norm": {
+                "direction": 0.23247715830802917,
+                "vertex": 0.3780647814273834,
+                "energy": 0.17876584827899933
+              }
+            }
+          }
+        },
+        {
+          "seed": 22,
+          "vertex": 0.9590184846147072,
+          "direction": 10.317387580871582,
+          "energy": 0.7623694017252615,
+          "best_epoch": 98,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6635686755180359,
+                "vertex": 0.5954861640930176,
+                "energy": 0.21015363931655884
+              },
+              "validation": {
+                "direction": 0.6817910075187683,
+                "vertex": 0.606149435043335,
+                "energy": 0.20974405109882355
+              },
+              "encoder_grad_norm": {
+                "direction": 0.6060124635696411,
+                "vertex": 3.7940900325775146,
+                "energy": 0.1459418535232544
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.010014397092163563,
+                "vertex": 0.183722585439682,
+                "energy": 0.10737382620573044
+              },
+              "validation": {
+                "direction": 0.01266908086836338,
+                "vertex": 0.2929788827896118,
+                "energy": 0.1540650725364685
+              },
+              "encoder_grad_norm": {
+                "direction": 0.4608798623085022,
+                "vertex": 0.3675450384616852,
+                "energy": 0.7290874123573303
+              }
+            }
+          }
+        }
+      ],
+      "target_scale": {
+        "constant_loss_train": {
+          "direction": 0.33248987793922424,
+          "vertex": 0.33104342222213745,
+          "energy": 0.20575600862503052
+        },
+        "constant_loss_validation": {
+          "direction": 0.33305421471595764,
+          "vertex": 0.3185535669326782,
+          "energy": 0.20575600862503052
+        },
+        "log_energy_target_sd_train": 0.4536032974720001,
+        "log_energy_target_mean_train": -0.09589403122663498,
+        "energy_target": "initial_energy"
+      }
+    },
+    "arm4": {
+      "origin": "window start",
+      "target": "deposited",
+      "seeds": [
+        {
+          "seed": 20,
+          "vertex": 0.9379808979162226,
+          "direction": 9.3944673538208,
+          "energy": 0.48273351619056337,
+          "best_epoch": 80,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6177946329116821,
+                "vertex": 0.43809106945991516,
+                "energy": 1.4189773797988892
+              },
+              "validation": {
+                "direction": 0.5928367972373962,
+                "vertex": 0.38373878598213196,
+                "energy": 1.4394828081130981
+              },
+              "encoder_grad_norm": {
+                "direction": 0.84324711561203,
+                "vertex": 2.3102989196777344,
+                "energy": 5.6217570304870605
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.009124941192567348,
+                "vertex": 0.2119293063879013,
+                "energy": 0.008710351772606373
+              },
+              "validation": {
+                "direction": 0.010727306827902794,
+                "vertex": 0.2802659273147583,
+                "energy": 0.008596554398536682
+              },
+              "encoder_grad_norm": {
+                "direction": 0.2750290632247925,
+                "vertex": 0.4300430119037628,
+                "energy": 0.4286954402923584
+              }
+            }
+          }
+        },
+        {
+          "seed": 21,
+          "vertex": 0.9377663646506318,
+          "direction": 11.459453582763672,
+          "energy": 0.49382838642625776,
+          "best_epoch": 91,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6973509192466736,
+                "vertex": 0.40095606446266174,
+                "energy": 1.2079576253890991
+              },
+              "validation": {
+                "direction": 0.7288057804107666,
+                "vertex": 0.3788701593875885,
+                "energy": 1.2251081466674805
+              },
+              "encoder_grad_norm": {
+                "direction": 0.8432503938674927,
+                "vertex": 1.733100175857544,
+                "energy": 4.735602855682373
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.014743419364094734,
+                "vertex": 0.20380714535713196,
+                "energy": 0.007518236059695482
+              },
+              "validation": {
+                "direction": 0.01621285080909729,
+                "vertex": 0.280137836933136,
+                "energy": 0.007377388421446085
+              },
+              "encoder_grad_norm": {
+                "direction": 0.7142070531845093,
+                "vertex": 0.6371373534202576,
+                "energy": 0.12957946956157684
+              }
+            }
+          }
+        },
+        {
+          "seed": 22,
+          "vertex": 0.9332237991341497,
+          "direction": 9.622698783874512,
+          "energy": 0.5111782535487325,
+          "best_epoch": 83,
+          "same_as_56179eb": false,
+          "head_losses": {
+            "initialisation": {
+              "train": {
+                "direction": 0.6635686755180359,
+                "vertex": 0.5954861640930176,
+                "energy": 0.9649882912635803
+              },
+              "validation": {
+                "direction": 0.6817910075187683,
+                "vertex": 0.606149435043335,
+                "energy": 0.9817603230476379
+              },
+              "encoder_grad_norm": {
+                "direction": 0.6060124635696411,
+                "vertex": 3.7940900325775146,
+                "energy": 5.207862377166748
+              }
+            },
+            "selected_checkpoint": {
+              "train": {
+                "direction": 0.008973617106676102,
+                "vertex": 0.2119150310754776,
+                "energy": 0.008338742889463902
+              },
+              "validation": {
+                "direction": 0.011456575244665146,
+                "vertex": 0.27743038535118103,
+                "energy": 0.00782365445047617
+              },
+              "encoder_grad_norm": {
+                "direction": 0.17497161030769348,
+                "vertex": 0.6115143299102783,
+                "energy": 0.08936569839715958
+              }
+            }
+          }
+        }
+      ],
+      "target_scale": {
+        "constant_loss_train": {
+          "direction": 0.33248987793922424,
+          "vertex": 0.33104342222213745,
+          "energy": 0.03516148775815964
+        },
+        "constant_loss_validation": {
+          "direction": 0.33305421471595764,
+          "vertex": 0.3185535669326782,
+          "energy": 0.0289579089730978
+        },
+        "log_energy_target_sd_train": 0.18751396238803864,
+        "log_energy_target_mean_train": -1.064027190208435,
+        "energy_target": "deposited_energy_in_volume"
+      }
+    }
+  },
+  "reference_56179eb": {
+    "dataset": "/work/dwong/pmt_multienergy_20261016/evidence/track_closure_02/digits.npz",
+    "dataset_sha256": "d0cf3d1be4b9333dccd8d28a151e1ec030e6b57a0f96678899c31a0d2ac5d93a",
+    "split": "validation",
+    "n": 96,
+    "constant_metrics": {
+      "n": 96,
+      "vertex_rmse_m": 0.3421526253223419,
+      "vertex_median_m": 0.3277847468852997,
+      "direction_mean_deg": 87.9063720703125,
+      "direction_median_deg": 86.23725891113281,
+      "energy_relative_mae": 0.4342844486236572,
+      "energy_bias_fraction": 0.11046227067708969,
+      "direction_mse": 0.33305418491363525,
+      "vertex_mse": 0.03902280330657959,
+      "log_energy_mse": 0.20575599372386932,
+      "finite": true
+    },
+    "constant_heads": {
+      "direction": 0.33305418491363525,
+      "vertex": 0.31855353713035583,
+      "energy": 0.20575599372386932
+    },
+    "results": [
+      {
+        "checkpoint": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_20.pt",
+        "sha256": "70d7af4e1c9331bf1ca95e4a98a5c3028dc3954856cd5a62c53cea7e8fc67eed",
+        "vertex_ratio": 0.7695920566771977,
+        "direction_deg": 7.394659042358398,
+        "energy_ratio": 0.8198681212020065,
+        "validation_heads": {
+          "direction": 0.006898826919496059,
+          "vertex": 0.1886703222990036,
+          "energy": 0.17411327362060547
+        },
+        "metrics": {
+          "n": 96,
+          "vertex_rmse_m": 0.26331794261932373,
+          "vertex_median_m": 0.24397623538970947,
+          "direction_mean_deg": 7.394659042358398,
+          "direction_median_deg": 6.699608325958252,
+          "energy_relative_mae": 0.35605597496032715,
+          "energy_bias_fraction": 0.06796710938215256,
+          "direction_mse": 0.006898826919496059,
+          "vertex_mse": 0.023112112656235695,
+          "log_energy_mse": 0.17411327362060547,
+          "finite": true
+        }
+      },
+      {
+        "checkpoint": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_21.pt",
+        "sha256": "4dae4639f763750406bf3bb33effaa2a6089be984b7b9196a8024241b51c7d27",
+        "vertex_ratio": 0.7254821707003654,
+        "direction_deg": 7.069997787475586,
+        "energy_ratio": 0.8032542583917506,
+        "validation_heads": {
+          "direction": 0.006192953325808048,
+          "vertex": 0.16766250133514404,
+          "energy": 0.16318592429161072
+        },
+        "metrics": {
+          "n": 96,
+          "vertex_rmse_m": 0.2482256293296814,
+          "vertex_median_m": 0.22511997818946838,
+          "direction_mean_deg": 7.069997787475586,
+          "direction_median_deg": 6.875517845153809,
+          "energy_relative_mae": 0.3488408327102661,
+          "energy_bias_fraction": 0.06165853142738342,
+          "direction_mse": 0.006192953325808048,
+          "vertex_mse": 0.020538654178380966,
+          "log_energy_mse": 0.16318592429161072,
+          "finite": true
+        }
+      },
+      {
+        "checkpoint": "/work/dwong/pmt_multienergy_20261016/evidence/training_01/seed_22.pt",
+        "sha256": "cfd686e21f0842d809845ddcbf02dd2cd1d5c358feac973c6995a6b381f25251",
+        "vertex_ratio": 0.84977793673002,
+        "direction_deg": 7.891664028167725,
+        "energy_ratio": 0.8452180897173296,
+        "validation_heads": {
+          "direction": 0.0078040361404418945,
+          "vertex": 0.2300346940755844,
+          "energy": 0.16437844932079315
+        },
+        "metrics": {
+          "n": 96,
+          "vertex_rmse_m": 0.2907537519931793,
+          "vertex_median_m": 0.27361124753952026,
+          "direction_mean_deg": 7.891664028167725,
+          "direction_median_deg": 7.462772369384766,
+          "energy_relative_mae": 0.36706507205963135,
+          "energy_bias_fraction": 0.13121028244495392,
+          "direction_mse": 0.0078040361404418945,
+          "vertex_mse": 0.028179248794913292,
+          "log_energy_mse": 0.16437844932079315,
+          "finite": true
+        }
+      }
+    ],
+    "caveat": "the validation split also selected these checkpoints"
+  },
+  "input_comparisons": {
+    "inputs_arm0_vs_56179eb": {
+      "x": {
+        "shape_old": [
+          480,
+          1995,
+          6
+        ],
+        "shape_new": [
+          480,
+          1995,
+          6
+        ],
+        "identical": true
+      },
+      "y": {
+        "shape_old": [
+          480,
+          7
+        ],
+        "shape_new": [
+          480,
+          7
+        ],
+        "identical": true
+      },
+      "role": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "physical_event_id": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "energy_MeV": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "contained": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "charge": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "new_only": [
+        "energy_target",
+        "target_MeV"
+      ]
+    },
+    "inputs_arm1_vs_arm3": {
+      "x": {
+        "shape_old": [
+          480,
+          1995,
+          6
+        ],
+        "shape_new": [
+          480,
+          1995,
+          6
+        ],
+        "identical": false,
+        "max_abs_diff": 10.000000476837158,
+        "n_diff": 196719,
+        "columns_identical": [
+          true,
+          false,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "y": {
+        "shape_old": [
+          480,
+          7
+        ],
+        "shape_new": [
+          480,
+          7
+        ],
+        "identical": true
+      },
+      "role": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "physical_event_id": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "energy_MeV": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "contained": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "charge": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "target_MeV": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "energy_target": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "new_only": []
+    },
+    "inputs_arm3_vs_r4b_u20_nodark": {
+      "x": {
+        "shape_old": [
+          480,
+          1995,
+          6
+        ],
+        "shape_new": [
+          480,
+          1995,
+          6
+        ],
+        "identical": true
+      },
+      "y": {
+        "shape_old": [
+          480,
+          7
+        ],
+        "shape_new": [
+          480,
+          7
+        ],
+        "identical": false,
+        "max_abs_diff": 1.9188158214092255,
+        "n_diff": 477,
+        "columns_identical": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ]
+      },
+      "role": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "physical_event_id": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "energy_MeV": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "contained": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "charge": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": true
+      },
+      "target_MeV": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": false,
+        "max_abs_diff": 1279.8289956827248,
+        "n_diff": 477
+      },
+      "energy_target": {
+        "shape_old": [
+          480
+        ],
+        "shape_new": [
+          480
+        ],
+        "identical": false
+      },
+      "new_only": []
+    }
+  }
+}
