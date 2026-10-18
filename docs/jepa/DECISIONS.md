@@ -1154,3 +1154,11 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   (loss divided by 4, one optimizer step per 4 micro-batches; the manifest records both). Steps,
   optimizer, schedule and the effective batch are unchanged, so no registered numeric moved. The R-6
   smoke data cache is intact (`/ceph/dwong/jepa/data/lucid_r6`, readout `readout_pmt_r6`).
+
+- **2026-10-18 — R5-ext re-run after the R-6 detectability freeze (labelled follow-up, no verdict
+  change).** `results/jepa/20261018_wp3_e1c_ext_r5ext2/attempt_001` (balanced init, code `f6f9028`,
+  0.137748 worker-hours): 7 pass / 3 not_evaluable (identical to the pre-freeze run — the protocol is
+  deterministic). Against the R5 ordering rule: γ = 1.0 has 5/5 evaluable seeds with **2/5 wins**
+  (fail); γ = 0.5 has only 2/5 evaluable seeds (depth 3 ineligible in three) → `not_evaluable`. So
+  the balanced initialisation restores evaluability but does not demonstrate the depth ordering;
+  reported beside R5, which remains `not_evaluable`. E1 cumulative CPU 8.94 h of 24.

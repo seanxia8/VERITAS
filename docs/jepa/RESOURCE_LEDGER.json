@@ -31,7 +31,7 @@
       "allocated_workers": null,
       "projection_status": "pending_A3_revision_host_acceptance_and_complete_benchmark",
       "launch_allowed": false,
-      "charged_cpu_hours": 8.79784,
+      "charged_cpu_hours": 8.935588,
       "charged_gpu_hours": 0
     },
     "E2": {
@@ -705,6 +705,24 @@
       "extension": "R5-ext",
       "evidence": "results/jepa/20261017_wp3_e1c_ext/",
       "note": "balanced init follow-up; 7 pass / 3 not_evaluable"
+    },
+    {
+      "id": "E1-E1c-ext-rerun-attempt_001_R5ext",
+      "campaign": "E1",
+      "host": "Dowlings-MacBook-Pro-2.local",
+      "device": "CPU",
+      "gpu_count": 0,
+      "worker_hours": 0.137748,
+      "cpu_hours": 0.137748,
+      "wall_seconds": 495.0,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "f6f9028",
+      "job_kind": "E1c-R5-ext-rerun-after-freeze",
+      "registered": false,
+      "extension": "R5-ext",
+      "evidence": "results/jepa/20261018_wp3_e1c_ext_r5ext2/",
+      "note": "R5-ext re-run after the R-6 detectability freeze (deterministic same result): 7 pass / 3 not_evaluable"
     }
   ]
 }
