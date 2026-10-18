@@ -1452,3 +1452,13 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   in the run manifests → remove that cell's datasets → next cell) the projection stays above 32 k
   for every cell (final after all 201 runs ≈33.0 k). `work`, returns, jobs, the evidence JSONs and
   the full ledger are kept. Nothing is deleted without its hashes being recorded first.
+
+- **2026-10-18 — early (authorised) reclaim executed at the quota HOLD line.** Step-3 run outputs pushed
+  free entries to 31 775, below the 32 000 HOLD line, so the operator executed **only the already
+  authorised** part of the reclaim: the archived s_p = 0.05 cache was removed (3 157 entries /
+  1 968 MB) after recording every dataset manifest sha256 and per-run state hash in
+  `/ceph/dwong/jepa/data/lucid_r6_v2/ARCHIVED_s005_EVIDENCE.json` (200 910 B, sha256 `f7126f74…`,
+  6 datasets / 522 runs) and keeping each archived `manifest.json` + `SHA256SUMS` (17 entries). Free
+  entries returned to **34 880**. Nothing else was deleted; the dev datasets, old code clones and
+  stale smoke sets remain untouched until grid start. Two transient guard HOLDs (another user's GPU
+  usage 40 % then 32 % on a GPU we use) did not affect the running job and produced no SHED.
