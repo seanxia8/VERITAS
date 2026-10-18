@@ -5,9 +5,19 @@
   "v4_caps": {
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
-      "cap_gpu_hours": 80,
+      "cap_gpu_hours": 170.0,
       "charged_gpu_hours": 0.0361,
-      "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)"
+      "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
+      "cap_history": [
+        {
+          "cap_hours": 80.0,
+          "source": "v4 section 3.5.6 planning number (before deepthought2 was chosen)"
+        },
+        {
+          "cap_hours": 170.0,
+          "source": "author G2 ruling 2026-10-18 option E"
+        }
+      ]
     },
     "E2_lucid_titan_deepthought": {
       "cap_gpu_hours": 300,

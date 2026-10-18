@@ -1242,3 +1242,43 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   interaction changes which registered predictions are evaluable, this is a **G2 budget gate**
   (see `docs/jepa/GATE_G2_BUDGET.md`), not an engineering choice: no criterion run starts until the
   author rules.
+
+## G2 ruling (author, 18 Oct 2026) — verbatim
+
+> G2 ruling (author, 18 Oct 2026). Record this verbatim.
+>
+> Option E, not listed in the gate: keep the registered protocol (10 000 steps, 5/3 seeds, all
+> secondary runs) and raise the L40S cap from 80 to 170 GPU-hours. That covers the 201 runs, the
+> 17 development runs and the evaluation margin. The 80 h figure was a planning number, set before
+> deepthought2 was chosen.
+> - Shared-server rules unchanged: at most 2 jobs on deepthought2; the §6.2 guard limits and the
+>   HOLD/SHED behaviour apply as before.
+> - Fallback: if the ledger plus projected cost reaches 170 h, apply option A (3 seeds,
+>   5 000 steps), recorded as a weaker protocol. Write no new gate for that.
+>
+> Optional speed-up, decided only on speed, because no criterion run exists yet:
+> - benchmark TF32 on the L40S, ≤ 0.1 GPU-h;
+> - if it gives ≥ 1.5× steps/s, enable TF32 for every LUCiD L40S run (all arms, development cohort
+>   included) and record it; otherwise keep the current fp32 setting;
+> - the bridge results stay as recorded.
+>
+> Environment overlay:
+> - Record the version and file hashes of every overlaid package.
+> - Re-verify them before each batch of runs. If anything changed, stop the batch and report.
+>
+> Then start the development cohort, followed by the main grid.
+
+### Consequences recorded (18 Oct 2026)
+
+- **L40S cap is now 170 GPU-hours** for the LUCiD work (development cohort, main grid, secondary
+  runs, evaluation); the 80 h figure is superseded as a planning number. The Titan 300 h, CPU 48 h
+  and quota caps are unchanged, as are the §6.2 memory/HOLD/SHED rules and the ≤2-concurrent-jobs
+  limit on deepthought2.
+- **Fallback without a new gate:** if the ledger plus projected cost reaches **170 h**, option A
+  (3 seeds for every main arm, 5 000 steps for every LUCiD arm) is applied and recorded as a
+  weaker protocol. No new gate is written for that.
+- **TF32 is an experiment, decided on speed only:** benchmark on the L40S within 0.1 GPU-h; enable
+  for every LUCiD L40S run only if it gives ≥ 1.5× steps/s, and record it; otherwise stay fp32.
+  The bridge results keep their recorded precision.
+- **Overlay provenance:** record every overlaid package's version and file hashes and re-verify
+  them before each batch of runs; on any change, stop the batch and report.

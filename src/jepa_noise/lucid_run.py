@@ -62,8 +62,10 @@ def load_run_config(path=None) -> dict:
     if int(t["steps"]) not in (10000, 5000) or int(t["batch"]) != 32:
         raise ValueError(f"{target}: training must stay at 10 000 steps (5 000 is the recorded "
                          f"§3.5.6 budget fallback, non-primary) / batch 32")
-    if not t.get("fp32") or t.get("tf32") or not t.get("final_step_freeze") or t.get("best_checkpoint"):
-        raise ValueError(f"{target}: fp32, TF32 off, final-step freeze, no best checkpoint")
+    if not t.get("fp32") or not t.get("final_step_freeze") or t.get("best_checkpoint"):
+        raise ValueError(f"{target}: fp32, final-step freeze, no best checkpoint")
+    # tf32 stays False in the registered config; the author-authorized L40S speed experiment
+    # (G2 ruling 2026-10-18) turns it on per job via --tf32 and records it in the manifest.
     if t["optimizer"] not in ("pending_review", "adamw", "muon_adamw"):
         raise ValueError(f"{target}: unknown optimizer {t['optimizer']!r}")
     if t["optimizer"] == "pending_review":
@@ -187,17 +189,22 @@ def dataset_key(cohort, law, setting, seed, kind=None, n_events=None, run_length
     key = f"{cohort}__{law}__{tag}__s{int(seed)}"
     return key if registered else f"{key}__n{n_events}x{run_length}"
 # --- runtime ----------------------------------------------------------------
-def configure_runtime(device="auto") -> torch.device:
-    """fp32, TF32 off, deterministic, single BLAS thread (§6.1)."""
+def configure_runtime(device="auto", *, tf32=False) -> torch.device:
+    """fp32 with TF32 off by default (registered), deterministic, single BLAS thread (§6.1).
+
+    ``tf32=True`` is the author-authorised (2026-10-18 G2 ruling) L40S speed experiment; it is
+    recorded in every manifest and only enabled if the benchmark shows >= 1.5x steps/s.
+    """
     try:
         from threadpoolctl import threadpool_limits
         threadpool_limits(limits=1, user_api="blas")
     except Exception:
         pass
-    torch.backends.cuda.matmul.allow_tf32 = False; torch.backends.cudnn.allow_tf32 = False
+    torch.backends.cuda.matmul.allow_tf32 = bool(tf32)
+    torch.backends.cudnn.allow_tf32 = bool(tf32)
     torch.backends.cudnn.deterministic = True; torch.backends.cudnn.benchmark = False
     try:
-        torch.set_float32_matmul_precision("highest")
+        torch.set_float32_matmul_precision("high" if tf32 else "highest")
     except Exception:
         pass
     torch.set_num_threads(1)
@@ -726,7 +733,8 @@ def run_one(*, arm_name, cell, seed, beta, config, arms_config, geometry, loader
             probe_datasets, dark_bank, out_root, data_root, config_sha, code_sha, status_text,
             device, steps=None, micro_batch=None, resume=None, stop_after=None,
             checkpoint_minutes=None, evaluate=False, allow_pending=False, step_callback=None,
-            probe_max_events=None, save_embeddings=True, physics_method="ridge", log=print) -> dict:
+            probe_max_events=None, save_embeddings=True, physics_method="ridge", tf32=False,
+            log=print) -> dict:
     """Train, freeze and optionally evaluate one run; writes only under out/data."""
     out_root, data_root = Path(out_root).resolve(), Path(data_root).resolve()
     run_id = run_id_for(cell.cell_id, arm_name, seed, beta)
@@ -758,6 +766,7 @@ def run_one(*, arm_name, cell, seed, beta, config, arms_config, geometry, loader
            "probe_datasets": {k: v.key for k, v in probe_datasets.items()},
            "probe_dataset_sha256": {k: v.manifest_sha256() for k, v in probe_datasets.items()},
            "steps": steps, "batch": batch, "micro_batch": micro, "gradient_accumulation": batch // micro,
+           "tf32": bool(tf32),
            "optimizer": None, "started_at_utc": started_at, "finished_at_utc": None,
            "wall_seconds": None, "steps_completed": 0, "registered": False}
     try:
@@ -1668,7 +1677,8 @@ def run_dev(args, config, *, geometry, gen_config, arms_config, data_root, out_r
             arms_config=arms_config, geometry=geometry, loader_dataset=loader_ds,
             probe_datasets=probe_datasets, dark_bank=dark, out_root=out_root, data_root=data_root,
             config_sha=config_sha, code_sha=code_sha, status_text=status_text, device=device,
-            evaluate=True, allow_pending=False, physics_method=physics_method, log=log)
+            evaluate=True, allow_pending=False, physics_method=physics_method, log=log,
+            tf32=bool(getattr(args, "tf32", False)))
     if step == 2:
         linear = {arm: results[arm]["manifest"].get("physics", {}).get("resolution")
                   for arm in config["cells"]["development"]["step2_arms"]}
@@ -1796,7 +1806,7 @@ def run_smoke(args, config, *, geometry, generator_config, arms_config, data_roo
                              "n_events": int(args.probe_events), "run_length": int(args.probe_run_events)},
                 cohort_name=name, law="F1", setting=spread, seed=seed, registered=False,
                 code_sha=code_sha, log=log)
-    return run_one(arm_name=args.arm, cell=cell, seed=0, beta=None, config=config,
+    return run_one(arm_name=args.arm, cell=cell, seed=0, beta=None, config=config, tf32=bool(getattr(args, "tf32", False)),
                    arms_config=arms_config, geometry=geometry, loader_dataset=loader_ds,
                    probe_datasets=probe_datasets, dark_bank=None, out_root=out_root,
                    data_root=data_root, config_sha=config_sha, code_sha=code_sha,
@@ -1881,6 +1891,7 @@ def run_grid(args, config, *, geometry, generator_config, arms_config, data_root
                                                  code_sha=code_sha)
                     dark = la.dark_bank_from_store(directory / "hits.npz", geometry)
                 result = run_one(arm_name=arm, cell=cell, seed=s, beta=beta.get(arm), config=config,
+                                 tf32=bool(getattr(args, "tf32", False)),
                                  arms_config=arms_config, geometry=geometry, loader_dataset=loader_ds,
                                  probe_datasets=probe_datasets, dark_bank=dark, out_root=out_root,
                                  data_root=data_root, config_sha=config_sha, code_sha=code_sha,
@@ -1912,6 +1923,9 @@ def build_parser():
     common.add_argument("--probe-max-events", type=int, default=None,
                         help="debug cap per probe run; marks every run non-registered")
     common.add_argument("--dry-run", action="store_true")
+    common.add_argument("--tf32", action="store_true",
+                        help="author-authorized (G2 ruling 2026-10-18) L40S speed experiment; "
+                             "recorded in every manifest; only enabled if it gives >= 1.5x steps/s")
     parser = argparse.ArgumentParser(prog="python -m jepa_noise.lucid_run")
     sub = parser.add_subparsers(dest="mode", required=True)
     grid = sub.add_parser("grid", parents=[common]); grid.add_argument("--cells", default=None)
@@ -1960,7 +1974,7 @@ def main(argv=None) -> int:
                               "runs": payload["run_count"],
                               "verdicts": {k: v["status"] for k, v in payload["verdicts"].items()}},
                              indent=1, sort_keys=True)); return 0
-        device = configure_runtime(args.device)
+        device = configure_runtime(args.device, tf32=bool(getattr(args, "tf32", False)))
         generator_config = lb.load_generator_config(
             args.generator_config or (ROOT / config["data"]["generator_config"]))
         arms_config = la.load_config(args.arms_config)

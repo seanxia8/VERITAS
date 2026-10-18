@@ -649,3 +649,17 @@ def test_dev_step4_refused_and_step1_writes_a_frozen_decision(tmp_path):
         lr.run_dev(_args(step=4), CONFIG, geometry=GEOM, gen_config=GEN, arms_config=ARMS,
                    data_root=tmp_path / "data", out_root=tmp_path / "out", config_sha="cfg",
                    code_sha="code", status_text="", device=CPU, dry_run=True, log=lambda *_: None)
+
+
+def test_tf32_is_off_by_default_and_recorded_when_enabled(tmp_path):
+    """The TF32 experiment (author G2 ruling 2026-10-18) is opt-in and recorded per run."""
+    from jepa_noise import lucid_run as lr
+    import inspect
+    sig = inspect.signature(lr.configure_runtime)
+    assert sig.parameters["tf32"].default is False
+    parser = lr.build_parser()
+    args = parser.parse_args(["smoke", "--out", str(tmp_path / "o"), "--data-root", str(tmp_path / "d")])
+    assert getattr(args, "tf32", False) is False
+    on = parser.parse_args(["smoke", "--out", str(tmp_path / "o"), "--data-root", str(tmp_path / "d"),
+                            "--tf32"])
+    assert on.tf32 is True

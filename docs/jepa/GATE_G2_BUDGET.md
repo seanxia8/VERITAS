@@ -1,6 +1,19 @@
 # Gate G2 — LUCiD compute budget
 
-Status: **OPEN — awaiting the author**. Date: 2026-10-18. Lead: `lead`.
+Status: **ANSWERED — Option E (author, 18 Oct 2026)**. Date: 2026-10-18. Lead: `lead`.
+
+## Ruling (verbatim in DECISIONS.md)
+
+> Option E, not listed in the gate: keep the registered protocol (10 000 steps, 5/3 seeds, all
+> secondary runs) and raise the L40S cap from 80 to 170 GPU-hours. That covers the 201 runs, the
+> 17 development runs and the evaluation margin. The 80 h figure was a planning number, set before
+> deepthought2 was chosen.
+
+Shared-server rules unchanged (≤2 jobs on deepthought2; §6.2 guard and HOLD/SHED as before).
+Fallback without a new gate: if the ledger plus projected cost reaches 170 h, option A (3 seeds,
+5 000 steps) is applied and recorded as a weaker protocol. TF32 is an authorised speed experiment
+(≤0.1 GPU-h; enable for all LUCiD L40S runs only if ≥1.5× steps/s). Overlay hashes must be recorded
+and re-verified before every batch of runs.
 
 ## The projection
 
