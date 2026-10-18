@@ -1388,3 +1388,24 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   detectability check) and tests aligned (119 tests across the four LUCiD suites). The committed
   decision JSON marginalised at 0.05 is therefore superseded and is being re-run at the in-force
   marginalisation; the committed copy will be replaced and the yields re-frozen from the re-run.
+
+- **2026-10-18 — detectability re-frozen at the in-force F3 marginalisation (`615421c`).** New JSON
+  `results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json` (file
+  sha256 `411190bc…`, content sha `8c9b96d2…`, `frozen_by_this_re_run`, code `615421c`) replaces the
+  0.05-marginalised JSON (`1e4407ac…`, recorded as superseded). Marginalisation now `s_p = 0.10`
+  (was 0.05); the F3-signal ladder attempted [0.05, 0.10] and ends at 0.10; the s_p restart block
+  records 0.1 → 0.1 with the registered default 0.05 and the step-3 cap 0.10. Fallback ladder
+  unchanged: raise Y_hi 320 000 → 539 433.96; F2 a 0.1 → 0.2 → 0.5; F3 0.05 → 0.10.
+  **Yields are unchanged** (Y_lo 6 298.44, Y_hi 539 433.965, median 58 288.856 — the bounds come from
+  the hit-fraction/module-charge targets, not from the variance), and the branches are unchanged:
+  F1 eligible {0.05, 0.10}, s = 0.02 excluded, F2 at a = 0.50, F3 `null` → R12 `not_evaluable` no
+  gate, G6 false, R6/R7 evaluable; occupancy at Y_lo comfortable (within 106, across proxy 98).
+  **Old → new ceilings** (Δ ≤ −0.0035, no pass/fail change): F1 0.02 0.2609 → **0.2574**;
+  F1 0.05 0.6865 → **0.6835**; F1 0.10 0.8928 → **0.8898**; F3 0.3249 → **0.3228**; F2 0.9209 →
+  **0.9189**; T 0.9857 → **0.9855**.
+- **2026-10-18 — dataset-cache coherence finding.** The cached LUCiD datasets were generated when
+  the generator's F3 spread was 0.05; the generator digest does not cover that parameter, but the
+  per-run **state hashes** do, and `verify_manifest` correctly raises `state hash mismatch` on the
+  cached runs. The old cache is being moved aside (kept as evidence, not deleted) and regenerated at
+  s_p = 0.10 (~11–12 min CPU, ~1.9 GB, ~3 k entries; CPU-generation cap ≈0.45/48 h). No retained
+  dataset from the 0.05 era is usable.

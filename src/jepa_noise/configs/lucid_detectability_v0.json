@@ -164,11 +164,11 @@
   },
   "decision_freeze_status": "superseded_pending_r6_freeze",
   "frozen_decision": {
-    "path": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
-    "sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64",
-    "content_sha256": "307a0771f5406e0e0542ca11442a9a7471033ad9fe967d293ce082f035d74bc6",
+    "path": "results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json",
+    "sha256": "411190bc2cfac55a6009e6e329485fe2905cc0c2bc9bae6262277433f1a807a7",
+    "content_sha256": "8c9b96d25606eec8d7a973c9377da73352150fbe66d4d8fe694efa7abf6b35ae",
     "status": "frozen",
-    "frozen_at_code": "0ab86e6df7e7a187d7d4b31f02a5aab7ada09a21",
+    "frozen_at_code": "615421c8e799118f7b47148d9f01dd100f924c0b",
     "y_lo": 6298.436828,
     "y_hi": 539433.964527,
     "median_yield_photons": 58288.856,
@@ -193,6 +193,7 @@
       "r12": "not_evaluable_no_gate",
       "g6": false
     },
-    "superseded_decisions": "the 2026-10-17 dark-off decisions and the intermediate 28e24c8 run"
+    "superseded_decisions": "the 2026-10-17 dark-off decisions and the intermediate 28e24c8 run",
+    "f3_marginalised_spread": 0.1
   }
 }

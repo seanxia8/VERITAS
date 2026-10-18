@@ -179,9 +179,9 @@
       "status": "superseded_pending_r6_freeze",
       "superseded_reason": "frozen on 2026-10-17 before the merged PMT R-6 dark-on readout; Y_lo/Y_hi must be re-derived by the section 3.5.3a check on readout_pmt_r6 before use",
       "decisions": "../DECISIONS.md section 'WP4b \u00a73.5.3a detectability check \u2014 FROZEN'",
-      "decision_json": "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json",
-      "decision_json_sha256": "1e4407ac4175b5ff468202f7b940c55d4a605c977103eecd9a5520dd9f850c64",
-      "decision_content_sha256": "307a0771f5406e0e0542ca11442a9a7471033ad9fe967d293ce082f035d74bc6",
+      "decision_json": "results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json",
+      "decision_json_sha256": "411190bc2cfac55a6009e6e329485fe2905cc0c2bc9bae6262277433f1a807a7",
+      "decision_content_sha256": "8c9b96d25606eec8d7a973c9377da73352150fbe66d4d8fe694efa7abf6b35ae",
       "y_lo_basis": "median 199.0 hit PMTs at Y_lo (hit fraction 0.0997)",
       "y_hi_basis": "hit_fraction_0.95 bound (median 0.9501; the 300 PE bound would allow 834189.16)",
       "median_yield_photons": 58288.856,
@@ -198,11 +198,12 @@
         "evidence": "/ceph/dwong/jepa/jobs/wp4b_benchmark_wcte_frozen_yields_1000.json",
         "evidence_sha256": "a2b34ae942b2b80ecb006f24999f18128d53ddbcd21fc3a4d1f3db50da46d372"
       },
-      "decision_status": "frozen_by_r6_rerun_0ab86e6",
+      "decision_status": "frozen_by_r6_consistency_rerun_615421c",
       "supersedes": [
         "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json (v1, dark-off)",
         "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_v2.json (v2, dark-off, F3 known)",
-        "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6_at989773c.json (intermediate, superseded)"
+        "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6_at989773c.json (intermediate, superseded)",
+        "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json (0.05-marginalised, superseded)"
       ],
       "readout_label": "readout_pmt_r6",
       "v_dark": 0.00109,
@@ -211,7 +212,7 @@
         "previous": 0.1,
         "new_at_start": 0.05,
         "raised_to": 0.1,
-        "reason": "ladder step 4 after Y_hi and F2 (F3 fails at both 0.05 and 0.10)"
+        "reason": "ladder step 4 after Y_hi and F2 (F3 fails at both 0.05 and 0.10); marginalisation now uses the in-force 0.10"
       },
       "f1_eligible": [
         0.05,
@@ -226,7 +227,8 @@
       },
       "f2p_used": false,
       "g6": false,
-      "r12": "not_evaluable_no_gate"
+      "r12": "not_evaluable_no_gate",
+      "f3_marginalisation_spread": 0.1
     },
     "readout_window_ns": [
       -200.0,
