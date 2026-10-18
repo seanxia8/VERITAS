@@ -7,6 +7,12 @@ Option E). Ledger: `docs/jepa/RESOURCE_LEDGER.json`. Overlay: `/ceph/dwong/jepa/
 
 ## Volume and cost (measured 0.639 h/run training; +10–20 % evaluation)
 
+> **18 Oct 2026 correction:** that per-run cost came from a 500-step smoke with only **2** runs, which
+> was fully loader-cached. On real 100-run cohorts the loader default (12 cached runs) thrashed and
+> trained at 3.07 s/step. `loader_cache_runs: 128` is now set (`327c66d`); the per-run cost **must be
+> re-measured on a dev-cohort (100-run) smoke before this table is quoted again**. The cap and the
+> fallback rule are unchanged.
+
 | block | runs | GPU-h (training) |
 |---|---|---|
 | development cohort: step 2 (2) + step 3 (15) | 17 | ~10.9 |
