@@ -1507,3 +1507,42 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   β = 10 → 0.25750 m (all `ridge`, n = 10 000, failure rate 0); the β selection will be redone on the
   new time-origin input. L40S charged **5.4574 / 170 GPU-h**, of which **3.8606 h superseded** by this
   ruling; CPU generation 0.4452/48; free entries 34 859; nothing running.
+
+## Author corrections before the redo, 18 Oct 2026 (verbatim; part of A9)
+
+> Thanks: a clean stop and an honest audit note. Two corrections before the redo (author, 18 Oct
+> 2026; record verbatim; part of A9):
+>
+> 1. Token time is the digit time minus the NHits trigger time from the readout rule, after the
+>    prompt-window cut. The true emission time must never enter any input or any token. It exists
+>    only as a truth/diagnostic field. Your plan's phrase "true-emission-origin token times" is
+>    wrong if it means anything else: confirm.
+> 2. Leak guard:
+>    - The generator gives each event an emission-time offset, uniform in [−50, +50] ns from the
+>      keyed RNG and recorded as truth. The readout window stays as it is.
+>    - Add an invariance test: shifting every photon time of an event by a constant leaves the
+>      tokens unchanged (bit-identical apart from dark-hit draws, which use their own keys), and
+>      leaves the trigger-relative times unchanged.
+>    - The time-of-flight reference fit is unaffected; it estimates t0.
+> 3. Wait for the PMT SHA I name. Its head 5f4ecc0 carries the N = 4 and prompt-window code, but its
+>    validation is not yet reported, so do not merge it before I name it. Meanwhile, implement 1–2
+>    against that interface with unit tests, but generate no datasets.
+> 4. Then: merge, regenerate the development datasets, redo steps 2 and 3, report the β table, and
+>    stop for my review before the 201-run grid.
+
+### Lead confirmation and interpretation (§1)
+
+- **Confirmed, and my earlier phrasing was wrong.** There is no "true-emission-origin token time" in
+  the design. The token time is, exactly:
+  `t_token = t_digit − t_NHits_trigger`, where `t_digit` is the readout digit time **after** the
+  prompt-window cut and `t_NHits_trigger` is the trigger returned by the PMT readout's rule
+  (N = 4 digits within 20 ns; `None` → the readout-window start, counted). The **true emission time
+  (and the per-event emission-time offset) never enters any input, token, feature, mask or probe**;
+  it is stored only as truth/diagnostic metadata. Any code path that would use it as an input is a
+  defect. The invariance test in §2 is the guard that proves it.
+- **The event emission-time offset** is drawn per event, uniform in [−50, +50] ns, from the keyed
+  RNG and recorded as truth; the readout window is unchanged. Shifting every photon time of an event
+  by a constant must leave the tokens bit-identical (apart from dark hits, which use their own keys)
+  and leave the trigger-relative times unchanged.
+- **The time-of-flight reference fit is unchanged**: it consumes digit times and estimates t0, so
+  the trigger-relative convention does not affect its resolution.
