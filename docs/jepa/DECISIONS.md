@@ -1193,3 +1193,23 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   500-step smoke on deepthought2, which is requested now. Until it lands, the grid's cost against
   the 80 GPU-h L40S cap is unprojected and **no criterion run starts**; if the optimised L40S
   projection still exceeds the caps, the honest outcome is G2 with options, not a quiet run.
+
+## L40S environment blocker and the overlay decision (18 Oct 2026)
+
+- **2026-10-18 — the validated L40S venv cannot import the WP5 stack as-is.** The first L40S smoke
+  attempt (code `3e739b6`, clean clone) failed at **import** in 1.87 s with
+  `ModuleNotFoundError: No module named 'scipy'` (the venv `/ceph/dwong/transformer/.venv`, torch
+  **2.5.1+cu124**, numpy 1.26.4, has no scipy/sklearn; seven WP5 modules import scipy). No CUDA
+  context was created and **no GPU-hours were consumed**; the 40k scaling job is blocked by the same
+  chain. (The path I gave the operator, `/home/dwong/transformer/.venv`, does not exist; the real
+  venv is under `/ceph/dwong/`.)
+- **2026-10-18 — decision: keep the cu124 torch pin and use a read-only PYTHONPATH overlay** for
+  the CPU numeric libraries (`scipy`, `sklearn`, `joblib`, `threadpoolctl`) symlinked from the host's
+  anaconda environment into `/ceph/dwong/jepa/env_overlay` (~10 entries). Nothing is installed into
+  the venv, nothing is written by it, and the GPU stack stays exactly the pinned
+  torch 2.5.1+cu124. The alternative — the host's cu121 anaconda interpreter — is rejected because
+  the pinned build is a comparability requirement ("other torch/cuda builds are not comparable"),
+  and a new environment is impossible on quota (≈38.4 k free entries against a ~100 k requirement),
+  which would otherwise have been gate **G-ENV**. The overlay's provenance and an equivalence
+  evidence set (import line, the committed environment probe, and a CPU numeric identity check of
+  the scipy-dependent probe/CRLB path) must be recorded before any L40S training number is used.
