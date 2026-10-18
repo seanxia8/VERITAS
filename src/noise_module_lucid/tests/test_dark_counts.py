@@ -151,3 +151,12 @@ def test_diagnostic_time_origins():
     np.testing.assert_array_equal(time_feature(t, (-200.0, 800.0), origin="first_digit"), (t - t.min()) / 20)
     assert time_feature(np.array([]), (-200.0, 800.0), origin="first_digit").size == 0
     with pytest.raises(ValueError, match="origin"): time_feature(t, (-200.0, 800.0), origin="vertex")
+
+
+def test_nhits_time_origin_falls_back_to_the_window_start():
+    from noise_module_lucid.lucid_integration import time_feature
+    t = np.array([-150.0, 100.0, 101.0, 103.0])
+    # The isolated early (dark-like) digit does not set the origin; the prompt cluster does.
+    np.testing.assert_allclose(time_feature(t, (-200.0, 800.0), origin="nhits"), (t - 100.0) / 20)
+    sparse = np.array([10.0, 500.0])
+    np.testing.assert_allclose(time_feature(sparse, (-200.0, 800.0), origin="nhits"), (sparse + 200.0) / 20)

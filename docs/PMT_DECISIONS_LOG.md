@@ -194,7 +194,7 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 - The logging adds no random draws and keeps the summed loss in the same order, so the training trajectory is unchanged.
 
 
-**Proposed time-feature rule (agent, 18 Oct 2026). PROPOSED, not adopted. Recorded before any test-event re-run; it needs the author's approval.**
+**Proposed time-feature rule (agent, 18 Oct 2026).** Approved by the author on 18 Oct 2026 (fifth message), with N = 3; see E43 for the corrected dark bound. Recorded before any test-event re-run.
 
 - **Principles.** The time feature's origin must be:
   1. operational: computed from the digits alone, never from truth;
@@ -209,6 +209,45 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
 - **No trigger.** If no such cluster exists, the origin is the window start and the placement is counted as untriggered. The count is reported, never dropped silently.
 - **Expectation.** Arm 1 (truth t = 0) is an optimistic bound: about 0.68 × constant on validation. The first-digit arm (0.78) is closer to what a hit-derived origin should give without dark counts.
 - **Open choice for the author.** Run one validation-only check of this rule (dark counts on and off, seeds 20–22) before the single test-event re-run, or go straight to the test re-run.
+
+---
+
+## Author message, 18 Oct 2026, fifth (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim.
+>
+> 1. The NHits time-origin rule is approved as proposed:
+>    - origin = the earliest digit time t with ≥ N digits in [t, t + 20 ns];
+>    - N = 3, from the stated dark-coincidence bound (< 1e-3 per 1 µs window at 1 kHz and 1995 PMTs);
+>    - fallback to the window start, counted per cell.
+>    Implement it in the readout package as a public function, for example
+>    nhits_trigger_time(digits, n=3, window_ns=20), with tests:
+>    - a dark-only window almost never triggers (measure the rate);
+>    - a prompt event triggers within 1 ns of its first true prompt cluster;
+>    - the result is unchanged when dark counts are added to an event that has a prompt cluster.
+> 2. Validate first, on the validation split only: dark counts on and off, seeds 20–22. This checks
+>    that the rule works and reports the fallback rate; it does not tune anything.
+>    - If both arms are within the 0.73–0.88 band of arm 0 and the fallback rate is < 1%, re-run
+>      once on the test events as R-4c, beside R-4 and R-4b.
+>    - Otherwise, report and stop.
+> 3. Commit, push, and report the SHA that contains the function. The JEPA study will adopt the same
+>    origin for its tokens.
+> 4. WP7 still waits for Junjie's D-E answer and my "launch WP7". Update the WP8 draft with one line on
+>    R-4c; do not post it.
+
+**Implementation findings and validation design, recorded before any validation run (18 Oct 2026, agent; E43):**
+- `readout.nhits_trigger_time(digits, n=3, window_ns=20.0)` implements the rule as approved. The time-feature origin `"nhits"` falls back to the window start, and `multienergy_data` counts fallbacks per placement and per (role, energy) cell.
+- **Three measured properties differ from the approval's premises** (`results/pmt_r4c_dev_2026-10-18/nhits_rule/nhits_measured.json`):
+  1. **Dark-only rate at N = 3:** about 1.2×10⁻³ per 1 µs window, above the stated < 10⁻³. The proposal's 5×10⁻⁴ counted 50 fixed 20 ns bins, but the rule slides from every digit: about 2.0 dark digits × P(≥ 2 more within 20 ns). Applied correctly, the principle gives N = 4, which shows no triggers in 20 000 windows. **This was my error in the proposal.**
+  2. **Prompt accuracy:** with the timing width off, the trigger is within 1 ns of the true first prompt cluster. With the reference width it is early by a median of 0.6–3.3 ns (worst 5.8 ns), more so with more hit PMTs, because the earliest of many jittered digits sits in the low tail. That is 0.03–0.17 time-feature units at the median.
+  3. **Dark invariance:** adding dark counts changes the trigger in 26 of 600 prompt events (4.3%, 95% CI 2.8–6.3%). A dark digit up to 20 ns before the prompt cluster can complete an earlier cluster, so the move is at most 20 ns (1 unit). 22 changes move the trigger more than 1 ns earlier; 21 of those have a dark digit in the preceding 20 ns. The remaining one (event 85) is a dark-only three-fold coincidence at −164 ns, which set the trigger 262 ns (13 units) before the prompt light. That is the N = 3 false-trigger mode of finding 1, and N = 4 would have excluded it.
+
+  The tests assert these measured properties, not the stated ones.
+- **Validation, as approved:** N = 3, origin `"nhits"`, 20 ns unit, deposited-energy target (the R-4 endpoint), dark counts on and off, seeds 20–22, validation split only. Checkpoint selection is unchanged, with the same caveat.
+- **Criterion, fixed now:**
+  - each arm passes if every seed's pooled validation vertex ratio is ≤ 0.88, the upper edge of arm 0's band (a value below 0.73 is better than arm 0 and counts as passing);
+  - and the fallback rate over all placements is < 1%.
+- **Test-event re-run held for the author** even if the criterion is met, because finding 1 shows the approved N rests on a bound that does not hold. The test events are single-use, and the author may prefer N = 4. Nothing is tuned.
 
 ---
 

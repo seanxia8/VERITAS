@@ -341,6 +341,31 @@ def dark_noise_window(params: ReadoutParams, n_channels: int, *, seed: int, run:
                          photon_batch=empty, stream=f"dark_window:{int(window)}")
 
 
+NHITS_N = 3             # author decision, 18 Oct 2026 (fifth message)
+NHITS_WINDOW_NS = 20.0
+
+
+def nhits_trigger_time(digits, n: int = NHITS_N, window_ns: float = NHITS_WINDOW_NS) -> float | None:
+    """NHits trigger: the earliest digit time t with at least ``n`` digits in [t, t + window_ns].
+
+    ``digits`` is a :class:`Digits` or an array of digit times (ns). Returns ``None`` when no
+    such cluster exists; the caller then falls back to the window start and counts it. Only
+    digit times are used, never truth. A dark digit can only move the trigger earlier, and only
+    when it completes a cluster with ``n - 1`` later digits.
+    """
+    if not isinstance(n, (int, np.integer)) or isinstance(n, bool) or n < 1:
+        raise ValueError("n must be a positive integer")
+    if not (np.isfinite(window_ns) and window_ns >= 0):
+        raise ValueError("finite non-negative window_ns required")
+    t = np.sort(np.asarray(digits.time if isinstance(digits, Digits) else digits, dtype=float).ravel())
+    if not np.all(np.isfinite(t)):
+        raise ValueError("finite digit times required")
+    if t.size < n:
+        return None
+    ok = np.flatnonzero(t[n-1:] - t[:t.size-n+1] <= window_ns)
+    return float(t[ok[0]]) if ok.size else None
+
+
 def with_change(ref: ReadoutParams, **change) -> ReadoutParams:
     """``ref`` with exactly the given fields changed (one field for a valid N cell)."""
     out = replace(ref, **change)

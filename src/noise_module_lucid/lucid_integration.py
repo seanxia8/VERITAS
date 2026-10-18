@@ -10,7 +10,7 @@ import time
 import numpy as np
 from scipy.spatial.transform import Rotation
 from .lucid_transport import PromptTransport
-from .readout import readout_chain
+from .readout import nhits_trigger_time, readout_chain
 from . import response_manifest
 
 
@@ -24,7 +24,7 @@ def response(geometry):
 TIME_FEATURE_UNIT_NS = 20.0  # author rule, 18 Oct 2026 (recorded at fca0af9 before R-4b)
 
 
-TIME_ORIGINS = ("window_start", "trigger", "first_digit")
+TIME_ORIGINS = ("window_start", "trigger", "first_digit", "nhits")
 
 
 def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS, origin="window_start"):
@@ -35,7 +35,9 @@ def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS, origin="windo
     comparable to the prompt-light spread; ``unit_ns=None`` gives the R-4 (E33) unit, the
     window length (1 us). The other origins exist for the validation-only diagnostic (E40):
     ``"trigger"`` is t = 0, to which ``window_ns`` is referred, and ``"first_digit"`` is the
-    earliest digit time, as in ``56179eb``.
+    earliest digit time, as in ``56179eb``. ``"nhits"`` is the author-approved rule (18 Oct 2026,
+    fifth message): :func:`readout.nhits_trigger_time`, falling back to the window start when
+    nothing triggers (callers count those placements).
     """
     lo, hi = (float(x) for x in window_ns)
     unit = (hi - lo) if unit_ns is None else float(unit_ns)
@@ -48,6 +50,9 @@ def time_feature(time_ns, window_ns, unit_ns=TIME_FEATURE_UNIT_NS, origin="windo
         zero = 0.0
     elif origin == "first_digit":
         zero = t.min() if t.size else 0.0
+    elif origin == "nhits":
+        trig = nhits_trigger_time(t)
+        zero = lo if trig is None else trig
     else:
         raise ValueError(f"unknown time origin {origin!r}")
     return (t - zero) / unit
