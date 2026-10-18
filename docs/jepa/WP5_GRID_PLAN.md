@@ -51,3 +51,21 @@ No registered numeric may change without a gate: the 5 000-step / 3-seed fallbac
 registered degradation and is recorded as a weaker protocol. R8 is reported `not_evaluable` until
 its shifted-set construction is implemented (its criterion text is recorded). R12 stays
 `not_evaluable` from the frozen F3 outcome.
+
+
+## Measured per-arm run walls (dev cohort, first runs, L40S, s_p = 0.10)
+
+| arm | wall (s) | h/run | notes |
+|---|---|---|---|
+| `sigreg_jepa` | 2 463.5 | 0.684 | 2 463.51 s for 10 000 steps = 0.246 s/step |
+| `mae_mse` | 1 264.5 | 0.351 | 0.103 s/step (cheapest arm) |
+| `sigreg_jepa_anchored` | 3 053.6 | 0.848 | 0.305 s/step (anchor needs the extra encode) |
+| `mae_chi2`, `ijepa_ema`, `anchor_only`, `*-dark` | to measure | — | refine when step 3 completes |
+
+**Projection method:** weight the measured per-arm walls by the grid's arm counts (main cells:
+sigreg_jepa 5 seeds, anchored 5, mae_mse 5, mae_chi2 3, ijepa_ema 3, anchor_only 3, dark 3 per cell;
+secondary runs per §3.5.6), add evaluation (now cheap: streaming, seconds per run), and compare with
+the 170 h cap. At the currently measured walls a naive 0.85 h/run would be ≈171 h (at the cap), but
+mae_mse alone is 0.35 h/run and the unmeasured arms will move the weighted mean; the operator
+refines the number from the first completed grid cell. **Fallback (no new gate):** if ledger +
+projection reaches 170 h, option A (3 seeds, 5 000 steps) applies as a recorded weaker protocol.
