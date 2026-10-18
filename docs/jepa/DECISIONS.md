@@ -1330,3 +1330,25 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   (0.1544 GPU-h, `superseded_by_reference_fit_config_fix`) and the cache-thrash step 2
   (0.3949 GPU-h). L40S ledger **0.6127 of 170 GPU-h**. The dev datasets are complete and reusable
   (code-SHA-independent; geometry/generator digests only).
+
+## Probe-evaluation memory blow-up and the streaming fix (18 Oct 2026)
+
+- **2026-10-18 — a completed dev run was SHED by the guard during inline evaluation.** Run 1 of dev
+  step 2 at `327c66d` trained its 10 000 steps at **0.2195 s/step** (2 195.2 s; the loader fix holds:
+  steady 0.217 s/step, 12.56 GiB RSS for 100 cached runs), then the evaluation phase pushed the job to
+  **66.1 GiB RAM against the 64 GB per-job cap** and the guard SHED it (exit 143, 0.6876 GPU-h booked
+  as `killed_guard_shed`). Root cause: the per-event probe tables hold 10 000 events × 1 995 PMTs =
+  19.95 M rows of 128-d tokens in **float64 ≈ 20.4 GB per split**, for four forms × six kinds with
+  train+test and a concatenation copy for the propagated form → tens of GB. This affects **every
+  registered run's evaluation**.
+- **2026-10-18 — decision: fix the evaluation (option B), not the §6.2 cap.** Raising the RAM cap
+  (option A) would need an author sign-off and would still be inefficient; the dev-only stopgap
+  (`--probe-max-events`, option C) cannot serve registered criteria. The evaluation is being
+  reworked to **stream sufficient statistics over event chunks in float32** (Gram matrices / Xᵀy,
+  5 run-grouped folds, fold-internal standardisation — the v3 §1.3 protocol unchanged), with the
+  chunk and measured peak recorded in `probes.json`. The 64 GB cap stands.
+- **2026-10-18 — re-measured cost with the loader fix:** 0.217 s/step steady → **0.603 h per
+  10 000-step run** (training only); 201 runs ≈121.3 h, dev cohort (17) ≈10.25 h ≈131.5 h before
+  evaluation — inside the 170 h cap if evaluation is fixed and its cost stays modest. L40S charged
+  **1.3490 / 170 GPU-h**; CPU generation cap charged **0.2620 / 48 wall-h** (dev datasets, single
+  threaded, code-SHA-independent cache).
