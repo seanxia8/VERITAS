@@ -681,7 +681,10 @@ def _decisions_md(payload: dict) -> str:
              f"code `{payload['code_sha']}`.",
              f"- Response: `{fixed['relpath']}` sha256 `{fixed['sha256']}` "
              f"(charge gain {fixed['gain_rule']}, timing width {fixed['timing_width_factor_rule']}); "
-             f"dark counts {payload['dark_counts']} (v_dark = {payload['v_dark']:g}).",
+             f"dark counts {payload['dark_counts']} (v_dark = {payload['v_dark']:g} = "
+             f"{payload['v_dark_derivation']['lambda_dark']:g} x "
+             f"{1.0 + payload['sigma_spe'] ** 2:.2f} PE^2, window "
+             f"{payload['readout_window_ns']} ns).",
              f"- F3 marginalised: {str(payload['f3_marginalised']).lower()} at s_p = "
              f"{payload['f3_marginalised_spread']:g}; variance `{payload['variance_formula']}`.",
              f"- Yield range: `Y_lo = {yields['y_lo']:.6g}`, `Y_hi = {yields['y_hi']:.6g}` photons "
@@ -741,6 +744,24 @@ def _freeze(payload: dict) -> dict:
     out.pop("content_sha256", None)
     out["content_sha256"] = _sha(out)
     return out
+def v_dark_derivation(check: CheckConfig, gen_cfg) -> dict:
+    """Record the dark variance, its derivation and the readout window beside the values."""
+    reference = lb.generator_reference(gen_cfg)
+    lam = float(check.v_dark) / (1.0 + float(check.sigma_spe) ** 2)
+    return {"value_pe2": float(check.v_dark),
+            "formula": "lambda_dark * (1 + sigma_spe^2)",
+            "lambda_dark": lam,
+            "lambda_formula": "dark_rate_hz * (window_end - window_start) * 1e-9",
+            "dark_rate_hz": float(gen_cfg.dark_rate_hz),
+            "readout_window_ns": list(gen_cfg.readout_window_ns),
+            "window_ns": float(gen_cfg.window_ns),
+            "sigma_spe": float(check.sigma_spe),
+            "source": f"{reference.relpath} (PMT R-6, dark counts on)",
+            "source_sha256": reference.sha256,
+            "derived_not_literal": True,
+            "note": "0.001 x 1.09 = 0.00109 PE^2; it enters mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2"}
+
+
 def build_decision_payload(geometry, gen_cfg, check: CheckConfig, table: CeilingTable, steps, branches,
                            yields, occupancy, *, seed: int | None = None, code_sha: str | None = None,
                            frozen: bool = False, previous_path: Path | str | None = None) -> dict:
@@ -760,7 +781,8 @@ def build_decision_payload(geometry, gen_cfg, check: CheckConfig, table: Ceiling
         "f3_marginalised_spread": check.f3_marginalised_spread,
         "code_sha": code_sha or lb.current_code_sha(), "seed": seed,
         "config_digest": check.digest, "generator_config_digest": gen_cfg.digest,
-        "sigma_spe": check.sigma_spe, "v_dark": check.v_dark, "run_events": check.run_events,
+        "sigma_spe": check.sigma_spe, "v_dark": check.v_dark,
+        "v_dark_derivation": v_dark_derivation(check, gen_cfg), "run_events": check.run_events,
         "n_events": check.n_events, "geometry": {**geometry.summary(), "geometry_sha256": geometry.digest},
         "yields": {**yields, "median_yield": table.median_yield, "median_policy": check.median_policy},
         "occupancy": occupancy,
@@ -790,7 +812,7 @@ def validate_decision(payload: Mapping) -> None:
                 "occupancy", "table", "fallback_steps", "branches", "rebenchmark", "content_sha256",
                 "decisions_md", "dark_counts", "fixed_response", "f3_marginalised",
                 "variance_formula", "previous_decision", "ceiling_comparison", "s_p_restart",
-                "readout_window_ns", "decision_freeze_status")
+                "readout_window_ns", "decision_freeze_status", "v_dark_derivation")
     missing = [k for k in required if k not in payload]
     if missing:
         raise ValueError(f"decision payload missing {missing}")
@@ -804,6 +826,14 @@ def validate_decision(payload: Mapping) -> None:
     if float(payload["f3_marginalised_spread"]) != float(lb.F3_SPREAD):
         raise ValueError(f"decision s_p {payload['f3_marginalised_spread']!r} != the "
                          f"registered default {lb.F3_SPREAD!r}")
+    derivation = payload["v_dark_derivation"]
+    if float(derivation["value_pe2"]) != float(payload["v_dark"]):
+        raise ValueError("decision v_dark_derivation.value_pe2 != v_dark")
+    if round(float(derivation["lambda_dark"]), 12) != round(
+            float(payload["v_dark"]) / (1.0 + float(payload["sigma_spe"]) ** 2), 12):
+        raise ValueError("decision v_dark derivation does not reproduce the value")
+    if list(derivation["readout_window_ns"]) != list(lb.R6_READOUT_WINDOW_NS):
+        raise ValueError("decision v_dark_derivation window != the R-6 window")
     if payload["f3_marginalised"] is not True or payload["variance_formula"] != VARIANCE_FORMULA:
         raise ValueError("decision does not marginalise F3 with the registered variance")
     if payload["fixed_response"].get("sha256") != lb.reference_response().sha256:

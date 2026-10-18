@@ -159,6 +159,8 @@
       "raise Y_hi first",
       "then the F2 a values",
       "then (only if still short) s_p up to 0.10"
-    ]
-  }
+    ],
+    "decision_freeze_status": "superseded_pending_r6_freeze"
+  },
+  "decision_freeze_status": "superseded_pending_r6_freeze"
 }

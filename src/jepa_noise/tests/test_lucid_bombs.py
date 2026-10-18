@@ -721,6 +721,33 @@ def test_dark_counts_are_on_and_derived_from_the_manifest():
         replace(GEN_CFG, readout_window_ns=(0.0, 0.0))
 
 
+def test_generator_config_loader_validates_the_response_values_against_the_manifest(tmp_path):
+    """spe_sigma / threshold_pe / window are the manifest's; the loader refuses drift."""
+    payload = json.loads(CONFIG.read_text())
+    for key, value in (("sigma_spe", 0.4), ("threshold_pe", 0.3)):
+        broken = json.loads(json.dumps(payload))
+        broken["generator"][key] = value
+        path = tmp_path / f"{key}.json"
+        path.write_text(json.dumps(broken))
+        with pytest.raises(ValueError, match=key):
+            lb.load_generator_config(path)
+    for key, value in (("readout_label", "readout_dark_off"), ("dark_counts", "off")):
+        broken = json.loads(json.dumps(payload))
+        broken[key] = value
+        path = tmp_path / f"{key}.json"
+        path.write_text(json.dumps(broken))
+        with pytest.raises(ValueError):
+            lb.load_generator_config(path)
+    broken = json.loads(json.dumps(payload))
+    broken["generator"]["readout_window_ns"] = [-100.0, 900.0]
+    path = tmp_path / "window.json"
+    path.write_text(json.dumps(broken))
+    with pytest.raises(ValueError, match="readout_window_ns|window"):
+        lb.load_generator_config(path)
+    # the R-6 values themselves load and equal the dataclass defaults
+    assert lb.load_generator_config(CONFIG) == lb.GeneratorConfig()
+
+
 def test_dark_hits_per_event_are_about_two_on_a_wcte_sized_geometry():
     """R-6 expectation: 1995 PMTs x 0.001 = ~2 dark hits per event (zero is common)."""
     # a small yield range keeps the shared Poisson columns small; dark draws do not depend on it

@@ -285,7 +285,7 @@
       "records": 512,
       "method": "noise_module_lucid.readout.dark_noise_window(params, n_channels, seed=, run=, window=), keyed on the dark_window:<window> stream",
       "status": "real_dark_noise_only_windows",
-      "note": "PMT R-6 turns dark counts on, so the bank is a real dark-noise-only draw (no source photons): ~2 dark hits per WTE-sized record against ~900 source hits per physics event. The anchor overlays one record per perturbed copy; R7b is evaluable again and is reported together with the dark-only draw's measured embedding change.",
+      "note": "PMT R-6 turns dark counts on, so the bank is a real dark-noise-only draw (no source photons): ~2 dark hits per WCTE-sized record against ~900 source hits per physics event. The anchor overlays one record per perturbed copy; R7b is evaluable again and is reported together with the dark-only draw's measured embedding change.",
       "source": "noise_module_lucid.readout.dark_noise_window",
       "readout_params": "the generator's bound R-6 values (1 kHz per PMT, window [-200, 800] ns, SPE sigma 0.3, threshold 0.25 PE, charge domain [0.25, 1000]) plus the fixed per-module parity charge gain and digit timing-width factor"
     },
@@ -487,5 +487,6 @@
     "The mae_chi2 covariance needs one cell spread s; law T's module-gain spread scales with r/R and the runbook fixes no single s. The runner passes s = 0.10 (T_SPREAD) for the law-T cell and s = 0.05 for R11b; both readings need confirmation.",
     "ijepa_ema target-encoder input (reported, not patched): lucid_arms.py:469-480 feeds the EMA target encoder the full input and gathers the masked target tokens, while v3 WP4 line 233 asks for the masked target-token input. The fix is inside lucid_arms.py, which is outside the WP5 runner fix's file scope; it is reported to the Lead and no silent patch is applied."
   ],
-  "dark_counts": "on"
+  "dark_counts": "on",
+  "decision_freeze_status": "superseded_pending_r6_freeze"
 }

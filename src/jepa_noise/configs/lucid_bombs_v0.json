@@ -286,7 +286,15 @@
       "probe_and_robustness_17x10k": 170000
     },
     "cores_at_most": 16,
-    "cpu_cap_wall_hours": 48.0
+    "cpu_cap_wall_hours": 48.0,
+    "readout_label": "readout_pmt_r6",
+    "dark_counts": "on",
+    "readout_window_ns": [
+      -200.0,
+      800.0
+    ],
+    "v_dark": 0.00109
   },
-  "dataset_seed": 20261017
+  "dataset_seed": 20261017,
+  "decision_freeze_status": "superseded_pending_r6_freeze"
 }

@@ -20,12 +20,11 @@ cosine EMA target (0.996 -> 1); the SIGReg arms use :mod:`jepa_noise.sigreg`.
 with ``D`` the diagonal part, ``u = mu_m``, ``s``/``s_p`` the cell's true spreads
 and ``sigma_spe``/``v_dark`` from the reference generator config (target-marginal
 second-moment approximation; threshold censoring ignored).  ``v_dark`` is the
-generator's dark-charge variance per window, ``lambda_dark (1 + sigma_spe^2)``
-(4200 Hz x 1000 ns x 1.09 = 0.004578 PE^2), which is positive, so ``C_m`` is
+R-6 dark-charge variance per window, ``lambda_dark (1 + sigma_spe^2)``
+(1000 Hz x 1000 ns x 1.09 = 0.00109 PE^2), which is positive, so ``C_m`` is
 positive definite even for a hidden unhit PMT with ``mu = 0`` and no variance
-floor is needed.  ``variance_floor_pe2`` remains a numerical guard and is 0 in the
-frozen config; a floor is required only if a (non-registered) config sets
-``v_dark = 0``.
+floor is needed.  ``variance_floor_pe2`` stays 0 in the frozen config; a floor
+would be required only if a (non-registered) config set ``v_dark = 0``.
 
 Anchor penalty: per event one perturbed copy ``x~`` with (1) an independent
 dark-noise-only window overlaid (union of hits; charges add where a PMT is hit in
@@ -249,7 +248,7 @@ def chi2_module_terms(q: Tensor, mu: Tensor, module: Tensor, slot: Tensor, *,
         raise ValueError(
             "chi2 spreads must be s > 0, s_p/sigma_spe/v_dark >= 0, floor >= 0"
         )
-    # v_dark = 0 with floor = 0 is valid on readout_dark_off: mu = softplus(.) > 0.
+    # v_dark = 0.00109 (R-6) with floor = 0 keeps C_m positive definite, even at mu = 0.
     batch, k = q.shape
     module, slot = module.to(torch.long), slot.to(torch.long)
     module = module.expand(batch, k) if module.ndim == 1 else module
