@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 11:50Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 12:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -158,15 +158,20 @@ Updated: 2026-10-18 11:50Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   **L40S stage passed** with a read-only scipy/sklearn PYTHONPATH overlay (torch pin kept,
   equivalence: probe max diff 0.0, scipy path bit-identical): smoke **0.23014 s/step**
   (0.21388 steady), peak 5 365 MiB; 40k scaling **fits** (14.6 GB peak).
-- **G2 ANSWERED — Option E (author, 18 Oct 2026)**: keep the registered 10 000-step / 5-3-seed
-  protocol with all secondary runs and **raise the L40S cap from 80 to 170 GPU-h** (planning number
-  superseded); shared-server rules unchanged (≤2 jobs on deepthought2); if ledger+projection reaches
-  170 h apply option A (3 seeds, 5 000 steps) as a recorded weaker protocol, no new gate; TF32 is a
-  speed-only experiment (≤0.1 GPU-h; enable for all LUCiD L40S runs only if ≥1.5× steps/s); overlay
-  hashes recorded and re-verified before each batch. Runner gains `--tf32` (default off, recorded
-  per run); 25 runner tests pass. **Next: TF32 benchmark, then the development cohort (2 probe-form
-  runs + 15 β runs), then the 201-run main grid** (~128.5 h training + evaluation, within 170 h).
-  Quota 38 373 free entries.
+- **G2 = Option E** (L40S cap 170 GPU-h, registered protocol kept; shared-server rules unchanged;
+  fallback to option A only if ledger+projection reaches 170 h). **TF32 rejected on speed**
+  (1.224× < 1.5×); fp32 kept, 0.027 GPU-h. **L40S overlay** (read-only scipy/sklearn PYTHONPATH,
+  torch 2.5.1+cu124 pin kept) with `PROVENANCE.json`, equivalence verified (probe diff 0.0, scipy
+  path bit-identical), re-verified before each batch.
+- **Two engineering defects found and fixed by host runs:** (i) `loader_cache_runs` defaulted to 12 →
+  3.07 s/step thrash on 100-run cohorts; now 128 → steady **0.217 s/step**, 0.603 h per 10 000-step
+  run; (ii) probe evaluation materialised 19 GiB float64 per form and was SHED at 66.1 GiB; now
+  **streamed sufficient statistics** (`5f83806`), projected eval peak ~518 MiB, numerically
+  equivalent (R² rel diff ≤2.5e-14).
+- **s_p coherence (`615421c`)**: in-force F3 spread **0.10** (cells + variance), check's tested
+  signal start 0.05; the 0.05-marginalised detectability JSON is superseded and is being re-run at
+  the in-force marginalisation before the dev cohort. L40S charged **1.3490 / 170 GPU-h**; CPU
+  generation **0.2620 / 48 h**; dev cohort next (2 + 15 runs, then stop for review before the grid).
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
