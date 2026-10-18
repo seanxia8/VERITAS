@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 12:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-18 15:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -168,10 +168,16 @@ Updated: 2026-10-18 12:10Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   run; (ii) probe evaluation materialised 19 GiB float64 per form and was SHED at 66.1 GiB; now
   **streamed sufficient statistics** (`5f83806`), projected eval peak ~518 MiB, numerically
   equivalent (R² rel diff ≤2.5e-14).
-- **s_p coherence (`615421c`)**: in-force F3 spread **0.10** (cells + variance), check's tested
-  signal start 0.05; the 0.05-marginalised detectability JSON is superseded and is being re-run at
-  the in-force marginalisation before the dev cohort. L40S charged **1.3490 / 170 GPU-h**; CPU
-  generation **0.2620 / 48 h**; dev cohort next (2 + 15 runs, then stop for review before the grid).
+- **s_p coherence (`615421c`) and detectability re-frozen at the in-force marginalisation**
+  (`3dd4715`): ceilings shift ≤0.0035 (F1 0.02 0.2574, 0.05 0.6835, 0.10 0.8898; F3 0.3228; F2
+  0.9189; T 0.9855), no pass/fail change, **yields unchanged** (Y_lo 6298.44, Y_hi 539 433.965,
+  median 58 288.856), branches unchanged (F1 {0.05,0.10}, F2 a=0.50, F3 null → R12 not_evaluable,
+  G6 false). Dataset cache regenerated at s_p=0.10 (old archived).
+- **Dev step 2 DONE — probe form = ridge** (`0.31541` m = 2.216× vs reference `0.14231` m,
+  mae_mse 0.09345 = 0.657×; reference `fit_config` grid 5, v_group 0.2172409115942029). Streaming
+  evaluation accepted at scale: 69.2 M rows, peak_delta 426 MiB (was 66.1 GiB). L40S **2.8717/170**;
+  CPU generation **0.4452/48**; entries 468 193 (31 807 free — grid will use a rolling per-cell data
+  lifecycle). **Dev step 3 (15 β runs) running**; report then stop for review before the grid.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
