@@ -1071,3 +1071,18 @@ buys no nuisance protection and costs physics. The dev-cohort nuisance R² (0.60
 comparable to the registered B1 evaluation-cohort value (0.516) because the cohorts differ; both are
 reported. The 3-seed anchored grid would have replicated the registered B1 anchored arm and is
 stopped/labelled a replication, not a second verdict.
+
+- **2026-10-18 — B1-ext β table completed (dev cohort, plain seed-0 reference nuisance R²
+  0.542285, physics mean MSE/CRLB 3.868947).** β = 10: nuisance R² 0.609399, physics MSE/CRLB
+  1.0605 / 2.9816 / 1.0067, ratios 0.9522 / 0.3167 / 0.9331 → qualifies; β = 100: nuisance R²
+  0.607889, physics 1.2069 / 22.9439 / 1.1303, ratios 1.0836 / **2.4372** / 1.0477 → excluded on
+  **t0 only**; β = 1000: nuisance R² 0.445222, physics 1.9641 / 72.2368 / 1.8159, ratios
+  **1.7634 / 7.6732 / 1.6831** → excluded on all three. β = 1000 also pushes nuisance R² **below
+  the plain reference** (0.445 vs 0.542) — worse on B1's own metric as well as on physics — while
+  β = 10 and β = 100 both improve it (0.609 / 0.608) and β = 10 keeps every physics ratio ≤ 0.952.
+  Wall per β: 1 868.36 / 1 859.05 / 1 874.15 s (0.519 / 0.516 / 0.521 GPU-h). The stopped anchored
+  grid: 3 191.6 s (s0 complete; s1, s2 interrupted), recorded as a replication, cumulative B1-ext
+  **2.4484 GPU-h of the 4 h cap**, files kept.
+- **2026-10-18 — host observation (not ours):** a `pmt_r4_data` session appeared on deepthought
+  (CPU-only, JAX_PLATFORMS=cpu, outside `/ceph/dwong/jepa/`, not in the guard's `our_jobs`) —
+  flagged as the PMT implementer's background work; the guard is unaffected.
