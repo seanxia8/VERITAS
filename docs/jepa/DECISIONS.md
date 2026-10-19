@@ -1706,3 +1706,22 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   at the same output root with a longer launcher duration (≥1.4× the remaining expected wall under
   contention, e.g. 1 800 min); completed runs are skipped and the interrupted run resumes from its
   checkpoint. The grid stays gated on the completed β table and the author's review.
+
+- **2026-10-19 — step 3 relaunched with a 45-hour launcher budget; the timeout's cost and the budget
+  warning are recorded.** `wp5_lucid_dev_step3_v7b` started 16:08:46Z on GPU 1 at code `d073639`
+  (clean, same config sha `ce452513…`, overlay hashes re-verified), `--duration-minutes 1800` →
+  launcher timeout 162 000 s, same output root. Exact unfinished state at relaunch: 9 of 15 step-3
+  runs complete (`anchored` β0.1/1/10/100/1000 and `anchor_only` β0.1/1/10/1000), **three**
+  interrupted with resumable checkpoints (`anchor_only` β100 at step 7 917, `anchored_dark` β0.1 at
+  step 8 339, `anchored_dark` β1 at step 500), three never started (`anchored_dark` β10/100/1000);
+  the 2 step-2 runs are complete; **no step-3 decision had been written**. Every interrupted
+  checkpoint validates (config `ce452513…`, identity, steps_scheduled 10 000) so auto-resume is
+  valid; the operator verifies `resumed_from_step > 0` and completion to 10 000.
+- **2026-10-19 — timeout accounting and budget warning.** The timed-out job books **18.0836 GPU-h**
+  (§6.1: wall × 1), taking L40S to **24.9599 / 170 GPU-h**; the relaunch is expected to add ~6–10,
+  i.e. ~31–35 h after step 3. Against the grid projection of 126–140 GPU-h the total is
+  **157–175 h — approaching or exceeding the 170 h cap** depending on contention and on the still
+  estimated arms. Under the author's G2 ruling the recorded response is option A (3 seeds for every
+  main arm, 5 000 steps for every LUCiD arm) as a weaker protocol, with no new gate; the decision will
+  be taken at the β-table report with the measured per-arm rates, and the ledger is kept exact. This
+  is the §6.1 wall × 1 effect: contention inflates charged hours as well as calendar time.
