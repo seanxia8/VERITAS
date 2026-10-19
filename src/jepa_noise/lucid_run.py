@@ -1534,7 +1534,9 @@ def dark_only_embedding_change(arm, batches, *, device=None) -> dict:
         raise ValueError("the R7b diagnostic needs at least one dark record")
     module, token, hits, n_events = [], [], [], 0
     for batch in batches:
-        features = _to_device(batch.features, device)
+        # `_to_device` takes a LucidBatch (it moves every tensor field), not a bare tensor;
+        # taking `.features` afterwards keeps the CPU path and the CUDA path identical.
+        features = _to_device(batch, device).features
         if features.size(0) == 0:
             continue
         # event i of the probe set uses record i % n_records: one pass over the bank

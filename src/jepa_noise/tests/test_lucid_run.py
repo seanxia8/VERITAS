@@ -748,3 +748,40 @@ def test_physics_reference_uses_the_fit_config_block(tmp_path):
     # the config in the repo points at the PMT reference; the resolver accepts a relative path
     repo_config = _json.loads((lr.ROOT / "src/jepa_noise/configs/lucid_run_v0.json").read_text())
     assert repo_config["evaluation"]["physics_reference_path"].endswith("configs/lucid_pmt/reference.json")
+
+
+def test_dark_only_embedding_change_moves_a_batch_not_a_bare_tensor(monkeypatch):
+    """Regression: the R7b diagnostic must call _to_device with a LucidBatch (CUDA crashed on it)."""
+    from jepa_noise import lucid_run as lr
+    seen = {}
+    original = lr._to_device
+
+    def spy(batch, device):
+        seen["type"] = type(batch).__name__
+        seen["has_features"] = hasattr(batch, "features")
+        seen["is_tensor"] = hasattr(batch, "dim") and not hasattr(batch, "features")
+        return original(batch, device)
+
+    monkeypatch.setattr(lr, "_to_device", spy)
+    # the diagnostic itself is exercised elsewhere; here we only need one call through the
+    # device-move line, so a stub arm with the required attributes is enough
+    import torch as _t
+
+    class _StubArm:
+        dark_charge = _t.zeros(2, 1)
+        dark_hit = _t.zeros(2, 1)  # (n_records, n_hits) like the real bank
+
+        def perturb(self, features, **kwargs):
+            return features
+
+        def _module_tokens(self, x):
+            return x
+
+    class _StubModel:
+        def encode(self, features):
+            return features
+
+    _StubArm.jepa = _StubModel()
+    batch = type("B", (), {"features": _t.zeros(1, 2, 3)})()  # (B, N, d) token array
+    lr.dark_only_embedding_change(_StubArm(), [batch], device=_t.device("cpu"))
+    assert seen["has_features"] is True and seen["is_tensor"] is False
