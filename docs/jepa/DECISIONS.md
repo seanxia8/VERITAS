@@ -1725,3 +1725,22 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   main arm, 5 000 steps for every LUCiD arm) as a weaker protocol, with no new gate; the decision will
   be taken at the β-table report with the measured per-arm rates, and the ledger is kept exact. This
   is the §6.1 wall × 1 effect: contention inflates charged hours as well as calendar time.
+
+- **2026-10-19 — CUDA-only crash in the R7b dark-only diagnostic fixed (`122de8f`).** The dev cohort's
+  first dark-arm evaluation raised `AttributeError: 'Tensor' object has no attribute 'features'` in
+  `dark_only_embedding_change`: it called `_to_device(batch.features, device)` although `_to_device`
+  takes a `LucidBatch` (it moves every tensor field). On CPU the function's early return hid the bug,
+  which is why the 456-test suite passed while the L40S crashed. Fixed to
+  `_to_device(batch, device).features`, with a **regression test that spies on the device move and
+  asserts it receives a batch**, not a tensor; full suite **457 passed**. The same crash-free test
+  cannot be re-validated on CUDA locally, so the host's next dark-arm run is the acceptance.
+- **2026-10-19 — step-3 relaunch status:** the 45-hour-budget relaunch re-evaluated the 9 completed
+  step-3 runs and proved the resume path (`anchor_only` β100 resumed at step 7 917 → completed; dark
+  β0.1 resumed at step 8 339 → trained to 10 000) before crashing in that evaluation. Cohort state:
+  13/15 step-3 runs complete (anchored ×5, anchor_only ×5, plus the two step-2 runs), with dark β0.1
+  at its 10 000 checkpoint (evaluation only), dark β1 resumable at step 500, and dark β10/β100/β1000
+  never started. Ledger: L40S **25.9319 / 170 GPU-h** (timeout 18.0836 + relaunch 0.9719 booked);
+  CPU generation 0.6535/48. Free entries fell to **31 735** (below the 32 000 flag, above the 30 000
+  write-stop, partly from other dwong activity), so the Lead authorised reclaiming the two inactive,
+  re-clonable code clones `72add60e` and `89af5af` (1 111 entries; the active guard clone
+  `6468582` is kept) as hygiene inside our own area.
