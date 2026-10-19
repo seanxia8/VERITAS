@@ -1694,3 +1694,15 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   ledger+projection ≥170 h → option A fallback (no new gate). **Projection: ≈126–140 GPU-h**
   (main ≈100–108, secondary ≈26–27; mae_chi2/ijepa_ema/anchor_only/oracle estimates to be refined on
   the first cells), **calendar ≈75–80 h (~3.2 days) on 2 GPUs**, margin ≈30–44 h to the cap.
+
+- **2026-10-19 — the dev step-3 launcher hit its own 18-hour timeout (calendar event, not a SHED).**
+  The job started 2026-10-18T21:04:42Z with `planned_minutes 720` → `timeout_seconds 64800`; at
+  15:04:42Z it was SIGTERMed and at 15:09:42Z recorded `outcome: timeout, timed_out: true, wterm 9,
+  wall 65 100.78 s`. The current run (`sigreg_jepa_anchored_dark` β = 0.1) was interrupted at
+  **step 8 339/10 000** with its checkpoint saved (`e30d8d06…`); four `anchored_dark` β runs never
+  started and **no step-3 β decision was written**. 14 of the 17 dev runs are complete (step-2 ×2,
+  anchored ×5, anchor_only ×5, one interrupted anchored_dark). Cause: the episodic contention on
+  GPU 0 (mbinder / jkleck), not our code; the guard never SHED the job. Fix: relaunch `dev --step 3`
+  at the same output root with a longer launcher duration (≥1.4× the remaining expected wall under
+  contention, e.g. 1 800 min); completed runs are skipped and the interrupted run resumes from its
+  checkpoint. The grid stays gated on the completed β table and the author's review.
