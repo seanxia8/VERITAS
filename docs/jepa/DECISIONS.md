@@ -1809,3 +1809,64 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   R11 9, R11b 9, dark anchor 3, law-T 9, occupancy 3), grid ≈60 GPU-h ⇒ ledger + grid ≈93 of 170 h.
   The registered default config is unchanged and its full test suite stays green (30 runner tests, full
   suite re-run).
+
+## G2 amendment — grid protocol rung (1) at 10 000 steps (author, 20 Oct 2026, verbatim)
+
+> "G2 amendment (author, 20 Oct 2026). Record this verbatim.
+> My 18 Oct fallback text jumped straight to option A (3 seeds and 5 000 steps). The registered
+> ladder's first rung is 3 seeds alone. With the measured option-A projection (≈60 GPU-h at 5 000
+> steps, ledger + grid ≈93 of 170 h), the same 3-seed grid at 10 000 steps comes to about
+> 110–120 GPU-h, so ledger + grid is about 143–153 h. That fits the cap. Halving every run while
+> leaving ~75 h of the cap unused is the wrong trade.
+> - Run the grid at **10 000 steps and 3 seeds for every main arm, all secondary runs retained**.
+>   Record it as ladder rung (1), `fallback_rung: 1`. That is weaker than the registered protocol only
+>   in the seed count, and R8's '3 of 3' clause applies.
+> - Before the first job, re-project with the measured per-arm walls including evaluation. Start
+>   only if ledger + projection ≤ 160 GPU-h, which keeps 10 h for contention. If it exceeds 160 h,
+>   run option A as already prepared, with no new gate.
+> - Training length never changes inside the grid. If the budget tightens mid-grid, apply rung (2):
+>   before each secondary group, if ledger + remaining projection exceeds 170 h, drop secondary
+>   groups from the end of the registered list (occupancy, aging trend, dark-window, R11b, R11).
+>   Record each drop and mark the affected predictions `not_evaluable`.
+> - Schedule the secondary groups after the main arms wherever the per-cell data lifecycle allows.
+>   The ordering is an engineering choice, one line in `DECISIONS.md`.
+> - Keep `configs/lucid_run_v0_optionA.json` committed and unused. Add the rung-(1) derived config the
+>   same way: `derived_from` the registered config, registered default and tests unchanged."
+
+## β table accepted, and `anchor_only` (author, 20 Oct 2026, verbatim)
+
+> "β table (author, 20 Oct 2026). Record this verbatim.
+> - Accepted as frozen: `sigreg_jepa_anchored` β = 1000 and `sigreg_jepa_anchored_dark` β = 1000.
+>   Both sit at the top edge of the grid, and that is what the registered rule ('largest qualifying
+>   β') gives when every β qualifies. Record them as `edge_selected`. Do not extend the grid. The
+>   dark arm's better value at β = 100 (0.19867 m) does not change the pick: no re-selection after
+>   seeing results.
+> - `anchor_only` has no qualifying β (best 0.44891 m > 0.355989 m). Run it in the grid at β = 1000,
+>   the anchored arms' β, labelled `beta_not_qualified`. It is a descriptive control. Any prediction
+>   clause that needs a qualified `anchor_only` β is reported `not_evaluable` from it. Report the dev
+>   finding itself, that the anchor alone never reaches the physics threshold at any β, as a
+>   development result."
+
+### Lead records for the above (20 Oct 2026)
+
+- **Grid protocol = ladder rung (1):** 10 000 steps, 3 seeds for every main arm, all secondary runs
+  retained; `fallback_rung: 1` recorded in the config, every manifest and the ledger. Weaker than
+  the registered protocol **only in the seed count** (R8's "3 of 3" clause applies).
+- **Start rule:** re-project with the measured per-arm walls including evaluation before the first
+  job; start only if ledger + projection **≤ 160 GPU-h**; if it exceeds 160 h, run the prepared
+  option A with no new gate.
+- **Mid-grid rung (2):** before each secondary group, if ledger + remaining projection exceeds
+  170 h, drop secondary groups from the end of the registered list (occupancy, aging trend,
+  dark-window, R11b, R11), record each drop, and mark the affected predictions `not_evaluable`.
+  Training length never changes inside the grid.
+- **Secondary-group ordering (engineering, one line):** the secondary groups run **after** the main
+  arms, in the registered order, wherever the per-cell data lifecycle allows (the plan already runs
+  G1–G3 main pairs first, then G4 R11+R11b, then G5 law-T; occupancy/dark-anchor ride with the main
+  cell whose data they reuse, as the plan specifies).
+- **Configs:** `lucid_run_v0_optionA.json` stays committed and unused; a rung-(1) derived config is
+  added the same way (`derived_from` the registered config, registered default and tests unchanged).
+- **β recording:** `sigreg_jepa_anchored` and `sigreg_jepa_anchored_dark` at β = 1000 are
+  **`edge_selected`**; no grid extension and no re-selection after results. `anchor_only` runs at
+  β = 1000 labelled **`beta_not_qualified`** as a descriptive control; any prediction clause needing a
+  qualified `anchor_only` β is `not_evaluable`, and the dev finding itself (the anchor alone never
+  reaches the physics threshold at any β) is reported as a development result.
