@@ -1744,3 +1744,39 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   write-stop, partly from other dwong activity), so the Lead authorised reclaiming the two inactive,
   re-clonable code clones `72add60e` and `89af5af` (1 111 entries; the active guard clone
   `6468582` is kept) as hygiene inside our own area.
+
+## A9 development cohort complete — β table frozen (20 Oct 2026)
+
+- **2026-10-20 — dev step-3 completed at `122de8f` (clean, config `ce452513…`, overlay verified).**
+  Job `wp5_lucid_dev_step3_v7c`: exit 0, `timed_out false`, 17:30:26Z → 00:25:18Z, wall 24 891.27 s
+  = **6.9142 GPU-h**; all 15 step-3 runs complete (17 runs in the root including step 2). The resume
+  path is proved end to end: `sigreg_jepa_anchored_dark` β0.1 resumed at 10 000 (evaluation only,
+  315 s — the R7b crash is gone), dark β1 resumed at 500 → 10 000 (6 031.65 s), `anchor_only` β100
+  resumed at 7 917 → 10 000. Decisions committed under `results/jepa/20261020_wp5_dev_cohort/`:
+  step-2 (`8c6f5de3…`, ridge) and **step-3 (`00b83993…`)**.
+- **β selection (registered rule: largest β with vertex resolution ≤ 1.1 × plain `sigreg_jepa`
+  0.3236265 m = 0.355989 m):**
+  - `sigreg_jepa_anchored` → **β = 1000** (0.20788 m);
+  - `sigreg_jepa_anchored_dark` → **β = 1000** (0.21010 m; β100 was marginally better at 0.19867 m,
+    but the rule takes the largest qualifying β);
+  - `anchor_only` → **`none_qualified`** (best 0.44891 m > 0.355989 m).
+- **β table (physics vertex resolution m / nuisance R² = module_gain-propagated / run_mean /
+  pmt_gain-propagated):**
+  `sigreg_jepa_anchored`: β0.1 0.31082 / −0.00228 / −0.00416 / −1.20e-4; β1 0.29825 / −0.00251 /
+  −0.00367 / −0.99e-4; β10 0.23610 / −0.00202 / −0.00413 / −0.78e-4; β100 0.20934 / −0.00241 /
+  −0.00465 / −0.82e-4; **β1000 0.20788** / −0.00155 / −0.00471 / −1.24e-4.
+  `sigreg_jepa_anchored_dark`: β0.1 0.31040 / −0.00233 / −0.00429 / −1.28e-4; β1 0.30487 / −0.00223 /
+  −0.00339 / −1.04e-4; β10 0.24192 / −0.00201 / −0.00413 / −0.72e-4; β100 0.19867 / −0.00240 /
+  −0.00428 / −0.90e-4; **β1000 0.21010** / −0.00218 / −0.00446 / −1.01e-4.
+  `anchor_only`: β0.1 0.57043 / −0.00065 / **0.05575** / −0.40e-4; β1 0.54840 / −0.00083 /
+  **0.03255** / −0.47e-4; β10 0.47131 / −0.00104 / 0.00038 / −0.43e-4; β100 0.46216 / −0.00085 /
+  −0.00694 / −0.35e-4; β1000 0.44891 / −0.00072 / −0.00661 / −0.43e-4.
+  Reference points: plain `sigreg_jepa` physics 0.32363 m, module-gain propagated −0.00182;
+  `mae_mse` physics 0.11349 m, module-gain run_mean 0.31470. **Reading:** both anchored arms suppress
+  the module-gain nuisance to ≈0 already at β0.1 and keep improving the vertex resolution with β;
+  `anchor_only` leaves a positive module-gain run-mean R² at low β (0.0558, 0.0326) and never reaches
+  the physics threshold (best 0.4489 m) — hence `none_qualified`.
+- **2026-10-20 — the "no anchor / anchor too weak" question is settled for the development cohort:**
+  the anchor at β ≥ 0.1 suppresses module-gain nuisance in both anchored arms, and β = 1000 is the
+  largest qualifying strength (physics improves monotonically with β in the range tested); the
+  anchor-only objective cannot pass the physics threshold at any β in the grid.
