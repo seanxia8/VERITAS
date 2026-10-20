@@ -2,16 +2,20 @@
 
 _16 October 2026, evening. Written by Claude at the author's request, after an audit of the v3
 execution on branch `JEPA` (HEAD `f021d3c`). Owner: Dowling Wong; collaborator: Junjie Xia.
-Fixed base `0cae6b0`._
+Fixed base `0cae6b0`. Amended 20 October 2026 by A9 (§3.7)._
 
 **Authority.** v4 becomes binding when the orchestrator commits it, unchanged, as
 `jepa: register runbook v4 (author revision)`. Its amendments A3 (with modifications), A4, A5, A6, A7
 and A8 are author decisions made through this revision; no separate gate is needed for them.
+**A9 (§3.7, 20 Oct 2026)** registers the author decisions made after registration (already quoted
+verbatim in `DECISIONS.md`). The orchestrator commits this amended file unchanged, as
+`jepa: register runbook amendment A9 (author revision)`.
 
 **A7 (17 Oct 2026) changes the main deep experiment.** E2 now runs on LUCiD photon bombs, and the
 Tier-1 E2 shrinks to a bridge. **A8 (17 Oct 2026)** revises A7 after a second review of Junjie's
 comments; it is folded into §3.5 and listed in §3.6. Where §3.5 conflicts with an earlier section,
-§3.5 wins. The companion design doc is "JEPA Project Design: Predictable Is Not Physical (v0.2.1)".
+§3.5 wins; where §3.7 (A9) conflicts with §3.5, §6.1 or §8, §3.7 wins. The companion design doc is
+"JEPA Project Design: Predictable Is Not Physical (v0.3)".
 
 **v3 is kept as history.** `docs/jepa/RUNBOOK_JEPA_NOISE_2026-10-16.md` stays byte-identical, and
 every v3 section that v4 does not override stays in force (list in §2). Amendments A1 and A2 stay
@@ -312,7 +316,8 @@ merged readout).
   - position and facing direction (divided by fixed detector dimensions);
   - **log charge**, ln(q / 1 PE), for hit PMTs, and 0 for unhit PMTs. A module gain is then an
     additive offset on that module's hit tokens, matching the linear theory;
-  - first-hit time relative to the trigger, divided by a fixed 100 ns, 0 for unhit PMTs;
+  - first-hit time relative to the trigger, divided by a fixed 100 ns, 0 for unhit PMTs. **[A9]**
+    The trigger is the readout's NHits rule, after the prompt-window cut (§3.7.3);
   - hit flag.
 - **Architecture:** serialised point transformer.
   - Sort tokens along a 3D Hilbert curve; attention within windows of 64 tokens, with the window
@@ -437,7 +442,7 @@ merged readout).
     trained at `within`, s = 0.10, so s = 0.20 is "drift ×2";
   - aging trend **[A8]:** vertex resolution on the extrapolation set (r/R ∈ [1.9, 2.1]) divided by
     that on the in-range probe-test set.
-- **Compute cap [A8]:** ≤ 80 L40S GPU-hours (deepthought2) for the development cohort, main grid,
+- **Compute cap [A8]:** ≤ 80 L40S GPU-hours (deepthought2; **[A9]: 170**, grid at ladder rung (1), §3.7.2) for the development cohort, main grid,
   secondary runs and their evaluation; ≤ 300 Titan GPU-hours (Deepthought) for smokes, the scaling
   benchmark, the bridge, generation and other evaluation (§6.1). Generation has a separate CPU cap
   of 48 wall-hours (over → G2). Benchmark first (v3 §3.2). For
@@ -511,6 +516,147 @@ A8 is folded into §3.5 above. What it changed, and why:
 | Second review pass: R6 measured as excess over the random-init floor; λ = λ0·exp(a·v); R11 margin in seed-floor units; LUCiD β = the largest within the R7 physics tolerance; F3 shortfall makes R12 not evaluable; ceilings labelled lower bounds; generation re-benchmarked at the frozen yield range | §3.5.3, §3.5.3a, §3.5.6, §3.5.9 | The first fixes made R6 pass almost by construction, allowed λ ≤ 0 at a = 0.50, and could make R11's margin unreachable |
 | Execution on two shared servers: Deepthought's 4 Titans (development, bridge, generation, evaluation) and 2 of deepthought2's L40S (all LUCiD criterion runs); one GPU type per comparison set; environment order with a gate; Condor NEMO2 off by default | §6, §6.1 | Author decision, 17 Oct 2026; v3 stalled building environments under the file-count quota |
 | Resource guard with OK / HOLD / SHED levels, acting only on our own processes | §6.2 | Author: the experiments must never crash or fill the shared servers |
+
+### 3.7 A9 (follow-ups, budget, readout and token time, frozen values; author decisions 17–20 Oct 2026)
+
+A9 registers, as runbook text, the author decisions made after v4 was registered. Each one is
+already quoted verbatim, with its date, in `docs/jepa/DECISIONS.md`; that record stays the
+authority for the exact wording. **Where A9 conflicts with §3.5, §6.1 or §8, A9 wins.**
+
+A9 changes no registered prediction criterion and no registered verdict. It changes four things:
+- two labelled follow-ups;
+- the LUCiD budget and the protocol the grid runs;
+- the readout and the token time;
+- the record of values that the registered procedures have now frozen.
+
+**3.7.1 Follow-ups B1-ext and R5-ext** (approved 17 Oct 2026; scoped 18 Oct 2026).
+- **B1-ext.** A development β trade-off on the bridge cell, β ∈ {10, 100, 1000}, with the LUCiD
+  selection rule: the largest β whose physics stays within 1.1 × plain, per parameter.
+  - Budget ≤ 4 Titan GPU-hours.
+  - The approved 3-seed anchored run at the selected β is not run as a second B1. β = 10 was
+    selected, so that grid would duplicate the registered B1 anchored arm (same cell, arm, seeds
+    and β); its partial runs are labelled a replication.
+- **R5-ext.** E1c with balanced initialisation, per-layer SD = (1e-3)^(1/L), so the end-to-end
+  scale matches depth 1. Same learning rate, steps and eligibility rules; config frozen before the
+  rows run; CPU only.
+- **Both** are labelled `registered: false` with their `extension` name, written outside the
+  registered result directories, and reported beside B1 and R5. Neither replaces a verdict.
+- **Recorded outcomes (18 Oct 2026):**
+  - B1-ext: only β = 10 qualifies. β = 100 fails on t0 (ratio 2.44 to plain); β = 1000 fails on all
+    three parameters and lowers nuisance R² below plain (0.445 vs 0.542). Stronger anchoring buys
+    no nuisance protection and costs physics, so B1's failure is not "the anchor was too weak".
+    2.45 of the 4 GPU-h were used.
+  - R5-ext: 7 of 10 rows are evaluable (the uniform-init E1c had none). The R5 ordering rule fails
+    at γ = 1.0 (2 of 5 seeds) and is not evaluable at γ = 0.5 (2 of 5 seeds evaluable).
+
+**3.7.2 Budget and grid protocol** (G2 ruling 18 Oct 2026; G2 amendment 20 Oct 2026).
+- **L40S cap: 170 GPU-hours**, replacing the 80 h in §3.5.6 and §6.1. It covers the development
+  cohort, the main grid, the secondary runs and their evaluation. The Titan 300 h, CPU 48 h, quota
+  and §6.2 limits are unchanged, and so is the limit of at most 2 jobs on deepthought2.
+- **TF32 stays off.** Measured on the L40S: 1.22× average (1.15× steady) steps/s, below the 1.5×
+  threshold. The §6.1 fp32 rule stands.
+- **Grid protocol: §3.5.6 ladder rung (1) only.**
+  - 10 000 steps, 3 seeds for every main arm, all secondary runs retained.
+  - Recorded as `fallback_rung: 1`. That is weaker than the registered protocol only in the seed
+    count, and R8's "3 of 3" clause applies.
+  - Expected volume: 159 runs (6 main cells × 21, R11 9, R11b 9, dark-window anchor 3, law T 9,
+    occupancy 3).
+- **Start rule.** Before the first grid job, re-project with the measured per-arm walls, including
+  evaluation.
+  - Start only if ledger + projection ≤ 160 GPU-h.
+  - Otherwise run option A: rungs (1) + (3), 3 seeds and 5 000 steps. It is recorded as a weaker
+    protocol, with no new gate.
+- **Inside the grid, training length never changes.** If the budget tightens, apply rung (2):
+  - before each secondary group, if ledger + remaining projection exceeds 170 h, drop secondary
+    groups from the end of the registered list (occupancy, aging trend, dark-window, R11b, R11);
+  - record each drop, and mark the affected predictions `not_evaluable`.
+- **Secondary groups run after the main arms** wherever the per-cell data lifecycle allows
+  (engineering choice).
+- **Configs.** The registered config stays the default for development, smokes and tests. Each
+  fallback is a named derived config, `derived_from` the registered one, recording its rung, and
+  every run manifest records `fallback_active` and `fallback_rung`. The option-A config stays
+  committed and unused unless the start rule selects it.
+- **Titan memory shape** (engineering; no registered numeric moves): micro-batch 8 with gradient
+  accumulation 4, so the effective batch is still 32.
+
+**3.7.3 Readout for reported runs, and token time** (author, 18 Oct 2026).
+- **PMT readout.**
+  - Reported LUCiD runs use PMT branch `codex/junjie-pmt-response` at `5f4ecc0`, merged into
+    `JEPA` as `4e07c0c`, readout label `readout_pmt_r6`.
+  - It supersedes `0fba034` (development only, dark counts off) and `b341037` (R-6).
+  - Dark counts: 1 kHz per PMT, in the 1 µs readout window [−200, 800] ns, about 2 dark hits per
+    event. `v_dark` = λ_dark(1 + σ_spe²) = 0.00109 PE², derived from the reference config.
+  - The labels `readout_dark_off` and `readout_synthetic_unrepaired` are legacy; no reported result
+    uses them.
+- **Fixed detector response.** The reference response has a per-module `group_parity` gain (odd
+  modules +3%) and a per-module timing width. Both are fixed detector response: they are present in
+  the measured readout and in the nominal twin. The twin (§3.5.3, §3.5.6) removes only the injected
+  F1 and F3 gains.
+- **Token time** replaces "first-hit time relative to the trigger" in §3.5.5:
+  - **t_token = t_digit − t_trigger, after the prompt-window cut.**
+  - t_trigger is the readout's NHits trigger: N = 4 digits within 20 ns
+    (`readout.nhits_trigger_time(n=4, window_ns=20)`).
+  - The prompt window is [−20, +60] ns around the trigger (`readout.prompt_window_mask`). Digits
+    outside it are dropped and counted.
+  - With no trigger, the origin falls back to the readout-window start and is counted. No window cut
+    is applied, following the imported mask.
+  - The rule is imported from `noise_module_lucid.readout`, never reimplemented. Dataset generation
+    refuses to run without it.
+- **The true emission time is truth only.** It, and the per-event emission offset, never enter an
+  input, token, feature, mask or probe. Any code path that would use them as input is a defect.
+- **Leak guard.** Each event gets an emission-time offset, uniform in [−50, +50] ns from the keyed
+  RNG, added to source photon arrivals and recorded as truth. The readout window is unchanged.
+  Invariance tests:
+  - dark counts off: a constant shift of all photon times gives bit-identical tokens, and a trigger
+    time shifted by exactly that constant;
+  - dark counts on: the same holds for the source-derived digits only. Report how often a dark
+    coincidence moves the trigger (`dark_moved_trigger_rate`).
+- **Counters per run:** `n_no_trigger`, `n_prompt_dropped`, `n_dark_moved_trigger` and its rate.
+- **Physics reference unchanged.** The time-of-flight fit reads absolute digit times and estimates
+  t0 itself, so the trigger convention does not affect it.
+- **Development cohort redone on this input.** All earlier development runs are kept, labelled
+  `superseded_by_token_time_origin_change`. Reason: with trigger t = 0 at the true emission time,
+  `mae_mse`'s linear vertex (0.093 m) beat a reference fit that must estimate t0.
+- **R7b reporting [A9].** The dark window has about 2 dark hits against about 900 source hits. The
+  dark-only draw's measured embedding change is reported next to R7b, so that a pass is not
+  over-read.
+
+**3.7.4 Detectability check: F3 marginalised, values frozen** (author, 18 Oct 2026; frozen on the
+`readout_pmt_r6` readout).
+- **Rule change to §3.5.3a.** F3 is treated as random, not known: each PMT's variance in the Fisher
+  ceilings gains s_p²·μ_p², the same term as the §3.5.6 `mae_chi2` covariance. The adjustment ladder
+  restarts from the registered s_p = 0.05. Old and new ceilings are recorded side by side; no
+  pass/fail changed, and the largest shift was +2.2e−3.
+- **Frozen outputs of the registered procedure** (not new choices). Decision JSON
+  `wp4b_detectability_wcte_r6.json`, sha256 `1e4407ac…`.
+  - Yields: Y_lo = 6 298.44 photons (median 199 hit PMTs); Y_hi = 539 434 (0.95 hit-fraction
+    bound); median 58 289.
+  - Ladder steps taken: Y_hi 320 000 → 539 434; F2 a 0.1 → 0.2 → 0.5; s_p 0.05 → 0.10.
+  - F1: s ∈ {0.05, 0.10} reach the 0.6 ceiling (0.686, 0.893); s = 0.02 does not (0.261).
+  - F2 is used at a = 0.50; F2′ is not used.
+  - F3 fails at s_p = 0.10 (0.325), so **R12 is `not_evaluable`, with no gate**, as §3.5.9
+    provides.
+  - Law T passes. R6 and R7 are evaluable. G6 is not triggered.
+- **Generation** is re-benchmarked at the frozen yields (§3.5.6).
+
+**3.7.5 Development cohort decisions** (frozen 20 Oct 2026; β table accepted by the author 20 Oct
+2026).
+- **Physics probe form (step 2): ridge.** `sigreg_jepa` 0.32363 m (2.272× the reference
+  0.142446 m) and `mae_mse` 0.11349 m (0.797×) are not both above 3×.
+- **β (step 3)**, by the rule "largest β with vertex resolution ≤ 1.1 × plain", that is ≤ 0.355989 m:
+  - `sigreg_jepa_anchored` β = 1000 (0.20788 m) and `sigreg_jepa_anchored_dark` β = 1000
+    (0.21010 m), both recorded as `edge_selected`. The grid is not extended, and there is no
+    re-selection after results.
+  - `anchor_only`: no β qualifies (best 0.44891 m). It runs in the grid at β = 1000, labelled
+    `beta_not_qualified`, as a descriptive control. Any clause that needs a qualified
+    `anchor_only` β is `not_evaluable` from it. The finding that the anchor alone reaches the
+    physics threshold at no β is reported as a development result.
+
+**3.7.6 What A9 does not change.**
+- The registered predictions (§3.5.9, §4, v3 §2.4) and every verdict recorded so far. E1 stands
+  as: R1 fail, R2 fail (independent recompute recorded beside it), R3 `not_evaluable`, R3b pass,
+  R4a fail, R4b fail, R5 `not_evaluable`. B1 fails.
+- The §6.1 comparability rule, the §6.2 guard limits, the no-touch packages, and the §9 timeline.
 
 
 ---
@@ -612,7 +758,8 @@ Launch-prompt flags: `DEEPTHOUGHT_GPUS=4`, `DEEPTHOUGHT2_GPUS=2`, `CONDOR_NEMO2=
   - Every training inside one comparison set runs on one GPU type: all LUCiD criterion runs on
     L40S, the whole bridge on Titans.
   - Train in fp32 with TF32 disabled everywhere (`torch.backends.cuda.matmul.allow_tf32 = False`,
-    `torch.backends.cudnn.allow_tf32 = False`).
+    `torch.backends.cudnn.allow_tf32 = False`). **[A9]** TF32 was benchmarked on the L40S (1.22×,
+    below the 1.5× threshold) and stays off (§3.7.2).
   - If deepthought2 is unusable for more than 3 consecutive days during WP5, write a gate:
     (A) wait (recommended); (B) rerun the entire remaining comparison sets on Titans, within the
     Titan cap. Never split a comparison set across GPU types.
@@ -666,7 +813,8 @@ Launch-prompt flags: `DEEPTHOUGHT_GPUS=4`, `DEEPTHOUGHT2_GPUS=2`, `CONDOR_NEMO2=
   - Checkpoints and raw embeddings stay on `/ceph`, with path and hash recorded.
 - **Caps and ledger** (`RESOURCE_LEDGER.json`, GPU-hours = job wall-clock × 1 GPU, per GPU type,
   failed and interrupted attempts included):
-  - L40S (deepthought2): 80 GPU-hours for all LUCiD criterion work (§3.5.6).
+  - L40S (deepthought2): 80 GPU-hours for all LUCiD criterion work (§3.5.6). **[A9]: 170 GPU-hours
+    (§3.7.2).**
   - Titan (Deepthought): 300 GPU-hours for development, smokes, the bridge, generation and
     evaluation. The bridge counts here instead of under v3's E2 cap.
   - CPU: LUCiD generation 48 wall-hours (§3.5.6), on at most 16 cores.
