@@ -1794,3 +1794,18 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   Lead-authorised engineering-reclaim basis as the archived-cache and clone reclaims applies (all
   regenerable dev artefacts inside `/ceph/dwong/jepa/`, no results or code). The grid's rolling
   per-cell lifecycle keeps every later cell's data on disk only while that cell runs.
+
+- **2026-10-20 — option A committed as a separate recorded config (`lucid_run_v0_optionA.json`), not as
+  the default.** The operator's prepared patch replaces the registered config; instead the fallback is
+  a **derived config** used only by the grid (`--config`), because (i) the registered config must stay
+  the default for development, smoke and the tests, and (ii) the fallback must be a visible, named
+  artefact rather than a silent change of the registered file. The derived config carries
+  `steps = 5 000`, **3 seeds for `sigreg_jepa`/`sigreg_jepa_anchored`/`mae_mse` (and R11)**, the
+  `fallbacks` block active with an `option_A` record (authority, date, reason, manifest effect), and
+  `derived_from` the registered config. Every grid run built from it records `fallback_active: true`
+  and `registered: false` (the weaker, non-primary protocol the author's G2 standing rule prescribes);
+  the aggregate still computes every verdict from those runs, with `registered: false` summarising the
+  protocol rather than dropping them. Expected run count under option A: **159** (6 main cells × 21,
+  R11 9, R11b 9, dark anchor 3, law-T 9, occupancy 3), grid ≈60 GPU-h ⇒ ledger + grid ≈93 of 170 h.
+  The registered default config is unchanged and its full test suite stays green (30 runner tests, full
+  suite re-run).
