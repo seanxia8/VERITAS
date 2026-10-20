@@ -1780,3 +1780,17 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   the anchor at β ≥ 0.1 suppresses module-gain nuisance in both anchored arms, and β = 1000 is the
   largest qualifying strength (physics improves monotonically with β in the range tested); the
   anchor-only objective cannot pass the physics threshold at any β in the grid.
+
+- **2026-10-20 — Option A is applied at grid start (author's G2 standing rule).** The L40S ledger is
+  **32.8460 / 170 GPU-h** and the measured per-run grid projection is **134–154 GPU-h**, so
+  ledger + projection = **167–187 h**, which reaches the 170 h cap. The G2 ruling's recorded response:
+  apply **option A — 3 seeds for every main arm and 5 000 steps for every LUCiD arm**, recorded as a
+  weaker protocol, with no new gate. The grid will therefore run at 5 000 steps with 3 seeds, every
+  manifest carrying `fallback_active: true`.
+- **2026-10-20 — dev datasets reclaimed (authorised).** `dev_train` + `dev_probe_train` +
+  `dev_probe_test` (3 012 entries) are deleted after recording `DEV_DATASET_EVIDENCE.json` (dataset
+  dirs, manifest sha256, per-run state hashes), because the dev decisions are committed in the
+  repository; free entries were 30 603 (603 above the write-stop) before the reclaim. The same
+  Lead-authorised engineering-reclaim basis as the archived-cache and clone reclaims applies (all
+  regenerable dev artefacts inside `/ceph/dwong/jepa/`, no results or code). The grid's rolling
+  per-cell lifecycle keeps every later cell's data on disk only while that cell runs.
