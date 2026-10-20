@@ -1928,3 +1928,45 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   to 30 000 after the grid. The guard's SHED minimum (10 000) is unchanged, no other §6.2 limit is
   touched, and the hard quota cap stands. The alternative (raising `ceph.quota.max_files`) needs a
   filesystem administrator and is requested in the report but is not a blocker.
+
+## A9 registered — differences between §3.7 and the DECISIONS/code record (20 Oct 2026)
+
+The author's A9 amendment was committed unchanged as `45a2303` (`jepa: register runbook amendment A9
+(author revision)`), sha256 `9f20042cd48ddb978385f227946d722f5697e4c6f4fa79e7eb4a6457ce4851bb`
+verified before the commit. Per the author's instruction the runbook was **not edited**; the
+following differences are listed for correction, with `DECISIONS.md` (and the code) remaining the
+authority until then. A9 adds no new instruction; it registers the 17–20 Oct decisions.
+
+1. **Grid volume in §3.7.2 vs the rung-(1) config:** §3.7.2 says "Expected volume: 159 runs
+   (6 main cells × 21, R11 9, R11b 9, dark-window anchor 3, law T 9, occupancy 3)". The committed
+   rung-(1) config (`lucid_run_v0_rung1.json`, sha `d5197c6d…`) derives from the author's own
+   rung-(1) wording "**3 seeds for every main arm**, all secondary runs retained" and therefore keeps
+   R11 at its registered **5 seeds → 15 runs**, giving **165 runs** (main 126 + R11 15 + R11b 9 +
+   dark 3 + law T 9 + occupancy 3). The 159 figure is exactly the **option-A** volume (where R11 was
+   cut to 3 seeds). The grid will run the 165-run set (DECISIONS authority); if the author intends
+   R11 to be cut to 3 seeds under rung (1) as well, the rung-(1) sentence should say "3 seeds for
+   every arm".
+2. **Detectability JSON and ceilings in §3.7.4:** §3.7.4 cites `wp4b_detectability_wcte_r6.json`
+   (sha256 `1e4407ac…`) with F1 ceilings 0.686 / 0.893 / 0.261 and "the largest shift was +2.2e−3".
+   That JSON is the earlier 0.05-marginalised run, recorded here as **superseded**; the current
+   frozen authority is the s_p-coherence re-freeze
+   `results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json`
+   (file sha256 `411190bc…`, content `8c9b96d2…`), whose ceilings are **F1 0.2574 / 0.6835 / 0.8898,
+   F3 0.3228, F2 0.9189, T 0.9855**, with the largest shift **−3.5e−3**. The frozen yields, the
+   ladder steps, the F2 a = 0.50 choice, R12 `not_evaluable` and G6 false are identical between the
+   two; no pass/fail changed. All three configs point at the consistency JSON.
+3. **Physics-reference input in §3.7.3:** the text says the time-of-flight fit "reads absolute digit
+   times". The code's sparse store carries **trigger-relative token times** (A9 `t_token`), so the
+   reference estimator currently reads those; `HitReadout.absolute_time_ns` carries the absolute
+   times for a caller but the store has no absolute-time array. The fit estimates t0 itself, so a
+   constant per-event offset is absorbed and no numeric effect is expected, but text and code differ
+   in what is read. Not changed without the author's word.
+4. **`fallback_rung` in manifests in §3.7.2:** the text requires `fallback_active` **and
+   `fallback_rung`** in every manifest. The code recorded only `fallback_active`; this was a code
+   gap, now fixed (`b4f76d5`): manifests record `fallback_rung` (1 for the seed cut alone, 3 for
+   option A) plus `fallback_rungs` (`[1]` or `[1, 3]`). No runbook edit.
+5. Other numbers in §3.7 checked and **consistent** with DECISIONS/code: B1-ext 2.45 of 4 GPU-h (our
+   2.4484 h); the β table and labels (`edge_selected`, `beta_not_qualified`); the ridge step-2
+   decision and the 0.142446 m reference; the L40S 170 h cap; TF32 1.22×/1.15×; the start rule
+   (151.1 ≤ 160 h); rung (2) drop order; the readout `5f4ecc0` / merge `4e07c0c`, `v_dark = 0.00109
+   PE²`, the token-time rule, the emission-offset leak guard and the R7b dark-only diagnostic.
