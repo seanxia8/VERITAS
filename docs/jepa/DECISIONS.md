@@ -1892,3 +1892,39 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   deleting the regenerated data afterwards. The anchor improves the vertex resolution monotonically
   with β (plain 0.32363 m → 0.31082 at β = 0.1 → **0.20788 at β = 1000**), which is recorded as a
   descriptive development finding and does not change the selection.
+
+## Dev cohort floors measured — no arm carries F1 above its random-init floor (20 Oct 2026)
+
+- **2026-10-20 — random-init floors computed on the dev cell** (CPU, untrained encoder with the shared
+  architecture, init seed 0, the regenerated dev probe datasets; identical for all three arms because
+  only the losses differ). Artefacts: `dev_floors_summary.json` sha256 `66930f71…`, per-arm floor
+  JSONs under `/ceph/dwong/jepa/returns/wp5_dev_floors_<arm>/floors/`, dataset evidence
+  `DEV_FLOORS_EVIDENCE.json` sha256 `e1e72890…`. **Floor:** physics vertex resolution **0.16188 m**
+  (median 0.14201, n = 10 000, failure 0); module-gain **propagated R² 6.4e-05**, **run-mean
+  R² 0.39438**; pmt-gain propagated −1.48e-04, run-mean 0.26281; module-gain per-event 0.01718;
+  pmt-gain per-event 0.02329.
+- **2026-10-20 — the author's §3 reading is confirmed: plain JEPA does NOT carry F1 above the floor,
+  and neither does any other arm.** Trained dev values: plain `sigreg_jepa` physics 0.32363 m,
+  module-gain propagated −0.00182, **run-mean −0.00396**; `mae_mse` physics 0.11349 m, propagated
+  −0.00062, **run-mean 0.31470**; `sigreg_jepa_anchored` physics 0.31082 m, propagated −0.00228,
+  run-mean −0.00416. The run-mean floor (**0.39438**) is above every trained module-gain R² — plain
+  JEPA sits far below it, and `mae_mse`'s 0.31470 is **also below the floor**, so it is not evidence
+  of above-floor F1 either. (Only `mae_mse`'s physics 0.11349 m is better than the 0.16188 m floor.)
+  Plain JEPA does not carry F1 above its random-init floor at development scale, so the dev cohort
+  shows **no F1 trap for JEPA here** (unlike the bridge, 0.525) and **R6/R7 may come out null** on
+  the grid. This decouples the two explanations: the §3.5.3a detectability ceilings (F1 0.6835 at
+  s = 0.05 and 0.8898 at s = 0.10, both above the 0.6 requirement) say the run-mean probe *can*
+  measure F1 if the representation carries it — the limitation is the learned representation, not
+  detectability. Recorded as a development finding before the grid completes, as the author asked.
+- **2026-10-20 — descriptive anchor finding (unchanged selection):** the anchor improves the vertex
+  resolution monotonically with β (plain 0.32363 m → 0.31082 at β = 0.1 → **0.20788 at β = 1000**).
+- **2026-10-20 — quota headroom decision for the grid (Lead engineering, recorded).** One main-cell
+  group's datasets need 5 420 entries; starting at free ≈33.5 k leaves a generation peak of ≈28.1 k,
+  below the guard's **30 000 start minimum** — not because of the hard 500 k quota (≈28 k free is
+  5.6 % of capacity) but because of our own conservative start threshold. Decision: (i) reclaim the
+  remaining jepa-internal, non-result artefacts (superseded `wp5_lucid_dev_v6` root, old WP4a result
+  roots, old job dirs; ≈1 100 entries, evidence already recorded), and (ii) during the grid period
+  lower the guard profile's `free_entries_start_min` from 30 000 to **26 000**, recorded and reverted
+  to 30 000 after the grid. The guard's SHED minimum (10 000) is unchanged, no other §6.2 limit is
+  touched, and the hard quota cap stands. The alternative (raising `ceph.quota.max_files`) needs a
+  filesystem administrator and is requested in the report but is not a blocker.
