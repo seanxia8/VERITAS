@@ -1870,3 +1870,25 @@ benchmark must be re-run at the new frozen yields (§3.5.6).
   β = 1000 labelled **`beta_not_qualified`** as a descriptive control; any prediction clause needing a
   qualified `anchor_only` β is `not_evaluable`, and the dev finding itself (the anchor alone never
   reaches the physics threshold at any β) is reported as a development result.
+
+- **2026-10-20 — the grid protocol and its β labels are staged as committed derived artefacts.** Three
+  named derived files, none of them replacing the registered default (which stays at 10 000 steps,
+  5/3 seeds, and keeps its green test suite): **`lucid_run_v0_rung1.json`** (sha `d5197c6d…`;
+  10 000 steps, 3 seeds for every main arm, secondary retained, `fallback_rung: 1`, 165 runs) is the
+  grid protocol per the author's G2 amendment; **`lucid_run_v0_optionA.json`** (sha `a1476d61…`)
+  stays committed and **unused** unless the rung-(1) re-projection exceeds 160 GPU-h, in which case it
+  is applied with no new gate; and **`step3_beta_decision_grid.json`** keeps the frozen β selections
+  and adds the author's labels (anchored arms β = 1000 `edge_selected`, `anchor_only` β = 1000
+  `beta_not_qualified` as a descriptive control; no re-selection, no grid extension). The frozen
+  step-3 decision itself is unedited.
+- **2026-10-20 — dev-cohort §3 readings (before the floors, to be completed).** Trained dev probes:
+  `sigreg_jepa` physics 0.32363 m, module-gain **propagated −0.00182**, **run-mean −0.00396**,
+  pmt-gain propagated −0.00011; `mae_mse` physics 0.11349 m, module-gain propagated −0.00062,
+  **run-mean 0.31470**, pmt-gain propagated −0.00010; `sigreg_jepa_anchored` physics 0.31082 m,
+  module-gain propagated −0.00228, run-mean −0.00416, pmt-gain propagated −0.00012. The random-init
+  floors were not stored by the dev cohort (the `random_init_floor` block is empty and no floor
+  artefacts exist), so the floor comparison the author asked for is being measured on the host by
+  regenerating only the development probe datasets, computing `ensure_floor` for the three arms, and
+  deleting the regenerated data afterwards. The anchor improves the vertex resolution monotonically
+  with β (plain 0.32363 m → 0.31082 at β = 0.1 → **0.20788 at β = 1000**), which is recorded as a
+  descriptive development finding and does not change the selection.
