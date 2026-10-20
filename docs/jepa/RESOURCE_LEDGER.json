@@ -6,7 +6,7 @@
     "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
     "E2_lucid_l40s_deepthought2": {
       "cap_gpu_hours": 170.0,
-      "charged_gpu_hours": 5.4574,
+      "charged_gpu_hours": 32.846,
       "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
       "cap_history": [
         {
@@ -26,10 +26,11 @@
     },
     "lucid_generation_cpu": {
       "cap_wall_hours": 48,
-      "charged_wall_hours": 0.4452,
+      "charged_wall_hours": 0.6535,
       "cores_at_most": 16,
       "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
-      "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded"
+      "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
+      "note_a9_regeneration": "A9 token-time-origin regeneration 2026-10-18 19:36-19:49Z, dev_train 100 runs + dev_probe_train/test 200+200 runs at the new convention, ~12.5 min single-threaded 1 core = 0.2083 h; legacy datasets recorded in DEV_TIME_LEGACY_EVIDENCE.json before deletion"
     },
     "e1_cpu_wall_hours": {
       "cap_wall_hours": 24,
@@ -975,6 +976,66 @@
       "job_kind": "wp5",
       "evidence": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v6/SUPERSEDED_BY_TOKEN_TIME_ORIGIN.json (sha256 743b0c1db709951986def9605424bd55092c80d94cf56de227b9df344cacb779)",
       "note": "stopped by SIGTERM on the author token-time-origin ruling after 2 completed and 1 partial anchored runs + 12 interrupted: sigreg_jepa_anchored b0.1 3053.59 s, b1 3010.50 s, b10 2828.34 s complete; b100 interrupted at step 1200 (362.99 s); b1000 and all anchor_only/anchored_dark runs interrupted at step 0 (3.4-6.0 s). The step3_beta_decision it wrote from interrupted runs (sha256 3435892f...) is invalid; step2 decision (sha256 bc525bba...) also superseded; all runs kept as evidence, not reused"
+    },
+    {
+      "id": "wp5_lucid_dev_step2_v7",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 1.4189,
+      "wall_seconds": 5108.21,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "d073639d46508e854ed044eeff8bf09f71356ffc",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v7/dev/step2_probe_decision.json (sha256 8c6f5de3beaaf40824362b2573465eae7d360bf88748700c3101935fc121d9fc)",
+      "note": "A9 token-time-origin redo of dev step 2 at d073639 (PMT 5f4ecc0 merge 4e07c0c): sigreg_jepa 2674 s, mae_mse 1536 s; decision ridge (ratios mae_mse 0.7968, sigreg_jepa 2.2719 vs 3x reference 0.1424457); reference fit_config grid 5, v_group 0.2172409115942029, resolution 0.1424457; streaming probes chunk 64, 69,182,980 rows, peak_delta 432.5 MiB / 76.1 MiB; includes A9 dataset regeneration (~12.5 min CPU, charged to the CPU-generation cap)"
+    },
+    {
+      "id": "wp5_lucid_dev_step3_v7",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 18.0836,
+      "wall_seconds": 65100.78,
+      "status": "timeout",
+      "exit_status": 137,
+      "code_sha": "d073639d46508e854ed044eeff8bf09f71356ffc",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v7/ (runs); no step3 decision written",
+      "note": "launcher calendar timeout: planned 720 min -> 64800 s; SIGTERM at 15:04:42Z, SIGKILL at 15:09:42Z, outcome timeout, wtermsig 9, wall 65100.78 s (18.08 h) - NOT a SHED; completed 5/5 sigreg_jepa_anchored and 4/5 anchor_only; interrupted anchor_only b100 at step 7917, sigreg_jepa_anchored_dark b0.1 at step 8339, anchored_dark b1 checkpoint at step 500; anchored_dark b10/b100/b1000 never started; no step3_beta_decision.json; relaunched at the same out path as wp5_lucid_dev_step3_v7b with planned 1800 min (timeout 45 h), resuming from checkpoints"
+    },
+    {
+      "id": "wp5_lucid_dev_step3_v7b",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 0.9719,
+      "wall_seconds": 3498.79,
+      "status": "failed_crashed",
+      "exit_status": 1,
+      "code_sha": "d073639d46508e854ed044eeff8bf09f71356ffc",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/jobs/wp5_lucid_dev_step3_v7b/job.log (traceback); return root runs",
+      "note": "relaunch after the 18 h launcher timeout: re-evaluated 9 completed step-3 runs, resumed anchor_only b100 from step 7917 to complete 10000 (resumed_from_step 7917, 713.45 s), resumed dark b0.1 from step 8339 and trained to 10000; then CRASHED in dark-arm evaluation with AttributeError at lucid_run.py:1537 ('_to_device(batch.features, device)' passes a Tensor to _to_device which expects a LucidBatch). No step3 decision; superseded by a fix SHA"
+    },
+    {
+      "id": "wp5_lucid_dev_step3_v7c",
+      "campaign": "E2_lucid_l40s",
+      "host": "deepthought2",
+      "device": "L40S",
+      "gpu_count": 1,
+      "gpu_hours": 6.9142,
+      "wall_seconds": 24891.27,
+      "status": "complete",
+      "exit_status": 0,
+      "code_sha": "122de8f1debe7142aca6781575a6b4063440df24",
+      "job_kind": "wp5",
+      "evidence": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v7/dev/step3_beta_decision.json (sha256 00b839934605eb06150d90650dc59f45ada8c3aca529929dcdfffe897b2a4c1f)",
+      "note": "fixed-SHA resume (R7b dark-only crash fixed): all 15 dev step-3 runs complete. Resume proof: anchor_only b100 from step 7917 (completed earlier), anchored_dark b0.1 resumed_from_step 10000 (eval only, 315 s), anchored_dark b1 resumed_from_step 500 -> 10000 (6031.65 s); dark b10/b100/b1000 trained from scratch; beta selection: sigreg_jepa_anchored 1000, sigreg_jepa_anchored_dark 1000, anchor_only none_qualified (plain vertex resolution 0.32363 m)"
     }
   ]
 }
