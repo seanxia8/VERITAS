@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-18 20:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-20 02:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -189,9 +189,24 @@ Updated: 2026-10-18 20:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   `readout.prompt_window_mask` (never reimplemented), token time = digit − trigger after the
   `[−20,+60]` ns cut, emission offset U[−50,+50] ns truth-only, trigger-relative tokens with
   absolute times kept additively, counters recorded. Full suite **456 passed, 0 skipped**.
-- **Dev redo running** (`wp5_lucid_dev_v7`): step 2 rerunning (sigreg_jepa 2 674 s complete,
-  mae_mse running) → step 3 (15 β runs) → then the β table and stop for the author's review before
-  the 201-run grid.
+- **A9 development cohort COMPLETE and the β table frozen (20 Oct 2026).** Step 2 = **ridge**
+  (sigreg_jepa 0.32363 m = 2.272× the reference 0.142446 m; mae_mse 0.11349 m; `fit_config` grid 5,
+  v_group 0.2172409115942029). Step 3 (rule: largest β with vertex resolution ≤ 1.1 × plain
+  0.32363 m): **`sigreg_jepa_anchored` → β = 1000** (0.20788 m), **`sigreg_jepa_anchored_dark` →
+  β = 1000** (0.21010 m), **`anchor_only` → `none_qualified`** (best 0.44891 m). Both anchored arms
+  suppress the module-gain nuisance to ≈0 from β = 0.1; `anchor_only` keeps it positive at low β and
+  never reaches the physics threshold. Decisions committed under
+  `results/jepa/20261020_wp5_dev_cohort/` (`8c6f5de3…`, `00b83993…`). The cohort job finished exit 0
+  (6.9142 GPU-h) and the resume path is proved (10 000 / 500 / 7 917 checkpoints), with the CUDA-only
+  R7b dark-arm crash fixed (`122de8f`) and tested.
+- **Option A applied (author G2 standing rule):** ledger 32.8460 of 170 GPU-h + measured grid
+  projection 134–154 GPU-h reaches the cap, so the grid will run at **3 seeds / 5 000 steps**
+  (`fallback_active: true`, `registered: false`), via the named derived config
+  `configs/lucid_run_v0_optionA.json` (`e74922b`; the registered default and its 457-test suite are
+  unchanged). Expected 159 runs, grid ≈60 GPU-h, ledger + grid ≈93 of 170 h.
+- **Quota:** dev datasets reclaimed (3 012 entries) with full per-run evidence
+  (`DEV_DATASET_EVIDENCE.json`); free entries 33 611. **Grid fully prepared and waiting for the
+  author's review — nothing grid-related has started.**
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
