@@ -1,0 +1,122 @@
+{
+  "beta_grid": [
+    0.1,
+    1,
+    10,
+    100,
+    1000
+  ],
+  "note": "frozen development decision; registered=false until the full grid runs",
+  "physics_method": "ridge",
+  "physics_method_source": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v7/dev/step2_probe_decision.json",
+  "plain_resolution": 0.3236265359386408,
+  "plain_source": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v7/runs/dev_s005_within__sigreg_jepa__s9000/probes.json",
+  "registered": false,
+  "schema": "jepa-lucid-dev-step3-grid-v0",
+  "selections": {
+    "anchor_only": {
+      "plain_resolution": 0.3236265359386408,
+      "ratio": 1.1,
+      "selected": 1000.0,
+      "status": "beta_not_qualified",
+      "table": [
+        {
+          "beta": 0.1,
+          "resolution": 0.5704329552519488
+        },
+        {
+          "beta": 1.0,
+          "resolution": 0.5484044941376074
+        },
+        {
+          "beta": 10.0,
+          "resolution": 0.47130884100851417
+        },
+        {
+          "beta": 100.0,
+          "resolution": 0.46216086782829924
+        },
+        {
+          "beta": 1000.0,
+          "resolution": 0.4489145823163749
+        }
+      ],
+      "label": "beta_not_qualified",
+      "selected_from_override": true
+    },
+    "sigreg_jepa_anchored": {
+      "plain_resolution": 0.3236265359386408,
+      "ratio": 1.1,
+      "selected": 1000.0,
+      "status": "selected",
+      "table": [
+        {
+          "beta": 0.1,
+          "resolution": 0.3108176362483623
+        },
+        {
+          "beta": 1.0,
+          "resolution": 0.29824529656279375
+        },
+        {
+          "beta": 10.0,
+          "resolution": 0.23610203354681525
+        },
+        {
+          "beta": 100.0,
+          "resolution": 0.20933872941988885
+        },
+        {
+          "beta": 1000.0,
+          "resolution": 0.20787682000931496
+        }
+      ],
+      "label": "edge_selected"
+    },
+    "sigreg_jepa_anchored_dark": {
+      "plain_resolution": 0.3236265359386408,
+      "ratio": 1.1,
+      "selected": 1000.0,
+      "status": "selected",
+      "table": [
+        {
+          "beta": 0.1,
+          "resolution": 0.31040366973884387
+        },
+        {
+          "beta": 1.0,
+          "resolution": 0.3048668546083379
+        },
+        {
+          "beta": 10.0,
+          "resolution": 0.24191992837246684
+        },
+        {
+          "beta": 100.0,
+          "resolution": 0.19867219133306874
+        },
+        {
+          "beta": 1000.0,
+          "resolution": 0.2101032380674041
+        }
+      ],
+      "label": "edge_selected"
+    }
+  },
+  "step": 3,
+  "step2_decision": "/ceph/dwong/jepa/returns/wp5_lucid_dev_v7/dev/step2_probe_decision.json",
+  "derived_from": "results/jepa/20261020_wp5_dev_cohort/step3_beta_decision.json",
+  "grid_override": {
+    "authority": "author decision 2026-10-20 (verbatim in DECISIONS): anchored arms recorded edge_selected; anchor_only has no qualifying beta, so it runs at beta = 1000 (the anchored arms beta) labelled beta_not_qualified as a descriptive control; no re-selection after results",
+    "anchored_edge_selected": {
+      "sigreg_jepa_anchored": 1000.0,
+      "sigreg_jepa_anchored_dark": 1000.0
+    },
+    "anchor_only": {
+      "beta": 1000.0,
+      "label": "beta_not_qualified",
+      "note": "descriptive control only; any prediction clause needing a qualified anchor_only beta is not_evaluable, and the dev finding (no beta reaches the physics threshold) is reported as a development result"
+    },
+    "no_grid_extension": "the beta grid is not extended; beta = 1000 is the top edge"
+  }
+}
