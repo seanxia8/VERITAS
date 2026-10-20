@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-20 19:30Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-20 19:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -216,11 +216,16 @@ Updated: 2026-10-20 19:30Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   trap for JEPA here (unlike the bridge's 0.525), and **R6/R7 may come out null**; the limitation is
   representation, not detectability (the §3.5.3a ceilings 0.68/0.89 are above the 0.6 requirement).
   The anchor improves vertex resolution monotonically with β (0.32363 → 0.20788 m at β = 1000).
-- **Quota:** dev datasets reclaimed with evidence; free ≈33.5 k. A main-cell group peaks at ≈28.1 k
-  free, below our own 30 k start buffer, so the Lead authorised: reclaim the remaining jepa-internal
-  non-result artefacts and temporarily lower the guard's `free_entries_start_min` to 26 000 for the
-  grid period (SHED minimum 10 000 unchanged; revert after). **Grid: start decision GO; G1 launches
-  as soon as the reclaim and guard-profile change are done.**
+- **A9 registered in the runbook** (`45a2303`, sha256 `9f20042c…` verified, committed unchanged);
+  differences vs DECISIONS/code listed in DECISIONS (grid volume 165 vs the text's 159; detectability
+  JSON citation/ceilings; ToF reference input wording; `fallback_rung` gap now fixed in code at
+  `b4f76d5`). Cite §3.7 as **A9** from now on; companion design doc is v0.3.
+- **GRID RUNNING at rung (1).** G1 job A launched at `368e1c2` (21 runs, `main_s002_across`, GPU 0,
+  45 h budget, 17:23:57Z); 165 runs total; start decision ledger + projection 151.1 ≤ 160 GPU-h.
+  Quota: reclaim 457 entries (`RECLAIM_2026-10-20_EVIDENCE.json` `68c99011…`) → free 33 976; guard
+  `free_entries_start_min` temporarily 26 000 (`GUARD_PROFILE_RELAXATION.json`, SHED minimum 10 000
+  unchanged; revert after the grid). Job B follows once the G1 datasets complete; first-cell report
+  next.
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.

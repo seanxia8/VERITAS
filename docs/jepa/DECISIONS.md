@@ -1970,3 +1970,22 @@ authority until then. A9 adds no new instruction; it registers the 17–20 Oct d
    decision and the 0.142446 m reference; the L40S 170 h cap; TF32 1.22×/1.15×; the start rule
    (151.1 ≤ 160 h); rung (2) drop order; the readout `5f4ecc0` / merge `4e07c0c`, `v_dark = 0.00109
    PE²`, the token-time rule, the emission-offset leak guard and the R7b dark-only diagnostic.
+
+- **2026-10-20 — the grid is running at rung (1); A9 verified, quota relaxations recorded.** G1 job A
+  launched at `368e1c2` (clean; `lucid_run_v0_rung1.json` `d5197c6d…`, registered default
+  `ce452513…`, β decision `a574429f…`, overlay hashes verified; precheck file
+  `grid_G1_jobA_precheck.json`), 21 runs on `main_s002_across`, GPU 0, 45 h launcher budget,
+  17:23:57Z. `enumerate_cells` confirmed **165 runs**; the operator independently confirms the §3.7.2
+  "159" figure is the option-A volume and that R11 keeps its registered 5 seeds, so there is **no
+  run-count disagreement** — the difference list stands as recorded.
+- **2026-10-20 — reclaim and guard relaxation for the grid period (Lead-authorised engineering).**
+  Reclaim (`RECLAIM_2026-10-20_EVIDENCE.json` sha `68c99011…`): 70 targets / 457 entries of
+  superseded pre-A9 dev root, old WP4a result roots and old job/probe/smoke dirs; the guard clone,
+  floors, plans and `returns/wp5_grid` kept; nothing outside `/ceph/dwong/jepa`. Free entries after
+  reclaim **33 976**; with the G1 generation peak ≈28.5 k, above the temporary start minimum. The
+  guard's `free_entries_start_min` was lowered **30 000 → 26 000** for the grid period
+  (`GUARD_PROFILE_RELAXATION.json`, script `fc330571…` → `e0af3f91…`), the guard was restarted and
+  verified (OK, `caps.free_entries_start_min = 26000`, **SHED minimum 10 000 unchanged**); it will be
+  reverted to 30 000 and the guard restarted after the grid. The ledger stays at **32.8460 / 170
+  GPU-h** with no speculative rows; G1's wall is booked when the cell completes. Start decision
+  unchanged: ledger + projection 151.1 ≤ 160 GPU-h → rung (1) is the grid of record.
