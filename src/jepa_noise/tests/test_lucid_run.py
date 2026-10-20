@@ -785,3 +785,19 @@ def test_dark_only_embedding_change_moves_a_batch_not_a_bare_tensor(monkeypatch)
     batch = type("B", (), {"features": _t.zeros(1, 2, 3)})()  # (B, N, d) token array
     lr.dark_only_embedding_change(_StubArm(), [batch], device=_t.device("cpu"))
     assert seen["has_features"] is True and seen["is_tensor"] is False
+
+
+def test_fallback_rung_is_recorded_in_the_manifest_payload():
+    """A9 §3.7.2: every manifest records fallback_active *and* fallback_rung."""
+    from jepa_noise import lucid_run as lr
+    base = lr.load_run_config('src/jepa_noise/configs/lucid_run_v0.json')
+    rung1 = lr.load_run_config('src/jepa_noise/configs/lucid_run_v0_rung1.json')
+    option_a = lr.load_run_config('src/jepa_noise/configs/lucid_run_v0_optionA.json')
+    assert lr.fallback_active(base)["active"] is False
+    assert lr.fallback_active(base)["fallback_rung"] is None
+    r1 = lr.fallback_active(rung1)
+    assert r1["active"] is True and r1["fallback_rung"] == 1 and r1["fallback_rungs"] == [1]
+    assert r1["steps_fallback"] is False and r1["seed_fallback"] is True
+    ra = lr.fallback_active(option_a)
+    assert ra["fallback_rung"] == 3 and ra["fallback_rungs"] == [1, 3]
+    assert ra["steps_fallback"] is True and ra["seed_fallback"] is True

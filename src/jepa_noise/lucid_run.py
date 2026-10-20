@@ -40,15 +40,31 @@ FROZEN_OPTIMIZER = {"family": "muon_adamw", "learning_rate": 0.001, "betas": [0.
                     "schedule": "constant", "warmup_steps": 0,
                     "decay": "none", "gradient_clip": None}
 def fallback_active(config) -> dict:
-    """Record whether a §3.5.6 budget fallback (3 seeds or 5 000 steps) is in use."""
+    """Record whether a §3.5.6 budget fallback is in use, and which ladder rung(s).
+
+    A9 (§3.7.2) requires every manifest to record ``fallback_active`` **and ``fallback_rung``**.
+    Rung definitions (§3.5.6): (1) 3 seeds for every main arm; (2) drop secondary groups from the
+    end; (3) 5 000 steps for every LUCiD arm. This config-driven protocol applies rung (1) alone
+    (``fallback_rung: 1``, seed cut only) or option A = rungs (1)+(3) (``fallback_rung: 3`` with
+    ``fallback_rungs: [1, 3]``, seed cut and steps cut); rung (2) is a scheduling drop recorded in
+    the ledger, not a config change.
+    """
     t, m = config["training"], config["cells"]["main"]
     steps_fb = int(t["steps"]) != 10000
     seed_fb = any(int(n) != REGISTERED_SEEDS.get(a, int(n)) for a, n in m["arms_seeds"].items())
-    return {"active": bool(steps_fb or seed_fb), "steps": int(t["steps"]),
+    active = bool(steps_fb or seed_fb)
+    rungs = []
+    if seed_fb:
+        rungs.append(1)
+    if steps_fb:
+        rungs.append(3)
+    return {"active": active, "steps": int(t["steps"]),
             "steps_fallback": bool(steps_fb), "seed_fallback": bool(seed_fb),
-            "logged_in": "docs/jepa/DECISIONS.md"} if (steps_fb or seed_fb) else {
-        "active": False, "steps": int(t["steps"]), "steps_fallback": False,
-        "seed_fallback": False, "logged_in": "docs/jepa/DECISIONS.md"}
+            "fallback_rung": (max(rungs) if rungs else None),
+            "fallback_rungs": rungs,
+            "logged_in": "docs/jepa/DECISIONS.md"}
+
+
 # --- config -----------------------------------------------------------------
 def load_run_config(path=None) -> dict:
     """Load and validate the registered plan against §3.5.6's fixed numbers."""
