@@ -1,6 +1,6 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-20 02:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
+Updated: 2026-10-20 19:30Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
 
@@ -204,9 +204,23 @@ Updated: 2026-10-20 02:45Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
   (`fallback_active: true`, `registered: false`), via the named derived config
   `configs/lucid_run_v0_optionA.json` (`e74922b`; the registered default and its 457-test suite are
   unchanged). Expected 159 runs, grid ≈60 GPU-h, ledger + grid ≈93 of 170 h.
-- **Quota:** dev datasets reclaimed (3 012 entries) with full per-run evidence
-  (`DEV_DATASET_EVIDENCE.json`); free entries 33 611. **Grid fully prepared and waiting for the
-  author's review — nothing grid-related has started.**
+- **Author G2 amendment (20 Oct): grid runs at ladder rung (1)** — 10 000 steps, 3 seeds for every
+  main arm, secondary retained (`lucid_run_v0_rung1.json`, sha `d5197c6d…`, 165 runs, `fallback_rung 1`);
+  option A stays committed and unused; start only if ledger + measured projection ≤ 160 GPU-h (it is:
+  **32.846 + 118.3 = 151.1 h**). β labels: anchored β = 1000 `edge_selected`, `anchor_only`
+  β = 1000 `beta_not_qualified` (descriptive control).
+- **Dev floors (20 Oct) — the §3 answer:** random-init **module-gain run-mean floor 0.39438**,
+  propagated 6.4e-05, physics 0.16188 m. Trained plain `sigreg_jepa` run-mean **−0.00396**,
+  `mae_mse` **0.31470**, anchored −0.00416 — **every trained module-gain R² is below the floor**, so
+  no arm (including plain JEPA) carries F1 above its random-init floor at development scale: no F1
+  trap for JEPA here (unlike the bridge's 0.525), and **R6/R7 may come out null**; the limitation is
+  representation, not detectability (the §3.5.3a ceilings 0.68/0.89 are above the 0.6 requirement).
+  The anchor improves vertex resolution monotonically with β (0.32363 → 0.20788 m at β = 1000).
+- **Quota:** dev datasets reclaimed with evidence; free ≈33.5 k. A main-cell group peaks at ≈28.1 k
+  free, below our own 30 k start buffer, so the Lead authorised: reclaim the remaining jepa-internal
+  non-result artefacts and temporarily lower the guard's `free_entries_start_min` to 26 000 for the
+  grid period (SHED minimum 10 000 unchanged; revert after). **Grid: start decision GO; G1 launches
+  as soon as the reclaim and guard-profile change are done.**
 - **Next**: freeze the WP5 numerics from the review, then the real-geometry 500-step Titan smoke,
   the scaling benchmark (2k/10k Titan, 40k L40S — deepthought2 rejoins), the development cohort,
   then the 201-run grid in guard-sized chunks.
