@@ -311,6 +311,50 @@ Authorisation relied on for remote/GPU work, quoted from the launch prompt `docs
   - seeds 30–32, the same seeds and gates as R-4 and R-4b, so the three sit side by side;
   - the checkpoint rule is unchanged. If (a) fails: report and stop.
 
+## Author message, 18 Oct 2026, seventh (verbatim)
+
+> Recorded (author, 18 Oct 2026). Record this verbatim.
+>
+> 1. 5f4ecc0 is named for the JEPA study; it supersedes b341037.
+> 2. The R-4 series is closed. R-4, R-4b and R-4c are recorded as development fails on the 60-event
+>    pilot. Run nothing more on those test events. The vertex gate is re-evaluated in WP7 on fresh
+>    events with the frozen rule (NHits N = 4, prompt window [−20, +60] ns, 20 ns unit).
+> 3. WP8: rewrite the vertex part of the R-4 section as one compact paragraph and a table (R-4 /
+>    R-4b / R-4c, vertex pooled per seed). Include the cause (window-start origin; conditioning), the
+>    final rule, and the outcome (0.81–0.88, gate missed).
+>    - Wherever the trigger-time arm (0.65–0.68) is mentioned, state that t = 0 is the true emission
+>      time in this simulation and is not available in data.
+>    - Do not post it; tell me when it is ready and I will post it myself.
+> 4. WP7 still waits for Junjie's D-E answer and my "launch WP7". Until then, nothing new on the hosts.
+
+**Actions (agent, 18 Oct 2026):**
+- The R-4 series is closed. The R-4, R-4b and R-4c verdicts stand as development fails on the 60-event pilot, and those test events are retired.
+- WP7's frozen time rule is NHits N = 4, the prompt window [−20, +60] ns and a 20 ns unit, from `5f4ecc0`.
+- WP8 draft: the vertex part of the R-4 section is rewritten as one paragraph and a table. The trigger-time arm carries the caveat that t = 0 is the true emission time and is not available in data.
+- Nothing new on the hosts.
+
+## Author message, 18 Oct 2026, eighth (verbatim)
+
+> 7. **Realistic drift sizes (for the JEPA study).** We inject module gain drifts of 2/5/10% per run;
+>    only 5% and 10% are visible enough in single WCTE runs to test. An independent per-PMT gain spread
+>    stays undetectable even at 10%. A water-quality-like attenuation change only becomes visible at
+>    a 50% change in attenuation length, because WCTE is small. Are 5–10% module drifts and 10%
+>    per-PMT spreads realistic? Is a 50% attenuation change plausible at all? If not, would you
+>    prefer a different smooth second factor, for example a vertical gain gradient from temperature
+>    stratification?
+
+**Action (agent, 18 Oct 2026):** this replaces question 7 in the WP8 draft word for word. The visibility statements come from the JEPA study and were not re-derived here. The draft is not posted.
+
+## Author message, 18 Oct 2026, ninth (verbatim, SHA statement)
+
+> PMT SHA named (author, 18 Oct 2026; record verbatim): "5f4ecc0 on codex/junjie-pmt-response is
+> accepted for JEPA reported runs; it supersedes b341037."
+
+**Action (agent, 18 Oct 2026):**
+- Recorded the statement above.
+- Checked `git diff 5f4ecc0 HEAD`: no changes under `src/` or `configs/`. The commits after `5f4ecc0` touch only `docs/` (3 files) and `results/` (45 files).
+- The rest of that message (merge `5f4ecc0`, token time, emission-time offset and invariance tests, regenerating datasets, the β table, the 201-run grid) is addressed to the JEPA study. It is not acted on in this branch (runbook §6: never touch the JEPA branch, its files or its jobs).
+
 ## Scientific decisions (runbook v2 §3), status after the author's 18 Oct decisions
 
 | # | Decision | Setting | Status |
@@ -424,6 +468,32 @@ _One line each, logged as made (18 Oct 2026)._
   - With dark counts, vertex loses about 0.12. An untested hypothesis is that dark-digit time features (about −15 to +35 units against prompt hits near 0–2) act as outliers under masked max pooling.
 
   Nothing was tuned. Details: `results/pmt_r4c_dev_2026-10-18/nhits_validation`.
+- E46 (E45 validation result, validation only; code `5f4ecc0`). Vertex ÷ constant, pooled, seeds 20 / 21 / 22:
+  - (a) N = 4 + prompt window, dark on: 0.840 / 0.789 / 0.807 (mean 0.812);
+  - (b) the same, dark off: 0.797 / 0.748 / 0.814 (mean 0.786);
+  - (c) truth-dark removed (upper bound): 0.775 / 0.755 / 0.824 (mean 0.785).
+
+  **The pass mark is met:** every seed of (a) is ≤ 0.88 (maximum 0.840), and mean(a) − mean(b) = +0.026 (≤ 0.05). So R-4c runs once on the test events, as recorded in E45.
+  - Fallback: 0 of 480 placements in every arm.
+  - **Dropped digits, arm (a):**
+    - 710 of 197 455 digits in all roles; 147 of 39 557 in validation; per validation cell 59, 45 and 43 (500, 1000 and 1500 MeV).
+    - Source digits dropped: 32, every one holding a dark photoelectron that set its time before the trigger. Pure-source digits dropped: 0.
+  - Arm (c) removed 736 truth-dark digits; its prompt window then dropped only those same 32 dark-timed source digits.
+  - Arm (b)'s checkpoints are byte-identical to E44's dark-off checkpoints. With dark counts off, N = 4 and N = 3 give the same trigger on every placement, and the window drops nothing.
+  - **Reading:** the window recovers most of the dark-count loss. (a) is within 0.03 of both (b) and the truth upper bound (c), against a loss of 0.12 in E44. The direction and E_dep gates are unchanged in character. Nothing was tuned.
+
+  Details: `results/pmt_r4c_dev_2026-10-18/e45`.
+- E47 (R-4c, test events, once; code `5f4ecc0`). NHits N = 4 + prompt window, dark on, deposited-energy target, seeds 30–32, on the E45 arm (a) data set; same gates and checkpoint rule as R-4 and R-4b.
+
+  | Seed | Vertex, pooled | Vertex, worst energy | Direction | E_dep, pooled | E_dep, worst energy | Verdict |
+  |---|---|---|---|---|---|---|
+  | 30 | 0.812 | 0.88 (500 MeV) | 7.8° | 0.642 | 0.67 | FAIL (vertex pooled) |
+  | 31 | 0.877 | 0.93 (1000 MeV) | 9.2° | 0.570 | 0.72 | FAIL (vertex pooled) |
+  | 32 | 0.883 | 1.02 (500 MeV) | 7.8° | 0.640 | 0.69 | FAIL (vertex pooled and 500 MeV) |
+
+  **R-4c fails the vertex gate (≤ 0.8 × constant pooled) in all three seeds.** Direction and E_dep pass in every seed and cell. Vertex is much better than R-4 (0.96–1.00) and R-4b (0.99–1.00), but not enough for the gate.
+  - On test, seeds 30–32 sit about 0.04 above E45 (a) on validation (0.81–0.88 against 0.79–0.84, seeds 20–22). Different seeds and splits, and the validation split also selected the checkpoints.
+  - The verdict is retained, with no retuning and no further test-event run. Details: `results/pmt_r4c_dev_2026-10-18/r4c_test`.
 - E32 (R-6). The R-2 T-Q tests and `tq_validation.py` set `dark_rate_hz = 0` to validate the walk in isolation. The pilots and fixture use the manifest's 1 kHz.
 - E24 (R-5). Runs 03/04 were removed from the tree (history `56179eb`). Checkpoint paths and hashes are in `results/PMT_CHECKPOINTS.json`. The integration-pilot root is inferred from the README and is re-verified on the host in R-4.
 
@@ -455,6 +525,12 @@ _One line each, logged as made (18 Oct 2026)._
 | 18 Oct 2026 | local | NHits rule measurement (`nhits_rule/measure_nhits.py`, 20 000 dark windows, 600 prompt events) | about 4 min | 0 | 0 |
 | 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, nice 10) | NHits validation generation: `nhits_data_dark`, `nhits_data_nodark` | 14:46, 14:18 | 0 | 0 |
 | 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | NHits validation training: 2 arms × 3 seeds, validation only | 111 s | 0.031 | 0 |
+| 18 Oct 2026 | local | E45 test suite (20 000 dark windows at N = 4) | about 3 min | 0 | 0 |
+| 18 Oct 2026 | deepthought (CPU, 2 × 4 threads, then 4 threads, nice 10) | E45 generation: `e45_data_a`, `_b`, `_c` | 14:32, 14:43, 13:22 | 0 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | E45 training: 3 arms × 3 seeds, validation only | 169 s | 0.047 | 0 |
+| 18 Oct 2026 | deepthought (GPU 0, TITAN X, 25% memory) | R-4c training and test evaluation, 3 seeds (`r4c_test`) | 56 s | 0.016 | 0 |
+
+E45 and R-4c totals: 0.063 GPU-hours, with no new source reads. Before each GPU job, a 5-minute sample (`gpu_sample_pre_e45.csv`, `gpu_sample_pre_r4c_test.csv`) showed all GPUs at 0%, no `jepa_*` training session, and only another user's notebook kernel at ≤ 802 MiB per card. Cumulative GPU use in this session: 0.281 GPU-hours. Cumulative source reads: about 92.5 MB.
 
 NHits totals: 0.031 GPU-hours, with no new source reads. Before training, a 5-minute sample showed all GPUs at 0%, no `jepa_*` training session, and only another user's notebook kernel at ≤ 802 MiB per card. Cumulative GPU use in this session: 0.218 GPU-hours. Cumulative source reads: about 92.5 MB.
 
