@@ -801,3 +801,31 @@ def test_fallback_rung_is_recorded_in_the_manifest_payload():
     ra = lr.fallback_active(option_a)
     assert ra["fallback_rung"] == 3 and ra["fallback_rungs"] == [1, 3]
     assert ra["steps_fallback"] is True and ra["seed_fallback"] is True
+
+
+def test_ensure_floor_moves_model_to_the_probe_device(tmp_path, monkeypatch):
+    """The floor model must be on the same device as the probe batch (CUDA regression)."""
+    class _ProbeSet:
+        key = "probe"
+        def manifest_sha256(self):
+            return "0" * 64
+    class _Cell:
+        cell_id = "c"
+        split = "within"
+    class _Geom:
+        digest = "g"
+    seen = {}
+    def fake_probe_scores(model, train, test, geometry, **kw):
+        seen["device"] = str(next(model.parameters()).device)
+        return {"results": {}, "tables": {"train": {}, "test": {}}, "memory": None}
+    monkeypatch.setattr(lr, "available_kinds", lambda cell, config: [])
+    monkeypatch.setattr(la, "random_init_floor", lambda *a, **k: torch.nn.Linear(1, 1))
+    monkeypatch.setattr(lr, "probe_scores", fake_probe_scores)
+    payload = lr.ensure_floor(
+        arm_name="sigreg_jepa", cell=_Cell(), geometry=_Geom(),
+        config={"evaluation": {"probe_chunk_events": 2}},
+        probe_datasets={"train": _ProbeSet(), "test": _ProbeSet()},
+        mask_seed=0, config_sha="c", out_root=tmp_path / "out", data_root=tmp_path / "data",
+        device=torch.device("meta"), log=lambda *_: None)
+    assert seen["device"].startswith("meta")
+    assert payload["registered"] is False

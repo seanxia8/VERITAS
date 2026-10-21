@@ -1343,7 +1343,10 @@ def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed,
         if cached.get("identity") != identity:
             raise RuntimeError(f"floor cache {path} belongs to a different arm/cell/config")
         return cached
-    model = la.random_init_floor(arm_name, geometry, seed=0); kinds = available_kinds(cell, config)
+    model = la.random_init_floor(arm_name, geometry, seed=0)
+    if device is not None:
+        model = model.to(device)  # floor model must share the probe batch device
+    kinds = available_kinds(cell, config)
     twin = arm_name == la.ORACLE_ARM
     evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
                              split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
