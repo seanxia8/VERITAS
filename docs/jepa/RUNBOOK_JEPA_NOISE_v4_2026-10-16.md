@@ -522,6 +522,8 @@ A8 is folded into §3.5 above. What it changed, and why:
 A9 registers, as runbook text, the author decisions made after v4 was registered. Each one is
 already quoted verbatim, with its date, in `docs/jepa/DECISIONS.md`; that record stays the
 authority for the exact wording. **Where A9 conflicts with §3.5, §6.1 or §8, A9 wins.**
+_Corrected 21 Oct 2026: grid volume (§3.7.2), physics-reference input (§3.7.3) and the
+detectability record (§3.7.4), following the differences listed in `DECISIONS.md` at `368e1c2`._
 
 A9 changes no registered prediction criterion and no registered verdict. It changes four things:
 - two labelled follow-ups;
@@ -559,8 +561,9 @@ A9 changes no registered prediction criterion and no registered verdict. It chan
   - 10 000 steps, 3 seeds for every main arm, all secondary runs retained.
   - Recorded as `fallback_rung: 1`. That is weaker than the registered protocol only in the seed
     count, and R8's "3 of 3" clause applies.
-  - Expected volume: 159 runs (6 main cells × 21, R11 9, R11b 9, dark-window anchor 3, law T 9,
-    occupancy 3).
+  - Expected volume: 165 runs (6 main cells × 21; R11 15, at its registered 5 seeds because it is a
+    secondary group; R11b 9, dark-window anchor 3, law T 9, occupancy 3). Option A would be 159,
+    with R11 also cut to 3 seeds.
 - **Start rule.** Before the first grid job, re-project with the measured per-arm walls, including
   evaluation.
   - Start only if ledger + projection ≤ 160 GPU-h.
@@ -612,8 +615,8 @@ A9 changes no registered prediction criterion and no registered verdict. It chan
   - dark counts on: the same holds for the source-derived digits only. Report how often a dark
     coincidence moves the trigger (`dark_moved_trigger_rate`).
 - **Counters per run:** `n_no_trigger`, `n_prompt_dropped`, `n_dark_moved_trigger` and its rate.
-- **Physics reference unchanged.** The time-of-flight fit reads absolute digit times and estimates
-  t0 itself, so the trigger convention does not affect it.
+- **Physics reference unchanged.** The time-of-flight fit reads the trigger-relative digit times and
+  fits t0 itself, so a per-event time origin is absorbed.
 - **Development cohort redone on this input.** All earlier development runs are kept, labelled
   `superseded_by_token_time_origin_change`. Reason: with trigger t = 0 at the true emission time,
   `mae_mse`'s linear vertex (0.093 m) beat a reference fit that must estimate t0.
@@ -626,15 +629,18 @@ A9 changes no registered prediction criterion and no registered verdict. It chan
 - **Rule change to §3.5.3a.** F3 is treated as random, not known: each PMT's variance in the Fisher
   ceilings gains s_p²·μ_p², the same term as the §3.5.6 `mae_chi2` covariance. The adjustment ladder
   restarts from the registered s_p = 0.05. Old and new ceilings are recorded side by side; no
-  pass/fail changed, and the largest shift was +2.2e−3.
-- **Frozen outputs of the registered procedure** (not new choices). Decision JSON
-  `wp4b_detectability_wcte_r6.json`, sha256 `1e4407ac…`.
+  pass/fail changed, and the largest shift was −3.5e−3.
+- **Frozen outputs of the registered procedure** (not new choices). Decision JSON: the consistency
+  re-freeze `results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json`
+  (file sha256 `411190bc…`); it supersedes `wp4b_detectability_wcte_r6.json` (`1e4407ac…`), with the
+  same decisions.
   - Yields: Y_lo = 6 298.44 photons (median 199 hit PMTs); Y_hi = 539 434 (0.95 hit-fraction
     bound); median 58 289.
   - Ladder steps taken: Y_hi 320 000 → 539 434; F2 a 0.1 → 0.2 → 0.5; s_p 0.05 → 0.10.
-  - F1: s ∈ {0.05, 0.10} reach the 0.6 ceiling (0.686, 0.893); s = 0.02 does not (0.261).
+  - Run-level ceilings: F1 0.684 and 0.890 at s = 0.05 and 0.10, which reach 0.6; s = 0.02 does
+    not (0.257). F2 0.919, law T 0.986.
   - F2 is used at a = 0.50; F2′ is not used.
-  - F3 fails at s_p = 0.10 (0.325), so **R12 is `not_evaluable`, with no gate**, as §3.5.9
+  - F3 fails at s_p = 0.10 (0.323), so **R12 is `not_evaluable`, with no gate**, as §3.5.9
     provides.
   - Law T passes. R6 and R7 are evaluable. G6 is not triggered.
 - **Generation** is re-benchmarked at the frozen yields (§3.5.6).
