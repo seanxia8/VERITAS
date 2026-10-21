@@ -1989,3 +1989,18 @@ authority until then. A9 adds no new instruction; it registers the 17–20 Oct d
   reverted to 30 000 and the guard restarted after the grid. The ledger stays at **32.8460 / 170
   GPU-h** with no speculative rows; G1's wall is booked when the cell completes. Start decision
   unchanged: ledger + projection 151.1 ≤ 160 GPU-h → rung (1) is the grid of record.
+
+## Author decision, 22 October 2026 — A10 mixed event domains
+
+- **2026-10-22 — A10 slots decided (author).** The author's message: "generator：hybrid；
+  e⁻ 样本来源（analytic 先做；mixing 1:1:1；primary domain：particle primary + photon control".
+  The earlier instruction "μ⁻ 和 e⁻ 都要" remains in force. Recorded decisions:
+  generator **hybrid** (analytic Cherenkov production + a mandatory PhotonSim μ⁻ validation
+  subset); electron source **analytic first**; mixing **1:1:1** photon:μ:e (333/333/334 per
+  1000-event training run; 17/17/16 per 50-event probe run); primary domain **particle (μ+e)
+  for R6/R7**, with the photon domain as the isotropic control and the pooled result secondary.
+  A10 is drafted in `docs/jepa/GATE_A10_MIXED_DOMAINS_2026-10-22.md` and
+  `docs/jepa/AMENDMENT_A10_MIXED_DOMAINS_2026-10-22.md`; it is **not in force** until the
+  orchestrator commits the runbook §3.8 unchanged as
+  `jepa: register runbook amendment A10 (author revision)`. No outcome-generating run may use A10
+  before that registration. Drift values s, s_p and a remain pending from Junjie.
