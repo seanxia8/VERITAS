@@ -51,7 +51,7 @@ per-PMT gain, attenuation and aging are seen identically by all domains).
 
 | Set | Default per run | Note |
 |---|---|---|
-| training run (1000 events) | 333 photon + 333 muon + 334 electron (≈1:1:1) | the class-balanced default; exact per-run counts in config |
+| training run (1000 events) | 334 photon + 333 muon + 333 electron (≈1:1:1) | the class-balanced default; exact per-run counts in config |
 | probe-train run (50) | 17 + 17 + 16 | run-mean probes per domain |
 | probe-test run (50) | 17 + 17 + 16 | disjoint runs from probe-train |
 | robustness run (50) | 17 + 17 + 16 | s = 0.20 and aging extrapolation |
@@ -123,7 +123,7 @@ validation subset. **No electron generator exists in the repo.**
 1. **Generator: hybrid** — analytic Cherenkov production for the grid plus a mandatory PhotonSim μ⁻
    validation subset.
 2. **Electron source: analytic first**; replacing it with full PhotonSim e⁻ needs a later amendment.
-3. **Mixing: 1:1:1** photon:μ:e (333/333/334 per 1000-event training run; 17/17/16 per 50-event
+3. **Mixing: 1:1:1** photon:μ:e (334/333/333 per 1000-event training run; 17/17/16 per 50-event
    probe run).
 4. **Primary domain: particle (μ + e) primary for R6/R7**, photon domain the isotropic control;
    pooled result secondary.

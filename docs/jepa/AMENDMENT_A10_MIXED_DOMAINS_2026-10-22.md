@@ -22,7 +22,7 @@ A domain is a data-domain factor. The photon bomb is a simplified isotropic doma
 subset of a Cherenkov event; per-domain results are reported, pooled results secondary.
 
 **A10.2 Run structure and mixing.** Each run carries one detector state, shared by every domain in
-that run. Default training-run composition is **333 photon + 333 muon + 334 electron per 1000
+that run. Default training-run composition is **334 photon + 333 muon + 333 electron per 1000
 events (≈1:1:1)**; probe, robustness and dark-only runs are 17 + 17 + 16 per 50 events. The class
 label is metadata only and never a model input; batches are class-balanced by construction, with
 optional exact per-batch stratification if the development domain classifier shows imbalance.
@@ -74,7 +74,7 @@ arms/objectives of §3.5.6. The photon bomb is not reclassified as N or S; domai
 - **Generator: hybrid.** Analytic Cherenkov production for the grid; a mandatory PhotonSim μ⁻
   validation subset; electron analytic until Junjie supplies PhotonSim e⁻ samples.
 - **Electron source: analytic first.** Replacing it with full PhotonSim e⁻ needs a further amendment.
-- **Mixing: 1:1:1** photon:μ:e (333/333/334 per 1000-event training run; 17/17/16 per 50-event
+- **Mixing: 1:1:1** photon:μ:e (334/333/333 per 1000-event training run; 17/17/16 per 50-event
   probe run). The 2:1:1 ratio is only the recorded budget fallback of A10.6.
 - **Primary domain: particle (μ + e) primary for R6/R7**; the photon domain is the isotropic
   control; the pooled result is secondary.
