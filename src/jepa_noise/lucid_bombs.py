@@ -41,7 +41,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Sequence
@@ -119,6 +119,15 @@ DEFAULT_SEED = 20261017
 #: Placeholder: §3.5.3 fixes F2's form but no lambda0, and the PMT reference
 #: fixture has absorption off.
 LAMBDA0_M = 50.0
+
+#: A10 event domains (runbook §3.8).  One method, three data domains.
+DOMAIN_PHOTON = "photon"
+DOMAIN_MUON = "muon"
+DOMAIN_ELECTRON = "electron"
+DOMAINS = (DOMAIN_PHOTON, DOMAIN_MUON, DOMAIN_ELECTRON)
+PARTICLE_DOMAINS = (DOMAIN_MUON, DOMAIN_ELECTRON)
+GENERATOR_ANALYTIC = "analytic_cherenkov"
+GENERATOR_PHOTONSIM = "photonsim"
 GAIN_CLIP = (0.5, 1.5)
 F1_SPREADS = (0.02, 0.05, 0.10)
 #: Registered default per v4 §3.5.3 (``s_p = 0.05``), adjustable only through §3.5.3a step 3.
@@ -1456,6 +1465,20 @@ class GeneratorConfig:
     reference_response_path: str = FIXED_RESPONSE_RELPATH
     reference_response_sha256: str = REFERENCE_RESPONSE_SHA256
 
+    #: A10: enabled event domains and their run composition.  Photon-only default keeps every
+    #: existing config bit-identical; particle domains require the checks below.
+    domains: tuple = (DOMAIN_PHOTON,)
+    domain_fractions: dict = field(default_factory=lambda: {
+        DOMAIN_PHOTON: 1.0 / 3.0, DOMAIN_MUON: 1.0 / 3.0, DOMAIN_ELECTRON: 1.0 / 3.0})
+    generator_mode: str = GENERATOR_ANALYTIC
+    muon_energy_MeV: tuple = (300.0, 1500.0)
+    electron_energy_MeV: tuple = (100.0, 1000.0)
+    track_segments: int = 24
+    cherenkov_yield_per_MeV: float = 500.0
+    cherenkov_cone_sigma_rad: float = 0.08
+    muon_range_m_per_MeV: float = 0.0043
+    electron_shower_length_m: float = 0.8
+
     @property
     def window_ns(self) -> float:
         """Readout-window duration ``end - start`` (1 us for R-6), derived not stored."""
@@ -1463,6 +1486,32 @@ class GeneratorConfig:
         return float(end - start)
 
     def __post_init__(self):
+        domains = tuple(str(d) for d in self.domains)
+        if (not domains or len(set(domains)) != len(domains)
+                or any(d not in DOMAINS for d in domains)):
+            raise ValueError(f"generator config: invalid domains {domains!r}; known {DOMAINS}")
+        object.__setattr__(self, "domains", domains)
+        fractions = {str(k): float(v) for k, v in dict(self.domain_fractions).items()}
+        if any(not np.isfinite(v) or v < 0.0 for v in fractions.values()):
+            raise ValueError("generator config: domain_fractions must be finite and non-negative")
+        if any(float(fractions.get(d, 0.0)) <= 0.0 for d in domains):
+            raise ValueError(f"generator config: every enabled domain needs a positive fraction: {domains}")
+        object.__setattr__(self, "domain_fractions", fractions)
+        if self.generator_mode not in (GENERATOR_ANALYTIC, GENERATOR_PHOTONSIM):
+            raise ValueError(f"generator config: unknown generator_mode {self.generator_mode!r}")
+        for name, value in (("muon_energy_MeV", self.muon_energy_MeV),
+                            ("electron_energy_MeV", self.electron_energy_MeV)):
+            lo, hi = (float(x) for x in value)
+            if not (np.isfinite(lo) and np.isfinite(hi) and 0.0 < lo < hi):
+                raise ValueError(f"generator config: {name} must be a finite ordered positive pair")
+        for name, value in (("track_segments", self.track_segments),
+                            ("cherenkov_yield_per_MeV", self.cherenkov_yield_per_MeV),
+                            ("cherenkov_cone_sigma_rad", self.cherenkov_cone_sigma_rad),
+                            ("muon_range_m_per_MeV", self.muon_range_m_per_MeV),
+                            ("electron_shower_length_m", self.electron_shower_length_m)):
+            if not np.isfinite(value) or value <= 0:
+                raise ValueError(f"generator config: {name} must be finite and positive")
+        object.__setattr__(self, "track_segments", int(self.track_segments))
         object.__setattr__(self, "readout_window_ns",
                            tuple(float(v) for v in self.readout_window_ns))
         pairs = list(zip(self.qe_curve_nm, self.qe_curve))
@@ -1645,6 +1694,125 @@ def propagation_time_ns(geometry, vertex_m, cfg: GeneratorConfig) -> np.ndarray:
     dist = np.linalg.norm(geometry.positions_m - np.asarray(vertex_m, dtype=float), axis=1)
     return dist * (float(cfg.n_group) / C_M_PER_S) * 1e9
 
+def domain_plan(n_events: int, cfg: GeneratorConfig) -> tuple:
+    """Deterministic per-run domain composition (largest-remainder; A10 §A10.2)."""
+    n = int(n_events)
+    if n <= 0:
+        raise ValueError("domain plan needs a positive event count")
+    domains = tuple(cfg.domains)
+    weights = np.array([float(cfg.domain_fractions[d]) for d in domains], dtype=float)
+    if not np.all(np.isfinite(weights)) or np.any(weights <= 0.0):
+        raise ValueError("domain plan needs finite positive fractions for every enabled domain")
+    raw = weights / weights.sum() * n
+    counts = np.floor(raw).astype(np.int64)
+    remainder = n - int(counts.sum())
+    if remainder:
+        order = np.argsort(-(raw - counts), kind="stable")[:remainder]
+        counts[order] += 1
+    return tuple(np.repeat(domains, counts))
+
+
+def _unit_direction(rng: np.random.Generator) -> np.ndarray:
+    d = rng.normal(size=3)
+    norm = float(np.linalg.norm(d))
+    if not np.isfinite(norm) or norm <= 0.0:
+        raise ValueError("invalid direction draw")
+    return d / norm
+
+
+def _distance_to_boundary(geometry, vertex_m, direction) -> float:
+    """First positive intersection with the cylinder (radius, half-height)."""
+    p = np.asarray(vertex_m, dtype=float)
+    d = np.asarray(direction, dtype=float)
+    radius, half = float(geometry.radius_m), float(geometry.half_height_m)
+    best = np.inf
+    a = d[0] * d[0] + d[1] * d[1]
+    if a > 1e-15:
+        b = 2.0 * (p[0] * d[0] + p[1] * d[1])
+        c = p[0] * p[0] + p[1] * p[1] - radius * radius
+        disc = b * b - 4.0 * a * c
+        if disc >= 0.0:
+            root = np.sqrt(disc)
+            for t in ((-b - root) / (2.0 * a), (-b + root) / (2.0 * a)):
+                if t > 1e-9:
+                    best = min(best, float(t))
+    if abs(d[2]) > 1e-12:
+        for z in (half, -half):
+            t = (z - p[2]) / d[2]
+            if t > 1e-9:
+                best = min(best, float(t))
+    if not np.isfinite(best):
+        raise ValueError("particle truth: no positive boundary intersection from the vertex")
+    return best
+
+
+def draw_particle_truth(geometry, cfg: GeneratorConfig, run_id: str, event_id: int, domain: str,
+                        seed: int = DEFAULT_SEED) -> ParticleTruth:
+    """Sample one μ/e truth: vertex, direction, energy, containment and deposited energy."""
+    if domain not in PARTICLE_DOMAINS:
+        raise ValueError(f"draw_particle_truth needs a particle domain, got {domain!r}")
+    def rng(role):
+        return keyed_rng(seed, NS_DRAWS, run_id, event_id, role)
+    vertex = fiducial_vertex(geometry, rng("vertex"), cfg.fiducial_fraction)
+    direction = _unit_direction(rng("direction"))
+    lo, hi = (float(x) for x in (cfg.muon_energy_MeV if domain == DOMAIN_MUON
+                                 else cfg.electron_energy_MeV))
+    energy = float(np.exp(rng("energy").uniform(np.log(lo), np.log(hi))))
+    boundary = _distance_to_boundary(geometry, vertex, direction)
+    if domain == DOMAIN_MUON:
+        full_length = float(cfg.muon_range_m_per_MeV) * energy
+    else:
+        full_length = float(cfg.electron_shower_length_m)
+    track_length = min(full_length, boundary)
+    contained = bool(full_length <= boundary)
+    deposited = float(energy if contained else energy * (track_length / max(full_length, 1e-12)))
+    return ParticleTruth(domain=domain, vertex_m=vertex, direction=direction, energy_MeV=energy,
+                         deposited_MeV=deposited, contained=contained, track_length_m=track_length)
+
+
+def expected_charge_particle(geometry, truth: ParticleTruth, qe_eff, lambda_m: float,
+                             cfg: GeneratorConfig) -> tuple[np.ndarray, np.ndarray]:
+    """Simplified Cherenkov ring model: per-PMT mean PE and first-arrival time (A10.3)."""
+    lam = float(lambda_m)
+    if not np.isfinite(lam) or lam <= 0.0:
+        raise ValueError("particle expected charge: attenuation length must be positive")
+    if truth.deposited_MeV <= 0.0 or truth.track_length_m <= 0.0:
+        return np.zeros(geometry.n_pmt), np.full(geometry.n_pmt, np.inf)
+    n_seg = int(cfg.track_segments)
+    s = np.linspace(0.0, float(truth.track_length_m), n_seg)
+    points = np.asarray(truth.vertex_m, dtype=float)[None, :] + s[:, None] * np.asarray(
+        truth.direction, dtype=float)[None, :]
+    if truth.domain == DOMAIN_MUON:
+        beta = float(np.sqrt(max(1e-12, 1.0 - 1.0 / (1.0 + truth.energy_MeV / 105.658) ** 2)))
+        sigma = float(cfg.cherenkov_cone_sigma_rad)
+    else:
+        beta, sigma = 1.0, 2.0 * float(cfg.cherenkov_cone_sigma_rad)
+    cos_theta = min(0.999, 1.0 / (beta * float(cfg.n_group)))
+    total_yield = float(cfg.cherenkov_yield_per_MeV) * float(truth.deposited_MeV)
+    per_segment = total_yield / float(n_seg)
+    qe = np.clip(np.asarray(qe_eff, dtype=float), 0.0, 1.0)
+    omega = None
+    mu = np.zeros(geometry.n_pmt)
+    first = np.full(geometry.n_pmt, np.inf)
+    positions = geometry.positions_m
+    for i, point in enumerate(points):
+        delta = positions - point
+        dist = np.linalg.norm(delta, axis=1)
+        if np.any(dist <= 0.0):
+            raise ValueError("particle expected charge: a sensor coincides with an emission point")
+        cosine = np.einsum("ij,j->i", delta / dist[:, None], truth.direction)
+        ring = np.exp(-0.5 * ((cosine - cos_theta) / sigma) ** 2)
+        solid = solid_angle_fraction(geometry, point)
+        weight = (per_segment * qe * float(cfg.ce) * solid
+                  * np.exp(-dist / lam) * ring)
+        mu += weight
+        t = (s[i] / (beta * C_M_PER_S) * 1e9
+             + dist * (float(cfg.n_group) / C_M_PER_S) * 1e9)
+        visible = ring > 0.02
+        first = np.where(visible, np.minimum(first, t), first)
+    return mu, first
+
+
 def count_capacity(max_mu: float, *, n_sigma: float = 12.0) -> int:
     """Uniform columns needed by :func:`poisson_counts_from_uniform` (12σ + 10 margin)."""
     m = float(max_mu)
@@ -1669,6 +1837,34 @@ def poisson_counts_from_uniform(poisson_u, mu) -> np.ndarray:
     arrivals = np.cumsum(-np.log(np.clip(u, tiny, 1.0)), axis=1)
     return np.count_nonzero(arrivals <= mu[:, None], axis=1).astype(np.int64)
 
+@dataclass(frozen=True)
+class ParticleTruth:
+    """One particle-bomb event: truth only, never a model input."""
+
+    domain: str
+    vertex_m: np.ndarray
+    direction: np.ndarray
+    energy_MeV: float
+    deposited_MeV: float
+    contained: bool
+    track_length_m: float
+
+    def __post_init__(self):
+        if self.domain not in PARTICLE_DOMAINS:
+            raise ValueError(f"particle truth domain {self.domain!r} is not a particle domain")
+        v = np.asarray(self.vertex_m, dtype=float)
+        d = np.asarray(self.direction, dtype=float)
+        if v.shape != (3,) or d.shape != (3,) or not np.all(np.isfinite(v)) or not np.all(np.isfinite(d)):
+            raise ValueError("particle truth needs finite (3,) vertex and direction")
+        if abs(float(np.linalg.norm(d)) - 1.0) > 1e-6:
+            raise ValueError("particle truth direction must be a unit vector")
+        for name, value in (("energy_MeV", self.energy_MeV),
+                            ("deposited_MeV", self.deposited_MeV),
+                            ("track_length_m", self.track_length_m)):
+            if not np.isfinite(value) or value < 0:
+                raise ValueError(f"particle truth {name} must be finite and non-negative")
+
+
 @dataclass(frozen=True, eq=False)
 class SensorDraws:
     """One event's shared draws: the twin re-maps these through the nominal state."""
@@ -1692,6 +1888,12 @@ class SensorDraws:
     #: **source photon** arrival time (never a dark time) and is never a feature; the readout
     #: token time is trigger-relative, so the offset cancels.
     emission_offset_ns: float = 0.0
+    #: A10 domain metadata.  The photon path leaves these at their defaults, so photon-only
+    #: events and every existing draw are unchanged.
+    domain: str = DOMAIN_PHOTON
+    truth: ParticleTruth | None = None
+    expected_pe: np.ndarray | None = None
+    expected_time_ns: np.ndarray | None = None
 
 
 def dark_photoelectrons(geometry, cfg: GeneratorConfig, rng_counts, rng_times) -> tuple:
@@ -1717,7 +1919,7 @@ def dark_photoelectrons(geometry, cfg: GeneratorConfig, rng_counts, rng_times) -
 
 
 def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
-               seed: int = DEFAULT_SEED) -> SensorDraws:
+               seed: int = DEFAULT_SEED, domain: str | None = None) -> SensorDraws:
     """Vertex, log-uniform yield, spectrum, and every shared normal/Poisson draw.
 
     PMT R-6 turns the dark bank back on: this consumes the keyed ``dark`` (per-PMT
@@ -1729,6 +1931,8 @@ def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
     A9: the event also draws an **emission-time offset** uniform in [-50, +50] ns from its
     own ``emission_offset`` keyed role (truth only, recorded in ``events.npz``).
     """
+    if domain is not None and domain != DOMAIN_PHOTON:
+        return _draw_particle_bomb(geometry, cfg, run_id, event_id, seed, domain)
     if cfg.dark_counts != DARK_COUNTS_ON:
         raise ValueError(f"{READOUT_LABEL}: dark counts must be on, got {cfg.dark_counts!r}")
 
@@ -1751,6 +1955,32 @@ def draw_event(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
                        dark_counts=dark_counts, dark_times=dark_times,
                        window_ns=float(cfg.window_ns), capacity=capacity,
                        emission_offset_ns=emission_offset_ns)
+
+def _draw_particle_bomb(geometry, cfg: GeneratorConfig, run_id: str, event_id: int,
+                         seed: int, domain: str) -> SensorDraws:
+    """A10 particle-domain draws; the readout recomputes the state-dependent ring mean."""
+    if domain not in PARTICLE_DOMAINS:
+        raise ValueError(f"draw_event: unknown particle domain {domain!r}")
+    def rng(role):
+        return keyed_rng(seed, NS_DRAWS, run_id, event_id, role)
+    truth = draw_particle_truth(geometry, cfg, run_id, event_id, domain, seed=seed)
+    qe_eff = sample_qe(geometry, rng("wavelength"), cfg)
+    bound, _ = expected_charge_particle(geometry, truth, qe_eff, UNATTENUATED_M, cfg)
+    capacity = count_capacity(float(bound.max()))
+    poisson_u = np.clip(rng("poisson").random((geometry.n_pmt, capacity)),
+                        np.finfo(float).tiny, 1.0)
+    dark_counts, dark_times = dark_photoelectrons(geometry, cfg, rng("dark"), rng("dark_time"))
+    emission_offset_ns = float(rng(NS_EMISSION_OFFSET).uniform(*EMISSION_OFFSET_NS))
+    return SensorDraws(
+        key=f"{NS_DRAWS}/{run_id}/{event_id}", run_id=run_id, event_id=int(event_id),
+        vertex_m=truth.vertex_m,
+        yield_photons=float(cfg.cherenkov_yield_per_MeV) * float(truth.deposited_MeV),
+        qe_eff=qe_eff, poisson_u=poisson_u,
+        charge_z=rng("charge").standard_normal(geometry.n_pmt),
+        transit_z=rng("transit").standard_normal(geometry.n_pmt),
+        dark_counts=dark_counts, dark_times=dark_times, window_ns=float(cfg.window_ns),
+        capacity=capacity, emission_offset_ns=emission_offset_ns, domain=domain, truth=truth)
+
 
 def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geometry,
                                  cfg: GeneratorConfig,
@@ -1804,9 +2034,21 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     if dark_times.size and (dark_times.min() < start - 1e-9 or dark_times.max() > end + 1e-9):
         raise ValueError("dark times must lie in the readout window")
     ref = generator_reference(cfg) if reference is None else reference
-    mu = (expected_charge(geometry, draws.vertex_m, draws.yield_photons, draws.qe_eff,
-                          state.attenuation_length_m, cfg)
-          * fixed_charge_gain(geometry, ref))
+    fixed_gain = fixed_charge_gain(geometry, ref)
+    if draws.domain == DOMAIN_PHOTON:
+        mu = (expected_charge(geometry, draws.vertex_m, draws.yield_photons, draws.qe_eff,
+                              state.attenuation_length_m, cfg)
+              * fixed_gain)
+        source_time = propagation_time_ns(geometry, draws.vertex_m, cfg)
+    elif draws.domain in PARTICLE_DOMAINS:
+        if draws.truth is None:
+            raise ValueError("particle domain draws need ParticleTruth")
+        mu_base, source_time = expected_charge_particle(
+            geometry, draws.truth, draws.qe_eff, state.attenuation_length_m, cfg)
+        mu = mu_base * fixed_gain
+    else:
+        raise ValueError(f"readout: unknown domain {draws.domain!r}")
+    source_time = np.asarray(source_time, dtype=float) + emission_offset_ns
     n_photon = poisson_counts_from_uniform(draws.poisson_u, mu)
     if int(n_photon.max()) >= int(draws.capacity):
         raise RuntimeError("photon count reached the shared-draw capacity; enlarge count_capacity")
@@ -1825,9 +2067,7 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     # Earliest *photoelectron* arrival per PMT: the prompt source light (only where a source
     # PE was detected, shifted by the truth emission offset) or an earlier dark hit; the digit
     # width/jitter is applied afterwards.  Dark times are not shifted by the emission offset.
-    first = np.where(n_photon > 0,
-                     propagation_time_ns(geometry, draws.vertex_m, cfg) + emission_offset_ns,
-                     np.inf)
+    first = np.where(n_photon > 0, source_time, np.inf)
     dark_first = np.full(geometry.n_pmt, np.inf)
     if dark_sensor.size:
         np.minimum.at(dark_first, dark_sensor, dark_times)
@@ -1843,9 +2083,7 @@ def readout_synthetic_unrepaired(state: DetectorState, draws: SensorDraws, geome
     # width/jitter chain, so a constant photon-time shift moves them exactly.
     source_trigger = trigger  # no dark digit exists: the source trigger is the trigger
     if dark_sensor.size:
-        source_first = np.where(n_photon > 0,
-                                propagation_time_ns(geometry, draws.vertex_m, cfg) + emission_offset_ns,
-                                np.inf)
+        source_first = np.where(n_photon > 0, source_time, np.inf)
         source_times = source_first + sigma_t * draws.transit_z + residual
         # A dark-only digit has no source time: the counterfactual uses the source-digit PMTs
         # only, never an infinite time (the imported rule requires finite digit times).
@@ -1905,6 +2143,9 @@ class GeneratedRun:
     hits: tuple
     twin_hits: tuple | None = None
     readout_record: ReadoutRecord | None = None
+    #: A10 domain metadata; None/absent for legacy photon-only runs.
+    domains: np.ndarray | None = None
+    particle_truth: tuple | None = None
 
     @property
     def n_events(self) -> int:
@@ -1926,23 +2167,34 @@ def generate_run(geometry, cfg: GeneratorConfig, run: RunSpec, *, seed: int | No
     readout = make_readout(geometry, cfg, accounting=record)
     twin_readout = make_readout(geometry, cfg)  # its own counter: the record is the measured path
     event_ids = np.arange(run.event_start, run.event_stop, dtype=np.int64)
+    domains = domain_plan(event_ids.size, cfg)
     vertices = np.zeros((event_ids.size, 3))
     yields = np.zeros(event_ids.size)
     expected = np.zeros(event_ids.size)
     offsets = np.zeros(event_ids.size)
-    hits, twin_hits = [], []
+    hits, twin_hits, truths = [], [], []
     for i, event_id in enumerate(event_ids):
-        draws = draw_event(geometry, cfg, run.run_id, int(event_id), seed=seed)
+        domain = domains[i]
+        draws = draw_event(geometry, cfg, run.run_id, int(event_id), seed=seed, domain=domain)
         vertices[i], yields[i] = draws.vertex_m, draws.yield_photons
         offsets[i] = float(draws.emission_offset_ns)
-        expected[i] = float((expected_charge(geometry, draws.vertex_m, draws.yield_photons,
-                                             draws.qe_eff, state.attenuation_length_m, cfg)
-                             * fixed_gain).sum())
+        if draws.domain == DOMAIN_PHOTON:
+            expected[i] = float((expected_charge(geometry, draws.vertex_m, draws.yield_photons,
+                                                 draws.qe_eff, state.attenuation_length_m, cfg)
+                                 * fixed_gain).sum())
+        else:
+            mu_pe, _ = expected_charge_particle(geometry, draws.truth, draws.qe_eff,
+                                               state.attenuation_length_m, cfg)
+            expected[i] = float((mu_pe * fixed_gain).sum())
+        truths.append(draws.truth)
         hits.append(readout(state, draws))
         if with_twin:
             twin_hits.append(nominal_twin(draws, geometry, twin_readout, arm=ORACLE_ARM))
-    return GeneratedRun(run, state, event_ids, vertices, yields, expected, offsets,
-                        tuple(hits), tuple(twin_hits) if with_twin else None, record)
+    return GeneratedRun(run=run, state=state, event_ids=event_ids, vertices_m=vertices,
+                        yields_photons=yields, expected_pe=expected, emission_offsets_ns=offsets,
+                        hits=tuple(hits), twin_hits=tuple(twin_hits) if with_twin else None,
+                        readout_record=record, domains=np.asarray(domains, dtype="<U8"),
+                        particle_truth=tuple(truths))
 
 def generate_events(geometry, cfg: GeneratorConfig, runs, *, seed: int | None = None,
                     with_twin: bool | None = None):
@@ -1961,13 +2213,29 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
         write_sparse_hits(directory / "twin_hits.npz",
                           sparse_from_readouts(generated.event_ids, generated.twin_hits))
     truth = directory / "events.npz"
+    mixed = generated.domains is not None and any(str(d) != DOMAIN_PHOTON for d in generated.domains)
     with open(truth, "wb") as handle:
-        np.savez_compressed(handle, event_ids=generated.event_ids,
-                            vertex_m=generated.vertices_m.astype(np.float64),
-                            yield_photons=generated.yields_photons.astype(np.float64),
-                            expected_pe=generated.expected_pe.astype(np.float32),
-                            # A9 truth: the per-event emission-time offset.  Never a feature.
-                            emission_offset_ns=generated.emission_offsets_ns.astype(np.float64))
+        payload = dict(event_ids=generated.event_ids,
+                       vertex_m=generated.vertices_m.astype(np.float64),
+                       yield_photons=generated.yields_photons.astype(np.float64),
+                       expected_pe=generated.expected_pe.astype(np.float32),
+                       # A9 truth: the per-event emission-time offset.  Never a feature.
+                       emission_offset_ns=generated.emission_offsets_ns.astype(np.float64))
+        if mixed:
+            truths = generated.particle_truth or tuple([None] * len(generated.event_ids))
+            payload.update(
+                domain=np.asarray(generated.domains, dtype="<U8"),
+                particle=np.asarray(["none" if t is None else t.domain for t in truths], dtype="<U8"),
+                direction_m=np.asarray([[np.nan, np.nan, np.nan] if t is None else t.direction
+                                        for t in truths], dtype=np.float64),
+                energy_MeV=np.asarray([np.nan if t is None else t.energy_MeV for t in truths],
+                                      dtype=np.float64),
+                deposited_MeV=np.asarray([np.nan if t is None else t.deposited_MeV for t in truths],
+                                         dtype=np.float64),
+                contained=np.asarray([False if t is None else t.contained for t in truths]),
+                track_length_m=np.asarray([np.nan if t is None else t.track_length_m for t in truths],
+                                          dtype=np.float64))
+        np.savez_compressed(handle, **payload)
     record = generated.readout_record or ReadoutRecord()
     payload = write_manifest(
         directory / "manifest.json", (generated.run,), geometry,
@@ -1995,7 +2263,15 @@ def write_generated_run(directory, generated: GeneratedRun, geometry, cfg: Gener
                                            if record.n_events else 0.0),
                "n_readout_events": int(record.n_events),
                "emission_offset_truth": "events.npz:emission_offset_ns (truth only; never a feature)",
-               "event_truth_sha256": _sha(truth.read_bytes())})
+               "event_truth_sha256": _sha(truth.read_bytes()),
+               **({"domains": {str(d): int(sum(1 for x in generated.domains if str(x) == str(d)))
+                              for d in cfg.domains},
+                  "domain_fractions": dict(cfg.domain_fractions),
+                  "generator_mode": cfg.generator_mode,
+                  "particle_energy_MeV": {"muon": list(cfg.muon_energy_MeV),
+                                          "electron": list(cfg.electron_energy_MeV)},
+                  "mix": "A10 mixed event domains"}
+                 if mixed else {})})
     write_sha256sums(directory)
     return payload
 

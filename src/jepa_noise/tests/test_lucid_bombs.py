@@ -1275,3 +1275,46 @@ def test_benchmark_reports_rate_memory_and_yield_terciles():
     assert result["cpu_cap_wall_hours"] == lb.CPU_CAP_WALL_HOURS == 48.0
     assert result["projected_hours_one_process"] > 0.0
     assert result["fraction_of_cap_16_cores"] > 0.0
+
+
+# ------------------------------------------------------------------- A10 domains
+def test_a10_domain_plan_is_class_balanced():
+    cfg = replace(GEN_CFG, domains=lb.DOMAINS)
+    plan = lb.domain_plan(1000, cfg)
+    counts = {d: plan.count(d) for d in lb.DOMAINS}
+    assert counts == {"photon": 334, "muon": 333, "electron": 333}
+    probe = lb.domain_plan(50, cfg)
+    assert {d: probe.count(d) for d in lb.DOMAINS} == {"photon": 17, "muon": 17, "electron": 16}
+
+
+def test_a10_particle_truth_and_ring_model_are_finite():
+    geom = lb.from_synthetic({"module_ids": tuple(range(4)),
+                              "surface_counts": {"top": 16, "barrel": 44, "bottom": 16}})
+    cfg = replace(GEN_CFG, domains=lb.DOMAINS)
+    for domain in lb.PARTICLE_DOMAINS:
+        truth = lb.draw_particle_truth(geom, cfg, "lucid/train/0000", 7, domain, seed=3)
+        assert truth.domain == domain
+        assert 0.0 <= truth.deposited_MeV <= truth.energy_MeV + 1e-9
+        assert truth.track_length_m > 0.0
+        qe = np.full(geom.n_pmt, 0.2)
+        mu, first = lb.expected_charge_particle(geom, truth, qe, lb.LAMBDA0_M, cfg)
+        assert mu.shape == first.shape == (geom.n_pmt,)
+        assert np.isfinite(mu).all() and np.all(mu >= 0.0)
+        assert np.isfinite(first).sum() > 0
+
+
+def test_a10_mixed_run_writes_domain_and_particle_truth(tmp_path):
+    geom = lb.from_synthetic({"module_ids": tuple(range(4)),
+                              "surface_counts": {"top": 16, "barrel": 44, "bottom": 16}})
+    cfg = replace(GEN_CFG, domains=lb.DOMAINS)
+    cohort = lb.CohortSpec("lucid/train", 0, 12, 12)
+    (run,) = lb.make_runs(cohort, "F1", 0.05)
+    generated = lb.generate_run(geom, cfg, run)
+    counts = {d: sum(1 for x in generated.domains if x == d) for d in lb.DOMAINS}
+    assert counts == {"photon": 4, "muon": 4, "electron": 4}
+    payload = lb.write_generated_run(tmp_path / "run", generated, geom, cfg, seed=1, code_sha="c")
+    events = np.load(tmp_path / "run" / "events.npz")
+    assert set(events.files) >= {"domain", "particle", "direction_m", "energy_MeV",
+                                 "deposited_MeV", "contained", "track_length_m"}
+    assert sorted(set(events["particle"].tolist())) == ["electron", "muon", "none"]
+    assert payload["domains"] == counts and payload["generator_mode"] == lb.GENERATOR_ANALYTIC
