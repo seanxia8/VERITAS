@@ -1,0 +1,473 @@
+{
+  "schema": "veritas-decisions-v1",
+  "created": "2026-10-21",
+  "supersedes": null,
+  "purpose": "Single machine-readable register of decisions that are still open or only defaulted. Every entry carries a development default, a status and the switch that changes it, so work can continue without silently turning a default into a claim.",
+  "status_vocabulary": {
+    "pending": "Waiting on the named owner. Usable only as a labelled development default.",
+    "provisional_default": "A recorded default is in force for development. It is not a physics sign-off.",
+    "adopted": "Binding internal decision by the author. Not a review by Junjie.",
+    "confirmed": "Explicitly confirmed by the named physics owner (Junjie) or by a dated amendment.",
+    "retired": "Superseded by another entry; kept for history."
+  },
+  "claim_gate_rule": "A claim/held-out run (WP7 or any Claim-1/Claim-2 comparison) may start only when every entry with claim_gate=true has status=confirmed. An author waiver must be recorded as a dated amendment and does not change the status.",
+  "decisions": [
+    {
+      "id": "D-E",
+      "title": "Energy endpoint",
+      "question": "Which energy target does Claim 2 rank: (A) deposited energy inside the instrumented volume, primary endpoint on contained muons at 100-300 MeV kinetic; (B) drop energy, keep vertex and direction only; (C) other?",
+      "owner": "Junjie",
+      "status": "pending",
+      "claim_gate": true,
+      "default": {
+        "energy_endpoint": "deposited_energy_in_volume",
+        "primary_energy_case": "contained_muon_100_300_MeV_kinetic",
+        "energy_endpoint_on_escaping_tracks": "diagnostic_only",
+        "kappa_m_energy": "pending_D-E"
+      },
+      "alternatives": [
+        "B: no energy endpoint; vertex and direction only",
+        "C: another endpoint supplied by Junjie"
+      ],
+      "blocks": [
+        "K_energy",
+        "energy gates",
+        "Claim 2 energy cells",
+        "WP7"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/wp6_contract_v2.json",
+        "configs/lucid_pmt/r4_pilot.json"
+      ],
+      "config_keys": [
+        "energy_endpoint"
+      ],
+      "switch": "Record Junjie's answer in docs/PMT_DECISIONS_LOG.md, edit the wp6 contract under a dated amendment, set status=confirmed. No code change unless the choice is (C).",
+      "notes": "The R-4/R-4b/R-4c pilot already uses (A) as a labelled development default. The endpoint is ill-posed for escaping tracks (geometry, not reconstruction), which is why contained muons are the primary case."
+    },
+    {
+      "id": "D-T",
+      "title": "Transfer arm",
+      "question": "Keep NuRadioMC as the transfer arm, or replace it with an LArTPC/JAXTPC arm?",
+      "owner": "Junjie",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "transfer_arm": null,
+        "nuradio_status": "provisional",
+        "lartpc_status": "replacement_candidate_only"
+      },
+      "alternatives": [
+        "NuRadioMC (pilot not run)",
+        "JAXTPC as replacement, not an addition"
+      ],
+      "blocks": [
+        "transfer-arm build and cost"
+      ],
+      "config_refs": [
+        "docs/NOTE_ARM_PORTFOLIO_2026-10-12.md",
+        "docs/TESTBEDS.md"
+      ],
+      "config_keys": [
+        "transfer_arm"
+      ],
+      "switch": "Set transfer_arm in the arm registry and record the decision; no arm code exists yet, so the switch is documentation-level until a build is authorised.",
+      "notes": "Junjie's 'Okies' is read as leaving the arm unstarted, not as choosing JAXTPC. No JAXTPC or NuRadioMC commit exists."
+    },
+    {
+      "id": "D-L",
+      "title": "LUCiD role in Paper 3",
+      "question": "Keep LUCiD as a Claim-1 null control plus Claim-2 replication, or drop it from Paper 3?",
+      "owner": "Junjie",
+      "status": "pending",
+      "claim_gate": false,
+      "default": {
+        "lucid_role": "claim1_null_control_plus_claim2_replication",
+        "paper3_use": "only if the arm is kept",
+        "jepa_study": "independent of this decision"
+      },
+      "alternatives": [
+        "Retain as control/replication",
+        "Drop from Paper 3 (JEPA still uses LUCiD)"
+      ],
+      "blocks": [
+        "Paper-3 arm list"
+      ],
+      "config_refs": [
+        "docs/RUNBOOK_RESCOPE_N_2026-10-12.md",
+        "docs/PREREGISTRATION.md"
+      ],
+      "config_keys": [
+        "lucid_role"
+      ],
+      "switch": "Record the decision; the WP8 draft already contains both options.",
+      "notes": "The JEPA study uses LUCiD regardless; this entry only concerns Paper 3/ORACLE."
+    },
+    {
+      "id": "D-M",
+      "title": "Category M (modelling changes)",
+      "question": "Keep simulation-model changes (angular acceptance, medium scattering/absorption) excluded from both claims as their own category M, or give M an origin label so it can be reported as an abstention target?",
+      "owner": "Junjie",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "modelling_changes": "excluded_from_claims",
+        "origin_label": false,
+        "category": "M"
+      },
+      "alternatives": [
+        "Excluded, no origin label (default)",
+        "Own origin label M / abstention target"
+      ],
+      "blocks": [
+        "taxonomy finalisation"
+      ],
+      "config_refs": [
+        "src/noise_module_lucid/response.py",
+        "configs/lucid_pmt/cell_contract.json"
+      ],
+      "config_keys": [
+        "modelling_changes"
+      ],
+      "switch": "Add an M origin label to the cell contract if Junjie wants it; otherwise no change.",
+      "notes": "Junjie's 'agreed with the rest' is read as accepting exclusion; the WP8 draft still lists D-M, so ask for a one-line confirmation rather than a fresh decision."
+    },
+    {
+      "id": "D-S",
+      "title": "TIDMAD signal family and held-out definition",
+      "question": "What is the clean S family and the held-out definition for TIDMAD, and is the controlled-N injection on the 208 noise-only files the right baseline?",
+      "owner": "Junjie",
+      "status": "pending",
+      "claim_gate": false,
+      "default": {
+        "tidmad_signal_family": null,
+        "evaluation_files": 20,
+        "controlled_n": "implemented_on_208_noise_only_files",
+        "real_data_run": false
+      },
+      "alternatives": [
+        "Define S families before any TIDMAD claim",
+        "Keep TIDMAD as an engineering/feasibility arm"
+      ],
+      "blocks": [
+        "TIDMAD claim cell",
+        "signal-on-top consequence"
+      ],
+      "config_refs": [
+        "src/tidmad_transformer/n_injection.py",
+        "docs/TESTBEDS.md"
+      ],
+      "config_keys": [
+        "tidmad_signal_family"
+      ],
+      "switch": "Record the S definition and held-out split; the injection machinery needs no change.",
+      "notes": "Controlled N is code plus tests only; it has not been run on real files."
+    },
+    {
+      "id": "D-K",
+      "title": "K aggregation and kappa_m",
+      "question": "Use K=max(K_vertex,K_energy) as the primary harm statistic with kappa_m=1.10?",
+      "owner": "author",
+      "status": "adopted",
+      "claim_gate": false,
+      "default": {
+        "K": "max(K_vertex,K_energy)",
+        "kappa_m": 1.1,
+        "kappa_status": "provisional_dev",
+        "recheck_if_cell_events_lt": 12
+      },
+      "alternatives": [
+        "Single-endpoint K",
+        "Geometric-mean or other aggregation"
+      ],
+      "blocks": [
+        "Claim-2 harm threshold"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/wp6_contract_v2.json",
+        "docs/PMT_DECISIONS_LOG.md"
+      ],
+      "config_keys": [
+        "kappa_m"
+      ],
+      "switch": "Author amendment plus precision study; re-check if any WP7 cell holds fewer than 12 physical events.",
+      "notes": "Adopted by the author, not reviewed by Junjie. kappa_m = 1.10 came from SD_K=0.040; it stays provisional_dev."
+    },
+    {
+      "id": "D-TQ",
+      "title": "T-Q walk form and values",
+      "question": "Is walk(q)=a+b/sqrt(q) acceptable, or should the polynomial / a thesis-derived Eq. 5.13 curve be used?",
+      "owner": "Junjie+author",
+      "status": "provisional_default",
+      "claim_gate": true,
+      "default": {
+        "form": "inverse_sqrt",
+        "a_ns": 0.0,
+        "b_ns": 2.0,
+        "q_sat_pe": 50.0,
+        "values_status": "synthetic_dev",
+        "per_channel_slope_sigma": 0.0
+      },
+      "alternatives": [
+        "Polynomial approximation (Junjie's request; kept as legacy)",
+        "Eq. 5.13-type curve with an explicit charge-coordinate conversion"
+      ],
+      "blocks": [
+        "fixed-threshold T-Q cells",
+        "Claim-2 timing family"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/reference.json",
+        "src/noise_module_lucid/timing_response.py",
+        "docs/PMT_DECISIONS_LOG.md"
+      ],
+      "config_keys": [
+        "walk.form",
+        "walk.a_ns",
+        "walk.b_ns",
+        "walk.q_sat_pe"
+      ],
+      "switch": "Set walk.form/values in reference.json (new manifest hash + amendment) and update the contract. The polynomial implementation is retained as legacy.",
+      "notes": "The form change to 1/sqrt(q) is an author decision of 18 Oct and directly departs from Junjie's 'use a polynomial approximation'; his acceptance is not recorded. per_channel_slope_sigma=0 reproduces the current single global curve; a nonzero value would enable the per-channel Q-T correlation he asked for, once the implementation lands."
+    },
+    {
+      "id": "D-QE",
+      "title": "Effective QE.CE product and target calibration",
+      "question": "What is the target effective QE(lambda)*CE for the WCTE 3-inch PMTs (>=3 wavelength points), and what dark rate applies?",
+      "owner": "Junjie",
+      "status": "pending",
+      "claim_gate": true,
+      "default": {
+        "qe_curve": "5_anchor_200_800nm_synthetic",
+        "collection_efficiency": 0.8,
+        "effective_product_source": "synthetic_dev",
+        "dark_rate_hz": 1000.0,
+        "dark_rate_status": "synthetic_dev",
+        "per_pmt_qe_sigma": 0.0
+      },
+      "alternatives": [
+        "Measured QE(lambda) and CE supplied separately (but QE and CE are degenerate in situ)",
+        "Effective product QE*CE supplied directly (preferred)"
+      ],
+      "blocks": [
+        "target calibration",
+        "Claim-2 response cells",
+        "WP7 response values"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/reference.json"
+      ],
+      "config_keys": [
+        "parameters.qe_curve",
+        "parameters.collection_efficiency",
+        "parameters.dark_rate_hz"
+      ],
+      "switch": "Update reference.json under a new manifest version with new sha256 provenance and a dated amendment; the exact QE*CE degeneracy control stays.",
+      "notes": "The exact QE x2 / CE /2 control passes with bit-identical digits, so no identifiability is claimed. Ask for the effective product, not separate curves."
+    },
+    {
+      "id": "D-QESPREAD",
+      "title": "Per-PMT QE variance",
+      "question": "Should the baseline include a per-PMT QE spread, and what is its size?",
+      "owner": "Junjie",
+      "status": "pending",
+      "claim_gate": false,
+      "default": {
+        "per_pmt_qe_sigma": 0.0,
+        "distribution": "lognormal_unit_mean",
+        "status": "off_preserves_current_outputs"
+      },
+      "alternatives": [
+        "Keep 0.0 (current reference has one global QE curve)",
+        "Set a measured/declared spread, e.g. 5% as a documented synthetic value",
+        "Per-PMT QE spread declared part of the reference (taxonomy decision)"
+      ],
+      "blocks": [
+        "baseline realism for the QE family"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/reference.json",
+        "docs/PMT_DECISIONS_LOG.md"
+      ],
+      "config_keys": [
+        "parameters.per_pmt_qe_sigma"
+      ],
+      "switch": "Implement the per-channel QE factor in the readout, then set the sigma in a new manifest version. Default 0.0 is bit-identical to today.",
+      "notes": "The original issue #5 request (inject variance on PMT QE) is not implemented: the reference uses one global QE curve. It was reclassified as reference rather than N, but the spread itself was never built."
+    },
+    {
+      "id": "D-CH",
+      "title": "Per-channel Q-T correlation",
+      "question": "Should each channel have its own T-Q curve at training time (Junjie's request), and what is the spread?",
+      "owner": "Junjie",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "per_channel_walk_slope_sigma": 0.0,
+        "status": "single_global_curve"
+      },
+      "alternatives": [
+        "Single global curve (current)",
+        "Per-channel lognormal slope factors with a declared sigma",
+        "Measured per-channel curves from calibration"
+      ],
+      "blocks": [
+        "per-channel T-Q family"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/reference.json",
+        "src/noise_module_lucid/timing_response.py"
+      ],
+      "config_keys": [
+        "parameters.per_channel_walk_slope_sigma"
+      ],
+      "switch": "Build a ChannelWalkCurve from an InverseSqrtWalk per channel, then set the sigma in the manifest; default 0.0 preserves the current single-curve outputs.",
+      "notes": "Junjie asked for a training-time per-channel Q-T correlation with a different one at test time, so a changed correlation shifts hit times instead of losing charge. Current T-Q cells change one global slope (b x 0.8/1.2)."
+    },
+    {
+      "id": "D-CR",
+      "title": "Grouping: mPMT modules versus crates",
+      "question": "Use the 105 mPMT modules as response groups, or a physical crate/cable map?",
+      "owner": "Junjie",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "grouping": "mpmt_modules",
+        "crate_map": null,
+        "physical_crate_map": false
+      },
+      "alternatives": [
+        "mPMT modules (current; pinned geometry)",
+        "Physical crate/cable map if supplied"
+      ],
+      "blocks": [
+        "per-crate response cells"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/reference.json"
+      ],
+      "config_keys": [
+        "parameters.gain",
+        "parameters.timing_width_factor"
+      ],
+      "switch": "Supply the channel-to-crate map and pass it as channel_group; the reference builder needs no change.",
+      "notes": "Junjie said 'per-crate effect is a good idea'; without a map the response groups are mPMT modules (D-G)."
+    },
+    {
+      "id": "D-AA",
+      "title": "Angular-acceptance model",
+      "question": "When does a PMT angular-acceptance model enter, and is it N or M?",
+      "owner": "Junjie",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "angular_acceptance": "uniform",
+        "concentrator": false,
+        "model_change_category": "M",
+        "next_iteration": true
+      },
+      "alternatives": [
+        "Uniform acceptance for the first trial (current)",
+        "Inject a different acceptance model next iteration",
+        "Physical acceptance drift after training (would be N)"
+      ],
+      "blocks": [
+        "acceptance family"
+      ],
+      "config_refs": [
+        "configs/lucid_pmt/reference.json",
+        "src/noise_module_lucid/response.py"
+      ],
+      "config_keys": [
+        "transport.angular_acceptance"
+      ],
+      "switch": "Add the acceptance model to the transport and classify it M or N; current cells assume uniform AA.",
+      "notes": "Junjie deferred this to the next iteration ('no concentrator for now; uniform AA')."
+    },
+    {
+      "id": "D-CONE",
+      "title": "Cherenkov-cone / energy-loss diagnostic",
+      "question": "Do we adopt the ToF-vertex -> opening-angle -> Eloss diagnostic, and at what stage?",
+      "owner": "Junjie",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "cone_check": "local_emission_truth_closure",
+        "reconstructed_cone": false,
+        "eloss_reconstruction": false
+      },
+      "alternatives": [
+        "Local photon-level closure only (current)",
+        "Reconstructed ring axis and opening angle",
+        "Full Eloss-history comparison"
+      ],
+      "blocks": [
+        "exploratory cone/Eloss diagnostic"
+      ],
+      "config_refs": [
+        "src/noise_module_lucid/lucid_integration.py",
+        "src/noise_module_lucid/multienergy_data.py"
+      ],
+      "config_keys": [
+        "cone_check"
+      ],
+      "switch": "Implement the reconstructed-cone estimator on the frozen track reconstruction; no claim path depends on it.",
+      "notes": "The current check validates the emitter angle against 1/(beta n) (median 0.46 deg); it is not Junjie's ToF-vertex cone/Eloss test."
+    },
+    {
+      "id": "D-WP7",
+      "title": "Launch of the claim comparison",
+      "question": "When is WP7 (the Claim-1/Claim-2 comparison) launched?",
+      "owner": "author",
+      "status": "pending",
+      "claim_gate": true,
+      "default": {
+        "launch": false
+      },
+      "alternatives": [
+        "Launch once the claim-gate decisions are confirmed",
+        "Keep WP7 blocked"
+      ],
+      "blocks": [
+        "WP7",
+        "any Claim-1/Claim-2 comparison"
+      ],
+      "config_refs": [
+        "docs/PMT_EXPERIMENT_CONTRACT.md"
+      ],
+      "config_keys": [
+        "wp7_launch"
+      ],
+      "switch": "Author says 'launch WP7' after D-E, D-QE and D-TQ are confirmed; record the message verbatim.",
+      "notes": "The author has not launched WP7. No model has been trained with a response variant."
+    },
+    {
+      "id": "D-LIC",
+      "title": "LUCiD licence file and redistribution",
+      "question": "Is a LICENSE file needed for our use, and is redistribution approved?",
+      "owner": "author",
+      "status": "provisional_default",
+      "claim_gate": false,
+      "default": {
+        "use": "research_use_clarified",
+        "licence_file": "absent_at_eaf2e89",
+        "redistribution": "unapproved"
+      },
+      "alternatives": [
+        "Research use only, no redistribution (current)",
+        "Add an upstream licence before any release"
+      ],
+      "blocks": [
+        "code release / redistribution"
+      ],
+      "config_refs": [
+        "docs/PMT_SOURCE_AND_STAGE_CONTRACT.md"
+      ],
+      "config_keys": [
+        "licence_status"
+      ],
+      "switch": "Junjie pins a licence upstream; record it and update the source contract.",
+      "notes": "The missing file never blocked running LUCiD internally; the earlier 'blocker' framing was wrong."
+    }
+  ]
+}

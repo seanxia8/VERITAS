@@ -27,6 +27,8 @@ _18 September 2026. The map of `docs/`. If you only read three files, read
 | [`RUNBOOK_RESCOPE_N_2026-10-12.md`](RUNBOOK_RESCOPE_N_2026-10-12.md) | re-scoping N towards the two claims (12 Oct comment, verbatim): LUCiD electronics frozen, detector-response N, TIDMAD controlled N, training rule, arm portfolio; reply to the comment in Appendix C |
 | [`RUNBOOK_LUCID_RESPONSE_2026-10-12.md`](RUNBOOK_LUCID_RESPONSE_2026-10-12.md) | LUCiD arm runbook (supersedes 24 Sep): readout chain, response cells, consequence K (draft D-K), toy development run, LUCiD adapter after A0, subject training; A0 email draft |
 | [`RUNBOOK_JUNJIE_PMT_2026-10-16.md`](RUNBOOK_JUNJIE_PMT_2026-10-16.md) | step-by-step resolution of issues #5/#4, grounded in Junjie's PMT thesis and latest replies: wavelength QE, fixed-threshold T-Q response, crate effects, calibration separation, experiments and closeout; planning only |
+| [`DECISION_REGISTER_2026-10-21.md`](DECISION_REGISTER_2026-10-21.md) | open decisions (D-E, D-T, D-L, D-M, D-S, D-TQ, D-QE, …): defaults, owners, switches, and the claim gate; data in `configs/decisions/open_decisions_v1.json` |
+| [`ISSUE_UPDATES_2026-10-21.md`](ISSUE_UPDATES_2026-10-21.md) | paste-ready replies for issues #5/#4/#3/#6 (prepared, not posted) |
 | [`NOTE_ARM_PORTFOLIO_2026-10-12.md`](NOTE_ARM_PORTFOLIO_2026-10-12.md) | one-page note for Junjie: the re-scope, two corrections, the transfer-arm question (NuRadioMC vs JAXTPC) |
 | [`DATASET_STRATEGY_2026-09-16.md`](DATASET_STRATEGY_2026-09-16.md) | dataset/simulator strategy memo (admission criteria; NuRadioMC, GWOSC, cryogenic options) |
 | [`COLLIDER_ARM_2026-09-18.md`](COLLIDER_ARM_2026-09-18.md) | Tier-3b future-work collider domain-transfer arm (CMS/ATLAS) |
