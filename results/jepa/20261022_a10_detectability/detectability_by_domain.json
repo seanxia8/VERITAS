@@ -1,0 +1,62 @@
+{
+ "photon": {
+  "domain": "photon",
+  "n_events": 20,
+  "F1": {
+   "r2_run": 0.9926628717536669,
+   "i_run": 54117.24251922499,
+   "r2_event_median": 0.784699042758556,
+   "profiled": false,
+   "sigma_f": 0.05,
+   "s_p": 0.1
+  },
+  "F3": {
+   "r2_run": 0.9981300637154049,
+   "i_run": 53377.75794492106,
+   "r2_event_median": 0.9423564117153181,
+   "profiled": false,
+   "sigma_f": 0.1,
+   "s_p": 0.1
+  }
+ },
+ "muon": {
+  "domain": "muon",
+  "n_events": 20,
+  "F1": {
+   "r2_run": 0.9881644846283996,
+   "i_run": 33396.584892264684,
+   "r2_event_median": 0.7619672359486207,
+   "profiled": false,
+   "sigma_f": 0.05,
+   "s_p": 0.1
+  },
+  "F3": {
+   "r2_run": 0.9971364708752313,
+   "i_run": 34821.9426947764,
+   "r2_event_median": 0.9464634443544091,
+   "profiled": false,
+   "sigma_f": 0.1,
+   "s_p": 0.1
+  }
+ },
+ "electron": {
+  "domain": "electron",
+  "n_events": 20,
+  "F1": {
+   "r2_run": 0.9939956409606349,
+   "i_run": 66218.26805784857,
+   "r2_event_median": 0.8770612834117448,
+   "profiled": false,
+   "sigma_f": 0.05,
+   "s_p": 0.1
+  },
+  "F3": {
+   "r2_run": 0.9987813114328215,
+   "i_run": 81955.41817095001,
+   "r2_event_median": 0.9675982242686729,
+   "profiled": false,
+   "sigma_f": 0.1,
+   "s_p": 0.1
+  }
+ }
+}

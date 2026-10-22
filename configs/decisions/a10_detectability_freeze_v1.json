@@ -1,0 +1,77 @@
+{
+ "schema": "jepa-a10-detectability-freeze-v1",
+ "frozen_at": "2026-10-22",
+ "generator_config": "src/jepa_noise/configs/lucid_bombs_v2_calibrated.json",
+ "generator_config_sha256": "90ac1601c40171eeb7c669a08df1fe6e6b5b332fee2a3cca689ae057a51dfe88",
+ "geometry": "pinned WCTE geometry",
+ "n_events": 20,
+ "seed": 20261017,
+ "domains": {
+  "photon": {
+   "domain": "photon",
+   "n_events": 20,
+   "F1": {
+    "r2_run": 0.9926628717536669,
+    "i_run": 54117.24251922499,
+    "r2_event_median": 0.784699042758556,
+    "profiled": false,
+    "sigma_f": 0.05,
+    "s_p": 0.1
+   },
+   "F3": {
+    "r2_run": 0.9981300637154049,
+    "i_run": 53377.75794492106,
+    "r2_event_median": 0.9423564117153181,
+    "profiled": false,
+    "sigma_f": 0.1,
+    "s_p": 0.1
+   }
+  },
+  "muon": {
+   "domain": "muon",
+   "n_events": 20,
+   "F1": {
+    "r2_run": 0.9881644846283996,
+    "i_run": 33396.584892264684,
+    "r2_event_median": 0.7619672359486207,
+    "profiled": false,
+    "sigma_f": 0.05,
+    "s_p": 0.1
+   },
+   "F3": {
+    "r2_run": 0.9971364708752313,
+    "i_run": 34821.9426947764,
+    "r2_event_median": 0.9464634443544091,
+    "profiled": false,
+    "sigma_f": 0.1,
+    "s_p": 0.1
+   }
+  },
+  "electron": {
+   "domain": "electron",
+   "n_events": 20,
+   "F1": {
+    "r2_run": 0.9939956409606349,
+    "i_run": 66218.26805784857,
+    "r2_event_median": 0.8770612834117448,
+    "profiled": false,
+    "sigma_f": 0.05,
+    "s_p": 0.1
+   },
+   "F3": {
+    "r2_run": 0.9987813114328215,
+    "i_run": 81955.41817095001,
+    "r2_event_median": 0.9675982242686729,
+    "profiled": false,
+    "sigma_f": 0.1,
+    "s_p": 0.1
+   }
+  }
+ },
+ "gates": {
+  "F1_min": 0.5,
+  "F3_min": 0.5
+ },
+ "decision": "A10 particle domains are detectable for F1 and F3 at the calibrated model; e- remains analytic_unvalidated until a PhotonSim e- sample exists.",
+ "note": "ceilings are model-based Fisher ceilings, not detector measurements; the profiling flag is false because vertex/yield profiling is not implemented in mixed_detectability_inputs."
+}
