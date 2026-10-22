@@ -2172,14 +2172,21 @@ def run_smoke(args, config, *, geometry, generator_config, arms_config, data_roo
                              "n_events": int(args.probe_events), "run_length": int(args.probe_run_events)},
                 cohort_name=name, law="F1", setting=spread, seed=seed, registered=False,
                 code_sha=code_sha, log=log)
-    return run_one(arm_name=args.arm, cell=cell, seed=0, beta=None, config=config, tf32=bool(getattr(args, "tf32", False)),
-                   arms_config=arms_config, geometry=geometry, loader_dataset=loader_ds,
-                   probe_datasets=probe_datasets, dark_bank=None, out_root=out_root,
-                   data_root=data_root, config_sha=config_sha, code_sha=code_sha,
-                   status_text=status_text, device=device, steps=int(args.steps or 500),
-                   micro_batch=args.micro_batch, resume=Path(args.resume) if args.resume else None,
-                   stop_after=args.stop_after, evaluate=bool(args.evaluate), allow_pending=True,
-                   probe_max_events=args.probe_max_events, log=log)["manifest"]
+    manifest = run_one(arm_name=args.arm, cell=cell, seed=0, beta=None, config=config, tf32=bool(getattr(args, "tf32", False)),
+                       arms_config=arms_config, geometry=geometry, loader_dataset=loader_ds,
+                       probe_datasets=probe_datasets, dark_bank=None, out_root=out_root,
+                       data_root=data_root, config_sha=config_sha, code_sha=code_sha,
+                       status_text=status_text, device=device, steps=int(args.steps or 500),
+                       micro_batch=args.micro_batch, resume=Path(args.resume) if args.resume else None,
+                       stop_after=args.stop_after, evaluate=bool(args.evaluate), allow_pending=True,
+                       probe_max_events=args.probe_max_events, log=log)["manifest"]
+    if args.evaluate:
+        manifest["floor"] = ensure_floor(
+            arm_name=args.arm, cell=cell, geometry=geometry, config=config,
+            probe_datasets=probe_datasets, mask_seed=int(config["views"]["mask_seed"]),
+            config_sha=config_sha, out_root=out_root, data_root=data_root,
+            max_events=args.probe_max_events, device=device, log=log)
+    return manifest
 # --- grid -------------------------------------------------------------------
 def _cohort_dataset(config, data_root, geometry, gen_config, cohort_name, law, setting, seed,
                     kind=None, settings=None, code_sha=None, log=print):
