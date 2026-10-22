@@ -35,3 +35,10 @@ def test_validation_event_roundtrip_and_compare(tmp_path):
     assert np.isfinite(row["yield_ratio"]) and np.isfinite(row["pattern_pearson"])
     result = cv.validate(GEOM, CFG, [loaded])
     assert result["events"] == 1 and "summary" in result
+
+
+def test_transport_sensor_map_recovers_a_shuffled_indexing():
+    rng = np.random.default_rng(0)
+    perm = rng.permutation(GEOM.n_pmt)
+    mapping = cv.sensor_id_map(GEOM, GEOM.positions_m[perm])
+    assert np.array_equal(mapping, perm)

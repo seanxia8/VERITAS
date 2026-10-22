@@ -163,15 +163,39 @@ def contain_event(raw: dict, geometry) -> dict:
     return out
 
 
-def event_from_transport(raw: dict, batch, *, event_id: int) -> ValidationEvent:
+def sensor_id_map(geometry, sensor_points, *, max_distance_m: float = 0.06) -> np.ndarray:
+    """Map transport sensor indices onto the geometry's sensor indexing.
+
+    The pinned LUCiD ``sensor_points`` order is not the order of
+    ``wcte_geometry.npz`` (the two sets are identical but permuted).  Comparing
+    raw transport indices with the analytic model without this map scrambles the
+    hit pattern.  The map is checked to be one-to-one and within tolerance.
+    """
+    points = np.asarray(sensor_points, dtype=float)
+    if points.shape != (geometry.n_pmt, 3):
+        raise ValueError("transport sensor_points shape differs from the geometry")
+    distance = np.linalg.norm(points[:, None, :] - geometry.positions_m[None, :, :], axis=2)
+    mapping = distance.argmin(axis=1).astype(np.int64)
+    nearest = distance[np.arange(points.shape[0]), mapping]
+    if np.unique(mapping).size != geometry.n_pmt:
+        raise ValueError("transport sensor map is not one-to-one")
+    if float(nearest.max()) > float(max_distance_m):
+        raise ValueError(f"transport sensor map residual {nearest.max():.3f} m exceeds {max_distance_m:.3f} m")
+    return mapping
+
+
+def event_from_transport(raw: dict, batch, *, event_id: int, sensor_map: np.ndarray | None = None) -> ValidationEvent:
     """Build a validation event from a PhotonSim raw-event dict and a PhotonBatch."""
+    sensor = np.asarray(batch.sensor_id, dtype=np.int64)
+    if sensor_map is not None:
+        sensor = np.asarray(sensor_map)[sensor]
     direction = np.asarray(raw["primary_direction"], dtype=float)
     path = np.asarray(raw.get("primary_path_m", np.zeros((2, 3))), dtype=float)
     track_length = float(np.linalg.norm(path[-1] - path[0])) if path.shape[0] >= 2 else float("nan")
     return ValidationEvent(
         event_id=int(event_id), domain=lb.DOMAIN_MUON,
         vertex_m=np.asarray(raw["vertex_m"], dtype=float),
-        sensor_id=np.asarray(batch.sensor_id, dtype=np.int64),
+        sensor_id=np.asarray(sensor, dtype=np.int64),
         time_ns=np.asarray(batch.arrival_time_ns, dtype=float),
         wavelength_nm=np.asarray(batch.wavelength_nm, dtype=float),
         direction_m=direction / np.linalg.norm(direction),
@@ -205,7 +229,8 @@ def validate_photonsim(geometry, cfg: lb.GeneratorConfig, transport, raw_paths, 
                                  np.asarray(raw["directions"], float),
                                  np.asarray(raw["emission_ns"], float),
                                  np.asarray(raw["wavelength_nm"], float))
-        events.append(event_from_transport(raw, batch, event_id=index))
+        sensor_map = sensor_id_map(geometry, transport.geometry.sensor_points) if transport is not None else None
+        events.append(event_from_transport(raw, batch, event_id=index, sensor_map=sensor_map))
     return validate(geometry, cfg, events, **thresholds)
 
 
