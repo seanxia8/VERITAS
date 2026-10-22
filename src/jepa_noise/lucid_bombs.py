@@ -1852,8 +1852,10 @@ def expected_charge_particle(geometry, truth: ParticleTruth, qe_eff, lambda_m: f
         mu += weight
         t = (s[i] / (beta * C_M_PER_S) * 1e9
              + dist * (float(cfg.n_group) / C_M_PER_S) * 1e9)
-        visible = ring > 0.02
-        first = np.where(visible, np.minimum(first, t), first)
+        # Keep the first arrival finite for every PMT on the track: a Poisson
+        # source PE can land where the ring factor is small, and the readout must
+        # never receive an infinite digit time (A10 smoke 2026-10-22).
+        first = np.minimum(first, t)
     return mu, first
 
 
