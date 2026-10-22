@@ -1,0 +1,212 @@
+{
+ "schema": "jepa-cherenkov-validation-v0",
+ "events": 10,
+ "thresholds": {
+  "yield_tolerance": [
+   0.5,
+   2.0
+  ],
+  "min_module_pattern": 0.85,
+  "min_log_pattern": 0.7,
+  "max_time_median_ns": 5.0
+ },
+ "summary": {
+  "yield_ratio_median": 1.0061118775598683,
+  "module_pattern_pearson_median": 0.9015086590225765,
+  "log_pattern_pearson_median": 0.8150172530927534,
+  "time_median_abs_ns_median": 0.15677831600723247
+ },
+ "passed": true,
+ "rows": [
+  {
+   "event_id": 0,
+   "domain": "muon",
+   "n_photons": 21641,
+   "n_hit_pmts": 896,
+   "expected_detected": 3383.587216481994,
+   "observed_detected": 3418.075721133423,
+   "yield_ratio": 1.010192881827733,
+   "pattern_pearson": 0.5671665155962233,
+   "log_pattern_pearson": 0.7366686103176889,
+   "module_pattern_pearson": 0.8768394451371639,
+   "time_median_abs_ns": 0.1430579145559614,
+   "time_p95_abs_ns": 3.9340982599346193,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 1,
+   "domain": "muon",
+   "n_photons": 21567,
+   "n_hit_pmts": 1132,
+   "expected_detected": 3245.9652671869753,
+   "observed_detected": 3403.1248393539427,
+   "yield_ratio": 1.04841689889774,
+   "pattern_pearson": 0.7094558343500964,
+   "log_pattern_pearson": 0.816800426862247,
+   "module_pattern_pearson": 0.9412204271995644,
+   "time_median_abs_ns": 0.16428768647992964,
+   "time_p95_abs_ns": 2.677521110766479,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 2,
+   "domain": "muon",
+   "n_photons": 20932,
+   "n_hit_pmts": 1087,
+   "expected_detected": 3314.5872851860677,
+   "observed_detected": 3313.3132532617183,
+   "yield_ratio": 0.9996156287903344,
+   "pattern_pearson": 0.6458310765739312,
+   "log_pattern_pearson": 0.815896627812966,
+   "module_pattern_pearson": 0.9054520096332492,
+   "time_median_abs_ns": 0.15244099231601638,
+   "time_p95_abs_ns": 1.9279025589281684,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 3,
+   "domain": "muon",
+   "n_photons": 21458,
+   "n_hit_pmts": 975,
+   "expected_detected": 3344.5607309948405,
+   "observed_detected": 3388.9016700292964,
+   "yield_ratio": 1.0132576271148368,
+   "pattern_pearson": 0.5846751476908097,
+   "log_pattern_pearson": 0.785180747194806,
+   "module_pattern_pearson": 0.8929321622011328,
+   "time_median_abs_ns": 0.12758176838532975,
+   "time_p95_abs_ns": 1.2377709531219512,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 4,
+   "domain": "muon",
+   "n_photons": 21636,
+   "n_hit_pmts": 894,
+   "expected_detected": 3410.148671829158,
+   "observed_detected": 3417.074251688537,
+   "yield_ratio": 1.0020308732920036,
+   "pattern_pearson": 0.5730428395707237,
+   "log_pattern_pearson": 0.7756485576393781,
+   "module_pattern_pearson": 0.891027986024688,
+   "time_median_abs_ns": 0.16111563969844855,
+   "time_p95_abs_ns": 4.815281613024283,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 5,
+   "domain": "muon",
+   "n_photons": 22034,
+   "n_hit_pmts": 957,
+   "expected_detected": 3305.9008908368287,
+   "observed_detected": 3485.553075567016,
+   "yield_ratio": 1.0543428828214847,
+   "pattern_pearson": 0.5922828352654369,
+   "log_pattern_pearson": 0.752389487891258,
+   "module_pattern_pearson": 0.8866910231762271,
+   "time_median_abs_ns": 0.15157956193005084,
+   "time_p95_abs_ns": 3.8374512193609505,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 6,
+   "domain": "muon",
+   "n_photons": 19964,
+   "n_hit_pmts": 1308,
+   "expected_detected": 3264.9977904388243,
+   "observed_detected": 3138.11920041687,
+   "yield_ratio": 0.9611397623626259,
+   "pattern_pearson": 0.7166824148824887,
+   "log_pattern_pearson": 0.82418557668886,
+   "module_pattern_pearson": 0.9621690103605284,
+   "time_median_abs_ns": 0.17806247885581605,
+   "time_p95_abs_ns": 2.955799940131451,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 7,
+   "domain": "muon",
+   "n_photons": 20991,
+   "n_hit_pmts": 1100,
+   "expected_detected": 3318.5208349069203,
+   "observed_detected": 3306.279139281616,
+   "yield_ratio": 0.9963110987592617,
+   "pattern_pearson": 0.6826746514029555,
+   "log_pattern_pearson": 0.8214296513892715,
+   "module_pattern_pearson": 0.8975653084119036,
+   "time_median_abs_ns": 0.1717341342562353,
+   "time_p95_abs_ns": 3.8518339620404354,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 8,
+   "domain": "muon",
+   "n_photons": 20649,
+   "n_hit_pmts": 1032,
+   "expected_detected": 3298.3679882489932,
+   "observed_detected": 3267.540100332336,
+   "yield_ratio": 0.9906535935267117,
+   "pattern_pearson": 0.6777803269789717,
+   "log_pattern_pearson": 0.8141378783725408,
+   "module_pattern_pearson": 0.9512417856014506,
+   "time_median_abs_ns": 0.16924350619670303,
+   "time_p95_abs_ns": 2.486229336434638,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  },
+  {
+   "event_id": 9,
+   "domain": "muon",
+   "n_photons": 21204,
+   "n_hit_pmts": 1190,
+   "expected_detected": 3227.8151561163313,
+   "observed_detected": 3332.1031909072876,
+   "yield_ratio": 1.0323091719156665,
+   "pattern_pearson": 0.7346972338500108,
+   "log_pattern_pearson": 0.8582246200321808,
+   "module_pattern_pearson": 0.9477954179739649,
+   "time_median_abs_ns": 0.14236806361507082,
+   "time_p95_abs_ns": 2.17116565612215,
+   "truth": {
+    "energy_MeV": 500.0,
+    "deposited_MeV": 500.0,
+    "contained": true
+   }
+  }
+ ]
+}
