@@ -1318,3 +1318,14 @@ def test_a10_mixed_run_writes_domain_and_particle_truth(tmp_path):
                                  "deposited_MeV", "contained", "track_length_m"}
     assert sorted(set(events["particle"].tolist())) == ["electron", "muon", "none"]
     assert payload["domains"] == counts and payload["generator_mode"] == lb.GENERATOR_ANALYTIC
+
+
+def test_a10_detectability_by_domain_is_finite():
+    geom = lb.from_synthetic({"module_ids": tuple(range(4)),
+                              "surface_counts": {"top": 16, "barrel": 44, "bottom": 16}})
+    cfg = replace(GEN_CFG, domains=lb.DOMAINS)
+    for domain in lb.DOMAINS:
+        result = lb.detectability_by_domain(geom, cfg, domain, n_events=4)
+        assert result["domain"] == domain
+        for factor in ("F1", "F3"):
+            assert 0.0 <= result[factor].r2_run <= 1.0

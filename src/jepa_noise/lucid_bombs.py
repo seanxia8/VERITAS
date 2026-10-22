@@ -942,6 +942,50 @@ def detectability(mu_events, dmu_events, sigma_f: float, *, sigma_spe: float = S
                          i_run, r2_max(i_run, sigma_f), len(i_event), float(sigma_f), profiled,
                          s_p=float(s_p))
 
+def mixed_detectability_inputs(geometry, cfg: GeneratorConfig, domain: str, *,
+                               n_events: int = 20, seed: int = DEFAULT_SEED):
+    """A10 per-domain Fisher inputs for F1 (module gain) and F3 (per-PMT gain).
+
+    ``dmu`` is the derivative at the nominal point: ``mu * u_m`` for F1 and
+    ``mu * w_p`` for F3, with unit-normal patterns per event.  This is the same
+    convention as the existing ``fisher_event`` caller; the profiling of the
+    vertex/yield is not implemented here and is labelled by the caller.
+    """
+    if domain not in DOMAINS:
+        raise ValueError(f"unknown detectability domain {domain!r}; expected {DOMAINS}")
+    state = nominal_state(geometry)
+    ones = np.ones(geometry.n_pmt)
+    rng = keyed_rng(seed, "lucid/detectability", domain)
+    mu_events, f1_events, f3_events = [], [], []
+    for _ in range(int(n_events)):
+        if domain == DOMAIN_PHOTON:
+            vertex = fiducial_vertex(geometry, rng, cfg.fiducial_fraction)
+            yield_photons = float(np.exp(rng.uniform(np.log(cfg.y_lo), np.log(cfg.y_hi))))
+            qe = sample_qe(geometry, rng, cfg)
+            mu = expected_charge(geometry, vertex, yield_photons, qe, state.attenuation_length_m, cfg)
+        else:
+            truth = draw_particle_truth(geometry, cfg, "lucid/detectability",
+                                        int(rng.integers(0, 2 ** 31)), domain, seed=seed)
+            qe = sample_qe(geometry, rng, cfg)
+            mu, _ = expected_charge_particle(geometry, truth, qe, state.attenuation_length_m, cfg)
+        u_m = rng.standard_normal(geometry.n_modules)[geometry.module_index]
+        w_p = rng.standard_normal(geometry.n_pmt)
+        mu_events.append(np.asarray(mu, float))
+        f1_events.append(np.asarray(mu, float) * u_m)
+        f3_events.append(np.asarray(mu, float) * w_p)
+    return {"mu": mu_events, "F1": f1_events, "F3": f3_events}
+
+
+def detectability_by_domain(geometry, cfg: GeneratorConfig, domain: str, *,
+                            s_f1: float = F1_SPREADS[1], s_p: float = F3_SPREAD,
+                            n_events: int = 20, seed: int = DEFAULT_SEED) -> dict:
+    """Per-domain F1/F3 ceilings using the existing ``detectability`` numerics."""
+    inputs = mixed_detectability_inputs(geometry, cfg, domain, n_events=n_events, seed=seed)
+    return {"domain": domain, "n_events": int(n_events),
+            "F1": detectability(inputs["mu"], inputs["F1"], s_f1),
+            "F3": detectability(inputs["mu"], inputs["F3"], s_p)}
+
+
 # ======================================================================= WCTE geometry (WP4b)
 #: Pinned LUCiD revision and geometry facts, DECISIONS.md 2026-10-17.
 LUCID_PIN = "eaf2e89f579d6679e90020c732ac2c846895d691"
