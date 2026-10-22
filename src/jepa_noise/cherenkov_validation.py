@@ -124,6 +124,45 @@ def compare_event(geometry, cfg: lb.GeneratorConfig, event: ValidationEvent) -> 
     }
 
 
+def contain_event(raw: dict, geometry) -> dict:
+    """Rotate/translate a PhotonSim event so its primary track is vertical and centred.
+
+    This is an isometry of the detector (same track length, same photon directions
+    and times), used only to obtain a fully contained validation event from the
+    public 500 MeV muon sample.  The transform is recorded in ``raw["containment_transform"]``.
+    """
+    direction = np.asarray(raw["primary_direction"], dtype=float).reshape(3)
+    direction = direction / np.linalg.norm(direction)
+    z = np.array([0.0, 0.0, 1.0])
+    cross = np.cross(direction, z)
+    cosine = float(np.clip(np.dot(direction, z), -1.0, 1.0))
+    sine = float(np.linalg.norm(cross))
+    if sine < 1e-9:
+        rotation = np.eye(3) if cosine > 0 else np.diag([1.0, -1.0, -1.0])
+    else:
+        axis = cross / sine
+        skew = np.array([[0.0, -axis[2], axis[1]], [axis[2], 0.0, -axis[0]],
+                         [-axis[1], axis[0], 0.0]])
+        rotation = np.eye(3) * cosine + (1.0 - cosine) * np.outer(axis, axis) + skew * sine
+    path = np.asarray(raw["primary_path_m"], dtype=float)
+    rotated_path = path @ rotation.T
+    centre = 0.5 * (rotated_path[0] + rotated_path[-1])
+    out = dict(raw)
+    out["origins_m"] = np.asarray(raw["origins_m"], dtype=float) @ rotation.T - centre
+    out["directions"] = np.asarray(raw["directions"], dtype=float) @ rotation.T
+    out["primary_direction"] = z
+    out["vertex_m"] = np.asarray(raw["vertex_m"], dtype=float) @ rotation.T - centre
+    out["primary_path_m"] = rotated_path - centre
+    out["containment_transform"] = {"rotation": rotation.tolist(), "translation": (-centre).tolist(),
+                                    "source": "isometry to vertical centred track"}
+    radius, half = float(geometry.radius_m), float(geometry.half_height_m)
+    origins = out["origins_m"]
+    rr = np.linalg.norm(origins[:, :2], axis=1)
+    if np.any(rr > radius) or np.any(np.abs(origins[:, 2]) > half):
+        raise ValueError("containment transform did not put every photon inside the detector")
+    return out
+
+
 def event_from_transport(raw: dict, batch, *, event_id: int) -> ValidationEvent:
     """Build a validation event from a PhotonSim raw-event dict and a PhotonBatch."""
     direction = np.asarray(raw["primary_direction"], dtype=float)
@@ -144,7 +183,8 @@ def event_from_transport(raw: dict, batch, *, event_id: int) -> ValidationEvent:
 
 
 def validate_photonsim(geometry, cfg: lb.GeneratorConfig, transport, raw_paths, *,
-                       max_events: int | None = None, **thresholds) -> dict:
+                       max_events: int | None = None, contain: bool = False,
+                       **thresholds) -> dict:
     """Transport each PMT-work PhotonSim event and compare it with the analytic model.
 
     ``transport`` is a pinned :class:`noise_module_lucid.lucid_transport.PromptTransport`.
@@ -158,6 +198,8 @@ def validate_photonsim(geometry, cfg: lb.GeneratorConfig, transport, raw_paths, 
             break
         with np.load(path, allow_pickle=False) as data:
             raw = {name: data[name] for name in data.files}
+        if contain:
+            raw = contain_event(raw, geometry)
         batch = transport.export(int(index), np.asarray(raw["photon_id"], np.int64),
                                  np.asarray(raw["origins_m"], float),
                                  np.asarray(raw["directions"], float),
