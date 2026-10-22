@@ -844,7 +844,7 @@ def test_domain_event_ids_filters_the_particle_union(tmp_path):
     path = tmp_path / "events.npz"
     np.savez(path, event_ids=np.arange(6), domain=np.array(["photon", "muon", "electron"] * 2))
     assert list(lr._domain_event_ids(path, "photon")) == [0, 3]
-    assert list(lr._domain_event_ids(path, "particle")) == [1, 4, 2, 5]
+    assert list(lr._domain_event_ids(path, "particle")) == [1, 2, 4, 5]
     assert list(lr._domain_event_ids(path, "muon")) == [1, 4]
 
 
