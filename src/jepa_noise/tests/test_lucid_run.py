@@ -829,3 +829,28 @@ def test_ensure_floor_moves_model_to_the_probe_device(tmp_path, monkeypatch):
         device=torch.device("meta"), log=lambda *_: None)
     assert seen["device"].startswith("meta")
     assert payload["registered"] is False
+
+
+# ------------------------------------------------------------------- A10 domains
+def test_mixed_config_loads_and_cells_carry_domains():
+    cfg = lr.load_run_config(lr.ROOT / "src/jepa_noise/configs/lucid_run_v0_mixed.json")
+    cells = lr.enumerate_cells(cfg)
+    assert cells and all(c.domains == ("photon", "muon", "electron") for c in cells)
+    assert all(c.primary_domain == "particle" for c in cells)
+    assert cfg["data"]["generator_config"].endswith("lucid_bombs_v1_mixed.json")
+
+
+def test_domain_event_ids_filters_the_particle_union(tmp_path):
+    path = tmp_path / "events.npz"
+    np.savez(path, event_ids=np.arange(6), domain=np.array(["photon", "muon", "electron"] * 2))
+    assert list(lr._domain_event_ids(path, "photon")) == [0, 3]
+    assert list(lr._domain_event_ids(path, "particle")) == [1, 4, 2, 5]
+    assert list(lr._domain_event_ids(path, "muon")) == [1, 4]
+
+
+def test_domain_event_ids_old_schema_is_photon_only(tmp_path):
+    path = tmp_path / "old" / "events.npz"
+    path.parent.mkdir()
+    np.savez(path, event_ids=np.arange(3))
+    assert list(lr._domain_event_ids(path, "photon")) == [0, 1, 2]
+    assert list(lr._domain_event_ids(path, "particle")) == []

@@ -134,6 +134,8 @@ class Cell:
     occupancy: str = "natural"; robustness_set: str | None = None
     baseline_set: str | None = None; extrapolation_set: str | None = None
     r6_r7_eligible: bool = False; criterion: str | None = None; settings_source: str | None = None
+    domains: tuple = (lb.DOMAIN_PHOTON,)
+    primary_domain: str | None = None
     @property
     def n_runs(self) -> int:
         return int(sum(int(self.seeds[a]) for a in self.arms))
@@ -156,13 +158,15 @@ def _probe_sets(c: dict) -> dict:
 def enumerate_cells(c: dict) -> list:
     """The six main cells then the five secondary cells of §3.5.6."""
     m = c["cells"]["main"]
+    domains = tuple(c.get("data", {}).get("domains", (lb.DOMAIN_PHOTON,)))
+    primary_domain = c.get("evaluation", {}).get("primary_domain")
     seeds = {a: int(n) for a, n in m["arms_seeds"].items()}
     probes = {float(k): v for k, v in m["probe_set_by_spread"].items()}
     eligible = {float(x) for x in m["r6_r7_eligible_spreads"]}
     out = [Cell(f"main_s{int(round(s * 100)):03d}_{split}", "main", "F1", s, s, split,
                 float(m["s_p"]), tuple(la.ARMS), dict(seeds), m["train_cohort"], probes[s],
                 robustness_set=m["robustness_set"], baseline_set=m["baseline_set"],
-                r6_r7_eligible=s in eligible)
+                r6_r7_eligible=s in eligible, domains=domains, primary_domain=primary_domain)
            for s in [float(x) for x in m["spreads"]] for split in m["splits"]]
     ids = {"r11": "r11_f1f2f3_within", "r11b": "r11b_law_within",
            "dark_anchor": "dark_anchor_s010_within", "law_t": "law_t_aging_within",
@@ -176,7 +180,8 @@ def enumerate_cells(c: dict) -> list:
                         float(sp["s_p"]), arms, {a: int(sp["seeds"]) for a in arms},
                         sp["train_cohort"], sp["probe_set"], sp.get("occupancy", "natural"),
                         extrapolation_set=sp.get("extrapolation_set"), criterion=sp.get("criterion"),
-                        settings_source=sp.get("settings_source")))
+                        settings_source=sp.get("settings_source"), domains=domains,
+                        primary_domain=primary_domain))
     return out
 def development_runs(c: dict) -> list:
     """The 17 development trainings: 2 probe-decision + 15 beta."""
@@ -878,7 +883,10 @@ def available_kinds(cell, config):
             names.remove("age")
     return kinds
 def _probe_batch(run_dir, geometry, *, split, mask_seed, occupancy, scaling, limit=None,
-                 event_ids=None):
+                 event_ids=None, domain=None):
+    if domain not in (None, "all"):
+        allowed = _domain_event_ids(run_dir, domain)
+        event_ids = allowed if event_ids is None else np.intersect1d(event_ids, allowed)
     return pe.tokenise(run_dir, geometry, split=split, seed=mask_seed, occupancy=occupancy,
                        scaling=scaling, masker=ViewMasker(geometry, split, seed=mask_seed,
                                                           occupancy=occupancy, n_min=0),
@@ -894,7 +902,7 @@ def _concat(items):
                            np.concatenate([i.y for i in items]), np.concatenate([i.run_ids for i in items]),
                            items[0].target_names, {"key": np.concatenate([i.meta["key"] for i in items])})
 def probe_tables(model, dataset, geometry, *, split, kinds_by_form, mask_seed, max_events=None,
-                 device=None, twin=False):
+                 device=None, twin=False, domain=None):
     """All four §3.5.6 probe forms; probe events are never excluded on N_min.
 
     ``twin=True`` reads the arm's own nominal-twin input (``oracle_nominal_twin``),
@@ -906,8 +914,18 @@ def probe_tables(model, dataset, geometry, *, split, kinds_by_form, mask_seed, m
         for row in dataset.runs:
             source = (dataset.directory / "runs" / row["run_dir"] / "twin_hits.npz" if twin
                       else dataset.directory / "runs" / row["run_dir"])
+            ids = _run_event_ids(source)
+            if domain not in (None, "all"):
+                ids = np.intersect1d(ids, _domain_event_ids(source, domain))
+            if ids.size == 0:
+                continue
+            if max_events is not None:
+                ids = ids[:int(max_events)]
             batch = _probe_batch(source, geometry, split=split,
-                                 mask_seed=mask_seed, occupancy="natural", scaling=scaling, limit=max_events)
+                                 mask_seed=mask_seed, occupancy="natural", scaling=scaling,
+                                 event_ids=ids)
+            if batch.event_ids.size == 0:
+                continue
             data = _f32(la.probe_data(model, _to_device(batch, device), _run_truth(row, dataset, geometry),
                                       geometry, run_id=row["run_id"]))
             for kind in kinds:
@@ -956,6 +974,22 @@ def _run_event_ids(source):
     path = Path(source)
     path = (path / "hits.npz") if path.is_dir() else path
     return np.asarray(lb.read_sparse_hits(path).event_ids, dtype=np.int64)
+
+
+def _domain_event_ids(source, domain):
+    """Event IDs of one A10 domain; photon-only or missing-domain datasets return all IDs."""
+    if domain in (None, "all"):
+        return None
+    path = Path(source)
+    directory = path.parent if path.is_file() else path
+    with np.load(directory / "events.npz", allow_pickle=False) as data:
+        ids = np.asarray(data["event_ids"], dtype=np.int64)
+        if "domain" not in data.files:
+            return ids if str(domain) == lb.DOMAIN_PHOTON else np.zeros(0, dtype=np.int64)
+        labels = np.asarray(data["domain"]).astype(str)
+    if str(domain) == "particle":
+        return ids[np.isin(labels, list(lb.PARTICLE_DOMAINS))]
+    return ids[labels == str(domain)]
 def _probe_representations(form):
     """Only the representation the form reads is encoded (raw_input skips the encoder)."""
     if form == "raw_input":
@@ -993,7 +1027,8 @@ def _capture_rows(capture, kind, run_id, x, y, key):
     out["run"].append(np.full(len(x), run_id, dtype=object))
     out["key"].append(np.asarray(key, dtype=np.int64))
 def _ingest_probe_chunks(model, dataset, accumulators, *, geometry, form, split, mask_seed,
-                         max_events, device, twin, chunk_events, capture=None, ids_cache=None):
+                         max_events, device, twin, chunk_events, capture=None, ids_cache=None,
+                         domain=None):
     """One streaming pass over a probe dataset for one form, in event chunks."""
     scaling = pe.FeatureScaling.from_geometry(geometry)
     representations = _probe_representations(form)
@@ -1007,6 +1042,10 @@ def _ingest_probe_chunks(model, dataset, accumulators, *, geometry, form, split,
             ids = _run_event_ids(source)
             if ids_cache is not None:
                 ids_cache[cache_key] = ids
+        if domain not in (None, "all"):
+            ids = np.intersect1d(ids, _domain_event_ids(source, domain))
+        if ids.size == 0:
+            continue
         if max_events is not None:                     # the debug cap keeps its per-run meaning
             ids = ids[:int(max_events)]
         # run_mean rows aggregate over every event of a run, so partial sums are
@@ -1054,7 +1093,7 @@ def _captured_dataset(capture, kind, form):
                            target_names=(), meta={"key": np.concatenate(capture["key"])})
 def probe_scores(model, train_dataset, test_dataset, geometry, *, split, kinds_by_form, mask_seed,
                  max_events=None, device=None, twin=False, chunk_events=None,
-                 materialise=(), legacy_materialised=False):
+                 materialise=(), legacy_materialised=False, domain=None):
     """Memory-bounded replacement for ``probe_tables(train)+probe_tables(test)+_score``.
 
     One form at a time: its train and test tables are accumulated as per-run
@@ -1069,10 +1108,10 @@ def probe_scores(model, train_dataset, test_dataset, geometry, *, split, kinds_b
     if legacy_materialised:
         train = probe_tables(model, train_dataset, geometry, split=split,
                              kinds_by_form=kinds_by_form, mask_seed=mask_seed,
-                             max_events=max_events, device=device, twin=twin)
+                             max_events=max_events, device=device, twin=twin, domain=domain)
         test = probe_tables(model, test_dataset, geometry, split=split,
                             kinds_by_form=kinds_by_form, mask_seed=mask_seed,
-                            max_events=max_events, device=device, twin=twin)
+                            max_events=max_events, device=device, twin=twin, domain=domain)
         return {"results": _score(train, test),
                 "tables": {"train": {key: train[key] for key in train if key in materialise},
                            "test": {key: test[key] for key in test if key in materialise}},
@@ -1103,12 +1142,12 @@ def probe_scores(model, train_dataset, test_dataset, geometry, *, split, kinds_b
         _ingest_probe_chunks(model, train_dataset, train_accum, geometry=geometry, form=form,
                              split=split, mask_seed=mask_seed, max_events=max_events,
                              device=device, twin=twin, chunk_events=chunk_events,
-                             capture=capture_train or None, ids_cache=ids_cache)
+                             capture=capture_train or None, ids_cache=ids_cache, domain=domain)
         sample()
         _ingest_probe_chunks(model, test_dataset, test_accum, geometry=geometry, form=form,
                              split=split, mask_seed=mask_seed, max_events=max_events,
                              device=device, twin=twin, chunk_events=chunk_events,
-                             capture=capture_test or None, ids_cache=ids_cache)
+                             capture=capture_test or None, ids_cache=ids_cache, domain=domain)
         sample()
         for kind in kinds:
             key = f"{kind}::{form}"
@@ -1219,20 +1258,37 @@ def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, d
     materialise = {("vertex", "per_event")}
     if all(m in kinds.get("run_mean", []) for m in ("module_gain", "f2_variable")):
         materialise |= {("module_gain", "run_mean"), ("f2_variable", "run_mean")}
-    evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
-                             split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
-                             max_events=max_events, device=device, twin=twin,
-                             chunk_events=_probe_chunk_events(config), materialise=materialise)
-    results, train, test = evaluated["results"], evaluated["tables"]["train"], evaluated["tables"]["test"]
-    physics = {"model_vertex_probe": physics_method}
-    if ("vertex", "per_event") in train and ("vertex", "per_event") in test:
-        physics.update(_vertex_resolution(train[("vertex", "per_event")],
-                                          test[("vertex", "per_event")], method=physics_method))
-    if compute_reference:
-        physics["reference"] = _reference_vertex_resolution(probe_datasets["test"], geometry, config)
-    r11 = (_r11_block(train[("module_gain", "run_mean")], test[("module_gain", "run_mean")],
-                      train[("f2_variable", "run_mean")], test[("f2_variable", "run_mean")])
-           if ("module_gain", "run_mean") in train and ("f2_variable", "run_mean") in train else {})
+    base_domains = tuple(getattr(cell, "domains", (lb.DOMAIN_PHOTON,)))
+    primary_domain = str(getattr(cell, "primary_domain", None) or base_domains[0])
+    domains = tuple(dict.fromkeys((*base_domains, primary_domain)))
+    domain_payload = {}
+    primary_evaluated = None
+    for domain in domains:
+        domain_name = str(domain)
+        evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
+                                 split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
+                                 max_events=max_events, device=device, twin=twin,
+                                 chunk_events=_probe_chunk_events(config), materialise=materialise,
+                                 domain=(None if domain_name == "all" else domain_name))
+        if primary_evaluated is None or domain_name == primary_domain:
+            primary_evaluated = evaluated
+        results_d = evaluated["results"]
+        train_d, test_d = evaluated["tables"]["train"], evaluated["tables"]["test"]
+        physics_d = {"model_vertex_probe": physics_method}
+        if ("vertex", "per_event") in train_d and ("vertex", "per_event") in test_d:
+            physics_d.update(_vertex_resolution(train_d[("vertex", "per_event")],
+                                                 test_d[("vertex", "per_event")], method=physics_method))
+        if compute_reference and domain_name == primary_domain:
+            physics_d["reference"] = _reference_vertex_resolution(probe_datasets["test"], geometry, config)
+        r11_d = (_r11_block(train_d[("module_gain", "run_mean")], test_d[("module_gain", "run_mean")],
+                            train_d[("f2_variable", "run_mean")], test_d[("f2_variable", "run_mean")])
+                 if ("module_gain", "run_mean") in train_d and ("f2_variable", "run_mean") in train_d else {})
+        domain_payload[domain_name] = {"results": results_d, "physics": physics_d, "r11": r11_d}
+    evaluated = primary_evaluated
+    results = domain_payload[primary_domain]["results"]
+    train, test = evaluated["tables"]["train"], evaluated["tables"]["test"]
+    physics = domain_payload[primary_domain]["physics"]
+    r11 = domain_payload[primary_domain]["r11"]
     extra_sets = {key: {"status": "not_evaluable", "dataset": probe_datasets[key].key,
                         "reason": "§3.5.9 defines no registered score for this set (R8 names only a "
                                   "'robustness ratio'; law T has no extrapolation criterion); the set "
@@ -1254,6 +1310,8 @@ def evaluate_arm_run(arm, *, arm_name, cell, geometry, probe_datasets, config, d
     payload = {"schema": "jepa-lucid-probes-v0", "arm": arm_name, "cell_id": cell.cell_id,
                "split": cell.split, "primary_form": la.PRIMARY_PROBE_FORM, "results": results,
                "physics": physics, "r11": r11, "extra_sets": extra_sets,
+               "domains": list(domains), "primary_domain": primary_domain,
+               "domain_results": domain_payload,
                "registered": False, "readout_label": READOUT_LABEL}
     if evaluated["memory"] is not None:
         payload["probe_memory"] = evaluated["memory"]
@@ -1331,10 +1389,14 @@ def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed,
     """The §3.5.6 random-init floor, cached per (arm, cell); init seed = first seed (0)."""
     out_root, data_root = Path(out_root).resolve(), Path(data_root).resolve()
     path = _guard(out_root / "floors" / f"{arm_name}__{cell.cell_id}.json", out_root, data_root)
+    base_domains = tuple(getattr(cell, "domains", (lb.DOMAIN_PHOTON,)))
+    primary_domain = str(getattr(cell, "primary_domain", None) or base_domains[0])
+    domains = tuple(dict.fromkeys((*base_domains, primary_domain)))
     identity = {"arm": arm_name, "cell_id": cell.cell_id, "seed": 0, "config_sha256": config_sha,
                 "geometry_sha256": geometry.digest, "split": cell.split,
                 "mask_seed": int(mask_seed), "probe_max_events": max_events,
                 "forms": sorted(available_kinds(cell, config)),
+                "domains": list(domains), "primary_domain": primary_domain,
                 "twin_input": bool(arm_name == la.ORACLE_ARM),
                 "probe_sets": {k: v.key for k, v in probe_datasets.items()},
                 "probe_sha256": {k: v.manifest_sha256() for k, v in probe_datasets.items()}}
@@ -1348,17 +1410,29 @@ def ensure_floor(*, arm_name, cell, geometry, config, probe_datasets, mask_seed,
         model = model.to(device)  # floor model must share the probe batch device
     kinds = available_kinds(cell, config)
     twin = arm_name == la.ORACLE_ARM
-    evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
-                             split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
-                             max_events=max_events, device=device, twin=twin,
-                             chunk_events=_probe_chunk_events(config),
-                             materialise={("vertex", "per_event")})
-    train = evaluated["tables"]["train"]
+    domain_payload, primary_evaluated = {}, None
+    for domain in domains:
+        domain_name = str(domain)
+        evaluated = probe_scores(model, probe_datasets["train"], probe_datasets["test"], geometry,
+                                 split=cell.split, kinds_by_form=kinds, mask_seed=mask_seed,
+                                 max_events=max_events, device=device, twin=twin,
+                                 chunk_events=_probe_chunk_events(config),
+                                 materialise={("vertex", "per_event")},
+                                 domain=(None if domain_name == "all" else domain_name))
+        if primary_evaluated is None or domain_name == primary_domain:
+            primary_evaluated = evaluated
+        train = evaluated["tables"]["train"]
+        domain_payload[domain_name] = {
+            "results": evaluated["results"],
+            "physics": (_vertex_resolution(train[("vertex", "per_event")],
+                                            evaluated["tables"]["test"][("vertex", "per_event")])
+                        if ("vertex", "per_event") in train else {})}
+    evaluated = primary_evaluated
     payload = {"schema": "jepa-lucid-floor-v0", "identity": identity,
-               "results": evaluated["results"],
-               "physics": (_vertex_resolution(train[("vertex", "per_event")],
-                                              evaluated["tables"]["test"][("vertex", "per_event")])
-                           if ("vertex", "per_event") in train else {}),
+               "results": domain_payload[primary_domain]["results"],
+               "physics": domain_payload[primary_domain]["physics"],
+               "domains": list(domains), "primary_domain": primary_domain,
+               "domain_results": domain_payload,
                "registered": False, "readout_label": READOUT_LABEL}
     if evaluated["memory"] is not None:
         payload["probe_memory"] = evaluated["memory"]

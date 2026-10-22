@@ -1,0 +1,382 @@
+{
+ "schema": "lucid-bombs-config-v1",
+ "status": "development_mixed_domains_a10",
+ "readout_label": "readout_pmt_r6",
+ "dark_counts": "on",
+ "reported_results": false,
+ "note": "A10 mixed event domains (photon/muon/electron); analytic Cherenkov production with PhotonSim validation pending. Development only; not a reported result.",
+ "readout_note": "readout_pmt_r6: the merged R-6 readout, dark counts on (1 kHz per PMT in [-200, 800] ns, ~2 dark hits/event). Dark PE bypass QE/CE, join the detected PE before digitisation and share the SPE charge, gain, discriminator and T-Q walk/width. Legacy labels readout_dark_off and readout_synthetic_unrepaired are kept as constants and are never written.",
+ "time_rule": {
+  "trigger": "NHits",
+  "n": 4,
+  "trigger_window_ns": 20.0,
+  "prompt_window_ns": [
+   -20.0,
+   60.0
+  ],
+  "no_trigger": "window_start",
+  "emission_offset_ns": [
+   -50.0,
+   50.0
+  ],
+  "token_time": "digit - trigger",
+  "source": "author 2026-10-18, A9; imported from the PMT readout, not reimplemented",
+  "status": "pending_author_named_pmt_sha",
+  "store_time_ns": "digit - trigger: trigger-relative token times after the prompt-window cut. The absolute digit times are exposed additively on the readout (HitReadout.absolute_time_ns), never in the store.",
+  "leak_guard": "the per-event emission-time offset (uniform in [-50, +50] ns, keyed RNG) is truth only: it shifts source photon arrivals, cancels in digit - trigger, is recorded in events.npz and never enters a feature or token",
+  "note": "the rule itself is not implemented here: lucid_bombs.pmt_time_rule() imports nhits_trigger_time, NHITS_N, NHITS_WINDOW_NS and PROMPT_WINDOW_NS lazily from noise_module_lucid.readout and raises RuntimeError until the author-named SHA is merged, so no dataset can be generated with another convention"
+ },
+ "fixed_response": {
+  "path": "configs/lucid_pmt/reference.json",
+  "sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68",
+  "schema": "pmt-response-v2",
+  "source": "noise_module_lucid.response_manifest.reference_response(n_channels, channel_group)",
+  "gain": {
+   "rule": "group_parity",
+   "base": 1.0,
+   "odd_group_delta": 0.03
+  },
+  "timing_width_factor": {
+   "rule": "group_parity",
+   "base": 1.0,
+   "odd_group_delta": 0.05
+  },
+  "module_index": "dense mPMT module index: response_manifest.module_groups(mpmt_id) over the sparse WCTE ids (0..105 with id 45 absent), never a raw mpmt_id",
+  "twin_policy": "present in the measured readout and in the nominal twin (detector response); the twin cancels only the injected F1/F3 gains",
+  "dark_counts": "on",
+  "note": "the charge gain multiplies the expected charge per PMT (measured and twin); the timing-width factor multiplies the digit Gaussian width tts_sigma_ns per PMT; the dark bank is present in the measured readout and shared with the nominal twin",
+  "dark_rate_hz": 1000.0,
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ],
+  "spe_sigma": 0.3,
+  "threshold_pe": 0.25,
+  "dark_counts_stage_owner": "readout (R-6): keyed Poisson dark photoelectrons per PMT, uniform in readout_window_ns, bypass QE/CE, then the same SPE charge, gain, discriminator, T-Q walk and width"
+ },
+ "superseded_decisions": {
+  "status": "superseded_pending_r6_freeze",
+  "reason": "frozen before the merged PMT R-6 dark-on readout; the intermediate 28e24c8 run was never frozen and is superseded_by_r6_dark_counts; the author has not frozen replacements",
+  "items": [
+   "generator.yield_range_decision (Y_lo, Y_hi)",
+   "detector_state_laws.F1.eligible_spreads",
+   "detector_state_laws.F2.selected_spread",
+   "detector_state_laws.F3.r12_status",
+   "detectability (v_dark, ceilings)"
+  ],
+  "refreeze_condition": "the section 3.5.3a check re-run on readout_pmt_r6 (F3 marginalised at s_p = 0.05, dark on) and accepted by the author"
+ },
+ "geometry": {
+  "lucid_pin": "eaf2e89f579d6679e90020c732ac2c846895d691",
+  "config_relpath": "config/WCTE_geom_config.json",
+  "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+  "npz_relpath": "config/wcte_geometry.npz",
+  "npz_sha256_prefix": "0a75b035",
+  "n_sensors": 1995,
+  "n_modules": 105,
+  "pmts_per_module": 19,
+  "surface_counts": {
+   "top": 399,
+   "barrel": 1197,
+   "bottom": 399
+  },
+  "radius_m": 1.5771308488246254,
+  "height_m": 2.77697099384,
+  "sensor_radius_m": 0.04,
+  "mpmt_id_gaps": [
+   45
+  ],
+  "pmt_id_in_mpmt_base": 1,
+  "note": "id 45 absent; pmt_id_in_mpmt is 1-based. Nothing is redistributed; the file is read on the host only."
+ },
+ "lambda0_m": 50.0,
+ "lambda0_note": "placeholder: the runbook fixes F2's form but not lambda0, and the PMT reference fixture has absorption off",
+ "detector_state_laws": {
+  "F1": {
+   "spreads": [
+    0.02,
+    0.05,
+    0.1
+   ],
+   "namespace": "lucid/F1",
+   "eligible_spreads": [
+    0.05,
+    0.1
+   ],
+   "excluded_spreads_from_R6_R7": [
+    0.02
+   ],
+   "decision_status": "superseded_pending_r6_freeze",
+   "superseded_note": "eligible/excluded spreads come from the 2026-10-17 pre-R-6 check"
+  },
+  "F3": {
+   "spread": 0.1,
+   "namespace": "lucid/F3",
+   "r12_status": "not_evaluable_no_gate",
+   "decision_status": "superseded_pending_r6_freeze",
+   "superseded_note": "r12_status from the pre-R-6 check; F3 is now marginalised at the restarted s_p = 0.05 (not known)"
+  },
+  "F2": {
+   "spreads": [
+    0.1,
+    0.2,
+    0.5
+   ],
+   "namespace": "lucid/F2",
+   "selected_spread": 0.5,
+   "selected": true,
+   "decision_status": "superseded_pending_r6_freeze",
+   "superseded_note": "selected_spread 0.5 from the pre-R-6 check; F2-vs-F2' awaits the R-6 re-run"
+  },
+  "F2p": {
+   "spreads": [
+    0.05,
+    0.1
+   ],
+   "namespace": "lucid/F2p",
+   "selected": false,
+   "decision_status": "superseded_pending_r6_freeze",
+   "superseded_note": "not selected before R-6; re-decided with F2 on the R-6 readout"
+  },
+  "R11b": {
+   "spread": 0.05,
+   "k_namespace": "lucid/k_R11b"
+  },
+  "T": {
+   "spread": 0.1,
+   "runs": 100,
+   "k_namespace": "lucid/k_T"
+  }
+ },
+ "gain_clip": [
+  0.5,
+  1.5
+ ],
+ "generator": {
+  "y_lo": 6298.436828,
+  "y_hi": 539433.964527,
+  "yield_range_status": "frozen_by_detectability_check",
+  "fiducial_fraction": 0.8,
+  "spectrum_kind": "uniform_synthetic",
+  "spectrum_nm": [
+   300.0,
+   600.0
+  ],
+  "spectrum_label": "synthetic_uniform_300_600_nm (PMT reference stand-in)",
+  "qe_curve_nm": [
+   300.0,
+   350.0,
+   400.0,
+   450.0,
+   500.0,
+   550.0,
+   600.0
+  ],
+  "qe_curve": [
+   0.1,
+   0.18,
+   0.24,
+   0.25,
+   0.22,
+   0.16,
+   0.08
+  ],
+  "ce": 0.95,
+  "n_wavelength_samples": 1,
+  "sigma_spe": 0.3,
+  "tts_sigma_ns": 1.5,
+  "dark_rate_hz": 1000.0,
+  "dark_counts": "on",
+  "threshold_pe": 0.25,
+  "walk_calibration_pe": 0.25,
+  "mv_per_pe": 4.0,
+  "n_group": 1.33,
+  "lambda0_m": 50.0,
+  "twin": true,
+  "reference_response_path": "configs/lucid_pmt/reference.json",
+  "reference_response_sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68",
+  "yield_range_decision": {
+   "status": "superseded_pending_r6_freeze",
+   "superseded_reason": "frozen on 2026-10-17 before the merged PMT R-6 dark-on readout; Y_lo/Y_hi must be re-derived by the section 3.5.3a check on readout_pmt_r6 before use",
+   "decisions": "../DECISIONS.md section 'WP4b \u00a73.5.3a detectability check \u2014 FROZEN'",
+   "decision_json": "results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json",
+   "decision_json_sha256": "411190bc2cfac55a6009e6e329485fe2905cc0c2bc9bae6262277433f1a807a7",
+   "decision_content_sha256": "8c9b96d25606eec8d7a973c9377da73352150fbe66d4d8fe694efa7abf6b35ae",
+   "y_lo_basis": "median 199.0 hit PMTs at Y_lo (hit fraction 0.0997)",
+   "y_hi_basis": "hit_fraction_0.95 bound (median 0.9501; the 300 PE bound would allow 834189.16)",
+   "median_yield_photons": 58288.856,
+   "rebenchmark_required": true,
+   "decision_rerun_note": "v2 adds the F2-branch f1_joint evidence (105 per-module joint F1/F2 ceilings); decisions identical to v1, ceilings shifted by <=0.0013",
+   "module_index_convention": "f1_joint rows are indexed by dense position 0..104; map to mpmt_id through DetectorGeometry.module_ids (id 45 absent) - never assume position == mpmt_id",
+   "frozen_yield_benchmark": {
+    "events_per_second": 49.486,
+    "hits_per_event": 1010.527,
+    "peak_rss_mb": 178.547,
+    "projection_hours_one_process": 6.0061,
+    "projection_hours_16_cores": 0.37538,
+    "fraction_of_48h_cap": 0.00782,
+    "evidence": "/ceph/dwong/jepa/jobs/wp4b_benchmark_wcte_frozen_yields_1000.json",
+    "evidence_sha256": "a2b34ae942b2b80ecb006f24999f18128d53ddbcd21fc3a4d1f3db50da46d372"
+   },
+   "decision_status": "frozen_by_r6_consistency_rerun_615421c",
+   "supersedes": [
+    "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte.json (v1, dark-off)",
+    "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_v2.json (v2, dark-off, F3 known)",
+    "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6_at989773c.json (intermediate, superseded)",
+    "/ceph/dwong/jepa/jobs/wp4b_detectability_wcte_r6.json (0.05-marginalised, superseded)"
+   ],
+   "readout_label": "readout_pmt_r6",
+   "v_dark": 0.00109,
+   "s_p": 0.1,
+   "s_p_restart": {
+    "previous": 0.1,
+    "new_at_start": 0.05,
+    "raised_to": 0.1,
+    "reason": "ladder step 4 after Y_hi and F2 (F3 fails at both 0.05 and 0.10); marginalisation now uses the in-force 0.10"
+   },
+   "f1_eligible": [
+    0.05,
+    0.1
+   ],
+   "f1_excluded": [
+    0.02
+   ],
+   "f2": {
+    "law": "F2",
+    "a": 0.5
+   },
+   "f2p_used": false,
+   "g6": false,
+   "r12": "not_evaluable_no_gate",
+   "f3_marginalisation_spread": 0.1
+  },
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ],
+  "window_ns": 1000.0,
+  "domains": [
+   "photon",
+   "muon",
+   "electron"
+  ],
+  "domain_fractions": {
+   "photon": 0.334,
+   "muon": 0.333,
+   "electron": 0.333
+  },
+  "generator_mode": "analytic_cherenkov",
+  "muon_energy_MeV": [
+   300.0,
+   1500.0
+  ],
+  "electron_energy_MeV": [
+   100.0,
+   1000.0
+  ],
+  "track_segments": 24,
+  "cherenkov_yield_per_MeV": 500.0,
+  "cherenkov_cone_sigma_rad": 0.08,
+  "muon_range_m_per_MeV": 0.0043,
+  "electron_shower_length_m": 0.8
+ },
+ "cohorts": {
+  "train": {
+   "namespace": "lucid/train",
+   "event_start": 0,
+   "n_events": 100000,
+   "run_length": 1000
+  },
+  "probe_train": {
+   "namespace": "lucid/probe_train",
+   "event_start": 200000,
+   "n_events": 10000,
+   "run_length": 50
+  },
+  "probe_test": {
+   "namespace": "lucid/probe_test",
+   "event_start": 210000,
+   "n_events": 10000,
+   "run_length": 50
+  },
+  "robustness": {
+   "namespace": "lucid/robustness",
+   "event_start": 220000,
+   "n_events": 10000,
+   "run_length": 50
+  },
+  "dev_train": {
+   "namespace": "lucid/dev_train",
+   "event_start": 1000000,
+   "n_events": 100000,
+   "run_length": 1000
+  },
+  "dev_probe_train": {
+   "namespace": "lucid/dev_probe_train",
+   "event_start": 1200000,
+   "n_events": 10000,
+   "run_length": 50
+  },
+  "dev_probe_test": {
+   "namespace": "lucid/dev_probe_test",
+   "event_start": 1210000,
+   "n_events": 10000,
+   "run_length": 50
+  },
+  "dev_robustness": {
+   "namespace": "lucid/dev_robustness",
+   "event_start": 1220000,
+   "n_events": 10000,
+   "run_length": 50
+  }
+ },
+ "event_id_source": "v3 \u00a76 WP5 integer ranges, lucid/ namespace prefix",
+ "robustness_id_note": "v3 \u00a76 has no robustness range; 220000-229999 is a WP4b extension and is reported to the lead",
+ "views": {
+  "n_min": 20,
+  "max_redraws": 3
+ },
+ "detectability": {
+  "sigma_spe": 0.3,
+  "v_dark": 0.00109,
+  "run_events": 50,
+  "dark_counts": "on",
+  "f3_marginalised": true,
+  "f3_marginalised_spread": 0.1,
+  "variance_formula": "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2",
+  "v_dark_source": "v_dark = lambda_dark*(1+sigma_spe^2) with lambda_dark = 1000 Hz x 1000 ns = 0.001 from configs/lucid_pmt/reference.json (R-6): 0.001 x 1.09 = 0.00109 PE^2, derived not literal",
+  "f3_source": "F3 is marginalised with the in-force spread (0.10, the frozen section 3.5.3a ladder end): variance_p = mu_p(1+sigma_spe^2) + v_dark + s_p^2 mu_p^2; the tested F3 signal strength started at the registered default 0.05 and the ladder raised it to 0.10",
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ]
+ },
+ "benchmark": {
+  "events": 1000,
+  "volume_events": 1070000,
+  "volume_breakdown": {
+   "main_grid_train_3x100k": 300000,
+   "secondary_train_5x100k": 500000,
+   "dev_train_100k": 100000,
+   "probe_and_robustness_17x10k": 170000
+  },
+  "cores_at_most": 16,
+  "cpu_cap_wall_hours": 48.0,
+  "readout_label": "readout_pmt_r6",
+  "dark_counts": "on",
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ],
+  "v_dark": 0.00109
+ },
+ "dataset_seed": 20261017,
+ "decision_freeze_status": "superseded_pending_r6_freeze",
+ "a10": {
+  "runbook": "docs/jepa/RUNBOOK_JEPA_NOISE_v4_2026-10-16.md \u00a73.8",
+  "mixing": "1:1:1 (334/333/333 per 1000; 17/17/16 per 50)",
+  "generator_mode": "analytic_cherenkov",
+  "electron_source": "analytic_first",
+  "particle_primary": true
+ }
+}
