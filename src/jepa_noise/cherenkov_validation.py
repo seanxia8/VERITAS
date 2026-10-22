@@ -124,6 +124,49 @@ def compare_event(geometry, cfg: lb.GeneratorConfig, event: ValidationEvent) -> 
     }
 
 
+def event_from_transport(raw: dict, batch, *, event_id: int) -> ValidationEvent:
+    """Build a validation event from a PhotonSim raw-event dict and a PhotonBatch."""
+    direction = np.asarray(raw["primary_direction"], dtype=float)
+    path = np.asarray(raw.get("primary_path_m", np.zeros((2, 3))), dtype=float)
+    track_length = float(np.linalg.norm(path[-1] - path[0])) if path.shape[0] >= 2 else float("nan")
+    return ValidationEvent(
+        event_id=int(event_id), domain=lb.DOMAIN_MUON,
+        vertex_m=np.asarray(raw["vertex_m"], dtype=float),
+        sensor_id=np.asarray(batch.sensor_id, dtype=np.int64),
+        time_ns=np.asarray(batch.arrival_time_ns, dtype=float),
+        wavelength_nm=np.asarray(batch.wavelength_nm, dtype=float),
+        direction_m=direction / np.linalg.norm(direction),
+        energy_MeV=float(raw["energy_MeV"]),
+        deposited_MeV=float(raw["energy_MeV"]),
+        contained=bool(np.isfinite(track_length)),
+        track_length_m=track_length,
+    )
+
+
+def validate_photonsim(geometry, cfg: lb.GeneratorConfig, transport, raw_paths, *,
+                       max_events: int | None = None, **thresholds) -> dict:
+    """Transport each PMT-work PhotonSim event and compare it with the analytic model.
+
+    ``transport`` is a pinned :class:`noise_module_lucid.lucid_transport.PromptTransport`.
+    Raw events are the PMT-work NPZ schema (``origins_m``, ``directions``, ``emission_ns``,
+    ``wavelength_nm``, ``photon_id``, ``vertex_m``, ``primary_direction``,
+    ``energy_MeV``, ``primary_path_m``).  Host-only: the harness itself imports no JAX.
+    """
+    events = []
+    for index, path in enumerate(sorted(Path(item) for item in raw_paths)):
+        if max_events is not None and index >= int(max_events):
+            break
+        with np.load(path, allow_pickle=False) as data:
+            raw = {name: data[name] for name in data.files}
+        batch = transport.export(int(index), np.asarray(raw["photon_id"], np.int64),
+                                 np.asarray(raw["origins_m"], float),
+                                 np.asarray(raw["directions"], float),
+                                 np.asarray(raw["emission_ns"], float),
+                                 np.asarray(raw["wavelength_nm"], float))
+        events.append(event_from_transport(raw, batch, event_id=index))
+    return validate(geometry, cfg, events, **thresholds)
+
+
 def validate(geometry, cfg: lb.GeneratorConfig, events, *, yield_tolerance=(0.5, 2.0),
              min_pattern=0.8, max_time_median_ns=5.0) -> dict:
     rows = [compare_event(geometry, cfg, event) for event in events]
