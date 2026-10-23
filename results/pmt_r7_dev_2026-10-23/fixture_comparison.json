@@ -1,0 +1,472 @@
+{
+  "title": "R-7 fixture comparison: frozen PMT response v2 vs default v3",
+  "repair": "R-7 (author message, 23 Oct 2026)",
+  "evidence_stage": "development",
+  "non_citable": true,
+  "source_kind": "synthetic_prompt_flasher",
+  "head": "d2f179fc0dea2960e9257cf7b3f2a59b01afcb39",
+  "branch": "pmt/r7-response-v3",
+  "timestamp": "2026-10-23T11:41:05+02:00",
+  "timezone": "Europe/Berlin",
+  "python": "/Users/wongdowling/Documents/VERITAS/.venv/bin/python",
+  "python_version": "3.12.7",
+  "numpy": "2.5.3",
+  "command": [
+    "scripts/pmt_r7_v2_v3_fixture_comparison.py"
+  ],
+  "manifest": {
+    "v2": {
+      "path": "/Users/wongdowling/Documents/VERITAS/configs/lucid_pmt/reference.json",
+      "schema": "pmt-response-v2",
+      "status": "synthetic_dev",
+      "sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68"
+    },
+    "v3": {
+      "path": "/Users/wongdowling/Documents/VERITAS/configs/lucid_pmt/reference_v3.json",
+      "schema": "pmt-response-v3",
+      "status": "literature_proxy_dev",
+      "sha256": "696ac1e6c87701c3b1390f2c1d5b08607fc1b051afbfc48e4d5d52b5a3459730"
+    }
+  },
+  "response_difference_moved_fields": [
+    "qe_curve",
+    "collection_efficiency",
+    "timing_width"
+  ],
+  "fixture": {
+    "description": "synthetic 76-sensor cylinder (4 barrel rings x 12 + 2 cap rings, NOT WCTE geometry); isotropic prompt flasher, no scatter/reflection/upstream TTS; uniform 300..600 nm synthetic spectrum",
+    "builder": "noise_module_lucid.pmt_development.fixture()",
+    "geometry_call": "toy.cylinder_detector(4, 12, 2)",
+    "n_channels": 76,
+    "photons_per_event": 4000,
+    "evaluation_event_ids": [
+      30000,
+      30001,
+      30002,
+      30003,
+      30004,
+      30005,
+      30006,
+      30007,
+      30008,
+      30009,
+      30010,
+      30011,
+      30012,
+      30013,
+      30014,
+      30015,
+      30016,
+      30017,
+      30018,
+      30019,
+      30020,
+      30021,
+      30022,
+      30023
+    ],
+    "readout": "readout_chain(event.photon_sensor, event.photon_time, det.n_channels, params, seed=int(event.event_id), photon_batch=event.photon_batch)",
+    "dark_count_stage": "on in both manifests (1 kHz per PMT, readout window [-200, 800] ns); not varied by this comparison"
+  },
+  "per_event": {
+    "event_ids": [
+      30000,
+      30001,
+      30002,
+      30003,
+      30004,
+      30005,
+      30006,
+      30007,
+      30008,
+      30009,
+      30010,
+      30011,
+      30012,
+      30013,
+      30014,
+      30015,
+      30016,
+      30017,
+      30018,
+      30019,
+      30020,
+      30021,
+      30022,
+      30023
+    ],
+    "v2": [
+      {
+        "event_id": 30000,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.690827299834066,
+        "digit_time_spread_ns": 2.4640461596339542
+      },
+      {
+        "event_id": 30001,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.976925353542903,
+        "digit_time_spread_ns": 4.053344980153883
+      },
+      {
+        "event_id": 30002,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.589393191406998,
+        "digit_time_spread_ns": 3.9034600845353697
+      },
+      {
+        "event_id": 30003,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.783469512762807,
+        "digit_time_spread_ns": 2.8201686425798096
+      },
+      {
+        "event_id": 30004,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.017395206742822,
+        "digit_time_spread_ns": 2.8739165477766444
+      },
+      {
+        "event_id": 30005,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.850349733443764,
+        "digit_time_spread_ns": 2.6909481685893493
+      },
+      {
+        "event_id": 30006,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.587062151612724,
+        "digit_time_spread_ns": 2.4524749289593903
+      },
+      {
+        "event_id": 30007,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.431540641291885,
+        "digit_time_spread_ns": 3.434461998172449
+      },
+      {
+        "event_id": 30008,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.40138940454468,
+        "digit_time_spread_ns": 3.693685460581885
+      },
+      {
+        "event_id": 30009,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.058123713727305,
+        "digit_time_spread_ns": 2.8442666388643483
+      },
+      {
+        "event_id": 30010,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.77757907479932,
+        "digit_time_spread_ns": 2.5447888117730995
+      },
+      {
+        "event_id": 30011,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.704718865031406,
+        "digit_time_spread_ns": 3.916678496565823
+      },
+      {
+        "event_id": 30012,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.8867394881803,
+        "digit_time_spread_ns": 2.8138427883421966
+      },
+      {
+        "event_id": 30013,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.411470038825456,
+        "digit_time_spread_ns": 3.400704892879319
+      },
+      {
+        "event_id": 30014,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.364448936047065,
+        "digit_time_spread_ns": 3.2229187472440524
+      },
+      {
+        "event_id": 30015,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.435211784557215,
+        "digit_time_spread_ns": 1.9444675213408378
+      },
+      {
+        "event_id": 30016,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.2787974839228,
+        "digit_time_spread_ns": 1.6204449769432945
+      },
+      {
+        "event_id": 30017,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 21.282615676023696,
+        "digit_time_spread_ns": 3.6076236940733972
+      },
+      {
+        "event_id": 30018,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.888935836209445,
+        "digit_time_spread_ns": 3.090270909542154
+      },
+      {
+        "event_id": 30019,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.03066932045533,
+        "digit_time_spread_ns": 2.9294597353337655
+      },
+      {
+        "event_id": 30020,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.42622759359503,
+        "digit_time_spread_ns": 3.375979116749486
+      },
+      {
+        "event_id": 30021,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.24348535088839,
+        "digit_time_spread_ns": 3.25280138623563
+      },
+      {
+        "event_id": 30022,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.1829198663671,
+        "digit_time_spread_ns": 3.474250022912108
+      },
+      {
+        "event_id": 30023,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.604892235887714,
+        "digit_time_spread_ns": 3.5226321996604657
+      }
+    ],
+    "v3": [
+      {
+        "event_id": 30000,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 20.782606646994026,
+        "digit_time_spread_ns": 2.5377951484245025
+      },
+      {
+        "event_id": 30001,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 22.293953169684823,
+        "digit_time_spread_ns": 4.288300483569714
+      },
+      {
+        "event_id": 30002,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.792932025546076,
+        "digit_time_spread_ns": 4.065234634456033
+      },
+      {
+        "event_id": 30003,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.98812306006,
+        "digit_time_spread_ns": 2.935129026436221
+      },
+      {
+        "event_id": 30004,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.19158830618986,
+        "digit_time_spread_ns": 2.9866152769676964
+      },
+      {
+        "event_id": 30005,
+        "n_digits": 73,
+        "n_source_digits": 73,
+        "mean_digit_time_ns": 20.920583125982994,
+        "digit_time_spread_ns": 2.812530760785894
+      },
+      {
+        "event_id": 30006,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 20.71498574864648,
+        "digit_time_spread_ns": 2.5615088409407467
+      },
+      {
+        "event_id": 30007,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.650361559655533,
+        "digit_time_spread_ns": 3.6418447101774034
+      },
+      {
+        "event_id": 30008,
+        "n_digits": 74,
+        "n_source_digits": 74,
+        "mean_digit_time_ns": 21.576633879104598,
+        "digit_time_spread_ns": 3.82305154682128
+      },
+      {
+        "event_id": 30009,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.271794781041564,
+        "digit_time_spread_ns": 3.0327880098346145
+      },
+      {
+        "event_id": 30010,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.928054678875082,
+        "digit_time_spread_ns": 2.687234512339608
+      },
+      {
+        "event_id": 30011,
+        "n_digits": 72,
+        "n_source_digits": 72,
+        "mean_digit_time_ns": 21.794082088003968,
+        "digit_time_spread_ns": 4.105953380865166
+      },
+      {
+        "event_id": 30012,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.122235979031984,
+        "digit_time_spread_ns": 2.9980085870935427
+      },
+      {
+        "event_id": 30013,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 21.613972241567076,
+        "digit_time_spread_ns": 3.5351386548920214
+      },
+      {
+        "event_id": 30014,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.592333787648258,
+        "digit_time_spread_ns": 3.409636573048415
+      },
+      {
+        "event_id": 30015,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.613726366701975,
+        "digit_time_spread_ns": 2.052810934066134
+      },
+      {
+        "event_id": 30016,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 20.463296071154225,
+        "digit_time_spread_ns": 1.752236108124538
+      },
+      {
+        "event_id": 30017,
+        "n_digits": 74,
+        "n_source_digits": 74,
+        "mean_digit_time_ns": 21.430703728831322,
+        "digit_time_spread_ns": 3.792073531415872
+      },
+      {
+        "event_id": 30018,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 21.090678603255448,
+        "digit_time_spread_ns": 3.317590334638134
+      },
+      {
+        "event_id": 30019,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 21.18082930362556,
+        "digit_time_spread_ns": 3.1093049084263833
+      },
+      {
+        "event_id": 30020,
+        "n_digits": 74,
+        "n_source_digits": 74,
+        "mean_digit_time_ns": 21.54037007923375,
+        "digit_time_spread_ns": 3.4953351342580055
+      },
+      {
+        "event_id": 30021,
+        "n_digits": 74,
+        "n_source_digits": 74,
+        "mean_digit_time_ns": 21.395438546584117,
+        "digit_time_spread_ns": 3.396822701125409
+      },
+      {
+        "event_id": 30022,
+        "n_digits": 76,
+        "n_source_digits": 76,
+        "mean_digit_time_ns": 21.45611860606449,
+        "digit_time_spread_ns": 3.682782692409264
+      },
+      {
+        "event_id": 30023,
+        "n_digits": 75,
+        "n_source_digits": 75,
+        "mean_digit_time_ns": 21.731686757765424,
+        "digit_time_spread_ns": 3.6156129721313044
+      }
+    ]
+  },
+  "totals": {
+    "v2": {
+      "n_events": 24,
+      "total_digits": 1823,
+      "total_source_digits": 1823,
+      "mean_digits_per_event": 75.95833333333333,
+      "mean_source_digits_per_event": 75.95833333333333,
+      "mean_digit_time_ns": 21.12104948998751,
+      "mean_digit_time_spread_ns": 3.081151537893446
+    },
+    "v3": {
+      "n_events": 24,
+      "total_digits": 1803,
+      "total_source_digits": 1803,
+      "mean_digits_per_event": 75.125,
+      "mean_source_digits_per_event": 75.125,
+      "mean_digit_time_ns": 21.29737871421869,
+      "mean_digit_time_spread_ns": 3.2348058109686626
+    }
+  },
+  "summary": {
+    "hit_pmts_per_event_v2": 75.95833333333333,
+    "hit_pmts_per_event_v3": 75.125,
+    "hit_pmts_per_event_delta": -0.8333333333333286,
+    "source_hit_pmts_per_event_v2": 75.95833333333333,
+    "source_hit_pmts_per_event_v3": 75.125,
+    "mean_digit_time_spread_ns_v2": 3.081151537893446,
+    "mean_digit_time_spread_ns_v3": 3.2348058109686626,
+    "mean_digit_time_spread_delta_ns": 0.15365427307521662,
+    "mean_digit_time_ns_v2": 21.12104948998751,
+    "mean_digit_time_ns_v3": 21.29737871421869
+  },
+  "elapsed_seconds": 0.23687704093754292
+}
