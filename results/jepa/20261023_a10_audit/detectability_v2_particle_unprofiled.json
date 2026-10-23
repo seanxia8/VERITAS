@@ -1,0 +1,101 @@
+{
+ "schema": "jepa-a10-detectability-v2",
+ "note": "unprofiled particle ceilings: profiling not implemented in mixed_detectability_inputs; do not use as profiled verdict",
+ "n_events": 50,
+ "seed": 20261017,
+ "threshold": 0.6,
+ "profiled": false,
+ "source": "mixed_detectability_inputs/detectability naive",
+ "domains": {
+  "muon": {
+   "F1": {
+    "0.02": {
+     "r2_run": 0.9738143455108813,
+     "i_run": 92972.12199866374,
+     "r2_event_median": 0.38508025393110557,
+     "passes_0.6_unprofiled": true,
+     "profiled": false,
+     "metric_status": "lower_bound_unprofiled"
+    },
+    "0.05": {
+     "r2_run": 0.9957160660865592,
+     "i_run": 92972.12199866374,
+     "r2_event_median": 0.7964746831630655,
+     "passes_0.6_unprofiled": true,
+     "profiled": false,
+     "metric_status": "lower_bound_unprofiled"
+    },
+    "0.1": {
+     "r2_run": 0.9989255644133543,
+     "i_run": 92972.12199866374,
+     "r2_event_median": 0.9399501444492733,
+     "passes_0.6_unprofiled": true,
+     "profiled": false,
+     "metric_status": "lower_bound_unprofiled"
+    }
+   },
+   "F3": {
+    "s_p": 0.1,
+    "r2_run": 0.9989467567288032,
+    "i_run": 94844.82683603252,
+    "r2_event_median": 0.9515993668355364,
+    "passes_0.6_unprofiled": true,
+    "profiled": false,
+    "metric_status": "lower_bound_unprofiled"
+   },
+   "metric_status": "lower_bound_unprofiled",
+   "profiled": false,
+   "F2": {
+    "status": "not_implemented_unprofiled"
+   },
+   "T": {
+    "status": "not_implemented_unprofiled"
+   }
+  },
+  "electron": {
+   "F1": {
+    "0.02": {
+     "r2_run": 0.9846778634751384,
+     "i_run": 160662.62395544592,
+     "r2_event_median": 0.4877806951590347,
+     "passes_0.6_unprofiled": true,
+     "profiled": false,
+     "metric_status": "lower_bound_unprofiled"
+    },
+    "0.05": {
+     "r2_run": 0.9975164939563467,
+     "i_run": 160662.62395544592,
+     "r2_event_median": 0.8561372214451493,
+     "passes_0.6_unprofiled": true,
+     "profiled": false,
+     "metric_status": "lower_bound_unprofiled"
+    },
+    "0.1": {
+     "r2_run": 0.9993779648680795,
+     "i_run": 160662.62395544592,
+     "r2_event_median": 0.9596830201627726,
+     "passes_0.6_unprofiled": true,
+     "profiled": false,
+     "metric_status": "lower_bound_unprofiled"
+    }
+   },
+   "F3": {
+    "s_p": 0.1,
+    "r2_run": 0.9995088656138964,
+    "i_run": 203510.2598992011,
+    "r2_event_median": 0.9704202615444473,
+    "passes_0.6_unprofiled": true,
+    "profiled": false,
+    "metric_status": "lower_bound_unprofiled"
+   },
+   "metric_status": "lower_bound_unprofiled",
+   "profiled": false,
+   "F2": {
+    "status": "not_implemented_unprofiled"
+   },
+   "T": {
+    "status": "not_implemented_unprofiled"
+   }
+  }
+ }
+}

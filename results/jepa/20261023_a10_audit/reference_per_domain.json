@@ -1,0 +1,68 @@
+{
+ "fit_config": {
+  "v_group": 0.2172409115942029,
+  "scale_ns": 3.0,
+  "t0_quantile": 0.2,
+  "grid": 5,
+  "min_digits": 6,
+  "max_iter": 400
+ },
+ "domains": {
+  "probe_train": {
+   "electron": {
+    "n": 3200,
+    "n_ok": 3018,
+    "failure_rate": 0.056875,
+    "resolution": 0.6625905522850284
+   },
+   "muon": {
+    "n": 3400,
+    "n_ok": 3088,
+    "failure_rate": 0.09176470588235294,
+    "resolution": 0.6630316732098283
+   },
+   "photon": {
+    "n": 3400,
+    "n_ok": 3398,
+    "failure_rate": 0.000588235294117647,
+    "resolution": 0.14054449519209403
+   }
+  },
+  "probe_test": {
+   "electron": {
+    "n": 3200,
+    "n_ok": 3046,
+    "failure_rate": 0.048125,
+    "resolution": 0.6885222733149299
+   },
+   "muon": {
+    "n": 3400,
+    "n_ok": 3097,
+    "failure_rate": 0.08911764705882352,
+    "resolution": 0.6520138871502739
+   },
+   "photon": {
+    "n": 3400,
+    "n_ok": 3400,
+    "failure_rate": 0.0,
+    "resolution": 0.14213007898233104
+   }
+  }
+ },
+ "contained": {
+  "dev_probe_train__F1__0.05__s20261017": {
+   "probe_train": {
+    "photon": 0,
+    "muon": 428,
+    "electron": 2567
+   }
+  },
+  "dev_probe_test__F1__0.05__s20261017": {
+   "probe_test": {
+    "photon": 0,
+    "muon": 452,
+    "electron": 2570
+   }
+  }
+ }
+}

@@ -1,0 +1,176 @@
+{
+ "step2": {
+  "dev_s005_within__mae_mse__s9000": {
+   "pooled": 0.10494915326031926,
+   "domains": {
+    "photon": {
+     "physics": 0.10494915326031926,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": 0.18018968473645203
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa__s9000": {
+   "pooled": 0.26440029142206084,
+   "domains": {
+    "photon": {
+     "physics": 0.26440029142206084,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.004432706783786822
+    }
+   }
+  }
+ },
+ "step3": {
+  "dev_s005_within__anchor_only__s9100__b0.1": {
+   "pooled": 0.551009481193113,
+   "domains": {
+    "photon": {
+     "physics": 0.551009481193113,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": 0.029361136884857753
+    }
+   }
+  },
+  "dev_s005_within__anchor_only__s9101__b1": {
+   "pooled": 0.5298046817367127,
+   "domains": {
+    "photon": {
+     "physics": 0.5298046817367127,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": 0.012943243259644577
+    }
+   }
+  },
+  "dev_s005_within__anchor_only__s9102__b10": {
+   "pooled": 0.4658135180692575,
+   "domains": {
+    "photon": {
+     "physics": 0.4658135180692575,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": 0.000819310540795426
+    }
+   }
+  },
+  "dev_s005_within__anchor_only__s9103__b100": {
+   "pooled": 0.42152583393821463,
+   "domains": {
+    "photon": {
+     "physics": 0.42152583393821463,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.0067376324312720115
+    }
+   }
+  },
+  "dev_s005_within__anchor_only__s9104__b1000": {
+   "pooled": 0.319390510731075,
+   "domains": {
+    "photon": {
+     "physics": 0.319390510731075,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.006867013357735541
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored__s9100__b0.1": {
+   "pooled": 0.2328486903872009,
+   "domains": {
+    "photon": {
+     "physics": 0.2328486903872009,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.0044727863450773064
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored__s9101__b1": {
+   "pooled": 0.2351805301740407,
+   "domains": {
+    "photon": {
+     "physics": 0.2351805301740407,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.004121649694476703
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored__s9102__b10": {
+   "pooled": 0.2246208076383922,
+   "domains": {
+    "photon": {
+     "physics": 0.2246208076383922,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.00479105730598528
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored__s9103__b100": {
+   "pooled": 0.24341559965481843,
+   "domains": {
+    "photon": {
+     "physics": 0.24341559965481843,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.00436810894657591
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored__s9104__b1000": {
+   "pooled": 0.29176912436925095,
+   "domains": {
+    "photon": {
+     "physics": 0.29176912436925095,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.00425560897517796
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored_dark__s9100__b0.1": {
+   "pooled": 0.22461872478833184,
+   "domains": {
+    "photon": {
+     "physics": 0.22461872478833184,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.004239454620652783
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored_dark__s9101__b1": {
+   "pooled": 0.2419365936071069,
+   "domains": {
+    "photon": {
+     "physics": 0.2419365936071069,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.003779845639226176
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored_dark__s9102__b10": {
+   "pooled": 0.22856306421421083,
+   "domains": {
+    "photon": {
+     "physics": 0.22856306421421083,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.004786750655392469
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored_dark__s9103__b100": {
+   "pooled": 0.2525786801344714,
+   "domains": {
+    "photon": {
+     "physics": 0.2525786801344714,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.004515680111021547
+    }
+   }
+  },
+  "dev_s005_within__sigreg_jepa_anchored_dark__s9104__b1000": {
+   "pooled": 0.3038398073555299,
+   "domains": {
+    "photon": {
+     "physics": 0.3038398073555299,
+     "failure_rate": 0.0,
+     "module_gain_run_mean": -0.001225667947172493
+    }
+   }
+  }
+ }
+}

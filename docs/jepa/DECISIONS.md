@@ -2004,3 +2004,60 @@ authority until then. A9 adds no new instruction; it registers the 17–20 Oct d
   orchestrator commits the runbook §3.8 unchanged as
   `jepa: register runbook amendment A10 (author revision)`. No outcome-generating run may use A10
   before that registration. Drift values s, s_p and a remain pending from Junjie.
+
+## A10 audit (author, 23 Oct 2026)
+
+### §0 Ruling — verbatim
+
+"A10 audit (author, 23 Oct 2026). Record this verbatim.
+The A10 grid may continue only while ledger + remaining projection stays ≤ 170 L40S GPU-hours. No
+result from it is reported until §2 and §3 below are recorded. Every A10 step since 22 Oct needs its
+one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the protocol, not optional."
+
+### §1–§6 audit entries (23 Oct 2026)
+
+- **2026-10-22 — A10 registered.** Runbook §3.8 committed at `ab8c916`; the §3.8 header still says
+  "DRAFT, NOT IN FORCE" but registration put A10 in force. Header text is stale; author will clean it
+  at the next runbook revision.
+- **2026-10-22 — A10 generator/per-domain implementation.** Analytic Cherenkov generator and
+  particle truth (`6d65dc6`), per-domain probe/floor/evaluation plumbing (`9c92469`), PhotonSim
+  validation and mixed detectability helper (`31e7fb3`), and transport adapter (`b3d9713`); mixed
+  500-step smoke passed after the particle first-arrival fix (`b0b984f`).
+- **2026-10-22 — A10 sensor-mapping close-out and Gate V calibration.** LUCiD transport sensor
+  indices are a permutation of the WCTE geometry order; mapping fix `0f6c1c4`. Calibrated analytic
+  yield 2248.5396 per MeV and validated on 10 held-out contained 500 MeV μ⁻ events (module pattern
+  0.902, log pattern 0.815, yield ratio 1.006, time 0.157 ns; config `lucid_bombs_v2_calibrated`,
+  commit `0bbdd60`; evidence `docs/jepa/CALIBRATION_CHERENKOV_2026-10-22.md`).
+- **2026-10-22 — Mixed smoke `--evaluate` + per-domain floors recorded.** Run `a10_smoke_eval_3`,
+  500 steps, exit 0; domains photon/muon/electron/particle; probes and floors committed under
+  `results/jepa/20261022_a10_smoke_eval/`; smoke floor path added in `e90b71b`.
+- **2026-10-22 — Detectability v1 frozen (now superseded).** `a10_detectability_freeze_v1.json` used
+  20 events, no profiling and gate 0.5; retained only as the old side of the §2 comparison.
+- **2026-10-22 — Dev step 2 complete.** Mixed dev cohort, 100k events; decision **ridge**,
+  **run_mean**; pooled reference 0.482004 m; frozen at
+  `configs/decisions/a10_dev_step2_probe_decision_2026-10-22.json`.
+- **2026-10-23 — Dev step 3 complete/frozen.** β audit exit 0 after 11.4153 GPU-h;
+  `sigreg_jepa_anchored` β=100, `sigreg_jepa_anchored_dark` β=100, `anchor_only` none qualified;
+  frozen at `configs/decisions/a10_dev_step3_beta_decision_2026-10-23.json`. Per-domain β table is
+  not recorded: `dev_cell` evaluated photon only; recorded as a gap.
+- **2026-10-23 — A10 grid launch.** 165 runs, split 87/78 across GPUs 0/1 with the guard; grid-0
+  `a10_grid_gpu0_wait` and grid-1 retry `a10_grid_gpu1_retry`; decisions frozen before launch.
+- **2026-10-23 — G1 predecessor closed.** G1 job A/B (1272.63 s + 318.89 s, exit 2 device mismatch
+  fixed in `7e6cfa8`) booked and marked `superseded_by_A10`; no G1 result reused.
+- **2026-10-23 — §1 ledger booked.** Charged total **54.413992**; remaining projection **52.631150**; ledger+projection **107.045142**
+  ≤160 h start rule and ≤170 h cap; no A10.6 fallback triggered.
+- **2026-10-23 — §2 detectability re-run.** Photon profiled A9 procedure (50 events, gate 0.6):
+  F1 0.2574/0.6835/0.8898, F3 0.3226 → R12 not_evaluable, F2 0.9190, T 0.9857, G6 false; v1
+  withdrawn. Particle domains lack profiling; naive F1/F3 marked **lower_bound_unprofiled**; their
+  R6/R7/R12 verdicts are not established until profiling is implemented.
+- **2026-10-23 — §3 readings recorded.** Per-domain reference: photon 0.1421 m, muon 0.6520 m,
+  electron 0.6885 m, pooled 0.4820 m; ridge stands. Representation: plain `sigreg_jepa` effective
+  rank 7.021, final SIGReg 9.814, predictor 0.0133; photon vertex floor 0.1609 vs trained 0.2644
+  (**below floor**); module-gain floor 0.2185 vs trained −0.0044 (**below floor**).
+- **2026-10-23 — §4 contained counts.** Probe-test contained: muon 452 (<500 → R13
+  `not_evaluable`), electron 2570 (evaluable); photon containment not applicable. Grid energy ranges
+  unchanged.
+- **2026-10-23 — §5 paths/deviations.** Author authority for `/work`: 2026-10-22 message
+  **"you can work from `/work/dwong`"**. A10 work root `/work/dwong/jepa_a10_work/` and code clone
+  `/work/dwong/jepa_a10` are a **deviation** from the `/ceph/dwong/jepa/`-only hard rule; author to
+  rule. Correction line (author, 21 Oct 2026): **commit `dcdf6ce` is author-approved.**

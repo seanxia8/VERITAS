@@ -1,0 +1,984 @@
+{
+ "ambiguities": [
+  "F3 per-PMT gains are marginalised as a random gain (s_p^2 mu_p^2 added to every PMT variance) rather than profiled: one free gain per PMT is an incidental-parameter block that would make every other factor's profiled information exactly zero. s_p is the spread in force (lb.F3_SPREAD = 0.05), not the candidate spread of an F3 ceiling scan, because that is the F3 actually present in the simulated data.",
+  "F2/F2' share the F1 module-gain nuisance block (the runbook's explicit joint profiling), so only their within-module variation survives; conservative.",
+  "The across view used for the N_min check is a random module half, not the contiguous Hilbert half (view_masks is still a WP4c stub).",
+  "F1 acceptance uses the main-cell (F2-free) ceiling; the joint F1/F2' row is recorded beside it for R11.",
+  "Profiling is per event, not run-jointly; I_run = sum I_event is the registered approximation and biases the ceilings down.",
+  "Dark counts are on for readout_pmt_r6: v_dark = 0.00109 PE^2 is the R-6 dark-charge variance derived from the reference manifest (1000 Hz x 1 us = 0.001 counts, each SPE-smeared by 1 + sigma_spe^2). It is a per-PMT white term, not a profiled nuisance.",
+  "The fixed parity charge gain is detector response: it is part of mu here and in the nominal twin, so the twin cancels only the injected F1/F3 (and F2/F2'/R11b/T) gains."
+ ],
+ "branches": {
+  "f1_all_below_threshold": false,
+  "f1_eligible_settings": [
+   0.05,
+   0.1
+  ],
+  "f1_excluded_settings": [
+   0.02
+  ],
+  "f2_attempted": [
+   0.1,
+   0.2,
+   0.5
+  ],
+  "f2_choice": {
+   "law": "F2",
+   "setting": 0.5
+  },
+  "f2_ok": true,
+  "f3_attempted": [
+   0.05,
+   0.1
+  ],
+  "f3_choice": null,
+  "f3_ok": false,
+  "g6": false,
+  "g6_dependent_predictions": [],
+  "law_T_ok": true,
+  "r12_gate": null,
+  "r12_status": "not_evaluable",
+  "r6_status": "evaluable",
+  "r7_status": "evaluable",
+  "reason": "F3 cannot reach 0.6: R12 not_evaluable, no gate"
+ },
+ "ceiling_comparison": [
+  {
+   "delta_r2_run_median": -0.0035305719446960815,
+   "factor": "F1",
+   "law": "F1",
+   "matched": true,
+   "new_passes": false,
+   "new_r2_run_median": 0.2574141718011081,
+   "new_s_p": 0.1,
+   "previous_passes": false,
+   "previous_r2_run_median": 0.2609447437458042,
+   "previous_readout_label": "readout_synthetic_unrepaired",
+   "previous_s_p": null,
+   "setting": 0.02
+  },
+  {
+   "delta_r2_run_median": -0.0019769503439279745,
+   "factor": "F1",
+   "law": "F1",
+   "matched": true,
+   "new_passes": true,
+   "new_r2_run_median": 0.6835379448910942,
+   "new_s_p": 0.1,
+   "previous_passes": true,
+   "previous_r2_run_median": 0.6855148952350222,
+   "previous_readout_label": "readout_synthetic_unrepaired",
+   "previous_s_p": null,
+   "setting": 0.05
+  },
+  {
+   "delta_r2_run_median": -0.0010820051430128208,
+   "factor": "F1",
+   "law": "F1",
+   "matched": true,
+   "new_passes": true,
+   "new_r2_run_median": 0.8897562367076739,
+   "new_s_p": 0.1,
+   "previous_passes": true,
+   "previous_r2_run_median": 0.8908382418506867,
+   "previous_readout_label": "readout_synthetic_unrepaired",
+   "previous_s_p": null,
+   "setting": 0.1
+  },
+  {
+   "delta_r2_run_median": -0.0008644531089432306,
+   "factor": "F3",
+   "law": "F3",
+   "matched": true,
+   "new_passes": false,
+   "new_r2_run_median": 0.32255577455010104,
+   "new_s_p": 0.1,
+   "previous_passes": false,
+   "previous_r2_run_median": 0.32342022765904427,
+   "previous_readout_label": "readout_synthetic_unrepaired",
+   "previous_s_p": null,
+   "setting": 0.1
+  },
+  {
+   "delta_r2_run_median": -0.0018502508066977619,
+   "factor": "F2",
+   "law": "F2",
+   "matched": true,
+   "new_passes": true,
+   "new_r2_run_median": 0.9190454561394438,
+   "new_s_p": 0.1,
+   "previous_passes": true,
+   "previous_r2_run_median": 0.9208957069461415,
+   "previous_readout_label": "readout_synthetic_unrepaired",
+   "previous_s_p": null,
+   "setting": 0.5
+  },
+  {
+   "delta_r2_run_median": -0.00027758649620657216,
+   "factor": "T",
+   "law": "T",
+   "matched": true,
+   "new_passes": true,
+   "new_r2_run_median": 0.985743273166327,
+   "new_s_p": 0.1,
+   "previous_passes": true,
+   "previous_r2_run_median": 0.9860208596625336,
+   "previous_readout_label": "readout_synthetic_unrepaired",
+   "previous_s_p": null,
+   "setting": 0.5
+  }
+ ],
+ "code_sha": "c63fe740edf01bb46b8164dd48f3cfc24c9371f2",
+ "config_digest": "05ea080382b1f0f30767e69d73835a1550ae6d9d6f9bdd9e114728d10e291ab9",
+ "content_sha256": "451b14dfaa5e0695701610066bc0ba835e5d9d3703d883bce908ef19ca5fe46b",
+ "dark_counts": "on",
+ "decision_freeze_status": "superseded_pending_r6_freeze",
+ "decisions_md": "### \u00a73.5.3a detectability check \u2014 development_only (WCTE LUCiD eaf2e89f config/WCTE_geom_config.json)\n\n- Geometry: `WCTE LUCiD eaf2e89f config/WCTE_geom_config.json`, digest `8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1`, synthetic=false; readout `readout_pmt_r6`; code `c63fe740edf01bb46b8164dd48f3cfc24c9371f2`.\n- Response: `configs/lucid_pmt/reference.json` sha256 `17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68` (charge gain {'rule': 'group_parity', 'base': 1.0, 'odd_group_delta': 0.03}, timing width {'rule': 'group_parity', 'base': 1.0, 'odd_group_delta': 0.05}); dark counts on (v_dark = 0.00109 = 0.001 x 1.09 PE^2, window [-200.0, 800.0] ns).\n- F3 marginalised: true at s_p = 0.1; variance `mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2`.\n- Yield range: `Y_lo = 6298.44`, `Y_hi = 539434` photons (provided); median yield `58288.9` (population_median_of_log_uniform).\n- N_min = 20 at Y_lo: within target median 104 hits (exclusion 0); across proxy median 96 hits (below-N_min 0).\n\n| factor | setting | R\u00b2_run (lower bound) | previous frozen R\u00b2_run | \u0394 | pass |\n|---|---|---|---|---|---|\n| F1 | 0.02 | 0.257 | 0.261 | -0.004 | false |\n| F1 | 0.05 | 0.684 | 0.686 | -0.002 | true |\n| F1 | 0.1 | 0.890 | 0.891 | -0.001 | true |\n| F3 | 0.1 | 0.323 | 0.323 | -0.001 | false |\n| F2 | 0.5 | 0.919 | 0.921 | -0.002 | true |\n| T | 0.5 | 0.986 | 0.986 | -0.000 | true |\n\n- Previous frozen ceilings (`/work/dwong/jepa_a10/results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json`, sha256 `540e9b2e0acd6858e3269bb90732a912ac9462f734d79f7b21b38dbb89c9f03c`, status frozen, recorded as superseded_pending_r6_freeze): `Y_lo = 6249.71`, `Y_hi = 541561`, F2 {'law': 'F2', 'setting': 0.5}, F3 None, v_dark 0.0, readout `readout_synthetic_unrepaired`.\n- Intermediate run `28e24c8`: never_frozen (superseded_by_r6_dark_counts); the intermediate detectability run was never frozen and is superseded_by_r6_dark_counts; the last frozen values are this v2 file.\n- s_p restart: 0.1 -> 0.1 (registered default 0.05, step-3 cap 0.1); previous superseded_by_r6_dark_counts (28e24c8, never frozen); ladder ['raise_y_hi', 'set_F2_a/switch_F2p_b', 'raise_F3_spread'].\n\n- Fallback steps: 4 (raise_y_hi, set_F2_a, set_F2_a, raise_F3_spread).\n- F1 eligible: [0.05, 0.1]; excluded: [0.02].\n- F2 choice: {'law': 'F2', 'setting': 0.5} (attempted [0.1, 0.2, 0.5]); F3 choice: None.\n- R12: not_evaluable (no gate); law T >= 0.6: true.\n- G6: false for [].\n- One line: F3 cannot reach 0.6: R12 not_evaluable, no gate.",
+ "f3_marginalised": true,
+ "f3_marginalised_spread": 0.1,
+ "fallback_steps": [
+  {
+   "action": "raise_y_hi",
+   "changed": true,
+   "from": 320000.0,
+   "reason": "factor(s) below the 0.6 run ceiling",
+   "short_before": [
+    "F1 s=0.02",
+    "F3 s_p=0.05",
+    "F2 0.1"
+   ],
+   "step": 1,
+   "to": 539433.964527
+  },
+  {
+   "action": "set_F2_a",
+   "from": 0.1,
+   "law": "F2",
+   "reason": "F2 below the 0.6 run ceiling",
+   "step": 2,
+   "to": 0.2
+  },
+  {
+   "action": "set_F2_a",
+   "from": 0.2,
+   "law": "F2",
+   "reason": "F2 below the 0.6 run ceiling",
+   "step": 2,
+   "to": 0.5
+  },
+  {
+   "action": "raise_F3_spread",
+   "from": 0.05,
+   "reason": "F3 below the 0.6 run ceiling",
+   "step": 3,
+   "to": 0.1
+  }
+ ],
+ "fixed_response": {
+  "dark_counts": "on",
+  "dark_rate_hz": 1000.0,
+  "dark_stage_owner": "readout (R-6): keyed Poisson dark photoelectrons per PMT, uniform in readout_window_ns, bypass QE/CE, then the same SPE charge, gain, discriminator, T-Q walk and width",
+  "gain_rule": {
+   "base": 1.0,
+   "odd_group_delta": 0.03,
+   "rule": "group_parity"
+  },
+  "path": "/work/dwong/jepa_a10/configs/lucid_pmt/reference.json",
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ],
+  "relpath": "configs/lucid_pmt/reference.json",
+  "schema": "pmt-response-v2",
+  "sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68",
+  "spe_sigma": 0.3,
+  "status": "synthetic_dev",
+  "threshold_pe": 0.25,
+  "timing_width_factor_rule": {
+   "base": 1.0,
+   "odd_group_delta": 0.05,
+   "rule": "group_parity"
+  },
+  "v_dark": 0.00109,
+  "window_ns": 1000.0
+ },
+ "frozen": false,
+ "generator_config_digest": "3fceda325d252119f5565eb9013a083b44157fd60e883e35e2e8e0f53c9cf0d6",
+ "geometry": {
+  "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+  "geometry_sha256": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+  "height_m": 2.77697099384,
+  "module_ids_contiguous": false,
+  "n_modules": 105,
+  "n_sensors": 1995,
+  "name": "WCTE LUCiD eaf2e89f config/WCTE_geom_config.json",
+  "pmts_per_module": 19,
+  "radius_m": 1.5771308488246254,
+  "sensor_radius_m": 0.04,
+  "source_path": "/ceph/dwong/jepa/external/LUCiD/config/wcte_geometry.npz",
+  "source_sha256": "0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8",
+  "surface_counts": {
+   "barrel": 1197,
+   "bottom": 399,
+   "top": 399
+  },
+  "synthetic": false
+ },
+ "median_yield_policy": {
+  "policy": "population_median_of_log_uniform",
+  "value_photons": 58288.85612577161
+ },
+ "n_events": 50,
+ "nuisance_policy": {
+  "F1": [
+   "vertex",
+   "yield",
+   "other module gains"
+  ],
+  "F2": [
+   "vertex",
+   "yield",
+   "F1 module gains"
+  ],
+  "F2p": [
+   "vertex",
+   "yield",
+   "F1 module gains"
+  ],
+  "F3": [
+   "vertex",
+   "yield",
+   "F1 module gains"
+  ],
+  "T": [
+   "vertex",
+   "yield"
+  ]
+ },
+ "occupancy": {
+  "across_exclusion_rate_after_3_redraws_estimate": 0.0,
+  "across_initial_below_nmin_rate": 0.0,
+  "across_target_median_hits": 96.5,
+  "across_target_min_hits": 60,
+  "n_events": 64,
+  "n_min": 20,
+  "note": "across split is a random module half (proxy); view_masks is a WP4c stub",
+  "within_exclusion_rate": 0.0,
+  "within_target_median_hits": 104.0,
+  "within_target_min_hits": 82
+ },
+ "pending": [
+  "the frozen 2026-10-17 yields, F2-vs-F2' and s_p are superseded_pending_r6_freeze until this R-6 re-run is accepted; the intermediate 28e24c8 run was never frozen and is superseded_by_r6_dark_counts; the author has not frozen the new values"
+ ],
+ "previous_decision": {
+  "content_sha256": "17bd075fa13c0503c1860abaed36abf72a43f7dd497ec13429bf89ec5c413243",
+  "f2_choice": {
+   "law": "F2",
+   "setting": 0.5
+  },
+  "f3_choice": null,
+  "intermediate_run": {
+   "note": "the intermediate detectability run was never frozen and is superseded_by_r6_dark_counts; the last frozen values are this v2 file",
+   "recorded_as": "superseded_by_r6_dark_counts",
+   "sha": "28e24c8",
+   "status": "never_frozen"
+  },
+  "median_yield": 58177.27496288181,
+  "omitted": false,
+  "path": "/work/dwong/jepa_a10/results/jepa/20261017_wp4b_detectability/wp4b_detectability_wcte_v2.json",
+  "readout_label": "readout_synthetic_unrepaired",
+  "recorded_as": "superseded_pending_r6_freeze",
+  "rows": [
+   {
+    "factor": "F1",
+    "law": "F1",
+    "passes": false,
+    "r2_run_max": 0.39755117137517354,
+    "r2_run_median": 0.2609447437458042,
+    "r2_run_min": 0.17526510044456134,
+    "setting": 0.02,
+    "sigma_f": 0.02
+   },
+   {
+    "factor": "F1",
+    "law": "F1",
+    "passes": true,
+    "r2_run_max": 0.8025744928565017,
+    "r2_run_median": 0.6855148952350222,
+    "r2_run_min": 0.574907402463043,
+    "setting": 0.05,
+    "sigma_f": 0.05
+   },
+   {
+    "factor": "F1",
+    "law": "F1",
+    "passes": true,
+    "r2_run_max": 0.9369154769554486,
+    "r2_run_median": 0.8908382418506867,
+    "r2_run_min": 0.8329691691806789,
+    "setting": 0.1,
+    "sigma_f": 0.1
+   },
+   {
+    "factor": "F3",
+    "law": "F3",
+    "passes": false,
+    "r2_run_max": 0.5236052628440172,
+    "r2_run_median": 0.32342022765904427,
+    "r2_run_min": 0.1463493584505462,
+    "setting": 0.1,
+    "sigma_f": 0.1
+   },
+   {
+    "factor": "F2",
+    "law": "F2",
+    "passes": true,
+    "r2_run_max": 0.9208957069461415,
+    "r2_run_median": 0.9208957069461415,
+    "r2_run_min": 0.9208957069461415,
+    "setting": 0.5,
+    "sigma_f": 1.0
+   },
+   {
+    "factor": "T",
+    "law": "T",
+    "passes": true,
+    "r2_run_max": 0.9860208596625336,
+    "r2_run_median": 0.9860208596625336,
+    "r2_run_min": 0.9860208596625336,
+    "setting": 0.5,
+    "sigma_f": 0.28867513459481287
+   }
+  ],
+  "s_p": null,
+  "schema": "jepa-lucid-detectability-decision-v0",
+  "sha256": "540e9b2e0acd6858e3269bb90732a912ac9462f734d79f7b21b38dbb89c9f03c",
+  "sigma_spe": 0.3,
+  "status": "frozen",
+  "v_dark": 0.0,
+  "y_hi": 541560.5447642506,
+  "y_lo": 6249.708097882426
+ },
+ "readout_label": "readout_pmt_r6",
+ "readout_window_ns": [
+  -200.0,
+  800.0
+ ],
+ "rebenchmark": {
+  "cores_at_most": 16,
+  "cpu_cap_wall_hours": 48.0,
+  "median_yield": 58288.85612577161,
+  "note": "repeat benchmark_generation at the frozen yields",
+  "volume_breakdown": {
+   "dev_train_100k": 100000,
+   "main_grid_train_3x100k": 300000,
+   "probe_and_robustness_17x10k": 170000,
+   "secondary_train_5x100k": 500000
+  },
+  "volume_events": 1070000,
+  "y_hi": 539433.964527,
+  "y_lo": 6298.436828
+ },
+ "reported_results": false,
+ "run_events": 50,
+ "s_p_restart": {
+  "ladder_order": [
+   "raise_y_hi",
+   "set_F2_a/switch_F2p_b",
+   "raise_F3_spread"
+  ],
+  "new": 0.1,
+  "previous": 0.1,
+  "previous_recorded_in_frozen_v2": null,
+  "previous_source": "superseded_by_r6_dark_counts (28e24c8, never frozen)",
+  "reason": "the 0.10 value came from the superseded run that treated F3 as known; with F3 marginalised the ladder restarts from the registered default",
+  "registered_default": 0.05,
+  "step3_cap": 0.1
+ },
+ "schema": "jepa-lucid-detectability-decision-v0",
+ "seed": 20261017,
+ "sigma_spe": 0.3,
+ "status": "development_only",
+ "table": [
+  {
+   "factor": "F1",
+   "i_event_median": 11.564215448619954,
+   "i_run_median": 869.5124074254932,
+   "law": "F1",
+   "n_events": 50,
+   "passes": false,
+   "profiled": [
+    "vertex",
+    "yield",
+    "other module gains"
+   ],
+   "r2_event_median": 0.004604183885920991,
+   "r2_run_max": 0.38397766458825505,
+   "r2_run_median": 0.2574141718011081,
+   "r2_run_min": 0.17762813105585087,
+   "setting": 0.02,
+   "sigma_f": 0.02,
+   "signal": "module-gain zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "factor": "F1",
+   "i_event_median": 11.597233364556654,
+   "i_run_median": 882.2987287375424,
+   "law": "F1",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield",
+    "other module gains"
+   ],
+   "r2_event_median": 0.028168537817968332,
+   "r2_run_max": 0.7877630665284704,
+   "r2_run_median": 0.6835379448910942,
+   "r2_run_min": 0.5787943655925953,
+   "setting": 0.05,
+   "sigma_f": 0.05,
+   "signal": "module-gain zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "factor": "F1",
+   "i_event_median": 11.487079456699345,
+   "i_run_median": 874.9828954569299,
+   "law": "F1",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield",
+    "other module gains"
+   ],
+   "r2_event_median": 0.10293309504378287,
+   "r2_run_max": 0.9338463788066863,
+   "r2_run_median": 0.8897562367076739,
+   "r2_run_min": 0.8351757484306995,
+   "setting": 0.1,
+   "sigma_f": 0.1,
+   "signal": "module-gain zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "factor": "F3",
+   "i_event_median": 0.6064227816256524,
+   "i_run_median": 48.90732550748717,
+   "law": "F3",
+   "n_events": 50,
+   "passes": false,
+   "profiled": [
+    "vertex",
+    "yield",
+    "F1 module gains"
+   ],
+   "r2_event_median": 0.006025656807513196,
+   "r2_run_max": 0.5055009420648946,
+   "r2_run_median": 0.32255577455010104,
+   "r2_run_min": 0.14922018671504622,
+   "setting": 0.1,
+   "sigma_f": 0.1,
+   "signal": "within-module per-PMT zero-sum contrast",
+   "threshold": 0.6
+  },
+  {
+   "f1_joint": [
+    {
+     "module": 0,
+     "r2_run": 0.7826468714416474
+    },
+    {
+     "module": 1,
+     "r2_run": 0.727717052648528
+    },
+    {
+     "module": 2,
+     "r2_run": 0.7686604475445771
+    },
+    {
+     "module": 3,
+     "r2_run": 0.8032518325582718
+    },
+    {
+     "module": 4,
+     "r2_run": 0.7495012107668663
+    },
+    {
+     "module": 5,
+     "r2_run": 0.7560770946659213
+    },
+    {
+     "module": 6,
+     "r2_run": 0.6893127755290963
+    },
+    {
+     "module": 7,
+     "r2_run": 0.7173933618341654
+    },
+    {
+     "module": 8,
+     "r2_run": 0.7107490587403776
+    },
+    {
+     "module": 9,
+     "r2_run": 0.6669331966356802
+    },
+    {
+     "module": 10,
+     "r2_run": 0.6465058912851125
+    },
+    {
+     "module": 11,
+     "r2_run": 0.6947921216978145
+    },
+    {
+     "module": 12,
+     "r2_run": 0.6978594835501919
+    },
+    {
+     "module": 13,
+     "r2_run": 0.665211286909395
+    },
+    {
+     "module": 14,
+     "r2_run": 0.638224605500064
+    },
+    {
+     "module": 15,
+     "r2_run": 0.6526412175117468
+    },
+    {
+     "module": 16,
+     "r2_run": 0.6085821062432486
+    },
+    {
+     "module": 17,
+     "r2_run": 0.5906949485181793
+    },
+    {
+     "module": 18,
+     "r2_run": 0.6332901113199436
+    },
+    {
+     "module": 19,
+     "r2_run": 0.6032672510482447
+    },
+    {
+     "module": 20,
+     "r2_run": 0.6349970554881303
+    },
+    {
+     "module": 21,
+     "r2_run": 0.6579497534273298
+    },
+    {
+     "module": 22,
+     "r2_run": 0.6779444800494226
+    },
+    {
+     "module": 23,
+     "r2_run": 0.738075425314876
+    },
+    {
+     "module": 24,
+     "r2_run": 0.7072054943792138
+    },
+    {
+     "module": 25,
+     "r2_run": 0.7259472780035711
+    },
+    {
+     "module": 26,
+     "r2_run": 0.7156641467753152
+    },
+    {
+     "module": 27,
+     "r2_run": 0.6723158742250129
+    },
+    {
+     "module": 28,
+     "r2_run": 0.6695431159443869
+    },
+    {
+     "module": 29,
+     "r2_run": 0.6457951815986676
+    },
+    {
+     "module": 30,
+     "r2_run": 0.6487788087369599
+    },
+    {
+     "module": 31,
+     "r2_run": 0.6685755995832552
+    },
+    {
+     "module": 32,
+     "r2_run": 0.6428412428761698
+    },
+    {
+     "module": 33,
+     "r2_run": 0.6437089165191494
+    },
+    {
+     "module": 34,
+     "r2_run": 0.6349384499182983
+    },
+    {
+     "module": 35,
+     "r2_run": 0.6621738616600412
+    },
+    {
+     "module": 36,
+     "r2_run": 0.6470094824577873
+    },
+    {
+     "module": 37,
+     "r2_run": 0.6913670759486477
+    },
+    {
+     "module": 38,
+     "r2_run": 0.6899427449736192
+    },
+    {
+     "module": 39,
+     "r2_run": 0.6868267740869491
+    },
+    {
+     "module": 40,
+     "r2_run": 0.706140547057874
+    },
+    {
+     "module": 41,
+     "r2_run": 0.7218826580587125
+    },
+    {
+     "module": 42,
+     "r2_run": 0.7226820388301662
+    },
+    {
+     "module": 43,
+     "r2_run": 0.7508087907182068
+    },
+    {
+     "module": 44,
+     "r2_run": 0.7445833502782464
+    },
+    {
+     "module": 45,
+     "r2_run": 0.6840068687460293
+    },
+    {
+     "module": 46,
+     "r2_run": 0.6807850062458669
+    },
+    {
+     "module": 47,
+     "r2_run": 0.7298920296809803
+    },
+    {
+     "module": 48,
+     "r2_run": 0.7528657250781267
+    },
+    {
+     "module": 49,
+     "r2_run": 0.7178579527801571
+    },
+    {
+     "module": 50,
+     "r2_run": 0.6715531706060457
+    },
+    {
+     "module": 51,
+     "r2_run": 0.6813694674570246
+    },
+    {
+     "module": 52,
+     "r2_run": 0.7114338069481666
+    },
+    {
+     "module": 53,
+     "r2_run": 0.6835319102110455
+    },
+    {
+     "module": 54,
+     "r2_run": 0.654401558605284
+    },
+    {
+     "module": 55,
+     "r2_run": 0.6914300506009862
+    },
+    {
+     "module": 56,
+     "r2_run": 0.6875287568911926
+    },
+    {
+     "module": 57,
+     "r2_run": 0.735850528824212
+    },
+    {
+     "module": 58,
+     "r2_run": 0.7225208265606703
+    },
+    {
+     "module": 59,
+     "r2_run": 0.743888185824456
+    },
+    {
+     "module": 60,
+     "r2_run": 0.7196074348823833
+    },
+    {
+     "module": 61,
+     "r2_run": 0.7059141429833837
+    },
+    {
+     "module": 62,
+     "r2_run": 0.7306149743383457
+    },
+    {
+     "module": 63,
+     "r2_run": 0.742438207989301
+    },
+    {
+     "module": 64,
+     "r2_run": 0.7667996922033259
+    },
+    {
+     "module": 65,
+     "r2_run": 0.7136898455889125
+    },
+    {
+     "module": 66,
+     "r2_run": 0.6688318859550173
+    },
+    {
+     "module": 67,
+     "r2_run": 0.7014863222133081
+    },
+    {
+     "module": 68,
+     "r2_run": 0.6763385201526467
+    },
+    {
+     "module": 69,
+     "r2_run": 0.6537371051783029
+    },
+    {
+     "module": 70,
+     "r2_run": 0.6670229950914401
+    },
+    {
+     "module": 71,
+     "r2_run": 0.6407826374334117
+    },
+    {
+     "module": 72,
+     "r2_run": 0.6389237822294316
+    },
+    {
+     "module": 73,
+     "r2_run": 0.6513745715209891
+    },
+    {
+     "module": 74,
+     "r2_run": 0.6679296575461565
+    },
+    {
+     "module": 75,
+     "r2_run": 0.6708236791758653
+    },
+    {
+     "module": 76,
+     "r2_run": 0.64551586387124
+    },
+    {
+     "module": 77,
+     "r2_run": 0.6709537324403225
+    },
+    {
+     "module": 78,
+     "r2_run": 0.6808985975702155
+    },
+    {
+     "module": 79,
+     "r2_run": 0.7050811024757535
+    },
+    {
+     "module": 80,
+     "r2_run": 0.7145114241179765
+    },
+    {
+     "module": 81,
+     "r2_run": 0.6880087545245219
+    },
+    {
+     "module": 82,
+     "r2_run": 0.6537650452778928
+    },
+    {
+     "module": 83,
+     "r2_run": 0.6624030396228563
+    },
+    {
+     "module": 84,
+     "r2_run": 0.7492571977306365
+    },
+    {
+     "module": 85,
+     "r2_run": 0.7236427452126261
+    },
+    {
+     "module": 86,
+     "r2_run": 0.6720734790295244
+    },
+    {
+     "module": 87,
+     "r2_run": 0.704269063600716
+    },
+    {
+     "module": 88,
+     "r2_run": 0.6741496988912034
+    },
+    {
+     "module": 89,
+     "r2_run": 0.7416739531498843
+    },
+    {
+     "module": 90,
+     "r2_run": 0.7063979078911544
+    },
+    {
+     "module": 91,
+     "r2_run": 0.7202064693316184
+    },
+    {
+     "module": 92,
+     "r2_run": 0.696779361522821
+    },
+    {
+     "module": 93,
+     "r2_run": 0.6202508882129018
+    },
+    {
+     "module": 94,
+     "r2_run": 0.5913599051882116
+    },
+    {
+     "module": 95,
+     "r2_run": 0.5404149691346094
+    },
+    {
+     "module": 96,
+     "r2_run": 0.5732702372455318
+    },
+    {
+     "module": 97,
+     "r2_run": 0.5999438534293143
+    },
+    {
+     "module": 98,
+     "r2_run": 0.5675604453715272
+    },
+    {
+     "module": 99,
+     "r2_run": 0.6270658172492081
+    },
+    {
+     "module": 100,
+     "r2_run": 0.58972338274231
+    },
+    {
+     "module": 101,
+     "r2_run": 0.6091825547975828
+    },
+    {
+     "module": 102,
+     "r2_run": 0.6353893777587653
+    },
+    {
+     "module": 103,
+     "r2_run": 0.5942962496020647
+    },
+    {
+     "module": 104,
+     "r2_run": 0.6306026827520302
+    }
+   ],
+   "factor": "F2",
+   "i_event_median": 0.0011793055496099694,
+   "i_run_median": 11.352611135978925,
+   "law": "F2",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield",
+    "F1 module gains"
+   ],
+   "r2_event_median": 0.0011779164223834494,
+   "r2_run_max": 0.9190454561394438,
+   "r2_run_median": 0.9190454561394438,
+   "r2_run_min": 0.9190454561394438,
+   "setting": 0.5,
+   "sigma_f": 1.0,
+   "signal": "N(0,1) attenuation/gradient variable v",
+   "threshold": 0.6
+  },
+  {
+   "factor": "T",
+   "i_event_median": 15.497292694685925,
+   "i_run_median": 829.7079277732342,
+   "law": "T",
+   "n_events": 50,
+   "passes": true,
+   "profiled": [
+    "vertex",
+    "yield"
+   ],
+   "r2_event_median": 0.5635830246929847,
+   "r2_run_max": 0.985743273166327,
+   "r2_run_median": 0.985743273166327,
+   "r2_run_min": 0.985743273166327,
+   "setting": 0.5,
+   "sigma_f": 0.28867513459481287,
+   "signal": "in-range age t=r/R, median 1/2",
+   "threshold": 0.6
+  }
+ ],
+ "v_dark": 0.00109,
+ "v_dark_derivation": {
+  "dark_rate_hz": 1000.0,
+  "derived_not_literal": true,
+  "formula": "lambda_dark * (1 + sigma_spe^2)",
+  "lambda_dark": 0.001,
+  "lambda_formula": "dark_rate_hz * (window_end - window_start) * 1e-9",
+  "note": "0.001 x 1.09 = 0.00109 PE^2; it enters mu_p (1 + sigma_spe^2) + v_dark + s_p^2 mu_p^2",
+  "readout_window_ns": [
+   -200.0,
+   800.0
+  ],
+  "sigma_spe": 0.3,
+  "source": "configs/lucid_pmt/reference.json (PMT R-6, dark counts on)",
+  "source_sha256": "17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68",
+  "value_pe2": 0.00109,
+  "window_ns": 1000.0
+ },
+ "variance_formula": "mu_p * (1 + sigma_spe^2) + v_dark + s_p^2 * mu_p^2",
+ "yields": {
+  "median_policy": "population_median_of_log_uniform",
+  "median_yield": 58288.85612577161,
+  "y_hi": 539433.964527,
+  "y_hi_bound": 539433.964527,
+  "y_hi_bound_source": "provided",
+  "y_hi_bounds": {
+   "y_hi": 539433.964527,
+   "y_hi_bound_source": "provided",
+   "y_lo": 6298.436828
+  },
+  "y_hi_initial": 320000.0,
+  "y_lo": 6298.436828
+ }
+}
