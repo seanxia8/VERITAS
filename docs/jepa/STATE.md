@@ -1,5 +1,31 @@
 # STATE — JEPA study (single source of truth)
 
+Updated: 2026-10-23 10:00Z by Lead. A10 audit recorded; grid running.
+
+## A10 status (23 Oct 2026)
+
+- **A10 in force** at registration `ab8c916` despite the stale §3.8 "DRAFT" header.
+- **Calibration:** Gate V passed on 10 held-out contained 500 MeV μ⁻ events (module pattern 0.902,
+  log pattern 0.815, yield ratio 1.006, time 0.157 ns); calibrated config
+  `lucid_bombs_v2_calibrated.json`.
+- **Smoke/evaluation:** mixed 500-step smoke and mixed `smoke --evaluate` with per-domain floors
+  passed; domains photon/muon/electron/particle.
+- **Detectability:** v1 withdrawn. Photon A9 profiled re-run: F1 0.2574/0.6835/0.8898, F3 0.3226
+  (R12 `not_evaluable`), F2 0.9190, T 0.9857, G6 false. Particle profiling not implemented;
+  ceilings marked `lower_bound_unprofiled`; particle R6/R7/R12 not established.
+- **Dev step 2:** ridge, run_mean; pooled reference 0.482004 m; frozen.
+- **Dev step 3:** β=100 for anchored and anchored_dark; anchor_only none; frozen. Per-domain β table
+  missing because `dev_cell` evaluated photon only.
+- **Contained probe-test counts:** muon 452 → R13 `not_evaluable`; electron 2570 evaluable; photon
+  not applicable. Energy ranges unchanged.
+- **Grid:** 165 runs split 87/78; at 10:00Z grid-0 12/87 complete, grid-1 0/78; both running.
+- **Ledger:** charged 54.413992 L40S GPU-h; projection 52.631150; total 107.045142 ≤160/170;
+  no A10.6 fallback.
+- **Paths:** `/work/dwong/jepa_a10_work/` used under the author's 22 Oct authorisation; recorded
+  as a deviation from the `/ceph/dwong/jepa/`-only rule. `dcdf6ce` author-approved.
+- **Next:** keep grid running; implement particle-domain profiling before reporting particle R6/R7;
+  add per-domain dev β table if required; final report only after grid.
+
 Updated: 2026-10-20 19:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`.
 
 ## Where we are
