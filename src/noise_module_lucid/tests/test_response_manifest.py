@@ -97,6 +97,21 @@ def test_manifest_hashes_domain_and_fixture():
     assert all(e["status"] and e["source"] for e in m["parameters"].values())
 
 
+def test_v3_changes_only_the_authorised_parameters():
+    """R-7 authorises QE, CE and timing width only; provenance labels are the stated ones."""
+    v3 = response_manifest.load_manifest()
+    v2 = response_manifest.load_manifest(response_manifest.V2_PATH)
+    changed = {k for k in v3["parameters"] if v3["parameters"][k]["value"] != v2["parameters"][k]["value"]}
+    assert changed == {"qe_curve", "collection_efficiency", "timing_width"}
+    relabelled = {k for k in v3["parameters"] if v3["parameters"][k]["status"] != v2["parameters"][k]["status"]}
+    assert relabelled == {"threshold_pe", "spe_sigma", "qe_curve", "collection_efficiency", "timing_width"}
+    for name in ("survival", "timing_offsets_ns", "reference_offsets_ns", "walk_calibration_pe", "spe_sigma",
+                 "dead_channels", "mv_per_pe", "charge_domain_pe", "walk", "gain", "timing_width_factor",
+                 "dark_rate_hz", "readout_window_ns", "threshold_pe"):
+        assert v3["parameters"][name]["value"] == v2["parameters"][name]["value"], name
+        assert v3["parameters"][name]["sha256"] == v2["parameters"][name]["sha256"], name
+
+
 def test_tampered_or_incomplete_manifest_is_rejected(tmp_path):
     m = json.loads(response_manifest.DEFAULT_PATH.read_text())
     bad = json.loads(json.dumps(m)); bad["parameters"]["walk"]["value"]["b_ns"] = 3.0

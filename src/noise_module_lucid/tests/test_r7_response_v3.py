@@ -52,8 +52,13 @@ def reference(n=1995, groups=None, path=None):
     return response_manifest.reference_response(n, groups, manifest=path)
 
 
-def one_photon_per_channel(n, q, *, arrival=0.0):
-    return PhotonBatch(SEED, np.arange(n), np.arange(n), np.full(n, arrival), np.full(n, 400.0))
+def event_for(q):
+    """One independent event ID per charge point, as in test_physical_tq."""
+    return 1000 + int(round(100 * q))
+
+
+def one_photon_per_channel(n, event=SEED, *, arrival=0.0):
+    return PhotonBatch(int(event), np.arange(n), np.arange(n), np.full(n, arrival), np.full(n, 400.0))
 
 
 def read(b, p):
@@ -116,6 +121,20 @@ def test_peak_qe_times_ce_matches_the_hk_requirement():
     assert p.collection_efficiency == pytest.approx(0.87)
 
 
+def test_timing_width_table_is_the_transcribed_thesis_table():
+    """The manifest must carry Fig. 6.4(b)/6.3 verbatim, not merely a consistent table."""
+    m = response_manifest.load_manifest()
+    value = m["parameters"]["timing_width"]["value"]
+    assert value["kernel"] == "split_normal"
+    assert value["charge_pe"] == THESIS_WIDTH["charge_pe"]
+    assert value["sigma_e_ns"] == THESIS_WIDTH["sigma_e_ns"]
+    assert value["sigma_l_ns"] == THESIS_WIDTH["sigma_l_ns"]
+    # And the built kernel reproduces every knot exactly.
+    tw = reference(1, np.zeros(1, dtype=int)).timing_width
+    np.testing.assert_allclose(tw.sigma_e(THESIS_WIDTH["charge_pe"]), THESIS_WIDTH["sigma_e_ns"], rtol=1e-12)
+    np.testing.assert_allclose(tw.sigma_l(THESIS_WIDTH["charge_pe"]), THESIS_WIDTH["sigma_l_ns"], rtol=1e-12)
+
+
 # ------------------------------------------------------- 2. split-normal kernel
 
 
@@ -149,13 +168,16 @@ def test_split_normal_analytic_properties():
 @pytest.mark.parametrize("q", [0.25, 1.0, 2.0, 10.0, 100.0])
 def test_split_normal_sampled_widths_mode_and_mean(q):
     p = raw_flat(N, q)
-    b = one_photon_per_channel(N, q)
+    b = one_photon_per_channel(N, event_for(q))
     d = read(b, p)
     assert len(d) == N and np.allclose(d.charge, q)
     tw = p.timing_width
     walk = float(p.walk_curve(q))
     z = d.time - walk                      # arrival is 0, so t0 = walk(q)
-    e, l = float(tw.sigma_e(q)), float(tw.sigma_l(q))
+    # Expected values come from the AUTHOR'S TRANSCRIBED TABLE, never from the response
+    # object under test: a mistranscribed sigma_e/sigma_l must fail this test.
+    knot = THESIS_WIDTH["charge_pe"].index(q)
+    e, l = THESIS_WIDTH["sigma_e_ns"][knot], THESIS_WIDTH["sigma_l_ns"][knot]
     early = z < 0
     # Sampled early and late widths match the thesis table within 3 standard errors.
     # Each side is a half-normal about the mode, so the root-mean-square deviation
@@ -169,9 +191,9 @@ def test_split_normal_sampled_widths_mode_and_mean(q):
     # The half probability is sigma_e / (sigma_e + sigma_l).
     w = e / (e + l)
     assert abs(early.mean() - w) < 3.0 * np.sqrt(w * (1 - w) / N)
-    # The sampled mean is the mode plus the recorded shift.
+    # The sampled mean is the mode plus sqrt(2/pi)(sigma_l - sigma_e).
     se_mean = max(e, l) / np.sqrt(N)
-    assert abs(z.mean() - float(tw.mean_shift(q))) < 3.0 * se_mean
+    assert abs(z.mean() - np.sqrt(2.0 / np.pi) * (l - e)) < 3.0 * se_mean
     # Mode: a Gaussian KDE peaks within 0.5 ns of arrival + walk.
     bandwidth_ns = 0.4
     kde = gaussian_kde(z, bw_method=bandwidth_ns / float(z.std(ddof=1)))
@@ -186,7 +208,7 @@ def test_split_normal_mode_tracks_a_nonzero_arrival():
     arrival = 12.5
     q = 2.0
     p = raw_flat(N, q)
-    d = read(one_photon_per_channel(N, q, arrival=arrival), p)
+    d = read(one_photon_per_channel(N, event_for(q), arrival=arrival), p)
     tw = p.timing_width
     z = d.time - (arrival + float(p.walk_curve(q)))
     w = float(tw.sigma_e(q)) / (float(tw.sigma_e(q)) + float(tw.sigma_l(q)))
@@ -201,7 +223,7 @@ def test_split_normal_mode_tracks_a_nonzero_arrival():
 def test_width_factor_scales_both_split_normal_sigmas():
     p = raw_flat(N, 2.0)
     wide = replace(p, timing_width_factor=2.0)
-    b = one_photon_per_channel(N, 2.0)
+    b = one_photon_per_channel(N, event_for(2.0))
     a = read(b, p)
     w = read(b, wide)
     walk = float(p.walk_curve(2.0))
@@ -223,6 +245,30 @@ def test_split_normal_rejects_invalid_tables():
     tw = reference(1, np.zeros(1, dtype=int)).timing_width
     with pytest.raises(ValueError): tw.sigma_e(0.2)                                          # outside domain
     with pytest.raises(ValueError): tw.jitter(np.array([1.0]), np.array([1.0]))              # u outside (0,1)
+
+
+def test_shipped_reference_calibrated_time_has_the_walk_subtracted():
+    """Kernel t0 = arrival + walk; the D-TQ frozen reference subtracts the reference walk.
+
+    In the shipped reference ``reference_walk == walk_curve``, so the calibrated digit time
+    has zero residual walk and its mode is the photon arrival. The raw delay counted by
+    ``digits_before_arrival`` still carries arrival + walk. This pins the convention (it is
+    v2's) so that "mode = arrival + walk" in the kernel cannot be read as a claimed
+    observable offset in ``Digits.time``.
+    """
+    q = 1.0
+    p = flat_unit_detection(N)
+    p = replace(p, gain=float(q))
+    d = read(one_photon_per_channel(N, event_for(q)), p)
+    tw = p.timing_width
+    walk = float(p.walk_curve(q))
+    # Calibrated time: mode/mean = arrival (0) + the split-normal mean shift, no walk.
+    se = max(float(tw.sigma_e(q)), float(tw.sigma_l(q))) / np.sqrt(N)
+    assert abs(d.time.mean() - float(tw.mean_shift(q))) < 3.0 * se
+    assert abs(d.time.mean() - (walk + float(tw.mean_shift(q)))) > 10.0 * se
+    # Raw delay (walk + jitter) is what digits_before_arrival counts.
+    expected = float(tw.cdf(-walk, q))
+    assert abs(d.counts["digits_before_arrival"] / len(d) - expected) < 3.0 * np.sqrt(expected * (1 - expected) / len(d))
 
 
 # --------------------------------------------------- 3. T-Q and dark-hit coupling
@@ -277,10 +323,13 @@ def test_v3_is_the_default_and_declares_literature_proxies():
     labels = {"threshold_pe": "literature_sk"}
     for name in ("spe_sigma", "qe_curve", "collection_efficiency", "timing_width"):
         labels[name] = "literature_proxy_hk_20in"
+    markers = {"threshold_pe": "section 6.1", "spe_sigma": "section 4.3", "qe_curve": "Fig. 4.3",
+               "collection_efficiency": "section 4.2", "timing_width": "Eq. 6.3"}
     for name, label in labels.items():
         assert m["parameters"][name]["status"] == label, name
         assert "Xia" in m["parameters"][name]["source"], name
         assert "2019" in m["parameters"][name]["source"], name
+        assert markers[name] in m["parameters"][name]["source"], name
     assert m["parameters"]["threshold_pe"]["value"] == 0.25
     assert m["parameters"]["spe_sigma"]["value"] == 0.30
     assert m["parameters"]["timing_width"]["value"]["kernel"] == "split_normal"

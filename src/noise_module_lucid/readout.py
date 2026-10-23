@@ -31,9 +31,13 @@ Stages (in order)
    charge-dependent residual (``response.leading_edge_time``);
 6. **digit width** — one keyed uniform per channel through the declared kernel:
    the R-7 split normal (thesis Eq. 6.3, early ``sigma_e`` / late ``sigma_l``,
-   mode at the photon arrival) or the legacy symmetric Gaussian. Both kernels
-   are deterministic functions of ``(charge, uniform)``, so a cell that moves a
-   timing parameter never moves an unrelated draw;
+   mode t0 = photon arrival + walk) or the legacy symmetric Gaussian. Both
+   kernels are deterministic functions of ``(charge, uniform)``, so a cell that
+   moves a timing parameter never moves an unrelated draw. In the shipped
+   reference ``reference_walk == walk_curve``, so the frozen-reference
+   subtraction (the v2/D-TQ convention) removes the walk from the *calibrated*
+   digit time, whose mode is then the photon arrival; the raw delay that
+   ``digits_before_arrival`` counts still carries arrival + walk;
 7. **timing calibration** — per-channel offsets (``response.timing_drift_hits``);
 8. **dead channels** — removed (``response.module_loss_hits``).
 

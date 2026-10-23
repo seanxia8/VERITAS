@@ -116,8 +116,8 @@ def run(out: Path = DEFAULT_OUT) -> dict:
     ref_v2 = response_manifest.reference_response(det.n_channels, group, manifest=response_manifest.V2_PATH)
     ref_v3 = response_manifest.reference_response(det.n_channels, group)
     moved = ref_v2.moved_from(ref_v3)
-    if not moved:
-        raise RuntimeError("v2 and v3 reference responses are identical; nothing to compare")
+    if set(moved) != {"qe_curve", "collection_efficiency", "timing_width"}:
+        raise RuntimeError(f"R-7 must move exactly qe_curve, collection_efficiency and timing_width; moved {sorted(moved)}")
 
     rows = {"v2": [_digits_row(ev, det.n_channels, ref_v2) for ev in events],
             "v3": [_digits_row(ev, det.n_channels, ref_v3) for ev in events]}
