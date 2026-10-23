@@ -1,15 +1,17 @@
 """R-2 acceptance: D-TQ walk a+b/sqrt(q), D-Q overflow clamp, D-J early-digit count.
 
 Tolerances declared before the first run: conditional means within 3 sigma_MC
-(sigma_MC = configured width / sqrt(N)); early-digit fraction within 6 binomial
-SE. Seed 71, 20000 channels per charge point. Each charge point uses its own
-event ID, so its per-channel jitter draws are independent of the other points.
-Synthetic validation only.
+(sigma_MC = the wider side of the declared digit-width kernel / sqrt(N)); the
+early-digit fraction within 6 binomial SE of the analytic kernel CDF. Seed 71,
+20000 channels per charge point. Each charge point uses its own event ID, so its
+per-channel jitter draws are independent of the other points. Since R-7 the
+manifest's digit width is the split-normal kernel (thesis Eq. 6.3), whose mean
+sits sqrt(2/pi)(sigma_l - sigma_e) above the mode, so the mean checks carry that
+recorded shift. Synthetic validation only.
 """
 from dataclasses import replace
 import numpy as np
 import pytest
-from scipy.stats import norm
 from noise_module_lucid import response_manifest
 from noise_module_lucid.lucid_controls import paired_checks, passed
 from noise_module_lucid.photon_contract import PhotonBatch
@@ -50,9 +52,10 @@ def test_conditional_mean_follows_configured_curve(q):
     p = raw_view(replace(flat(N), gain=float(q)))
     d = read(one_photon_per_channel(event=event_for(q)), p)
     assert len(d) == N and np.all(d.charge == q)
-    sigma_mc = float(p.timing_width(q)) / np.sqrt(N)
-    configured = float(p.walk_curve(q))
-    assert configured == pytest.approx(2/np.sqrt(q))
+    tw = p.timing_width
+    sigma_mc = float(max(tw.sigma_e(q), tw.sigma_l(q))) / np.sqrt(N)
+    configured = float(p.walk_curve(q)) + float(tw.mean_shift(q))
+    assert float(p.walk_curve(q)) == pytest.approx(2/np.sqrt(q))
     assert abs(d.time.mean() - configured) < 3*sigma_mc
 
 
@@ -103,10 +106,11 @@ def test_overflow_is_clamped_and_counted_not_raised():
 
 
 @pytest.mark.parametrize("q", [1, 5])
-def test_digits_before_arrival_fraction_matches_gaussian(q):
+def test_digits_before_arrival_fraction_matches_split_normal(q):
     p = replace(flat(N), gain=float(q))
     d = read(one_photon_per_channel(event=event_for(q)), p)
-    expected = norm.cdf(-float(p.walk_curve(q)) / float(p.timing_width(q)))
+    # The raw delay is walk(q) + jitter, so a digit is early when jitter < -walk(q).
+    expected = float(p.timing_width.cdf(-float(p.walk_curve(q)), q))
     se = np.sqrt(expected*(1-expected)/N)
     assert abs(d.counts["digits_before_arrival"]/len(d) - expected) < 6*se
 

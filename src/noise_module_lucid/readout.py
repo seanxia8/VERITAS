@@ -29,8 +29,13 @@ Stages (in order)
    calibrated at ``walk_calibration_pe`` (fixed at training time), so the
    reference has zero residual walk and a threshold change leaves a
    charge-dependent residual (``response.leading_edge_time``);
-6. **timing calibration** — per-channel offsets (``response.timing_drift_hits``);
-7. **dead channels** — removed (``response.module_loss_hits``).
+6. **digit width** — one keyed uniform per channel through the declared kernel:
+   the R-7 split normal (thesis Eq. 6.3, early ``sigma_e`` / late ``sigma_l``,
+   mode at the photon arrival) or the legacy symmetric Gaussian. Both kernels
+   are deterministic functions of ``(charge, uniform)``, so a cell that moves a
+   timing parameter never moves an unrelated draw;
+7. **timing calibration** — per-channel offsets (``response.timing_drift_hits``);
+8. **dead channels** — removed (``response.module_loss_hits``).
 
 Because the discriminator acts on the measured (gain-scaled) amplitude, a gain
 drift also loses small hits at a fixed-mV threshold — the coupling the review
@@ -265,10 +270,19 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
         delay[fired] += cell_walk
     if p.timing_width is not None:
         from scipy.special import ndtri
-        jitter = ndtri(keyed_uniform(seed, photon_batch.event_id, chan, key("timing")))
-        widths = p.timing_width(q[fired]) * _per_channel(p.timing_width_factor, n_channels, "timing_width_factor")[fired]
-        t_read[fired] += widths * jitter[fired]
-        delay[fired] += widths * jitter[fired]
+        from .timing_response import SplitNormalWidth
+        # One keyed uniform per channel; the response cell moves the kernel, never the draw.
+        u = keyed_uniform(seed, photon_batch.event_id, chan, key("timing"))
+        factor = _per_channel(p.timing_width_factor, n_channels, "timing_width_factor")
+        if isinstance(p.timing_width, SplitNormalWidth):
+            # R-7 (Eq. 6.3): the split normal's mode is t0 = first arrival + walk; the
+            # asymmetric inverse-CDF draw fixes the early and late sigmas. The per-module
+            # factor scales both sigmas, hence the draw, exactly.
+            jitter = p.timing_width.jitter(q[fired], u[fired]) * factor[fired]
+        else:
+            jitter = p.timing_width(q[fired]) * factor[fired] * ndtri(u[fired])
+        t_read[fired] += jitter
+        delay[fired] += jitter
     elif np.any(_per_channel(p.timing_width_factor, n_channels, "timing_width_factor") != 1):
         raise ValueError("width factor requires a timing width model")
     counts["lost_time_window"] = 0  # this chain does not impose an event window

@@ -21,6 +21,11 @@ def reference():
     return response_manifest.reference_response(N, response_manifest.module_groups(np.arange(N)//19))
 
 
+def reference_v2():
+    """The frozen v2 response: the golden hash below was produced with it (pre-R-6 code)."""
+    return response_manifest.reference_response(N, response_manifest.module_groups(np.arange(N)//19), manifest=response_manifest.V2_PATH)
+
+
 def physics_batch(event=424242):
     rng = np.random.default_rng(20261018)
     sensor = rng.integers(0, N, 30000)
@@ -47,7 +52,7 @@ def test_manifest_declares_synthetic_dark_rate_and_window():
 
 
 def test_rate_zero_is_identical_to_the_pre_r6_reference():
-    d = read(physics_batch(), replace(reference(), dark_rate_hz=0.0))
+    d = read(physics_batch(), replace(reference_v2(), dark_rate_hz=0.0))
     assert digest(d) == GOLDEN_0FBA034
     assert "dark_pe" not in d.counts and np.all(d.n_dark_true == 0)
 

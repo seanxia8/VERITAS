@@ -19,6 +19,13 @@ from .dataset import ResponseCellSpec, run_response_matrix
 from .group_response import GroupMap, group_intervention
 from . import response_manifest
 from .toy import cylinder_detector, prompt_source_event
+from .timing_response import SplitNormalWidth
+
+
+def qe_drift_shape(wavelength_nm):
+    """The v1/v2 QE-shape anchors [200,300,400,600,800] -> [0,-1,0,1,0], resampled on any table."""
+    return np.interp(np.asarray(wavelength_nm, dtype=float),
+                     [200.0, 300.0, 400.0, 600.0, 800.0], [0.0, -1.0, 0.0, 1.0, 0.0])
 
 
 def fixture():
@@ -58,7 +65,7 @@ def run(out):
     exact=response_manifest.exact_product_control(ref)
     cells=[base,
         ResponseCellSpec("identity","identity",0,ref),
-        ResponseCellSpec("qe_shape","qe_shape",.3,replace(ref,qe_curve=ref.qe_curve.drift(.3,[0,-1,0,1,0]))),
+        ResponseCellSpec("qe_shape","qe_shape",.3,replace(ref,qe_curve=ref.qe_curve.drift(.3,qe_drift_shape(ref.qe_curve.wavelength_nm)))),
         ResponseCellSpec("fixed_tq_slope_up","fixed_tq",1.2,replace(ref,walk_curve=steeper)),
         ResponseCellSpec("fixed_tq_slope_down","fixed_tq",.8,replace(ref,walk_curve=shallower)),
         ResponseCellSpec("tq_offset_control","tq_offset_control",1.0,replace(ref,walk_curve=offset)),
@@ -101,7 +108,12 @@ def run(out):
     axes[0,0].set(xlabel="Wavelength (nm)",ylabel="QE");axes[0,0].legend()
     axes[0,1].plot(q,ref.walk_curve(q),label="reference");axes[0,1].plot(q,steeper(q),label="slope x1.2");axes[0,1].plot(q,offset(q),label="offset control")
     axes[0,1].set(xlabel="Charge (PE)",ylabel="Raw walk location (ns)");axes[0,1].legend()
-    axes[0,2].plot(q,ref.timing_width(q));axes[0,2].set(xlabel="Charge (PE)",ylabel="Gaussian sigma (ns)")
+    tw=ref.timing_width
+    if isinstance(tw,SplitNormalWidth):
+        axes[0,2].plot(q,tw.sigma_e(q),label="early sigma_e");axes[0,2].plot(q,tw.sigma_l(q),label="late sigma_l");axes[0,2].legend()
+    else:
+        axes[0,2].plot(q,tw(q))
+    axes[0,2].set(xlabel="Charge (PE)",ylabel="Digit-width sigma (ns)")
     axes[1,0].plot(coupled.gain,label="gain");axes[1,0].plot(coupled.timing_width_factor,label="width factor")
     axes[1,0].set(xlabel="Synthetic channel",ylabel="Factor");axes[1,0].legend()
     axes[1,1].bar(["vertex (m)","energy (relative)"],[cq["K_vertex"]["mean_error_cell"],cq["K_energy"]["mean_error_cell"]]);axes[1,1].set_title("Independent reference closure")

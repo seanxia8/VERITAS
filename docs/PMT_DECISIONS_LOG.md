@@ -541,3 +541,123 @@ R-4b totals: 0.094 GPU-hours, with no new source reads. Before the run, a 5-minu
 R-4 totals: 0.015 GPU-hours, about 92.5 MB of source reads against the 5 GB cap. Before training, a 5-minute sample showed every GPU at 0% mean utilisation, no process above 1 GB, and no `jepa_*` training session. Only `jepa_guard` was running. No other process was touched, signalled or reniced. Nothing was written under `/ceph`.
 
 _R-1 to R-3 used no remote or GPU job; they ran on local CPU._
+
+---
+
+## Author message, 23 Oct 2026 (verbatim, R-7)
+
+> New repair R-7: literature values from Junjie's thesis. Do it **before step 1** of my D-E message
+> (the generation check), so the new events use the new response. Record this message verbatim in
+> `docs/PMT_DECISIONS_LOG.md` (author, 23 Oct 2026). CPU only.
+>
+> **Source.** J. Xia, *Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors*, MSc
+> thesis, University of Tokyo, July 2019. Cite it; do not commit the PDF.
+> - It measures **50 cm** Super-K (R3600) and Hyper-K Box&Line (R12860) PMTs, not WCTE's 3-inch PMTs.
+> - So its values are **proxies**. Label each one `literature_proxy_hk_20in` (or `literature_sk`),
+>   with the section, figure or equation it comes from.
+> - A WCTE value from Junjie replaces a proxy as soon as it arrives.
+> - The figure values below were digitised by me by eye: about ±0.1 ns, and ±1 percentage point of QE.
+>
+> ## 1. Adopt (new schema `pmt-response-v3`)
+>
+> 1. **`threshold_pe` = 0.25, unchanged.** Source: SK's −0.69 mV threshold, about 0.25 PE (§6.1).
+>    Status `literature_sk`.
+> 2. **`spe_sigma` = 0.30, unchanged.** Source: HK B&L SPE charge resolution 30.8% (§4.3).
+>    Status `literature_proxy_hk_20in`.
+> 3. **QE curve, replaced.** The current synthetic curve peaks at 0.50, which no bialkali PMT
+>    reaches. Use the HK R12860 average from Fig. 4.3 (thesis ref. [21]):
+>
+>    | λ (nm) | 280 | 300 | 320 | 340 | 350 | 370 | 400 | 420 | 450 | 480 | 500 | 520 | 540 | 560 | 600 | 650 | 700 |
+>    |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+>    | QE | 0 | 0.01 | 0.10 | 0.23 | 0.27 | 0.29 | 0.305 | 0.29 | 0.25 | 0.19 | 0.165 | 0.13 | 0.07 | 0.045 | 0.015 | 0.002 | 0 |
+>
+>    Keep zero-QE anchors outside 280–700 nm, as now.
+> 4. **`collection_efficiency` = 0.87**, up from 0.80. Source: HK B&L CE over the full 50 cm (§4.2).
+>    Peak QE × CE ≈ 0.27, which matches the HK requirement of 26% (Table 4.1). Record that check.
+> 5. **Timing width: the split-normal kernel, Eq. 6.3**, replacing the symmetric Gaussian (the D-J
+>    approximation). This is the kernel Junjie asked for in issue #5.
+>    - The probability density is √(2/π)/(σ_e + σ_l) · exp(−(t − t₀)²/2σ²), with σ = σ_e for t < t₀
+>      (early side) and σ = σ_l for t ≥ t₀ (late side).
+>    - t₀ (the mode) = photon arrival + walk(q). The walk, the T-Q intervention and the
+>      `digits_before_arrival` counter keep their meaning.
+>    - The mean shifts by √(2/π)(σ_l − σ_e); record it.
+>    - σ_e and σ_l, from Fig. 6.4(b), HK PMTs. In Fig. 6.3, σ_r (blue) is the early side and σ_l
+>      (magenta) is the late side:
+>
+>      | q (PE) | 0.25 | 0.5 | 1 | 2 | 3 | 5 | 10 | 30 | 100 | 1000 |
+>      |---|---|---|---|---|---|---|---|---|---|---|
+>      | σ_e (ns) | 2.0 | 1.53 | 1.26 | 1.04 | 0.98 | 0.86 | 0.72 | 0.65 | 0.61 | 0.75 |
+>      | σ_l (ns) | 2.9 | 1.82 | 1.52 | 1.76 | 1.44 | 1.13 | 0.83 | 0.60 | 0.47 | 0.49 |
+>
+>      Interpolate linearly in log q. The bump at 2 PE is real in the data; keep it.
+>    - The per-module `timing_width_factor` multiplies both σ_e and σ_l.
+>    - Treat the values as standard deviations, since §6.2 says they feed Eq. 6.3. Eq. 6.2 omits the
+>      factor 2, so this reading may be off by √2. List it as a question for Junjie.
+> 6. **Tests:**
+>    - QE table interpolation, and the zero anchors.
+>    - Peak QE × CE within 0.25–0.29.
+>    - At 0.25, 1, 2, 10 and 100 PE: the sampled early and late SDs match the table within 3σ, and
+>      the mode equals arrival + walk.
+>    - The T-Q intervention still changes only the walk.
+>    - Dark hits use the same kernel.
+>    - The v2 response is still reproducible by its manifest hash.
+>
+> ## 2. Record, do not adopt
+>
+> Add these to the decisions log as literature comparisons. No parameter changes.
+> - **T-Q magnitude** (Fig. 5.33, one 20-inch channel, SK electronics). Relative to 0.25 PE, the hit
+>   comes earlier by about 3 ns at 0.4 PE, 7 at 0.8, 12 at 4, 17 at 40 and 21.5 at 400 PE. It keeps
+>   rising by about 4.5 ns per decade above 4 PE.
+>   - Our `a + b/√q` with b = 2 ns spans about 3.7 ns and is flat above 50 PE.
+>   - Keep our form and values: a 3-inch tube's pulses are faster, and D-TQ stays as adopted.
+>   - Add a question for Junjie: does the WCTE walk keep rising at high charge?
+> - **Dark rate:** 4.2 kHz (SK) and 8.3 kHz (HK B&L at 15 °C) are 20-inch values and scale with
+>   cathode area, so they do not transfer. Keep 1 kHz.
+> - **Charge linearity** within 5% up to 470 PE, and afterpulses below 5% (§4.3, §4.5). Pre- and
+>   after-pulses stay off.
+> - **SPE charge shape** (Eq. 6.1: SPE and 2PE peaks plus backscatter terms). The Gaussian stays for
+>   now.
+> - **Gain drift**, for the JEPA study's framing only, not a PMT parameter:
+>   - SK-IV's average gain rose about 17% over roughly 10 years (re-tuned to 85.6% of the drifted
+>     value), and the PMT-to-PMT spread grew to 12% (4% after re-tuning);
+>   - HK B&L gain varied 1% RMS over 2 years.
+>
+> ## Constraints
+>
+> - **JEPA stays pinned at `5f4ecc0`.** Do not ask it to merge v3, and do not touch its files.
+> - Past results (R-4, R-4b, R-4c) keep their v2 labels. Nothing is re-run on the 60 pilot events.
+> - Commit, push, and report:
+>   - the v3 SHA;
+>   - the tests;
+>   - a one-line comparison: hit PMTs per event and mean digit time spread, v2 against v3, on the
+>     existing fixture.
+
+**R-7 literature comparisons (author, 23 Oct 2026; record, do not adopt -- no parameter changes).**
+- **T-Q magnitude** (Fig. 5.33, one 20-inch channel, SK electronics): relative to 0.25 PE the hit comes earlier by about 3 ns at 0.4 PE, 7 ns at 0.8, 12 ns at 4, 17 ns at 40 and 21.5 ns at 400 PE, still rising by about 4.5 ns per decade above 4 PE; our `a + b/√q` with b = 2 ns spans about 3.7 ns and is flat above 50 PE. Our form and values are kept (3-inch tube pulses are faster; D-TQ stays as adopted).
+- **Dark rate:** 4.2 kHz (SK) and 8.3 kHz (HK B&L at 15 °C) are 20-inch values that scale with cathode area and do not transfer; kept at 1 kHz.
+- **Charge linearity** within 5% up to 470 PE and afterpulses below 5% (§4.3, §4.5); pre- and after-pulses stay off.
+- **SPE charge shape** (Eq. 6.1: SPE and 2PE peaks plus backscatter terms); the Gaussian-based digit charge smearing stays for now.
+- **Gain drift** (for the JEPA study's framing only, not a PMT parameter): SK-IV average gain rose about 17% over roughly 10 years (re-tuned to 85.6% of the drifted value) and the PMT-to-PMT spread grew to 12% (4% after re-tuning); HK B&L gain varied 1% RMS over 2 years.
+
+The R-7 adopted items are unaffected by these comparisons: `threshold_pe` = 0.25 (`literature_sk`, §6.1), `spe_sigma` = 0.30 (§4.3), the Fig. 4.3 HK R12860 QE curve, `collection_efficiency` = 0.87 (§4.2) and the Eq. 6.3 split-normal timing kernel keep their R-7 values (these five bullets are comparisons only).
+
+**Open questions for Junjie from R-7.**
+- Is the §6.2/Fig. 6.3 timing width read as a standard deviation (σ_e early, σ_l late, feeding Eq. 6.3) or does Eq. 6.2's missing factor of 2 mean our reading is off by √2? R-7 adopts the standard-deviation reading for now; the values are labelled `literature_proxy_hk_20in`.
+- Does the WCTE T-Q walk keep rising at high charge (Fig. 5.33 keeps rising at about 4.5 ns/decade above 4 PE)? Our `a + b/√q` is flat above 50 PE, so a WCTE measurement decides.
+
+The R-7 values are proxies, labelled `literature_proxy_hk_20in` (HK 20-inch R12860 Box&Line) or `literature_sk` (Super-K R3600 50 cm), from J. Xia, *Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors*, MSc thesis, University of Tokyo, July 2019, with section/figure/equation per value; a WCTE value from Junjie replaces a proxy as soon as it arrives, and the PDF is not committed.
+
+**Engineering decisions and recorded checks (agent, 23 Oct 2026; R-7).**
+
+- E48 (R-7). Schema `pmt-response-v3` in `configs/lucid_pmt/reference_v3.json` is the new default reference; `configs/lucid_pmt/reference.json` (`pmt-response-v2`) is frozen byte-identical and its file hash (`17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68`) is pinned in `response_manifest.V2_SHA256` and checked by `load_manifest`. Past results (R-4, R-4b, R-4c) and the JEPA SHA `5f4ecc0` keep their v2 labels. JEPA was not asked to merge v3 and none of its files (`src/jepa_noise/`, `configs/jepa*`, `docs/jepa/`, `results/jepa/`) were touched.
+- E49 (R-7). QE curve replaced by the HK R12860 average from Fig. 4.3: the 17 author-transcribed anchors 280-700 nm plus the v2 zero-QE anchors at 200 and 800 nm; piecewise-linear in wavelength; status `literature_proxy_hk_20in`. The old synthetic curve's peak 0.50 is gone. At 300-600 nm the LUCiD pilots' photon band is fully inside the new table.
+- E50 (R-7). `collection_efficiency` = 0.87 (section 4.2). Peak QE x CE = 0.305 x 0.87 = 0.26535, inside the required 0.25-0.29 and matching the HK requirement of 26% (Table 4.1); recorded in the manifest's `literature_provenance.checks` and asserted by a test.
+- E51 (R-7). `timing_response.SplitNormalWidth` implements Eq. 6.3: density sqrt(2/pi)/(sigma_e + sigma_l) * exp(-(t - t0)^2 / (2 sigma^2)), sigma_e for t < t0 and sigma_l for t >= t0. The Fig. 6.4(b) sigma_e/sigma_l table is interpolated linearly in log10 q and the 2 PE bump is kept. The mode is t0 = photon arrival + walk; the sampled mean is t0 + sqrt(2/pi)(sigma_l - sigma_e), recorded on the class and in the manifest conventions. The per-module `timing_width_factor` scales both sigmas, so the inverse-CDF draw scales by the same factor (the ratio, and therefore the early/late probability, is unchanged).
+- E52 (R-7). The readout draws one keyed uniform per channel for the digit width (identity = channel, as in v2) and maps it through the declared kernel; dark photoelectrons pass through the same width stage, so there is no separate dark kernel. Moving the T-Q walk leaves the width draw unchanged: the walk interventions remain exactly the declared curve shift. The v2 symmetric-Gaussian path is arithmetically unchanged.
+- E53 (R-7). Reading recorded: the thesis widths are treated as standard deviations (section 6.2 says they feed Eq. 6.3), and the possible sqrt(2) reading (Eq. 6.2 omitting the factor 2) is listed as an open question for Junjie above.
+- E54 (R-7). Test code changes outside the new file: the pre-R-6 dark-count golden hash is now pinned to the v2 manifest (it must keep reproducing v2, not v3); the physical T-Q mean check adds the recorded split-normal mean shift; the early-digit fraction check uses the analytic split-normal CDF; `pmt_development`'s QE-shape control resamples the v1/v2 anchor pattern onto the v3 table and its plot shows sigma_e and sigma_l.
+- E55 (R-7). New test file `src/noise_module_lucid/tests/test_r7_response_v3.py` (15 tests): QE table interpolation and zero anchors; peak QE x CE; analytic normalisation, CDF, inverse CDF, mean shift and log-q interpolation of the split normal; sampled widths, half probability, mean and KDE mode plus a KS test against the analytic CDF at 0.25, 1, 2, 10 and 100 PE; width-factor scaling of both sigmas; T-Q intervention changes only the walk; dark digits carry the same kernel; v2 reproducible by its manifest hash; v3 default and provenance labels. Full `src/noise_module_lucid/tests` run: 211 passed, 2 skipped (the two torch tests skip locally).
+
+- E56 (R-7). WP6 contract v2 is left bound to the v2 reference (it is frozen and WP7 is not launched); re-freezing the contract on v3 is a WP7 planning item, not part of R-7. Nothing was re-run on the 60 pilot events and no GPU or remote host was used.
+
+**R-7 fixture comparison, v2 against v3 (24 evaluation events of the existing 76-sensor synthetic fixture; `results/pmt_r7_dev_2026-10-23/fixture_comparison.json`, `scripts/pmt_r7_v2_v3_fixture_comparison.py`).** Hit PMTs per event 75.96 -> 75.12 (delta -0.83); mean within-event digit time spread 3.081 -> 3.235 ns (delta +0.154 ns); mean digit time 21.121 -> 21.297 ns. Only the response manifest changes: same events (30000-30023), same per-event seeds, dark-count stage on at 1 kHz in both. Caveats, all properties of this fixture: it is occupancy-saturated (4000 photons over 76 sensors, about 11 PE/PMT in v2 and 6 in v3), so the hit-PMT count sits near the 76-sensor ceiling and is compressed; and the about 3 ns within-event spread is dominated by time of flight across the cylinder, so it is only weakly sensitive to the kernel change. Nothing was re-run on the 60 pilot events.

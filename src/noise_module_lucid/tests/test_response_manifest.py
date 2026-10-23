@@ -7,10 +7,10 @@ import numpy as np
 import pytest
 from noise_module_lucid import response_manifest
 from noise_module_lucid.readout import ReadoutParams
-from noise_module_lucid.timing_response import InverseSqrtWalk
+from noise_module_lucid.timing_response import InverseSqrtWalk, SplitNormalWidth
 
 PACKAGE = Path(response_manifest.__file__).parent
-CTORS = {"ReadoutParams", "WalkCurve", "InverseSqrtWalk", "WidthCurve", "QECurve", "ChannelWalkCurve"}
+CTORS = {"ReadoutParams", "WalkCurve", "InverseSqrtWalk", "WidthCurve", "SplitNormalWidth", "QECurve", "ChannelWalkCurve"}
 RESPONSE_FIELDS = set(ReadoutParams.__dataclass_fields__)
 # Modules that define the response types or build the reference from the manifest.
 BUILDERS = {"response_manifest.py", "timing_response.py", "quantum_efficiency.py"}
@@ -89,7 +89,8 @@ def test_pilots_build_from_the_manifest():
 
 def test_manifest_hashes_domain_and_fixture():
     m = response_manifest.load_manifest()
-    assert m["schema"] == "pmt-response-v2" and m["status"] == "synthetic_dev"
+    # R-7 (23 Oct 2026): v3 is the default; v2 stays loadable and hash-pinned.
+    assert m["schema"] == "pmt-response-v3" and m["status"] == "literature_proxy_dev"
     assert m["parameters"]["charge_domain_pe"]["value"] == [0.25, 1000.0]
     assert m["parameters"]["walk"]["value"] == {"form": "inverse_sqrt", "a_ns": 0.0, "b_ns": 2.0, "q_sat_pe": 50.0}
     assert m["fixture"]["photons_per_event"] == 4000
@@ -113,6 +114,7 @@ def test_reference_response_any_size_and_group_rule():
     for n, group in ((76, np.arange(76)//12), (1995, response_manifest.module_groups(np.repeat(np.arange(105)*7, 19)))):
         p = response_manifest.reference_response(n, group)
         assert isinstance(p, ReadoutParams) and len(p.gain) == n and p.charge_domain_pe == (0.25, 1000.0)
+        assert isinstance(p.timing_width, SplitNormalWidth)
         np.testing.assert_allclose(p.gain, 1+.03*(np.asarray(group) % 2))
         np.testing.assert_allclose(p.timing_width_factor, 1+.05*(np.asarray(group) % 2))
         assert p.walk_curve == p.reference_walk == InverseSqrtWalk(0.0, 2.0, 50.0, (0.25, 1000.0))
