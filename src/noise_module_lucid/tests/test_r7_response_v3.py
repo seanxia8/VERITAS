@@ -181,6 +181,23 @@ def test_split_normal_sampled_widths_mode_and_mean(q):
     assert kstest(z, lambda v: tw.cdf(v, q)).pvalue > 1e-3
 
 
+def test_split_normal_mode_tracks_a_nonzero_arrival():
+    """The kernel's mode is the photon arrival plus the walk, not a fixed time origin."""
+    arrival = 12.5
+    q = 2.0
+    p = raw_flat(N, q)
+    d = read(one_photon_per_channel(N, q, arrival=arrival), p)
+    tw = p.timing_width
+    z = d.time - (arrival + float(p.walk_curve(q)))
+    w = float(tw.sigma_e(q)) / (float(tw.sigma_e(q)) + float(tw.sigma_l(q)))
+    assert abs((z < 0).mean() - w) < 3.0 * np.sqrt(w * (1 - w) / N)
+    assert abs(z.mean() - float(tw.mean_shift(q))) < 3.0 * max(float(tw.sigma_e(q)), float(tw.sigma_l(q))) / np.sqrt(N)
+    kde = gaussian_kde(z, bw_method=0.4 / float(z.std(ddof=1)))
+    grid = np.linspace(-3.0, 3.0, 601)
+    assert abs(float(grid[np.argmax(kde(grid))])) <= 0.5
+    assert kstest(z, lambda v: tw.cdf(v, q)).pvalue > 1e-3
+
+
 def test_width_factor_scales_both_split_normal_sigmas():
     p = raw_flat(N, 2.0)
     wide = replace(p, timing_width_factor=2.0)
