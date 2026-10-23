@@ -2061,3 +2061,18 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
   **"you can work from `/work/dwong`"**. A10 work root `/work/dwong/jepa_a10_work/` and code clone
   `/work/dwong/jepa_a10` are a **deviation** from the `/ceph/dwong/jepa/`-only hard rule; author to
   rule. Correction line (author, 21 Oct 2026): **commit `dcdf6ce` is author-approved.**
+
+### Author task brief — 23 Oct 2026
+
+- **2026-10-23 — Author approval quoted verbatim.** "我认可你的建议，把1 2 3 4步写成一份发给
+  orchestrator 的简短任务说明，让它一项一项做" (23 Oct 2026, 23:17 CEST).
+- **2026-10-23 — Follow-up confirmation quoted verbatim.** "是的，我确认这两点" (23 Oct 2026,
+  23:21 CEST): (i) `anchor_only` runs at the anchored arms' β (option A, step 4); (ii) these
+  approvals are recorded verbatim.
+- **2026-10-23 — Task brief committed unchanged.** `docs/jepa/TASK_2026-10-23_LABEL_SHORTCUT.md`
+  at `cef3dd5`, before starting.
+- **2026-10-23 — Step 1 grid pause.** grid-0 stopped at 15 completed runs (exit 2, anchor_only
+  null β); grid-1 paused after its in-progress run with SIGTERM (exit 143, no SIGKILL), 10
+  completed runs. No JEPA training job remains on deepthought2; 25 completed runs listed in
+  `results/jepa/20261023_label_shortcut_diag/grid_completed_runs.json`. Ledger charged
+  **67.471034** L40S GPU-h; projection deliberately pending step 2/3 re-projection.
