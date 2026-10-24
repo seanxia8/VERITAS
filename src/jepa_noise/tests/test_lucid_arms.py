@@ -447,8 +447,9 @@ def test_streamed_probe_matches_the_no_intercept_fit():
 
 
 # --------------------------------------------------- label reverse leakage
-def _label_zero_context_test(split, occupancy, tmp_path):
-    run = _run(tmp_path / f"run_{split}_{occupancy}", events=2, hits=60, seed=4)
+def _label_zero_context_test(split, occupancy, tmp_path, *, events=2, hits=60,
+                             require_extra_hidden=False):
+    run = _run(tmp_path / f"run_{split}_{occupancy}", events=events, hits=hits, seed=4)
     batch = pe.tokenise(run, SMALL, split=split, seed=0, occupancy=occupancy)
     settings = la.ArmSettings.from_config(la.load_config())
     arm = la.build_arm("sigreg_jepa", SMALL, settings=settings, seed=0)
@@ -456,12 +457,19 @@ def _label_zero_context_test(split, occupancy, tmp_path):
     from dataclasses import replace
     viewed = replace(batch, features=x)
     _, _, labels, _, _ = arm._encode_views(viewed)
-    assert labels.shape[:2] == batch.target_index.shape
+    counts = batch.hidden.sum(1)
+    assert int(counts.min()) == int(counts.max())  # rectangular hidden view
+    assert labels.shape[:2] == (batch.features.size(0), int(counts[0]))
+    if require_extra_hidden:
+        assert int(batch.hidden.sum()) > int(batch.target.sum())
     scalar = (labels * torch.randn_like(labels)).sum()
     grad, = torch.autograd.grad(scalar, x)
     for row in range(batch.features.size(0)):
         context = batch.context_index[row]
+        target = batch.target_index[row]
         assert float(grad[row, context].abs().sum()) == 0.0
+        # positive control: the fix must not make the label branch constant
+        assert float(grad[row, target].abs().sum()) > 0.0
 
 
 def test_label_tokens_have_zero_context_gradient_within(tmp_path):
@@ -473,4 +481,7 @@ def test_label_tokens_have_zero_context_gradient_across(tmp_path):
 
 
 def test_label_tokens_have_zero_context_gradient_balanced(tmp_path):
-    _label_zero_context_test("within", "balanced", tmp_path)
+    # One event with sparse hits gives extra_hidden != empty, so this actually
+    # exercises balanced occupancy instead of duplicating the natural test.
+    _label_zero_context_test("within", "balanced", tmp_path, events=1, hits=38,
+                             require_extra_hidden=True)

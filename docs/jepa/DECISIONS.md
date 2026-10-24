@@ -2107,3 +2107,4 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
   labelled `superseded_by_label_fix`; `mae_mse`, `mae_chi2`, `ijepa_ema` remain valid. The only
   code diff is `lucid_arms._encode_views`; those three paths do not use the changed labels.
   Evidence `results/jepa/20261023_label_shortcut_diag/grid_bookkeeping.json`.
+- **2026-10-24 — Step 3A review PASS.** Fresh reviewer verdict: production fix correct; target-only labels have exactly zero context gradient; full pass retained for anchor/evaluation; other arm numerics unchanged. Two non-blocking findings: the balanced regression test was degenerate, and `WP5_ARMS.md` still described the old full-input labels. Both corrected (balanced test now uses a sparse single-event view with `extra_hidden` non-empty and a positive target-gradient control; WP5_ARMS updated). 24 arm tests pass.

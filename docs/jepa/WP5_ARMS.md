@@ -34,8 +34,10 @@ in the small fixture, NOT WCTE) and tiny synthetic runs.
      tokens layer-normalised (`LayerNorm(elementwise_affine=False)`), prediction
      L2. The target encoder is never in an optimiser group.
    - `sigreg_jepa`: shared weights, no stop-gradient and no EMA; prediction L2
-     (MSE between the predictor output and the full-input read-out at the hidden
-     PMTs) plus `lambda * SIGReg(context_pooled, target_tokens)` with the pinned
+     (MSE between the predictor output and the **target-only** read-out at the hidden
+     PMTs, `encode(features, hidden_mask=~target)`; the full unmasked pass is not
+     the label any more, see DECISIONS 2026-10-23) plus
+     `lambda * SIGReg(context_pooled, target_tokens)` with the pinned
      `jepa_noise.sigreg` implementation and its own reduction.
    - `sigreg_jepa_anchored`: `sigreg_jepa` + β × anchor penalty.
    - `anchor_only`: SIGReg + the same penalty, no prediction loss (the predictor

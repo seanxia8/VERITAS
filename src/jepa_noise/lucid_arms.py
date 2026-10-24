@@ -410,7 +410,8 @@ class LucidArm(nn.Module):
             return context, prediction, None, hidden_index, None
         full = self.jepa.encode(batch.features)
         # WP4 label definition (v3, kept by v4 §2): labels come from a target-only
-        # pass; the full unmasked pass is kept only for the anchor and evaluation.
+        # pass.  The full unmasked pass is still returned for the anchor and for
+        # evaluation (and existing callers); it is not used as the prediction label.
         # A label read-out on the full event can otherwise copy context through
         # the shared encoder (A10 audit / 2026-10-23 label-shortcut diagnostic).
         label_full = self.jepa.encode(batch.features, hidden_mask=~batch.target)
