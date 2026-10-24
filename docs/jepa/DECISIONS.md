@@ -2099,6 +2099,6 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
 - **2026-10-24 — Fixed-label A10 dev step 3 launched.** `a10_dev_step3_fixed` at `c2dce54`, same
   seed/rule/config as frozen step 3; plain reference from the old step-2 probes; new decision will
   supersede `a10_dev_step3_beta_decision_2026-10-23.json` as `superseded_by_label_fix`.
-- **2026-10-24 — Step 2b ledger.** Diagnostic GPU wall 2.8193 h; old seed9001 2407.54 s, fixed
-  seed9000 2575.51 s, fixed seed9001 2655.57 s. Ledger charged 70.2903 L40S GPU-h before the
-  fixed step-3 run.
+- **2026-10-24 — Step 2b ledger.** Diagnostic GPU wall **2.8193 h including the existing old seed9000 run** (new runs 2.1218 h:
+  old seed9001 2407.54 s, fixed seed9000 2575.51 s, fixed seed9001 2655.57 s). Ledger charged
+  **69.592873** L40S GPU-h before the fixed step-3 run.
