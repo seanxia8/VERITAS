@@ -409,8 +409,13 @@ class LucidArm(nn.Module):
         if not need_full:
             return context, prediction, None, hidden_index, None
         full = self.jepa.encode(batch.features)
+        # WP4 label definition (v3, kept by v4 §2): labels come from a target-only
+        # pass; the full unmasked pass is kept only for the anchor and evaluation.
+        # A label read-out on the full event can otherwise copy context through
+        # the shared encoder (A10 audit / 2026-10-23 label-shortcut diagnostic).
+        label_full = self.jepa.encode(batch.features, hidden_mask=~batch.target)
         gather = hidden_index.unsqueeze(-1).expand(-1, -1, self.d_model)
-        return context, prediction, full.gather(1, gather), hidden_index, full
+        return context, prediction, label_full.gather(1, gather), hidden_index, full
 
     @staticmethod
     def _context_pooled(context: Tensor, context_index: Tensor) -> Tensor:

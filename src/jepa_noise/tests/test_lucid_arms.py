@@ -444,3 +444,33 @@ def test_streamed_probe_matches_the_no_intercept_fit():
         assert legacy["status"] == streamed["status"] == "evaluated"
         assert legacy["alphas"] == streamed["alphas"]
         assert streamed["r2_mean"] == pytest.approx(legacy["r2_mean"], rel=1e-6)
+
+
+# --------------------------------------------------- label reverse leakage
+def _label_zero_context_test(split, occupancy, tmp_path):
+    run = _run(tmp_path / f"run_{split}_{occupancy}", events=2, hits=60, seed=4)
+    batch = pe.tokenise(run, SMALL, split=split, seed=0, occupancy=occupancy)
+    settings = la.ArmSettings.from_config(la.load_config())
+    arm = la.build_arm("sigreg_jepa", SMALL, settings=settings, seed=0)
+    x = batch.features.detach().clone().requires_grad_(True)
+    from dataclasses import replace
+    viewed = replace(batch, features=x)
+    _, _, labels, _, _ = arm._encode_views(viewed)
+    assert labels.shape[:2] == batch.target_index.shape
+    scalar = (labels * torch.randn_like(labels)).sum()
+    grad, = torch.autograd.grad(scalar, x)
+    for row in range(batch.features.size(0)):
+        context = batch.context_index[row]
+        assert float(grad[row, context].abs().sum()) == 0.0
+
+
+def test_label_tokens_have_zero_context_gradient_within(tmp_path):
+    _label_zero_context_test("within", "natural", tmp_path)
+
+
+def test_label_tokens_have_zero_context_gradient_across(tmp_path):
+    _label_zero_context_test("across", "natural", tmp_path)
+
+
+def test_label_tokens_have_zero_context_gradient_balanced(tmp_path):
+    _label_zero_context_test("within", "balanced", tmp_path)

@@ -1,0 +1,64 @@
+{
+ "floor": {
+  "vertex": 0.160904,
+  "module_gain": 0.218548,
+  "source": "results/jepa/20261023_a10_audit/floor_sigreg_jepa_dev.json"
+ },
+ "cases": {
+  "old_s9000": {
+   "vertex_resolution": 0.26440029142206084,
+   "module_gain_run_mean": -0.004432706783786822,
+   "final_sigreg": 9.814208745956421,
+   "final_prediction": 0.013287799898535013,
+   "final_loss": 0.2095719687640667,
+   "effective_rank": 7.020973047228747,
+   "steps": 10000,
+   "wall_seconds": 2511.0,
+   "checkpoint_sha256": "b03fee9494156cb0f8f94f78b6254a38badf62918394fcaf72529ad8f91f986a"
+  },
+  "old_s9001": {
+   "vertex_resolution": 0.23375939631380607,
+   "module_gain_run_mean": -0.004245581357827044,
+   "final_sigreg": 9.385878801345825,
+   "final_prediction": 0.011673333588987589,
+   "final_loss": 0.19939090684056282,
+   "effective_rank": 8.29044494608861,
+   "steps": 10000,
+   "wall_seconds": 2407.54,
+   "checkpoint_sha256": "14d0452ceaf09f031ed72dca8baa1495fce976ccedf842e39593a88aacda3dfa"
+  },
+  "fixed_s9000": {
+   "vertex_resolution": 0.21925859104673096,
+   "module_gain_run_mean": -0.002087150577507524,
+   "final_sigreg": 10.517299175262451,
+   "final_prediction": 0.013786953408271074,
+   "final_loss": 0.2241329327225685,
+   "effective_rank": 4.559728780375026,
+   "steps": 10000,
+   "wall_seconds": 2575.51,
+   "checkpoint_sha256": "4b2b0474a846a047983e10f5a6a337b2092ce5eeb00bbcbe103f11709f6f20a7",
+   "ratio_fixed_over_old_vertex": 0.8292675846439578
+  },
+  "fixed_s9001": {
+   "vertex_resolution": 0.2042812336002068,
+   "module_gain_run_mean": 0.005503125791909813,
+   "final_sigreg": 10.28058934211731,
+   "final_prediction": 0.01325729419477284,
+   "final_loss": 0.21886907517910004,
+   "effective_rank": 6.185659202690713,
+   "steps": 10000,
+   "wall_seconds": 2655.57,
+   "checkpoint_sha256": "794eff45b51bdcd6b383a026bfab5ab9d781eaeef544b3700f25155a4b905a37",
+   "ratio_fixed_over_old_vertex": 0.8738952821642864
+  }
+ },
+ "decision": {
+  "rule": "confirmed iff r_fixed <= 0.90*r_old in both seeds",
+  "ratios": {
+   "9000": 0.8292675846439578,
+   "9001": 0.8738952821642864
+  },
+  "branch": "confirmed"
+ },
+ "gpu_hours": 2.8193388888888893
+}

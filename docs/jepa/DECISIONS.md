@@ -2076,3 +2076,15 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
   completed runs. No JEPA training job remains on deepthought2; 25 completed runs listed in
   `results/jepa/20261023_label_shortcut_diag/grid_completed_runs.json`. Ledger charged
   **67.471034** L40S GPU-h; projection deliberately pending step 2/3 re-projection.
+
+### Step 2 label-shortcut diagnostic — 23 Oct 2026
+
+- **2026-10-23 — Step 2a dependence check.**
+  - Trained `sigreg_jepa` s9000 full-input label context share **0.1273**; random-init share
+    **0.2304**; target-only encoding gives `G_context = 0` exactly (32 dev events, within split,
+    8 projections/event).
+- **2026-10-23 — Step 2b paired result = confirmed.** Fixed target-only labels reduce photon
+  vertex resolution from 0.264400 → 0.219259 m (seed 9000; ratio 0.8293) and 0.233759 →
+  0.204281 m (seed 9001; ratio 0.8739). Both ≤0.90 → **confirmed**; no S1/S3. Effective ranks
+  4.56/6.19; module-gain run-mean still below the 0.218548 floor. Step-2b GPU wall **2.8193 h**
+  ≤3 h. Evidence `results/jepa/20261023_label_shortcut_diag/`.

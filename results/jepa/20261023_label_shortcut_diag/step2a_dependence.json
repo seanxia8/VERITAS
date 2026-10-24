@@ -1,0 +1,16 @@
+{
+ "trained": {
+  "G_context": 289.4427185058594,
+  "G_target": 1984.412353515625,
+  "context_share": 0.127291630001969
+ },
+ "random_init": {
+  "G_context": 141.7553253173828,
+  "G_target": 473.63507080078125,
+  "context_share": 0.23035023980153843
+ },
+ "target_only_G_context_exact": 0.0,
+ "probes_per_event": 8,
+ "events": 32,
+ "device": "cuda"
+}
