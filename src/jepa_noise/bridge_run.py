@@ -434,6 +434,25 @@ class CohortData:
         return self.manifest["views_manifest"]
 
 
+TOY_DELAY_ENV = "JEPA_TOY_DELAY"
+
+
+def toy_delay_extension() -> dict:
+    """Read the opt-in channel-delay extension from ``$JEPA_TOY_DELAY`` (JSON).
+
+    Only ``{"delay_mode": "fixed", "delay_step": <float>}`` is accepted here: the
+    bridge probes and CRLB assume three physics parameters, so the per-event
+    (fourth-parameter) mode needs further work and is refused.
+    """
+    raw = os.environ.get(TOY_DELAY_ENV)
+    if not raw:
+        return {}
+    value = json.loads(raw)
+    if set(value) != {"delay_mode", "delay_step"} or value["delay_mode"] != "fixed":
+        raise RuntimeError(f"{TOY_DELAY_ENV} must be {{'delay_mode': 'fixed', 'delay_step': x}}")
+    return {"delay_mode": "fixed", "delay_step": float(value["delay_step"])}
+
+
 def build_cohort_specs(config: dict) -> Dict[str, CohortSpec]:
     """The registered evaluation and development cohorts, with no drift."""
     anchor = config["objective"]["anchor"]
@@ -442,6 +461,14 @@ def build_cohort_specs(config: dict) -> Dict[str, CohortSpec]:
     frozen = (config.get("data", {}).get("generator") or {}).get(
         "views_constructor"
     )
+    delay = toy_delay_extension()
+    if delay:
+        # Extension (registered: false, author request 2026-10-24): channel-ordered
+        # arrival delays.  Merged into both cohorts so the cohort cache key and every
+        # run manifest record it; the registered BRIDGE_VIEWS check is not applied.
+        evaluation.update(delay)
+        development.update(delay)
+        frozen = None
     if frozen and dict(frozen) != evaluation:
         raise RuntimeError(
             "configs bridge generator views_constructor "
@@ -669,7 +696,12 @@ def ensure_cohort(
     if fixture == "a4":
         from .views import Tier1Views
 
-        views = Tier1Views(**spec.views_constructor)
+        if "delay_mode" in spec.views_constructor:
+            from .delay_views import DelayedTier1Views
+
+            views = DelayedTier1Views(**spec.views_constructor)
+        else:
+            views = Tier1Views(**spec.views_constructor)
         views_manifest = views.manifest()
         views_manifest["fixture"] = "a4"
         views_manifest["amplitude_gains"] = [
