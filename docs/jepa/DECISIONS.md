@@ -2102,3 +2102,8 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
 - **2026-10-24 — Step 2b ledger.** Diagnostic GPU wall **2.8193 h including the existing old seed9000 run** (new runs 2.1218 h:
   old seed9001 2407.54 s, fixed seed9000 2575.51 s, fixed seed9001 2655.57 s). Ledger charged
   **69.592873** L40S GPU-h before the fixed step-3 run.
+- **2026-10-24 — Grid bookkeeping at pause.** 25 completed runs listed; **affected arms**
+  `sigreg_jepa`, `sigreg_jepa_anchored`, `sigreg_jepa_anchored_dark`, `oracle_nominal_twin` are
+  labelled `superseded_by_label_fix`; `mae_mse`, `mae_chi2`, `ijepa_ema` remain valid. The only
+  code diff is `lucid_arms._encode_views`; those three paths do not use the changed labels.
+  Evidence `results/jepa/20261023_label_shortcut_diag/grid_bookkeeping.json`.
