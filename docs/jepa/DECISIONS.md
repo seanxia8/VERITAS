@@ -2088,3 +2088,17 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
   0.204281 m (seed 9001; ratio 0.8739). Both ≤0.90 → **confirmed**; no S1/S3. Effective ranks
   4.56/6.19; module-gain run-mean still below the 0.218548 floor. Step-2b GPU wall **2.8193 h**
   ≤3 h. Evidence `results/jepa/20261023_label_shortcut_diag/`.
+
+### Step 3A — label fix and re-selection (24 Oct 2026)
+
+- **2026-10-24 — Label defect fix committed.** `_encode_views` labels now come from
+  `jepa.encode(features, hidden_mask=~target)`; full unmasked pass retained only for anchor and
+  evaluation (`c2dce54`). Reverse-leakage tests for within/across/balanced added; 24 arm tests and
+  full suite **471 passed** on deepthought. Three guard launcher tests fail on deepthought2 only
+  because they hardcode `deepthought`; they pass on deepthought.
+- **2026-10-24 — Fixed-label A10 dev step 3 launched.** `a10_dev_step3_fixed` at `c2dce54`, same
+  seed/rule/config as frozen step 3; plain reference from the old step-2 probes; new decision will
+  supersede `a10_dev_step3_beta_decision_2026-10-23.json` as `superseded_by_label_fix`.
+- **2026-10-24 — Step 2b ledger.** Diagnostic GPU wall 2.8193 h; old seed9001 2407.54 s, fixed
+  seed9000 2575.51 s, fixed seed9001 2655.57 s. Ledger charged 70.2903 L40S GPU-h before the
+  fixed step-3 run.

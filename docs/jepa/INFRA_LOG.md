@@ -21,3 +21,7 @@ incidents that affect provenance are also one line each. Full evidence lives in
 | 2026-10-23 11:43 | deepthought2 | grid stop | `a10_grid_gpu0_wait` exit 2 after 15 completed runs: `anchor_only requires a beta decision` because the frozen A10 step-3 has `selected: null`; completed runs retained |
 | 2026-10-23 21:23 | deepthought2 | grid pause | `a10_grid_gpu1_retry` paused gracefully after the in-progress run completed; `SIGTERM` forwarded by `jepa_launch` (exit 143), no SIGKILL; 10 completed runs retained |
 | 2026-10-23 21:23 | deepthought2 | training stopped | no JEPA training job remains on deepthought2; both grid halves stopped for the author's label-shortcut diagnostic |
+| 2026-10-23 21:26–22:36 | deepthought2 | diagnostic training | `a10_step2b_old_s9001b` exit 0, 2407.54 s; current-label seed 9001 |
+| 2026-10-23 22:47–23:30 | deepthought2 | diagnostic training | `a10_step2b_fixed_s9000` exit 0, 2575.51 s; target-only labels, seed 9000 |
+| 2026-10-23 23:34–2026-10-24 00:19 | deepthought2 | diagnostic training | `a10_step2b_fixed_s9001` exit 0, 2655.57 s; target-only labels, seed 9001; branch confirmed |
+| 2026-10-24 00:37 | deepthought2 | dev re-run | `a10_dev_step3_fixed` launched on GPU 0 at `c2dce54`; fixed-label A10 dev step 3 (15 runs, ≤15 GPU-h) |

@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 67.471034,
+   "charged_gpu_hours": 69.592873,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -24,7 +24,7 @@
     "a10_smoke_gpu_hours": 0.261106,
     "a10_dev_step2_step3_gpu_hours": 13.164797,
     "a10_grid_elapsed_gpu_hours": 20.757042,
-    "charged_total_gpu_hours": 67.471034,
+    "charged_total_gpu_hours": 69.592873,
     "grid_completed_runs": 25,
     "grid_running_runs": 0,
     "grid_remaining_runs": 140,
@@ -38,8 +38,9 @@
     "fallbacks_triggered": [],
     "method": "GPU device-hours = launcher wall for each job (failed attempts included); grid running jobs charged to audit time; remaining projection = 154 incomplete runs x median completed-run wall (11 runs); data generation/eval included in job wall.",
     "audit_snapshot_utc": "2026-10-23T10:00Z",
-    "status": "paused_for_label_shortcut_diagnosis",
-    "note": "Projection deliberately not carried forward: step 2/3 may re-run the four affected arms and step 4 re-projects. Do not use the pre-pause projection as a start decision."
+    "status": "label_fix_confirmed_dev_step3_fixed_running",
+    "note": "Step 2b charged; step-3 fixed re-run started, projection pending completion.",
+    "a10_step2b_gpu_hours": 2.121839
    }
   },
   "E2_lucid_titan_deepthought": {
@@ -1255,6 +1256,48 @@
    "job_kind": "wp5",
    "evidence": "/work/dwong/jepa_a10/jobs/a10_grid_gpu1_retry/",
    "note": "A10 grid half 1; paused gracefully after completing the in-progress run (SIGTERM forwarded, no SIGKILL)"
+  },
+  {
+   "id": "a10_step2b_old_s9001b",
+   "campaign": "E2_lucid_l40s",
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0.668761,
+   "wall_seconds": 2407.54,
+   "status": "complete",
+   "exit_status": 0,
+   "job_kind": "wp5",
+   "evidence": "/work/dwong/jepa_a10/jobs/a10_step2b_old_s9001b/",
+   "note": "old-label seed 9001; diagnostic"
+  },
+  {
+   "id": "a10_step2b_fixed_s9000",
+   "campaign": "E2_lucid_l40s",
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0.715419,
+   "wall_seconds": 2575.51,
+   "status": "complete",
+   "exit_status": 0,
+   "job_kind": "wp5",
+   "evidence": "/work/dwong/jepa_a10/jobs/a10_step2b_fixed_s9000/",
+   "note": "fixed-label seed 9000; diagnostic"
+  },
+  {
+   "id": "a10_step2b_fixed_s9001",
+   "campaign": "E2_lucid_l40s",
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0.737658,
+   "wall_seconds": 2655.57,
+   "status": "complete",
+   "exit_status": 0,
+   "job_kind": "wp5",
+   "evidence": "/work/dwong/jepa_a10/jobs/a10_step2b_fixed_s9001/",
+   "note": "fixed-label seed 9001; diagnostic"
   }
  ]
 }
