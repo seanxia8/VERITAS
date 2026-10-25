@@ -2108,3 +2108,23 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
   code diff is `lucid_arms._encode_views`; those three paths do not use the changed labels.
   Evidence `results/jepa/20261023_label_shortcut_diag/grid_bookkeeping.json`.
 - **2026-10-24 — Step 3A review PASS.** Fresh reviewer verdict: production fix correct; target-only labels have exactly zero context gradient; full pass retained for anchor/evaluation; other arm numerics unchanged. Two non-blocking findings: the balanced regression test was degenerate, and `WP5_ARMS.md` still described the old full-input labels. Both corrected (balanced test now uses a sparse single-event view with `extra_hidden` non-empty and a positive target-gradient control; WP5_ARMS updated). 24 arm tests pass.
+
+
+### Pre-grid extensions — 25 Oct 2026
+
+- **2026-10-25 — Author authority (24 Oct 2026, 23:32 CEST), verbatim:**
+> "我需要你改几个细节，重新做一遍实验，
+> 1. 线性模型组，加两组实验，一组是纯噪音没物理，一组是纯物理没噪音，来验证猜想
+> 2. 第二，在JEPAtraining 时候泄露是在lucid data上对吧，然后避免泄露不可以用打乱组别对吧。因为组的顺序也是物理信息的一环
+> 3. 在toy model的traceset里面，我们要是加上各组arriving time 逐组变晚。加一个这样的causal关系呢？
+> 4. 建议恢复 grid 前先做的三项检查，你准备好code和prompt，setup好后我让agent去跑
+> 5. 在给俊杰的report里面加上结果table，以及各个量是如何算的，特别是物理量和噪音比
+> 6. 我们对JEPA已经做了的修复，sound吗？用两个encoder会不会解决问题，还有别的解决办法吗？双保险"
+
+- **2026-10-25 — Author authority (25 Oct 2026, 02:00 CEST), verbatim:**
+> "全部都可以在deepthought上跑对吧？不如把所有写成一个长runbook，我直接交给deepthought agent"
+
+- **2026-10-25 — Superseding execution instructions.** Archive the supplied runbook byte-for-byte as `RUNBOOK_2026-10-25_PREGRID_ALL.md` before any new experiment. It replaces the 24 Oct pre-grid task and supersedes the 23 Oct task step 4. The grid stays paused; no grid decision file or grid launch is authorized. All new results are extensions, `registered: false`, outside registered results; existing frozen decisions and verdicts remain intact.
+- **2026-10-25 — Worktree choice.** Reuse the clean `/private/tmp/veritas-jepa` worktree on `JEPA` at `fecc1f7022e2ee90ef5f9d480d11ad7198bfa71b`; preserve the PMT checkout and its untracked results.
+- **2026-10-25 — SSH configuration.** Local SSH config defines only the FQDN hosts `deepthought.etp.kit.edu` and `deepthought2.etp.kit.edu`; short aliases do not resolve. Use those configured FQDNs for the same authorized hosts. Both connections and the shared `/ceph/dwong/jepa/` path pass read-only checks; S5 is not triggered.
+- **2026-10-25 — Missing execution input.** The supplied attachment contains the runbook only. `0001-jepa-extensions-2026-10-24.patch` is absent from the attachment directory and local attachment/download/worktree searches. Do not reconstruct the author's patch, substitute new code, or claim Part A acceptance. Dependent Parts A–F await that exact patch; independent read-only Part 1 status checks continue.

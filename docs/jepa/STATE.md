@@ -1,6 +1,15 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-23 10:00Z by Lead. A10 audit recorded; grid running.
+Updated: 2026-10-25. Pre-grid extension runbook received; grid remains paused.
+
+## Pre-grid checks (25 Oct 2026, current instructions)
+
+- `RUNBOOK_2026-10-25_PREGRID_ALL.md` supersedes the 24 Oct task and the 23 Oct task step 4. Historical grid-running/next-action entries below are superseded.
+- Preserve fixed-label dev step 3; inspect its status without launching any grid run.
+- All new runs are extensions (`registered: false`); no registered prediction, criterion, dataset or frozen decision changes.
+- Part A is waiting for the required author attachment `0001-jepa-extensions-2026-10-24.patch`. No new experiment has started.
+- Both authorized remote hosts and `/ceph/dwong/jepa/` are reachable using their configured FQDNs.
+
 
 ## A10 status (23 Oct 2026)
 
