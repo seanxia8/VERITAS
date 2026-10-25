@@ -35,3 +35,7 @@ Queue job ID: `pregrid_C_checkpoints_20261026`. Remote status: `/ceph/dwong/jepa
 Runbook Titan charge after init:0.1125 failed-original +0.218086111 retry =0.330586111 GPU-h of30. Pending queue reserves at most2.5 GPU-h (timeout), so total remains below30. Conservative L40S ledger plus remaining-grid projection plus extensions stays142.977123<160 GPU-h; no L40S run launched. CPU generation stays0.6535/48 wall-h; no new generation.
 
 Six standard-library coordinator tests cover false reproduction flags, independent tolerance verification, incomplete reports, registered-report rejection, valid reports and timeout-inclusive budgets. The prior483-test scientific suite remains the accepted source baseline; only the Part C queue and its tests were added afterward.
+
+Deployment acceptance: fixed GitHub SHA `2b24630906d327231f05defa6d7ada5751988d2a`; Deepthought18/18 CPU tests in6.82s, Deepthought2 18/18 in11.48s. Exact returned init JSON hashes verified against remote SHA256SUMS.
+
+Observed queue state: `WAITING_GUARD` at 2026-10-25T23:28:51Z. It is running in tmux and no checkpoint GPU job has launched. A proposed15-minute persistent heartbeat was rejected by automatic approval review; no heartbeat was created. The Part-C-only coordinator remains active and will stop after the six checkpoint inspections; Parts D–F are not queued.

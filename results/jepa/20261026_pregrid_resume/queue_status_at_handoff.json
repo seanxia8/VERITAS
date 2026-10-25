@@ -1,0 +1,12 @@
+{
+  "registered": false,
+  "status": "WAITING_GUARD",
+  "grid": "paused",
+  "run_id": "pregrid_C_checkpoints_20261026",
+  "code_sha": "2b24630906d327231f05defa6d7ada5751988d2a",
+  "base_titan_gpu_hours": 0.33058611111111114,
+  "utc": "2026-10-25T23:28:51Z",
+  "reason": "jepa_guard: refusing start: guard level is HOLD, not OK (no GPU satisfies the start condition; GPU 0: 5-minute mean utilisation 97.3% >= 20% limit; GPU 0: other user's process PID 4078856 holds 3644 MiB > 1024 MiB limit; GPU 1: 5-minute mean utilisation 97.7% >= 20% limit; GPU 1: other user's process PID 4078854 holds 3752 MiB > 1024 MiB limit)",
+  "planned_minutes": 100,
+  "max_gpu_hours": 2.5
+}

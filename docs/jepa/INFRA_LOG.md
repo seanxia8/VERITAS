@@ -33,3 +33,4 @@ incidents that affect provenance are also one line each. Full evidence lives in
 | 2026-10-25 23:18:55Z | deepthought | HOLD | No eligible start GPU after foreign jobs occupied the Titan lane; Part C retry continues within426 MiB GPU memory and1240 MiB RSS. No new starts and no SHED. |
 | 2026-10-25 23:20:55Z | deepthought | HOLD | Foreign GPU0 memory3644 MiB and high utilization across Titans block starts; running Part C retry uses428 MiB GPU memory/1240 MiB RSS, full and half-pass probes saved, no SHED. |
 | 2026-10-25 23:22:56Z | deepthought | HOLD / retry complete | Init9000 retry exited0 at23:22:17Z; reproduction passed. High foreign GPU utilization/memory still block all starts; six checkpoint inspections pending; no SHED, grid paused. |
+| 2026-10-25T23:28:51Z | deepthought | HOLD / Part C queue | Bounded coordinator is WAITING_GUARD; no eligible Titan, no checkpoint job started. Both hosts CPU tests18/18 passed; no D/grid continuation queued. |
