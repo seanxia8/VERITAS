@@ -1,0 +1,17 @@
+{
+  "registered": false,
+  "run_id": "pregrid_C_init9000_retry1",
+  "previous_attempt": "pregrid_C_init9000",
+  "sha": "3ecdc5cc20663d62f32ad52432643aa0a95db6b0",
+  "host": "deepthought",
+  "gpu_type": "GTX Titan X",
+  "gpu_count": 1,
+  "arm": "sigreg_jepa",
+  "cell": "dev_s005_within",
+  "seed": 9000,
+  "source": "init",
+  "command": "cd /ceph/dwong/jepa/code/3ecdc5c && PYTHONPATH=src:. PYTHONDONTWRITEBYTECODE=1 JEPA_JOB_MODULE=scripts.jepa_pregrid_checks JEPA_JOB_KIND=evaluation JEPA_PYTHON=/home/dwong/anaconda3/bin/python3 bash scripts/jepa_run.sh pregrid_C_init9000_retry1 --duration-minutes 30 --host deepthought -- inspect --out /ceph/dwong/jepa/returns/ext_pregrid_20261025/inspect_dev/init9000_retry1 --config src/jepa_noise/configs/lucid_run_v0_mixed_calibrated.json --generator-config src/jepa_noise/configs/lucid_bombs_v2_calibrated.json --geometry /ceph/dwong/jepa/external/LUCiD/config/WCTE_geom_config.json --data-root /ceph/dwong/jepa/data/ext_pregrid_dev_20261025 --item init9000=sigreg_jepa:init:9000 --expect init9000=0.160904 --device auto > /ceph/dwong/jepa/returns/ext_pregrid_20261025/recovery_20261026/pregrid_C_init9000_retry1_launcher.log 2>&1",
+  "timeout_seconds": 2700,
+  "budget_reserved_gpu_hours": 0.75,
+  "grid": "paused"
+}

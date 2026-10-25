@@ -57,16 +57,16 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 6.6353,
+   "charged_gpu_hours": 6.853386111111111,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 0.1125,
+    "charged_gpu_hours": 0.33058611111111114,
     "charge_method": "Conservative upper bound on failed-infrastructure evaluation; see job row",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
-    "status": "RESOURCE_HOLD_QUOTA; no further launch until free entries>=30000 and a fresh live guard is OK"
+    "status": "Init9000 reproduction passed; remaining Part C pending fresh guard OK; grid paused"
    }
   },
   "lucid_generation_cpu": {
@@ -1403,6 +1403,42 @@
    "exit_status": null,
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_C_init9000/",
    "note": "Part C evaluation failed on disk entry quota before full_input/probes.json could be written. Launcher final-status atomic write also failed, so exit code/final measured wall are unavailable. Conservatively charge ceiling(start00:38:33.473Z to first explicit stopped-process quota inventory00:45:17.674Z)=405 s=0.1125 Titan GPU-h. This is an upper-bound charge, not measured GPU kernel time. No numerical reproduction verdict exists and no retry launched."
+  },
+  {
+   "id": "pregrid_C_init9000_retry1",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.21808611111111112,
+   "reserved_max_gpu_hours": 0.75,
+   "status": "complete",
+   "previous_attempt": "pregrid_C_init9000",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_C_init9000_retry1/",
+   "note": "Evaluation-only retry after separately authorized quota cleanup. New output root preserves prior infrastructure failure; init9000 seed9000, expect0.160904 m, tolerance1e-3 m unchanged. Replace provisional running charge by final launcher wall when returned.",
+   "started_at_utc": "2026-10-25T23:09:11Z",
+   "gpu_index": 0,
+   "wall_seconds": 785.11,
+   "charge_as_of_epoch": 1792970581.381202,
+   "charge_method": "Final launcher wall seconds /3600; failed original charged separately",
+   "exit_status": 0,
+   "finished_at_utc": "2026-10-25T23:22:17Z"
+  },
+  {
+   "id": "pregrid_C_checkpoints_20261026",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 2.5,
+   "status": "queued_waiting_guard",
+   "planned_minutes": 100,
+   "timeout_seconds": 9000,
+   "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/part_c_queue_20261026/status.json",
+   "note": "Part C only: six frozen checkpoint inspections in one author-specified inspect command; no D/grid auto-advance. Charge actual launcher wall after completion, include failures."
   }
  ]
 }

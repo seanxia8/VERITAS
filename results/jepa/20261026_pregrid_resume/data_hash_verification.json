@@ -1,0 +1,10 @@
+{
+  "nominal_dataset_manifest_hashes_verified": {
+    "/work/dwong/jepa_a10_work/data_dev/lucid/dark_noise__s20261017__n512/manifest.json": "fff2f4b0d4a51ddef8229442933f7474c31d1c0953796ebf434ea5be664b016b",
+    "/work/dwong/jepa_a10_work/data_dev/lucid/dev_probe_train__F1__0.05__s20261017/manifest.json": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "/work/dwong/jepa_a10_work/data_dev/lucid/dev_train__F1__0.05__s20261017__n100000x1000/manifest.json": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "/work/dwong/jepa_a10_work/data_dev/lucid/dev_probe_test__F1__0.05__s20261017/manifest.json": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "/work/dwong/jepa_a10_work/data_dev/lucid/dev_train__F1__0.05__s20261017/manifest.json": "42c7b1a6a1583f6ecc5a0135122e323ce258291d099255014e4827417784e0dc"
+  },
+  "geometry_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c"
+}

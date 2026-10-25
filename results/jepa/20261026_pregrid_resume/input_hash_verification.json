@@ -1,0 +1,12 @@
+{
+  "checkpoint_and_config_hashes_verified": {
+    "/work/dwong/jepa_a10_work/dev_step2/runs/dev_s005_within__sigreg_jepa__s9000/final.pt": "b1632266f2f8ca9fd49f9a06383734fda77432f5247294e79ed65bc1936f7503",
+    "/work/dwong/jepa_a10_work/old_s9001/runs/dev_s005_within__sigreg_jepa__s9001/final.pt": "14e3590f9ed6649d86f3de751a56c3590bb748f0b4a15984bb056373bff97ceb",
+    "/work/dwong/jepa_a10_work/fixed_s9000/runs/dev_s005_within__sigreg_jepa__s9000/final.pt": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+    "/work/dwong/jepa_a10_work/fixed_s9001/runs/dev_s005_within__sigreg_jepa__s9001/final.pt": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e",
+    "/work/dwong/jepa_a10_work/dev_step2/runs/dev_s005_within__mae_mse__s9000/final.pt": "efd54c2586f8b5378dfe2febffe2ceb954c50185f6b07939c2b892c825270664",
+    "/work/dwong/jepa_a10_work/dev_step3_fixed/runs/dev_s005_within__sigreg_jepa_anchored__s9103__b100/final.pt": "04136cd290f9863a50059767dff4b19c3848f4ff0900843cc1b6a9b7082c1ba7",
+    "/work/dwong/jepa_a10/src/jepa_noise/configs/lucid_run_v0_mixed_calibrated.json": "e6730ac14ddf475b857a0f8b07407f8b54e487e2e7af827fd00bcecc5268e034",
+    "/work/dwong/jepa_a10/src/jepa_noise/configs/lucid_bombs_v2_calibrated.json": "90ac1601c40171eeb7c669a08df1fe6e6b5b332fee2a3cca689ae057a51dfe88"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "run_id": "pregrid_C_init9000_retry1",
+  "tag": "jepa_pregrid_C_init9000_retry1",
+  "host": "deepthought",
+  "gpu_index": 0,
+  "pid": 4076875,
+  "pgid": 4076875,
+  "exit_status": 0,
+  "wifsignaled": false,
+  "wtermsig": null,
+  "outcome": "exited",
+  "timed_out": false,
+  "forwarded_signal": null,
+  "planned_minutes": 30.0,
+  "timeout_seconds": 2700,
+  "started_at_utc": "2026-10-25T23:09:11Z",
+  "finished_at_utc": "2026-10-25T23:22:17Z",
+  "wall_seconds": 785.11
+}
