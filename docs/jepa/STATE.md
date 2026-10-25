@@ -1,14 +1,14 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-25. Pre-grid execution stopped at S4; grid remains paused.
+Updated: 2026-10-25. Explicit JEPA GitHub push authorization received; Part A awaits missing patch; grid remains paused.
 
 ## Pre-grid checks (25 Oct 2026, current instructions)
 
 - `RUNBOOK_2026-10-25_PREGRID_ALL.md` supersedes the 24 Oct task and the 23 Oct task step 4. Historical grid-running/next-action entries below are superseded.
 - Fixed-label dev step 3 finished: exit 0, 14.817067 L40S GPU-h. Ledger corrected; remote decision preserved, local freeze pending.
 - All new runs are extensions (`registered: false`); no registered prediction, criterion, dataset or frozen decision changes.
-- **S4 STOP:** automatic approval review rejected the JEPA GitHub push before execution. No remote deployment or new experiment. See `results/jepa/20261025_pregrid_checks/README.md` for lettered options.
-- Part A also awaits the required author attachment `0001-jepa-extensions-2026-10-24.patch`. No new experiment has started.
+- The author explicitly authorized the exact JEPA payload and GitHub destination after the historical S4 stop. Documentation push is being retried under that authorization. No remote deployment or new experiment.
+- Part A awaits `0001-jepa-extensions-2026-10-24.patch`: the newly supplied Downloads path does not exist in this environment. No new experiment has started.
 - Both authorized remote hosts and `/ceph/dwong/jepa/` are reachable using their configured FQDNs.
 
 

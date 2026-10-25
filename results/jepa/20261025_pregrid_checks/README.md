@@ -1,6 +1,8 @@
-# Pre-grid checks — 25 Oct 2026: S4 stop
+# Pre-grid checks — 25 Oct 2026: awaiting required patch
 
 `registered: false`. Execution is incomplete; no extension experiment launched.
+
+**Current update:** the author explicitly authorized the JEPA payload and exact GitHub destination after the S4 stop recorded below. Documentation push is being retried under that authorization. The supplied patch path `/Users/wongdowling/Downloads/0001-jepa-extensions-2026-10-24.patch` does not exist in the current environment; searches of Downloads, Desktop and Codex attachments found no patch. Part A cannot apply or test the author patch until its exact bytes are available. The original S4 account below is historical.
 
 The supplied runbook was archived byte-identically in commit `627c519`; SHA256 `1bccbc45903afe564130503c011b79616e31d6a03c6cb124bf9a8c752966f6ec`.
 

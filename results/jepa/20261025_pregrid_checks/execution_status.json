@@ -1,6 +1,6 @@
 {
   "registered": false,
-  "status": "stopped_S4",
+  "status": "awaiting_required_patch",
   "runbook_sha256": "1bccbc45903afe564130503c011b79616e31d6a03c6cb124bf9a8c752966f6ec",
   "new_extension_gpu_hours": {
     "deepthought": 0,
@@ -20,6 +20,7 @@
   "locally_booked_l40s_gpu_hours": 84.14883266666666,
   "projection_status": "Not refreshed; subtotal is not a launch clearance.",
   "missing_input": "0001-jepa-extensions-2026-10-24.patch",
-  "push": "Automatic approval review rejected git push origin JEPA before execution.",
-  "grid": "paused; no decision file written; no grid launched"
+  "push": "Explicit payload/destination authorization received; documentation push pending verification.",
+  "grid": "paused; no decision file written; no grid launched",
+  "missing_input_checked_path": "/Users/wongdowling/Downloads/0001-jepa-extensions-2026-10-24.patch"
 }
