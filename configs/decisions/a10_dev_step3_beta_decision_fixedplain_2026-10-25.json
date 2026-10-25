@@ -1,0 +1,94 @@
+{
+ "registered": false,
+ "extension": "pregrid_checks_2026-10-24",
+ "source_decision": "configs/decisions/a10_dev_step3_beta_decision_labelfix_2026-10-25.json",
+ "plain_resolution": 0.21925859104673096,
+ "plain_source": "results/jepa/20261023_label_shortcut_diag/fixed_s9000/probes.json",
+ "previous_plain_resolution": 0.26440029142206084,
+ "selections": {
+  "anchor_only": {
+   "selected": null,
+   "status": "none_qualified",
+   "table": [
+    {
+     "beta": 0.1,
+     "resolution": 0.5448772785527356
+    },
+    {
+     "beta": 1.0,
+     "resolution": 0.5285376408402145
+    },
+    {
+     "beta": 10.0,
+     "resolution": 0.4590149912719196
+    },
+    {
+     "beta": 100.0,
+     "resolution": 0.4115058778259118
+    },
+    {
+     "beta": 1000.0,
+     "resolution": 0.32720768537604755
+    }
+   ],
+   "plain_resolution": 0.21925859104673096,
+   "ratio": 1.1
+  },
+  "sigreg_jepa_anchored": {
+   "selected": 1000.0,
+   "status": "selected",
+   "table": [
+    {
+     "beta": 0.1,
+     "resolution": 0.19826900759780836
+    },
+    {
+     "beta": 1.0,
+     "resolution": 0.17701142196519096
+    },
+    {
+     "beta": 10.0,
+     "resolution": 0.19138458635161548
+    },
+    {
+     "beta": 100.0,
+     "resolution": 0.19256819652838764
+    },
+    {
+     "beta": 1000.0,
+     "resolution": 0.19843686474175168
+    }
+   ],
+   "plain_resolution": 0.21925859104673096,
+   "ratio": 1.1
+  },
+  "sigreg_jepa_anchored_dark": {
+   "selected": 1000.0,
+   "status": "selected",
+   "table": [
+    {
+     "beta": 0.1,
+     "resolution": 0.19826147958367454
+    },
+    {
+     "beta": 1.0,
+     "resolution": 0.18016030943215502
+    },
+    {
+     "beta": 10.0,
+     "resolution": 0.18746073480780195
+    },
+    {
+     "beta": 100.0,
+     "resolution": 0.1906811444433548
+    },
+    {
+     "beta": 1000.0,
+     "resolution": 0.19474815706848297
+    }
+   ],
+   "plain_resolution": 0.21925859104673096,
+   "ratio": 1.1
+  }
+ }
+}

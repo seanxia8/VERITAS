@@ -1,9 +1,9 @@
 {
   "registered": false,
-  "status": "awaiting_required_patch",
+  "status": "RESOURCE_HOLD_QUOTA",
   "runbook_sha256": "1bccbc45903afe564130503c011b79616e31d6a03c6cb124bf9a8c752966f6ec",
   "new_extension_gpu_hours": {
-    "deepthought": 0,
+    "deepthought": 0.1125,
     "deepthought2": 0
   },
   "part1": {
@@ -15,12 +15,62 @@
     "started_at_utc": "2026-10-24T00:37:58Z",
     "finished_at_utc": "2026-10-24T15:27:00Z",
     "source": "/work/dwong/jepa_a10/jobs/a10_dev_step3_fixed/run_status.json",
-    "decision": "Remote decision preserved; not yet frozen locally."
+    "decision": "Frozen locally in configs/decisions/a10_dev_step3_beta_decision_labelfix_2026-10-25.json; remote preserved."
   },
   "locally_booked_l40s_gpu_hours": 84.14883266666666,
-  "projection_status": "Not refreshed; subtotal is not a launch clearance.",
-  "missing_input": "0001-jepa-extensions-2026-10-24.patch",
-  "push": "Explicitly authorized documentation push succeeded: fecc1f7 -> 0ef3df2 on origin/JEPA; S4 cleared.",
+  "projection_status": "Conservative ledger+remaining grid+8 h extensions =142.977123 GPU-h <160; no grid execution authorization.",
+  "missing_input": null,
+  "push": "Explicitly authorized patch and extension engineering fixes pushed through GitHub. S4 cleared.",
   "grid": "paused; no decision file written; no grid launched",
-  "missing_input_checked_path": "/Users/wongdowling/Downloads/0001-jepa-extensions-2026-10-24.patch"
+  "missing_input_checked_path": "/Users/wongdowling/Downloads/0001-jepa-extensions-2026-10-24.patch",
+  "patch_sha256": "1f17e823e8238efc369ce9c0527de3fe7927162329a18a2f28fd798104621817",
+  "patch_commit": "2cadfd899b3e46b01fc58bc1a13715497f63b330",
+  "execution_code_sha": "3ecdc5cc20663d62f32ad52432643aa0a95db6b0",
+  "validation": {
+    "original_patch_full_suite": "Interrupted; 469 passed / KeyboardInterrupt, not accepted",
+    "final_full_suite": "483 passed in492.68s at3ecdc5c, uninterrupted",
+    "extension_tests_at_90a4e15": {
+      "deepthought": "11 passed",
+      "deepthought2": "11 passed"
+    },
+    "intermediate_full_suite": "Interrupted; 4 failed,54 passed / KeyboardInterrupt; fixture interruption, not accepted",
+    "extension_tests_final_3ecdc5c": {
+      "deepthought2": "12 passed in10.77s",
+      "deepthought": "All12 included in passing full suite"
+    },
+    "final_full_suite_log_sha256": "e1b1ee4c5bd257bce177381985cda5b4867ca47630d462d768599fc7eb3274a7"
+  },
+  "reproductions": {
+    "linear": "PASS, 110 rows /810 angles, max diff 3.94124e-10 degrees",
+    "population": "PASS,81 angles,max diff9.80164e-10 degrees",
+    "sha256_verified": true,
+    "cpu_wall_envelope_seconds": 388
+  },
+  "part_B": {
+    "plain_old_m": 0.26440029142206084,
+    "plain_new_m": 0.21925859104673096,
+    "anchored_beta": 1000,
+    "anchored_dark_beta": 1000,
+    "anchor_only_status": "none_qualified",
+    "anchor_only_descriptive_beta_policy": 1000,
+    "grid_decision_written": false
+  },
+  "locally_booked_l40s_conservative_aggregate_gpu_hours": 84.40993966666666,
+  "reproduction_code_sha": "96e021ddef1bfd121db2cabd5d0d1ae91421e0a0",
+  "no_touch_diff": "empty",
+  "runbook_bytes_verified": true,
+  "resource_gate": "No numerical S2 verdict: infra write failure. Quota recovery plus fresh live guardOK required.",
+  "new_gpu_charge_method": "Conservative upper bound405s for failed Part C attempt; final launcher status unavailable",
+  "part_C": {
+    "run_id": "pregrid_C_init9000",
+    "status": "failed_infrastructure",
+    "reason": "OSError122 Disk quota exceeded writing full_input/probes.json.tmp; launcher status and guard status atomics also failed",
+    "inspect_json_created": false,
+    "reproduction_verdict": null,
+    "retries": 0,
+    "process_running": false
+  },
+  "parts_D_E": "not launched",
+  "quota_inventory": "infra/quota_inventory.json",
+  "author_input_required": "Restore>=30000 free entries (observed need32724 released) or provide explicitly scoped cleanup inventory/authorization; then verify live guard before retry."
 }

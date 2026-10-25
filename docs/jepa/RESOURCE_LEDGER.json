@@ -57,8 +57,17 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 6.5228,
-   "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)"
+   "charged_gpu_hours": 6.6353,
+   "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
+   "pregrid_20261025": {
+    "registered": false,
+    "runbook_cap_gpu_hours": 30,
+    "charged_gpu_hours": 0.1125,
+    "charge_method": "Conservative upper bound on failed-infrastructure evaluation; see job row",
+    "bridge_cap_gpu_hours": 8,
+    "bridge_gpu_hours": 0,
+    "status": "RESOURCE_HOLD_QUOTA; no further launch until free entries>=30000 and a fresh live guard is OK"
+   }
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
@@ -1324,6 +1333,76 @@
    "job_kind": "wp5",
    "evidence": "/work/dwong/jepa_a10/jobs/a10_dev_step3_fixed/",
    "note": "Fixed-label A10 dev step-3 at c2dce54; completion verified read-only on 25 Oct from run_status.json: exit 0, 2026-10-24T00:37:58Z to 2026-10-24T15:27:00Z. Final charge replaces provisional 0.33 GPU-h. Remote decision preserved; local freezing pending S4 clearance."
+  },
+  {
+   "id": "ext_pregrid_cpu_suite_2cadfd8_interrupted",
+   "wall_seconds": 742.95,
+   "exit_status": 2,
+   "note": "CPU validation interrupted; 469 passed; not acceptance; original log preserved at /ceph/dwong/jepa/code/2cadfd8_full_suite.log",
+   "registered": false,
+   "campaign": "ext_pregrid_20261025_cpu_validation",
+   "host": "deepthought",
+   "device": "CPU",
+   "gpu_count": 0,
+   "gpu_hours": 0,
+   "status": "interrupted",
+   "cpu_wall_hours": 0.206375
+  },
+  {
+   "id": "ext_pregrid_cpu_suite_96e021d_interrupted",
+   "wall_seconds": 379.44,
+   "exit_status": 2,
+   "note": "CPU validation interrupted by signals during fixture work; 4 failed and54 passed; not acceptance; log preserved at /ceph/dwong/jepa/code/96e021d_full_suite.log",
+   "registered": false,
+   "campaign": "ext_pregrid_20261025_cpu_validation",
+   "host": "deepthought",
+   "device": "CPU",
+   "gpu_count": 0,
+   "gpu_hours": 0,
+   "status": "interrupted",
+   "cpu_wall_hours": 0.1054
+  },
+  {
+   "id": "ext_pregrid_partA_reproductions",
+   "wall_seconds": 388,
+   "exit_status": 0,
+   "note": "CPU wall envelope for once-only linear and population reproductions, 00:24:18Z\u201300:30:46Z; nice10,<=4 threads; both PASS; not LUCiD generation",
+   "registered": false,
+   "campaign": "ext_pregrid_20261025_cpu_validation",
+   "host": "deepthought",
+   "device": "CPU",
+   "gpu_count": 0,
+   "gpu_hours": 0,
+   "status": "complete",
+   "cpu_wall_hours": 0.10777777777777778
+  },
+  {
+   "id": "ext_pregrid_cpu_suite_3ecdc5c",
+   "campaign": "ext_pregrid_20261025_cpu_validation",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "gpu_count": 0,
+   "gpu_hours": 0,
+   "wall_seconds": 492.68,
+   "cpu_wall_hours": 0.13685555555555556,
+   "status": "complete",
+   "exit_status": 0,
+   "note": "483 passed in492.68s; complete final uninterrupted suite; no GPU; log results/jepa/20261025_pregrid_checks/tests/final_full_suite.log"
+  },
+  {
+   "id": "pregrid_C_init9000",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.1125,
+   "wall_seconds": 405,
+   "status": "failed_infrastructure",
+   "exit_status": null,
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_C_init9000/",
+   "note": "Part C evaluation failed on disk entry quota before full_input/probes.json could be written. Launcher final-status atomic write also failed, so exit code/final measured wall are unavailable. Conservatively charge ceiling(start00:38:33.473Z to first explicit stopped-process quota inventory00:45:17.674Z)=405 s=0.1125 Titan GPU-h. This is an upper-bound charge, not measured GPU kernel time. No numerical reproduction verdict exists and no retry launched."
   }
  ]
 }

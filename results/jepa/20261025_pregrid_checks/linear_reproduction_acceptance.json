@@ -1,0 +1,62 @@
+{
+  "registered": false,
+  "part": "A_linear_reproduction",
+  "rows": 110,
+  "angle_comparisons": 810,
+  "tolerance_deg": 0.1,
+  "max_abs_difference_deg": 3.9412384467141237e-10,
+  "pass": true,
+  "missing_angle_differences": [],
+  "worst_10": [
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 1.0), ('n', 100000), ('theta_scale', 0.0)), 4)",
+      "method": "r4_whitened_pca",
+      "abs_difference_deg": 3.9412384467141237e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 1.0), ('gamma_load', 0.9), ('n', 100000), ('theta_scale', 0.0)), 4)",
+      "method": "r4_whitened_pca",
+      "abs_difference_deg": 3.1111824227991747e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 1.0), ('n', 100000), ('theta_scale', 0.0)), 1)",
+      "method": "r4_whitened_pca",
+      "abs_difference_deg": 2.518447672628099e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 0.0), ('n', 100000), ('theta_scale', 0.0)), 0)",
+      "method": "r7_finite_beta_1",
+      "abs_difference_deg": 2.512052788006258e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 0.1), ('n', 100000), ('theta_scale', 0.0)), 1)",
+      "method": "r4_whitened_pca",
+      "abs_difference_deg": 2.3355539724434493e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 0.0), ('n', 100000), ('theta_scale', 0.0)), 0)",
+      "method": "r8_finite_beta_10",
+      "abs_difference_deg": 2.0256152311048936e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 0.25), ('n', 100000), ('theta_scale', 0.0)), 3)",
+      "method": "r8_finite_beta_10",
+      "abs_difference_deg": 1.9744561541301664e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 1.0), ('gamma_load', 1.0), ('n', 100000), ('theta_scale', 0.0)), 0)",
+      "method": "r5_gevp",
+      "abs_difference_deg": 1.964082230188069e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 0.0), ('n', 100000), ('theta_scale', 0.0)), 0)",
+      "method": "r5_gevp",
+      "abs_difference_deg": 1.9053914002142847e-10
+    },
+    {
+      "row": "('noise_only', (('eta_scale', 3.0), ('gamma_load', 0.0), ('n', 100000), ('theta_scale', 0.0)), 0)",
+      "method": "r4_whitened_pca",
+      "abs_difference_deg": 1.637658897379879e-10
+    }
+  ]
+}

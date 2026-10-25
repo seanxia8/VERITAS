@@ -1,0 +1,40 @@
+{
+  "registered": false,
+  "part": "A_population_reproduction",
+  "angle_comparisons": 81,
+  "tolerance_deg": 0.1,
+  "max_abs_difference_deg": 9.801639831732987e-10,
+  "pass": true,
+  "worst_5": [
+    {
+      "variant": "fixed_delay_0.01",
+      "split": "interleaved",
+      "g": 0.0,
+      "abs_difference_deg": 9.801639831732987e-10
+    },
+    {
+      "variant": "per_event_delay_0.005-0.015",
+      "split": "interleaved",
+      "g": 0.0,
+      "abs_difference_deg": 3.2517779056013134e-10
+    },
+    {
+      "variant": "no_delay",
+      "split": "interleaved",
+      "g": 0.0,
+      "abs_difference_deg": 2.544505851605873e-10
+    },
+    {
+      "variant": "no_delay",
+      "split": "channel",
+      "g": 0.0,
+      "abs_difference_deg": 2.175377435304778e-10
+    },
+    {
+      "variant": "per_event_delay_0.005-0.015",
+      "split": "channel",
+      "g": 0.0,
+      "abs_difference_deg": 1.7059441273066067e-10
+    }
+  ]
+}

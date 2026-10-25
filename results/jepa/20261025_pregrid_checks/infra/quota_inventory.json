@@ -1,0 +1,72 @@
+{
+  "registered": false,
+  "observed_epoch": 1792889117.6737392,
+  "scope": "read-only inventory; no deletion or quota modification",
+  "quota_root": "/ceph/dwong",
+  "max_files": 500000,
+  "recursive_files": 423702,
+  "recursive_subdirectories": 79022,
+  "used_entries": 502724,
+  "over_quota_entries": 2724,
+  "max_bytes": 0,
+  "recursive_bytes": 1427527875386,
+  "guard_start_minimum_free_entries": 30000,
+  "minimum_entries_to_release_at_observation": 32724,
+  "clones": [
+    {
+      "path": "/ceph/dwong/jepa/code/2cadfd8",
+      "files": 2300,
+      "subdirectories": 301,
+      "entries_including_root": 2602,
+      "logical_bytes": 460678423,
+      "allocated_bytes": 461373440,
+      "active_process_cwds": [],
+      "retain_for_execution": false
+    },
+    {
+      "path": "/ceph/dwong/jepa/code/2cadfd8_d2",
+      "files": 2295,
+      "subdirectories": 298,
+      "entries_including_root": 2594,
+      "logical_bytes": 460632513,
+      "allocated_bytes": 461325824,
+      "active_process_cwds": [],
+      "retain_for_execution": false
+    },
+    {
+      "path": "/ceph/dwong/jepa/code/90a4e15",
+      "files": 2303,
+      "subdirectories": 301,
+      "entries_including_root": 2605,
+      "logical_bytes": 447484040,
+      "allocated_bytes": 448181248,
+      "active_process_cwds": [],
+      "retain_for_execution": false
+    },
+    {
+      "path": "/ceph/dwong/jepa/code/96e021d",
+      "files": 2304,
+      "subdirectories": 301,
+      "entries_including_root": 2606,
+      "logical_bytes": 447533007,
+      "allocated_bytes": 448230400,
+      "active_process_cwds": [],
+      "retain_for_execution": false
+    },
+    {
+      "path": "/ceph/dwong/jepa/code/3ecdc5c",
+      "files": 2303,
+      "subdirectories": 301,
+      "entries_including_root": 2605,
+      "logical_bytes": 447533404,
+      "allocated_bytes": 448230400,
+      "active_process_cwds": [],
+      "retain_for_execution": true
+    }
+  ],
+  "transitional_clone_entries_total": 10407,
+  "transitional_clone_allocated_bytes_total": 1819110912,
+  "transitional_clones_are_insufficient_to_clear_HOLD": true,
+  "deleted_paths": [],
+  "guard_state": "Last persisted HOLD at00:41:13Z; subsequent guard atomic status writes also failed with quota exceeded; fresh guard required before any new job."
+}

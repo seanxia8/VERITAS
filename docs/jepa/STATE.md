@@ -1,15 +1,17 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-25. Explicit JEPA GitHub push authorization received; Part A awaits missing patch; grid remains paused.
+Updated: 2026-10-25. Parts A/B complete; Part C failed on entry quota; RESOURCE_HOLD_QUOTA, grid paused.
 
 ## Pre-grid checks (25 Oct 2026, current instructions)
 
-- `RUNBOOK_2026-10-25_PREGRID_ALL.md` supersedes the 24 Oct task and the 23 Oct task step 4. Historical grid-running/next-action entries below are superseded.
-- Fixed-label dev step 3 finished: exit 0, 14.817067 L40S GPU-h. Ledger corrected; remote decision preserved, local freeze pending.
-- All new runs are extensions (`registered: false`); no registered prediction, criterion, dataset or frozen decision changes.
-- The author explicitly authorized the exact JEPA payload and GitHub destination after the historical S4 stop. Authorized documentation push succeeded (`fecc1f7` → `0ef3df2`); S4 cleared. No remote deployment or new experiment.
-- Part A awaits `0001-jepa-extensions-2026-10-24.patch`: the newly supplied Downloads path does not exist in this environment. No new experiment has started.
-- Both authorized remote hosts and `/ceph/dwong/jepa/` are reachable using their configured FQDNs.
+- Current execution is **RESOURCE_HOLD_QUOTA**, not a numerical S2 stop. Grid remains paused; no grid decision file or grid launch.
+- Author patch SHA256 verified and applied at `2cadfd8`; final extension code `3ecdc5c` pushed through the explicitly authorized GitHub destination. S4 cleared; no-touch diff empty; runbook bytes unchanged.
+- **Part A PASS:** full suite483/483 (492.68s), final deepthought2 CPU smoke12/12; both reproduction tables pass0.1-degree tolerance with max differences<1e-9 degrees, transferred hashes verified. Interrupted preflight attempts are preserved and excluded from acceptance.
+- **Part B complete:** separate `registered:false` fixed-plain decision; both anchored arms beta1000; anchor_only none_qualified and descriptive option-A policy follows1000. Original decisions preserved.
+- **Part C blocked by infrastructure:** init9000 evaluation hitOSError122 before saving probes; no numerical expectation verdict. Launcher and guard final-status writes also hit quota. Preserve the failed attempt; no retry or new job until quota recovery and fresh live guardOK.
+- Read-only quota inventory:502724/500000 entries (2724 over); need>=32724 entries released to reach30000 free. Four transition clones total10407 entries, insufficient; no deletion performed. Author input requested on resource restoration or a scoped cleanup list.
+- **Parts D/E pending.** No training, strong-drift generation or delayed bridge launched. New GPU charges:0.1125 Titan h (conservative upper-bound charge),0 L40S h. Global conservative ledger: Titan6.6353h, L40S84.409940h; L40S ledger+projections142.977123h<160, but resource HOLD blocks starts.
+- Checkpoint/config hashes remain in `results/jepa/20261025_pregrid_checks/provenance.json`; report/evidence in that directory. All new outputs remain extensions (`registered:false`), with no registered verdict or dataset replaced.
 
 
 ## A10 status (23 Oct 2026)

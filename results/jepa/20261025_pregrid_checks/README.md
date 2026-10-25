@@ -1,22 +1,28 @@
-# Pre-grid checks — 25 Oct 2026: awaiting required patch
+# Pre-grid execution checkpoint — 25 Oct 2026
 
-`registered: false`. Execution is incomplete; no extension experiment launched.
+`registered: false`. **RESOURCE_HOLD_QUOTA**; the LUCiD grid remains paused. This is an incomplete execution checkpoint, not scientific completion or an S2 numerical verdict.
 
-**Current update:** the author explicitly authorized the JEPA payload and exact GitHub destination after the S4 stop recorded below. Authorized documentation push succeeded (`fecc1f7` → `0ef3df2`); S4 cleared. The supplied patch path `/Users/wongdowling/Downloads/0001-jepa-extensions-2026-10-24.patch` does not exist in the current environment; searches of Downloads, Desktop and Codex attachments found no patch. Part A cannot apply or test the author patch until its exact bytes are available. The original S4 account below is historical.
+**Part A — PASS.** Author patch SHA256 `1f17e823e8238efc369ce9c0527de3fe7927162329a18a2f28fd798104621817` verified and applied by `git am` at `2cadfd8`. Final code `3ecdc5c`: **483 tests passed** in492.68s; deepthought2 CPU smoke12/12. Earlier interrupted attempts are preserved and excluded from acceptance. Linear reproduction:110 rows/810 angles, max difference3.94124e-10 degrees. Population reproduction:81 angles, max difference9.80164e-10 degrees. Both pass0.1-degree tolerance; received tables and test log match remote SHA256. No-touch diff empty; runbook bytes unchanged.
 
-The supplied runbook was archived byte-identically in commit `627c519`; SHA256 `1bccbc45903afe564130503c011b79616e31d6a03c6cb124bf9a8c752966f6ec`.
+**Part 1/B — complete.** Existing fixed-label step3 exited0,14.817067 L40S GPU-h (within15h), decision frozen separately. Re-selection with plain0.2644002914→0.2192585910m gives:
 
-**Part 1.** Existing `a10_dev_step3_fixed` finished with exit 0 on 24 Oct at 15:27:00Z. Its run status records 53,341.44 s = 14.817067 L40S GPU-h (within 15 h). The local ledger replaces its provisional 0.33 h with that measured final charge. Its remote decision is preserved; local freezing is pending. Evidence: `/work/dwong/jepa_a10/jobs/a10_dev_step3_fixed/run_status.json`, read on deepthought2. No remote file was modified.
+| Arm | Old plain β | Fixed plain β | Qualification |
+|---|---:|---:|---|
+| sigreg_jepa_anchored | 1000 | 1000 | selected |
+| sigreg_jepa_anchored_dark | 1000 | 1000 | selected |
+| anchor_only | null | null | none_qualified |
 
-**Part A.** Required attachment `0001-jepa-extensions-2026-10-24.patch` is missing. No patch applied, no full-suite acceptance claimed, and no pinned clone deployed. Automatic approval review rejected `git push origin JEPA` to `https://github.com/seanxia8/VERITAS.git` before execution, citing private content egress to an unverified destination and insufficient explicit payload/destination authorization. This triggers runbook S4. No alternate delivery route attempted.
+Option A's descriptive anchor_only policy follows anchored β1000; qualification is unchanged. No grid decision was written.
 
-**Parts B–E.** Not run. Beta re-selection, checkpoint inspection, training variants and delayed bridge have no new results. Do not interpret absence as a scientific outcome. Both authorized hosts and shared JEPA storage were reachable through configured FQDNs; S5 is not triggered. GPU guard snapshots listed no own JEPA jobs; grid remains paused.
+**Part C — infrastructure failure.** The exact `init9000=sigreg_jepa:init:9000 --expect init9000=0.160904` check ran on one Titan through the guard. Writing full-input `probes.json.tmp` failed withOSError122, so **no saved full/half-pass metrics or reproduction verdict exist**. Launcher final-status and guard status writes also failed. Six checkpoint paths/hashes are preserved in `provenance.json`; they were not re-evaluated. No retry launched. All partial directories/logs are preserved.
 
-**Resources.** This execution launched 0 GPU jobs: new extension use is 0 Titan / 0 L40S GPU-h. Locally booked L40S subtotal after Part 1 correction: 84.148833 GPU-h; remaining-grid projection has not been refreshed, so this is not a budget clearance. No LUCiD cohort generated.
+**Parts D/E — not launched.** No training variants, strong-drift generation or delayed bridge. All six descriptive readings remain unclear/unmeasured; registered B1 is unchanged.
 
-**Author options.**
+| Host/device | New extension GPU-h booked | Cumulative conservative ledger |
+|---|---:|---:|
+| deepthought / Titan | 0.1125 (upper-bound charge) | 6.6353 |
+| deepthought2 / L40S | 0 | 84.409940 |
 
-- **A (recommended):** supply the exact author patch and explicitly approve pushing the JEPA runbook, patch and scoped execution artifacts to `https://github.com/seanxia8/VERITAS.git`, branch `JEPA`; then continue the ordered runbook after resolving S4.
-- **B:** preserve this local checkpoint and keep execution paused.
+Total cumulative GPU-h91.045240. The failed evaluation's exact final wall could not be persisted;405s is a conservative ceiling to its first confirmed stopped-process observation. L40S ledger+remaining-grid+extension projection142.977123h<160. CPU reproductions388s; no new LUCiD generation.
 
-No grid decision file was written and no grid run was launched. Wait for the author.
+**Required resource recovery.** Observed quota:423702 files+79022 directories=**502724/500000** entries; byte quota unlimited. At least**32724 entries** must be released (or quota increased) to regain30000 free. Four unused transition clones total10407 entries (~1.82GB allocated), insufficient; **nothing deleted**. Exact inventory/error logs are under `infra/`. Author input requested on quota restoration or a separately scoped cleanup list. Require recovered quota and a **fresh live OK guard** before any retry; preserve this failed attempt.

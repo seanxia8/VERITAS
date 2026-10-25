@@ -25,3 +25,6 @@ incidents that affect provenance are also one line each. Full evidence lives in
 | 2026-10-23 22:47–23:30 | deepthought2 | diagnostic training | `a10_step2b_fixed_s9000` exit 0, 2575.51 s; target-only labels, seed 9000 |
 | 2026-10-23 23:34–2026-10-24 00:19 | deepthought2 | diagnostic training | `a10_step2b_fixed_s9001` exit 0, 2655.57 s; target-only labels, seed 9001; branch confirmed |
 | 2026-10-24 00:37 | deepthought2 | dev re-run | `a10_dev_step3_fixed` launched on GPU 0 at `c2dce54`; fixed-label A10 dev step 3 (15 runs, ≤15 GPU-h) |
+
+| 2026-10-25 00:41:13Z | deepthought | HOLD | During `pregrid_C_init9000`: guard reports free entries 11,468 <30,000, `write no new data`; no new launches, existing evaluation continues per §6.2. No deletion/config change; monitor SHED threshold10,000. |
+| 2026-10-25 <=00:45:17Z | deepthought | QUOTA/HOLD | Part C probe write and launcher/guard atomic status writes fail withOSError122. Quota502724/500000 entries; need>=32724 released for30000 free. Evaluation no longer running; no retry/new launch, no deletion;405s conservative upper-bound charge. |
