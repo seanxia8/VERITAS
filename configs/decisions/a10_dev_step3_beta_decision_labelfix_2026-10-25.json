@@ -1,0 +1,104 @@
+{
+ "beta_grid": [
+  0.1,
+  1,
+  10,
+  100,
+  1000
+ ],
+ "note": "frozen development decision; registered=false until the full grid runs",
+ "physics_method": "ridge",
+ "physics_method_source": "/work/dwong/jepa_a10_work/dev_step3_fixed/dev/step2_probe_decision.json",
+ "plain_resolution": 0.26440029142206084,
+ "plain_source": "/work/dwong/jepa_a10_work/dev_step2/runs/dev_s005_within__sigreg_jepa__s9000/probes.json",
+ "registered": false,
+ "schema": "jepa-lucid-dev-step3-v0",
+ "selections": {
+  "anchor_only": {
+   "plain_resolution": 0.26440029142206084,
+   "ratio": 1.1,
+   "selected": null,
+   "status": "none_qualified",
+   "table": [
+    {
+     "beta": 0.1,
+     "resolution": 0.5448772785527356
+    },
+    {
+     "beta": 1.0,
+     "resolution": 0.5285376408402145
+    },
+    {
+     "beta": 10.0,
+     "resolution": 0.4590149912719196
+    },
+    {
+     "beta": 100.0,
+     "resolution": 0.4115058778259118
+    },
+    {
+     "beta": 1000.0,
+     "resolution": 0.32720768537604755
+    }
+   ]
+  },
+  "sigreg_jepa_anchored": {
+   "plain_resolution": 0.26440029142206084,
+   "ratio": 1.1,
+   "selected": 1000.0,
+   "status": "selected",
+   "table": [
+    {
+     "beta": 0.1,
+     "resolution": 0.19826900759780836
+    },
+    {
+     "beta": 1.0,
+     "resolution": 0.17701142196519096
+    },
+    {
+     "beta": 10.0,
+     "resolution": 0.19138458635161548
+    },
+    {
+     "beta": 100.0,
+     "resolution": 0.19256819652838764
+    },
+    {
+     "beta": 1000.0,
+     "resolution": 0.19843686474175168
+    }
+   ]
+  },
+  "sigreg_jepa_anchored_dark": {
+   "plain_resolution": 0.26440029142206084,
+   "ratio": 1.1,
+   "selected": 1000.0,
+   "status": "selected",
+   "table": [
+    {
+     "beta": 0.1,
+     "resolution": 0.19826147958367454
+    },
+    {
+     "beta": 1.0,
+     "resolution": 0.18016030943215502
+    },
+    {
+     "beta": 10.0,
+     "resolution": 0.18746073480780195
+    },
+    {
+     "beta": 100.0,
+     "resolution": 0.1906811444433548
+    },
+    {
+     "beta": 1000.0,
+     "resolution": 0.19474815706848297
+    }
+   ]
+  }
+ },
+ "step": 3,
+ "step2_decision": "/work/dwong/jepa_a10_work/dev_step3_fixed/dev/step2_probe_decision.json"
+}

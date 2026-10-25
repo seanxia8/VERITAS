@@ -112,3 +112,56 @@ def test_reselect_beta_uses_the_new_plain(tmp_path):
     sel = json.loads(out.read_text())["selections"]
     assert sel["sigreg_jepa_anchored"]["selected"] == 10.0   # 0.2434 > 1.1 * 0.2193 = 0.2412
     assert sel["anchor_only"]["status"] == "none_qualified"
+
+
+def test_event_statistics_stream_without_changing_sample_order(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    monkeypatch.setattr(pg.pe.FeatureScaling, "from_geometry", lambda geometry: None)
+    monkeypatch.setattr(pg.lr, "_domain_event_ids", lambda source, domain: np.arange(13))
+    calls = []
+
+    def batch(source, geometry, **kwargs):
+        ids = kwargs["event_ids"]
+        calls.append(len(ids))
+        return SimpleNamespace(features=torch.as_tensor(np.tile(ids[:, None, None], (1, 3, 2)),
+                                                         dtype=torch.float32),
+                               hit_flags=np.ones((len(ids), 3), bool),
+                               log_charge=np.tile(ids[:, None], (1, 3)))
+
+    monkeypatch.setattr(pg.lr, "_probe_batch", batch)
+
+    class Model:
+        def eval(self):
+            return self
+
+        def encode(self, features):
+            return features
+
+    ds = SimpleNamespace(directory=tmp_path, runs=[{"run_dir": "a"}, {"run_dir": "b"}])
+    kwargs = dict(split="within", mask_seed=0, device=torch.device("cpu"),
+                  max_events=11, probe_max_events=7, tokens_per_event=2)
+    streamed = pg.event_level(Model(), ds, None, chunk_events=3, **kwargs)
+    assert max(calls) <= 3
+    assert streamed[0][:, 0].tolist() == list(range(7)) + list(range(4))
+    whole = pg.event_level(Model(), ds, None, chunk_events=20, **kwargs)
+    for left, right in zip(streamed, whole):
+        np.testing.assert_array_equal(left, right)
+
+
+def test_strong_drift_generation_is_always_unregistered(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(pg.lr, "ensure_dataset", lambda **kw: calls.append(kw) or object())
+    config = {"data": {"dataset_seed": 4, "cohorts": {
+        "dev_train": {}, "dev_probe_train": {}, "dev_probe_test": {}}}}
+    for setting in (0.05, pg.STRONG_DRIFT_S):
+        calls.clear()
+        pg.datasets_for(SimpleCell(setting), config, None, None, tmp_path)
+        assert calls[0]["registered"] is False
+        assert [c["registered"] for c in calls[1:]] == [setting != pg.STRONG_DRIFT_S] * 2
+
+
+class SimpleCell:
+    train_cohort = "dev_train"
+
+    def __init__(self, setting):
+        self.setting = setting

@@ -159,7 +159,8 @@ def ridge_r2(xtr, ytr, xte, yte, alphas=(1e-4, 1e-2, 1, 100)) -> dict:
 
 
 def event_level(model, dataset, geometry, *, split, mask_seed, device, domain="photon",
-                max_events=4000, tokens_per_event=32, seed=0):
+                max_events=4000, tokens_per_event=32, seed=0, chunk_events=8,
+                probe_max_events=None):
     """Per-event mean-token embeddings and a hit-PMT token sample with ln(q)."""
     scaling = pe.FeatureScaling.from_geometry(geometry)
     rng = np.random.default_rng(seed)
@@ -168,20 +169,26 @@ def event_level(model, dataset, geometry, *, split, mask_seed, device, domain="p
     for row in dataset.runs:
         if n >= max_events:
             break
-        batch = lr._probe_batch(dataset.directory / "runs" / row["run_dir"], geometry, split=split,
-                                mask_seed=mask_seed, occupancy="natural", scaling=scaling,
-                                domain=domain)
-        if batch.features.shape[0] == 0:
-            continue
-        with torch.no_grad():
-            tokens = model.encode(lr._to_device(batch, device).features).cpu().numpy()
-        emb.append(tokens.mean(1)); n += tokens.shape[0]
-        hit = np.asarray(batch.hit_flags, bool); lq = np.asarray(batch.log_charge, float)
-        for e in range(tokens.shape[0]):
-            idx = np.flatnonzero(hit[e])
-            if idx.size:
-                pick = rng.choice(idx, size=min(tokens_per_event, idx.size), replace=False)
-                tok_x.append(tokens[e, pick]); tok_y.append(lq[e, pick])
+        source = dataset.directory / "runs" / row["run_dir"]
+        ids = lr._domain_event_ids(source, domain)
+        if probe_max_events is not None:
+            ids = ids[:int(probe_max_events)]
+        ids = ids[:max_events - n]
+        for start in range(0, len(ids), chunk_events):
+            batch = lr._probe_batch(source, geometry, split=split, mask_seed=mask_seed,
+                                    occupancy="natural", scaling=scaling,
+                                    event_ids=ids[start:start + chunk_events])
+            if batch.features.shape[0] == 0:
+                continue
+            with torch.no_grad():
+                tokens = model.encode(lr._to_device(batch, device).features).cpu().numpy()
+            emb.append(tokens.mean(1)); n += tokens.shape[0]
+            hit = np.asarray(batch.hit_flags, bool); lq = np.asarray(batch.log_charge, float)
+            for e in range(tokens.shape[0]):
+                idx = np.flatnonzero(hit[e])
+                if idx.size:
+                    pick = rng.choice(idx, size=min(tokens_per_event, idx.size), replace=False)
+                    tok_x.append(tokens[e, pick]); tok_y.append(lq[e, pick])
     emb = np.concatenate(emb)[:max_events]
     return emb, np.concatenate(tok_x), np.concatenate(tok_y)
 
@@ -211,9 +218,11 @@ def datasets_for(cell, config, gen, geometry, data_root, code_sha=None):
     common = dict(data_root=data_root, geometry=geometry, generator_config=gen, seed=seed,
                   code_sha=code_sha, log=print)
     train = lr.ensure_dataset(cohort_spec=config["data"]["cohorts"][cell.train_cohort],
-                              cohort_name=cell.train_cohort, law="F1", setting=cell.setting, **common)
+                              cohort_name=cell.train_cohort, law="F1", setting=cell.setting,
+                              registered=False, **common)
     probes = {role: lr.ensure_dataset(cohort_spec=config["data"]["cohorts"][name], cohort_name=name,
-                                      law="F1", setting=cell.setting, **common)
+                                      law="F1", setting=cell.setting,
+                                      registered=cell.setting != STRONG_DRIFT_S, **common)
               for role, name in (("train", "dev_probe_train"), ("test", "dev_probe_test"))}
     return train, probes
 
@@ -238,7 +247,8 @@ def photon_resolution(payload):
     return (dom.get("physics") or payload.get("physics") or {}).get("resolution")
 
 
-def evaluate_forms(arm, arm_name, cell, geometry, probes, config, device, run_dir):
+def evaluate_forms(arm, arm_name, cell, geometry, probes, config, device, run_dir,
+                   probe_max_events=None):
     """Registered probes on the full input and on the half-pass encoder."""
     mask_seed = int(config["views"]["mask_seed"])
     out = {}
@@ -250,13 +260,16 @@ def evaluate_forms(arm, arm_name, cell, geometry, probes, config, device, run_di
         d = Path(run_dir) / name; d.mkdir(parents=True, exist_ok=True)
         payload = lr.evaluate_arm_run(model, arm_name=arm_name, cell=cell, geometry=geometry,
                                       probe_datasets=probes, config=config, device=device,
-                                      mask_seed=mask_seed, save_embeddings=False, run_dir=d)
+                                      mask_seed=mask_seed, save_embeddings=False, run_dir=d,
+                                      max_events=probe_max_events)
         res = payload["domain_results"]["photon"]["results"] if "domain_results" in payload else payload["results"]
         out[name] = {"vertex_resolution_m": photon_resolution(payload),
                      "module_gain_run_mean_r2": (res.get("module_gain::run_mean") or {}).get("r2_mean"),
                      "log_yield_r2": (res.get("log_yield::per_event") or {}).get("r2_mean")}
-        tr = event_level(model, probes["train"], geometry, split=cell.split, mask_seed=mask_seed, device=device)
-        te = event_level(model, probes["test"], geometry, split=cell.split, mask_seed=mask_seed, device=device)
+        tr = event_level(model, probes["train"], geometry, split=cell.split, mask_seed=mask_seed,
+                         device=device, probe_max_events=probe_max_events)
+        te = event_level(model, probes["test"], geometry, split=cell.split, mask_seed=mask_seed,
+                         device=device, probe_max_events=probe_max_events)
         out[name].update(event_embedding=effective_rank(te[0]),
                          sigreg_statistic_events=epps_pulley(te[0]),
                          token_log_charge_r2=ridge_r2(tr[1], tr[2], te[1], te[2]))
@@ -326,7 +339,8 @@ def mode_train(args):
     arm = build_loaded(arm_name, cell, geometry, arms_config, config, gen, data_root, str(final), args.seed)
     if args.variant == "stopgrad":
         patch_stopgrad(arm)
-    forms = evaluate_forms(arm, arm_name, cell, geometry, probes, config, device, run_dir / "ext_eval")
+    forms = evaluate_forms(arm, arm_name, cell, geometry, probes, config, device, run_dir / "ext_eval",
+                           probe_max_events=args.probe_max_events)
     log = [json.loads(line) for line in (run_dir / "train_log.jsonl").read_text().splitlines() if line.strip()]
     summary = {"registered": False, "extension": EXTENSION, "variant": args.variant, "arm": arm_name,
                "cell": cell.cell_id, "split": cell.split, "spread": cell.setting, "seed": int(args.seed),

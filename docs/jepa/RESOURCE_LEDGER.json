@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 69.922873,
+   "charged_gpu_hours": 84.40993966666666,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -24,7 +24,7 @@
     "a10_smoke_gpu_hours": 0.261106,
     "a10_dev_step2_step3_gpu_hours": 13.164797,
     "a10_grid_elapsed_gpu_hours": 20.757042,
-    "charged_total_gpu_hours": 69.922873,
+    "charged_total_gpu_hours": 84.40993966666666,
     "grid_completed_runs": 25,
     "grid_running_runs": 0,
     "grid_remaining_runs": 140,
@@ -38,10 +38,21 @@
     "fallbacks_triggered": [],
     "method": "GPU device-hours = launcher wall for each job (failed attempts included); grid running jobs charged to audit time; remaining projection = 154 incomplete runs x median completed-run wall (11 runs); data generation/eval included in job wall.",
     "audit_snapshot_utc": "2026-10-23T10:00Z",
-    "status": "label_fix_dev_step3_running",
-    "note": "Step 2b charged; step-3 fixed re-run started, projection pending completion.",
+    "status": "fixed_step3_complete_grid_paused",
+    "note": "Pregrid runbook in force; see pregrid_20261025 for conservative projection.",
     "a10_step2b_gpu_hours": 2.121839,
-    "a10_dev_step3_fixed_gpu_hours": 0.33
+    "a10_dev_step3_fixed_gpu_hours": 14.817066666666667
+   },
+   "pregrid_20261025": {
+    "registered": false,
+    "baseline_charged_gpu_hours": 84.40993966666666,
+    "remaining_valid_grid_runs": 147,
+    "valid_completed_grid_runs": 18,
+    "remaining_grid_projection_gpu_hours": 50.56718333333334,
+    "extension_l40s_projection_gpu_hours": 8.0,
+    "ledger_plus_projection_gpu_hours": 142.977123,
+    "start_rule_gpu_hours": 160,
+    "method": "Retain prior conservative aggregate (including unitemised 0.261107 h); replace 0.33 h step3 provisional charge by 14.817067 h. Project 165 minus unaffected completed runs at prior measured 1238.38 s/run, plus 8 h extensions; no grid launch authorized."
    }
   },
   "E2_lucid_titan_deepthought": {
