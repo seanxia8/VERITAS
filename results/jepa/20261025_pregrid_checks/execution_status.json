@@ -20,7 +20,7 @@
   "locally_booked_l40s_gpu_hours": 84.14883266666666,
   "projection_status": "Not refreshed; subtotal is not a launch clearance.",
   "missing_input": "0001-jepa-extensions-2026-10-24.patch",
-  "push": "Explicit payload/destination authorization received; documentation push pending verification.",
+  "push": "Explicitly authorized documentation push succeeded: fecc1f7 -> 0ef3df2 on origin/JEPA; S4 cleared.",
   "grid": "paused; no decision file written; no grid launched",
   "missing_input_checked_path": "/Users/wongdowling/Downloads/0001-jepa-extensions-2026-10-24.patch"
 }

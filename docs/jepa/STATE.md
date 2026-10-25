@@ -7,7 +7,7 @@ Updated: 2026-10-25. Explicit JEPA GitHub push authorization received; Part A aw
 - `RUNBOOK_2026-10-25_PREGRID_ALL.md` supersedes the 24 Oct task and the 23 Oct task step 4. Historical grid-running/next-action entries below are superseded.
 - Fixed-label dev step 3 finished: exit 0, 14.817067 L40S GPU-h. Ledger corrected; remote decision preserved, local freeze pending.
 - All new runs are extensions (`registered: false`); no registered prediction, criterion, dataset or frozen decision changes.
-- The author explicitly authorized the exact JEPA payload and GitHub destination after the historical S4 stop. Documentation push is being retried under that authorization. No remote deployment or new experiment.
+- The author explicitly authorized the exact JEPA payload and GitHub destination after the historical S4 stop. Authorized documentation push succeeded (`fecc1f7` → `0ef3df2`); S4 cleared. No remote deployment or new experiment.
 - Part A awaits `0001-jepa-extensions-2026-10-24.patch`: the newly supplied Downloads path does not exist in this environment. No new experiment has started.
 - Both authorized remote hosts and `/ceph/dwong/jepa/` are reachable using their configured FQDNs.
 
