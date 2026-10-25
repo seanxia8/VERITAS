@@ -72,5 +72,9 @@
   },
   "parts_D_E": "not launched",
   "quota_inventory": "infra/quota_inventory.json",
-  "author_input_required": "Restore>=30000 free entries (observed need32724 released) or provide explicitly scoped cleanup inventory/authorization; then verify live guard before retry."
+  "author_input_required": "Restore>=30000 free entries (observed need32724 released) or provide explicitly scoped cleanup inventory/authorization; then verify live guard before retry.",
+  "infra_log_sha256": {
+    "partC_init9000_job.log": "50522600570efc0f8b1192f8f01c9289fb08a7687eede99692adc377d987f63f",
+    "partC_init9000_launcher.log": "e3b6775499d05f547d18994c274272a79ad4407c2d13eef50b325d79f92f6cfd"
+  }
 }

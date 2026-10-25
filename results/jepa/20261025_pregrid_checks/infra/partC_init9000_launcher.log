@@ -1,0 +1,17 @@
+2026-10-25T00:38:33Z jepa_launch: started run_id=pregrid_C_init9000 pid=3561057 pgid=3561057 gpu=0 host=deepthought timeout=2700s
+Traceback (most recent call last):
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_launch.py", line 539, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_launch.py", line 520, in main
+    atomic_write_json(run_dir / "run_status.json", status_payload)
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_launch.py", line 89, in atomic_write_json
+    handle, temporary = tempfile.mkstemp(
+                        ^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/tempfile.py", line 357, in mkstemp
+    return _mkstemp_inner(dir, prefix, suffix, flags, output_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/tempfile.py", line 256, in _mkstemp_inner
+    fd = _os.open(file, flags, 0o600)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 122] Disk quota exceeded: '/ceph/dwong/jepa/jobs/pregrid_C_init9000/.run_status.json.bl9t0g9j.tmp'

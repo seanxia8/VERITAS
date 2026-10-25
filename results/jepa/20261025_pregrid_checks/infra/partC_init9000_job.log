@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+  File "<frozen runpy>", line 229, in run_module
+  File "<frozen runpy>", line 88, in _run_code
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_pregrid_checks.py", line 399, in <module>
+    main()
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_pregrid_checks.py", line 395, in main
+    {"inspect": mode_inspect, "train": mode_train, "reselect-beta": mode_reselect}[args.mode](args)
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_pregrid_checks.py", line 295, in mode_inspect
+    entry = evaluate_forms(arm, arm_name, cell, geometry, probes, config, device,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/3ecdc5c/scripts/jepa_pregrid_checks.py", line 261, in evaluate_forms
+    payload = lr.evaluate_arm_run(model, arm_name=arm_name, cell=cell, geometry=geometry,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/3ecdc5c/src/jepa_noise/lucid_run.py", line 1327, in evaluate_arm_run
+    atomic_write_json(Path(run_dir) / "probes.json", _safe(payload))
+  File "/ceph/dwong/jepa/code/3ecdc5c/src/jepa_noise/bridge_run.py", line 314, in atomic_write_json
+    temporary.write_text(text + "\n", encoding="utf-8")
+  File "/home/dwong/anaconda3/lib/python3.12/pathlib.py", line 1047, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 122] Disk quota exceeded: '/ceph/dwong/jepa/returns/ext_pregrid_20261025/inspect_dev/init9000/init9000/full_input/probes.json.tmp'
