@@ -1306,13 +1306,13 @@
    "host": "deepthought2",
    "device": "L40S",
    "gpu_count": 1,
-   "gpu_hours": 0.33,
-   "wall_seconds": 1189.0,
-   "status": "running",
-   "exit_status": null,
+   "gpu_hours": 14.817066666666667,
+   "wall_seconds": 53341.44,
+   "status": "complete",
+   "exit_status": 0,
    "job_kind": "wp5",
    "evidence": "/work/dwong/jepa_a10/jobs/a10_dev_step3_fixed/",
-   "note": "fixed-label A10 dev step-3 re-selection at c2dce54; running; charge to audit time, final charge on completion"
+   "note": "Fixed-label A10 dev step-3 at c2dce54; completion verified read-only on 25 Oct from run_status.json: exit 0, 2026-10-24T00:37:58Z to 2026-10-24T15:27:00Z. Final charge replaces provisional 0.33 GPU-h. Remote decision preserved; local freezing pending S4 clearance."
   }
  ]
 }
