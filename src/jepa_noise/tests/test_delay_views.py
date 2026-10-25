@@ -45,3 +45,22 @@ def test_bad_delays_rejected():
         DelayedTier1Views(**KW, delay_mode='fixed', delay_step=0.05)
     with pytest.raises(ValueError):
         DelayedTier1Views(**KW, delay_mode='sideways')
+
+
+def test_delay_run_and_aggregate_are_explicitly_nonregistered(monkeypatch):
+    pytest.importorskip("torch")
+    from jepa_noise import bridge_run as br
+    monkeypatch.setenv("JEPA_TOY_DELAY", '{"delay_mode":"fixed","delay_step":0.01}')
+    run = br.RunSpec("delay", "sigreg_jepa", 0, "evaluation", 10000, 128)
+    status = br._run_status(run, "complete", started_at="test", started_epoch=0,
+                            steps_completed=10000)
+    assert status["registered"] is False
+    assert status["toy_delay"]["delay_step"] == .01
+    aggregate = br.build_aggregate([], config=br.load_config(), config_sha="test",
+                                   code_sha="test", status_text="", cohorts={}, fixture="a4")
+    assert aggregate["registered"] is False
+    assert aggregate["replaces_registered_verdict"] is False
+    assert all(v["registered"] is False for v in aggregate["verdicts"].values())
+    with pytest.raises(RuntimeError, match="missing or mixed delay provenance"):
+        br.build_aggregate([{"manifest": {}}], config=br.load_config(), config_sha="test",
+                           code_sha="test", status_text="", cohorts={}, fixture="a4")

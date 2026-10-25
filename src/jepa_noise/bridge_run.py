@@ -2091,6 +2091,8 @@ def _run_status(
     if extension is not None:
         status["extension"] = extension
         status["registered"] = False
+    if toy_delay_extension():
+        status.update(registered=False, toy_delay=toy_delay_extension())
     return status
 
 
@@ -2150,6 +2152,8 @@ def run_one(
     )
     if extension is not None:
         row["extension"] = extension
+    if toy_delay_extension():
+        row["toy_delay"] = toy_delay_extension()
     try:
         random.seed(run.seed)
         np.random.seed(run.seed % (2**32))
@@ -2230,6 +2234,7 @@ def run_one(
             )
         row["registered"] = bool(
             extension is None
+            and not toy_delay_extension()
             and fixture == "a4"
             and not cohort.manifest["truncated"]
             and run.steps == int(config["training"]["steps_primary"])
@@ -2727,6 +2732,9 @@ def build_aggregate(
     cohorts: Dict[str, dict],
     fixture: str,
 ) -> dict:
+    delay = toy_delay_extension()
+    if delay and any(result["manifest"].get("toy_delay") != delay for result in results):
+        raise RuntimeError("delayed aggregate refuses missing or mixed delay provenance")
     arms = _arm_tables(results)
     arm_sds = {
         arm: entry["nuisance_r2"]["sd"] for arm, entry in arms.items()
@@ -2842,6 +2850,13 @@ def build_aggregate(
         "verdicts": verdicts,
         "files": {"manifest_rows": len(results)},
     }
+    if delay:
+        aggregate.update(registered=False, registered_run=False, toy_delay=delay,
+                         extension="toy_delay_20261025", verdict_role="descriptive_extension",
+                         replaces_registered_verdict=False, budget_gpu_hours_cap=8)
+        for verdict in aggregate["verdicts"].values():
+            verdict.update(registered=False, verdict_role="descriptive_extension",
+                           replaces_registered_verdict=False)
     return aggregate
 
 
@@ -4226,8 +4241,10 @@ def run_aggregate(
 
     extension_arms = ("sigreg_jepa", "sigreg_jepa_anchored")
     if extension is None:
+        expected_arms = (("sigreg_jepa", "sigreg_jepa_anchored", "mae_chi2")
+                         if toy_delay_extension() else ALL_ARMS)
         expected = [
-            (arm, seed) for arm in ALL_ARMS for seed in REGISTERED_SEEDS
+            (arm, seed) for arm in expected_arms for seed in REGISTERED_SEEDS
         ]
     else:
         # B1-ext is reported beside the registered result: it needs the plain
