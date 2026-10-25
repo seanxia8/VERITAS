@@ -3268,13 +3268,6 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             "beta-dev runs each beta from scratch under the same run id; "
             "--resume is for grid runs"
         )
-    specs = build_cohort_specs(config)
-    cohort = ensure_cohort(
-        specs["development"], Path(args.data_root), args.max_events,
-        args.fixture, config,
-    )
-    products = prepare_products(config, args.fixture, Path(args.data_root))
-    device = configure_runtime(args.device)
     registered_grid = [float(v) for v in
                        config["objective"]["anchor"]["beta_grid"]]
     extension_grid = [float(value) for value in B1_EXT_BETA_GRID]
@@ -3298,6 +3291,13 @@ def run_beta_dev(args, config: dict, config_sha: str, code_sha: str,
             f"{B1_EXTENSION} requires --beta-grid 10,100,1000")
     else:
         grid = registered_grid
+    specs = build_cohort_specs(config)
+    cohort = ensure_cohort(
+        specs["development"], Path(args.data_root), args.max_events,
+        args.fixture, config,
+    )
+    products = prepare_products(config, args.fixture, Path(args.data_root))
+    device = configure_runtime(args.device)
     plain_values = None
     plain_prov = None
     if extension is not None:
