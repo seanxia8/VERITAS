@@ -1,0 +1,28 @@
+old9000 {"vertex_resolution_m": 0.2644010574194889, "module_gain_run_mean_r2": -0.004432706308064471, "log_yield_r2": 0.9856246041878042, "event_embedding": {"effective_rank": 10.272514739733055, "participation_ratio": 5.14987054837257}, "sigreg_statistic_events": 1367.1574934903638, "token_log_charge_r2": {"r2": 0.004015093225062882, "alpha": 100, "n_train": 108800, "n_test": 108800}}
+old9001 {"vertex_resolution_m": 0.23375929446210303, "module_gain_run_mean_r2": -0.00424558313026524, "log_yield_r2": 0.9881045487949659, "event_embedding": {"effective_rank": 9.207474153604982, "participation_ratio": 5.009830954077039}, "sigreg_statistic_events": 1367.1676681939507, "token_log_charge_r2": {"r2": 0.0035288567736428966, "alpha": 100, "n_train": 108800, "n_test": 108800}}
+fix9000 {"vertex_resolution_m": 0.21925822392091457, "module_gain_run_mean_r2": -0.0020871649625495703, "log_yield_r2": 0.9882564036668892, "event_embedding": {"effective_rank": 2.492635768854102, "participation_ratio": 1.467050446428799}, "sigreg_statistic_events": 1424.5360674953022, "token_log_charge_r2": {"r2": 0.017564592903108855, "alpha": 100, "n_train": 108800, "n_test": 108800}}
+fix9001 {"vertex_resolution_m": 0.2042813949606102, "module_gain_run_mean_r2": 0.005503107539952423, "log_yield_r2": 0.990106612435539, "event_embedding": {"effective_rank": 2.804608340371415, "participation_ratio": 1.6189548840093322}, "sigreg_statistic_events": 1408.603536318447, "token_log_charge_r2": {"r2": 0.05420477753532549, "alpha": 100, "n_train": 108800, "n_test": 108800}}
+mae9000 {"vertex_resolution_m": 0.10494918764937129, "module_gain_run_mean_r2": 0.18018962296029584, "log_yield_r2": 0.9973572128216034, "event_embedding": {"effective_rank": 2.9108485848649357, "participation_ratio": 1.8521422368472922}, "sigreg_statistic_events": 1651.0404000158178, "token_log_charge_r2": {"r2": 0.9878927971473564, "alpha": 0.0001, "n_train": 108800, "n_test": 108800}}
+Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+  File "<frozen runpy>", line 229, in run_module
+  File "<frozen runpy>", line 88, in _run_code
+  File "/ceph/dwong/jepa/code/2b24630/scripts/jepa_pregrid_checks.py", line 399, in <module>
+    main()
+  File "/ceph/dwong/jepa/code/2b24630/scripts/jepa_pregrid_checks.py", line 395, in main
+    {"inspect": mode_inspect, "train": mode_train, "reselect-beta": mode_reselect}[args.mode](args)
+  File "/ceph/dwong/jepa/code/2b24630/scripts/jepa_pregrid_checks.py", line 293, in mode_inspect
+    arm = build_loaded(arm_name, cell, geometry, arms_config, config, gen, Path(args.data_root),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/2b24630/scripts/jepa_pregrid_checks.py", line 238, in build_loaded
+    arm = lr.build_arm(arm_name, geometry, arms_config, cell, seed, dark_bank=dark)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/2b24630/src/jepa_noise/lucid_run.py", line 560, in build_arm
+    return la.build_arm(arm, geometry, settings=settings, beta=beta, seed=int(seed),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/2b24630/src/jepa_noise/lucid_arms.py", line 645, in build_arm
+    return LucidArm(arm, geometry, settings=settings, encoder_config=encoder_config,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/2b24630/src/jepa_noise/lucid_arms.py", line 330, in __init__
+    raise ValueError(f"{arm} requires beta from the registered grid "
+ValueError: sigreg_jepa_anchored requires beta from the registered grid (0.1, 1.0, 10.0, 100.0, 1000.0); the development cohort selects it

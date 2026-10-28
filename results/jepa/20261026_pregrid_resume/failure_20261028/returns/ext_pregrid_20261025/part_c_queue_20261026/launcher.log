@@ -1,0 +1,2 @@
+2026-10-26T00:04:58Z jepa_launch: started run_id=pregrid_C_checkpoints_20261026 pid=4094777 pgid=4094777 gpu=0 host=deepthought timeout=9000s
+2026-10-26T01:09:52Z jepa_launch: finished run_id=pregrid_C_checkpoints_20261026 outcome=exited exit=1

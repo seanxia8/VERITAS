@@ -57,16 +57,16 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 6.853386111111111,
+   "charged_gpu_hours": 7.935216666666667,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 0.33058611111111114,
-    "charge_method": "Conservative upper bound on failed-infrastructure evaluation; see job row",
+    "charged_gpu_hours": 1.4124166666666667,
+    "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
-    "status": "Init9000 reproduction passed; remaining Part C pending fresh guard OK; grid paused"
+    "status": "Init9000 passed; six-checkpoint queue failed with partial output; stopped, grid paused"
    }
   },
   "lucid_generation_cpu": {
@@ -1432,9 +1432,12 @@
    "host": "deepthought",
    "device": "Titan",
    "gpu_count": 1,
-   "gpu_hours": 0,
+   "gpu_hours": 1.0818305555555556,
    "reserved_max_gpu_hours": 2.5,
-   "status": "queued_waiting_guard",
+   "status": "failed_engineering_partial_output",
+   "wall_seconds": 3894.59,
+   "exit_status": 1,
+   "charge_method": "Launcher wall seconds / 3600; failed attempt included",
    "planned_minutes": 100,
    "timeout_seconds": 9000,
    "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/part_c_queue_20261026/status.json",

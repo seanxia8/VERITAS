@@ -2,7 +2,12 @@
 
 Updated: 2026-10-25. Parts A/B complete; Part C failed on entry quota; RESOURCE_HOLD_QUOTA, grid paused.
 
-## Pre-grid checks (25 Oct 2026, current instructions)
+## Pre-grid handoff (28 Oct 2026)
+
+- Part C six-checkpoint queue failed on 26 Oct with partial output, exit 1: anchored arm construction requires beta; no six-item inspect.json exists. Case (e): preserve evidence and stop; no relaunch or D–F.
+- Failure evidence and SHA256 manifest: `results/jepa/20261026_pregrid_resume/failure_20261028/`. Runbook Titan charge 1.412416667 GPU-h including the failed queue; grid remains paused, all extensions registered:false.
+
+## Pre-grid checks (25 Oct 2026, historical record)
 
 - Current execution is **RESOURCE_HOLD_QUOTA**, not a numerical S2 stop. Grid remains paused; no grid decision file or grid launch.
 - Author patch SHA256 verified and applied at `2cadfd8`; final extension code `3ecdc5c` pushed through the explicitly authorized GitHub destination. S4 cleared; no-touch diff empty; runbook bytes unchanged.
