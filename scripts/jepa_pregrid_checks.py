@@ -227,7 +227,36 @@ def datasets_for(cell, config, gen, geometry, data_root, code_sha=None):
     return train, probes
 
 
+def checkpoint_beta(arm_name, payload):
+    """The beta a trained checkpoint was built with, read from its own identity.
+
+    beta-selected arms (``la.BETA_ARMS``) cannot be constructed without beta; beta weights
+    only the training loss, so for evaluation it must simply be the checkpoint's own value.
+    The checkpoint must name the same arm, so a mislabelled ``--item`` fails loudly.
+    """
+    identity = payload.get("identity") or {}
+    if identity.get("arm") is not None and identity["arm"] != arm_name:
+        raise ValueError(f"checkpoint arm {identity['arm']!r} does not match --item arm {arm_name!r}")
+    if arm_name not in la.BETA_ARMS:
+        return None
+    if identity.get("beta") is None:
+        raise ValueError(f"{arm_name} checkpoint has no beta in its identity; cannot rebuild the arm")
+    return float(identity["beta"])
+
+
 def build_loaded(arm_name, cell, geometry, arms_config, config, gen, data_root, source, seed):
+    """Build ``arm_name`` and load ``source`` into it; returns ``(arm, beta)``.
+
+    For a beta-selected arm, beta comes from the checkpoint identity (see
+    :func:`checkpoint_beta`). A random-init item of such an arm has no defined beta and is
+    refused rather than guessed.
+    """
+    payload, beta = None, None
+    if source != "init":
+        payload = torch.load(source, map_location="cpu", weights_only=False)
+        beta = checkpoint_beta(arm_name, payload)
+    elif arm_name in la.BETA_ARMS:
+        raise ValueError(f"{arm_name} has no defined beta at random init; inspect a trained checkpoint")
     dark = None
     if arm_name in la.ANCHOR_ARMS:
         d = lr.ensure_dark_bank(data_root=data_root, geometry=geometry, generator_config=gen,
@@ -235,11 +264,10 @@ def build_loaded(arm_name, cell, geometry, arms_config, config, gen, data_root, 
                                 records=int(config["data"]["dark_noise"]["records"]))
         dark = la.dark_bank_from_store(d / "hits.npz", geometry)
     torch.manual_seed(int(seed)); np.random.seed(int(seed) % 2 ** 32)
-    arm = lr.build_arm(arm_name, geometry, arms_config, cell, seed, dark_bank=dark)
-    if source != "init":
-        payload = torch.load(source, map_location="cpu", weights_only=False)
+    arm = lr.build_arm(arm_name, geometry, arms_config, cell, seed, beta=beta, dark_bank=dark)
+    if payload is not None:
         arm.load_state_dict(payload["model"])
-    return arm
+    return arm, beta
 
 
 def photon_resolution(payload):
@@ -290,8 +318,8 @@ def mode_inspect(args):
             source, seed = "init", int(rest.split(":", 1)[1])
         else:
             source, seed = rest, 0
-        arm = build_loaded(arm_name, cell, geometry, arms_config, config, gen, Path(args.data_root),
-                           source, seed)
+        arm, beta = build_loaded(arm_name, cell, geometry, arms_config, config, gen,
+                                 Path(args.data_root), source, seed)
         entry = evaluate_forms(arm, arm_name, cell, geometry, probes, config, device,
                                Path(args.out) / label)
         if args.expect:
@@ -301,10 +329,21 @@ def mode_inspect(args):
                     got = entry["full_input"]["vertex_resolution_m"]
                     entry["reproduction"] = {"expected_m": float(value), "got_m": got,
                                              "pass": got is not None and abs(got - float(value)) <= 1e-3}
-        report["items"][label] = {"arm": arm_name, "source": source, "seed": seed, **entry}
+        report["items"][label] = {"arm": arm_name, "source": source, "seed": seed, "beta": beta,
+                                  **entry}
         print(label, json.dumps(entry["full_input"]), flush=True)
-    Path(args.out).mkdir(parents=True, exist_ok=True)
-    (Path(args.out) / "inspect.json").write_text(json.dumps(report, indent=1, default=float))
+        # Written after every item, so a later failure keeps the finished items in one file.
+        # ``complete`` stays false until every --item is evaluated.
+        _write_report(Path(args.out), report, complete=False)
+    _write_report(Path(args.out), report, complete=True)
+
+
+def _write_report(out: Path, report: dict, *, complete: bool) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    report["complete"] = bool(complete)
+    tmp = out / "inspect.json.tmp"
+    tmp.write_text(json.dumps(report, indent=1, default=float))
+    tmp.replace(out / "inspect.json")
 
 
 def mode_train(args):
@@ -336,7 +375,8 @@ def mode_train(args):
         lr.build_arm = original
     run_dir = Path(result["run_dir"])
     final = run_dir / "final.pt"
-    arm = build_loaded(arm_name, cell, geometry, arms_config, config, gen, data_root, str(final), args.seed)
+    arm, _ = build_loaded(arm_name, cell, geometry, arms_config, config, gen, data_root, str(final),
+                          args.seed)
     if args.variant == "stopgrad":
         patch_stopgrad(arm)
     forms = evaluate_forms(arm, arm_name, cell, geometry, probes, config, device, run_dir / "ext_eval",

@@ -165,3 +165,73 @@ class SimpleCell:
 
     def __init__(self, setting):
         self.setting = setting
+
+
+# --------------------------------------------------------------------------- 28 Oct: anc100 beta
+def _ckpt(tmp_path, arm, beta, name="final.pt"):
+    path = tmp_path / name
+    torch.save({"identity": {"arm": arm, "beta": beta}, "model": {"w": torch.zeros(1)}}, path)
+    return path
+
+
+class _Recorder(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.w = torch.nn.Parameter(torch.ones(1))
+
+
+def _patch_build(monkeypatch):
+    calls = []
+
+    def fake_build_arm(arm, geometry, arms_config, cell, seed, beta=None, dark_bank=None,
+                       encoder_config=None):
+        calls.append({"arm": arm, "beta": beta, "dark_bank": dark_bank})
+        return _Recorder()
+
+    monkeypatch.setattr(pg.lr, "build_arm", fake_build_arm)
+    monkeypatch.setattr(pg.lr, "ensure_dark_bank", lambda **kw: Path("/nonexistent"))
+    monkeypatch.setattr(pg.la, "dark_bank_from_store", lambda path, geometry: "DARK")
+    return calls
+
+
+_CFG = {"data": {"dataset_seed": 1, "dark_noise": {"records": 2}}}
+
+
+def test_anchored_checkpoint_is_rebuilt_with_its_own_beta(tmp_path, monkeypatch):
+    """Regression for the 26 Oct Part C queue: anc100 failed with 'requires beta'."""
+    calls = _patch_build(monkeypatch)
+    path = _ckpt(tmp_path, "sigreg_jepa_anchored", 100.0)
+    arm, beta = pg.build_loaded("sigreg_jepa_anchored", None, None, {}, _CFG, {}, tmp_path,
+                                str(path), 0)
+    assert beta == 100.0 and calls[-1]["beta"] == 100.0 and calls[-1]["dark_bank"] == "DARK"
+    assert float(arm.w) == 0.0  # the checkpoint weights were loaded
+
+
+def test_plain_arm_still_gets_no_beta(tmp_path, monkeypatch):
+    calls = _patch_build(monkeypatch)
+    path = _ckpt(tmp_path, "sigreg_jepa", None)
+    _, beta = pg.build_loaded("sigreg_jepa", None, None, {}, _CFG, {}, tmp_path, str(path), 0)
+    assert beta is None and calls[-1]["beta"] is None and calls[-1]["dark_bank"] is None
+    _, beta = pg.build_loaded("sigreg_jepa", None, None, {}, _CFG, {}, tmp_path, "init", 9000)
+    assert beta is None and calls[-1]["beta"] is None
+
+
+def test_beta_arm_refuses_missing_beta_mismatched_arm_and_init(tmp_path, monkeypatch):
+    _patch_build(monkeypatch)
+    with pytest.raises(ValueError, match="no beta"):
+        pg.build_loaded("sigreg_jepa_anchored", None, None, {}, _CFG, {}, tmp_path,
+                        str(_ckpt(tmp_path, "sigreg_jepa_anchored", None, "a.pt")), 0)
+    with pytest.raises(ValueError, match="does not match"):
+        pg.build_loaded("sigreg_jepa_anchored", None, None, {}, _CFG, {}, tmp_path,
+                        str(_ckpt(tmp_path, "sigreg_jepa", None, "b.pt")), 0)
+    with pytest.raises(ValueError, match="random init"):
+        pg.build_loaded("sigreg_jepa_anchored", None, None, {}, _CFG, {}, tmp_path, "init", 0)
+
+
+def test_report_is_written_after_each_item(tmp_path):
+    report = {"registered": False, "items": {"a": {}}}
+    pg._write_report(tmp_path, report, complete=False)
+    assert json.loads((tmp_path / "inspect.json").read_text())["complete"] is False
+    pg._write_report(tmp_path, report, complete=True)
+    assert json.loads((tmp_path / "inspect.json").read_text())["complete"] is True
+    assert not (tmp_path / "inspect.json.tmp").exists()

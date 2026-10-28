@@ -21,12 +21,21 @@ ARMS = {label: ('mae_mse' if label == 'mae9000' else
         for label in LABELS}
 BASE_HOURS = .1125 + 785.11 / 3600  # retained failure + accepted init retry
 PLANNED_MINUTES = 100
+#: Titan GPU-h already charged before each attempt. 20261026 failed on anc100 (no beta)
+#: after 3894.59 s; its charge is carried into every later attempt.
+ATTEMPT_BASE_HOURS = {'20261026': BASE_HOURS,
+                      '20261029': BASE_HOURS + 3894.59 / 3600}
+ANCHORED_BETA = 100.0  # anc100 is the dev anchored beta=100 checkpoint
 RUN_ID = 'pregrid_C_checkpoints_20261026'
 
 
 def verdict(report):
     """Never infer scientific success from the inspector's zero exit code."""
     if report.get('registered') is not False or set(report.get('items', {})) != set(LABELS):
+        return 'ENGINEERING_FAILURE'
+    if report.get('complete') is False:
+        return 'ENGINEERING_FAILURE'
+    if report['items']['anc100'].get('beta') != ANCHORED_BETA:
         return 'ENGINEERING_FAILURE'
     for label, expected in EXPECTED.items():
         row = report['items'][label]
@@ -47,12 +56,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--python', default='/home/dwong/anaconda3/bin/python3')
     parser.add_argument('--root', type=Path, default=Path('/ceph/dwong/jepa'))
+    parser.add_argument('--attempt', choices=sorted(ATTEMPT_BASE_HOURS), default='20261026',
+                        help='attempt tag; each attempt has its own job, queue and output paths, '
+                             'so a failed attempt is never overwritten')
     args = parser.parse_args()
+    global RUN_ID, BASE_HOURS
+    RUN_ID = f'pregrid_C_checkpoints_{args.attempt}'
+    BASE_HOURS = ATTEMPT_BASE_HOURS[args.attempt]
     root = args.root.resolve()
     if root != Path('/ceph/dwong/jepa'):
         parser.error('this bounded execution uses only /ceph/dwong/jepa')
     ext = root / 'returns/ext_pregrid_20261025'
-    queue = ext / 'part_c_queue_20261026'
+    queue = ext / f'part_c_queue_{args.attempt}'
     queue.mkdir(exist_ok=True)
     # Lock this queue only; never kill or replace another coordinator.
     import fcntl
@@ -81,7 +96,7 @@ def main():
             handle.write(json.dumps(payload) + '\n')
 
     provenance = json.loads((ROOT / 'results/jepa/20261025_pregrid_checks/provenance.json').read_text())
-    output = ext / 'inspect_dev/checkpoints_20261026'
+    output = ext / f'inspect_dev/checkpoints_{args.attempt}'
     job = root / 'jobs' / RUN_ID
     guard = root / 'jobs/guard_deepthought.json'
     if not within_budget(BASE_HOURS, PLANNED_MINUTES):
