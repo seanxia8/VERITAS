@@ -380,4 +380,4 @@ S1 fixture-capacity stop resolved by the author's explicit option A: three succe
 
 ### Predictability extension (29 Oct 2026)
 
-Part 1 is complete on the author-clarified 1,000 mixed original events for nominal and strong drift; 13 CPU probes and domain-stratified summaries are recorded under `results/jepa/20261029_predictability/` as `registered: false`. Part 2 CCA is next. Grid remains paused.
+Part 1 is complete on the author-clarified 1,000 mixed original events for nominal and strong drift; 13 CPU probes and domain-stratified summaries are recorded under `results/jepa/20261029_predictability/` as `registered: false`. Part 2 mixed-event CCA is complete in both cells and splits; seven descriptive readings are recorded, with the H-a conjunction correction and preserved raw report. Grid remains paused.

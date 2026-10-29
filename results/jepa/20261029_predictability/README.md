@@ -11,4 +11,4 @@ Large arrays remain on Deepthought under `/ceph/dwong/jepa/returns/ext_predictab
 - `strong_drift_A.npz`: `984a5ab7bc364a3d15f7ff3cb5b69b772531eb72d11f2eeea0f759256f83a62a`
 - `strong_drift_B.npz`: `302871a73ef5afff674ba81259795365f3e19e879f9589fe348f8151dad9db8d`
 
-All four hashes are SHA-256. The small summaries and probes were verified against their host SHA-256 before copying. Part 2 is pending at this commit.
+All four hashes are SHA-256. The small summaries and probes were verified against their host SHA-256 before copying. Part 2 is complete for both cells and both splits. `linear_cca.md` and `linear/` contain the per-direction results. `readings_raw.json` preserves the original report; `readings.json` corrects H-a’s conjunction as explained in `DECISIONS.md`.

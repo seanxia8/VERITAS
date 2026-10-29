@@ -20,6 +20,16 @@ def status(value):
     return 'unclear' if value is None else ('supported' if value else 'not supported')
 
 
+def h_a_reading(hit_rho):
+    """Evaluate a conjunction even if the ordering term is undefined."""
+    charge = hit_rho[0]
+    if charge is not None and charge > .5:
+        return False
+    if any(value is None for value in hit_rho):
+        return None
+    return charge <= .5 and charge < min(hit_rho[1:])
+
+
 def run(args):
     root = Path(args.out).resolve(strict=True)
     if not root.is_relative_to(Path('/ceph/dwong/jepa/returns/ext_predictability_20261029')):
@@ -96,9 +106,11 @@ def run(args):
     items = read(args.fixed_part_c)['items']
     fg = [items[label]['full_input']['module_gain_run_mean_r2'] for label in ('fix9000', 'fix9001')]
     hf = all(x < init for x in fg) if hd is True else None
-    readings = {'H-a': None, 'H-b': hb, 'H-b-prime': hbp, 'H-c': hc, 'H-d': hd, 'H-e': he, 'H-f': hf}
+    median_hit_rho = [photon['1']['features'][f]['hit_only']['rho_total'] for f in FEATURES]
+    readings = {'H-a': h_a_reading(median_hit_rho), 'H-b': hb, 'H-b-prime': hbp, 'H-c': hc, 'H-d': hd, 'H-e': he, 'H-f': hf}
     report = {'registered': False, 'readings': {key: status(value) for key, value in readings.items()},
-              'h_a_reason': 'hit-only hit-flag variance is zero; the required three-feature ordering is undefined',
+              'h_a_median_hit_rho': median_hit_rho,
+              'h_a_reason': 'hit-only hit-flag variance is zero; the ordering is undefined, but a failed charge threshold is decisive',
               'h_b_predictable': eb, 'h_b_observed': obs, 'h_c_rho': rho, 'h_c_predictable': ranks,
               'h_d_within_gain': wg, 'h_d_across_gain': ag,
               'h_d_displacement_difference': win['displacement_degrees'] - across['displacement_degrees'],

@@ -184,3 +184,12 @@ def test_benchmark_selects_domain_yield_extremes():
     ids = np.arange(9)
     domains = np.repeat(['photon', 'muon', 'electron'], 3)
     assert benchmark_extremes(ids, [2, 1, 3, 3, 2, 1, 1, 3, 2], domains) == {1, 2, 3, 5, 6, 7}
+
+
+def test_h_a_conjunction_respects_a_failed_threshold_even_with_undefined_order():
+    from scripts.jepa_ext_predictability_report import h_a_reading
+
+    assert h_a_reading([.745, .501, None]) is False
+    assert h_a_reading([.4, .5, None]) is None
+    assert h_a_reading([.4, .5, .6]) is True
+    assert h_a_reading([.4, .4, .6]) is False
