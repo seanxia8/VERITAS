@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 4.882638888888889,
+   "charged_wall_hours": 5.065638888888889,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -2006,6 +2006,49 @@
    "exit_status": 0,
    "code_sha": "babbd3bff2082aa9124d59d7276eb7e6c0a45d23",
    "evidence": "/ceph/dwong/jepa/jobs/pred_cpu_smoke_babbd3b/run_status.json"
+  },
+  {
+   "id": "predictability_tests_babbd3b_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.168,
+   "gpu_hours": 0,
+   "status": "complete",
+   "wall_seconds": 601.09,
+   "exit_status": 0,
+   "code_sha": "babbd3bff2082aa9124d59d7276eb7e6c0a45d23",
+   "evidence": "/ceph/dwong/jepa/returns/ext_predictability_20261029/validation/babbd3b_full.log",
+   "note": "Single full suite for this SHA: 515 passed; rounded upward. Earlier focused smoke was charged with deployment/cleanup."
+  },
+  {
+   "id": "pred_budget_preflight_nominal_retry1",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.007,
+   "gpu_hours": 0,
+   "status": "complete",
+   "wall_seconds": 25.018707275390625,
+   "exit_status": 0,
+   "code_sha": "babbd3bff2082aa9124d59d7276eb7e6c0a45d23",
+   "evidence": "/ceph/dwong/jepa/jobs/pred_budget_preflight_nominal_retry1/"
+  },
+  {
+   "id": "pred_budget_preflight_strong",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.008,
+   "gpu_hours": 0,
+   "status": "complete",
+   "wall_seconds": 25.26006555557251,
+   "exit_status": 0,
+   "code_sha": "babbd3bff2082aa9124d59d7276eb7e6c0a45d23",
+   "evidence": "/ceph/dwong/jepa/jobs/pred_budget_preflight_strong/"
   }
  ]
 }
