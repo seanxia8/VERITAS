@@ -2,6 +2,10 @@
 
 Updated: 2026-10-25. Parts A/B complete; Part C failed on entry quota; RESOURCE_HOLD_QUOTA, grid paused.
 
+## Pre-grid continuation (29 Oct 2026)
+
+- Part C six-checkpoint clean attempt passed: complete report, anc100 beta 100 and five expectations independently verified within 0.001 m. Evidence `results/jepa/20261029_part_c/`; registered:false. Previous failure preserved. Titan runbook charge 2.590016667 GPU-h. Parts D–F pending; grid paused.
+
 ## Pre-grid handoff (28 Oct 2026)
 
 - Part C six-checkpoint queue failed on 26 Oct with partial output, exit 1: anchored arm construction requires beta; no six-item inspect.json exists. Case (e): preserve evidence and stop; no relaunch or D–F.

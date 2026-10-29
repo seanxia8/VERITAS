@@ -57,16 +57,16 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 7.935216666666667,
+   "charged_gpu_hours": 9.112816666666665,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 1.4124166666666667,
+    "charged_gpu_hours": 2.5900166666666666,
     "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
-    "status": "Init9000 passed; six-checkpoint queue failed with partial output; stopped, grid paused"
+    "status": "Part C passed on clean 20261029 attempt; failed attempt preserved; grid paused"
    }
   },
   "lucid_generation_cpu": {
@@ -1442,6 +1442,21 @@
    "timeout_seconds": 9000,
    "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/part_c_queue_20261026/status.json",
    "note": "Part C only: six frozen checkpoint inspections in one author-specified inspect command; no D/grid auto-advance. Charge actual launcher wall after completion, include failures."
+  },
+  {
+   "id": "pregrid_C_checkpoints_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 1.1776,
+   "wall_seconds": 4239.36,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
+   "evidence": "results/jepa/20261029_part_c/",
+   "note": "One clean six-checkpoint evaluation after beta fix; launcher wall/3600; old failed attempt retained and separately charged."
   }
  ]
 }

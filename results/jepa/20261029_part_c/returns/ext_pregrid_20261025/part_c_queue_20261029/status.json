@@ -1,0 +1,32 @@
+{
+  "registered": false,
+  "status": "PART_C_COMPLETE",
+  "grid": "paused",
+  "run_id": "pregrid_C_checkpoints_20261029",
+  "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
+  "base_titan_gpu_hours": 1.4124166666666667,
+  "utc": "2026-10-29T00:21:37Z",
+  "run_status": {
+    "run_id": "pregrid_C_checkpoints_20261029",
+    "tag": "jepa_pregrid_C_checkpoints_20261029",
+    "host": "deepthought",
+    "gpu_index": 1,
+    "pid": 2228151,
+    "pgid": 2228151,
+    "exit_status": 0,
+    "wifsignaled": false,
+    "wtermsig": null,
+    "outcome": "exited",
+    "timed_out": false,
+    "forwarded_signal": null,
+    "planned_minutes": 100.0,
+    "timeout_seconds": 9000,
+    "started_at_utc": "2026-10-28T23:10:57Z",
+    "finished_at_utc": "2026-10-29T00:21:37Z",
+    "wall_seconds": 4239.36
+  },
+  "inspect_path": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/inspect_dev/checkpoints_20261029/inspect.json",
+  "titan_gpu_hours": 1.1776,
+  "total_runbook_titan_gpu_hours": 2.5900166666666666,
+  "next_action": "Stop for author at S2; otherwise review Part C before Part D. No automatic D or grid."
+}
