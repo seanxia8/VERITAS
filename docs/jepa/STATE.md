@@ -360,3 +360,12 @@ Updated: 2026-10-20 19:40Z by Lead. Registered at `151f26e`; WP2-v4 at `10693eb`
 - Local: `/private/tmp/jepa-venv-cpu311/bin/python` (3.11.11, torch 2.5.1 CPU).
 - Hosts: see above; guard and jobs must use `/home/dwong/anaconda3/bin/python3` (3.12.2).
 - Ledger: `RESOURCE_LEDGER.json` (+ `v4_caps` block: Titan 300, L40S 80, LUCiD gen 48 CPU-h).
+
+## Predictability extension, 29 Oct 2026
+
+Runbook committed as `398340c`; Part 0 search and implementation are incomplete. A local noise resampler and one preliminary test are uncommitted, with no acceptance result. No extension analysis or encoder run has been launched. Grid remains paused.
+
+Predictability S3: frozen first 20 probe-test runs contain 340 photon / 340 muon / 320 electron events, so the requested 1,000 original photon events in 20 runs do not exist. No extension experiment launched; await author choice. Four preliminary acceptance tests passed locally, but the analysis implementation remains incomplete.
+Local full-suite preflight: 496 passed, 5 failed; not accepted. Full-tree hash search was interrupted at S3 and is incomplete. See DECISIONS and RESOURCE_LEDGER for details.
+
+Author clarification resolves the predictability S3 sample ambiguity: use all 1,000 original mixed-domain events in the first 20 runs and retain the 10/10 run split. Photon-only H-a–H-c; all domains enter the linear CCA. Implementation and validation are in progress; grid remains paused.
