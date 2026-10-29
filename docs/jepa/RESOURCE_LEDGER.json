@@ -71,7 +71,8 @@
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
     "status": "Part C passed on clean 20261029 attempt; failed attempt preserved; grid paused",
-    "active_reservations_gpu_hours": 0.0
+    "active_reservations_gpu_hours": 0.75,
+    "bridge_active_reservations_gpu_hours": 0.75
    }
   },
   "lucid_generation_cpu": {
@@ -1752,6 +1753,21 @@
    "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_strong_drift_s9000_20261029/",
    "note": "Provisional running entry; charge actual launcher wall after exit including failure."
+  },
+  {
+   "id": "pregrid_E_bridge_smoke_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "GTX Titan X",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 0.75,
+   "status": "running",
+   "started_at_utc": "2026-10-29T05:21:18Z",
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_E_bridge_smoke_20261029/",
+   "note": "20-step delayed A4 bridge smoke, 2000-event cap, batch 128; reserve full timeout and charge actual launcher wall."
   }
  ]
 }
