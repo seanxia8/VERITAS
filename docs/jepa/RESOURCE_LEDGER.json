@@ -53,9 +53,9 @@
     "ledger_plus_projection_gpu_hours": 142.977123,
     "start_rule_gpu_hours": 160,
     "method": "Retain prior conservative aggregate (including unitemised 0.261107 h); replace 0.33 h step3 provisional charge by 14.817067 h. Project 165 minus unaffected completed runs at prior measured 1238.38 s/run, plus 8 h extensions; no grid launch authorized.",
-    "active_reservations_gpu_hours": 0.0,
-    "remaining_extension_projection_gpu_hours": 1.6,
-    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 142.49295077777776,
+    "active_reservations_gpu_hours": 2.25,
+    "remaining_extension_projection_gpu_hours": 0.8,
+    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 143.94295077777775,
     "extension_charged_gpu_hours": 5.9158277777777775
    }
   },
@@ -1737,6 +1737,21 @@
    "wall_seconds": 1149.78,
    "exit_status": 0,
    "finished_at_utc": "2026-10-29T05:19:20Z"
+  },
+  {
+   "id": "pregrid_D2_strong_drift_s9000_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 2.25,
+   "status": "running",
+   "started_at_utc": "2026-10-29T05:20:40Z",
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_strong_drift_s9000_20261029/",
+   "note": "Provisional running entry; charge actual launcher wall after exit including failure."
   }
  ]
 }
