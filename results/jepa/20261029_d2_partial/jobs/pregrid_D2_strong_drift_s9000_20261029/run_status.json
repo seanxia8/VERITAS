@@ -1,0 +1,19 @@
+{
+  "run_id": "pregrid_D2_strong_drift_s9000_20261029",
+  "tag": "jepa_pregrid_D2_strong_drift_s9000_20261029",
+  "host": "deepthought2",
+  "gpu_index": 0,
+  "pid": 3699715,
+  "pgid": 3699715,
+  "exit_status": 0,
+  "wifsignaled": false,
+  "wtermsig": null,
+  "outcome": "exited",
+  "timed_out": false,
+  "forwarded_signal": null,
+  "planned_minutes": 90.0,
+  "timeout_seconds": 8100,
+  "started_at_utc": "2026-10-29T05:20:40Z",
+  "finished_at_utc": "2026-10-29T06:04:08Z",
+  "wall_seconds": 2607.98
+}

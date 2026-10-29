@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 90.32576744444444,
+   "charged_gpu_hours": 91.05020633333332,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -53,10 +53,10 @@
     "ledger_plus_projection_gpu_hours": 142.977123,
     "start_rule_gpu_hours": 160,
     "method": "Retain prior conservative aggregate (including unitemised 0.261107 h); replace 0.33 h step3 provisional charge by 14.817067 h. Project 165 minus unaffected completed runs at prior measured 1238.38 s/run, plus 8 h extensions; no grid launch authorized.",
-    "active_reservations_gpu_hours": 4.5,
+    "active_reservations_gpu_hours": 2.25,
     "remaining_extension_projection_gpu_hours": 0.0,
-    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 145.39295077777774,
-    "extension_charged_gpu_hours": 5.9158277777777775
+    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 143.86738966666664,
+    "extension_charged_gpu_hours": 6.640266666666666
    }
   },
   "E2_lucid_titan_deepthought": {
@@ -1746,13 +1746,16 @@
    "host": "deepthought2",
    "device": "L40S",
    "gpu_count": 1,
-   "gpu_hours": 0,
+   "gpu_hours": 0.7244388888888889,
    "reserved_max_gpu_hours": 2.25,
-   "status": "running",
+   "status": "complete",
    "started_at_utc": "2026-10-29T05:20:40Z",
    "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_strong_drift_s9000_20261029/",
-   "note": "Provisional running entry; charge actual launcher wall after exit including failure."
+   "note": "10000 steps and finite nonregistered summary verified; launcher wall/3600.",
+   "wall_seconds": 2607.98,
+   "exit_status": 0,
+   "finished_at_utc": "2026-10-29T06:04:08Z"
   },
   {
    "id": "pregrid_E_bridge_smoke_20261029",
