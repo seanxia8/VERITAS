@@ -71,8 +71,8 @@
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0.018266666666666667,
     "status": "Part C passed on clean 20261029 attempt; failed attempt preserved; grid paused",
-    "active_reservations_gpu_hours": 0.0,
-    "bridge_active_reservations_gpu_hours": 0.0
+    "active_reservations_gpu_hours": 3.0,
+    "bridge_active_reservations_gpu_hours": 3.0
    }
   },
   "lucid_generation_cpu": {
@@ -1792,6 +1792,21 @@
    "wall_seconds": 2595.06,
    "exit_status": 0,
    "finished_at_utc": "2026-10-29T06:06:01Z"
+  },
+  {
+   "id": "pregrid_E_bridge_plain_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "GTX Titan X",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 3,
+   "status": "running",
+   "started_at_utc": "2026-10-29T06:13:59Z",
+   "code_sha": "888596caaf5cbb5d89888807e1bc0a0c42adad8c",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_E_bridge_plain_20261029/",
+   "note": "Delayed plain arm, seeds 0\u20132, batch 128, 10000 steps. First job generates full cohort; actual launcher wall charged on exit."
   }
  ]
 }
