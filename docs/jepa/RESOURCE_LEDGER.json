@@ -52,17 +52,20 @@
     "extension_l40s_projection_gpu_hours": 8.0,
     "ledger_plus_projection_gpu_hours": 142.977123,
     "start_rule_gpu_hours": 160,
-    "method": "Retain prior conservative aggregate (including unitemised 0.261107 h); replace 0.33 h step3 provisional charge by 14.817067 h. Project 165 minus unaffected completed runs at prior measured 1238.38 s/run, plus 8 h extensions; no grid launch authorized."
+    "method": "Retain prior conservative aggregate (including unitemised 0.261107 h); replace 0.33 h step3 provisional charge by 14.817067 h. Project 165 minus unaffected completed runs at prior measured 1238.38 s/run, plus 8 h extensions; no grid launch authorized.",
+    "active_reservations_gpu_hours": 4.5,
+    "remaining_extension_projection_gpu_hours": 6.4,
+    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 145.877123
    }
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 9.737313888888886,
+   "charged_gpu_hours": 10.064377777777775,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 3.214513888888889,
+    "charged_gpu_hours": 3.541577777777778,
     "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
@@ -1502,6 +1505,51 @@
    "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
    "evidence": "results/jepa/20261029_d0_lambda_failure/",
    "note": "Read-only coefficient_lambda property assignment raised AttributeError before training; original evidence preserved."
+  },
+  {
+   "id": "pregrid_D0_lambda_retry1_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.32706388888888893,
+   "wall_seconds": 1177.43,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/d0_smokes/lambda_retry1/",
+   "note": "20 steps, 200 probe events; finite summary and actual loss coefficient 0.2 verified."
+  },
+  {
+   "id": "pregrid_D2_across_s9000_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 2.25,
+   "status": "running",
+   "started_at_utc": "2026-10-29T01:36:16Z",
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_across_s9000_20261029/",
+   "note": "Provisional running entry; book launcher wall including any failure at completion. Reservation 135 min timeout."
+  },
+  {
+   "id": "pregrid_D2_stopgrad_s9000_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 2.25,
+   "status": "running",
+   "started_at_utc": "2026-10-29T01:37:39Z",
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_stopgrad_s9000_20261029/",
+   "note": "Provisional running entry; book launcher wall including any failure at completion. Reservation 135 min timeout."
   }
  ]
 }
