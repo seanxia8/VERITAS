@@ -1,10 +1,13 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-25. Parts A/B complete; Part C failed on entry quota; RESOURCE_HOLD_QUOTA, grid paused.
+Updated: 2026-10-29. Parts A–C complete; D1 and bridge smoke complete; two D2 strong-drift runs active; grid paused.
 
 ## Pre-grid continuation (29 Oct 2026)
 
-- Part C six-checkpoint clean attempt passed: complete report, anc100 beta 100 and five expectations independently verified within 0.001 m. Evidence `results/jepa/20261029_part_c/`; registered:false. Previous failure preserved. Titan runbook charge 2.590016667 GPU-h. D0 across, stopgrad, lambda retry, and ijepa smokes passed; lambda first failure preserved, repair validated (497 local CPU tests); D1 strong-drift generation/floor running on deepthought; D2 across and stopgrad both seeds and lambda seed9000 passed; lambda seed9001 and ijepa seed9000 running on deepthought2 with timeout-inclusive reservations; E–F pending. Grid paused.
+- Part C clean rerun passed; `complete:true`, anc100 beta 100, all expectations independently verified within 0.001 m. Evidence and complete table: `results/jepa/20261029_part_c/`; old failure retained; evaluation-mismatch reading not supported. Part C Titan charge 2.590016667 GPU-h.
+- D0 smokes and both D1 floors passed; strong-drift cohorts match nominal event IDs and seeds. Evidence: `results/jepa/20261029_d0_smokes/`, `results/jepa/20261029_d1_partial/`. Four D2 variants (across, stopgrad, lambda, ijepa) both seeds complete; `results/jepa/20261029_d2_partial/`. Strong-drift seeds 9000 and 9001 run on deepthought2 under `04f9edd`, each with 2.25 GPU-h timeout reservation. Deepthought2 HOLD while both GPUs occupied; no new launches at HOLD.
+- Part E delayed bridge smoke passed with fixed delay 0.01, separate data root, 20 steps and 2000 event cap; `results/jepa/20261029_bridge_smoke/`. Top-level delayed job status metadata repaired and tests passed at `888596c`; deployment and full bridge pending guard OK and CPU smoke. The original frozen WP4a beta decision is absent at its recorded path; selected beta10 and original file SHA are evidenced in `results/jepa/wp4a_grid_anchored/manifest.jsonl`. Author was asked for its preserved path; do not claim a substitute is the original.
+- All new outputs `registered:false`; no registered grid decision or grid launch. Live resource charges and reservations: `docs/jepa/RESOURCE_LEDGER.json`. Final D readings and E comparison pending.
 
 ## Pre-grid handoff (28 Oct 2026)
 
