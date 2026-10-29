@@ -18,7 +18,7 @@ import numpy as np
 
 from jepa_noise import lucid_bombs as lb
 from jepa_noise.lucid_views import module_hilbert_order
-from jepa_noise.ext_predictability import event_moments, tokenise_realisations
+from jepa_noise.ext_predictability import event_moments, tokenise_realisations, restore_cached_truth
 
 
 def check_limits(root, deadline):
@@ -120,6 +120,8 @@ def process(args):
             domain = data['domain'].astype(str)
             vertex = data['vertex_m'].copy()
             yield_value = data['yield_photons'].copy()
+            cached_fields = {key: data[key].copy() for key in ('emission_offset_ns', 'direction_m',
+                             'energy_MeV', 'deposited_MeV', 'track_length_m', 'contained')}
         if len(ids) != 50 or not np.array_equal(ids, saved.event_ids):
             raise ValueError(f'{run_id}: cached event IDs differ')
         for i, event_id in enumerate(ids):
@@ -133,8 +135,9 @@ def process(args):
             # Reconstruct the exact keyed latent draws for this existing event;
             # equality with saved truth and readout is checked before resampling.
             draws = lb.draw_event(geometry, cfg, run_id, int(event_id), seed=seed, domain=d)
-            if not np.array_equal(draws.vertex_m, vertex[i]) or draws.yield_photons != yield_value[i]:
-                raise ValueError(f'{run_id}/{event_id}: reconstructed truth mismatch')
+            saved_truth = {key: value[i] for key, value in cached_fields.items()}
+            saved_truth.update(domain=d, vertex_m=vertex[i], yield_photons=yield_value[i])
+            draws = restore_cached_truth(draws, saved_truth)
             hit = readout(state, draws)
             span = slice(int(saved.offsets[i]), int(saved.offsets[i + 1]))
             if not (np.array_equal(hit.pmt_id, saved.pmt_id[span]) and

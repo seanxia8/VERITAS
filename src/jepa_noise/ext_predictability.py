@@ -146,3 +146,37 @@ def hit_moments_predictability(count, total, squares):
     within = np.maximum(0, q[used] - s[used] ** 2 / n[used]) / (n[used] - 1)
     return {"rho": float(1 - within.mean() / total_var),
             "pairs": pairs, "observations": observations}
+
+
+def restore_cached_truth(draws, cached, *, rtol=1e-12, atol=1e-12):
+    """Restore the frozen event truth after checking keyed reconstruction.
+
+    The cached event is authoritative. Tiny platform-dependent roundoff in the
+    keyed reconstruction is tolerated only for comparison; the returned draw
+    uses the saved values exactly. Noise and QE arrays are retained unchanged.
+    """
+    def close(name, actual, expected):
+        if not np.allclose(actual, expected, rtol=rtol, atol=atol, equal_nan=False):
+            raise ValueError(f'cached truth mismatch: {name}')
+
+    if str(cached['domain']) != draws.domain:
+        raise ValueError('cached truth mismatch: domain')
+    close('vertex_m', draws.vertex_m, cached['vertex_m'])
+    close('yield_photons', draws.yield_photons, cached['yield_photons'])
+    close('emission_offset_ns', draws.emission_offset_ns, cached['emission_offset_ns'])
+    truth = draws.truth
+    if truth is not None:
+        for name, cache_name in (('direction', 'direction_m'), ('energy_MeV', 'energy_MeV'),
+                                 ('deposited_MeV', 'deposited_MeV'), ('track_length_m', 'track_length_m')):
+            close(name, getattr(truth, name), cached[cache_name])
+        if truth.contained != bool(cached['contained']):
+            raise ValueError('cached truth mismatch: contained')
+        truth = replace(truth, vertex_m=np.array(cached['vertex_m'], copy=True),
+                        direction=np.array(cached['direction_m'], copy=True),
+                        energy_MeV=float(cached['energy_MeV']),
+                        deposited_MeV=float(cached['deposited_MeV']),
+                        track_length_m=float(cached['track_length_m']),
+                        contained=bool(cached['contained']))
+    return replace(draws, vertex_m=np.array(cached['vertex_m'], copy=True),
+                   yield_photons=float(cached['yield_photons']), truth=truth,
+                   emission_offset_ns=float(cached['emission_offset_ns']))

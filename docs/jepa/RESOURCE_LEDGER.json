@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 4.00763888888889,
+   "charged_wall_hours": 4.735638888888889,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -1891,6 +1891,80 @@
    "gpu_hours": 0,
    "status": "complete",
    "note": "Full suite 508 passed in 625.51 s and focused suite 11 passed in 6.31 s; total rounded upward."
+  },
+  {
+   "id": "predictability_superseded_tests_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.16,
+   "gpu_hours": 0,
+   "status": "interrupted_superseded",
+   "note": "52128e0 full suite: 286 passed before SIGINT at 406.55 s. 31e4541 full: 29 passed before SIGINT at 143.05 s. Both stopped to preserve free entries; focused SHA tests 12 and 15 passed in 6.41 and 6.43 s. Total conservatively rounded upward."
+  },
+  {
+   "id": "predictability_local_tests_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "author_mac",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.2,
+   "gpu_hours": 0,
+   "status": "engineering",
+   "note": "Conservative charge for local full-suite attempt, focused tests and interrupted native-import attempts; prior full-suite 496 passed / 5 failed, not acceptance."
+  },
+  {
+   "id": "predictability_tests_ad6ca1b_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.161,
+   "gpu_hours": 0,
+   "status": "complete",
+   "note": "Focused 16 passed in 6.77 s and full suite 513 passed in 570.92 s; combined rounded upward."
+  },
+  {
+   "id": "predictability_wp4a_hash_search_complete_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.2,
+   "gpu_hours": 0,
+   "status": "complete",
+   "note": "Conservative 0.2 h for successful partitioned read-only SHA search, including files created by validation. No match."
+  },
+  {
+   "id": "pred_cpu_smoke_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.002,
+   "gpu_hours": 0,
+   "status": "complete",
+   "wall_seconds": 5.004690170288086,
+   "exit_status": 0,
+   "code_sha": "ad6ca1bdfc3fcaaa6a810b1e93782016e475e318",
+   "evidence": "/ceph/dwong/jepa/jobs/pred_cpu_smoke_20261029/run_status.json",
+   "note": "CPU-only guard front door smoke; tmux socket and temp paths inside JEPA."
+  },
+  {
+   "id": "pred_budget_preflight_nominal",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.005,
+   "gpu_hours": 0,
+   "status": "failed_engineering_truth_roundoff",
+   "wall_seconds": 5.004711389541626,
+   "exit_status": 1,
+   "code_sha": "ad6ca1bdfc3fcaaa6a810b1e93782016e475e318",
+   "evidence": "/ceph/dwong/jepa/jobs/pred_budget_preflight_nominal/",
+   "note": "No budget product written; r0 electron cached truth mismatch diagnosed as float roundoff; charge includes read-only diagnostics."
   }
  ]
 }
