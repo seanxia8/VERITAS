@@ -1,0 +1,21 @@
+{
+  "schema": "jepa_bridge_beta_decision_v1",
+  "selected_beta": 10.0,
+  "config_sha256": "2f7b3c5eb0321e27dbb589a10fe84bfeda91ff0ec66eb26ad6c86bf5dc043a5f",
+  "cohort": {
+    "name": "development"
+  },
+  "registered": false,
+  "status": "derived descriptor of the frozen WP4a selection for the nonregistered delay extension; not the original decision file",
+  "original_decision_sha256": "6506071121fbd108a70274354e8ba78d8456b59648556a7778233815206ce7b0",
+  "evidence": {
+    "registered_anchored_manifest": "results/jepa/wp4a_grid_anchored/manifest.jsonl",
+    "manifest_sha256": "d90006cea9d0186c5b9bacddd63293ef82e08d6ba80b712e0b415eb8cd27cf6d",
+    "registered_report": "docs/jepa/WP4A_BRIDGE_RESULTS.md",
+    "matched_seeds": [
+      0,
+      1,
+      2
+    ]
+  }
+}
