@@ -61,27 +61,27 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 10.490469444444441,
+   "charged_gpu_hours": 13.06760833333333,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 3.9676694444444447,
+    "charged_gpu_hours": 6.544808333333334,
     "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
     "status": "Part C passed on clean 20261029 attempt; failed attempt preserved; grid paused",
-    "active_reservations_gpu_hours": 3.0
+    "active_reservations_gpu_hours": 0.0
    }
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 0.6535,
+   "charged_wall_hours": 3.2306388888888895,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
    "note_a9_regeneration": "A9 token-time-origin regeneration 2026-10-18 19:36-19:49Z, dev_train 100 runs + dev_probe_train/test 200+200 runs at the new convention, ~12.5 min single-threaded 1 core = 0.2083 h; legacy datasets recorded in DEV_TIME_LEGACY_EVIDENCE.json before deletion",
-   "active_generation_reserved_wall_hours": 3
+   "active_generation_reserved_wall_hours": 0
   },
   "e1_cpu_wall_hours": {
    "cap_wall_hours": 24,
@@ -1582,13 +1582,17 @@
    "host": "deepthought",
    "device": "Titan",
    "gpu_count": 1,
-   "gpu_hours": 0,
+   "gpu_hours": 2.5771388888888893,
    "reserved_max_gpu_hours": 3,
-   "status": "running",
+   "status": "complete",
    "started_at_utc": "2026-10-29T02:23:31Z",
    "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_D1_strong_floor_20261029/",
-   "note": "Strong-drift cohort generation and random-init floor; reserve 3 h timeout for Titan and CPU generation until measured."
+   "note": "Completed generation and nonregistered inspect; charge full launcher wall conservatively to both Titan and generation CPU; event IDs and seeds match nominal cohorts.",
+   "wall_seconds": 9277.7,
+   "exit_status": 0,
+   "finished_at_utc": "2026-10-29T04:58:08Z",
+   "cpu_generation_wall_hours_conservative": 2.5771388888888893
   },
   {
    "id": "pregrid_D2_across_s9001_20261029",

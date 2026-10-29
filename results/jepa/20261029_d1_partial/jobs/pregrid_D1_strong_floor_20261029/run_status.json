@@ -1,0 +1,19 @@
+{
+  "run_id": "pregrid_D1_strong_floor_20261029",
+  "tag": "jepa_pregrid_D1_strong_floor_20261029",
+  "host": "deepthought",
+  "gpu_index": 0,
+  "pid": 2293692,
+  "pgid": 2293692,
+  "exit_status": 0,
+  "wifsignaled": false,
+  "wtermsig": null,
+  "outcome": "exited",
+  "timed_out": false,
+  "forwarded_signal": null,
+  "planned_minutes": 120.0,
+  "timeout_seconds": 10800,
+  "started_at_utc": "2026-10-29T02:23:31Z",
+  "finished_at_utc": "2026-10-29T04:58:08Z",
+  "wall_seconds": 9277.7
+}
