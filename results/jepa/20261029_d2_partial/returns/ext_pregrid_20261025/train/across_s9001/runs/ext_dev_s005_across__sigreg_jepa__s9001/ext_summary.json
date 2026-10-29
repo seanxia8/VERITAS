@@ -1,0 +1,41 @@
+{
+ "registered": false,
+ "extension": "pregrid_checks_2026-10-24",
+ "variant": "across",
+ "arm": "sigreg_jepa",
+ "cell": "ext_dev_s005_across",
+ "split": "across",
+ "spread": 0.05,
+ "seed": 9001,
+ "lambda": null,
+ "final_train_metrics": {
+  "elapsed_seconds": 2295.22,
+  "metrics": {
+   "loss": 0.21976188942790031,
+   "prediction": 0.017365158535540104,
+   "sigreg": 10.119836807250977,
+   "sigreg_context": 3.114275097846985,
+   "sigreg_target": 17.1253981590271
+  },
+  "step": 10000
+ },
+ "forms": {
+  "full_input": {
+   "vertex_resolution_m": 0.33346365693383045,
+   "module_gain_run_mean_r2": 0.003907616142523551,
+   "log_yield_r2": 0.9839407655641323,
+   "event_embedding": {
+    "effective_rank": 8.999760992115746,
+    "participation_ratio": 2.8716629789010835
+   },
+   "sigreg_statistic_events": 1371.0834533943737,
+   "token_log_charge_r2": {
+    "r2": 0.0020297880808811675,
+    "alpha": 100,
+    "n_train": 108800,
+    "n_test": 108800
+   }
+  }
+ },
+ "wall_seconds": 2467.41
+}
