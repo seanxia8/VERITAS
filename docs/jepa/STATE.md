@@ -1,13 +1,14 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-29. Parts A–C complete; D1 and bridge smoke complete; two D2 strong-drift runs active; grid paused.
+Updated: 2026-10-29. Parts A–C complete; D1, D2, and bridge smoke complete; bridge status repair deployed and under CPU test; grid paused.
 
 ## Pre-grid continuation (29 Oct 2026)
 
 - Part C clean rerun passed; `complete:true`, anc100 beta 100, all expectations independently verified within 0.001 m. Evidence and complete table: `results/jepa/20261029_part_c/`; old failure retained; evaluation-mismatch reading not supported. Part C Titan charge 2.590016667 GPU-h.
-- D0 smokes and both D1 floors passed; strong-drift cohorts match nominal event IDs and seeds. Evidence: `results/jepa/20261029_d0_smokes/`, `results/jepa/20261029_d1_partial/`. Four D2 variants (across, stopgrad, lambda, ijepa) both seeds complete; `results/jepa/20261029_d2_partial/`. Strong-drift seeds 9000 and 9001 run on deepthought2 under `04f9edd`, each with 2.25 GPU-h timeout reservation. Deepthought2 HOLD while both GPUs occupied; no new launches at HOLD.
-- Part E delayed bridge smoke passed with fixed delay 0.01, separate data root, 20 steps and 2000 event cap; `results/jepa/20261029_bridge_smoke/`. Top-level delayed job status metadata repaired and tests passed at `888596c`; deployment and full bridge pending guard OK and CPU smoke. The original frozen WP4a beta decision is absent at its recorded path; selected beta10 and original file SHA are evidenced in `results/jepa/wp4a_grid_anchored/manifest.jsonl`. Author was asked for its preserved path; do not claim a substitute is the original.
-- All new outputs `registered:false`; no registered grid decision or grid launch. Live resource charges and reservations: `docs/jepa/RESOURCE_LEDGER.json`. Final D readings and E comparison pending.
+- D0 smokes and both D1 floors passed; strong-drift cohorts match nominal event IDs and seeds. Evidence: `results/jepa/20261029_d0_smokes/`, `results/jepa/20261029_d1_partial/`. All ten D2 runs complete under `04f9edd`; `results/jepa/20261029_d2_partial/` includes the table, verified evidence and pre-declared readings. Both strong-drift seeds fall below their new gain floor, so drift-too-weak is not supported. No D2 jobs or reservations remain.
+- Part E delayed bridge smoke passed with fixed delay 0.01, separate data root, 20 steps and 2000 event cap; `results/jepa/20261029_bridge_smoke/`. Top-level delayed job status metadata repaired and tests passed at `888596c`; the new SHA is cloned on Deepthought and CPU tests are pending; full bridge remains pending those tests. The original frozen WP4a beta decision is absent at its recorded path; selected beta10 and original file SHA are evidenced in `results/jepa/wp4a_grid_anchored/manifest.jsonl`. Author was asked for its preserved path; do not claim a substitute is the original.
+- A remote CPU test at `888596c` inadvertently wrote pytest temporary files in `/tmp/pytest-of-dwong/pytest-99` outside the authorized root. It was interrupted, its files preserved, and the constrained re-test uses `/ceph/dwong/jepa/tmp/`; see DECISIONS.
+- All new outputs `registered:false`; no registered grid decision or grid launch. Live resource charges and reservations: `docs/jepa/RESOURCE_LEDGER.json`. Final E comparison pending.
 
 ## Pre-grid handoff (28 Oct 2026)
 
