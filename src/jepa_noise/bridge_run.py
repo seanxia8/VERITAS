@@ -2717,6 +2717,10 @@ def _label_follow_up(aggregate: dict, extension: str) -> dict:
 
 def _extension_fields(extension: Optional[str]) -> dict:
     """Optional run-status fields; absent for every registered run."""
+    delay = toy_delay_extension()
+    if delay:
+        return {"extension": "toy_delay_20261025", "registered": False,
+                "registered_run": False, "toy_delay": delay}
     if extension is None:
         return {}
     return {"extension": extension, "registered_run": False}

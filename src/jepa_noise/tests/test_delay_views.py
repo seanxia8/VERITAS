@@ -56,6 +56,11 @@ def test_delay_run_and_aggregate_are_explicitly_nonregistered(monkeypatch):
                             steps_completed=10000)
     assert status["registered"] is False
     assert status["toy_delay"]["delay_step"] == .01
+    # These fields are used in the grid's running/final and aggregate statuses.
+    fields = br._extension_fields(None)
+    assert fields == {"extension": "toy_delay_20261025", "registered": False,
+                      "registered_run": False,
+                      "toy_delay": {"delay_mode": "fixed", "delay_step": .01}}
     aggregate = br.build_aggregate([], config=br.load_config(), config_sha="test",
                                    code_sha="test", status_text="", cohorts={}, fixture="a4")
     assert aggregate["registered"] is False
@@ -64,3 +69,5 @@ def test_delay_run_and_aggregate_are_explicitly_nonregistered(monkeypatch):
     with pytest.raises(RuntimeError, match="missing or mixed delay provenance"):
         br.build_aggregate([{"manifest": {}}], config=br.load_config(), config_sha="test",
                            code_sha="test", status_text="", cohorts={}, fixture="a4")
+    monkeypatch.delenv("JEPA_TOY_DELAY")
+    assert br._extension_fields(None) == {}
