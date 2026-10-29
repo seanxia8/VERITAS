@@ -1,0 +1,19 @@
+{
+  "run_id": "pregrid_E_bridge_anchored_20261029",
+  "tag": "jepa_pregrid_E_bridge_anchored_20261029",
+  "host": "deepthought",
+  "gpu_index": 2,
+  "pid": 2350449,
+  "pgid": 2350449,
+  "exit_status": 0,
+  "wifsignaled": false,
+  "wtermsig": null,
+  "outcome": "exited",
+  "timed_out": false,
+  "forwarded_signal": null,
+  "planned_minutes": 120.0,
+  "timeout_seconds": 10800,
+  "started_at_utc": "2026-10-29T06:24:46Z",
+  "finished_at_utc": "2026-10-29T07:53:03Z",
+  "wall_seconds": 5297.82
+}

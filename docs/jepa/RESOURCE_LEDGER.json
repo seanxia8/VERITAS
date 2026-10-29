@@ -61,18 +61,18 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 15.234136111111109,
+   "charged_gpu_hours": 16.705752777777775,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 8.711336111111113,
+    "charged_gpu_hours": 10.182952777777778,
     "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
-    "bridge_gpu_hours": 1.8471444444444445,
+    "bridge_gpu_hours": 3.318761111111111,
     "status": "Part C passed on clean 20261029 attempt; failed attempt preserved; grid paused",
-    "active_reservations_gpu_hours": 3.0,
-    "bridge_active_reservations_gpu_hours": 3.0
+    "active_reservations_gpu_hours": 0.0,
+    "bridge_active_reservations_gpu_hours": 0.0
    }
   },
   "lucid_generation_cpu": {
@@ -1836,13 +1836,16 @@
    "host": "deepthought",
    "device": "GTX Titan X",
    "gpu_count": 1,
-   "gpu_hours": 0,
+   "gpu_hours": 1.4716166666666666,
    "reserved_max_gpu_hours": 3,
-   "status": "running",
+   "status": "complete",
    "started_at_utc": "2026-10-29T06:24:46Z",
    "code_sha": "888596caaf5cbb5d89888807e1bc0a0c42adad8c",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_E_bridge_anchored_20261029/",
-   "note": "Delayed anchored arm, seeds 0\u20132, batch 128, 10000 steps, frozen beta10 descriptor explicitly sourced from registered results. Charge launcher wall on exit."
+   "note": "Three seeds complete, 10000 steps each, beta10 descriptor and nonregistered fixed delay provenance, compact evidence hashes verified.",
+   "wall_seconds": 5297.82,
+   "exit_status": 0,
+   "finished_at_utc": "2026-10-29T07:53:03Z"
   }
  ]
 }
