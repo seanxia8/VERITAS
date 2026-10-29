@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 87.73271188888887,
+   "charged_gpu_hours": 88.54838688888887,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -54,9 +54,9 @@
     "start_rule_gpu_hours": 160,
     "method": "Retain prior conservative aggregate (including unitemised 0.261107 h); replace 0.33 h step3 provisional charge by 14.817067 h. Project 165 minus unaffected completed runs at prior measured 1238.38 s/run, plus 8 h extensions; no grid launch authorized.",
     "active_reservations_gpu_hours": 4.5,
-    "remaining_extension_projection_gpu_hours": 3.2,
-    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 145.99989522222222,
-    "extension_charged_gpu_hours": 3.322772222222222
+    "remaining_extension_projection_gpu_hours": 2.4,
+    "ledger_plus_remaining_projection_with_reservations_gpu_hours": 146.01557022222224,
+    "extension_charged_gpu_hours": 4.138447222222222
    }
   },
   "E2_lucid_titan_deepthought": {
@@ -1633,13 +1633,16 @@
    "host": "deepthought2",
    "device": "L40S",
    "gpu_count": 1,
-   "gpu_hours": 0,
+   "gpu_hours": 0.8156749999999999,
    "reserved_max_gpu_hours": 2.25,
-   "status": "running",
+   "status": "complete",
    "started_at_utc": "2026-10-29T03:10:10Z",
    "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_lambda_s9000_20261029/",
-   "note": "Provisional running entry; charge actual launcher wall after exit including failure."
+   "note": "10000 steps, finite summary and actual coefficient 0.2 verified; launcher wall/3600.",
+   "wall_seconds": 2936.43,
+   "exit_status": 0,
+   "finished_at_utc": "2026-10-29T03:59:06Z"
   },
   {
    "id": "pregrid_D2_lambda_s9001_20261029",
@@ -1654,6 +1657,21 @@
    "started_at_utc": "2026-10-29T03:28:14Z",
    "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_lambda_s9001_20261029/",
+   "note": "Provisional running entry; charge actual launcher wall after exit including failure."
+  },
+  {
+   "id": "pregrid_D2_ijepa_s9000_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 2.25,
+   "status": "running",
+   "started_at_utc": "2026-10-29T04:00:12Z",
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_ijepa_s9000_20261029/",
    "note": "Provisional running entry; charge actual launcher wall after exit including failure."
   }
  ]
