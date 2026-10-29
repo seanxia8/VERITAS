@@ -46,13 +46,17 @@ def storage_check(ext, quota):
         raise RuntimeError('S1: extension storage safety margin exhausted')
 
 
-def main():
+def parse_args(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument('run_id')
     p.add_argument('--module', required=True)
     p.add_argument('--timeout-seconds', type=int, required=True)
-    p.add_argument('job_args', nargs=argparse.REMAINDER)
-    args = p.parse_args()
+    args, args.job_args = p.parse_known_args(argv)
+    return args
+
+
+def main():
+    args = parse_args()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', args.run_id):
         raise ValueError('invalid run ID')
     if not 0 < args.timeout_seconds <= 43200:

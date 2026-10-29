@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 3.8276388888888895,
+   "charged_wall_hours": 4.00763888888889,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -1880,6 +1880,17 @@
    "gpu_hours": 0,
    "status": "outcome_unknown",
    "note": "Read-only full-tree SHA-256 scan; remote process vanished without observable SSH exit, no match observed before loss; no completed negative conclusion."
+  },
+  {
+   "id": "predictability_tests_5dc283b_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.18,
+   "gpu_hours": 0,
+   "status": "complete",
+   "note": "Full suite 508 passed in 625.51 s and focused suite 11 passed in 6.31 s; total rounded upward."
   }
  ]
 }

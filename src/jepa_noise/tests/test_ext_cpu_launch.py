@@ -45,3 +45,13 @@ def test_front_door_cpu_dispatch_does_not_enter_gpu_launcher(tmp_path):
     assert lines[0] == str(root / 'scripts/jepa_cpu_launch.py')
     assert lines[1:] == ['probe1', '--module', 'scripts.jepa_ext_predictability_budget']
     assert 'jepa_launch.py' not in result.stdout
+
+
+def test_cpu_front_door_options_after_run_id_are_parsed():
+    from scripts.jepa_cpu_launch import parse_args
+    args = parse_args(['run1', '--module', 'scripts.jepa_ext_predictability_budget',
+                       '--timeout-seconds', '10', '--', '--help'])
+    assert args.run_id == 'run1'
+    assert args.module == 'scripts.jepa_ext_predictability_budget'
+    assert args.timeout_seconds == 10
+    assert args.job_args == ['--', '--help']
