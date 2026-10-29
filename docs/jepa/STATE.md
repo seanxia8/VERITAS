@@ -4,7 +4,7 @@ Updated: 2026-10-25. Parts A/B complete; Part C failed on entry quota; RESOURCE_
 
 ## Pre-grid continuation (29 Oct 2026)
 
-- Part C six-checkpoint clean attempt passed: complete report, anc100 beta 100 and five expectations independently verified within 0.001 m. Evidence `results/jepa/20261029_part_c/`; registered:false. Previous failure preserved. Titan runbook charge 2.590016667 GPU-h. D0 across, stopgrad, lambda retry, and ijepa smokes passed; lambda first failure preserved, repair validated (497 local CPU tests); D1 and E–F pending; D2 across/stopgrad seed9000 running on deepthought2, each with timeout-inclusive reservation. Grid paused.
+- Part C six-checkpoint clean attempt passed: complete report, anc100 beta 100 and five expectations independently verified within 0.001 m. Evidence `results/jepa/20261029_part_c/`; registered:false. Previous failure preserved. Titan runbook charge 2.590016667 GPU-h. D0 across, stopgrad, lambda retry, and ijepa smokes passed; lambda first failure preserved, repair validated (497 local CPU tests); D1 strong-drift generation/floor running on deepthought; D2 across seed9000 passed, stopgrad seed9000 and across seed9001 running on deepthought2 with timeout-inclusive reservations; E–F pending. Grid paused.
 
 ## Pre-grid handoff (28 Oct 2026)
 
