@@ -1,0 +1,19 @@
+{
+  "run_id": "pregrid_D2_lambda_s9001_20261029",
+  "tag": "jepa_pregrid_D2_lambda_s9001_20261029",
+  "host": "deepthought2",
+  "gpu_index": 1,
+  "pid": 3538822,
+  "pgid": 3538822,
+  "exit_status": 0,
+  "wifsignaled": false,
+  "wtermsig": null,
+  "outcome": "exited",
+  "timed_out": false,
+  "forwarded_signal": null,
+  "planned_minutes": 90.0,
+  "timeout_seconds": 8100,
+  "started_at_utc": "2026-10-29T03:28:13Z",
+  "finished_at_utc": "2026-10-29T04:19:53Z",
+  "wall_seconds": 3099.72
+}

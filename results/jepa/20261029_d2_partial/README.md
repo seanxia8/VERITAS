@@ -7,3 +7,5 @@ Across seed 9001 completed 10000 steps, exit 0 after 2694.73 s (0.748536111 L40S
 Stopgrad seed 9001 completed 10000 steps, exit 0 after 3459.33 s (0.960925 L40S GPU-h), full-input vertex 0.189377155 m. The pre-declared label-shaping reading is not supported: 0.219583 > 0.9 × 0.219258 and 0.189377 > 0.9 × 0.204281. Both results are descriptive extensions.
 
 Lambda seed 9000 completed 10000 steps, exit 0 after 2936.43 s (0.815675 L40S GPU-h). Full-input vertex 0.220055133 m; final training SIGReg 1.4837366 and loss verified as prediction + 0.2 × SIGReg. Seed 9001 remains needed for the pre-declared reading.
+
+Lambda seed 9001 completed 10000 steps, exit 0 after 3099.72 s (0.861033333 L40S GPU-h). Full-input vertex 0.199603069 m; final training SIGReg 1.44313335. The pre-declared SIGReg-overridden reading is not supported: seed 9000 vertex 0.220055133 m exceeds its fixed-within reference 0.219258 m, despite final SIGReg below 3. Both iJEPA seeds are running; D1 remains pending.
