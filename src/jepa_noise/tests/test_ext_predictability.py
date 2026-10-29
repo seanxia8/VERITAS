@@ -177,3 +177,10 @@ def test_reused_scratch_is_confined_and_not_accumulated(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='within the temporary root'):
         tokenise_realisations(draws, geometry, cfg, state, 'A', scratch,
                               spread=.05, seed=11, replicates=2, scratch_dir=tmp_path)
+
+
+def test_benchmark_selects_domain_yield_extremes():
+    from scripts.jepa_ext_predictability_budget import benchmark_extremes
+    ids = np.arange(9)
+    domains = np.repeat(['photon', 'muon', 'electron'], 3)
+    assert benchmark_extremes(ids, [2, 1, 3, 3, 2, 1, 1, 3, 2], domains) == {1, 2, 3, 5, 6, 7}

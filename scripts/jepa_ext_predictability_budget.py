@@ -40,6 +40,20 @@ def check_limits(root, deadline):
     return size
 
 
+def benchmark_extremes(ids, yields, domains):
+    ids, yields, domains = np.asarray(ids), np.asarray(yields), np.asarray(domains)
+    if not (ids.shape == yields.shape == domains.shape) or not np.isfinite(yields).all():
+        raise ValueError('invalid benchmark metadata')
+    selected = set()
+    for domain in ('photon', 'muon', 'electron'):
+        idx = np.flatnonzero(domains == domain)
+        if len(idx) < 2:
+            raise ValueError(f'benchmark requires at least two {domain} events')
+        selected.add(int(ids[idx[np.argmin(yields[idx])]]))
+        selected.add(int(ids[idx[np.argmax(yields[idx])]]))
+    return selected
+
+
 def process(args):
     if args.spread != {"nominal": 0.05, "strong_drift": 0.30}[args.cell]:
         raise ValueError("cell label and drift spread disagree")
@@ -69,6 +83,16 @@ def process(args):
     results = {s: {key: [] for key in ('mean', 'variance', 'hit_count', 'hit_sum', 'hit_sum_squares')}
                for s in output}
     event_ids, run_ids, domains, vertices, yields, target_hits = [], [], [], [], [], []
+    benchmark_ids = None
+    if args.benchmark:
+        all_ids, all_yields, all_domains = [], [], []
+        for row in rows:
+            with np.load(dataset / 'runs' / row['run_dir'] / 'events.npz', allow_pickle=False) as data:
+                all_ids.extend(data['event_ids'].tolist())
+                all_yields.extend(data['yield_photons'].tolist())
+                all_domains.extend(data['domain'].astype(str).tolist())
+        benchmark_ids = benchmark_extremes(all_ids, all_yields, all_domains)
+    timings = []
     expected_counts = {'photon': 340, 'muon': 340, 'electron': 320}
     counts = dict.fromkeys(expected_counts, 0)
     readout = lb.make_readout(geometry, cfg)
@@ -98,6 +122,9 @@ def process(args):
         if len(ids) != 50 or not np.array_equal(ids, saved.event_ids):
             raise ValueError(f'{run_id}: cached event IDs differ')
         for i, event_id in enumerate(ids):
+            if benchmark_ids is not None and int(event_id) not in benchmark_ids:
+                continue
+            started = time.monotonic()
             check_limits(out, args.deadline)
             d = str(domain[i])
             if d not in counts:
@@ -131,7 +158,20 @@ def process(args):
             counts[d] += 1
             event_ids.append(int(event_id)); run_ids.append(run_id); domains.append(d)
             vertices.append(vertex[i]); yields.append(yield_value[i])
+            if benchmark_ids is not None:
+                timings.append({'event_id': int(event_id), 'domain': d,
+                                'elapsed_seconds': time.monotonic() - started})
         print(f'{args.cell}: completed {run_id}', flush=True)
+    if benchmark_ids is not None:
+        if set(event_ids) != benchmark_ids:
+            raise ValueError('benchmark events missing')
+        print(json.dumps({'registered': False, 'kind': 'benchmark_only', 'cell': args.cell,
+                          'samples': timings, 'max_seconds_per_event': max(t['elapsed_seconds'] for t in timings),
+                          'max_sample_1000_event_projection_seconds':
+                              1000 * max(t['elapsed_seconds'] for t in timings),
+                          'twofold_allowance_seconds':
+                              2000 * max(t['elapsed_seconds'] for t in timings)}), flush=True)
+        return
     if event_ids != list(range(1_210_000, 1_211_000)):
         raise ValueError('budget is not the first 1000 dev probe-test IDs')
     if counts != expected_counts:
@@ -166,6 +206,7 @@ def main():
     parser.add_argument('--cell', required=True, choices=('nominal', 'strong_drift'))
     parser.add_argument('--spread', required=True, type=float, choices=(0.05, 0.30))
     parser.add_argument('--remaining-seconds', required=True, type=int)
+    parser.add_argument('--benchmark', action='store_true', help='measure extremes per domain; write no budget outputs')
     args = parser.parse_args()
     if not 0 < args.remaining_seconds <= 43200:
         raise ValueError("remaining CPU wall-time must be within the 12-hour budget")

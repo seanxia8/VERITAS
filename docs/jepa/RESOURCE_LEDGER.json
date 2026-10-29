@@ -1857,6 +1857,28 @@
    "gpu_hours": 0,
    "status": "interrupted_s3",
    "note": "Read-only full-tree SHA-256 search interrupted after S3 sample-definition conflict; conservative 0.12 h wall-time charge. No match observed before interruption; search incomplete."
+  },
+  {
+   "id": "predictability_tests_9ef9f19_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.177,
+   "gpu_hours": 0,
+   "status": "complete_with_prior_interruption",
+   "note": "Full suite 502 passed in 611.46 s; earlier interrupted test had 17 passed in 23.75 s and is charged. This SHA predates the full analysis scaffold."
+  },
+  {
+   "id": "predictability_wp4a_hash_search_retry1_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.3,
+   "gpu_hours": 0,
+   "status": "outcome_unknown",
+   "note": "Read-only full-tree SHA-256 scan; remote process vanished without observable SSH exit, no match observed before loss; no completed negative conclusion."
   }
  ]
 }
