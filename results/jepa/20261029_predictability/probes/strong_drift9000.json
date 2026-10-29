@@ -1,0 +1,261 @@
+{
+  "registered": false,
+  "extension": "predictability_2026-10-29",
+  "label": "strong_drift9000",
+  "cell": "strong_drift",
+  "checkpoint": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/train/strong_drift_s9000/runs/ext_dev_s030_within__sigreg_jepa__s9000/final.pt",
+  "checkpoint_sha256": "497344c5b5707d2ed0c161db093ecee6ef825ea0a1dfb77734d122dda23ce101",
+  "arm": "sigreg_jepa",
+  "beta": null,
+  "seed": 9000,
+  "results": {
+    "all": {
+      "log_charge": {
+        "observed": {
+          "r2": 0.02046700049504213,
+          "alpha": 100,
+          "n_train": 160078,
+          "n_test": 164957
+        },
+        "predictable": {
+          "r2": 0.024100351195639358,
+          "alpha": 100,
+          "n_train": 160078,
+          "n_test": 164957
+        },
+        "physics": {
+          "r2": 0.02552643780261199,
+          "alpha": 100,
+          "n_train": 160078,
+          "n_test": 164957
+        }
+      },
+      "time": {
+        "observed": {
+          "r2": 0.011489409486421298,
+          "alpha": 100,
+          "n_train": 160078,
+          "n_test": 164957
+        },
+        "predictable": {
+          "r2": 0.00956267671116584,
+          "alpha": 100,
+          "n_train": 160078,
+          "n_test": 164957
+        },
+        "physics": {
+          "r2": 0.008916858203433242,
+          "alpha": 100,
+          "n_train": 160078,
+          "n_test": 164957
+        }
+      },
+      "hit": {
+        "observed": {
+          "r2": 0.041015014960811946,
+          "alpha": 100,
+          "n_train": 525000,
+          "n_test": 525000
+        },
+        "predictable": {
+          "r2": 0.03851362114415746,
+          "alpha": 100,
+          "n_train": 525000,
+          "n_test": 525000
+        },
+        "physics": {
+          "r2": 0.03767228947468382,
+          "alpha": 100,
+          "n_train": 525000,
+          "n_test": 525000
+        }
+      }
+    },
+    "photon": {
+      "log_charge": {
+        "observed": {
+          "r2": 0.01602475057520769,
+          "alpha": 100,
+          "n_train": 92686,
+          "n_test": 94618
+        },
+        "predictable": {
+          "r2": 0.02174141108584815,
+          "alpha": 100,
+          "n_train": 92686,
+          "n_test": 94618
+        },
+        "physics": {
+          "r2": 0.02431494903771181,
+          "alpha": 100,
+          "n_train": 92686,
+          "n_test": 94618
+        }
+      },
+      "time": {
+        "observed": {
+          "r2": 0.011198539154677167,
+          "alpha": 100,
+          "n_train": 92686,
+          "n_test": 94618
+        },
+        "predictable": {
+          "r2": 0.006601036158997764,
+          "alpha": 100,
+          "n_train": 92686,
+          "n_test": 94618
+        },
+        "physics": {
+          "r2": 0.005672619590473493,
+          "alpha": 100,
+          "n_train": 92686,
+          "n_test": 94618
+        }
+      },
+      "hit": {
+        "observed": {
+          "r2": 0.06009178598427234,
+          "alpha": 100,
+          "n_train": 178500,
+          "n_test": 178500
+        },
+        "predictable": {
+          "r2": 0.064230037491249,
+          "alpha": 100,
+          "n_train": 178500,
+          "n_test": 178500
+        },
+        "physics": {
+          "r2": 0.062354077713454914,
+          "alpha": 100,
+          "n_train": 178500,
+          "n_test": 178500
+        }
+      }
+    },
+    "muon": {
+      "log_charge": {
+        "observed": {
+          "r2": 0.02024405887771108,
+          "alpha": 100,
+          "n_train": 27710,
+          "n_test": 28598
+        },
+        "predictable": {
+          "r2": 0.02261609331596437,
+          "alpha": 100,
+          "n_train": 27710,
+          "n_test": 28598
+        },
+        "physics": {
+          "r2": 0.02423473942384835,
+          "alpha": 100,
+          "n_train": 27710,
+          "n_test": 28598
+        }
+      },
+      "time": {
+        "observed": {
+          "r2": 0.008473576414563921,
+          "alpha": 100,
+          "n_train": 27710,
+          "n_test": 28598
+        },
+        "predictable": {
+          "r2": 0.005674459609169014,
+          "alpha": 100,
+          "n_train": 27710,
+          "n_test": 28598
+        },
+        "physics": {
+          "r2": 0.003215380260256029,
+          "alpha": 100,
+          "n_train": 27710,
+          "n_test": 28598
+        }
+      },
+      "hit": {
+        "observed": {
+          "r2": 0.02023454097470445,
+          "alpha": 100,
+          "n_train": 178500,
+          "n_test": 178500
+        },
+        "predictable": {
+          "r2": 0.018659984565473353,
+          "alpha": 100,
+          "n_train": 178500,
+          "n_test": 178500
+        },
+        "physics": {
+          "r2": 0.018361321302609812,
+          "alpha": 100,
+          "n_train": 178500,
+          "n_test": 178500
+        }
+      }
+    },
+    "electron": {
+      "log_charge": {
+        "observed": {
+          "r2": 0.028903460794378333,
+          "alpha": 100,
+          "n_train": 39682,
+          "n_test": 41741
+        },
+        "predictable": {
+          "r2": 0.033348380286357004,
+          "alpha": 100,
+          "n_train": 39682,
+          "n_test": 41741
+        },
+        "physics": {
+          "r2": 0.0352706915009372,
+          "alpha": 100,
+          "n_train": 39682,
+          "n_test": 41741
+        }
+      },
+      "time": {
+        "observed": {
+          "r2": 0.004635004880869209,
+          "alpha": 100,
+          "n_train": 39682,
+          "n_test": 41741
+        },
+        "predictable": {
+          "r2": 0.00418019199236952,
+          "alpha": 100,
+          "n_train": 39682,
+          "n_test": 41741
+        },
+        "physics": {
+          "r2": 0.0036341972849066595,
+          "alpha": 100,
+          "n_train": 39682,
+          "n_test": 41741
+        }
+      },
+      "hit": {
+        "observed": {
+          "r2": 0.033442781995898785,
+          "alpha": 0.0001,
+          "n_train": 168000,
+          "n_test": 168000
+        },
+        "predictable": {
+          "r2": 0.03269531275938886,
+          "alpha": 100,
+          "n_train": 168000,
+          "n_test": 168000
+        },
+        "physics": {
+          "r2": 0.03228096773472566,
+          "alpha": 100,
+          "n_train": 168000,
+          "n_test": 168000
+        }
+      }
+    }
+  }
+}

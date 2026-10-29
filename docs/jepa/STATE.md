@@ -377,3 +377,7 @@ Predictability S1 stop: nominal six-event preflight hit a cached electron truth 
 S1 fixture-capacity stop resolved by the author's explicit option A: three successful fixture basetemps were individually archived and verified before removal; free entries 36,009. Archive manifests, hashes and exact paths are recorded in DECISIONS. Validation of `babbd3b` and the extension remain pending.
 
 `babbd3b` validation complete: 18/18 focused and 515/515 full suite; successful suite scratch removed, log retained. Proceeding to the nominated mixed-domain r=0/time preflight under a new job ID; grid remains paused.
+
+### Predictability extension (29 Oct 2026)
+
+Part 1 is complete on the author-clarified 1,000 mixed original events for nominal and strong drift; 13 CPU probes and domain-stratified summaries are recorded under `results/jepa/20261029_predictability/` as `registered: false`. Part 2 CCA is next. Grid remains paused.

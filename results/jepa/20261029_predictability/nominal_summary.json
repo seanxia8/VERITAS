@@ -1,0 +1,1260 @@
+{
+  "registered": false,
+  "extension": "predictability_2026-10-29",
+  "yield_tercile_cutpoints": [
+    258932.54127260167,
+    702247.3638992177
+  ],
+  "rows": {
+    "all": {
+      "all": {
+        "n_events": 1000,
+        "n_below_registered_n_min": 9,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.8782727454463424,
+              "rho_phys": 0.8736440011051274,
+              "rho_state": 0.004628744341214963,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.8187348166677688,
+              "rho_phys": 0.8089869794329609,
+              "rho_state": 0.009747837234807877,
+              "scheme_a_counts": {
+                "rho": 0.8187348166677688,
+                "pairs": 480220,
+                "observations": 5212177
+              },
+              "scheme_b_counts": {
+                "rho": 0.8089869794329609,
+                "pairs": 480258,
+                "observations": 5212568
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.5797903776475757,
+              "rho_phys": 0.5782116239567853,
+              "rho_state": 0.0015787536907904132,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5143312673966397,
+              "rho_phys": 0.5088501386167077,
+              "rho_state": 0.00548112877993201,
+              "scheme_a_counts": {
+                "rho": 0.5143312673966397,
+                "pairs": 480220,
+                "observations": 5212177
+              },
+              "scheme_b_counts": {
+                "rho": 0.5088501386167077,
+                "pairs": 480258,
+                "observations": 5212568
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.7169104139894863,
+              "rho_phys": 0.7169306454342608,
+              "rho_state": -2.0231444774476692e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 480220,
+                "observations": 5212177
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 480258,
+                "observations": 5212568
+              }
+            }
+          }
+        }
+      },
+      "0": {
+        "n_events": 333,
+        "n_below_registered_n_min": 8,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.6849584839119731,
+              "rho_phys": 0.6758929172114261,
+              "rho_state": 0.009065566700547034,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.6672245916650861,
+              "rho_phys": 0.6499365103263113,
+              "rho_state": 0.017288081338774797,
+              "scheme_a_counts": {
+                "rho": 0.6672245916650861,
+                "pairs": 253660,
+                "observations": 2243356
+              },
+              "scheme_b_counts": {
+                "rho": 0.6499365103263113,
+                "pairs": 253733,
+                "observations": 2243953
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.3384362331956665,
+              "rho_phys": 0.33702641956034807,
+              "rho_state": 0.0014098136353184465,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5283101912473382,
+              "rho_phys": 0.5205420598289208,
+              "rho_state": 0.007768131418417479,
+              "scheme_a_counts": {
+                "rho": 0.5283101912473382,
+                "pairs": 253660,
+                "observations": 2243356
+              },
+              "scheme_b_counts": {
+                "rho": 0.5205420598289208,
+                "pairs": 253733,
+                "observations": 2243953
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.46775766864590307,
+              "rho_phys": 0.46775212266455457,
+              "rho_state": 5.545981348498152e-06,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 253660,
+                "observations": 2243356
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 253733,
+                "observations": 2243953
+              }
+            }
+          }
+        }
+      },
+      "1": {
+        "n_events": 333,
+        "n_below_registered_n_min": 1,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.8991108608390221,
+              "rho_phys": 0.8946838189859452,
+              "rho_state": 0.004427041853076963,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.7877400064734075,
+              "rho_phys": 0.7766382471802198,
+              "rho_state": 0.011101759293187685,
+              "scheme_a_counts": {
+                "rho": 0.7877400064734075,
+                "pairs": 113996,
+                "observations": 1512530
+              },
+              "scheme_b_counts": {
+                "rho": 0.7766382471802198,
+                "pairs": 113981,
+                "observations": 1512561
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.7444745804764753,
+              "rho_phys": 0.7440166819762503,
+              "rho_state": 0.0004578985002250402,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5249347611871448,
+              "rho_phys": 0.5263966429391631,
+              "rho_state": -0.0014618817520183347,
+              "scheme_a_counts": {
+                "rho": 0.5249347611871448,
+                "pairs": 113996,
+                "observations": 1512530
+              },
+              "scheme_b_counts": {
+                "rho": 0.5263966429391631,
+                "pairs": 113981,
+                "observations": 1512561
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8627908258966588,
+              "rho_phys": 0.8628043754955809,
+              "rho_state": -1.3549598922080186e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 113996,
+                "observations": 1512530
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 113981,
+                "observations": 1512561
+              }
+            }
+          }
+        }
+      },
+      "2": {
+        "n_events": 334,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.938392872204604,
+              "rho_phys": 0.9353332870636242,
+              "rho_state": 0.0030595851409798147,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.8600973395420266,
+              "rho_phys": 0.851708004565312,
+              "rho_state": 0.008389334976714569,
+              "scheme_a_counts": {
+                "rho": 0.8600973395420266,
+                "pairs": 112564,
+                "observations": 1456291
+              },
+              "scheme_b_counts": {
+                "rho": 0.851708004565312,
+                "pairs": 112544,
+                "observations": 1456054
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.7324437097652594,
+              "rho_phys": 0.7302271288786926,
+              "rho_state": 0.0022165808865668435,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.4496693873679467,
+              "rho_phys": 0.4432484305643163,
+              "rho_state": 0.006420956803630418,
+              "scheme_a_counts": {
+                "rho": 0.4496693873679467,
+                "pairs": 112564,
+                "observations": 1456291
+              },
+              "scheme_b_counts": {
+                "rho": 0.4432484305643163,
+                "pairs": 112544,
+                "observations": 1456054
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8598741092366708,
+              "rho_phys": 0.859940972624365,
+              "rho_state": -6.686338769412714e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 112564,
+                "observations": 1456291
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 112544,
+                "observations": 1456054
+              }
+            }
+          }
+        }
+      }
+    },
+    "photon": {
+      "all": {
+        "n_events": 340,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.7738913243075993,
+              "rho_phys": 0.7664962311835916,
+              "rho_state": 0.007395093124007768,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.7444534179596869,
+              "rho_phys": 0.7312683077868385,
+              "rho_state": 0.013185110172848402,
+              "scheme_a_counts": {
+                "rho": 0.7444534179596869,
+                "pairs": 304254,
+                "observations": 3008842
+              },
+              "scheme_b_counts": {
+                "rho": 0.7312683077868385,
+                "pairs": 304338,
+                "observations": 3009600
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.3669654821480658,
+              "rho_phys": 0.36529787359935606,
+              "rho_state": 0.0016676085487097314,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5257435523345957,
+              "rho_phys": 0.5180155299391491,
+              "rho_state": 0.0077280223954465654,
+              "scheme_a_counts": {
+                "rho": 0.5257435523345957,
+                "pairs": 304254,
+                "observations": 3008842
+              },
+              "scheme_b_counts": {
+                "rho": 0.5180155299391491,
+                "pairs": 304338,
+                "observations": 3009600
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.47294964582734345,
+              "rho_phys": 0.4728602418596253,
+              "rho_state": 8.940396771817127e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 304254,
+                "observations": 3008842
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 304338,
+                "observations": 3009600
+              }
+            }
+          }
+        }
+      },
+      "0": {
+        "n_events": 285,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.6669057723383474,
+              "rho_phys": 0.65743964717935,
+              "rho_state": 0.009466125158997363,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.6576401373704985,
+              "rho_phys": 0.6398644764151759,
+              "rho_state": 0.01777566095532268,
+              "scheme_a_counts": {
+                "rho": 0.6576401373704985,
+                "pairs": 246988,
+                "observations": 2172103
+              },
+              "scheme_b_counts": {
+                "rho": 0.6398644764151759,
+                "pairs": 247080,
+                "observations": 2172747
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.2879283309377063,
+              "rho_phys": 0.2865853668044822,
+              "rho_state": 0.0013429641332241005,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5256300856582605,
+              "rho_phys": 0.5176820663286854,
+              "rho_state": 0.007948019329575118,
+              "scheme_a_counts": {
+                "rho": 0.5256300856582605,
+                "pairs": 246988,
+                "observations": 2172103
+              },
+              "scheme_b_counts": {
+                "rho": 0.5176820663286854,
+                "pairs": 247080,
+                "observations": 2172747
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.4103249530486369,
+              "rho_phys": 0.4102983944605525,
+              "rho_state": 2.655858808442435e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 246988,
+                "observations": 2172103
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 247080,
+                "observations": 2172747
+              }
+            }
+          }
+        }
+      },
+      "1": {
+        "n_events": 55,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.773058081765412,
+              "rho_phys": 0.7631121953507998,
+              "rho_state": 0.009945886414612248,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.745339701673813,
+              "rho_phys": 0.7326423245950073,
+              "rho_state": 0.012697377078805694,
+              "scheme_a_counts": {
+                "rho": 0.745339701673813,
+                "pairs": 57266,
+                "observations": 836739
+              },
+              "scheme_b_counts": {
+                "rho": 0.7326423245950073,
+                "pairs": 57258,
+                "observations": 836853
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.33807769762866824,
+              "rho_phys": 0.33406209712876034,
+              "rho_state": 0.004015600499907901,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5012297375815165,
+              "rho_phys": 0.4934532999675034,
+              "rho_state": 0.007776437614013032,
+              "scheme_a_counts": {
+                "rho": 0.5012297375815165,
+                "pairs": 57266,
+                "observations": 836739
+              },
+              "scheme_b_counts": {
+                "rho": 0.4934532999675034,
+                "pairs": 57258,
+                "observations": 836853
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.3584502684307542,
+              "rho_phys": 0.35720188732676617,
+              "rho_state": 0.001248381103988061,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 57266,
+                "observations": 836739
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 57258,
+                "observations": 836853
+              }
+            }
+          }
+        }
+      },
+      "2": {
+        "n_events": 0,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "pairs": 0,
+                "observations": 0
+              },
+              "scheme_b_counts": {
+                "pairs": 0,
+                "observations": 0
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "pairs": 0,
+                "observations": 0
+              },
+              "scheme_b_counts": {
+                "pairs": 0,
+                "observations": 0
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "pairs": 0,
+                "observations": 0
+              },
+              "scheme_b_counts": {
+                "pairs": 0,
+                "observations": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "muon": {
+      "all": {
+        "n_events": 340,
+        "n_below_registered_n_min": 9,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.919405414607544,
+              "rho_phys": 0.9158717033874044,
+              "rho_state": 0.003533711220139568,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.8160965534197547,
+              "rho_phys": 0.8058797883891997,
+              "rho_state": 0.01021676503055502,
+              "scheme_a_counts": {
+                "rho": 0.8160965534197547,
+                "pairs": 71561,
+                "observations": 902114
+              },
+              "scheme_b_counts": {
+                "rho": 0.8058797883891997,
+                "pairs": 71562,
+                "observations": 902001
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.7108503756362659,
+              "rho_phys": 0.7099096668805123,
+              "rho_state": 0.0009407087557535831,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.3983726183925268,
+              "rho_phys": 0.39889411218566884,
+              "rho_state": -0.000521493793142036,
+              "scheme_a_counts": {
+                "rho": 0.3983726183925268,
+                "pairs": 71561,
+                "observations": 902114
+              },
+              "scheme_b_counts": {
+                "rho": 0.39889411218566884,
+                "pairs": 71562,
+                "observations": 902001
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8584491495116392,
+              "rho_phys": 0.8585020616854736,
+              "rho_state": -5.291217383440738e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 71561,
+                "observations": 902114
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 71562,
+                "observations": 902001
+              }
+            }
+          }
+        }
+      },
+      "0": {
+        "n_events": 20,
+        "n_below_registered_n_min": 8,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.9570944581771567,
+              "rho_phys": 0.9550865876728359,
+              "rho_state": 0.002007870504320719,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.9003810259782807,
+              "rho_phys": 0.8936923390403142,
+              "rho_state": 0.006688686937966537,
+              "scheme_a_counts": {
+                "rho": 0.9003810259782807,
+                "pairs": 618,
+                "observations": 7361
+              },
+              "scheme_b_counts": {
+                "rho": 0.8936923390403142,
+                "pairs": 621,
+                "observations": 7347
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.4940150551619006,
+              "rho_phys": 0.5042381402328624,
+              "rho_state": -0.010223085070961813,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.3909381266712112,
+              "rho_phys": 0.3764876147959241,
+              "rho_state": 0.01445051187528712,
+              "scheme_a_counts": {
+                "rho": 0.3909381266712112,
+                "pairs": 618,
+                "observations": 7361
+              },
+              "scheme_b_counts": {
+                "rho": 0.3764876147959241,
+                "pairs": 621,
+                "observations": 7347
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.850355647902532,
+              "rho_phys": 0.8504294014934757,
+              "rho_state": -7.375359094363709e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 618,
+                "observations": 7361
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 621,
+                "observations": 7347
+              }
+            }
+          }
+        }
+      },
+      "1": {
+        "n_events": 151,
+        "n_below_registered_n_min": 1,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.9350553301153488,
+              "rho_phys": 0.9320262717181605,
+              "rho_state": 0.0030290583971882556,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.8562234353521775,
+              "rho_phys": 0.8480617901662397,
+              "rho_state": 0.00816164518593776,
+              "scheme_a_counts": {
+                "rho": 0.8562234353521775,
+                "pairs": 17967,
+                "observations": 219327
+              },
+              "scheme_b_counts": {
+                "rho": 0.8480617901662397,
+                "pairs": 17971,
+                "observations": 219316
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.6683823071683317,
+              "rho_phys": 0.6693944675521416,
+              "rho_state": -0.0010121603838099125,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.4127934402661879,
+              "rho_phys": 0.41817668331857905,
+              "rho_state": -0.005383243052391129,
+              "scheme_a_counts": {
+                "rho": 0.4127934402661879,
+                "pairs": 17967,
+                "observations": 219327
+              },
+              "scheme_b_counts": {
+                "rho": 0.41817668331857905,
+                "pairs": 17971,
+                "observations": 219316
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8531465645303871,
+              "rho_phys": 0.8532806460172289,
+              "rho_state": -0.00013408148684179721,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 17967,
+                "observations": 219327
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 17971,
+                "observations": 219316
+              }
+            }
+          }
+        }
+      },
+      "2": {
+        "n_events": 169,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.908654746742154,
+              "rho_phys": 0.9047432129783403,
+              "rho_state": 0.0039115337638137015,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.7968285506815717,
+              "rho_phys": 0.7856859416169721,
+              "rho_state": 0.011142609064599518,
+              "scheme_a_counts": {
+                "rho": 0.7968285506815717,
+                "pairs": 52976,
+                "observations": 675426
+              },
+              "scheme_b_counts": {
+                "rho": 0.7856859416169721,
+                "pairs": 52970,
+                "observations": 675338
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.7082349811709063,
+              "rho_phys": 0.7064178191829433,
+              "rho_state": 0.0018171619879630008,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.38351365854820396,
+              "rho_phys": 0.38225684781105085,
+              "rho_state": 0.0012568107371531134,
+              "scheme_a_counts": {
+                "rho": 0.38351365854820396,
+                "pairs": 52976,
+                "observations": 675426
+              },
+              "scheme_b_counts": {
+                "rho": 0.38225684781105085,
+                "pairs": 52970,
+                "observations": 675338
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8503611333637681,
+              "rho_phys": 0.8503873556422246,
+              "rho_state": -2.622227845650027e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 52976,
+                "observations": 675426
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 52970,
+                "observations": 675338
+              }
+            }
+          }
+        }
+      }
+    },
+    "electron": {
+      "all": {
+        "n_events": 320,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.9365220153298496,
+              "rho_phys": 0.9334915667786532,
+              "rho_state": 0.0030304485511963852,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.8689474021533952,
+              "rho_phys": 0.8612888198972318,
+              "rho_state": 0.007658582256163338,
+              "scheme_a_counts": {
+                "rho": 0.8689474021533952,
+                "pairs": 104405,
+                "observations": 1301221
+              },
+              "scheme_b_counts": {
+                "rho": 0.8612888198972318,
+                "pairs": 104358,
+                "observations": 1300967
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.715565201465294,
+              "rho_phys": 0.7150015213798246,
+              "rho_state": 0.0005636800854693647,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.4869684033552668,
+              "rho_phys": 0.48480063913784,
+              "rho_state": 0.0021677642174268152,
+              "scheme_a_counts": {
+                "rho": 0.4869684033552668,
+                "pairs": 104405,
+                "observations": 1301221
+              },
+              "scheme_b_counts": {
+                "rho": 0.48480063913784,
+                "pairs": 104358,
+                "observations": 1300967
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8380392943713897,
+              "rho_phys": 0.8381044383714141,
+              "rho_state": -6.514400002444187e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 104405,
+                "observations": 1301221
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 104358,
+                "observations": 1300967
+              }
+            }
+          }
+        }
+      },
+      "0": {
+        "n_events": 28,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.8316701017480059,
+              "rho_phys": 0.8255721488769233,
+              "rho_state": 0.0060979528710826125,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.7570267277856534,
+              "rho_phys": 0.7448768225580533,
+              "rho_state": 0.012149905227600066,
+              "scheme_a_counts": {
+                "rho": 0.7570267277856534,
+                "pairs": 6054,
+                "observations": 63892
+              },
+              "scheme_b_counts": {
+                "rho": 0.7448768225580533,
+                "pairs": 6032,
+                "observations": 63859
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.6084374604515665,
+              "rho_phys": 0.6077145069225873,
+              "rho_state": 0.0007229535289792199,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.5536094247599525,
+              "rho_phys": 0.5551987693611315,
+              "rho_state": -0.001589344601179099,
+              "scheme_a_counts": {
+                "rho": 0.5536094247599525,
+                "pairs": 6054,
+                "observations": 63892
+              },
+              "scheme_b_counts": {
+                "rho": 0.5551987693611315,
+                "pairs": 6032,
+                "observations": 63859
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.7399808407610862,
+              "rho_phys": 0.739755250154531,
+              "rho_state": 0.00022559060655513719,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 6054,
+                "observations": 63892
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 6032,
+                "observations": 63859
+              }
+            }
+          }
+        }
+      },
+      "1": {
+        "n_events": 127,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.8875085722827312,
+              "rho_phys": 0.8830392663045739,
+              "rho_state": 0.004469305978157312,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.799985343951187,
+              "rho_phys": 0.7892336450232316,
+              "rho_state": 0.010751698927955466,
+              "scheme_a_counts": {
+                "rho": 0.799985343951187,
+                "pairs": 38763,
+                "observations": 456464
+              },
+              "scheme_b_counts": {
+                "rho": 0.7892336450232316,
+                "pairs": 38752,
+                "observations": 456392
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.6681569022892355,
+              "rho_phys": 0.6701579220366038,
+              "rho_state": -0.0020010197473683267,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.4765892788239102,
+              "rho_phys": 0.4855290925820128,
+              "rho_state": -0.0089398137581026,
+              "scheme_a_counts": {
+                "rho": 0.4765892788239102,
+                "pairs": 38763,
+                "observations": 456464
+              },
+              "scheme_b_counts": {
+                "rho": 0.4855290925820128,
+                "pairs": 38752,
+                "observations": 456392
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8012759367963521,
+              "rho_phys": 0.8013200144035381,
+              "rho_state": -4.407760718594389e-05,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 38763,
+                "observations": 456464
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 38752,
+                "observations": 456392
+              }
+            }
+          }
+        }
+      },
+      "2": {
+        "n_events": 165,
+        "n_below_registered_n_min": 0,
+        "features": {
+          "log_charge": {
+            "all_tokens": {
+              "rho_total": 0.9538137935826203,
+              "rho_phys": 0.9512248415817536,
+              "rho_state": 0.002588952000866729,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.888672249733333,
+              "rho_phys": 0.8815193946140688,
+              "rho_state": 0.007152855119264223,
+              "scheme_a_counts": {
+                "rho": 0.888672249733333,
+                "pairs": 59588,
+                "observations": 780865
+              },
+              "scheme_b_counts": {
+                "rho": 0.8815193946140688,
+                "pairs": 59574,
+                "observations": 780716
+              }
+            }
+          },
+          "time": {
+            "all_tokens": {
+              "rho_total": 0.7474838728785053,
+              "rho_phys": 0.7449423366878609,
+              "rho_state": 0.0025415361906443446,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": 0.4836725598209294,
+              "rho_phys": 0.47333838482779433,
+              "rho_state": 0.010334174993135048,
+              "scheme_a_counts": {
+                "rho": 0.4836725598209294,
+                "pairs": 59588,
+                "observations": 780865
+              },
+              "scheme_b_counts": {
+                "rho": 0.47333838482779433,
+                "pairs": 59574,
+                "observations": 780716
+              }
+            }
+          },
+          "hit": {
+            "all_tokens": {
+              "rho_total": 0.8679319996128809,
+              "rho_phys": 0.8680373324534634,
+              "rho_state": -0.00010533284058245052,
+              "scheme_a_counts": null,
+              "scheme_b_counts": null
+            },
+            "hit_only": {
+              "rho_total": null,
+              "rho_phys": null,
+              "rho_state": null,
+              "scheme_a_counts": {
+                "rho": null,
+                "pairs": 59588,
+                "observations": 780865
+              },
+              "scheme_b_counts": {
+                "rho": null,
+                "pairs": 59574,
+                "observations": 780716
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

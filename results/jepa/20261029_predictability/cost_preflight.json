@@ -1,0 +1,93 @@
+{
+  "registered": false,
+  "kind": "engineering_cost_preflight",
+  "encoders": [
+    {
+      "label": "init9000",
+      "events": 8,
+      "elapsed_seconds": 0.820427113212645,
+      "projected_1000_seconds": 102.55338915158063
+    },
+    {
+      "label": "fix9000",
+      "events": 8,
+      "elapsed_seconds": 0.8574846982955933,
+      "projected_1000_seconds": 107.18558728694916
+    },
+    {
+      "label": "fix9001",
+      "events": 8,
+      "elapsed_seconds": 0.7188604669645429,
+      "projected_1000_seconds": 89.85755837056786
+    },
+    {
+      "label": "anc100",
+      "events": 8,
+      "elapsed_seconds": 0.6729667652398348,
+      "projected_1000_seconds": 84.12084565497935
+    },
+    {
+      "label": "mae9000",
+      "events": 8,
+      "elapsed_seconds": 0.6854347418993711,
+      "projected_1000_seconds": 85.6793427374214
+    },
+    {
+      "label": "ijepa9000",
+      "events": 8,
+      "elapsed_seconds": 0.6951682865619659,
+      "projected_1000_seconds": 86.89603582024574
+    },
+    {
+      "label": "ijepa9001",
+      "events": 8,
+      "elapsed_seconds": 0.670636230148375,
+      "projected_1000_seconds": 83.82952876854688
+    },
+    {
+      "label": "stopgrad9000",
+      "events": 8,
+      "elapsed_seconds": 0.8052999526262283,
+      "projected_1000_seconds": 100.66249407827854
+    },
+    {
+      "label": "stopgrad9001",
+      "events": 8,
+      "elapsed_seconds": 0.6747574284672737,
+      "projected_1000_seconds": 84.34467855840921
+    },
+    {
+      "label": "lambda9000",
+      "events": 8,
+      "elapsed_seconds": 0.6690575135871768,
+      "projected_1000_seconds": 83.6321891983971
+    },
+    {
+      "label": "lambda9001",
+      "events": 8,
+      "elapsed_seconds": 0.6763732936233282,
+      "projected_1000_seconds": 84.54666170291603
+    },
+    {
+      "label": "strong_drift9000",
+      "events": 8,
+      "elapsed_seconds": 0.6704327361658216,
+      "projected_1000_seconds": 83.8040920207277
+    },
+    {
+      "label": "strong_drift9001",
+      "events": 8,
+      "elapsed_seconds": 0.7320638382807374,
+      "projected_1000_seconds": 91.50797978509218
+    }
+  ],
+  "forward_projection_seconds": 1168.6203831341118,
+  "ridge_sample_seconds": 0.07059942185878754,
+  "ridge_projection_seconds": 867.3138975352049,
+  "pool_8_seconds": 0.0071973735466599464,
+  "tokenise_8_seconds": 0.020002230070531368,
+  "cca_solver_seconds": 1.2118395874276757,
+  "grouped_one_direction_seconds": 0.06513274740427732,
+  "linear_projection_seconds": 148.66130612418056,
+  "note": "Workload estimates only, not upper bounds; no scientific result or raw realisations saved."
+}
