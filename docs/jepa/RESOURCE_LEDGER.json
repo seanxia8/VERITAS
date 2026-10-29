@@ -71,7 +71,7 @@
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
     "status": "Part C passed on clean 20261029 attempt; failed attempt preserved; grid paused",
-    "active_reservations_gpu_hours": 0.0
+    "active_reservations_gpu_hours": 0.75
    }
   },
   "lucid_generation_cpu": {
@@ -1719,6 +1719,21 @@
    "wall_seconds": 373.07,
    "exit_status": 0,
    "finished_at_utc": "2026-10-29T04:40:56Z"
+  },
+  {
+   "id": "pregrid_D1_strong_smoke_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "GTX Titan X",
+   "gpu_count": 1,
+   "gpu_hours": 0,
+   "reserved_max_gpu_hours": 0.75,
+   "status": "running",
+   "started_at_utc": "2026-10-29T05:00:10Z",
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/jobs/pregrid_D1_strong_smoke_20261029/",
+   "note": "20-step strong-drift smoke with 200 probe-event cap, 30-minute plan, 45-minute timeout. Charge launcher wall upon exit."
   }
  ]
 }
