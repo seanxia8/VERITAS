@@ -1,0 +1,3 @@
+# Delayed bridge smoke — 29 Oct 2026
+
+`registered: false`. A4 `sigreg_jepa` seed 0, batch 128, 20 steps, cap 2000 events; exit 0 after 65.76 s (0.018266667 Titan GPU-h). Cohort `views_constructor` records fixed delay step 0.01; per-run status and aggregate record the delay and registered false. Six copied files match host SHA256. The top-level smoke status lacks an explicit registered field; fix before full-length delayed runs under the earlier DECISIONS instruction. Original frozen beta-decision file remains missing at its recorded location; its selected beta and original hash are preserved in the committed WP4a manifest.
