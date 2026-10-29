@@ -1,12 +1,13 @@
 # STATE — JEPA study (single source of truth)
 
-Updated: 2026-10-29. Parts A–C complete; D1, D2, and bridge smoke complete; bridge status repair deployed and under CPU test; grid paused.
+Updated: 2026-10-29. Parts A–C complete; D1 and D2 complete; three delayed bridge arms running; grid paused.
 
 ## Pre-grid continuation (29 Oct 2026)
 
 - Part C clean rerun passed; `complete:true`, anc100 beta 100, all expectations independently verified within 0.001 m. Evidence and complete table: `results/jepa/20261029_part_c/`; old failure retained; evaluation-mismatch reading not supported. Part C Titan charge 2.590016667 GPU-h.
 - D0 smokes and both D1 floors passed; strong-drift cohorts match nominal event IDs and seeds. Evidence: `results/jepa/20261029_d0_smokes/`, `results/jepa/20261029_d1_partial/`. All ten D2 runs complete under `04f9edd`; `results/jepa/20261029_d2_partial/` includes the table, verified evidence and pre-declared readings. Both strong-drift seeds fall below their new gain floor, so drift-too-weak is not supported. No D2 jobs or reservations remain.
-- Part E delayed bridge smoke passed with fixed delay 0.01, separate data root, 20 steps and 2000 event cap; `results/jepa/20261029_bridge_smoke/`. Top-level delayed job status metadata repaired and tests passed at `888596c`; the new SHA is cloned on Deepthought and CPU tests are pending; full bridge remains pending those tests. The original frozen WP4a beta decision is absent at its recorded path; selected beta10 and original file SHA are evidenced in `results/jepa/wp4a_grid_anchored/manifest.jsonl`. Author was asked for its preserved path; do not claim a substitute is the original.
+- Part E delayed bridge smoke passed and `888596c` CPU tests passed 58/58 with JEPA-root temp/cache. Full nonregistered plain, MAE and anchored arms (seeds 0–2, 10000 steps, batch 128, delay 0.01) run on Titan GPUs 0–2 using the verified full cohort. Jobs: `pregrid_E_bridge_{plain,mae,anchored}_20261029`; timeout-inclusive bridge charge and reservations 7.893267/8 GPU-h. All currently running; monitor in-session and charge actual wall on completion.
+- The original frozen WP4a beta file is absent; its beta10/config/original SHA are independently corroborated by three registered anchored manifest rows and the development report. The nonregistered descriptor `configs/decisions/wp4a_beta10_delay_descriptor_2026-10-29.json` records those sources and explicitly is not the original; it was deployed via GitHub and used by the anchored extension. Author was asked for the original's path; no registered decision changed.
 - A remote CPU test at `888596c` inadvertently wrote pytest temporary files in `/tmp/pytest-of-dwong/pytest-99` outside the authorized root. It was interrupted, its files preserved, and the constrained re-test uses `/ceph/dwong/jepa/tmp/`; see DECISIONS.
 - All new outputs `registered:false`; no registered grid decision or grid launch. Live resource charges and reservations: `docs/jepa/RESOURCE_LEDGER.json`. Final E comparison pending.
 
