@@ -57,12 +57,12 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 9.112816666666665,
+   "charged_gpu_hours": 9.737313888888886,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 2.5900166666666666,
+    "charged_gpu_hours": 3.214513888888889,
     "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
@@ -1457,6 +1457,51 @@
    "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
    "evidence": "results/jepa/20261029_part_c/",
    "note": "One clean six-checkpoint evaluation after beta fix; launcher wall/3600; old failed attempt retained and separately charged."
+  },
+  {
+   "id": "pregrid_D0_across_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.2867277777777778,
+   "wall_seconds": 1032.22,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
+   "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/d0_smokes/across/",
+   "note": "20 steps, 200 probe events; finite summary and final training metrics verified."
+  },
+  {
+   "id": "pregrid_D0_stopgrad_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.33545833333333336,
+   "wall_seconds": 1207.65,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
+   "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/d0_smokes/stopgrad/",
+   "note": "20 steps, 200 probe events; finite summary and training log verified."
+  },
+  {
+   "id": "pregrid_D0_lambda_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.002311111111111111,
+   "wall_seconds": 8.32,
+   "status": "failed_engineering",
+   "exit_status": 1,
+   "code_sha": "f29137c18bbb740aabc44a1abdadd28dde6edade",
+   "evidence": "results/jepa/20261029_d0_lambda_failure/",
+   "note": "Read-only coefficient_lambda property assignment raised AttributeError before training; original evidence preserved."
   }
  ]
 }

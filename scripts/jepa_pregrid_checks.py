@@ -106,7 +106,7 @@ def patch_stopgrad(arm):
 
 
 def patch_lambda(arm, lam: float):
-    arm.coefficient_lambda = float(lam)
+    arm.settings = dataclasses.replace(arm.settings, coefficient_lambda=float(lam))
     return arm
 
 

@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+  File "<frozen runpy>", line 229, in run_module
+  File "<frozen runpy>", line 88, in _run_code
+  File "/ceph/dwong/jepa/code/f29137c/scripts/jepa_pregrid_checks.py", line 439, in <module>
+    main()
+  File "/ceph/dwong/jepa/code/f29137c/scripts/jepa_pregrid_checks.py", line 435, in main
+    {"inspect": mode_inspect, "train": mode_train, "reselect-beta": mode_reselect}[args.mode](args)
+  File "/ceph/dwong/jepa/code/f29137c/scripts/jepa_pregrid_checks.py", line 367, in mode_train
+    result = lr.run_one(arm_name=arm_name, cell=cell, seed=int(args.seed), beta=None, config=config,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/f29137c/src/jepa_noise/lucid_run.py", line 801, in run_one
+    arm = build_arm(arm_name, geometry, arms_config, cell, seed, beta=beta,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ceph/dwong/jepa/code/f29137c/scripts/jepa_pregrid_checks.py", line 363, in build
+    patch_lambda(made, args.lam)
+  File "/ceph/dwong/jepa/code/f29137c/scripts/jepa_pregrid_checks.py", line 109, in patch_lambda
+    arm.coefficient_lambda = float(lam)
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dwong/anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 2032, in __setattr__
+    super().__setattr__(name, value)
+AttributeError: property 'coefficient_lambda' of 'LucidArm' object has no setter

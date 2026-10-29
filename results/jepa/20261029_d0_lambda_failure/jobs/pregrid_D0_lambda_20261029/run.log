@@ -1,0 +1,4 @@
+2026-10-29T01:02:07Z jepa_run: run_id=pregrid_D0_lambda_20261029 host=deepthought gpu=0 tag=jepa_pregrid_D0_lambda_20261029 kind=smoke planned_minutes=30.0 timeout_seconds=2700
+2026-10-29T01:02:07Z jepa_run: clean_sha=f29137c18bbb740aabc44a1abdadd28dde6edade
+2026-10-29T01:02:08Z jepa_launch: started run_id=pregrid_D0_lambda_20261029 pid=2271113 pgid=2271113 gpu=0 host=deepthought timeout=2700s
+2026-10-29T01:02:16Z jepa_launch: finished run_id=pregrid_D0_lambda_20261029 outcome=exited exit=1

@@ -86,6 +86,30 @@ def test_stopgrad_cuts_label_gradient_in_prediction_loss():
     assert out["metrics"]["label_stopgrad"] is True
 
 
+def test_lambda_patch_changes_real_arm_loss_without_mutating_settings(model_and_geometry, monkeypatch):
+    _, geometry = model_and_geometry
+    arm = pg.la.build_arm("sigreg_jepa", geometry, settings=pg.la.ArmSettings.from_config(pg.la.load_config()), seed=0)
+    original = arm.settings
+    assert arm.coefficient_lambda == pytest.approx(0.02)
+    assert pg.patch_lambda(arm, 0.2) is arm
+    assert original.coefficient_lambda == pytest.approx(0.02)
+    assert arm.coefficient_lambda == pytest.approx(0.2)
+
+    context = torch.ones(1, 2, 3)
+    prediction = torch.ones(1, 2, 3)
+    labels = torch.zeros(1, 2, 3)
+    monkeypatch.setattr(arm, "_encode_views", lambda batch: (context, prediction, labels, None, None))
+    monkeypatch.setattr(arm, "_context_pooled", lambda value, index: value.mean(1))
+    class ConstantSigreg(torch.nn.Module):
+        def forward(self, pooled, target):
+            value = torch.tensor(5.0)
+            return {"value": value, "context": value, "target": value}
+    arm.sigreg = ConstantSigreg()
+    from types import SimpleNamespace
+    result = arm._forward_sigreg(SimpleNamespace(context_index=None))
+    assert result["loss"].item() == pytest.approx(2.0)  # 1 + 0.2 * 5
+
+
 def test_statistics_helpers():
     rng = np.random.default_rng(0)
     g = rng.normal(size=(5000, 16))
