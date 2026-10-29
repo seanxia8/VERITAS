@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -208,6 +209,10 @@ def main():
     parser.add_argument('--remaining-seconds', required=True, type=int)
     parser.add_argument('--benchmark', action='store_true', help='measure extremes per domain; write no budget outputs')
     args = parser.parse_args()
+    def interrupted(signum, _frame):
+        raise SystemExit(128 + signum)
+    signal.signal(signal.SIGTERM, interrupted)
+    signal.signal(signal.SIGINT, interrupted)
     if not 0 < args.remaining_seconds <= 43200:
         raise ValueError("remaining CPU wall-time must be within the 12-hour budget")
     args.deadline = time.monotonic() + args.remaining_seconds

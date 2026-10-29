@@ -34,6 +34,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# CPU-only extension jobs still use this front door and the live resource guard,
+# but must never claim or initialise a GPU.
+if [ "$#" -ge 2 ] && [ "$2" = "--cpu" ]; then
+    CPU_RUN_ID="$1"
+    shift 2
+    exec "${JEPA_PYTHON:-/home/dwong/anaconda3/bin/python3}" \
+        "$SCRIPT_DIR/jepa_cpu_launch.py" "$CPU_RUN_ID" "$@"
+fi
 GUARD_SCRIPT="$SCRIPT_DIR/jepa_guard.py"
 LAUNCH_SCRIPT="$SCRIPT_DIR/jepa_launch.py"
 

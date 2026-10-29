@@ -77,12 +77,13 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 3.2306388888888895,
+   "charged_wall_hours": 3.8276388888888895,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
    "note_a9_regeneration": "A9 token-time-origin regeneration 2026-10-18 19:36-19:49Z, dev_train 100 runs + dev_probe_train/test 200+200 runs at the new convention, ~12.5 min single-threaded 1 core = 0.2083 h; legacy datasets recorded in DEV_TIME_LEGACY_EVIDENCE.json before deletion",
-   "active_generation_reserved_wall_hours": 0
+   "active_generation_reserved_wall_hours": 0,
+   "predictability_20261029_note": "Includes conservative charges for two search attempts and 9ef9f19 tests; later jobs must be added."
   },
   "e1_cpu_wall_hours": {
    "cap_wall_hours": 24,
