@@ -11,3 +11,5 @@ Lambda seed 9000 completed 10000 steps, exit 0 after 2936.43 s (0.815675 L40S GP
 Lambda seed 9001 completed 10000 steps, exit 0 after 3099.72 s (0.861033333 L40S GPU-h). Full-input vertex 0.199603069 m; final training SIGReg 1.44313335. The pre-declared SIGReg-overridden reading is not supported: seed 9000 vertex 0.220055133 m exceeds its fixed-within reference 0.219258 m, despite final SIGReg below 3. Both iJEPA seeds are running; D1 remains pending.
 
 IJEPA seed 9000 completed 10000 steps, exit 0 after 1729.56 s (0.480433333 L40S GPU-h), full-input vertex 0.209149763 m; host hashes match. Seed 9001 remains pending; seed 9000 does not beat the 0.160904 m init floor.
+
+IJEPA seed 9001 completed 10000 steps, exit 0 after 1569.29 s (0.435913889 L40S GPU-h), full-input vertex 0.194991722 m; host hashes match. EMA reading is not supported: neither seed beats the 0.160904 m random-init floor (0.209149763 and 0.194991722 m).
