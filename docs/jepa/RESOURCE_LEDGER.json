@@ -60,12 +60,12 @@
   },
   "E2_lucid_titan_deepthought": {
    "cap_gpu_hours": 300,
-   "charged_gpu_hours": 10.064377777777775,
+   "charged_gpu_hours": 10.386838888888885,
    "device": "GTX Titan 12 GB x4 (<=3 training jobs, 4th GPU only for jobs <=30 min)",
    "pregrid_20261025": {
     "registered": false,
     "runbook_cap_gpu_hours": 30,
-    "charged_gpu_hours": 3.541577777777778,
+    "charged_gpu_hours": 3.864038888888889,
     "charge_method": "Failed initial attempt conservatively bounded; subsequent evaluations charged by launcher wall time; see job rows",
     "bridge_cap_gpu_hours": 8,
     "bridge_gpu_hours": 0,
@@ -1550,6 +1550,21 @@
    "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
    "evidence": "/ceph/dwong/jepa/jobs/pregrid_D2_stopgrad_s9000_20261029/",
    "note": "Provisional running entry; book launcher wall including any failure at completion. Reservation 135 min timeout."
+  },
+  {
+   "id": "pregrid_D0_ijepa_20261029",
+   "campaign": "ext_pregrid_20261025",
+   "registered": false,
+   "host": "deepthought",
+   "device": "Titan",
+   "gpu_count": 1,
+   "gpu_hours": 0.3224611111111111,
+   "wall_seconds": 1160.86,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "04f9edd0fadb9df71b8eaaf60428c0ba3dde1131",
+   "evidence": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/d0_smokes/ijepa/",
+   "note": "20 steps, 200 probe events; finite summary and training log verified."
   }
  ]
 }

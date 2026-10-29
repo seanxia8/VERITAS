@@ -1,0 +1,3 @@
+# D0 smoke results — 29 Oct 2026
+
+`registered: false`. Across, stopgrad, lambda, and ijepa each completed 20 steps with 200 probe events, exit 0 and finite `ext_summary.json` and training logs. Host hashes of all 12 copied files were verified. Launcher wall charges (Titan GPU-h) are across 1032.22 s (0.286728), stopgrad 1207.65 s (0.335458), lambda retry 1177.43 s (0.327064), ijepa 1160.86 s (0.322461). Lambda's initial failure (8.32 s, 0.002311 h) is separately preserved and charged at `../20261029_d0_lambda_failure/`. The retry's loss agrees with prediction + 0.2 × SIGReg. Across and stopgrad used f29137c; lambda retry and ijepa used 04f9edd. These are engineering smokes, not D2 training results.

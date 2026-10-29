@@ -1,0 +1,58 @@
+{
+ "registered": false,
+ "extension": "pregrid_checks_2026-10-24",
+ "variant": "stopgrad",
+ "arm": "sigreg_jepa",
+ "cell": "ext_dev_s005_within_stopgrad",
+ "split": "within",
+ "spread": 0.05,
+ "seed": 9000,
+ "lambda": null,
+ "final_train_metrics": {
+  "elapsed_seconds": 187.4,
+  "metrics": {
+   "label_stopgrad": 1.0,
+   "loss": 11.283045053482056,
+   "prediction": 1.6194578111171722,
+   "sigreg": 483.17938232421875,
+   "sigreg_context": 2.81853049993515,
+   "sigreg_target": 963.5402526855469
+  },
+  "step": 20
+ },
+ "forms": {
+  "full_input": {
+   "vertex_resolution_m": 0.16229640115502836,
+   "module_gain_run_mean_r2": 0.19567823191989397,
+   "log_yield_r2": 0.9947119531423786,
+   "event_embedding": {
+    "effective_rank": 1.5951971464110999,
+    "participation_ratio": 1.249535359491595
+   },
+   "sigreg_statistic_events": 1745.0561743169148,
+   "token_log_charge_r2": {
+    "r2": 0.9981992099773411,
+    "alpha": 1,
+    "n_train": 108800,
+    "n_test": 108800
+   }
+  },
+  "half_pass": {
+   "vertex_resolution_m": 0.1743113055911239,
+   "module_gain_run_mean_r2": 0.1950490706577197,
+   "log_yield_r2": 0.9951782850483246,
+   "event_embedding": {
+    "effective_rank": 1.7616287890359235,
+    "participation_ratio": 1.334182825021482
+   },
+   "sigreg_statistic_events": 1123.158974876237,
+   "token_log_charge_r2": {
+    "r2": 0.9963048451157469,
+    "alpha": 1,
+    "n_train": 108800,
+    "n_test": 108800
+   }
+  }
+ },
+ "wall_seconds": 504.16
+}
