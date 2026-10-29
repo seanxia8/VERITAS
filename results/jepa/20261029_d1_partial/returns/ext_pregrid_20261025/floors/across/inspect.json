@@ -1,0 +1,31 @@
+{
+ "registered": false,
+ "extension": "pregrid_checks_2026-10-24",
+ "mode": "inspect",
+ "cell": "ext_dev_s005_across",
+ "items": {
+  "init9000": {
+   "arm": "sigreg_jepa",
+   "source": "init",
+   "seed": 9000,
+   "beta": null,
+   "full_input": {
+    "vertex_resolution_m": 0.16007161647162788,
+    "module_gain_run_mean_r2": 0.20049761158220947,
+    "log_yield_r2": 0.9948826346987075,
+    "event_embedding": {
+     "effective_rank": 1.53028277354294,
+     "participation_ratio": 1.2153969569169343
+    },
+    "sigreg_statistic_events": 2326.7632131451833,
+    "token_log_charge_r2": {
+     "r2": 0.9983181840341251,
+     "alpha": 1,
+     "n_train": 108800,
+     "n_test": 108800
+    }
+   }
+  }
+ },
+ "complete": true
+}
