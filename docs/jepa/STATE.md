@@ -373,3 +373,5 @@ Author clarification resolves the predictability S3 sample ambiguity: use all 1,
 Predictability validation: final code SHA `ad6ca1b` Deepthought full suite 513/513 passed; WP4a name/content search completed without finding the original. No extension scientific result yet; CPU launcher smoke and time-budget preflight remain.
 
 Predictability S1 stop: nominal six-event preflight hit a cached electron truth roundoff mismatch; no budget output written. A local repair preserves cached truth exactly after a tight comparison and passes 2/2 targeted tests, but is not host-validated. Free entries are 30,811; a new SHA clone and required full test would cross the 30,000 floor. Await author decision on storage recovery; grid remains paused.
+
+S1 fixture-capacity stop resolved by the author's explicit option A: three successful fixture basetemps were individually archived and verified before removal; free entries 36,009. Archive manifests, hashes and exact paths are recorded in DECISIONS. Validation of `babbd3b` and the extension remain pending.

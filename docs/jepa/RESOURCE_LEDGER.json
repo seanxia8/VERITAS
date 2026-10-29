@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 4.735638888888889,
+   "charged_wall_hours": 4.882638888888889,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -1965,6 +1965,47 @@
    "code_sha": "ad6ca1bdfc3fcaaa6a810b1e93782016e475e318",
    "evidence": "/ceph/dwong/jepa/jobs/pred_budget_preflight_nominal/",
    "note": "No budget product written; r0 electron cached truth mismatch diagnosed as float roundoff; charge includes read-only diagnostics."
+  },
+  {
+   "id": "pred_archive_fixtures_20261029",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.045,
+   "gpu_hours": 0,
+   "status": "complete",
+   "wall_seconds": 145.1015110015869,
+   "exit_status": 0,
+   "code_sha": "314556fdc9705620dbc7ad9a3ce67d87f25c4f32",
+   "evidence": "/ceph/dwong/jepa/returns/ext_predictability_20261029/fixture_archives/verified_cleanup.json",
+   "note": "Three authorized fixture directories archived and every entry verified; includes independent archive-hash recheck."
+  },
+  {
+   "id": "predictability_deploy_smoke_cleanup_babbd3b",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.1,
+   "gpu_hours": 0,
+   "status": "complete",
+   "code_sha": "babbd3bff2082aa9124d59d7276eb7e6c0a45d23",
+   "note": "Conservative charge for shallow deployment, successful 18-test smoke, and authorized clean clone cleanup."
+  },
+  {
+   "id": "pred_cpu_smoke_babbd3b",
+   "campaign": "predictability_2026-10-29",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.002,
+   "gpu_hours": 0,
+   "status": "complete",
+   "wall_seconds": 5.011713266372681,
+   "exit_status": 0,
+   "code_sha": "babbd3bff2082aa9124d59d7276eb7e6c0a45d23",
+   "evidence": "/ceph/dwong/jepa/jobs/pred_cpu_smoke_babbd3b/run_status.json"
   }
  ]
 }
