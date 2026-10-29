@@ -15,3 +15,5 @@ IJEPA seed 9000 completed 10000 steps, exit 0 after 1729.56 s (0.480433333 L40S 
 IJEPA seed 9001 completed 10000 steps, exit 0 after 1569.29 s (0.435913889 L40S GPU-h), full-input vertex 0.194991722 m; host hashes match. EMA reading is not supported: neither seed beats the 0.160904 m random-init floor (0.209149763 and 0.194991722 m).
 
 Strong-drift seed 9000 completed 10000 steps, exit 0 after 2607.98 s (0.724438889 L40S GPU-h), full-input vertex 0.233208941 m and module-gain R² 0.097482087, 0.744103251 below its 0.841585338 random-init floor; host hashes match. Seed 9001 remains pending.
+
+Strong-drift seed 9001 completed 10000 steps, exit 0 after 2595.06 s (0.72085 L40S GPU-h), full-input vertex 0.217212912 m and module-gain R² 0.217191018, 0.624394320 below its 0.841585338 random-init floor; host hashes match. Drift-too-weak reading is not supported: both gains fall below the floor rather than exceeding it by at least 0.10. All ten D2 runs complete; see METRICS.md.
