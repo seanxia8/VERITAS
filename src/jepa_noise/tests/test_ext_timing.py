@@ -124,6 +124,7 @@ def test_dejitter_removes_the_trigger_dependence():
     try:
         for replicate, shift in enumerate(shifts):
             sample = resample_noise(draws, geometry, cfg, replicate, seed=13)
+            lb._PMT_TIME_RULE = real_rule          # unshifted reference
             hits_reference.append(readout(state, sample))
             lb._PMT_TIME_RULE = et.shifted_time_rule(real_rule, shift)
             hits_shifted.append(readout(state, sample))
