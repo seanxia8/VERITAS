@@ -47,6 +47,14 @@ def test_pairing_identity_and_no_linear_cca(monkeypatch):
     i=np.eye(6); c=np.diag([.9,.8,.7,.6,.5,.4])
     x=pair_diagnostics(i,i,c,i,i,c/3,3)
     np.testing.assert_allclose(x["shares"][0],1/3,atol=1e-12)
+    # Rectangular branch (d_c != d_t): the same identity must hold.
+    rng=np.random.default_rng(0)
+    u=rng.normal(size=(5,5)); scc=u@u.T+np.eye(5)*.5
+    v=rng.normal(size=(7,7)); stt=v@v.T+np.eye(7)*.5
+    r=pair_diagnostics(scc,stt,rng.normal(size=(5,7))*.2,
+                       np.eye(5)*.3,np.eye(7)*.3,rng.normal(size=(5,7))*.05,3)
+    assert r["identity_error"] <= 1e-10
+    assert len(r["shares"][0]) == 3
 
 
 def test_f1x_gain_and_registered_state_unchanged():

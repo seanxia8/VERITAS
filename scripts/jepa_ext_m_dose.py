@@ -20,6 +20,8 @@ Run from the repository root as::
 import argparse
 import hashlib
 import json
+import os
+import sys
 import time
 from pathlib import Path
 
@@ -75,6 +77,38 @@ def sha256_file(path):
         for chunk in iter(lambda: stream.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def check_storage(root, quota="/ceph/dwong", max_entries=2000,
+                  max_bytes=2_000_000_000):
+    """§0 storage rule: write nothing below 30 000 free entries / 2 000 entries."""
+    root = Path(root).resolve()
+    if not root.is_relative_to(Path("/ceph/dwong/jepa")):
+        raise SystemExit(f"extension root {root} is outside /ceph/dwong/jepa")
+    free = None
+    try:
+        free = (int(os.getxattr(quota, "ceph.quota.max_files"))
+                - int(os.getxattr(quota, "ceph.dir.rfiles"))
+                - int(os.getxattr(quota, "ceph.dir.rsubdirs")))
+    except OSError as error:
+        print(f"storage: quota xattrs unavailable ({error}); floor not checked",
+              flush=True)
+    entries = size = 0
+    if root.exists():
+        for base, directory_names, file_names in os.walk(root):
+            entries += len(directory_names) + len(file_names)
+            for name in file_names:
+                try:
+                    size += (Path(base) / name).stat().st_size
+                except FileNotFoundError:
+                    continue
+    if free is not None and free < 30000:
+        raise SystemExit(f"S1: {free} free entries < 30000; write nothing")
+    if entries >= max_entries or size >= max_bytes:
+        raise SystemExit(f"S1: extension storage {entries} entries / {size} bytes "
+                         f"exceeds the {max_entries}-entry / 2 GB budget")
+    return {"free_entries": free, "extension_entries": entries,
+            "extension_bytes": size}
 
 
 def check_provenance(config_path):
@@ -302,6 +336,7 @@ def analyse(data, law, spread):
         context = diagnostics.pop("context")
         diagnostics.pop("target")
         shares = diagnostics.pop("shares")
+        shares_in_unit = diagnostics.pop("shares_in_unit")
         registered_blocks = project(blocks, name)
         m_reg = m_terms(*registered_blocks, CRITERION_K)[0]
         sigma_null = m_terms(blocks[0], blocks[1], blocks[2], blocks[3],
@@ -332,7 +367,13 @@ def analyse(data, law, spread):
             "r2_gain": r2_gain,
             "canonical": canonical,
             "identity_error": diagnostics["identity_error"],
-            "out_of_unit_interval": int(np.sum((shares[0] < 0) | (shares[0] > 1))),
+            "nu_in_unit": {"N_B": shares_in_unit[0], "N_A": shares_in_unit[1],
+                           "N_gain": shares_in_unit[2],
+                           "N_null": shares_in_unit[3]},
+            "out_of_unit_interval": {
+                label: int(np.sum((value < 0) | (value > 1)))
+                for label, value in zip(("N_B", "N_A", "N_gain", "N_null"),
+                                        shares)},
             "clipped_fraction": float(data["clipped_fraction"]),
             "below_event_set": int(data["below_event_set"]),
             "below_calibration": int(data["below_calibration"]),
@@ -356,6 +397,7 @@ def toy():
         diagnostics.pop("context")
         diagnostics.pop("target")
         shares = diagnostics.pop("shares")
+        shares_in_unit = diagnostics.pop("shares_in_unit")
         row = {
             "testbed": "toy", "law": "toy", "law_key": "toy",
             "level": float(g), "split": "channel",
@@ -371,7 +413,9 @@ def toy():
             "nu_k": diagnostics["aggregate"], "r2_gain": None,
             "canonical": canonical,
             "identity_error": diagnostics["identity_error"],
-            "out_of_unit_interval": int(np.sum((shares[0] < 0) | (shares[0] > 1))),
+            "nu_in_unit": {"N_B": shares_in_unit[0]},
+            "out_of_unit_interval": {
+                "N_B": int(np.sum((shares[0] < 0) | (shares[0] > 1)))},
             "clipped_fraction": 0.0, "below_event_set": None,
             "below_calibration": None, "wall_seconds": None,
             "D": float(fixture.displacement(3)["angle_deg"]),
@@ -561,9 +605,16 @@ def plot(toy_rows, level_rows, path):
 
 
 def run_toy(args):
+    root = Path(args.out_root).resolve()
+    if not root.is_relative_to(Path("/ceph/dwong/jepa")):
+        raise SystemExit(f"extension root {root} is outside /ceph/dwong/jepa")
+    root.mkdir(parents=True, exist_ok=True)
+    storage = check_storage(root)
     rows = toy()
     payload = {"registered": False, "extension": "m_dose_2026-10-30",
-               "kind": "toy", "rows": rows,
+               "kind": "toy", "rows": rows, "storage": storage,
+               "invocation": "PYTHONPATH=src python -m scripts.jepa_ext_m_dose "
+                             + " ".join(sys.argv[1:]),
                "acceptance": {
                    "g": [0.0, 0.005, 0.02, 0.05],
                    "nu_3": [0.0, 0.043, 0.525, 0.918],
@@ -582,9 +633,11 @@ def run_level(args):
     if (args.law, float(args.spread)) not in LEVELS:
         raise SystemExit(f"unknown level {(args.law, args.spread)}")
     geometry, cfg, provenance = load_inputs(args)
-    root = Path(args.out_root)
-    if not root.is_dir():
-        raise SystemExit(f"extension root must exist: {root}")
+    root = Path(args.out_root).resolve()
+    if not root.is_relative_to(Path("/ceph/dwong/jepa")):
+        raise SystemExit(f"extension root {root} is outside /ceph/dwong/jepa")
+    root.mkdir(parents=True, exist_ok=True)
+    provenance["storage_before"] = check_storage(root)
     stem = f"{args.law}_{float(args.spread):.2f}"
     npz_path = root / f"{stem}.npz"
     json_path = root / f"{stem}.json"
@@ -592,9 +645,12 @@ def run_level(args):
         raise SystemExit(f"refusing to overwrite {npz_path} / {json_path}")
     start = time.monotonic()
     data = collect(geometry, cfg, args.law, float(args.spread))
+    collect_seconds = time.monotonic() - start
+    # Analyse before the write-once .npz: an analysis failure must not leave a
+    # file that blocks a clean re-run.
+    rows = analyse(data, args.law, float(args.spread))
     with npz_path.open("xb") as stream:
         np.savez_compressed(stream, **data)
-    rows = analyse(data, args.law, float(args.spread))
     smoke = None
     if args.law == "F1" and abs(float(args.spread) - 0.05) < 1e-12:
         within = next(row for row in rows if row["split"] == "within")
@@ -614,7 +670,10 @@ def run_level(args):
         "provenance": provenance,
         "npz_sha256": sha256_file(npz_path),
         "npz_bytes": npz_path.stat().st_size,
+        "collect_seconds": collect_seconds,
         "wall_seconds": time.monotonic() - start,
+        "invocation": "PYTHONPATH=src python -m scripts.jepa_ext_m_dose "
+                      + " ".join(sys.argv[1:]),
         "n_runs": N_RUNS, "n_events_per_run": N_EVENTS,
         "n_calibration": N_CAL, "replicates": REPLICATES,
     }

@@ -104,6 +104,7 @@ def pair_diagnostics(scc, stt, sct, ncc, ntt, nct, k, *other_cross):
     sigma_noise_s_spectrum = np.linalg.svd(wc @ nct @ wt, compute_uv=False)
     score, physics, noise = m_terms(scc, stt, sct, ncc, ntt, nct, k)
     primary = share(nct)
+    shares = [primary] + [share(cross) for cross in other_cross]
     return {
         "M_full": score,
         "sigma_phys": float(physics[k - 1]),
@@ -113,7 +114,9 @@ def pair_diagnostics(scc, stt, sct, ncc, ntt, nct, k, *other_cross):
         "canonical": sigma[:k],
         "context": context,
         "target": target,
-        "shares": [primary] + [share(cross) for cross in other_cross],
+        "shares": shares,
+        "shares_in_unit": [bool(np.all((value >= 0) & (value <= 1)))
+                           for value in shares],
         "aggregate": float(primary @ sigma[:k] / sigma[:k].sum()),
         "identity_error": identity_error,
     }
