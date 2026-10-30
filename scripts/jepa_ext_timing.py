@@ -197,8 +197,8 @@ def mode_parta(args):
                                  f"{stored} != {expected}")
     # The M-dose driver's pooled index is group * 3 + f, context groups first.
     probe = np.zeros((1, geometry.n_pmt, 9))
-    probe[0, groups["within"][0][3], et.HIT_OFFSET] = 7.0
-    probe[0, groups["within"][1][4], et.HIT_OFFSET] = 7.0
+    probe[0, groups["within"][0][3], et.RAW_FEATURE_BASE + et.HIT_OFFSET] = 7.0
+    probe[0, groups["within"][1][4], et.RAW_FEATURE_BASE + et.HIT_OFFSET] = 7.0
     from scripts.jepa_ext_m_dose import pool
     pooled_probe = pool(probe, list(groups["within"][0]) + list(groups["within"][1]))
     layout["pooled_index_verified"] = bool(
@@ -570,8 +570,8 @@ def _raw_ceilings(features, targets, valid, dark_moved):
     geometry = lb.load_wcte_geometry(GEOMETRY)
     groups = view_groups(geometry)
     pooled_features = pooled(features.astype(np.float64), "within", groups)
-    hit = features[..., et.HIT_OFFSET] > 0
-    time = features[..., et.TIME_OFFSET]
+    hit = features[..., et.RAW_FEATURE_BASE + et.HIT_OFFSET] > 0
+    time = features[..., et.RAW_FEATURE_BASE + et.TIME_OFFSET]
     mean_hit_time = np.where(hit, time, 0.0).sum(axis=1) / np.maximum(hit.sum(axis=1), 1)
     run_ids = np.arange(len(features)) // N_EVENTS
     result = {"raw_pooled": {}, "hit_token_mean_time": {}}

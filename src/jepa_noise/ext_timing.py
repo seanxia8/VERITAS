@@ -16,6 +16,8 @@ TIME_SCALE_NS = 100.0
 #: Time feature coordinates in the module-pooled layout: group * 3 + 1.
 TIME_OFFSET = 1
 HIT_OFFSET = 2
+#: The tokenised full feature block starts at index 6 (log charge, time, hit).
+RAW_FEATURE_BASE = 6
 
 
 def regularise(matrix):
