@@ -1,0 +1,67 @@
+{
+ "registered": false,
+ "extension": "dejitter_2026-10-30",
+ "kind": "part1_detectability",
+ "n_events": 10000,
+ "excluded_dark_moved": 2575,
+ "target_sd": {
+  "delta_robust": 0.6450818565564276,
+  "delta_mean": 0.6318403042009786
+ },
+ "encoders": {
+  "init9000": {
+   "delta_robust": 0.426235857125586,
+   "delta_mean": 0.44581890045572437,
+   "vertex": 0.9702616606725956
+  },
+  "fix9000": {
+   "delta_robust": 0.06433654850294912,
+   "delta_mean": 0.07102685649227658,
+   "vertex": 0.9428462065644058
+  },
+  "fix9001": {
+   "delta_robust": 0.18717264727440674,
+   "delta_mean": 0.19748138721620634,
+   "vertex": 0.9502440769814647
+  },
+  "mae9000": {
+   "delta_robust": 0.586736955276858,
+   "delta_mean": 0.6160566633612423,
+   "vertex": 0.9885953294632546
+  },
+  "ijepa9000": {
+   "delta_robust": 0.22067256579978056,
+   "delta_mean": 0.23309037359077378,
+   "vertex": 0.9482123216350914
+  },
+  "ijepa9001": {
+   "delta_robust": 0.37137923592385336,
+   "delta_mean": 0.38918566164064483,
+   "vertex": 0.9542917894303873
+  },
+  "across9000": {
+   "delta_robust": 0.07538034972752594,
+   "delta_mean": 0.07814275451033859,
+   "vertex": 0.8694863438618549
+  },
+  "across9001": {
+   "delta_robust": 0.06988079707766937,
+   "delta_mean": 0.07261167369762511,
+   "vertex": 0.8790915563164131
+  }
+ },
+ "ceilings": {
+  "raw_pooled": {
+   "delta_robust": 0.16616363689303293,
+   "delta_mean": 0.17640307443103687,
+   "vertex": 0.938032255110263
+  },
+  "hit_token_mean_time": {
+   "delta_robust": 0.17982426103746196,
+   "delta_mean": 0.1862996107918864,
+   "vertex": 0.00020945039671571575
+  }
+ },
+ "train": "runs 0-499",
+ "test": "runs 500-999"
+}

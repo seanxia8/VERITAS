@@ -1,0 +1,120 @@
+{
+ "registered": false,
+ "extension": "dejitter_2026-10-30",
+ "kind": "part1_sensitivity",
+ "events": 1000,
+ "excluded_dark_moved": 70,
+ "redraw_counts": {
+  "fiducial": 281,
+  "capacity": 1001
+ },
+ "time_change_sd_ns": 0.4651269189935395,
+ "encoders": {
+  "init9000": {
+   "n_events": 930,
+   "sensitivity_jit": 0.0002411568284297449,
+   "sensitivity_noise": 0.003156924350458398,
+   "sensitivity_phys": 0.006049715012062977,
+   "R_jit_phys": 0.03986251053956829,
+   "R_jit_noise": 0.07638980275049288,
+   "whitened_rank": 128,
+   "whitened_sensitivity_jit": 0.10985848049993537,
+   "whitened_R_jit_phys": 0.08125466720511981,
+   "whitened_R_jit_noise": 0.01839500849714986
+  },
+  "fix9000": {
+   "n_events": 930,
+   "sensitivity_jit": 0.00017530139158882652,
+   "sensitivity_noise": 0.03199002383360801,
+   "sensitivity_phys": 0.015831926535062962,
+   "R_jit_phys": 0.011072650646817152,
+   "R_jit_noise": 0.005479876867258184,
+   "whitened_rank": 37,
+   "whitened_sensitivity_jit": 24.786500476401468,
+   "whitened_R_jit_phys": 0.01970821348627603,
+   "whitened_R_jit_noise": 0.005265352338237511
+  },
+  "fix9001": {
+   "n_events": 930,
+   "sensitivity_jit": 0.00018353102593853722,
+   "sensitivity_noise": 0.022358601517874364,
+   "sensitivity_phys": 0.01367846807095529,
+   "R_jit_phys": 0.013417513202976655,
+   "R_jit_noise": 0.00820851991980872,
+   "whitened_rank": 48,
+   "whitened_sensitivity_jit": 51.63872895888923,
+   "whitened_R_jit_phys": 0.05888671082523752,
+   "whitened_R_jit_noise": 0.014965565241606879
+  },
+  "mae9000": {
+   "n_events": 930,
+   "sensitivity_jit": 0.02963670937601453,
+   "sensitivity_noise": 0.029918465112244927,
+   "sensitivity_phys": 0.01808397835352787,
+   "R_jit_phys": 1.6388379147906313,
+   "R_jit_noise": 0.9905825470934644,
+   "whitened_rank": 128,
+   "whitened_sensitivity_jit": 0.831694283257769,
+   "whitened_R_jit_phys": 0.7245656314414844,
+   "whitened_R_jit_noise": 0.12537607299248313
+  },
+  "ijepa9000": {
+   "n_events": 930,
+   "sensitivity_jit": 0.00021261553787486976,
+   "sensitivity_noise": 0.005948304797401867,
+   "sensitivity_phys": 0.008247109865183315,
+   "R_jit_phys": 0.025780611796196052,
+   "R_jit_noise": 0.0357438875640228,
+   "whitened_rank": 85,
+   "whitened_sensitivity_jit": 4.562741939348664,
+   "whitened_R_jit_phys": 0.06252502027145887,
+   "whitened_R_jit_noise": 0.013900169565933498
+  },
+  "ijepa9001": {
+   "n_events": 930,
+   "sensitivity_jit": 0.00023580055324877672,
+   "sensitivity_noise": 0.005677883386377132,
+   "sensitivity_phys": 0.011968988213848245,
+   "R_jit_phys": 0.01970095959957192,
+   "R_jit_noise": 0.04152965765632485,
+   "whitened_rank": 126,
+   "whitened_sensitivity_jit": 1.3789878900714831,
+   "whitened_R_jit_phys": 0.06767500042728578,
+   "whitened_R_jit_noise": 0.0153935820264924
+  },
+  "across9000": {
+   "n_events": 930,
+   "sensitivity_jit": 0.00205658757640367,
+   "sensitivity_noise": 0.32270783409024767,
+   "sensitivity_phys": 0.08213783577052036,
+   "R_jit_phys": 0.025038248903336557,
+   "R_jit_noise": 0.00637290874019665,
+   "whitened_rank": 8,
+   "whitened_sensitivity_jit": 167.79638068357417,
+   "whitened_R_jit_phys": 0.010988555434832112,
+   "whitened_R_jit_noise": 0.0036555814247933274
+  },
+  "across9001": {
+   "n_events": 930,
+   "sensitivity_jit": 0.003117254639592246,
+   "sensitivity_noise": 0.2572937309498382,
+   "sensitivity_phys": 0.06303293862037625,
+   "R_jit_phys": 0.0494543758837947,
+   "R_jit_noise": 0.012115548358230244,
+   "whitened_rank": 7,
+   "whitened_sensitivity_jit": 661.8240662549207,
+   "whitened_R_jit_phys": 0.062222295118236425,
+   "whitened_R_jit_noise": 0.021237730839376613
+  }
+ },
+ "raw_rows": {
+  "n_events": 930,
+  "sensitivity_jit": 6.994882186011293e-05,
+  "sensitivity_noise": 0.1138448965883488,
+  "sensitivity_phys": 0.03390807742005625,
+  "R_jit_phys": 0.0020628955453174404,
+  "R_jit_noise": 0.000614422112508394,
+  "whitened_rank": 630,
+  "whitened_R_jit_phys": 0.1288480278344842
+ }
+}
