@@ -756,7 +756,7 @@ def _readings(part_a, dejitter, part_b):
                                    within0_common["nu_star_A"]) <= 0.05),
     }
     support["M-dose correction recorded by the author"] = {
-        "across_fixed_nu_star_at_s0": across0_all["nu_star"],
+        "across_fixed_nu_star_at_s0": across0_all["nu_star_B"],
         "across_fixed_nu_star_A_at_s0": across0_all["nu_star_A"],
         "across_fixed_nu_star_gain_at_s0": across0_all["nu_star_gain"],
         "note": "the author's correction is confirmed on the stored data",
