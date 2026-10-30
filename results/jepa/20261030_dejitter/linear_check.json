@@ -1,0 +1,33 @@
+{
+ "registered": false,
+ "extension": "dejitter_2026-10-30",
+ "kind": "linear_check_complete",
+ "wall_seconds": 608.0,
+ "levels": [
+  "F1_0.00",
+  "F1_0.05"
+ ],
+ "regeneration_max_abs_differences": {
+  "F1_0.00": {
+   "within": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "across_fixed": {
+    "A": 0.0,
+    "B": 0.0
+   }
+  },
+  "F1_0.05": {
+   "within": {
+    "A": 0.0,
+    "B": 0.0
+   },
+   "across_fixed": {
+    "A": 0.0,
+    "B": 0.0
+   }
+  }
+ },
+ "sha": "444cf58"
+}
