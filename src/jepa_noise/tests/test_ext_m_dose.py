@@ -90,3 +90,19 @@ def test_toy_acceptance(g,nu,ratio,angle,mfull,mreg):
     assert abs(v.displacement(3)["angle_deg"]-angle)<.5
     assert abs(r["M_full"]-mfull)<.005
     assert abs(m_terms(*project(b,"channel"),3)[0]-mreg)<.005
+
+
+def test_view_groups_and_pool_dimensions():
+    """The driver's module-pooled views must be 315+315 and 156+159 wide."""
+    pytest.importorskip("torch")
+    from scripts.jepa_ext_m_dose import pooled, view_groups
+    geometry = lb.from_synthetic()
+    groups = view_groups(geometry)
+    assert len(groups["within"][0]) == geometry.n_modules
+    assert len(groups["within"][1]) == geometry.n_modules
+    assert len(groups["across_fixed"][0]) + len(groups["across_fixed"][1]) == geometry.n_modules
+    assert len(groups["across_fixed"][0]) != len(groups["across_fixed"][1])
+    rng = np.random.default_rng(0)
+    features = rng.normal(size=(3, geometry.n_pmt, 9))
+    assert pooled(features, "within", groups).shape == (3, 630)
+    assert pooled(features, "across_fixed", groups).shape == (3, 315)

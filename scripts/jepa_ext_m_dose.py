@@ -131,10 +131,15 @@ def view_groups(geometry):
     }
 
 
-def pool(features, groups):
+def pool(features, group_list):
     """Per module/view mean of (log charge, time, hit flag), 29 Oct Part 2."""
-    return np.stack([features[:, ids, 6:9].mean(axis=1) for ids in groups],
+    return np.stack([features[:, ids, 6:9].mean(axis=1) for ids in group_list],
                     axis=1).reshape(len(features), -1)
+
+
+def pooled(features, name, groups):
+    """(context groups then target groups) concatenated, matching ``dims``."""
+    return pool(features, list(groups[name][0]) + list(groups[name][1]))
 
 
 def tokenise_hits(geometry, hits, scaling, masker):
@@ -188,7 +193,7 @@ def collect(geometry, cfg, law, spread):
         features, target_index = tokenise_hits(geometry, hits, scaling, masker)
         below_events += below_n_min(features, target_index)
         for name in groups:
-            x = pool(features, groups[name])
+            x = pooled(features, name, groups)
             acc[name]["means"][run] = x.mean(axis=0)
             acc[name]["sum"] += x.sum(axis=0)
             acc[name]["outer"] += x.T @ x
@@ -227,7 +232,8 @@ def collect(geometry, cfg, law, spread):
         below_cal += below_n_min(features_b, target_index)
         for name in groups:
             context_dim = 3 * len(groups[name][0])
-            xa, xb = pool(features_a, groups[name]), pool(features_b, groups[name])
+            xa = pooled(features_a, name, groups)
+            xb = pooled(features_b, name, groups)
             ra = (xa - xa.mean(axis=0)) * scale
             rb = (xb - xb.mean(axis=0)) * scale
             acc[name]["A"] += ra.T @ ra / REPLICATES
