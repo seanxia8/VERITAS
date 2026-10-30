@@ -2304,3 +2304,5 @@ one-line `DECISIONS.md` entry and an updated `STATE.md`; that is part of the pro
 - 2026-10-30 M dose authority (verbatim): "把 A 写成 runbook，然后审查一遍".
 - 2026-10-30 M dose engineering, author standing approval, 29 Oct: GitHub API app integration lacked repository write access; used the existing authenticated git credential for an in-memory Git data commit, with the GitHub branch head checked before updating and no local development-file writes.
 - 2026-10-30 M dose scope incident: deployed SHA 446446e full-suite attempt was stopped after test_bridge.py completed, because the full suite includes synthetic encoder forward passes and 10-step training, while this runbook says no training and no encoder forward passes. SIGTERM did not exit promptly; the owned tagged pytest PID was SIGKILLed, exit 137. Raw log, exit and scratch remain under /ceph/dwong/jepa/returns/ext_m_dose_20261030/; no suite pass or scientific result. Clarification required before such tests are rerun. Grid remains paused.
+
+- **2026-10-30 M dose author clarification (verbatim):** “允许完整测试中使用合成数据进行训练和 encoder 前向计算；禁止实际实验训练和 encoder 推理的限制不变。记录这项澄清，继续按 runbook 完成测试和全部实验，最后给我中文结果及推送 SHA。”
