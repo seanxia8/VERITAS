@@ -1,0 +1,82 @@
+{
+  "T-a": {
+    "rule": "across_fixed, s=0: nu*(A) <= 0.1 in no_time",
+    "all_nu_star_A": 0.5055021491297712,
+    "no_time_nu_star_A": 0.00038174306097930123,
+    "status": "supported"
+  },
+  "T-b": {
+    "rule": "across_fixed at s=0 and s=0.05: nu*(A_dejitter) <= 0.1 in all and time_only",
+    "values": {
+      "F1_0.00/across_fixed/all": 0.0001514148906188881,
+      "F1_0.00/across_fixed/time_only": 0.001895363312218966,
+      "F1_0.05/across_fixed/all": 0.00016137671908569834,
+      "F1_0.05/across_fixed/time_only": 0.0018747725611696167
+    },
+    "status": "supported"
+  },
+  "T-c": {
+    "rule": "within, s=0: nu*(A) <= 0.05 in all, no_time, time_common_removed",
+    "all_nu_star_A": 0.0007415103783354464,
+    "no_time_nu_star_A": 6.052267242987652e-05,
+    "time_common_removed_nu_star_A": 0.0005861804934821267,
+    "time_only_nu_star_A_descriptive": 0.18941663630221434,
+    "status": "supported"
+  },
+  "M-dose correction recorded by the author": {
+    "across_fixed_nu_star_at_s0": 0.5230764868314035,
+    "across_fixed_nu_star_A_at_s0": 0.5055021491297712,
+    "across_fixed_nu_star_gain_at_s0": 0.017574337701632234,
+    "note": "the author's correction is confirmed on the stored data"
+  },
+  "T-d": {
+    "rule": "both across seeds: R2(delta) >= max(fix) + 0.1 and >= init9000 + 0.1; unclear if raw-input ceiling R2(delta) < 0.2",
+    "across_R2_delta": {
+      "across9000": -0.05349472152597823,
+      "across9001": 0.011463862692968951
+    },
+    "fix_max": -0.01896654402174658,
+    "init9000": 0.1359548090321382,
+    "raw_ceiling": -0.021509793009668154,
+    "status": "unclear"
+  },
+  "T-e": {
+    "rule": "descriptive: Spearman(R2(delta), Part C/D vertex resolution) over all encoders",
+    "spearman": -0.8333333333333335,
+    "pairs": [
+      [
+        0.1359548090321382,
+        0.160904
+      ],
+      [
+        -0.021109034917911274,
+        0.21925822392091457
+      ],
+      [
+        -0.01896654402174658,
+        0.2042813949606102
+      ],
+      [
+        0.22402206143454173,
+        0.10494918764937129
+      ],
+      [
+        0.007758965863128964,
+        0.209149763
+      ],
+      [
+        0.10300702634625958,
+        0.194991722
+      ],
+      [
+        -0.05349472152597823,
+        0.348113310588429
+      ],
+      [
+        0.011463862692968951,
+        0.333463657
+      ]
+    ],
+    "status": "descriptive"
+  }
+}
