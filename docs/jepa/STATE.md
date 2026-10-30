@@ -381,3 +381,7 @@ S1 fixture-capacity stop resolved by the author's explicit option A: three succe
 ### Predictability extension (29 Oct 2026)
 
 Part 1 is complete on the author-clarified 1,000 mixed original events for nominal and strong drift; 13 CPU probes and domain-stratified summaries are recorded under `results/jepa/20261029_predictability/` as `registered: false`. Part 2 mixed-event CCA is complete in both cells and splits; seven descriptive readings are recorded, with the H-a conjunction correction and preserved raw report. Grid remains paused.
+
+## M dose, 30 Oct 2026
+
+Runbook 6856543; preliminary implementation 446446e. Full suite interrupted at test_bridge_run after synthetic training and encoder forward passes were found within the suite, contrary to the stated no-training/no-forward scope. No toy acceptance or dose experiment has run; grid paused. See DECISIONS and ledger.

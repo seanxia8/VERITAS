@@ -3,7 +3,7 @@
  "status": "a10_grid_paused_label_shortcut_diagnosis_20261023",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
-  "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
+  "note": "v4 §3.5.6 and §6.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
    "charged_gpu_hours": 91.77105633333332,
@@ -521,7 +521,7 @@
    "code_sha": "89af5af",
    "job_kind": "probe",
    "evidence": "/ceph/dwong/jepa/returns/probe_deepthought_89af5af_v2/probe.json",
-   "note": "corrected 10-batch equivalence probe (pre-final_proj_norm grid fixture); part of the \u00a76.1 equivalence test"
+   "note": "corrected 10-batch equivalence probe (pre-final_proj_norm grid fixture); part of the §6.1 equivalence test"
   },
   {
    "id": "probe_deepthought2_89af5af_v2",
@@ -1374,7 +1374,7 @@
    "id": "ext_pregrid_partA_reproductions",
    "wall_seconds": 388,
    "exit_status": 0,
-   "note": "CPU wall envelope for once-only linear and population reproductions, 00:24:18Z\u201300:30:46Z; nice10,<=4 threads; both PASS; not LUCiD generation",
+   "note": "CPU wall envelope for once-only linear and population reproductions, 00:24:18Z–00:30:46Z; nice10,<=4 threads; both PASS; not LUCiD generation",
    "registered": false,
    "campaign": "ext_pregrid_20261025_cpu_validation",
    "host": "deepthought",
@@ -2382,6 +2382,20 @@
    "status": "complete",
    "exit_status": 0,
    "note": "One focused conjunction test, 1 passed in 2.55 s; conservatively charged."
+  },
+  {
+   "id": "m_dose_full_446446e_interrupted",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.032,
+   "gpu_hours": 0,
+   "status": "interrupted",
+   "exit_status": 137,
+   "code_sha": "446446e4607f8d08bfd3b46a1dd0da426028a2dd",
+   "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/full_446446e.log",
+   "note": "Approx 111 seconds based on PID and exit file timestamps; synthetic training and encoder forward passes occurred during the full suite; no acceptance."
   }
  ]
 }
