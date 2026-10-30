@@ -103,7 +103,7 @@ def test_jitter_to_token_path():
 
 
 def test_dejitter_removes_the_trigger_dependence():
-    """§2.4 de-jitter leaves the pooled time residual independent of the shift."""
+    """§2.4 de-jitter removes the injected trigger shift from the pooled residual."""
     pytest.importorskip("torch")
     from jepa_noise.ext_predictability import resample_noise
     from jepa_noise import point_encoder as pe
@@ -130,17 +130,27 @@ def test_dejitter_removes_the_trigger_dependence():
     finally:
         lb._PMT_TIME_RULE = original
     assert lb._PMT_TIME_RULE is original
-    triggers = np.array([hit.trigger_ns for hit in hits_shifted])
-    deltas = et.trigger_deltas(triggers)
-    np.testing.assert_allclose(deltas, shifts - shifts.mean(), atol=1e-12, rtol=0)
+    triggers_reference = np.array([hit.trigger_ns for hit in hits_reference])
+    triggers_shifted = np.array([hit.trigger_ns for hit in hits_shifted])
+    np.testing.assert_allclose(triggers_shifted - triggers_reference, shifts,
+                               atol=1e-12, rtol=0)
     features_reference, _ = tokenise_hits(geometry, hits_reference, scaling, masker)
     features_shifted, _ = tokenise_hits(geometry, hits_shifted, scaling, masker)
+    deltas_reference = et.trigger_deltas(triggers_reference)
+    deltas_shifted = et.trigger_deltas(triggers_shifted)
     groups = view_groups(geometry)
     for split in ("within", "across_fixed"):
         reference = pooled(features_reference, split, groups)
         shifted = pooled(features_shifted, split, groups)
-        corrected = et.dejitter_pooled(shifted, deltas)
-        # float32 token time quantization; tolerance recorded in DECISIONS.
-        np.testing.assert_allclose(corrected[:, 1::3], reference[:, 1::3],
+        corrected_reference = et.dejitter_pooled(reference, deltas_reference)
+        corrected_shifted = et.dejitter_pooled(shifted, deltas_shifted)
+        # float32 token-time quantization; tolerance recorded in DECISIONS.
+        np.testing.assert_allclose(corrected_shifted[:, 1::3],
+                                   corrected_reference[:, 1::3],
                                    atol=1e-6, rtol=0,
-                                   err_msg=f"{split}: de-jittered time residual")
+                                   err_msg=f"{split}: de-jitter not shift-independent")
+        # Sanity: without the correction the same residual does carry the shift.
+        raw_shifted = ((shifted - shifted.mean(axis=0)) * np.sqrt(8 / 7))
+        raw_reference = ((reference - reference.mean(axis=0)) * np.sqrt(8 / 7))
+        assert np.max(np.abs(raw_shifted[:, 1::3]
+                             - raw_reference[:, 1::3])) > 1e-3
