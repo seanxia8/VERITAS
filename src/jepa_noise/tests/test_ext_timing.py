@@ -155,3 +155,14 @@ def test_dejitter_removes_the_trigger_dependence():
         raw_reference = ((reference - reference.mean(axis=0)) * np.sqrt(8 / 7))
         assert np.max(np.abs(raw_shifted[:, 1::3]
                              - raw_reference[:, 1::3])) > 1e-3
+
+def test_pair_metrics_handles_missing_extra_cross_blocks():
+    """The Criterion-M wrapper must accept zero, one or two extra cross blocks."""
+    z, z_a, z_b, blocks, S, dc, dt = _sample_sets()
+    primary = et.pair_metrics(blocks, 3)
+    assert primary["nu_A"] is None and primary["nu_gain"] is None
+    assert primary["nu_star_A"] is None and primary["argmax_A"] is None
+    full = et.pair_metrics(blocks, 3, (blocks["act"],
+                                      blocks["bct"] - blocks["act"]))
+    assert len(full["nu_A"]) == 3 and len(full["nu_gain"]) == 3
+    assert full["nu_star_A"] is not None and full["argmax_gain"] is not None

@@ -405,7 +405,9 @@ def mode_dejitter(args):
                 transformed, _, _ = et.variant_blocks(
                     blocks, variant, S=S, means=arrays[f"{split}_means"],
                     context_dim=context_dim, target_dim=target_dim)
-                result["variants"][variant] = et.pair_metrics(transformed, K)
+                result["variants"][variant] = et.pair_metrics(
+                    transformed, K, (transformed["act"],
+                                     transformed["bct"] - transformed["act"]))
             level["splits"][split] = result
             arrays_out[f"{split}_A_dejitter"] = A_dej
             arrays_out[f"{split}_B_dejitter"] = B_dej

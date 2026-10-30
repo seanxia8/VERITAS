@@ -160,14 +160,18 @@ def pair_metrics(blocks, k=4, extra_cross=()):
                                    blocks["bcc"], blocks["btt"], blocks["bct"], k,
                                    *extra_cross)
     shares = diagnostics["shares"]
+    primary = shares[0]
+    extra = shares[1:]
     result = {
-        "nu_B": shares[0], "nu_A": shares[1], "nu_gain": shares[2],
-        "nu_star_B": float(np.max(shares[0])),
-        "nu_star_A": float(np.max(shares[1])),
-        "nu_star_gain": float(np.max(shares[2])),
-        "argmax_B": int(np.argmax(shares[0])),
-        "argmax_A": int(np.argmax(shares[1])),
-        "argmax_gain": int(np.argmax(shares[2])),
+        "nu_B": primary,
+        "nu_A": extra[0] if len(extra) > 0 else None,
+        "nu_gain": extra[1] if len(extra) > 1 else None,
+        "nu_star_B": float(np.max(primary)),
+        "nu_star_A": float(np.max(extra[0])) if len(extra) > 0 else None,
+        "nu_star_gain": float(np.max(extra[1])) if len(extra) > 1 else None,
+        "argmax_B": int(np.argmax(primary)),
+        "argmax_A": int(np.argmax(extra[0])) if len(extra) > 0 else None,
+        "argmax_gain": int(np.argmax(extra[1])) if len(extra) > 1 else None,
         "sigma_phys": diagnostics["sigma_phys"],
         "sigma_noise": diagnostics["sigma_noise"],
         "r": diagnostics["ratio"],
