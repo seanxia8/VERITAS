@@ -1,0 +1,42 @@
+{
+  "dejitter/F1_0.00.npz": {
+    "sha256": "1d7633338c47dc62600e8632b5881de28ea2d152a275933368fa4053d71fcfab",
+    "bytes": 7567057
+  },
+  "dejitter/F1_0.05.npz": {
+    "sha256": "d3e43125c45550b000243f57d677ce5b61e372b4378765fcd0b5a5dde8364dee",
+    "bytes": 7567872
+  },
+  "part_b/across9000.npz": {
+    "sha256": "b9454eb5f0207ecf432a658d54646b6ea7db6c64d0b4fd6123698b67c2386b98",
+    "bytes": 520842
+  },
+  "part_b/across9001.npz": {
+    "sha256": "4437dc3e3b3a61e6fd9aa70c359a39a31dcf7072886d1b95a61169d4180caa9d",
+    "bytes": 520953
+  },
+  "part_b/fix9000.npz": {
+    "sha256": "3099f7bb8577a8f7f65eabc247c8c205ef220eb0ccbc837388ed01d04b767e9e",
+    "bytes": 522883
+  },
+  "part_b/fix9001.npz": {
+    "sha256": "d5cef924c9e280ce7bd9989eab624ce34b8bc5c7be36e8f89545abd475d172b5",
+    "bytes": 521629
+  },
+  "part_b/ijepa9000.npz": {
+    "sha256": "af5d1d8f3a4f4a97387950a96231a9ad248625e1181bbc9a3c5d45dffda90918",
+    "bytes": 521032
+  },
+  "part_b/ijepa9001.npz": {
+    "sha256": "1a6c0395199346e58367ce837a278e9ac23e9f4894b405d2f909b04800e557fe",
+    "bytes": 522624
+  },
+  "part_b/init9000.npz": {
+    "sha256": "434d9823084bdc2bece5724dc2613f9d39319e28ed6ba4ef934adfea7d20c185",
+    "bytes": 523132
+  },
+  "part_b/mae9000.npz": {
+    "sha256": "5afdb558367a5470def818806d7e3525ebc216bd7088bd7285467ee53899e91c",
+    "bytes": 522196
+  }
+}
