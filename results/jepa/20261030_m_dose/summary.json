@@ -2,11 +2,9 @@
   "registered": false,
   "extension": "m_dose_2026-10-30",
   "levels_present": [
-    "F1_0.05"
-  ],
-  "levels_missing": [
     "F1_0.00",
     "F1_0.02",
+    "F1_0.05",
     "F1_0.10",
     "F1_0.20",
     "F1_0.30",
@@ -15,10 +13,20 @@
     "F1x_1.00",
     "F1x_1.50"
   ],
+  "levels_missing": [],
   "measured_wall_seconds": {
-    "F1_0.05": 443.3414065921679
+    "F1_0.00": 431.82768520340323,
+    "F1_0.02": 425.33787705469877,
+    "F1_0.05": 443.3414065921679,
+    "F1_0.10": 406.4064026940614,
+    "F1_0.20": 399.0284555936232,
+    "F1_0.30": 411.96513739973307,
+    "F1x_0.50": 438.9916799189523,
+    "F1x_0.75": 441.9117313809693,
+    "F1x_1.00": 404.87883359752595,
+    "F1x_1.50": 399.10377868730575
   },
-  "measured_wall_hours_total": 0.12315039072004665,
+  "measured_wall_hours_total": 1.167442496700678,
   "smoke": {
     "runs_end_to_end": true,
     "top4_within_canonical": [
@@ -51,9 +59,9 @@
       "n_modules": 105
     },
     "storage_before": {
-      "free_entries": 38239,
-      "extension_entries": 70,
-      "extension_bytes": 27807857
+      "free_entries": 38224,
+      "extension_entries": 73,
+      "extension_bytes": 45491087
     }
   }
 }

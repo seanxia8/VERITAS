@@ -77,13 +77,14 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 6.832638888888885,
+   "charged_wall_hours": 8.365638888888885,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
    "note_a9_regeneration": "A9 token-time-origin regeneration 2026-10-18 19:36-19:49Z, dev_train 100 runs + dev_probe_train/test 200+200 runs at the new convention, ~12.5 min single-threaded 1 core = 0.2083 h; legacy datasets recorded in DEV_TIME_LEGACY_EVIDENCE.json before deletion",
    "active_generation_reserved_wall_hours": 0,
-   "predictability_20261029_note": "Includes conservative charges for two search attempts and 9ef9f19 tests; later jobs must be added."
+   "predictability_20261029_note": "Includes conservative charges for two search attempts and 9ef9f19 tests; later jobs must be added.",
+   "m_dose_20261030_note": "Ten-level extension charged conservatively at 1.533 h CPU (suite 0.188, focused 0.017, toy 0.03, in-memory dry run 0.08, deployment 0.05, ten levels 1.168); GPU 0. The 48 h generation cap remains far from binding."
   },
   "e1_cpu_wall_hours": {
    "cap_wall_hours": 24,
@@ -2396,6 +2397,92 @@
    "code_sha": "446446e4607f8d08bfd3b46a1dd0da426028a2dd",
    "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/full_446446e.log",
    "note": "Approx 111 seconds based on PID and exit file timestamps; synthetic training and encoder forward passes occurred during the full suite; no acceptance."
+  },
+  {
+   "id": "m_dose_deploy_273a7bf",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.05,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
+   "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/focused_273a7bf.log",
+   "note": "Conservative charge: shallow clone of the final SHA, config/geometry provenance checks, storage cleanup of superseded clones and the stale d175226 basetemp."
+  },
+  {
+   "id": "m_dose_focused_273a7bf",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.017,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
+   "wall_seconds": 59.45,
+   "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/focused_273a7bf.log",
+   "note": "Focused extension tests 10/10 passed."
+  },
+  {
+   "id": "m_dose_toy_273a7bf",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.03,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
+   "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/toy.json",
+   "note": "Exact-population toy at nine g levels; all §2.5 acceptance values reproduced (no S7)."
+  },
+  {
+   "id": "m_dose_dryrun_273a7bf",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.08,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
+   "evidence": "in-memory pipeline validation on the deployed clone",
+   "note": "In-memory scaled validation of collect/analyse (no writes, no raw events); caught and fixed the module-pooling defect before the smoke."
+  },
+  {
+   "id": "m_dose_full_273a7bf",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.188,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
+   "wall_seconds": 676.0,
+   "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/full_273a7bf.log",
+   "note": "Single required full suite on the deployed SHA: 527/527 passed in 666.91 s; basetemp removed after success."
+  },
+  {
+   "id": "m_dose_levels_273a7bf",
+   "campaign": "m_dose_2026-10-30",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 1.168,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
+   "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/",
+   "note": "Ten LUCiD dose levels (F1 s=0-0.30, F1x s=0.50-1.50), 1000 runs x 10 photon events + 1000 calibration events x (8 A + 8 B) each; measured level wall sum 1.1674 h; ten .npz 175.8 MB; no GPU, no training, no encoder forward."
   }
  ]
 }

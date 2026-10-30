@@ -1,7 +1,52 @@
 {
+  "F1_0.00.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1_0.00.npz",
+    "sha256": "85e950d9b26c7c9536e38261312ffb9c0b76def4711691d04d3ca617e8749705",
+    "bytes": 16873394
+  },
+  "F1_0.02.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1_0.02.npz",
+    "sha256": "fbf6e69e10b0d6a710f4cab01eda5c83eb03c5f966f217e66b65aa252f1441ca",
+    "bytes": 17677452
+  },
   "F1_0.05.npz": {
     "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1_0.05.npz",
     "sha256": "e9e51e083cad7d648288bfa66a778dd780814c5590979848e724e0cca81e8708",
     "bytes": 17676240
+  },
+  "F1_0.10.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1_0.10.npz",
+    "sha256": "81e80491e5ff4467fd50c718fb7d75f8135c62ca4c3b0d89d01496a53ee36615",
+    "bytes": 17673443
+  },
+  "F1_0.20.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1_0.20.npz",
+    "sha256": "5ab979d789cce6cee80f6f568f5ea30ce408c3b4040e0e90ba4719e11e2c4b09",
+    "bytes": 17659780
+  },
+  "F1_0.30.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1_0.30.npz",
+    "sha256": "4f212d2bfb692d57fa285e19ff928e4b6e53cad331ad6be1e57b187e41d71758",
+    "bytes": 17601176
+  },
+  "F1x_0.50.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1x_0.50.npz",
+    "sha256": "644a82ceff773df15da161e2ce463cd23cc6ce9a659638df90195af1b9d41db7",
+    "bytes": 17649714
+  },
+  "F1x_0.75.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1x_0.75.npz",
+    "sha256": "1831107cade305838a9a09f69601067af141bbf6051a913b2d015e6b38b81b75",
+    "bytes": 17648989
+  },
+  "F1x_1.00.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1x_1.00.npz",
+    "sha256": "a4220df30c7d2695b9a94dfcff06681678c0dbcf4f9e7b39245fe9aad3a889f7",
+    "bytes": 17657267
+  },
+  "F1x_1.50.npz": {
+    "path": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/F1x_1.50.npz",
+    "sha256": "80c1ddbfb3e2b2633f965b6f9ed142081d9278602263916075d7462058e6f27e",
+    "bytes": 17658272
   }
 }
