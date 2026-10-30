@@ -1,30 +1,77 @@
-# RUNBOOK — when does the trap appear? Criterion M and a nuisance dose-response (30 Oct 2026, reviewed)
+# RUNBOOK — when does the trap appear? Criterion M and a nuisance dose-response (30 Oct 2026, v2)
 
 _To the JEPA agent on Deepthought (with GitHub push rights). From the author. Branch `JEPA`, at or
-after `6cafd38`. Commit this file unchanged as `docs/jepa/RUNBOOK_2026-10-30_M_DOSE.md` before
-any run. Everything this agent needs is in this file and in the repository; it depends on no
-outside document. An independent review was applied before release; its population numbers for
-the toy are quoted below as acceptance values._
+after `2fcdf30`.
+- This **v2** replaces the version committed at `6856543`. Commit it over
+  `docs/jepa/RUNBOOK_2026-10-30_M_DOSE.md` as `jepa: runbook M-dose v2 (author clarification)`
+  before any further run.
+- Everything this agent needs is in this file and in the repository; it depends on no outside
+  document.
+- An independent review was applied before release; its population numbers for the toy are quoted
+  below as acceptance values._
 
 ## 0. Authority, scope, how to handle decisions
 
-**Authority.** The author, 30 Oct 2026, 00:51 CET (verbatim; quote it in `DECISIONS.md`):
-> "把 A 写成 runbook，然后审查一遍"
+**Authority.** Quote all three verbatim in `DECISIONS.md`.
+1. The author, 30 Oct 2026, 00:51 CET:
+   > "把 A 写成 runbook，然后审查一遍"
+2. 30 Oct 2026, 01:53 CET, for v2:
+   > "你帮我update一下runbook，我给另一个agent来跑。然后明确写在runbook里，这种小修agent自己修就好，不用停下来问我"
+3. 30 Oct 2026, 01:29 CET:
+   > "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
 
 "A" was "add criterion M and a nuisance dose-response: CPU-only linear analysis, reusing the
 predictability code". This approves exactly the work below.
+
+### 0.1 State at handoff (30 Oct 2026, 01:53 CET), for the new agent
+
+| Item | State |
+|---|---|
+| `6856543` | runbook v1 committed |
+| `446446e` | **preliminary, unverified** extension code from the previous agent. Review it against this runbook, fix what is needed, and treat nothing in it as accepted |
+| `2fcdf30` | current `JEPA` head: event, state and resource records |
+| Earlier full-suite run | killed (exit 137) partway through. Evidence: `/ceph/dwong/jepa/returns/ext_m_dose_20261030/full_446446e.log`. It is **not** a pass; keep it as is. 0.032 CPU-h is already booked |
+| Not started | toy, smoke, dose levels |
+| Grid | paused |
+
+Start from §5 (code and tests), then follow §3.
 
 **Status.**
 - Every result is an extension: `registered: false`, extension name `m_dose_2026-10-30`.
 - Results go outside the registered result directories, and never replace a verdict, a
   prediction status or a frozen decision.
 - **The grid stays paused**: write no grid decision file and launch no grid run.
-- **No training and no encoder forward passes.**
+- **No training and no encoder forward passes in the experiment.** This rule covers the analysis
+  in §3: no model is trained, loaded or run there.
+  - **It does not cover the repository test suite.** Running the full suite is **required and
+    allowed**, including its existing small synthetic CPU tests that train for a few steps or run
+    an encoder forward (for example `test_bridge.py`).
+  - Run the suite with the §0 resource limits (`nice -n 10`, ≤ 16 cores, `OMP_NUM_THREADS=4`), CPU
+    only, and with the `TMPDIR` / basetemp rules.
+  - Its CPU time counts against the 10 h budget.
 
-**Decisions: do not stop to ask** (author's standing approval, 29 Oct 2026: "你让他按它建议跑，别老停下来问我").
-When you face an engineering choice, or would otherwise stop with options, take your own
-recommended option, write one line in `DECISIONS.md` ("author standing approval, 29 Oct"), and
-continue. The option must meet all four conditions:
+### 0.2 Decisions: fix it yourself, do not stop to ask
+
+**Small fixes and ambiguities are yours to resolve** (author, quotes 2 and 3 above). Do not stop
+for any of these:
+- a bug in your own code;
+- a failing test you can fix;
+- a tool, path or route that is blocked;
+- an environment or dependency problem;
+- a data-format mismatch;
+- a scope question between two statements in this runbook (like the test-suite one above);
+- a step that turns out slower or larger than estimated.
+
+For each one:
+1. choose the best solution, which is the reading that best serves this runbook's purpose and is
+   the conservative choice for registered data and shared resources;
+2. write one line in `DECISIONS.md` ("author standing approval, 29–30 Oct");
+3. continue.
+
+Do not report progress in between; report once, at the end (§6). "Not finished yet" is never a
+reason to stop.
+
+The chosen option must meet all four conditions:
 1. **Writes** go only inside `/ceph/dwong/jepa/`, and change only files this extension created.
    That includes archiving and then deleting its own temporary data.
 2. It changes no registered prediction, criterion, cell, dataset, frozen decision or verdict. It
@@ -43,9 +90,10 @@ continue. The option must meet all four conditions:
 - an action that fails conditions 1–4;
 - **S4**: no route can get the commit to GitHub. Before calling S4, try, in order:
   1. `git push origin JEPA` from the local clone at
-     `~/Documents/VERITAS/jepa-handoff-20261028`. Its `origin` is
-     `https://github.com/seanxia8/oracle.git`, the repo is **`seanxia8/oracle`**, and the earlier
-     pushes (`f29137c` … `6cafd38`) went this way.
+     `~/Documents/VERITAS/jepa-handoff-20261028`.
+     - The repo is now **`seanxia8/VERITAS`**. GitHub redirects the old `seanxia8/oracle` URL in
+       that clone's `origin`.
+     - The earlier pushes, through `2fcdf30`, went this way.
   2. The same from a Deepthought clone, if git there has credentials.
   3. `gh` authenticated as the author.
 
