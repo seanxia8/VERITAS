@@ -1,0 +1,204 @@
+{
+  "registered": false,
+  "extension": "m_dose_2026-10-30",
+  "kind": "level",
+  "law": "F1",
+  "law_label": "F1",
+  "setting": 0.05,
+  "rows": [
+    {
+      "testbed": "LUCiD",
+      "law": "F1",
+      "law_key": "F1",
+      "level": 0.05,
+      "split": "within",
+      "M_reg": 0.47913283540685603,
+      "M_full": -0.0025073413607918926,
+      "sigma_phys": 0.9955450537925168,
+      "sigma_noise": 0.9980523951533087,
+      "sigma_noise_null": 0.38706446291504343,
+      "r": 1.0025185614164223,
+      "r_s": 1.0993550633206577,
+      "r_null": 0.38879653054427427,
+      "at_floor": false,
+      "nu": [
+        1.8386740205928754e-05,
+        0.0008818877086249146,
+        0.0005759502592633527,
+        0.0007072961310965157
+      ],
+      "nu_A": [
+        -1.723164175487174e-06,
+        0.0007479377135136817,
+        0.00046650413845216034,
+        0.0005843601286251594
+      ],
+      "nu_gain": [
+        2.0109904381414362e-05,
+        0.00013394999511123876,
+        0.00010944612081119343,
+        0.00012293600247136033
+      ],
+      "nu_null": [
+        6.104456684291837e-06,
+        9.28010293444119e-05,
+        1.3061149234254753e-05,
+        -7.952093377289837e-05
+      ],
+      "nu_star": 0.0008818877086249146,
+      "nu_star_A": 0.0007479377135136817,
+      "nu_star_gain": 0.00013394999511123876,
+      "nu_star_null": 9.28010293444119e-05,
+      "nu_k": 0.0005454366586399935,
+      "r2_gain": [
+        -0.0794121904953935,
+        -0.22790234286232636,
+        -0.1743898153670933,
+        -0.1590422790628796
+      ],
+      "canonical": [
+        0.9993954176005326,
+        0.9961250144876482,
+        0.9959377059433379,
+        0.9958905613480483
+      ],
+      "identity_error": 1.4210854715202004e-14,
+      "nu_in_unit": {
+        "N_B": true,
+        "N_A": false,
+        "N_gain": true,
+        "N_null": false
+      },
+      "out_of_unit_interval": {
+        "N_B": 0,
+        "N_A": 1,
+        "N_gain": 0,
+        "N_null": 1
+      },
+      "clipped_fraction": 0.0,
+      "below_event_set": 0,
+      "below_calibration": 0,
+      "wall_seconds": 441.36776536889374
+    },
+    {
+      "testbed": "LUCiD",
+      "law": "F1",
+      "law_key": "F1",
+      "level": 0.05,
+      "split": "across_fixed",
+      "M_reg": 0.29575936590667407,
+      "M_full": -0.04218881272271047,
+      "sigma_phys": 0.952821866226105,
+      "sigma_noise": 0.9950106789488155,
+      "sigma_noise_null": 0.2750787623382971,
+      "r": 1.0442777545500819,
+      "r_s": 0.9820328868606943,
+      "r_null": 0.2886990444791291,
+      "at_floor": false,
+      "nu": [
+        0.019989172757801266,
+        0.14944570749218708,
+        0.01574098959268806,
+        0.5093812265458157
+      ],
+      "nu_A": [
+        0.019225350990969562,
+        0.14430163617240693,
+        0.01553006978520624,
+        0.4920026623489091
+      ],
+      "nu_gain": [
+        0.0007638217668317143,
+        0.00514407131978009,
+        0.00021091980748180481,
+        0.01737856419690703
+      ],
+      "nu_null": [
+        7.839603634138589e-05,
+        0.0020187811196871516,
+        -0.00018726085570641192,
+        0.007122138878709877
+      ],
+      "nu_star": 0.5093812265458157,
+      "nu_star_A": 0.4920026623489091,
+      "nu_star_gain": 0.01737856419690703,
+      "nu_star_null": 0.007122138878709877,
+      "nu_k": 0.172025464024303,
+      "r2_gain": [
+        -0.07429371736723223,
+        -0.12294532065708874,
+        -0.09423575539149232,
+        -0.22749357890915567
+      ],
+      "canonical": [
+        0.996873749583137,
+        0.9793249531689207,
+        0.9729649333432377,
+        0.9655481132713694
+      ],
+      "identity_error": 0.0,
+      "nu_in_unit": {
+        "N_B": true,
+        "N_A": true,
+        "N_gain": true,
+        "N_null": false
+      },
+      "out_of_unit_interval": {
+        "N_B": 0,
+        "N_A": 0,
+        "N_gain": 0,
+        "N_null": 1
+      },
+      "clipped_fraction": 0.0,
+      "below_event_set": 0,
+      "below_calibration": 0,
+      "wall_seconds": 441.36776536889374
+    }
+  ],
+  "smoke": {
+    "runs_end_to_end": true,
+    "top4_within_canonical": [
+      0.9993954176005326,
+      0.9961250144876482,
+      0.9959377059433379,
+      0.9958905613480483
+    ],
+    "canonical_all_gt_0.8": true,
+    "r2_gain_top4": [
+      -0.0794121904953935,
+      -0.22790234286232636,
+      -0.1743898153670933,
+      -0.1590422790628796
+    ],
+    "r2_gain_all_lt_0.1": true
+  },
+  "provenance": {
+    "config_path": "/ceph/dwong/jepa/code/273a7bf/src/jepa_noise/configs/lucid_bombs_v2_calibrated.json",
+    "sha256": "90ac1601c40171eeb7c669a08df1fe6e6b5b332fee2a3cca689ae057a51dfe88",
+    "provenance_recorded_sha256": "90ac1601c40171eeb7c669a08df1fe6e6b5b332fee2a3cca689ae057a51dfe88",
+    "provenance": "results/jepa/20261025_pregrid_checks/provenance.json",
+    "geometry": {
+      "path": "/ceph/dwong/jepa/external/LUCiD/config/WCTE_geom_config.json",
+      "sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+      "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+      "source_sha256": "0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8",
+      "digest": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+      "n_pmt": 1995,
+      "n_modules": 105
+    },
+    "storage_before": {
+      "free_entries": 38239,
+      "extension_entries": 70,
+      "extension_bytes": 27807857
+    }
+  },
+  "npz_sha256": "e9e51e083cad7d648288bfa66a778dd780814c5590979848e724e0cca81e8708",
+  "npz_bytes": 17676240,
+  "collect_seconds": 441.37519960012287,
+  "wall_seconds": 443.3414065921679,
+  "invocation": "PYTHONPATH=src python -m scripts.jepa_ext_m_dose level --law F1 --spread 0.05",
+  "n_runs": 1000,
+  "n_events_per_run": 10,
+  "n_calibration": 1000,
+  "replicates": 8
+}

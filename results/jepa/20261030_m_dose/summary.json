@@ -1,0 +1,59 @@
+{
+  "registered": false,
+  "extension": "m_dose_2026-10-30",
+  "levels_present": [
+    "F1_0.05"
+  ],
+  "levels_missing": [
+    "F1_0.00",
+    "F1_0.02",
+    "F1_0.10",
+    "F1_0.20",
+    "F1_0.30",
+    "F1x_0.50",
+    "F1x_0.75",
+    "F1x_1.00",
+    "F1x_1.50"
+  ],
+  "measured_wall_seconds": {
+    "F1_0.05": 443.3414065921679
+  },
+  "measured_wall_hours_total": 0.12315039072004665,
+  "smoke": {
+    "runs_end_to_end": true,
+    "top4_within_canonical": [
+      0.9993954176005326,
+      0.9961250144876482,
+      0.9959377059433379,
+      0.9958905613480483
+    ],
+    "canonical_all_gt_0.8": true,
+    "r2_gain_top4": [
+      -0.0794121904953935,
+      -0.22790234286232636,
+      -0.1743898153670933,
+      -0.1590422790628796
+    ],
+    "r2_gain_all_lt_0.1": true
+  },
+  "provenance": {
+    "config_path": "/ceph/dwong/jepa/code/273a7bf/src/jepa_noise/configs/lucid_bombs_v2_calibrated.json",
+    "sha256": "90ac1601c40171eeb7c669a08df1fe6e6b5b332fee2a3cca689ae057a51dfe88",
+    "provenance_recorded_sha256": "90ac1601c40171eeb7c669a08df1fe6e6b5b332fee2a3cca689ae057a51dfe88",
+    "provenance": "results/jepa/20261025_pregrid_checks/provenance.json",
+    "geometry": {
+      "path": "/ceph/dwong/jepa/external/LUCiD/config/WCTE_geom_config.json",
+      "sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+      "config_sha256": "9943d6028e02bc7534a809b70e37893fedd1cd6f5e258babcbacc12613d5ed5c",
+      "source_sha256": "0a75b0352bd6e926d37e111c33f691ef2291a3a7d638f84cf618f91ad46bb9a8",
+      "digest": "8b46bd3cbff4cc65ac4188e77cc42823cd6705ee63442a7e7f9d34f07dd198f1",
+      "n_pmt": 1995,
+      "n_modules": 105
+    },
+    "storage_before": {
+      "free_entries": 38239,
+      "extension_entries": 70,
+      "extension_bytes": 27807857
+    }
+  }
+}

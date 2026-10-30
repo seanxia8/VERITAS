@@ -384,4 +384,4 @@ Part 1 is complete on the author-clarified 1,000 mixed original events for nomin
 
 ## M dose, 30 Oct 2026
 
-Runbook 6856543; preliminary implementation 446446e. Full suite interrupted at test_bridge_run after synthetic training and encoder forward passes were found within the suite, contrary to the stated no-training/no-forward scope. No toy acceptance or dose experiment has run; grid paused. See DECISIONS and ledger.
+Runbook v2 `1c42aa5`; reviewed and rewritten implementation `273a7bf`. The toy reproduces every §2.5 population acceptance value (no S7). Deployed SHA `273a7bf`: focused extension tests 10/10, full suite 527/527 in 666.91 s (basetemp removed), and the F1 s = 0.05 smoke passed §3.3 (top-4 within canonical correlations > 0.8, held-out R²_gain < 0.1) in 443 s. The remaining nine dose levels are running serially in ascending s; no registered result or grid file is touched and the grid stays paused.
