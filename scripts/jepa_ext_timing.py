@@ -888,10 +888,15 @@ def mode_report(args):
                                  _fmt(probe.get("log_yield"))])
     deep = [
         "# Timing extension — Part B deep encoders (registered: false)", "",
-        f"Events: {part_b['data']['n_events']} F1 s=0.05 photon events "
-        f"(runs 0-99 x 10), {part_b['data']['replicates']} scheme-A realisations each; "
-        f"invalid trigger events: {part_b['data']['invalid_events']}; "
-        f"dark-moved r=0 triggers: {part_b['data']['dark_moved_r0']}.", "",
+    ]
+    if part_b.get("data") is not None:
+        deep += [
+            f"Events: {part_b['data']['n_events']} F1 s=0.05 photon events "
+            f"(runs 0-99 x 10), {part_b['data']['replicates']} scheme-A realisations each; "
+            f"invalid trigger events: {part_b['data']['invalid_events']}; "
+            f"dark-moved r=0 triggers: {part_b['data']['dark_moved_r0']}.", "",
+        ]
+    deep += [
         "## Probes (full-input encoder tokens, ridge train runs 0-49 / test 50-99)", "",
         _table(["encoder", "cell", "subset", "R2(delta)", "R2(mu_t)", "R2(vertex)",
                 "R2(log yield)", "vertex res (m)"], deep_rows), "",
