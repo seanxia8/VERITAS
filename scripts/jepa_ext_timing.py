@@ -197,8 +197,8 @@ def mode_parta(args):
                                  f"{stored} != {expected}")
     # The M-dose driver's pooled index is group * 3 + f, context groups first.
     probe = np.zeros((1, geometry.n_pmt, 9))
-    flat = groups["within"][0][3] + groups["within"][1][4]
-    probe[0, flat, et.HIT_OFFSET] = 7.0
+    probe[0, groups["within"][0][3], et.HIT_OFFSET] = 7.0
+    probe[0, groups["within"][1][4], et.HIT_OFFSET] = 7.0
     from scripts.jepa_ext_m_dose import pool
     pooled_probe = pool(probe, list(groups["within"][0]) + list(groups["within"][1]))
     layout["pooled_index_verified"] = bool(
@@ -356,6 +356,8 @@ def mode_dejitter(args):
             features_b, _ = _tokenise(geometry, hits_b, tools)
             deltas_a = et.trigger_deltas(triggers_a)
             deltas_b = et.trigger_deltas(triggers_b)
+            mean_trigger_a = float(np.mean(triggers_a))
+            mean_trigger_b = float(np.mean(triggers_b))
             for split in SPLITS:
                 xa = _pooled(features_a, split, tools)
                 xb = _pooled(features_b, split, tools)
@@ -369,10 +371,10 @@ def mode_dejitter(args):
                 rb = (xb_dejitter - xb_dejitter.mean(axis=0)) * scale
                 accum[split]["A_dejitter"] += ra.T @ ra / REPLICATES
                 accum[split]["B_dejitter"] += rb.T @ rb / REPLICATES
-                accum[split]["triggers_A"].append(np.mean(triggers_a))
-                accum[split]["triggers_B"].append(np.mean(triggers_b))
-                accum[split]["fallback_A"] += fallback_a
-                accum[split]["fallback_B"] += fallback_b
+                accum[split]["triggers_A"].append(mean_trigger_a)
+                accum[split]["triggers_B"].append(mean_trigger_b)
+            accum[split]["fallback_A"] += fallback_a
+            accum[split]["fallback_B"] += fallback_b
             if event % 100 == 0:
                 print(f"dejitter {name}: {event}/{N_CAL}", flush=True)
 
