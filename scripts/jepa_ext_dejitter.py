@@ -41,6 +41,9 @@ M_DOSE_EXT = Path("/ceph/dwong/jepa/returns/ext_m_dose_20261030")
 M_DOSE_RESULTS = REPO / "results/jepa/20261030_m_dose"
 TIMING_RESULTS = REPO / "results/jepa/20261030_timing"
 RESULTS = REPO / "results/jepa/20261030_dejitter"
+RESULTS_MAE = REPO / "results/jepa/20261031_mae_dejitter"
+DJ_EXT = Path("/ceph/dwong/jepa/returns/ext_dejitter_20261030")
+MAE_EXTENSION = "mae_dejitter_2026-10-31"
 CONFIG = "src/jepa_noise/configs/lucid_run_v0_mixed_calibrated.json"
 GEN_CONFIG = "src/jepa_noise/configs/lucid_bombs_v2_calibrated.json"
 ARMS_CONFIG = "src/jepa_noise/configs/lucid_arms_v0.json"
@@ -54,7 +57,13 @@ R_REALISATIONS = 8
 N_SENS_EVENTS = N_RUNS * N_EVENTS
 N_DETECT_EVENTS = 1000 * 10
 INPUTS = ("x", "jitp", "jitm", "noise", "phys")
-TRAIN_VARIANTS = ("across_median", "within_median", "within_trigger")
+TRAIN_VARIANTS = ("across_median", "within_median", "within_trigger",
+                  "across_trigger")
+TRANSFORMS = {"across_median": "median_time", "within_median": "median_time",
+              "across_trigger": "none", "within_trigger": "none"}
+ARMS = ("sigreg_jepa", "mae_mse")
+CELL_OF_VARIANT = {"across_median": "across_median", "across_trigger": "across",
+                   "within_median": "within_median", "within_trigger": "within_trigger"}
 EXTENSION = "dejitter_2026-10-30"
 
 
@@ -88,8 +97,8 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
-def check_storage():
-    root = EXT.resolve()
+def check_storage(root=None):
+    root = Path(root or EXT).resolve()
     if not root.is_relative_to(Path("/ceph/dwong/jepa")):
         raise SystemExit(f"extension root {root} is outside /ceph/dwong/jepa")
     free = None
@@ -117,7 +126,7 @@ def check_storage():
             "extension_bytes": size}
 
 
-def check_provenance():
+def check_provenance(root=None):
     run_sha = sha256_file(CONFIG)
     gen_sha = sha256_file(GEN_CONFIG)
     if not run_sha.startswith("e6730ac1"):
@@ -148,12 +157,37 @@ def cells_for(config):
     return {
         "dev": pregrid.lr.dev_cell(config),
         "across": pregrid.variant_cell(config, "across"),
+        "across_trigger": pregrid.variant_cell(config, "across"),
         "across_median": dataclasses.replace(
             pregrid.variant_cell(config, "across"),
             cell_id="ext_dev_s005_across_median"),
         "within_median": pregrid.variant_cell(config, "median"),
         "within_trigger": pregrid.variant_cell(config, "trigger"),
     }
+
+
+def run_ext(args):
+    return Path(getattr(args, "ext", None) or EXT)
+
+
+def run_extension(args):
+    return str(getattr(args, "extension", None) or EXTENSION)
+
+
+def refuse_existing_run_dir(out_root, run_id):
+    path = Path(out_root) / "runs" / run_id
+    if path.exists():
+        raise SystemExit(f"refusing existing run directory {path} "
+                         "(no auto-resume in this extension)")
+
+
+def cell_of(config, name):
+    cells = cells_for(config)
+    if name in cells:
+        return cells[name]
+    if name in CELL_OF_VARIANT:
+        return cells[CELL_OF_VARIANT[name]]
+    raise SystemExit(f"unknown cell/variant {name!r}")
 
 
 def encoder_specs():
@@ -216,7 +250,8 @@ def mode_sens_gen(args):
     tools = _tools(geometry, gen)
     real_rule = lb.pmt_time_rule()
     original_rule = lb._PMT_TIME_RULE
-    folder = EXT / "part1" / "sens"
+    ext = run_ext(args)
+    folder = ext / "part1" / "sens"
     folder.mkdir(parents=True, exist_ok=True)
     features = {name: np.lib.format.open_memmap(
         folder / f"features_{name}.npy", mode="w+", dtype=np.float32,
@@ -281,8 +316,8 @@ def mode_sens_gen(args):
         redraws=redraws,
         valid=~dark.any(axis=1))
     write_json(folder / "generation.json", {
-        "registered": False, "extension": EXTENSION, "kind": "sens_gen",
-        "provenance": check_provenance(), "n_events": N_SENS_EVENTS,
+        "registered": False, "extension": run_extension(args), "kind": "sens_gen",
+        "provenance": check_provenance(ext), "n_events": N_SENS_EVENTS,
         "inputs": list(INPUTS),
         "excluded_dark_moved": int(dark.any(axis=1).sum()),
         "fiducial_redraws": int(redraws[:, 0].sum()),
@@ -294,24 +329,56 @@ def mode_sens_gen(args):
     print("SENS GEN OK", flush=True)
 
 
+def _resolve_encoder_spec(args):
+    """Old-label spec (spec-label) or an explicit checkpoint/arm/cell spec."""
+    if getattr(args, "spec_label", None):
+        spec = encoder_specs()[args.spec_label]
+        return {"label": args.label or args.spec_label, "arm": spec["arm"],
+                "cell": spec["cell"], "source": spec["source"],
+                "seed": int(spec["seed"]), "transform": "none",
+                "checkpoint_sha256": spec.get("checkpoint_sha256")}
+    if not (args.checkpoint and args.arm and args.cell):
+        raise SystemExit("sens-encode needs --spec-label or "
+                         "--checkpoint/--arm/--cell")
+    if args.arm not in ARMS:
+        raise SystemExit(f"arm must be one of {ARMS}")
+    return {"label": args.label or Path(args.checkpoint).parent.parent.name,
+            "arm": args.arm, "cell": args.cell, "source": args.checkpoint,
+            "seed": int(args.seed or 0),
+            "transform": args.transform or "none",
+            "checkpoint_sha256": sha256_file(args.checkpoint)}
+
+
 def mode_sens_encode(args):
+    from scripts import jepa_pregrid_checks as pregrid
+    ext = run_ext(args)
     config, gen, arms, geometry, device = setup(args)
-    spec = encoder_specs()[args.label]
-    model = build_model(spec, config, gen, arms, geometry, "cpu")
-    folder = EXT / "part1" / "sens"
+    spec = _resolve_encoder_spec(args)
+    cell = cell_of(config, spec["cell"])
+    folder = ext / "part1" / "sens"
+    folder.mkdir(parents=True, exist_ok=True)
+    model, beta = pregrid.build_loaded(
+        spec["arm"], cell, geometry, arms, config, gen, Path(DATA_ROOT),
+        spec["source"], spec["seed"])
+    model = getattr(model, "jepa", model).to("cpu").eval()
     output = {}
     for name in INPUTS:
         features = np.load(folder / f"features_{name}.npy", mmap_mode="r")
+        features = np.asarray(features, dtype=np.float32)
+        if spec["transform"] == "median_time":
+            features = ed.median_time_features(features).astype(np.float32)
         output[name] = encode_features(model, features)
         del features
-    np.savez_compressed(folder / f"z_{args.label}.npz", **output)
-    write_json(folder / f"z_{args.label}.json", {
-        "registered": False, "extension": EXTENSION, "kind": "sens_encode",
-        "label": args.label, "checkpoint_sha256": spec.get("checkpoint_sha256"),
+    np.savez_compressed(folder / f"z_{spec['label']}.npz", **output)
+    write_json(folder / f"z_{spec['label']}.json", {
+        "registered": False, "extension": run_extension(args),
+        "kind": "sens_encode", "label": spec["label"], "arm": spec["arm"],
+        "cell": cell.cell_id, "transform": spec["transform"],
+        "beta": beta, "checkpoint_sha256": spec["checkpoint_sha256"],
         "inputs": list(INPUTS), "n_events": N_SENS_EVENTS,
         "invocation": "PYTHONPATH=src python -m scripts.jepa_ext_dejitter sens-encode",
     })
-    print(f"SENS ENCODE OK {args.label}", flush=True)
+    print(f"SENS ENCODE OK {spec['label']}", flush=True)
 
 
 def _ratio(numerator, denominator):
@@ -319,21 +386,23 @@ def _ratio(numerator, denominator):
 
 
 def mode_sens_aggregate(args):
-    folder = EXT / "part1" / "sens"
+    ext = run_ext(args)
+    folder = ext / "part1" / "sens"
     meta = np.load(folder / "meta.npz")
     config, gen, arms, geometry, device = setup(args)
     tools = _tools(geometry, gen)
     valid = meta["valid"]
+    labels = ([item for item in args.labels.split(",") if item]
+              if getattr(args, "labels", None) else list(encoder_specs()))
     rows = {}
-    labels = list(encoder_specs())
     for label in labels:
         with np.load(folder / f"z_{label}.npz") as data:
             z = {name: data[name].astype(np.float64) for name in INPUTS}
         deltas = {name: z[name] - z["x"] for name in INPUTS if name != "x"}
         deltas = {name: value[valid] for name, value in deltas.items()}
         base = ed.sensitivity_terms(z["x"][valid], deltas["phys"])
-        sensed = {name: ed.sensitivity_terms(z["x"][valid], deltas[name])["mean_delta_squared"]
-                  for name in deltas}
+        sensed = {name: ed.sensitivity_terms(
+            z["x"][valid], deltas[name])["mean_delta_squared"] for name in deltas}
         whitened = ed.whitened_sensitivity_terms(
             z["x"][valid], deltas, threshold=1e-6)
         jit = 0.5 * (sensed["jitp"] + sensed["jitm"])
@@ -350,46 +419,62 @@ def mode_sens_aggregate(args):
             "whitened_R_jit_phys": _ratio(jit_w, whitened["phys"]),
             "whitened_R_jit_noise": _ratio(jit_w, whitened["noise"]),
         }
-    raw = {}
-    features = {name: np.load(folder / f"features_{name}.npy", mmap_mode="r")
-                for name in INPUTS}
-    for name in INPUTS:
-        raw[name] = np.empty((N_SENS_EVENTS, 315 * 2))
-    for name in INPUTS:
-        for start in range(0, N_SENS_EVENTS, 200):
-            raw[name][start:start + 200] = _pooled(
-                np.asarray(features[name][start:start + 200], dtype=np.float64),
-                "within", tools)
-        del features[name]
-    base = ed.sensitivity_terms(raw["x"][valid], raw["phys"][valid] - raw["x"][valid])
-    sensed = {name: ed.sensitivity_terms(
-        raw["x"][valid], raw[name][valid] - raw["x"][valid])["mean_delta_squared"]
-        for name in INPUTS if name != "x"}
-    whitened = ed.whitened_sensitivity_terms(
-        raw["x"][valid],
-        {name: raw[name][valid] - raw["x"][valid] for name in INPUTS if name != "x"},
-        threshold=1e-6)
-    jit = 0.5 * (sensed["jitp"] + sensed["jitm"])
-    raw_row = {
-        "n_events": int(valid.sum()),
-        "sensitivity_jit": _ratio(jit, base["trace_covariance"]),
-        "sensitivity_noise": _ratio(sensed["noise"], base["trace_covariance"]),
-        "sensitivity_phys": _ratio(sensed["phys"], base["trace_covariance"]),
-        "R_jit_phys": _ratio(jit, sensed["phys"]),
-        "R_jit_noise": _ratio(jit, sensed["noise"]),
-        "whitened_rank": whitened["rank"],
-        "whitened_R_jit_phys": _ratio(0.5 * (whitened["jitp"] + whitened["jitm"]),
-                                      whitened["phys"]),
-    }
-    write_json(EXT / "part1" / "sensitivity.json", {
-        "registered": False, "extension": EXTENSION, "kind": "part1_sensitivity",
-        "events": N_SENS_EVENTS,
-        "excluded_dark_moved": int((~valid).sum()),
+    raw_row = None
+    feature_paths = [folder / f"features_{name}.npy" for name in INPUTS]
+    if all(path.exists() for path in feature_paths):
+        raw = {name: np.empty((N_SENS_EVENTS, 630)) for name in INPUTS}
+        for name in INPUTS:
+            features = np.load(folder / f"features_{name}.npy", mmap_mode="r")
+            for start in range(0, N_SENS_EVENTS, 200):
+                raw[name][start:start + 200] = _pooled(
+                    np.asarray(features[start:start + 200], dtype=np.float64),
+                    "within", tools)
+            del features
+        base = ed.sensitivity_terms(raw["x"][valid],
+                                    raw["phys"][valid] - raw["x"][valid])
+        sensed = {name: ed.sensitivity_terms(
+            raw["x"][valid], raw[name][valid] - raw["x"][valid])["mean_delta_squared"]
+            for name in INPUTS if name != "x"}
+        whitened = ed.whitened_sensitivity_terms(
+            raw["x"][valid],
+            {name: raw[name][valid] - raw["x"][valid]
+             for name in INPUTS if name != "x"}, threshold=1e-6)
+        jit = 0.5 * (sensed["jitp"] + sensed["jitm"])
+        raw_row = {
+            "n_events": int(valid.sum()),
+            "sensitivity_jit": _ratio(jit, base["trace_covariance"]),
+            "sensitivity_noise": _ratio(sensed["noise"], base["trace_covariance"]),
+            "sensitivity_phys": _ratio(sensed["phys"], base["trace_covariance"]),
+            "R_jit_phys": _ratio(jit, sensed["phys"]),
+            "R_jit_noise": _ratio(jit, sensed["noise"]),
+            "whitened_rank": whitened["rank"],
+            "whitened_R_jit_phys": _ratio(
+                0.5 * (whitened["jitp"] + whitened["jitm"]), whitened["phys"]),
+        }
+    # §3.3 S9 regeneration check: the regenerated old encoders must reproduce
+    # the de-jitter Part 1 values within 1e-3 relative.
+    recorded = {"mae9000": 1.6388, "fix9000": 0.0111,
+                "whitened_mae9000": 0.7246, "whitened_fix9000": 0.0197}
+    checks = {}
+    for label, expected in recorded.items():
+        key = label.replace("whitened_", "")
+        field = "whitened_R_jit_phys" if label.startswith("whitened_") else "R_jit_phys"
+        if key in rows and rows[key][field] is not None:
+            relative = abs(rows[key][field] - expected) / expected
+            checks[label] = {"got": rows[key][field], "expected": expected,
+                             "relative": relative}
+            if relative > 1e-3:
+                raise SystemExit(f"S9 regeneration check failed for {label}: "
+                                 f"{rows[key][field]} vs {expected}")
+    write_json(ext / "part1" / "sensitivity.json", {
+        "registered": False, "extension": run_extension(args),
+        "kind": "part1_sensitivity", "labels": labels,
+        "events": N_SENS_EVENTS, "excluded_dark_moved": int((~valid).sum()),
         "redraw_counts": {"fiducial": int(meta["redraws"][:, 0].sum()),
                           "capacity": int(meta["redraws"][:, 1].sum())},
         "time_change_sd_ns": float(np.mean(meta["time_change_sd"])),
-        "encoders": rows,
-        "raw_rows": raw_row,
+        "encoders": rows, "raw_rows": raw_row,
+        "regeneration_checks": checks,
     })
     print("SENS AGGREGATE OK", flush=True)
 
@@ -663,9 +748,13 @@ def mode_train(args):
         variant = args.variant
         if variant not in TRAIN_VARIANTS:
             raise SystemExit(f"unknown variant {variant}")
-        cell = cells_for(config)[variant]
-        arm_name = "sigreg_jepa"
+        cell = cell_of(config, variant)
+        arm_name = args.arm
+        if arm_name not in ARMS:
+            raise SystemExit(f"arm must be one of {ARMS}")
         data_root, out_root = Path(args.data_root), Path(args.out)
+        run_id = lr.run_id_for(cell.cell_id, arm_name, int(args.seed), None)
+        refuse_existing_run_dir(out_root, run_id)
         train_ds, probes = pregrid.datasets_for(cell, config, gen, geometry, data_root)
         result = lr.run_one(
             arm_name=arm_name, cell=cell, seed=int(args.seed), beta=None,
@@ -686,8 +775,9 @@ def mode_train(args):
                                        probe_max_events=args.probe_max_events)
         log = [json.loads(line) for line in
                (run_dir / "train_log.jsonl").read_text().splitlines() if line.strip()]
-        summary = {"registered": False, "extension": EXTENSION, "variant": variant,
-                   "transform": args.transform, "arm": arm_name,
+        summary = {"registered": False, "extension": run_extension(args),
+                   "variant": variant, "transform": args.transform,
+                   "arm": arm_name, "beta": None,
                    "cell": cell.cell_id, "split": cell.split, "spread": cell.setting,
                    "seed": int(args.seed),
                    "final_train_metrics": log[-1] if log else None,
@@ -965,6 +1055,323 @@ def _readings(sensitivity, detectability, linear, summaries, floors):
     return out
 
 
+# --------------------------------------------------- MAE token-time probes
+def event_level_time(model, dataset, geometry, *, split, mask_seed, device="cpu",
+                     max_events=4000, tokens_per_event=32, seed=0, chunk_events=8):
+    """Extension copy of ``jepa_pregrid_checks.event_level`` returning token times.
+
+    Same token picks as the registered helper; in addition to the picked tokens it
+    returns the picked hit-token time in the model's own convention and the
+    median-relative time (raw time minus that event's hit-token median).
+    """
+    import torch
+    from jepa_noise import lucid_run as lr
+    from jepa_noise import point_encoder as pe
+    scaling = pe.FeatureScaling.from_geometry(geometry)
+    rng = np.random.default_rng(seed)
+    tokens_out, own_out, median_out = [], [], []
+    n = 0
+    model.eval()
+    for row in dataset.runs:
+        if n >= max_events:
+            break
+        source = dataset.directory / "runs" / row["run_dir"]
+        ids = lr._domain_event_ids(source, "photon")[:max_events - n]
+        for start in range(0, len(ids), chunk_events):
+            batch = lr._probe_batch(source, geometry, split=split,
+                                    mask_seed=mask_seed, occupancy="natural",
+                                    scaling=scaling,
+                                    event_ids=ids[start:start + chunk_events],
+                                    domain="photon")
+            if batch.features.shape[0] == 0:
+                continue
+            with torch.no_grad():
+                tokens = model.encode(
+                    lr._to_device(batch, device).features).cpu().numpy()
+            features = batch.features.cpu().numpy()
+            hit = np.asarray(batch.hit_flags, bool)
+            n += tokens.shape[0]
+            for event in range(tokens.shape[0]):
+                index = np.flatnonzero(hit[event])
+                if index.size == 0:
+                    continue
+                times = np.asarray(features[event, index, ed.TIME_INDEX],
+                                   dtype=np.float64)
+                median = float(np.median(times))
+                pick = rng.choice(index, size=min(tokens_per_event, index.size),
+                                  replace=False)
+                tokens_out.append(tokens[event, pick])
+                own_out.append(np.asarray(features[event, pick, ed.TIME_INDEX],
+                                          dtype=np.float64))
+                median_out.append(np.asarray(features[event, pick, ed.TIME_INDEX],
+                                             dtype=np.float64) - median)
+    return (np.concatenate(tokens_out), np.concatenate(own_out),
+            np.concatenate(median_out))
+
+
+def _token_time_registry(ext):
+    registry = {
+        "init9000_trigger": {"arm": "sigreg_jepa", "cell": "dev", "source": "init",
+                             "seed": 9000, "transform": "none",
+                             "checkpoint_sha256": None},
+        "init9000_median": {"arm": "sigreg_jepa", "cell": "dev", "source": "init",
+                            "seed": 9000, "transform": "median_time",
+                            "checkpoint_sha256": None},
+    }
+    for path in sorted(Path(ext).glob("train/runs/*/ext_summary.json")):
+        payload = json.loads(path.read_text())
+        variant, seed = payload["variant"], int(payload["seed"])
+        registry[f"mae_{variant}_s{seed}"] = {
+            "arm": payload.get("arm", "mae_mse"),
+            "cell": CELL_OF_VARIANT[variant],
+            "source": payload["checkpoint"], "seed": seed,
+            "transform": "median_time" if variant.endswith("_median") else "none",
+            "checkpoint_sha256": payload.get("checkpoint_sha256")}
+    for path in sorted(DJ_EXT.glob("train/runs/*/ext_summary.json")):
+        payload = json.loads(path.read_text())
+        variant, seed = payload["variant"], int(payload["seed"])
+        registry[f"sigreg_{variant}_s{seed}"] = {
+            "arm": "sigreg_jepa", "cell": CELL_OF_VARIANT[variant],
+            "source": payload["checkpoint"], "seed": seed,
+            "transform": "median_time" if variant.endswith("_median") else "none",
+            "checkpoint_sha256": payload.get("checkpoint_sha256")}
+    return registry
+
+
+def mode_token_time(args):
+    from scripts import jepa_pregrid_checks as pregrid
+    from scripts.jepa_pregrid_checks import ridge_r2
+    ext = run_ext(args)
+    config, gen, arms, geometry, device = setup(args)
+    registry = _token_time_registry(ext)
+    if args.label not in registry:
+        raise SystemExit(f"unknown token-time label {args.label!r}; "
+                         f"known: {sorted(registry)}")
+    spec = registry[args.label]
+    cell = cell_of(config, spec["cell"])
+    wrapper = _install_wrapper(spec["transform"])
+    try:
+        model, beta = pregrid.build_loaded(
+            spec["arm"], cell, geometry, arms, config, gen, Path(DATA_ROOT),
+            spec["source"], spec["seed"])
+        model = getattr(model, "jepa", model).to("cpu").eval()
+        _, probes = pregrid.datasets_for(cell, config, gen, geometry,
+                                         Path(DATA_ROOT))
+        mask_seed = int(config["views"]["mask_seed"])
+        train = event_level_time(model, probes["train"], geometry,
+                                 split=cell.split, mask_seed=mask_seed,
+                                 device="cpu", max_events=args.max_events)
+        test = event_level_time(model, probes["test"], geometry,
+                                split=cell.split, mask_seed=mask_seed,
+                                device="cpu", max_events=args.max_events)
+        result = {
+            "registered": False, "extension": run_extension(args),
+            "kind": "token_time", "label": args.label, "arm": spec["arm"],
+            "cell": cell.cell_id, "transform": spec["transform"], "beta": beta,
+            "checkpoint_sha256": spec["checkpoint_sha256"],
+            "n_train_tokens": int(len(train[0])),
+            "n_test_tokens": int(len(test[0])),
+            "token_time_r2_own": ridge_r2(train[0], train[1],
+                                          test[0], test[1])["r2"],
+            "token_time_r2_median": ridge_r2(train[0], train[2],
+                                             test[0], test[2])["r2"],
+            "invocation": "PYTHONPATH=src python -m scripts.jepa_ext_dejitter token-time",
+        }
+        write_json(ext / "token_time" / f"{args.label}.json", result)
+        print(f"TOKEN TIME OK {args.label}", flush=True)
+    finally:
+        _restore_wrapper(wrapper)
+
+
+def mode_token_time_agg(args):
+    ext = run_ext(args)
+    merged = {}
+    for path in sorted((ext / "token_time").glob("*.json")):
+        payload = json.loads(path.read_text())
+        merged[payload["label"]] = payload
+    write_json(ext / "token_time.json", {
+        "registered": False, "extension": run_extension(args),
+        "kind": "token_time_summary", "labels": sorted(merged),
+        "token_time": merged})
+    print(f"TOKEN TIME AGG OK ({len(merged)} labels)", flush=True)
+
+
+# --------------------------------------------------------- MAE report
+def _f(value, digits=4, missing="—"):
+    return missing if value is None else f"{float(value):.{digits}f}"
+
+
+def _table(header, rows):
+    rule = "|" + "---|" * len(header)
+    return "\n".join(["| " + " | ".join(header) + " |", rule]
+                     + ["| " + " | ".join(str(item) for item in row) + " |"
+                        for row in rows])
+
+
+def _mae_readings(sensitivity, token_time, summaries):
+    def vertex(variant, seed):
+        record = summaries.get((variant, seed))
+        return None if record is None else record["forms"]["full_input"].get(
+            "vertex_resolution_m")
+
+    out = {}
+    rows_a = []
+    for seed in (9000, 9001):
+        trigger = vertex("across_trigger", seed)
+        control = vertex("within_trigger", seed)
+        rows_a.append({"seed": seed, "across_trigger": trigger,
+                       "within_trigger": control,
+                       "ratio": (trigger / control
+                                 if trigger is not None and control else None),
+                       "ok": trigger is not None and control is not None
+                       and trigger >= 1.2 * control})
+    out["M-a"] = {"seeds": rows_a,
+                  "status": "supported" if rows_a and all(r["ok"] for r in rows_a)
+                  else "not supported"}
+    gate = out["M-a"]["status"] == "supported"
+    rows_b = []
+    for seed in (9000, 9001):
+        median = vertex("across_median", seed)
+        trigger = vertex("across_trigger", seed)
+        rows_b.append({"seed": seed, "across_median": median,
+                       "across_trigger": trigger,
+                       "ok": median is not None and trigger is not None
+                       and median <= 0.85 * trigger})
+    out["M-b"] = {"seeds": rows_b, "gate_M_a": gate,
+                  "status": ("supported" if gate and all(r["ok"] for r in rows_b)
+                             else "unclear (M-a not supported)" if not gate
+                             else "not supported")}
+    rows_c = []
+    for seed in (9000, 9001):
+        across = vertex("across_median", seed)
+        within = vertex("within_median", seed)
+        rows_c.append({"seed": seed, "across_median": across,
+                       "within_median": within,
+                       "ok": across is not None and within is not None
+                       and across <= 1.1 * within})
+    out["M-c"] = {"seeds": rows_c, "gate_M_a": gate,
+                  "status": ("supported" if gate and all(r["ok"] for r in rows_c)
+                             else "unclear (M-a not supported)" if not gate
+                             else "not supported")}
+    rows_d = []
+    for seed in (9000, 9001):
+        median = vertex("within_median", seed)
+        trigger = vertex("within_trigger", seed)
+        rows_d.append({"seed": seed, "within_median": median,
+                       "within_trigger": trigger,
+                       "ok": median is not None and trigger is not None
+                       and median <= 1.1 * trigger})
+    out["M-d"] = {"seeds": rows_d,
+                  "status": "supported" if rows_d and all(r["ok"] for r in rows_d)
+                  else "not supported"}
+    enc = sensitivity["encoders"]
+    mae_trigger = {label: value for label, value in enc.items()
+                   if label.startswith("mae_") and "trigger" in label}
+    values = {label: value["R_jit_phys"] for label, value in mae_trigger.items()}
+    whitened = {label: value["whitened_R_jit_phys"]
+                for label, value in mae_trigger.items()}
+    out["M-e"] = {"R_jit_phys": values, "whitened_R_jit_phys": whitened,
+                  "primary_ok": bool(values) and all(
+                      value is not None and value >= 0.495
+                      for value in values.values()),
+                  "whitened_ok": bool(whitened) and all(
+                      value is not None and value >= 10 * 0.0622
+                      for value in whitened.values()),
+                  "status": "supported" if (values and all(
+                      value is not None and value >= 0.495
+                      for value in values.values())) else "not supported"}
+    out["M-f"] = {"status": "descriptive",
+                  "runs": {f"{variant}/s{seed}": record["forms"]["full_input"]
+                           for (variant, seed), record in summaries.items()},
+                  "token_time": token_time.get("token_time", {})}
+    return out
+
+
+def mode_report_mae(args):
+    ext = run_ext(args)
+    sensitivity = json.loads((ext / "part1" / "sensitivity.json").read_text())
+    token_time = json.loads((ext / "token_time.json").read_text())
+    summaries = {}
+    for path in sorted((ext / "train" / "runs").glob("*/ext_summary.json")):
+        payload = json.loads(path.read_text())
+        summaries[(payload["variant"], int(payload["seed"]))] = payload
+    results = Path(getattr(args, "results", None) or RESULTS_MAE)
+    results.mkdir(parents=True, exist_ok=True)
+    readings = _mae_readings(sensitivity, token_time, summaries)
+    sensitivity_rows = []
+    for label, value in sensitivity["encoders"].items():
+        sensitivity_rows.append([label, _f(value["R_jit_phys"]),
+                                 _f(value["whitened_R_jit_phys"]),
+                                 _f(value["R_jit_noise"]),
+                                 str(value["whitened_rank"])])
+    raw = sensitivity.get("raw_rows")
+    if raw:
+        sensitivity_rows.append(["raw_pooled", _f(raw["R_jit_phys"]),
+                                 _f(raw["whitened_R_jit_phys"]),
+                                 _f(raw["R_jit_noise"]),
+                                 str(raw["whitened_rank"])])
+    token_rows = []
+    for label, value in sorted(token_time["token_time"].items()):
+        token_rows.append([label, value.get("transform"),
+                           _f(value.get("token_time_r2_own")),
+                           _f(value.get("token_time_r2_median"))])
+    run_rows = []
+    de_jitter_runs = {}
+    for (variant, seed), payload in sorted(summaries.items()):
+        full = payload["forms"]["full_input"]
+        run_rows.append([variant, str(seed), _f(full.get("vertex_resolution_m")),
+                         _f(full.get("module_gain_run_mean_r2")),
+                         _f((full.get("token_log_charge_r2") or {}).get("r2")),
+                         _f((full.get("event_embedding") or {}).get("effective_rank")),
+                         _f(full.get("sigreg_statistic_events"))])
+    (results / "mae_prescription.md").write_text(
+        "# MAE de-jitter — eight encoders vs references and floors (registered: false)\n\n"
+        "## Runs (full input)\n\n"
+        + _table(["variant", "seed", "vertex (m)", "gain R2", "token charge R2",
+                  "effective rank", "event SIGReg"], run_rows)
+        + "\n\nFloors: trigger init9000 0.16007 m (Part C), median init9000 "
+          "0.159692 m (de-jitter Titan floor); de-jitter SIGReg-JEPA across "
+          "0.347506/0.320314 m, within 0.222653/0.207199 m.\n\n"
+        "## Token time R2 (own convention / median-relative)\n\n"
+        + _table(["label", "transform", "R2(own)", "R2(median)"], token_rows)
+        + "\n\n## Trigger-jitter sensitivity\n\n"
+        + _table(["label", "R_jit/phys", "Rw_jit/phys", "R_jit/noise", "rank"],
+                 sensitivity_rows)
+        + "\n\nS9 regeneration checks: "
+        + json.dumps(sensitivity.get("regeneration_checks", {})) + "\n")
+    write_json(results / "readings.json", readings, overwrite=True)
+    write_json(results / "summary.json",
+               {"registered": False, "extension": run_extension(args),
+                "provenance": sensitivity.get("provenance"),
+                "token_time": token_time,
+                "runs": {f"{variant}/s{seed}": {
+                    "vertex_resolution_m": payload["forms"]["full_input"].get(
+                        "vertex_resolution_m"),
+                    "checkpoint_sha256": payload.get("checkpoint_sha256"),
+                    "wall_seconds": payload.get("wall_seconds")}
+                    for (variant, seed), payload in summaries.items()}},
+               overwrite=True)
+    large = {}
+    for path in (sorted((ext / "train" / "runs").glob("*/final.pt"))
+                 + sorted((ext / "train" / "runs").glob("*/ext_summary.json"))
+                 + sorted((ext / "token_time").glob("*.json"))
+                 + sorted((ext / "part1" / "sens").glob("z_*.npz"))
+                 + [ext / "part1" / "sens" / "meta.npz"]):
+        if path.exists():
+            large[str(path.relative_to(ext))] = {
+                "sha256": sha256_file(path), "bytes": path.stat().st_size}
+    write_json(results / "large_arrays.json", large, overwrite=True)
+    (results / "README.md").write_text(
+        "# MAE de-jitter extension (31 Oct 2026)\n\n"
+        "**registered: false** — extension `mae_dejitter_2026-10-31`.\n\n"
+        "Runbook: `docs/jepa/RUNBOOK_2026-10-31_MAE_DEJITTER.md`.\n"
+        "Eight approved L40S MAE runs plus one 20-step smoke; CPU Part 1/token-time "
+        "work on Deepthought.\n\n"
+        "Contents: `mae_prescription.md`, `readings.json`, `summary.json`, "
+        "`large_arrays.json`.\n")
+    print(json.dumps(jsonable(readings), indent=1))
+
+
 # -------------------------------------------------------------------- main
 def parser():
     p = argparse.ArgumentParser(prog="jepa_ext_dejitter")
@@ -979,8 +1386,19 @@ def parser():
         sp.add_argument("--device", default="cpu")
 
     s = sub.add_parser("sens-gen"); common(s)
-    s = sub.add_parser("sens-encode"); common(s); s.add_argument("--label", required=True)
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
+    s = sub.add_parser("sens-encode"); common(s)
+    s.add_argument("--label", default=None)
+    s.add_argument("--spec-label", default=None)
+    s.add_argument("--checkpoint", default=None)
+    s.add_argument("--arm", choices=ARMS, default=None)
+    s.add_argument("--cell", default=None)
+    s.add_argument("--seed", type=int, default=None)
+    s.add_argument("--transform", choices=("none", "median_time"), default="none")
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
     s = sub.add_parser("sens-aggregate"); common(s)
+    s.add_argument("--labels", default=None)
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
     s = sub.add_parser("detect-gen"); common(s)
     s.add_argument("--shard", type=int, required=True); s.add_argument("--shards", type=int, default=8)
     s = sub.add_parser("detect-merge"); common(s); s.add_argument("--shards", type=int, default=8)
@@ -989,6 +1407,8 @@ def parser():
     s = sub.add_parser("linear"); common(s)
     s = sub.add_parser("train"); common(s)
     s.add_argument("--variant", choices=TRAIN_VARIANTS, required=True)
+    s.add_argument("--arm", choices=ARMS, default="sigreg_jepa")
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
     s.add_argument("--seed", type=int, required=True)
     s.add_argument("--transform", choices=("none", "median_time"), default=None)
     s.add_argument("--steps", type=int, default=None)
@@ -1001,6 +1421,15 @@ def parser():
     s.add_argument("--transform", choices=("none", "median_time"), default="none")
     s.add_argument("--out", required=True)
     s = sub.add_parser("report"); common(s); s.add_argument("--out", default=None)
+    s = sub.add_parser("token-time"); common(s)
+    s.add_argument("--label", required=True)
+    s.add_argument("--max-events", type=int, default=4000)
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
+    s = sub.add_parser("token-time-agg"); common(s)
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
+    s = sub.add_parser("report-mae")
+    s.add_argument("--ext", default=None); s.add_argument("--extension", default=None)
+    s.add_argument("--results", default=None)
     return p
 
 
@@ -1008,10 +1437,8 @@ def main(argv=None):
     args = parser().parse_args(argv)
     if args.mode == "train":
         args.device = "auto"
-        if args.variant.endswith("_median") and args.transform is None:
-            args.transform = "median_time"
-        elif args.variant == "within_trigger" and args.transform is None:
-            args.transform = "none"
+        if args.transform is None:
+            args.transform = TRANSFORMS[args.variant]
     if args.mode == "sens-gen":
         mode_sens_gen(args)
     elif args.mode == "sens-encode":
@@ -1032,6 +1459,12 @@ def main(argv=None):
         mode_train(args)
     elif args.mode == "inspect":
         mode_inspect(args)
+    elif args.mode == "token-time":
+        mode_token_time(args)
+    elif args.mode == "token-time-agg":
+        mode_token_time_agg(args)
+    elif args.mode == "report-mae":
+        mode_report_mae(args)
     else:
         mode_report(args)
 
