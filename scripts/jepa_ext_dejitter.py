@@ -527,8 +527,8 @@ def mode_detect_aggregate(args):
     for start in range(0, N_DETECT_EVENTS, 200):
         pooled_features[start:start + 200] = _pooled(
             np.asarray(features[start:start + 200], dtype=np.float64), "within", tools)
-    hit = np.asarray(features[..., ed.RAW_FEATURE_BASE + ed.HIT_INDEX]) > 0
-    time = np.asarray(features[..., ed.RAW_FEATURE_BASE + ed.TIME_INDEX])
+    hit = np.asarray(features[..., ed.HIT_INDEX]) > 0
+    time = np.asarray(features[..., ed.TIME_INDEX])
     mean_hit_time = np.where(hit, time, 0.0).sum(axis=1) / np.maximum(hit.sum(axis=1), 1)
     del features
     train = valid & (run_ids < 500)
