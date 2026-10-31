@@ -1239,19 +1239,19 @@ def _mae_readings(sensitivity, token_time, summaries):
                        and median <= 0.85 * trigger})
     out["M-b"] = {"seeds": rows_b, "gate_M_a": gate,
                   "status": ("supported" if gate and all(r["ok"] for r in rows_b)
-                             else "unclear (M-a not supported)" if not gate
+                             else "unclear (no gap)" if not gate
                              else "not supported")}
     rows_c = []
     for seed in (9000, 9001):
         across = vertex("across_median", seed)
-        within = vertex("within_median", seed)
+        within = vertex("within_trigger", seed)
         rows_c.append({"seed": seed, "across_median": across,
-                       "within_median": within,
+                       "within_trigger": within,
                        "ok": across is not None and within is not None
                        and across <= 1.1 * within})
     out["M-c"] = {"seeds": rows_c, "gate_M_a": gate,
                   "status": ("supported" if gate and all(r["ok"] for r in rows_c)
-                             else "unclear (M-a not supported)" if not gate
+                             else "unclear (no gap)" if not gate
                              else "not supported")}
     rows_d = []
     for seed in (9000, 9001):
@@ -1337,7 +1337,9 @@ def mode_report_mae(args):
         + "\n\n## Trigger-jitter sensitivity\n\n"
         + _table(["label", "R_jit/phys", "Rw_jit/phys", "R_jit/noise", "rank"],
                  sensitivity_rows)
-        + "\n\nS9 regeneration checks: "
+        + "\n\nMedian-time encoders: their R_jit/phys is edge effects only "
+          "(a constant trigger shift is removed by construction) and is not scored.\n\n"
+          "S9 regeneration checks: "
         + json.dumps(sensitivity.get("regeneration_checks", {})) + "\n")
     write_json(results / "readings.json", readings, overwrite=True)
     write_json(results / "summary.json",
