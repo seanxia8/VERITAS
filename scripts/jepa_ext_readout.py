@@ -928,8 +928,8 @@ def mode_report(args) -> int:
     merged = {"registered": False, "extension": EXTENSION,
               "runbook": "docs/jepa/RUNBOOK_2026-11-01_READOUT.md (revision 2)",
               "code_sha": lr.git_head(ROOT), "groups": matrix_groups,
-              "probe_sets": {"dev_probe_train": er.PROBE_MANIFESTS["dev_probe_train"],
-                             "dev_probe_test": er.PROBE_MANIFESTS["dev_probe_test"]},
+              "probe_sets": {"dev_probe_train": PROBE_MANIFESTS["dev_probe_train"],
+                             "dev_probe_test": PROBE_MANIFESTS["dev_probe_test"]},
               "items": matrix_items}
     reproduction = {"registered": False, "extension": EXTENSION, "check": "§4.2",
                     "tolerance_m": er.REPRODUCTION_TOLERANCE_M,

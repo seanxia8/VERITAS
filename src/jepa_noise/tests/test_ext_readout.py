@@ -31,6 +31,7 @@ _spec = importlib.util.spec_from_file_location(
     "jepa_ext_readout", ROOT / "scripts" / "jepa_ext_readout.py")
 readout = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(readout)
+readout_module = readout
 
 
 @pytest.fixture(scope="module")
@@ -377,3 +378,90 @@ def test_form_cache_roundtrip(tmp_path):
     split = readout._cache_split(loaded, "train")
     np.testing.assert_allclose(split["event"], train.events, rtol=1e-6)
     np.testing.assert_allclose(split["tokens"], train.tokens, rtol=0, atol=1e-3)
+
+
+# ------------------------------------------------------------------- report mode
+def _synthetic_matrix_payload(labels, group, offset=0.0):
+    items = {}
+    for index, label in enumerate(labels):
+        seed = 9000 if "9000" in label else 9001
+        split = "across" if label.startswith("across") else "within"
+        forms = {}
+        for form in (["full_input", "half_pass", "propagated", "context_only", "raw_input"]
+                     if split == "within" else list(er.ACROSS_FORMS)):
+            forms[form] = {
+                "vertex_resolution_m": 0.2 + 0.01 * index + offset,
+                "vertex": {"status": "evaluated"},
+                "token_log_charge_r2": {"r2": 0.5, "alpha": 1.0, "n_train": 100, "n_test": 50},
+                "effective_rank": 2.0, "participation_ratio": 1.5, "event_sigreg": 100.0,
+                "module_gain_r2": {"value": 0.1, "source": "module_gain::run_mean"},
+                "layout": {"f_layout": 0.3, "f_event": 0.1},
+                "n_events": {"train": 100, "test": 50},
+                "n_token_rows": {"train": 1000, "test": 500}}
+        items[label] = {"arm": "sigreg_jepa", "split": split, "seed": seed,
+                        "source_sha256": "a" * 64, "ckpt_sha256": "b" * 64, "forms": forms}
+    return {"registered": False, "extension": er.EXTENSION, "group": group,
+            "items": items, "complete": True}
+
+
+def _synthetic_nonlinear(labels):
+    items = {}
+    for index, label in enumerate(labels):
+        forms = {}
+        for form in ("full_input", "half_pass"):
+            forms[form] = {
+                "vertex_ridge": {"resolution": 0.2 + 0.01 * index, "median": 0.2, "n": 50,
+                                 "alphas": [1.0], "n_train": 100, "n_test": 50},
+                "vertex_mlp": {"status": "evaluated", "resolution": 0.2, "r2_mean": 0.5},
+                "token_log_charge_ridge": {"r2": 0.02, "alpha": 1.0, "n_train": 1000,
+                                           "n_test": 500},
+                "token_log_charge_mlp": {"status": "evaluated", "r2_mean": 0.6},
+                "n_token_rows": {"train": 1000, "test": 500}}
+        items[label] = {"forms": forms, "split": "within"}
+    return {"registered": False, "extension": er.EXTENSION, "items": items,
+            "cka": {"init9000_vs_raw_physics": 0.2,
+                    "fix9000_vs_init9000": 0.1, "fix9000_vs_raw_physics": 0.4,
+                    "fix9001_vs_init9000": 0.1, "fix9001_vs_raw_physics": 0.4},
+            "complete": True}
+
+
+def test_report_mode_merges_and_writes_only_its_outputs(monkeypatch, tmp_path):
+    matrix_a = tmp_path / "matrix_a"
+    matrix_b = tmp_path / "matrix_b"
+    matrix_a.mkdir(); matrix_b.mkdir()
+    labels_a = ["init9000", "old9000", "old9001", "fix9000"]
+    labels_b = ["fix9001", "mae9000", "across9000", "across9001"]
+    (matrix_a / "matrix.json").write_text(json.dumps(
+        _synthetic_matrix_payload(labels_a, "a")))
+    (matrix_b / "matrix.json").write_text(json.dumps(
+        _synthetic_matrix_payload(labels_b, "b")))
+    for directory, group in ((matrix_a, "a"), (matrix_b, "b")):
+        (directory / f"reproduction_{group}.json").write_text(json.dumps(
+            {"reproduction_pass": True, "group": group,
+             "items": {"fix9000": {"expected_m": 0.219258, "got_m": 0.2193,
+                                   "abs_diff_m": 0.000042, "pass": True}}}))
+    nonlinear = tmp_path / "nonlinear.json"
+    nonlinear.write_text(json.dumps(_synthetic_nonlinear(
+        labels_a + labels_b)))
+    readout = tmp_path / "readout_results"
+    readout.mkdir()
+    readout_payload = _synthetic_matrix_payload(["init9000", "fix9000", "fix9001",
+                                                 "mae9000"], "readout")
+    (readout / "matrix.json").write_text(json.dumps(readout_payload))
+    monkeypatch.setattr(readout_module.lr, "git_head", lambda root: "0" * 40)
+    args = type("Args", (), {"matrix": [str(matrix_a), str(matrix_b)],
+                             "nonlinear": str(nonlinear), "out": str(tmp_path / "out"),
+                             "readout": str(readout), "config": str(readout_module.CONFIG_PATH),
+                             "generator_config": str(readout_module.GENERATOR_PATH),
+                             "geometry": "/nonexistent", "data_root": "/nonexistent",
+                             "readout_ext": "/nonexistent", "ext": "/nonexistent",
+                             "device": "cpu"})()
+    assert readout_module.mode_report(args) == 0
+    out = tmp_path / "out"
+    for name in ("README.md", "matrix.json", "nonlinear.json", "reproduction.json",
+                 "readings.json"):
+        assert (out / name).is_file(), name
+    readings = json.loads((out / "readings.json").read_text())["readings"]
+    assert readings["Q1-a"]["verdict"] in ("supported", "not supported", "unclear")
+    assert readings["Q2-a"]["verdict"] in ("supported", "not supported")
+    assert "Q1-e" in readings and "Q2-d" in readings
