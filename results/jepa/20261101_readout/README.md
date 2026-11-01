@@ -130,3 +130,9 @@ Evaluation only: no encoder was trained, no grid run; photon domain only.
 - `readings.json` — the §6 readings with their numbers (machine-readable).
 - `README.md` — this file.
 
+
+## Wording fixed for the paper (Lead, 1 Nov 2026)
+
+- **Q1-a is "not supported":** the trained-vs-random verdict is **worse in both readouts** — full-input vertex 1.37×/1.28× the init floor and half-pass vertex 1.86×/1.68× the half-pass init floor — so it does not flip under the training-like readout.
+- **Q2-b is "supported": "linearly unreadable, not destroyed".** On the identical sampled hit-token rows, `fix9000` full-input charge ridge R² is 0.0172 (0.0514 for `fix9001`) while the MLP reaches 0.8149 (0.9217); the `init9000` ridge is 0.9983. The lost charge information is therefore still recoverable by a small nonlinear probe, not destroyed.
+- Q1-e/Q1-f descriptive priors: `f_layout` ≈ 0.99 for old/fix (init 0.83) and `f_event` ≈ 1e-5 for old/fix (init 0.079) — a layout-dominated, event-invariant `fix` representation, exactly the H1/H2 signature that the causal E2/E3 tests now probe.
