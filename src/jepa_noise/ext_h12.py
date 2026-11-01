@@ -920,7 +920,7 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path=
          device, max_label_events: int = 2000, chunk_events: int = 8, log=print,
          position_probe: str = "linear", position_out=None, label_cache=None,
          code_origin: bool = False, code_origin_out=None,
-         code_origin_probes=CODE_ORIGIN_METHODS) -> dict:
+         code_origin_methods=CODE_ORIGIN_METHODS) -> dict:
     """E0-a/b/c and E1 on the ``fix9000`` (and rebuilt ``init9000``) encoders.
 
     ``position_probe`` extends the mode with the 1 Nov 2026 position-probe addendum
@@ -1034,7 +1034,7 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path=
                                            chunk_events=int(chunk_events),
                                            device=device, log=log)
         block = code_origin_probes(rows, per_pmt, geometry,
-                                   probes=tuple(code_origin_probes),
+                                   probes=tuple(code_origin_methods),
                                    seed=er.SAMPLE_SEED, log=log)
         target = Path(code_origin_out) if code_origin_out is not None else (
             Path(out_path).parent / "e0e1_code_origin.json"
