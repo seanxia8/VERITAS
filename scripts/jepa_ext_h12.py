@@ -347,9 +347,11 @@ def mode_report(args) -> int:
         seed = int(run["seed"])
         fix_full, fix_half = _full_half(readout.get(f"fix{seed}", {}))
         full, half = run["full_input"], run["half_pass"]
+        run_dir = Path(run.get("checkpoint", "")).parent
         runs_table[label] = {
             "variant": run["variant"], "seed": seed,
             "wall_seconds": (run.get("ext_summary") or {}).get("wall_seconds"),
+            "train_log_check": eh.train_log_check(run_dir),
             "checkpoint_sha256": run["checkpoint_sha256"],
             "zero_geometry": run["zero_geometry"],
             "full_input": {"vertex_resolution_m": full.get("vertex_resolution_m"),
@@ -460,6 +462,9 @@ def _readme(decision: dict, runs: dict, e0e1: dict | None, reproduction: dict,
             f"{(full.get('token_log_charge_r2') or {}).get('r2')} | "
             f"{half.get('vertex_resolution_m')} | "
             f"{(half.get('token_log_charge_r2') or {}).get('r2')} | {run['zero_geometry']} |")
+    lines += ["", "Training-log NaN check (§4.6): "
+              + ", ".join(f"{label}={row['train_log_check']['finite']}"
+                          for label, row in runs.items()) + " (last logged metrics).", ""]
     lines += ["", "Baselines: `init9000` full_input vertex "
               f"{decision['readout_baselines']['init9000_full_input_vertex_m']} m, "
               "half_pass vertex "

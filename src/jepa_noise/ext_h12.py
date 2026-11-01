@@ -249,9 +249,12 @@ def summarize_run(run_dir: Path, *, variant: str, seed: int, wall_seconds=None,
     rows = ([json.loads(line) for line in log_path.read_text().splitlines() if line.strip()]
             if log_path.is_file() else [])
     final = rows[-1] if rows else {}
-    metrics = {key: value for key, value in final.items()
-               if isinstance(value, (int, float))}
-    finite = all(math.isfinite(float(value)) for value in metrics.values())
+    # train_log rows are {"step": .., "elapsed_seconds": .., "metrics": {loss, prediction, ...}}
+    metrics = dict(final.get("metrics") or {})
+    metrics.setdefault("step", final.get("step"))
+    metrics.setdefault("elapsed_seconds", final.get("elapsed_seconds"))
+    finite = all(math.isfinite(float(value)) for value in metrics.values()
+                 if isinstance(value, (int, float)))
     checkpoint = run_dir / "final.pt"
     status = json.loads((run_dir / "run_status.json").read_text()) \
         if (run_dir / "run_status.json").is_file() else {}
@@ -265,6 +268,21 @@ def summarize_run(run_dir: Path, *, variant: str, seed: int, wall_seconds=None,
                                            if checkpoint.is_file() else None),
                "forms": forms}
     return summary
+
+
+def train_log_check(run_dir: Path) -> dict:
+    """Scan ``train_log.jsonl``: row count, final metrics and a real NaN check."""
+    run_dir = Path(run_dir)
+    path = run_dir / "train_log.jsonl"
+    if not path.is_file():
+        return {"status": "missing", "n_rows": 0, "final_metrics": None,
+                "non_finite_keys": [], "finite": None}
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    final = (rows[-1].get("metrics") or {}) if rows else {}
+    bad = sorted(key for key, value in final.items()
+                 if isinstance(value, (int, float)) and not math.isfinite(float(value)))
+    return {"status": "checked", "n_rows": len(rows), "final_metrics": final,
+            "non_finite_keys": bad, "finite": not bad}
 
 
 # ---------------------------------------------------------------- E0/E1 (Phase 0)

@@ -273,3 +273,116 @@ def test_data_preflight_manifest_table_matches_the_runbook():
     assert eh.DATA_MANIFESTS[
         "dev_train__F1__0.05__s20261017__n100000x1000"].startswith("b1b3f4f4")
     assert eh.INIT_FULL_VERTEX_M == pytest.approx(0.160072)
+
+
+# ------------------------------------------------------------------ report mode
+def _run_payload(variant, seed, vertex, r2):
+    row = {"vertex_resolution_m": vertex, "token_log_charge_r2": {"r2": r2, "alpha": 1.0,
+                                                                  "n_train": 100, "n_test": 50},
+           "effective_rank": 3.0, "event_sigreg": 100.0,
+           "module_gain_r2": {"value": 0.1, "status": "evaluated"},
+           "layout": {"f_layout": 0.9, "f_event": 1e-5}}
+    return {"variant": variant, "seed": seed, "split": "within",
+            "checkpoint": f"/fake/{variant}_{seed}/final.pt",
+            "checkpoint_sha256": "a" * 64, "zero_geometry": variant == "geomblind",
+            "full_input": row, "half_pass": dict(row),
+            "ext_summary": {"wall_seconds": 3000.0}}
+
+
+def test_report_mode_end_to_end(monkeypatch, tmp_path):
+    readout = tmp_path / "readout"
+    readout.mkdir()
+    matrix_items = {}
+    for label, full, half in (("init9000", 0.160072, 0.174821),
+                              ("fix9000", 0.219258, 0.325457),
+                              ("fix9001", 0.204281, 0.293429),
+                              ("mae9000", 0.104949, 0.083216)):
+        matrix_items[label] = {"forms": {
+            "full_input": {"vertex_resolution_m": full},
+            "half_pass": {"vertex_resolution_m": half}}}
+    (readout / "matrix.json").write_text(json.dumps({"items": matrix_items}))
+    runs = {"geomblind_9000": _run_payload("geomblind", 9000, 0.14, 0.90),
+            "geomblind_9001": _run_payload("geomblind", 9001, 0.15, 0.90),
+            "frozen_target_9000": _run_payload("frozen_target", 9000, 0.13, 0.95),
+            "frozen_target_9001": _run_payload("frozen_target", 9001, 0.14, 0.95)}
+    reproduction = {"registered": False, "reproduction_pass": True,
+                    "items": {"fix9000": {"expected_m": 0.219258, "got_m": 0.219259,
+                                          "abs_diff_m": 0.000001, "pass": True},
+                              "init9000": {"expected_m": 0.160072, "got_m": 0.160072,
+                                           "abs_diff_m": 0.0, "pass": True}}}
+    eval_path = tmp_path / "eval.json"
+    eval_path.write_text(json.dumps({"registered": False, "complete": True, "runs": runs,
+                                     "reproduction": reproduction}))
+    e0e1_path = tmp_path / "e0e1.json"
+    e0e1_path.write_text(json.dumps({"registered": False,
+                                     "E0": {"f_layout": 0.99, "f_event": 1e-5,
+                                            "position_only_label_ridge": {"r2": 0.9}},
+                                     "E1": {"invariant_fraction": 0.9,
+                                            "position_explained_r2": 0.95,
+                                            "label_variance_ratio": 1.0},
+                                     "readings": {"E0-1": "H1 prior supported"}}))
+    out = tmp_path / "h12_results"
+    args = type("Args", (), {
+        "out": str(out), "eval": str(eval_path), "e0e1": str(e0e1_path),
+        "readout": str(readout), "ext": str(tmp_path / "ext"),
+        "data_root": "/nonexistent", "config": str(h12.CONFIG_PATH),
+        "generator_config": str(h12.GENERATOR_PATH), "geometry": "/nonexistent",
+        "readout_ext": "/nonexistent", "device": "cpu"})()
+    assert h12.mode_report(args) == 0
+    for name in ("README.md", "e0e1.json", "runs.json", "decision.json",
+                 "reproduction.json"):
+        assert (out / name).is_file(), name
+    decision = json.loads((out / "decision.json").read_text())
+    assert decision["E2-r"] == "supported" and decision["E3-r"] == "supported"
+    assert "H1 + H2" in decision["verdict"]
+    assert json.loads((out / "runs.json").read_text())["runs"]["geomblind_9000"]["seed"] == 9000
+
+
+def test_report_mode_partial_recovery_is_unclear(monkeypatch, tmp_path):
+    readout = tmp_path / "readout"
+    readout.mkdir()
+    matrix_items = {"init9000": {"forms": {"full_input": {"vertex_resolution_m": 0.160072},
+                                           "half_pass": {"vertex_resolution_m": 0.174821}}},
+                    "fix9000": {"forms": {"full_input": {"vertex_resolution_m": 0.219258},
+                                          "half_pass": {"vertex_resolution_m": 0.325457}}},
+                    "fix9001": {"forms": {"full_input": {"vertex_resolution_m": 0.204281},
+                                          "half_pass": {"vertex_resolution_m": 0.293429}}}}
+    (readout / "matrix.json").write_text(json.dumps({"items": matrix_items}))
+    # E2 recovers fully, E3 fails both criteria -> supported / not supported
+    runs = {"geomblind_9000": _run_payload("geomblind", 9000, 0.14, 0.90),
+            "geomblind_9001": _run_payload("geomblind", 9001, 0.15, 0.90),
+            "frozen_target_9000": _run_payload("frozen_target", 9000, 0.22, 0.2),
+            "frozen_target_9001": _run_payload("frozen_target", 9001, 0.22, 0.2)}
+    reproduction = {"registered": False, "reproduction_pass": True, "items": {}}
+    eval_path = tmp_path / "eval.json"
+    eval_path.write_text(json.dumps({"complete": True, "runs": runs,
+                                     "reproduction": reproduction}))
+    e0e1_path = tmp_path / "e0e1.json"
+    e0e1_path.write_text(json.dumps({"E0": {}, "E1": {}, "readings": {}}))
+    args = type("Args", (), {
+        "out": str(tmp_path / "out"), "eval": str(eval_path), "e0e1": str(e0e1_path),
+        "readout": str(readout), "ext": str(tmp_path / "ext"),
+        "data_root": "/nonexistent", "config": str(h12.CONFIG_PATH),
+        "generator_config": str(h12.GENERATOR_PATH), "geometry": "/nonexistent",
+        "readout_ext": "/nonexistent", "device": "cpu"})()
+    assert h12.mode_report(args) == 0
+    decision = json.loads((tmp_path / "out" / "decision.json").read_text())
+    assert decision["E2-r"] == "supported"
+    assert decision["E3-r"] == "not supported"
+    assert "H1 dominant" in decision["verdict"]
+
+
+def test_train_log_check_reads_nested_metrics_and_flags_nan(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / "train_log.jsonl").write_text(
+        '{"step": 100, "elapsed_seconds": 10.0, "metrics": {"loss": 1.5, "sigreg": 2.0}}\n'
+        '{"step": 200, "elapsed_seconds": 20.0, "metrics": {"loss": 1.2, "sigreg": 1.9}}\n')
+    check = eh.train_log_check(run_dir)
+    assert check["status"] == "checked" and check["n_rows"] == 2 and check["finite"] is True
+    assert check["final_metrics"]["loss"] == 1.2
+    (run_dir / "train_log.jsonl").write_text(
+        '{"step": 100, "elapsed_seconds": 10.0, "metrics": {"loss": NaN}}\n')
+    check = eh.train_log_check(run_dir)
+    assert check["finite"] is False and check["non_finite_keys"] == ["loss"]
+    assert eh.train_log_check(tmp_path / "nope")["finite"] is None
