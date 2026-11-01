@@ -16,6 +16,7 @@ from __future__ import annotations
 import contextlib
 import json
 import math
+import os
 import time
 from pathlib import Path
 
@@ -35,6 +36,9 @@ CELL_ID = "dev_s005_within"
 EXT_ROOT = Path("/ceph/dwong/jepa/returns/ext_h12_20261101")
 READOUT_EXT = Path("/ceph/dwong/jepa/returns/ext_readout_20261101")
 RESULTS_DIR = "results/jepa/20261101_h12"
+#: Position-probe addendum (E0 addendum, 1 Nov 2026): three probe families.
+POSITION_PROBES = ("linear", "mlp", "knn")
+PROBE_K = 5
 #: §6 thresholds (full_input primary, half_pass required secondary).
 INIT_FULL_VERTEX_M = 0.160072          # the named random-init floor (rebuilt seed 9000)
 INIT_HALF_VERTEX_M = 0.174821          # Part C recorded init9000 half-pass value
@@ -285,6 +289,266 @@ def train_log_check(run_dir: Path) -> dict:
             "non_finite_keys": bad, "finite": not bad}
 
 
+
+# ------------------------------------------- position-probe addendum (1 Nov 2026)
+def _r2_mean(y_test, prediction) -> dict:
+    """Mean per-dimension R² (undefined dimensions are dropped, never set to 0)."""
+    y_test = np.asarray(y_test, float)
+    prediction = np.asarray(prediction, float)
+    if y_test.ndim == 1:
+        y_test = y_test[:, None]
+    per_dim = []
+    for column in range(y_test.shape[1]):
+        sst = float(((y_test[:, column] - y_test[:, column].mean()) ** 2).sum())
+        per_dim.append(float(1 - ((y_test[:, column] - prediction[:, column]) ** 2).sum()
+                             / sst) if sst > 0 else None)
+    finite = [value for value in per_dim if value is not None]
+    return {"r2": float(np.mean(finite)) if finite else None, "r2_per_dim": per_dim}
+
+
+def _record(result: dict, *, n_train=None, n_test=None) -> dict:
+    """Small side-by-side record for one probe fit."""
+    record = {"r2": result.get("r2"), "r2_per_dim": result.get("r2_per_dim"),
+              "n_train": int(n_train if n_train is not None else result.get("n_train", 0)),
+              "n_test": int(n_test if n_test is not None else result.get("n_test", 0))}
+    if "alpha" in result:
+        record["alpha"] = result.get("alpha")
+    if "epochs_run" in result:
+        record["epochs_run"] = result.get("epochs_run")
+    return record
+
+
+def _mlp_fit(x_train, y_train, x_val, y_val, x_test, *, seed: int = 0, hidden: int = 256,
+             epochs: int = 200, patience: int = 10, batch: int = 4096) -> tuple:
+    """2 x 256 MLP on standardised inputs with early stopping on ``(x_val, y_val)``.
+
+    Same architecture / patience / seed / input standardisation as the Q1/Q2
+    ``mlp_probe``; separate validation rows because the addendum's early-stopping
+    split is by event (row-level) or by PMT (invariant component).  Returns
+    ``(predictions on x_test, epochs_run)``.
+    """
+    x_train = np.asarray(x_train, float)
+    y_train = np.asarray(y_train, float)
+    if y_train.ndim == 1:
+        y_train = y_train[:, None]
+    centre, scale = x_train.mean(0), x_train.std(0)
+    scale[scale == 0] = 1.0
+    y_centre = y_train.mean(0, keepdims=True)
+    torch.manual_seed(int(seed))
+    model = torch.nn.Sequential(
+        torch.nn.Linear(x_train.shape[1], hidden), torch.nn.GELU(),
+        torch.nn.Linear(hidden, hidden), torch.nn.GELU(),
+        torch.nn.Linear(hidden, y_train.shape[1]))
+    xt = torch.as_tensor((x_train - centre) / scale, dtype=torch.float32)
+    yt = torch.as_tensor(y_train - y_centre, dtype=torch.float32)
+    xv = torch.as_tensor((np.asarray(x_val, float) - centre) / scale, dtype=torch.float32)
+    yv = torch.as_tensor(np.asarray(y_val, float) - y_centre, dtype=torch.float32)
+    xtest = torch.as_tensor((np.asarray(x_test, float) - centre) / scale,
+                            dtype=torch.float32)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    loss_fn = torch.nn.functional.mse_loss
+    generator = torch.Generator().manual_seed(int(seed) + 1)
+    best, state, bad, epochs_run = math.inf, None, 0, 0
+    for epoch in range(int(epochs)):
+        epochs_run = epoch + 1
+        model.train()
+        order = torch.randperm(len(xt), generator=generator)
+        for start in range(0, len(xt), int(batch)):
+            index = order[start:start + int(batch)]
+            optimizer.zero_grad()
+            loss_fn(model(xt[index]), yt[index]).backward()
+            optimizer.step()
+        model.eval()
+        with torch.no_grad():
+            validation = float(loss_fn(model(xv), yv))
+        if validation < best:
+            best, state, bad = validation, {k: v.clone() for k, v in model.state_dict().items()}, 0
+        else:
+            bad += 1
+            if bad >= int(patience):
+                break
+    if state is not None:
+        model.load_state_dict(state)
+    model.eval()
+    with torch.no_grad():
+        prediction = model(xtest).numpy() + y_centre
+    return prediction, epochs_run
+
+
+def _knn_predict(x_train, y_train, x_test, *, k: int = PROBE_K) -> np.ndarray:
+    """kNN (Euclidean on standardised positions) mean of the k nearest train PMTs."""
+    x_train = np.asarray(x_train, float)
+    y_train = np.asarray(y_train, float)
+    x_test = np.asarray(x_test, float)
+    centre, scale = x_train.mean(0), x_train.std(0)
+    scale[scale == 0] = 1.0
+    a = (x_train - centre) / scale
+    b = (x_test - centre) / scale
+    distance = ((b[:, None, :] - a[None, :, :]) ** 2).sum(axis=-1)
+    take = min(int(k), len(a))
+    index = np.argsort(distance, axis=1, kind="stable")[:, :take]
+    return y_train[index].mean(axis=1)
+
+
+def _event_split(events, fraction: float = 0.8) -> tuple:
+    """Deterministic 80/20 split by event id (the E0-c split, sorted-event order)."""
+    unique = np.unique(np.asarray(events, np.int64))
+    cut = int(float(fraction) * len(unique))
+    train_events = set(unique[:cut].tolist())
+    is_train = np.array([int(value) in train_events for value in events], bool)
+    return unique, cut, is_train
+
+
+def _pmt_split(pmts, n_pmt: int, *, seed: int = 0, fraction: float = 0.8) -> tuple:
+    """Deterministic 80/20 split by PMT index (seeded permutation of the present PMTs)."""
+    present = np.flatnonzero(np.bincount(np.asarray(pmts, np.int64), minlength=n_pmt) > 0)
+    rng = np.random.default_rng(int(seed))
+    order = present[rng.permutation(len(present))]
+    cut = int(float(fraction) * len(order))
+    is_train = np.isin(present, order[:cut])
+    return present, order, cut, is_train
+
+
+def position_probes(rows: dict, probes=("mlp",), *, seed: int = 0, log=print) -> dict:
+    """Position -> label probes answering whether the invariant component is a
+    (possibly nonlinear) function of the PMT position.
+
+    Three probe families are reported side by side when requested:
+    ``linear`` (always; the E0-c and E1 protocol), ``mlp`` (2 x 256, early stopping
+    on 10 % of the training events for the row-level probe and 10 % of the training
+    PMTs for the per-PMT probe) and ``knn`` (k = 5, 80/20 split by PMT).  The
+    per-PMT target is ``m_p`` = mean label over the rows of PMT ``p`` (the E1
+    invariant component); the row-level target is the label vector itself.
+    """
+    probes = tuple(probes)
+    for probe in probes:
+        if probe not in POSITION_PROBES:
+            raise ValueError(f"unknown position probe {probe!r}; expected {POSITION_PROBES}")
+    started = time.time()
+    x = np.asarray(rows["x"], float)
+    y = np.asarray(rows["y"], float)
+    init_y = np.asarray(rows["init_y"], float)
+    pmts = np.asarray(rows["pmts"], np.int64)
+    events = np.asarray(rows["events"], np.int64)
+    positions = np.asarray(rows["positions"], float)
+    n_pmt = int(rows["n_pmt"])
+    block = {"registered": False, "extension": EXTENSION,
+             "check": "position probe addendum to E0/E1 (0 training, 1 Nov 2026)",
+             "sampling": dict(rows["sampling"]),
+             "fix9000": rows.get("fix9000", {}),
+             "init9000": {"rebuilt": True, "seed": 9000},
+             "probes": list(probes)}
+    # (a) row-level position -> label, 80/20 by event (the E0-c split) + MLP.
+    unique, cut, is_train = _event_split(events)
+    row = {"split": "80/20 by event (same split as E0-c); MLP early-stops on the "
+                    "last 10 % of the training events",
+           "n_events": int(len(unique)), "n_events_train": int(cut),
+           "n_events_test": int(len(unique) - cut)}
+    linear = _multioutput_ridge(x[is_train], y[is_train], x[~is_train], y[~is_train])
+    row["linear"] = _record(linear)
+    if "mlp" in probes:
+        train_events = unique[:cut]
+        validation = max(1, int(round(0.1 * cut)))
+        fit_events = set(train_events[:cut - validation].tolist())
+        val_events = set(train_events[cut - validation:].tolist())
+        fit_mask = np.isin(events, list(fit_events))
+        val_mask = np.isin(events, list(val_events))
+        prediction, epochs_run = _mlp_fit(x[fit_mask], y[fit_mask], x[val_mask], y[val_mask],
+                                          x[~is_train], seed=seed)
+        record = _r2_mean(y[~is_train], prediction)
+        record.update(epochs_run=epochs_run, n_train=int(fit_mask.sum()),
+                      n_val=int(val_mask.sum()), n_test=int((~is_train).sum()))
+        row["mlp"] = _record(record, n_train=record["n_train"], n_test=record["n_test"])
+        row["mlp"]["n_val"] = record["n_val"]
+        log(f"[position-probe] row-level mlp r2={row['mlp']['r2']} "
+            f"(linear {row['linear']['r2']})")
+    block["row_level"] = row
+    # (b)/(c) per-PMT invariant component m_p: fix9000 and the init9000 reference.
+    _, m_fix, n_present = _group_rows_by_pmt(positions, y, pmts, n_pmt)
+    _, m_init, _ = _group_rows_by_pmt(positions, init_y, pmts, n_pmt)
+    present, order, pmt_cut, is_train_pmt = _pmt_split(pmts, n_pmt, seed=seed)
+    block["per_pmt"] = {
+        "split": "80/20 by PMT (seeded permutation, seed %d); the invariant component "
+                 "m_p = mean label over the rows of each PMT (E1)" % int(seed),
+        "n_pmt": int(n_present), "n_pmt_train": int(is_train_pmt.sum()),
+        "n_pmt_test": int((~is_train_pmt).sum())}
+    for name, m_labels in (("fix9000", m_fix), ("init9000", m_init)):
+        entry = {}
+        linear = _multioutput_ridge(positions[present][is_train_pmt],
+                                    m_labels[is_train_pmt],
+                                    positions[present][~is_train_pmt],
+                                    m_labels[~is_train_pmt])
+        entry["linear"] = _record(linear)
+        if "mlp" in probes:
+            train_pmts = order[:pmt_cut]
+            validation = max(1, int(round(0.1 * pmt_cut)))
+            fit_mask = np.isin(present, train_pmts[:pmt_cut - validation])
+            val_mask = np.isin(present, train_pmts[pmt_cut - validation:])
+            prediction, epochs_run = _mlp_fit(positions[present][fit_mask],
+                                              m_labels[fit_mask],
+                                              positions[present][val_mask],
+                                              m_labels[val_mask],
+                                              positions[present][~is_train_pmt], seed=seed)
+            record = _r2_mean(m_labels[~is_train_pmt], prediction)
+            record.update(epochs_run=epochs_run, n_train=int(fit_mask.sum()),
+                          n_val=int(val_mask.sum()), n_test=int((~is_train_pmt).sum()))
+            entry["mlp"] = _record(record, n_train=record["n_train"],
+                                   n_test=record["n_test"])
+            entry["mlp"]["n_val"] = record["n_val"]
+        if "knn" in probes:
+            prediction = _knn_predict(positions[present][is_train_pmt],
+                                      m_labels[is_train_pmt],
+                                      positions[present][~is_train_pmt], k=PROBE_K)
+            record = _r2_mean(m_labels[~is_train_pmt], prediction)
+            entry["knn5"] = _record(record, n_train=int(is_train_pmt.sum()),
+                                    n_test=int((~is_train_pmt).sum()))
+            entry["knn5"]["k"] = PROBE_K
+        block["per_pmt"][name] = entry
+        log(f"[position-probe] per-PMT {name}: linear r2={entry['linear']['r2']} "
+            f"mlp={((entry.get('mlp') or {}).get('r2'))} "
+            f"knn5={((entry.get('knn5') or {}).get('r2'))}")
+    block["wall_seconds"] = round(time.time() - started, 3)
+    return block
+
+
+def _merge(dst: dict, src: dict) -> dict:
+    """Recursive new-wins merge (keeps earlier probe blocks in the side-by-side file)."""
+    for key, value in src.items():
+        if isinstance(value, dict) and isinstance(dst.get(key), dict):
+            _merge(dst[key], value)
+        else:
+            dst[key] = value
+    return dst
+
+
+def merge_position_payload(path, block: dict) -> dict:
+    """Write/merge the addendum JSON so the mlp and knn runs end up side by side."""
+    path = Path(path)
+    payload = {}
+    if path.is_file():
+        try:
+            payload = json.loads(path.read_text())
+        except (ValueError, OSError):
+            payload = {}
+    _merge(payload, block)
+    payload.setdefault("registered", False)
+    payload.setdefault("extension", EXTENSION)
+    row = payload.get("row_level") or {}
+    per_pmt = payload.get("per_pmt") or {}
+    probes = {"linear": True, "mlp": any("mlp" in cell for cell in
+                                        (row, per_pmt.get("fix9000") or {},
+                                         per_pmt.get("init9000") or {})),
+              "knn": any("knn5" in cell for cell in
+                         (row, per_pmt.get("fix9000") or {},
+                          per_pmt.get("init9000") or {}))}
+    payload["probes_present"] = sorted(name for name, present in probes.items() if present)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(lr._safe(payload), indent=1, default=float) + "\n")
+    os.replace(tmp, path)
+    return payload
+
+
 # ---------------------------------------------------------------- E0/E1 (Phase 0)
 def _multioutput_ridge(x_train, y_train, x_test, y_test, alphas=er.RIDGE_ALPHAS) -> dict:
     """Standardised multi-output ridge; alpha on the last 20 % of train, R² per dim."""
@@ -329,15 +593,22 @@ def _group_rows_by_pmt(positions, labels, pmts, n_pmt):
     return positions[keep], means[keep] / counts[keep][:, None], int(keep.sum())
 
 
-def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path, *,
-         device, max_label_events: int = 2000, chunk_events: int = 8, log=print) -> dict:
-    """E0-a/b/c and E1 on the ``fix9000`` (and rebuilt ``init9000``) encoders."""
-    started = time.time()
+def _collect_label_rows(config, gen, arms_config, geometry, data_root, readout_items, *,
+                        device, max_label_events: int = 2000, chunk_events: int = 8,
+                        label_cache=None, log=print) -> dict:
+    """Collect the E0/E1 label rows (cached under ``<ext>/e0e1_rows.npz`` if asked)."""
     items = json.loads(Path(readout_items).read_text())["items"]
     fix = dict(items["fix9000"])
     fix["source"] = fix.get("ckpt") or fix["source"]
     if fix.get("ckpt") and lr.sha256_file(Path(fix["ckpt"])) != fix["ckpt_sha256"]:
         raise RuntimeError("E0/E1: the verified fix9000 checkpoint copy has changed")
+    fix_sha = fix.get("ckpt_sha256") or fix.get("source_sha256")
+    if label_cache is not None:
+        cached = _read_label_cache(Path(label_cache), fix_sha=fix_sha,
+                                   max_label_events=int(max_label_events))
+        if cached is not None:
+            log(f"[e0e1] reusing cached label rows {label_cache}")
+            return cached
     fix_arm = er.item_arm(fix, config, arms_config, geometry, device=device)
     init_arm = er.item_arm({"label": "init9000", "arm": ARM_NAME, "split": "within",
                             "seed": 9000, "beta": None, "source": None},
@@ -404,11 +675,93 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path,
     del fix_arm, init_arm
     if not y_rows:
         raise RuntimeError("E0-c has no label rows; nothing could be sampled")
-    x = np.asarray(x_rows, np.float64)
-    y = np.asarray(y_rows, np.float64)
-    init_y = np.asarray(init_rows, np.float64)
-    pmts = np.asarray(pmt_rows, np.int64)
-    event_index = np.asarray(event_rows, np.int64)
+    rows = {"x": np.asarray(x_rows, np.float64), "y": np.asarray(y_rows, np.float64),
+            "init_y": np.asarray(init_rows, np.float64),
+            "pmts": np.asarray(pmt_rows, np.int64),
+            "events": np.asarray(event_rows, np.int64),
+            "positions": positions, "n_pmt": int(geometry.n_pmt), "n_events": int(n_events),
+            "layout": layout,
+            "fix9000": {"source": fix.get("source"),
+                        "source_sha256": fix.get("source_sha256") or fix.get("ckpt_sha256"),
+                        "ckpt_sha256": fix.get("ckpt_sha256")},
+            "sampling": {"max_label_events": int(max_label_events),
+                         "tokens_per_event": 32, "seed": er.SAMPLE_SEED}}
+    if label_cache is not None:
+        _write_label_cache(Path(label_cache), rows, fix_sha=fix_sha)
+    return rows
+
+
+def _read_label_cache(path: Path, *, fix_sha, max_label_events: int):
+    if not path.is_file():
+        return None
+    try:
+        with np.load(path, allow_pickle=False) as data:
+            meta = json.loads(str(data["meta"]))
+            if meta.get("fix_sha256") != fix_sha or \
+                    int(meta.get("max_label_events", -1)) != int(max_label_events):
+                return None
+            return {"x": np.asarray(data["x"], np.float64),
+                    "y": np.asarray(data["y"], np.float64),
+                    "init_y": np.asarray(data["init_y"], np.float64),
+                    "pmts": np.asarray(data["pmts"], np.int64),
+                    "events": np.asarray(data["events"], np.int64),
+                    "positions": np.asarray(data["positions"], np.float64),
+                    "n_pmt": int(data["n_pmt"]), "n_events": int(data["n_events"]),
+                    "layout": None, "cache": str(path),
+                    "sampling": meta.get("sampling") or {},
+                    "fix9000": meta.get("fix9000") or {}}
+    except (OSError, ValueError, KeyError):
+        return None
+
+
+def _write_label_cache(path: Path, rows: dict, *, fix_sha) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    meta = {"fix_sha256": fix_sha, "max_label_events": int(rows["sampling"]["max_label_events"]),
+            "sampling": rows["sampling"], "fix9000": rows.get("fix9000", {})}
+    with open(tmp, "wb") as handle:
+        np.savez(handle, x=rows["x"], y=rows["y"], init_y=rows["init_y"],
+                 pmts=rows["pmts"], events=rows["events"],
+                 positions=rows["positions"], n_pmt=np.asarray(rows["n_pmt"]),
+                 n_events=np.asarray(rows["n_events"]),
+                 meta=np.asarray(json.dumps(meta)))
+    os.replace(tmp, path)
+
+
+def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path=None, *,
+         device, max_label_events: int = 2000, chunk_events: int = 8, log=print,
+         position_probe: str = "linear", position_out=None, label_cache=None) -> dict:
+    """E0-a/b/c and E1 on the ``fix9000`` (and rebuilt ``init9000``) encoders.
+
+    ``position_probe`` extends the mode with the 1 Nov 2026 position-probe addendum
+    (``mlp``: row-level MLP and per-PMT MLP; ``knn``: per-PMT kNN); the default
+    ``linear`` keeps the committed E0/E1 output unchanged.
+    """
+    if position_probe not in POSITION_PROBES:
+        raise ValueError(f"unknown position probe {position_probe!r}; "
+                         f"expected {POSITION_PROBES}")
+    started = time.time()
+    rows = _collect_label_rows(config, gen, arms_config, geometry, data_root,
+                               readout_items, device=device,
+                               max_label_events=int(max_label_events),
+                               chunk_events=int(chunk_events),
+                               label_cache=(label_cache if position_probe != "linear" else None),
+                               log=log)
+    fix = rows.get("fix9000") or {}
+    layout = rows.get("layout")
+    if layout is None:
+        # cached rows do not carry the layout statistics; recompute E0-a/b from the
+        # cached forward pass is not needed for the addendum, so mark them null.
+        fractions = {"f_layout": None, "f_event": None, "n_dropped": None}
+    else:
+        fractions = er.layout_fractions(layout)
+    x, y = rows["x"], rows["y"]
+    init_y = rows["init_y"]
+    pmts = rows["pmts"]
+    event_index = rows["events"]
+    positions = rows["positions"]
+    geometry_n_pmt = int(rows["n_pmt"])
+    n_events = int(rows["n_events"])
     # E0-c: 80/20 split by event, no event leaks across the split.
     unique_events = np.unique(event_index)
     cut = int(0.8 * len(unique_events))
@@ -428,7 +781,6 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path,
     label_variance = float(np.mean(var_rows))
     init_label_variance = float(np.mean(init_var_rows))
     ratio = (label_variance / init_label_variance) if init_label_variance > 0 else None
-    fractions = er.layout_fractions(layout)
     e0 = {"f_layout": fractions.get("f_layout"), "f_event": fractions.get("f_event"),
           "n_dropped": fractions.get("n_dropped"),
           "n_events_token_sample": int(fractions.get("n_events") or 0),
@@ -468,13 +820,23 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path,
                            "source_sha256": fix.get("source_sha256") or fix.get("ckpt_sha256"),
                            "ckpt_sha256": fix.get("ckpt_sha256")},
                "init9000": {"rebuilt": True, "seed": 9000},
-               "sampling": {"max_label_events": int(max_label_events),
-                            "tokens_per_event": 32, "seed": er.SAMPLE_SEED,
-                            "token_rows": "all PMT tokens of the cut-0.8 train events"},
+               "sampling": dict(rows["sampling"]),
                "E0": e0, "E1": e1, "readings": readings,
                "wall_seconds": round(time.time() - started, 3)}
-    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(out_path).write_text(json.dumps(payload, indent=1, default=float) + "\n")
+    if out_path is not None:
+        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(out_path).write_text(json.dumps(payload, indent=1, default=float) + "\n")
+    if position_probe != "linear":
+        block = position_probes(rows, probes=(position_probe,), seed=er.SAMPLE_SEED, log=log)
+        target = Path(position_out) if position_out is not None else (
+            Path(out_path).parent / "e0e1_position_probe.json"
+            if out_path is not None else EXT_ROOT / "e0e1_position_probe.json")
+        merged = merge_position_payload(target, block)
+        payload["position_probe"] = {"path": str(target),
+                                     "requested": position_probe,
+                                     "probes_present": merged.get("probes_present")}
+    else:
+        payload["position_probe"] = None
     return payload
 
 

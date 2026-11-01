@@ -156,14 +156,24 @@ def mode_preflight(args) -> int:
 def mode_e0e1(args) -> int:
     config, gen, arms_config, geometry, device = load_setup(args)
     ext = Path(args.ext or EXT_ROOT_DEFAULT)
+    probe = getattr(args, "position_probe", "linear") or "linear"
+    base_out = Path(args.out) if args.out else (ext / "e0e1.json")
+    position_out = Path(args.position_out) if args.position_out else (
+        ext / "e0e1_position_probe.json")
+    label_cache = Path(args.label_cache) if args.label_cache else (ext / "e0e1_rows.npz")
     payload = eh.e0e1(config, gen, arms_config, geometry,
                       args.data_root or DATA_ROOT_DEFAULT,
                       args.readout_items or str(_readout_items(args)),
-                      Path(args.out or (ext / "e0e1.json")),
+                      (base_out if probe == "linear" else None),
                       device=device, max_label_events=int(args.max_label_events),
+                      position_probe=probe,
+                      position_out=(position_out if probe != "linear" else None),
+                      label_cache=(label_cache if probe != "linear" else None),
                       log=print)
-    print(json.dumps({"E0": payload["E0"], "E1": payload["E1"],
-                      "readings": payload["readings"]}, default=float), flush=True)
+    summary = {"E0": payload["E0"], "E1": payload["E1"],
+               "readings": payload["readings"],
+               "position_probe": payload.get("position_probe")}
+    print(json.dumps(summary, default=float), flush=True)
     return 0
 
 
@@ -526,6 +536,14 @@ def parser():
     e.add_argument("--out", default=None)
     e.add_argument("--readout-items", default=None)
     e.add_argument("--max-label-events", type=int, default=2000)
+    e.add_argument("--position-probe", choices=eh.POSITION_PROBES, default="linear",
+                   help="position-probe addendum (1 Nov 2026): linear is the committed "
+                        "E0/E1 behaviour; mlp/knn add the nonlinear probes")
+    e.add_argument("--position-out", default=None,
+                   help="side-by-side addendum JSON (default <ext>/e0e1_position_probe.json)")
+    e.add_argument("--label-cache", default=None,
+                   help="label-row cache reused by the mlp/knn addendum runs "
+                        "(default <ext>/e0e1_rows.npz)")
     _common(e)
     e.add_argument("--device", default="cpu")
     s = sub.add_parser("smoke")

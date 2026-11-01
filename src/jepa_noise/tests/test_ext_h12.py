@@ -386,3 +386,147 @@ def test_train_log_check_reads_nested_metrics_and_flags_nan(tmp_path):
     check = eh.train_log_check(run_dir)
     assert check["finite"] is False and check["non_finite_keys"] == ["loss"]
     assert eh.train_log_check(tmp_path / "nope")["finite"] is None
+
+
+# --------------------------------------------------- position-probe addendum
+def _position_rows(n_pmt=120, n_events=120, rows_per_event=8, seed=0):
+    """Synthetic E0/E1 label rows with a nonlinear fix9000 invariant component and a
+    linear init9000 reference, so the addendum probes have a known answer."""
+    rng = np.random.default_rng(seed)
+    positions = rng.uniform(-1.0, 1.0, size=(n_pmt, 3))
+    m_fix = np.column_stack([np.sin(3.0 * positions[:, 0]),
+                             positions[:, 1] * positions[:, 2],
+                             positions[:, 0] ** 2 + positions[:, 2] ** 2])
+    m_init = np.column_stack([positions[:, 0], positions[:, 1], positions[:, 2]])
+    x, y, init_y, pmts, events = [], [], [], [], []
+    for event in range(n_events):
+        chosen = rng.choice(n_pmt, size=rows_per_event, replace=False)
+        for pmt in chosen:
+            x.append(positions[pmt])
+            y.append(m_fix[pmt] + 0.02 * rng.normal(size=m_fix.shape[1]))
+            init_y.append(m_init[pmt] + 0.02 * rng.normal(size=m_init.shape[1]))
+            pmts.append(int(pmt))
+            events.append(event)
+    return {"x": np.asarray(x, float), "y": np.asarray(y, float),
+            "init_y": np.asarray(init_y, float), "pmts": np.asarray(pmts),
+            "events": np.asarray(events), "positions": positions, "n_pmt": n_pmt,
+            "n_events": n_events,
+            "sampling": {"max_label_events": n_events, "tokens_per_event": 32, "seed": 0},
+            "fix9000": {"ckpt_sha256": "a" * 64}}
+
+
+def test_position_probes_mlp_and_knn_side_by_side(tmp_path):
+    rows = _position_rows()
+    mlp_block = eh.position_probes(rows, probes=("mlp",), seed=0)
+    # (a) row-level position -> label: linear and MLP on the same event split
+    assert {"linear", "mlp"} <= set(mlp_block["row_level"])
+    assert mlp_block["row_level"]["linear"]["n_test"] > 0
+    assert mlp_block["row_level"]["mlp"]["n_val"] > 0
+    assert mlp_block["row_level"]["mlp"]["n_test"] == mlp_block["row_level"]["linear"]["n_test"]
+    # (b)/(c) per-PMT invariant component: fix nonlinear vs init linear reference
+    for label in ("fix9000", "init9000"):
+        cell = mlp_block["per_pmt"][label]
+        assert {"linear", "mlp"} <= set(cell)
+        assert cell["linear"]["n_train"] == mlp_block["per_pmt"]["n_pmt_train"]
+        assert cell["linear"]["n_test"] == mlp_block["per_pmt"]["n_pmt_test"]
+    assert mlp_block["per_pmt"]["init9000"]["linear"]["r2"] > 0.9
+    assert mlp_block["per_pmt"]["fix9000"]["linear"]["r2"] < 0.3
+    assert mlp_block["per_pmt"]["fix9000"]["mlp"]["r2"] > 0.8
+    assert mlp_block["row_level"]["mlp"]["r2"] > 0.8
+    # deterministic for a fixed seed
+    again = eh.position_probes(rows, probes=("mlp",), seed=0)
+    assert again["per_pmt"]["fix9000"]["mlp"]["r2"] == \
+        mlp_block["per_pmt"]["fix9000"]["mlp"]["r2"]
+    assert again["row_level"]["mlp"]["r2"] == mlp_block["row_level"]["mlp"]["r2"]
+    # kNN probe on the same PMT split
+    knn_block = eh.position_probes(rows, probes=("knn",), seed=0)
+    for label in ("fix9000", "init9000"):
+        cell = knn_block["per_pmt"][label]
+        assert "knn5" in cell and "mlp" not in cell
+        assert cell["knn5"]["k"] == eh.PROBE_K
+        assert cell["knn5"]["n_test"] == mlp_block["per_pmt"][label]["mlp"]["n_test"]
+    assert knn_block["per_pmt"]["fix9000"]["knn5"]["r2"] > 0.2
+    # merge keeps the two runs side by side in one file
+    target = tmp_path / "e0e1_position_probe.json"
+    first = eh.merge_position_payload(target, mlp_block)
+    assert first["probes_present"] == ["linear", "mlp"]
+    second = eh.merge_position_payload(target, knn_block)
+    assert second["probes_present"] == ["knn", "linear", "mlp"]
+    on_disk = json.loads(target.read_text())
+    assert "mlp" in on_disk["per_pmt"]["fix9000"]
+    assert "knn5" in on_disk["per_pmt"]["fix9000"]
+    assert on_disk["row_level"]["mlp"]["r2"] == mlp_block["row_level"]["mlp"]["r2"]
+    with pytest.raises(ValueError):
+        eh.position_probes(rows, probes=("no_such_probe",), seed=0)
+
+
+def test_knn_position_probe_is_the_nearest_neighbour_mean():
+    x_train = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0], [5.0, 5.0]])
+    y_train = np.array([[0.0], [1.0], [1.0], [2.0], [100.0]])
+    prediction = eh._knn_predict(x_train, y_train, np.array([[0.2, 0.1]]), k=4)
+    assert prediction[0, 0] == pytest.approx(1.0)  # mean of the four near points
+
+
+def test_e0e1_position_probe_option_defaults_and_parser():
+    args = h12.parser().parse_args(["e0e1"])
+    assert args.position_probe == "linear"          # backward compatible
+    assert args.position_out is None and args.label_cache is None
+    args = h12.parser().parse_args(["e0e1", "--position-probe", "knn",
+                                    "--position-out", "/tmp/x.json",
+                                    "--label-cache", "/tmp/rows.npz"])
+    assert args.position_probe == "knn"
+    assert args.position_out == "/tmp/x.json" and args.label_cache == "/tmp/rows.npz"
+    assert eh.POSITION_PROBES == ("linear", "mlp", "knn")
+
+
+def test_label_row_cache_roundtrip_and_cached_probe(tmp_path):
+    rows = _position_rows()
+    path = tmp_path / "e0e1_rows.npz"
+    eh._write_label_cache(path, rows, fix_sha="a" * 64)
+    cached = eh._read_label_cache(path, fix_sha="a" * 64,
+                                  max_label_events=rows["sampling"]["max_label_events"])
+    assert cached is not None
+    np.testing.assert_allclose(cached["x"], rows["x"])
+    np.testing.assert_allclose(cached["y"], rows["y"])
+    np.testing.assert_array_equal(cached["pmts"], rows["pmts"])
+    assert cached["sampling"]["seed"] == 0 and cached["fix9000"]["ckpt_sha256"] == "a" * 64
+    # a cached-row probe run needs no forward pass and keeps the metadata
+    block = eh.position_probes(cached, probes=("knn",), seed=0)
+    assert "knn5" in block["per_pmt"]["fix9000"]
+    for form in ("x", "y", "init_y", "pmts", "events", "positions"):
+        np.testing.assert_allclose(cached[form], rows[form])
+    # cache misses on a different checkpoint or a different event cap
+    assert eh._read_label_cache(path, fix_sha="b" * 64,
+                                max_label_events=rows["sampling"]["max_label_events"]) is None
+    assert eh._read_label_cache(path, fix_sha="a" * 64, max_label_events=99999) is None
+
+
+def test_e0e1_mode_wiring_keeps_linear_default_and_sets_addendum_paths(monkeypatch,
+                                                                        tmp_path):
+    captured = {}
+
+    def fake(config, gen, arms_config, geometry, data_root, readout_items, out_path,
+             **kwargs):
+        captured.update({"out_path": out_path, **kwargs})
+        return {"E0": {}, "E1": {}, "readings": {}, "position_probe": {"path": "x"}}
+
+    monkeypatch.setattr(h12, "load_setup", lambda args: (None, None, None, None, None))
+    monkeypatch.setattr(h12.eh, "e0e1", fake)
+    ext = str(tmp_path / "ext")
+    assert h12.mode_e0e1(h12.parser().parse_args(
+        ["e0e1", "--position-probe", "mlp", "--ext", ext])) == 0
+    assert captured["position_probe"] == "mlp"
+    assert captured["out_path"] is None                    # e0e1.json not overwritten
+    assert str(captured["position_out"]).endswith("e0e1_position_probe.json")
+    assert str(captured["label_cache"]).endswith("e0e1_rows.npz")
+    captured.clear()
+    assert h12.mode_e0e1(h12.parser().parse_args(["e0e1", "--ext", ext])) == 0
+    assert captured["position_probe"] == "linear"          # backward-compatible default
+    assert str(captured["out_path"]).endswith("e0e1.json")
+    assert captured["position_out"] is None and captured["label_cache"] is None
+    captured.clear()
+    out = str(tmp_path / "addendum.json")
+    assert h12.mode_e0e1(h12.parser().parse_args(
+        ["e0e1", "--position-probe", "knn", "--position-out", out,
+         "--label-cache", str(tmp_path / "rows.npz"), "--ext", ext])) == 0
+    assert captured["position_probe"] == "knn" and str(captured["position_out"]) == out
