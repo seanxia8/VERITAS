@@ -1,12 +1,12 @@
 {
  "version": 1,
- "status": "readout_q1q2_complete_20261101_h12_training_in_progress",
+ "status": "readout_q1q2_and_h12_causal_complete_20261101",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 102.091256,
+   "charged_gpu_hours": 104.634556,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 12.675639,
+   "charged_wall_hours": 13.395639,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -2778,6 +2778,51 @@
    "wall_seconds": 2340.0,
    "evidence": "/ceph/dwong/jepa/returns/ext_readout_20261101/{logs,nonlinear,results_readout}",
    "note": "dry-run + two CPU debug matrix runs (code validation) + nonlinear ridge/MLP/CKA on the cached rows + report + two jepa_noise suites: 552 passed in 617.66 s on the deployed Q1/Q2 SHA dff4802 (deepthought) and the whole-repository suite on the superseded readout SHA (1101 passed / 9 host-specific failures). Conservative CPU charge 0.65 h."
+  },
+  {
+   "id": "h12_l40s_runs",
+   "campaign": "h12_causal_2026-11-01",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.08,
+   "gpu_hours": 2.5433,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "02283a632f0926578044539eec31bcbbb17c937e",
+   "wall_seconds": 9156.02,
+   "evidence": "/ceph/dwong/jepa/returns/ext_h12_20261101/{smoke,train,eval}/ and /ceph/dwong/jepa/jobs/h12_*",
+   "note": "Two 20-step smokes (geomblind 273.8 s, frozen_target 255.65 s), the four approved 10 000-step runs (E2 geomblind 2328.79/2688.87 s, E3 frozen_target 1401.6/1747.31 s) and one readout evaluation job (460.0 s); all exit 0, no timeouts, per-variant output roots, max 1 job at a time on deepthought2 (GPU 1 was occupied by another user's training job, guard 5-minute utilisation gate), every launch guard-gated."
+  },
+  {
+   "id": "h12_cpu_track",
+   "campaign": "h12_causal_2026-11-01",
+   "registered": false,
+   "host": "deepthought+deepthought2",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.64,
+   "gpu_hours": 0.0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "02283a632f0926578044539eec31bcbbb17c937e -> 7952cb65a12b3599305648738720f7c5d88574fd",
+   "wall_seconds": 2592.0,
+   "evidence": "/ceph/dwong/jepa/returns/ext_h12_20261101/{e0e1.json,logs,results_h12}",
+   "note": "Read-only data preflight, two e0e1 Phase-0 passes (1 500 and 2 000 probe-test events), one report; full jepa_noise suites 560 passed in 564.74 s (experiment SHA 02283a6) and 563 passed in 574.41 s (report SHA 7952cb6) on deepthought; conservative CPU charge 0.72 h."
+  },
+  {
+   "id": "h12_refused_attempts",
+   "campaign": "h12_causal_2026-11-01",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.02,
+   "gpu_hours": 0.0,
+   "status": "failed",
+   "exit_status": 3,
+   "code_sha": "02283a632f0926578044539eec31bcbbb17c937e",
+   "wall_seconds": 60.0,
+   "evidence": "/ceph/dwong/jepa/jobs/h12_train_frozen_9001 (no run dir created)",
+   "note": "Second E3 seed launch refused by the guard before start (GPU 0 held by the running E3 job; GPU 1 5-minute mean utilisation 72 % >= 60 % from another user's job); 0 GPU-h used, relaunched serially after the first run finished."
   }
  ]
 }

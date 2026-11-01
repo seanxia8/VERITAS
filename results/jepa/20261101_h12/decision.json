@@ -1,0 +1,74 @@
+{
+ "registered": false,
+ "extension": "h12_causal_2026-11-01",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-01_H12_CAUSAL.md",
+ "code_sha": "7952cb65a12b3599305648738720f7c5d88574fd",
+ "E2-r": "not supported",
+ "E3-r": "supported",
+ "verdict": "H2 dominant (trainable-target trivial solution)",
+ "recovery": {
+  "geomblind": {
+   "verdict": "not supported",
+   "seeds": {
+    "9000": {
+     "full_input_vertex_m": 0.8296332662924278,
+     "full_input_token_r2": 0.9999148946975726,
+     "half_pass_vertex_m": 0.27908881792204737,
+     "half_pass_token_r2": 0.6480924930901957,
+     "vertex_ok": false,
+     "charge_ok": true,
+     "half_ok": false
+    },
+    "9001": {
+     "full_input_vertex_m": 0.8421279557839693,
+     "full_input_token_r2": 0.9998290378350404,
+     "half_pass_vertex_m": 0.2772831081740512,
+     "half_pass_token_r2": 0.585994071982691,
+     "vertex_ok": false,
+     "charge_ok": true,
+     "half_ok": false
+    }
+   },
+   "floors": {
+    "full_input_m": 0.16007169092238768,
+    "half_pass_m": 0.17482124528478005
+   },
+   "criteria": "supported: both seeds full_input vertex <= init full floor AND full_input token R2 >= 0.5 AND half_pass does not contradict (half vertex < init half value and half R2 >= 0.5)"
+  },
+  "frozen_target": {
+   "verdict": "supported",
+   "seeds": {
+    "9000": {
+     "full_input_vertex_m": 0.1384592831431598,
+     "full_input_token_r2": 0.9237341684234989,
+     "half_pass_vertex_m": 0.13165235748531384,
+     "half_pass_token_r2": 0.8875579852696529,
+     "vertex_ok": true,
+     "charge_ok": true,
+     "half_ok": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.1314360211884925,
+     "full_input_token_r2": 0.9328444878479647,
+     "half_pass_vertex_m": 0.13760177059503667,
+     "half_pass_token_r2": 0.8907825711580486,
+     "vertex_ok": true,
+     "charge_ok": true,
+     "half_ok": true
+    }
+   },
+   "floors": {
+    "full_input_m": 0.16007169092238768,
+    "half_pass_m": 0.17482124528478005
+   },
+   "criteria": "supported: both seeds full_input vertex <= init full floor AND full_input token R2 >= 0.5 AND half_pass does not contradict (half vertex < init half value and half R2 >= 0.5)"
+  }
+ },
+ "readout_baselines": {
+  "init9000_full_input_vertex_m": 0.16007169092238768,
+  "init9000_half_pass_vertex_m": 0.17482124528478005,
+  "fix9000_full_input_vertex_m": 0.21925859104673262,
+  "fix9001_full_input_vertex_m": 0.20428123360020733
+ },
+ "conjunction": "author's \u00a76 table: E2/E3 supported/partial/not supported"
+}
