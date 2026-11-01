@@ -530,3 +530,122 @@ def test_e0e1_mode_wiring_keeps_linear_default_and_sets_addendum_paths(monkeypat
         ["e0e1", "--position-probe", "knn", "--position-out", out,
          "--label-cache", str(tmp_path / "rows.npz"), "--ext", ext])) == 0
     assert captured["position_probe"] == "knn" and str(captured["position_out"]) == out
+
+
+# ------------------------------------------------- code-origin addendum (2 Nov 2026)
+def _code_origin_fixture(geometry, seed=0):
+    """Synthetic rows/features: fix9000 m_p driven by within-target parity, init9000 by
+    the module id, with nuisance hit-rate/charge/raw-token features."""
+    rng = np.random.default_rng(seed)
+    n_pmt = int(geometry.n_pmt)
+    positions = pe.geometry_features(geometry, pe.FeatureScaling.from_geometry(geometry))[
+        :, :3].astype(np.float64)
+    parity = (np.asarray(geometry.pmt_id_in_mpmt) % 2 != 0).astype(np.float64)
+    one_hot = np.zeros((n_pmt, int(geometry.n_modules)))
+    one_hot[np.arange(n_pmt), np.asarray(geometry.module_index)] = 1.0
+    coeff_parity = rng.normal(size=(1, 128))
+    coeff_module = rng.normal(size=(one_hot.shape[1], 128))
+    m_fix = parity[:, None] * coeff_parity + 0.01 * rng.normal(size=(n_pmt, 128))
+    m_init = one_hot @ coeff_module + 0.01 * rng.normal(size=(n_pmt, 128))
+    pmts, events, y, init_y = [], [], [], []
+    for event in range(3):
+        for pmt in range(n_pmt):
+            pmts.append(pmt)
+            events.append(event)
+            y.append(m_fix[pmt])
+            init_y.append(m_init[pmt])
+    pmts = np.asarray(pmts, np.int64)
+    rows = {"x": positions[pmts], "y": np.asarray(y), "init_y": np.asarray(init_y),
+            "pmts": pmts, "events": np.asarray(events, np.int64),
+            "positions": positions, "n_pmt": n_pmt, "n_events": 3,
+            "sampling": {"max_label_events": 3, "tokens_per_event": 32, "seed": 0},
+            "fix9000": {"ckpt_sha256": "a" * 64}}
+    n_events = 40
+    hit_count = rng.integers(1, n_events, size=n_pmt).astype(np.float64)
+    charge = rng.normal(size=n_pmt)
+    raw_mean = rng.normal(size=(n_pmt, pe.N_FEATURES))
+    features = {"hit_count": hit_count, "charge_sum": hit_count * charge,
+                "raw_sum": hit_count[:, None] * raw_mean, "n_events": n_events,
+                "positions": positions, "raw_feature_names": list(pe.FEATURES)}
+    return rows, features, m_fix, m_init
+
+
+def test_code_origin_feature_groups_are_correct(geometry):
+    rows, features, m_fix, _ = _code_origin_fixture(geometry)
+    present = np.arange(int(geometry.n_pmt))
+    groups = eh.code_origin_feature_groups(features, geometry, present)
+    n_pmt = int(geometry.n_pmt)
+    assert groups["position"].shape == (n_pmt, 3)
+    assert groups["hit_rate"].shape == (n_pmt, 1)
+    np.testing.assert_allclose(groups["hit_rate"][:, 0],
+                               features["hit_count"] / features["n_events"])
+    np.testing.assert_allclose(groups["charge"][:, 0],
+                               features["charge_sum"] / features["hit_count"])
+    np.testing.assert_allclose(groups["parity"][:, 0],
+                               (np.asarray(geometry.pmt_id_in_mpmt) % 2 != 0).astype(float))
+    expected_hot = np.zeros((n_pmt, int(geometry.n_modules)))
+    expected_hot[np.arange(n_pmt), np.asarray(geometry.module_index)] = 1.0
+    np.testing.assert_allclose(groups["module"], expected_hot)
+    np.testing.assert_allclose(groups["raw_token"],
+                               features["raw_sum"] / features["hit_count"][:, None])
+    np.testing.assert_allclose(groups["position"], features["positions"])
+    expected_all = np.concatenate([groups[name] for name in eh.CODE_ORIGIN_GROUPS], axis=1)
+    np.testing.assert_allclose(groups["all"], expected_all)
+    names = eh.code_origin_feature_names(features, geometry)
+    assert set(names) == set(eh.CODE_ORIGIN_GROUPS) | {"all"}
+
+
+def test_code_origin_probes_recover_a_parity_code_and_module_reference(geometry):
+    rows, features, _, _ = _code_origin_fixture(geometry)
+    block = eh.code_origin_probes(rows, features, geometry,
+                                  probes=("linear", "mlp", "knn"), seed=0)
+    assert block["split"]["by"] == "PMT"
+    assert block["features"]["n_features_all"] > 3
+    for label in ("fix9000", "init9000"):
+        cells = block["probes_by_label"][label]
+        assert set(cells) == set(eh.CODE_ORIGIN_GROUPS) | {"all"}
+        for name, entry in cells.items():
+            assert {"linear", "mlp", "knn5"} == set(entry), (label, name)
+            assert entry["linear"]["n_train"] == block["split"]["n_pmt_train"]
+            assert entry["linear"]["n_test"] == block["split"]["n_pmt_test"]
+    fix = block["probes_by_label"]["fix9000"]
+    assert fix["parity"]["linear"]["r2"] > 0.8            # parity code recovered linearly
+    assert fix["all"]["linear"]["r2"] > 0.8
+    assert fix["charge"]["linear"]["r2"] < 0.2            # nuisance feature carries no code
+    init = block["probes_by_label"]["init9000"]
+    assert init["module"]["linear"]["r2"] > 0.8           # module reference recovered
+    assert init["parity"]["linear"]["r2"] < 0.2
+    again = eh.code_origin_probes(rows, features, geometry,
+                                  probes=("linear", "mlp", "knn"), seed=0)
+    assert again["probes_by_label"]["fix9000"]["parity"]["linear"]["r2"] == \
+        fix["parity"]["linear"]["r2"]
+    with pytest.raises(ValueError):
+        eh.code_origin_probes(rows, features, geometry, probes=("nope",), seed=0)
+
+
+def test_e0e1_code_origin_option_and_mode_wiring(monkeypatch, tmp_path):
+    args = h12.parser().parse_args(["e0e1", "--code-origin"])
+    assert args.code_origin is True and args.code_origin_out is None
+    args = h12.parser().parse_args(["e0e1"])
+    assert args.code_origin is False                       # backward compatible default
+    captured = {}
+
+    def fake(config, gen, arms_config, geometry, data_root, readout_items, out_path,
+             **kwargs):
+        captured.update({"out_path": out_path, **kwargs})
+        return {"E0": {}, "E1": {}, "readings": {}, "position_probe": None,
+                "code_origin": {"path": "x"}}
+
+    monkeypatch.setattr(h12, "load_setup", lambda args: (None, None, None, None, None))
+    monkeypatch.setattr(h12.eh, "e0e1", fake)
+    ext = str(tmp_path / "ext")
+    assert h12.mode_e0e1(h12.parser().parse_args(
+        ["e0e1", "--code-origin", "--ext", ext])) == 0
+    assert captured["code_origin"] is True
+    assert captured["out_path"] is None                    # e0e1.json not overwritten
+    assert str(captured["code_origin_out"]).endswith("e0e1_code_origin.json")
+    assert str(captured["label_cache"]).endswith("e0e1_rows.npz")
+    captured.clear()
+    assert h12.mode_e0e1(h12.parser().parse_args(["e0e1", "--ext", ext])) == 0
+    assert captured["code_origin"] is False
+    assert str(captured["out_path"]).endswith("e0e1.json")

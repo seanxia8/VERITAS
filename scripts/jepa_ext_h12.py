@@ -161,18 +161,24 @@ def mode_e0e1(args) -> int:
     position_out = Path(args.position_out) if args.position_out else (
         ext / "e0e1_position_probe.json")
     label_cache = Path(args.label_cache) if args.label_cache else (ext / "e0e1_rows.npz")
+    code_origin = bool(getattr(args, "code_origin", False))
+    code_origin_out = Path(args.code_origin_out) if getattr(args, "code_origin_out", None) else (
+        ext / "e0e1_code_origin.json")
     payload = eh.e0e1(config, gen, arms_config, geometry,
                       args.data_root or DATA_ROOT_DEFAULT,
                       args.readout_items or str(_readout_items(args)),
-                      (base_out if probe == "linear" else None),
+                      (base_out if (probe == "linear" and not code_origin) else None),
                       device=device, max_label_events=int(args.max_label_events),
                       position_probe=probe,
                       position_out=(position_out if probe != "linear" else None),
-                      label_cache=(label_cache if probe != "linear" else None),
+                      label_cache=(label_cache if (probe != "linear" or code_origin) else None),
+                      code_origin=code_origin,
+                      code_origin_out=(code_origin_out if code_origin else None),
                       log=print)
     summary = {"E0": payload["E0"], "E1": payload["E1"],
                "readings": payload["readings"],
-               "position_probe": payload.get("position_probe")}
+               "position_probe": payload.get("position_probe"),
+               "code_origin": payload.get("code_origin")}
     print(json.dumps(summary, default=float), flush=True)
     return 0
 
@@ -544,6 +550,11 @@ def parser():
     e.add_argument("--label-cache", default=None,
                    help="label-row cache reused by the mlp/knn addendum runs "
                         "(default <ext>/e0e1_rows.npz)")
+    e.add_argument("--code-origin", action="store_true",
+                   help="code-origin addendum (2 Nov 2026): fit the per-PMT invariant "
+                        "component m_p from per-PMT fixed features with linear/MLP/kNN")
+    e.add_argument("--code-origin-out", default=None,
+                   help="code-origin JSON (default <ext>/e0e1_code_origin.json)")
     _common(e)
     e.add_argument("--device", default="cpu")
     s = sub.add_parser("smoke")

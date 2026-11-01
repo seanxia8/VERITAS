@@ -39,6 +39,10 @@ RESULTS_DIR = "results/jepa/20261101_h12"
 #: Position-probe addendum (E0 addendum, 1 Nov 2026): three probe families.
 POSITION_PROBES = ("linear", "mlp", "knn")
 PROBE_K = 5
+#: Code-origin addendum (2 Nov 2026): per-PMT fixed feature groups.
+CODE_ORIGIN_GROUPS = ("position", "hit_rate", "charge", "parity", "module",
+                      "raw_token")
+CODE_ORIGIN_METHODS = ("linear", "mlp", "knn")
 #: §6 thresholds (full_input primary, half_pass required secondary).
 INIT_FULL_VERTEX_M = 0.160072          # the named random-init floor (rebuilt seed 9000)
 INIT_HALF_VERTEX_M = 0.174821          # Part C recorded init9000 half-pass value
@@ -289,6 +293,190 @@ def train_log_check(run_dir: Path) -> dict:
             "non_finite_keys": bad, "finite": not bad}
 
 
+
+
+# ------------------------------------------ code-origin addendum (2 Nov 2026)
+def code_origin_feature_groups(features: dict, geometry, present) -> dict:
+    """Per-PMT fixed feature groups for the ``present`` PMTs (sorted order).
+
+    ``features`` carries per-PMT accumulators over the same probe-test events as the
+    label rows: ``hit_count`` (n_pmt,), ``charge_sum`` (n_pmt, mean ln q sums),
+    ``raw_sum`` (n_pmt, 9 raw-token feature sums over hit occurrences), ``n_events``
+    and the scaled ``positions`` (n_pmt, 3).  Groups: scaled position (3), hit rate
+    (1), mean hit ln q (1), within-target parity (1), module one-hot (n_modules) and
+    the mean raw-token feature vector (9); ``all`` concatenates them.
+    """
+    present = np.asarray(present, np.int64)
+    n_events = max(int(features["n_events"]), 1)
+    counts = np.asarray(features["hit_count"], float)[present]
+    charge = np.asarray(features["charge_sum"], float)[present]
+    raw = np.asarray(features["raw_sum"], float)[present]
+    counts_safe = np.maximum(counts, 1.0)[:, None]
+    pmt_id = np.asarray(geometry.pmt_id_in_mpmt)[present]
+    module = np.asarray(geometry.module_index)[present]
+    n_modules = int(geometry.n_modules)
+    one_hot = np.zeros((len(present), n_modules))
+    one_hot[np.arange(len(present)), module] = 1.0
+    groups = {
+        "position": np.asarray(features["positions"], float)[present],
+        "hit_rate": (counts / n_events)[:, None],
+        "charge": (charge / np.maximum(counts, 1.0))[:, None],
+        "parity": ((pmt_id % 2) != 0).astype(float)[:, None],
+        "module": one_hot,
+        "raw_token": raw / counts_safe,
+    }
+    groups["all"] = np.concatenate([groups[name] for name in CODE_ORIGIN_GROUPS], axis=1)
+    return groups
+
+
+def code_origin_feature_names(features: dict, geometry) -> dict:
+    """Names/dimensions of the feature groups (for the JSON)."""
+    raw_names = list(features.get("raw_feature_names") or
+                     ("pos_x", "pos_y", "pos_z", "dir_x", "dir_y", "dir_z",
+                      "log_charge", "time_100ns", "hit"))
+    return {"position": ["pos_x", "pos_y", "pos_z"],
+            "hit_rate": ["hit_rate"],
+            "charge": ["mean_hit_log_charge"],
+            "parity": ["within_target_parity (pmt_id_in_mpmt % 2)"],
+            "module": f"one-hot module id ({int(geometry.n_modules)} modules)",
+            "raw_token": raw_names,
+            "all": "concatenation of position, hit_rate, charge, parity, module, raw_token"}
+
+
+def collect_per_pmt_features(config, gen, geometry, data_root, *,
+                             max_label_events: int = 2000, chunk_events: int = 8,
+                             device="cpu", log=print) -> dict:
+    """Per-PMT fixed features over the same probe-test events as the label rows.
+
+    Read-only data pass (tokenisation only, no encoder): per-PMT hit counts, summed
+    hit ln q and summed raw-token features, and the number of probe events used.
+    """
+    device = device if isinstance(device, torch.device) else torch.device(device)
+    cell = lr.dev_cell(config)
+    scaling = pe.FeatureScaling.from_geometry(geometry)
+    _, probes = None, load_probes(config, gen, geometry, data_root)
+    test = probes["test"]
+    n_pmt = int(geometry.n_pmt)
+    n_features = int(pe.N_FEATURES)
+    hit_count = np.zeros(n_pmt, np.float64)
+    charge_sum = np.zeros(n_pmt, np.float64)
+    raw_sum = np.zeros((n_pmt, n_features), np.float64)
+    n_events = 0
+    for row in test.runs:
+        if n_events >= int(max_label_events):
+            break
+        source = test.directory / "runs" / row["run_dir"]
+        ids = lr._run_event_ids(source)
+        allowed = lr._domain_event_ids(source, er.PRIMARY_DOMAIN)
+        if allowed is not None:
+            ids = np.intersect1d(ids, allowed)
+        if ids.size == 0:
+            continue
+        ids = ids[: int(max_label_events) - n_events]
+        for start in range(0, int(ids.size), int(chunk_events)):
+            batch = lr._probe_batch(source, geometry, split=cell.split,
+                                    mask_seed=int(config["views"]["mask_seed"]),
+                                    occupancy="natural", scaling=scaling,
+                                    event_ids=ids[start:start + int(chunk_events)])
+            if batch.event_ids.size == 0:
+                continue
+            hit = np.asarray(batch.hit_flags, bool)
+            log_charge = np.asarray(batch.log_charge, float)
+            raw = batch.features.detach().to(torch.float32).cpu().numpy()
+            event_index, pmt_index = np.nonzero(hit)
+            np.add.at(hit_count, pmt_index, 1.0)
+            np.add.at(charge_sum, pmt_index, log_charge[event_index, pmt_index])
+            np.add.at(raw_sum, pmt_index, raw[event_index, pmt_index])
+            n_events += int(batch.event_ids.size)
+            log(f"[code-origin] {n_events} probe events, {int(hit_count.sum())} hit rows")
+    return {"hit_count": hit_count, "charge_sum": charge_sum, "raw_sum": raw_sum,
+            "n_events": int(n_events),
+            "positions": pe.geometry_features(geometry, scaling)[:, :3].astype(np.float64),
+            "raw_feature_names": list(pe.FEATURES)}
+
+
+def code_origin_probes(rows: dict, features: dict, geometry,
+                       probes=CODE_ORIGIN_METHODS, *, seed: int = 0, log=print) -> dict:
+    """Fit the invariant component ``m_p`` from the per-PMT fixed feature groups.
+
+    ``m_p`` = mean label over the rows of each PMT (the E1 invariant component);
+    80/20 split by PMT (the position-probe protocol, seed 0); linear / MLP (2 x 256,
+    early stopping on 10 % of the training PMTs) / kNN (k = 5) per group and for the
+    combined feature set, for ``fix9000`` and the rebuilt ``init9000`` reference.
+    """
+    probes = tuple(probes)
+    for probe in probes:
+        if probe not in CODE_ORIGIN_METHODS:
+            raise ValueError(f"unknown code-origin probe {probe!r}; expected "
+                             f"{CODE_ORIGIN_METHODS}")
+    started = time.time()
+    present, order, cut, is_train = _pmt_split(rows["pmts"], rows["n_pmt"], seed=seed)
+    _, m_fix, n_present = _group_rows_by_pmt(np.asarray(rows["positions"], float),
+                                             np.asarray(rows["y"], float),
+                                             np.asarray(rows["pmts"], np.int64),
+                                             int(rows["n_pmt"]))
+    _, m_init, _ = _group_rows_by_pmt(np.asarray(rows["positions"], float),
+                                      np.asarray(rows["init_y"], float),
+                                      np.asarray(rows["pmts"], np.int64),
+                                      int(rows["n_pmt"]))
+    present_ids = np.flatnonzero(np.bincount(np.asarray(rows["pmts"], np.int64),
+                                             minlength=int(rows["n_pmt"])) > 0)
+    if not np.array_equal(present, present_ids):  # both sorted: defensive
+        raise RuntimeError("code-origin: PMT order mismatch")
+    groups = code_origin_feature_groups(features, geometry, present)
+    validation = max(1, int(round(0.1 * cut)))
+    train_pmts = order[:cut]
+    fit_mask = np.isin(present, train_pmts[:cut - validation])
+    val_mask = np.isin(present, train_pmts[cut - validation:])
+    test_mask = ~is_train
+    block = {"registered": False, "extension": EXTENSION,
+             "check": "code-origin probes for the event-invariant per-PMT component m_p "
+                      "(0 training, 2 Nov 2026)",
+             "sampling": dict(rows["sampling"]),
+             "fix9000": rows.get("fix9000", {}),
+             "init9000": {"rebuilt": True, "seed": 9000},
+             "features": {"groups": code_origin_feature_names(features, geometry),
+                          "n_features_all": int(groups["all"].shape[1])},
+             "split": {"by": "PMT", "seed": int(seed), "n_pmt": int(n_present),
+                       "n_pmt_train": int(is_train.sum()),
+                       "n_pmt_test": int(test_mask.sum()),
+                       "n_val_pmt": int(val_mask.sum()),
+                       "protocol": f"80/20 by PMT (same split as the position-probe "
+                                   f"addendum); MLP early-stops on 10 % of the training "
+                                   f"PMTs; kNN k = {PROBE_K}"},
+             "probes": list(probes)}
+    results = {"fix9000": {}, "init9000": {}}
+    for label, m_labels in (("fix9000", m_fix), ("init9000", m_init)):
+        for name in CODE_ORIGIN_GROUPS + ("all",):
+            values = groups[name]
+            entry = {}
+            if "linear" in probes:
+                fit = _multioutput_ridge(values[is_train], m_labels[is_train],
+                                         values[test_mask], m_labels[test_mask])
+                entry["linear"] = _record(fit)
+            if "mlp" in probes:
+                prediction, epochs_run = _mlp_fit(values[fit_mask], m_labels[fit_mask],
+                                                  values[val_mask], m_labels[val_mask],
+                                                  values[test_mask], seed=seed)
+                record = _r2_mean(m_labels[test_mask], prediction)
+                record.update(epochs_run=epochs_run, n_train=int(fit_mask.sum()),
+                              n_val=int(val_mask.sum()), n_test=int(test_mask.sum()))
+                entry["mlp"] = _record(record, n_train=record["n_train"],
+                                       n_test=record["n_test"])
+                entry["mlp"]["n_val"] = record["n_val"]
+            if "knn" in probes:
+                prediction = _knn_predict(values[is_train], m_labels[is_train],
+                                          values[test_mask], k=PROBE_K)
+                record = _r2_mean(m_labels[test_mask], prediction)
+                entry["knn5"] = _record(record, n_train=int(is_train.sum()),
+                                        n_test=int(test_mask.sum()))
+                entry["knn5"]["k"] = PROBE_K
+            results[label][name] = entry
+            log(f"[code-origin] {label} {name}: "
+                f"{ {method: round(cell['r2'], 4) if cell.get('r2') is not None else None for method, cell in entry.items()} }")
+    block["probes_by_label"] = results
+    block["wall_seconds"] = round(time.time() - started, 3)
+    return block
 
 # ------------------------------------------- position-probe addendum (1 Nov 2026)
 def _r2_mean(y_test, prediction) -> dict:
@@ -730,7 +918,9 @@ def _write_label_cache(path: Path, rows: dict, *, fix_sha) -> None:
 
 def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path=None, *,
          device, max_label_events: int = 2000, chunk_events: int = 8, log=print,
-         position_probe: str = "linear", position_out=None, label_cache=None) -> dict:
+         position_probe: str = "linear", position_out=None, label_cache=None,
+         code_origin: bool = False, code_origin_out=None,
+         code_origin_probes=CODE_ORIGIN_METHODS) -> dict:
     """E0-a/b/c and E1 on the ``fix9000`` (and rebuilt ``init9000``) encoders.
 
     ``position_probe`` extends the mode with the 1 Nov 2026 position-probe addendum
@@ -745,7 +935,8 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path=
                                readout_items, device=device,
                                max_label_events=int(max_label_events),
                                chunk_events=int(chunk_events),
-                               label_cache=(label_cache if position_probe != "linear" else None),
+                               label_cache=(label_cache if (position_probe != "linear"
+                                                            or code_origin) else None),
                                log=log)
     fix = rows.get("fix9000") or {}
     layout = rows.get("layout")
@@ -837,6 +1028,27 @@ def e0e1(config, gen, arms_config, geometry, data_root, readout_items, out_path=
                                      "probes_present": merged.get("probes_present")}
     else:
         payload["position_probe"] = None
+    if code_origin:
+        per_pmt = collect_per_pmt_features(config, gen, geometry, data_root,
+                                           max_label_events=int(max_label_events),
+                                           chunk_events=int(chunk_events),
+                                           device=device, log=log)
+        block = code_origin_probes(rows, per_pmt, geometry,
+                                   probes=tuple(code_origin_probes),
+                                   seed=er.SAMPLE_SEED, log=log)
+        target = Path(code_origin_out) if code_origin_out is not None else (
+            Path(out_path).parent / "e0e1_code_origin.json"
+            if out_path is not None else EXT_ROOT / "e0e1_code_origin.json")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        tmp = target.with_name(target.name + ".tmp")
+        tmp.write_text(json.dumps(lr._safe(block), indent=1, default=float) + "\n")
+        os.replace(tmp, target)
+        payload["code_origin"] = {"path": str(target),
+                                  "probes": list(block["probes"]),
+                                  "features": block["features"]["groups"],
+                                  "n_features_all": block["features"]["n_features_all"]}
+    else:
+        payload["code_origin"] = None
     return payload
 
 
