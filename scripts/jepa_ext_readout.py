@@ -398,21 +398,22 @@ def _save_form_cache(path: Path, train: er.FormStream, test: er.FormStream) -> N
     """Cache the event/token rows ``nonlinear`` needs (tokens as float16 for size)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
-    np.savez(tmp,
-             event_train=train.events.astype(np.float32),
-             event_test=test.events.astype(np.float32),
-             run_ids_train=np.asarray(train.run_ids, dtype=str),
-             run_ids_test=np.asarray(test.run_ids, dtype=str),
-             vertex_train=train.vertex.astype(np.float64),
-             vertex_test=test.vertex.astype(np.float64),
-             log_yield_train=train.log_yield.astype(np.float64),
-             log_yield_test=test.log_yield.astype(np.float64),
-             tokens_train=train.tokens.astype(np.float16),
-             tokens_test=test.tokens.astype(np.float16),
-             token_y_train=train.token_y.astype(np.float64),
-             token_y_test=test.token_y.astype(np.float64),
-             token_run_ids_train=np.asarray(train.token_run_ids, dtype=str),
-             token_run_ids_test=np.asarray(test.token_run_ids, dtype=str))
+    with open(tmp, "wb") as handle:
+        np.savez(handle,
+                 event_train=train.events.astype(np.float32),
+                 event_test=test.events.astype(np.float32),
+                 run_ids_train=np.asarray(train.run_ids, dtype=str),
+                 run_ids_test=np.asarray(test.run_ids, dtype=str),
+                 vertex_train=train.vertex.astype(np.float64),
+                 vertex_test=test.vertex.astype(np.float64),
+                 log_yield_train=train.log_yield.astype(np.float64),
+                 log_yield_test=test.log_yield.astype(np.float64),
+                 tokens_train=train.tokens.astype(np.float16),
+                 tokens_test=test.tokens.astype(np.float16),
+                 token_y_train=train.token_y.astype(np.float64),
+                 token_y_test=test.token_y.astype(np.float64),
+                 token_run_ids_train=np.asarray(train.token_run_ids, dtype=str),
+                 token_run_ids_test=np.asarray(test.token_run_ids, dtype=str))
     os.replace(tmp, path)
 
 

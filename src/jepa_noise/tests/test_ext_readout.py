@@ -347,3 +347,33 @@ def test_layout_fractions_array_and_stream_agree():
     assert array["f_event"] == pytest.approx(streamed["f_event"])
     constant = np.ones((5, 12, 4), np.float32)
     assert er.layout_and_event_fractions(constant.mean(1), constant)["f_layout"] is None
+
+
+def test_form_cache_roundtrip(tmp_path):
+    rng = np.random.default_rng(0)
+    train = er.FormStream(form="full_input",
+                          events=rng.normal(size=(10, 4)).astype(np.float32),
+                          run_ids=np.array(["run/0000"] * 10, dtype=object),
+                          vertex=rng.normal(size=(10, 3)), log_yield=rng.normal(size=10),
+                          tokens=rng.normal(size=(30, 4)).astype(np.float32),
+                          token_y=rng.normal(size=30).astype(np.float64),
+                          token_run_ids=np.array(["run/0000"] * 30, dtype=object))
+    test = er.FormStream(form="full_input",
+                         events=rng.normal(size=(4, 4)).astype(np.float32),
+                         run_ids=np.array(["run/0001"] * 4, dtype=object),
+                         vertex=rng.normal(size=(4, 3)), log_yield=rng.normal(size=4),
+                         tokens=rng.normal(size=(12, 4)).astype(np.float32),
+                         token_y=rng.normal(size=12).astype(np.float64),
+                         token_run_ids=np.array(["run/0001"] * 12, dtype=object))
+    path = tmp_path / "cache" / "item__full_input.npz"
+    readout._save_form_cache(path, train, test)
+    assert path.is_file()
+    loaded = readout._load_form_cache(path)
+    np.testing.assert_allclose(loaded["event_train"], train.events, rtol=1e-6)
+    np.testing.assert_allclose(loaded["vertex_test"], test.vertex, rtol=0)
+    np.testing.assert_allclose(loaded["tokens_train"].astype(np.float64), train.tokens,
+                               rtol=0, atol=1e-3)
+    np.testing.assert_array_equal(loaded["run_ids_train"], np.asarray(train.run_ids))
+    split = readout._cache_split(loaded, "train")
+    np.testing.assert_allclose(split["event"], train.events, rtol=1e-6)
+    np.testing.assert_allclose(split["tokens"], train.tokens, rtol=0, atol=1e-3)
