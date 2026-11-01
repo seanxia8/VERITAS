@@ -67,3 +67,39 @@ E2 is a **feature ablation** (token order, parity mask and predictor position qu
 - `reproduction.json` — §4.2 check (exit 2 on mismatch).
 - `README.md` — this file.
 
+## Code-origin addendum for the per-PMT invariant component (2 Nov 2026, 0 training)
+
+Question: what is the origin of the `fix9000` fixed per-PMT code (the E1 invariant component
+`m_p`)? The position-probe addendum already ruled out the PMT position; this addendum tests the
+PMT's other fixed attributes: hit rate, mean hit ln q, within-target parity (`pmt_id_in_mpmt % 2`),
+module id (one-hot, 105 modules), scaled position, and the mean raw-token feature vector
+(9 = `FEATURES`), plus the combined 120-feature set. Code SHA `d6d013f` (backward-compatible
+`e0e1 --code-origin`; `e0e1.json` unchanged). Inputs: the same 64,000 label rows / 2,000 photon
+probe-test events / seed 0 as `e0e1`; per-PMT features are read-only from the same probe events
+(tokenisation only, no encoder forward pass); 80/20 split by PMT exactly as the position-probe
+addendum (1,050 present PMTs → 840 train / 210 test, 84 validation PMTs for MLP early stopping;
+kNN k = 5). Target: `m_p` (128-d, invariant fraction 1.0072). File: `e0e1_code_origin.json`.
+
+| feature group | `fix9000` m_p R² (linear / MLP / kNN5) | `init9000` m_p R² (linear / MLP / kNN5) |
+|---|---:|---:|
+| `position` | -0.0085 / -0.0085 / 0.3050 | 0.6815 / 0.7932 / 0.8855 |
+| `hit_rate` | -0.0011 / -0.0014 / -0.1864 | -0.0006 / -0.0034 / -0.1945 |
+| `charge` | -0.0021 / -0.0012 / -0.1792 | 0.0015 / -0.0028 / -0.1832 |
+| `parity` | -0.0049 / -0.0054 / -0.3656 | -0.0028 / -0.0052 / -0.7585 |
+| `module` | 0.0875 / 0.0702 / -0.0069 | 0.8378 / 0.8389 / 0.8291 |
+| `raw_token` | 0.0023 / 0.1074 / 0.1865 | 0.7635 / 0.8529 / 0.8412 |
+| `all` | 0.1043 / 0.4335 / 0.2177 | 0.8931 / 0.9067 / 0.8656 |
+
+Reading (descriptive): the `fix9000` per-PMT code is **not identified by any single fixed PMT
+attribute** — every single-group probe is at or below |R²| 0.09 linearly (module 0.0875), at or
+below 0.11 with the MLP (module 0.0702, raw-token 0.1074), and at or below 0.31 with kNN (position
+0.305, the local-neighbour structure already seen in the position addendum); hit rate, mean hit
+ln q and parity are at zero, and the **combined** 120-feature probe reaches linear 0.1043, MLP
+0.4335 and kNN 0.2177. So at most ~43 % of the invariant component's variance is predictable from
+the PMT's fixed attributes, and none of the individual physics/geometry/readout attributes explains
+it. The `init9000` reference behaves completely differently: module 0.8378 / 0.8389 / 0.8291,
+raw-token 0.7635 / 0.8529 / 0.8412 and combined 0.8931 / 0.9067 / 0.8656 are all high (position
+0.68 / 0.79 / 0.89), while hit rate, charge and parity stay at zero — i.e. the probes do have the
+capacity to identify fixed per-PMT codes, and the `fix9000` code is a learned per-PMT code of other
+origin, not a function of the PMT's fixed attributes. This is consistent with the H12 H2-dominant
+verdict and with the position-probe addendum.

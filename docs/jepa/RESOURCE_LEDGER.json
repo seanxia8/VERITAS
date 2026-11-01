@@ -1,6 +1,6 @@
 {
  "version": 1,
- "status": "readout_q1q2_h12_causal_position_probe_complete_h1clean_stopped_at_manipulation_check_20261102",
+ "status": "readout_q1q2_h12_position_and_code_origin_complete_h1clean_stopped_20261102",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 14.245639,
+   "charged_wall_hours": 14.595639,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -2853,6 +2853,21 @@
    "wall_seconds": 1260.0,
    "evidence": "/ceph/dwong/jepa/returns/ext_h1clean_20261102/{plan.json,manipulation_sensitivity.json} and results/jepa/20261102_h1clean/",
    "note": "H1-clean query-noise test stopped at the pre-declared \u00a73.4 manipulation check (ratios 1.001783 at sigma=0.10 and 1.003867 at sigma=0.15, both < 1.5; sigma sweep shows the threshold needs sigma~1.8-2.0). No smoke and no training run started, 0 GPU-h; CPU charge covers dry-run, the sigma-sweep diagnostics and the full jepa_noise suite 577 passed in 588.21 s."
+  },
+  {
+   "id": "h12_code_origin_addendum",
+   "campaign": "h12_causal_2026-11-01",
+   "registered": false,
+   "host": "deepthought+deepthought2",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.35,
+   "gpu_hours": 0.0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "d6d013f91b942bf510c29167c1df744d707bffef",
+   "wall_seconds": 1260.0,
+   "evidence": "/ceph/dwong/jepa/returns/ext_h12_20261101/{e0e1_code_origin.json,logs/code_origin.log} and results/jepa/20261101_h12/e0e1_code_origin.json",
+   "note": "Analysis addendum only (0 training): e0e1 --code-origin (per-PMT fixed-feature probes of the invariant component m_p, linear/MLP/kNN, 80/20 split by PMT) and the full jepa_noise suite 580 passed in 596.92 s on the deployed SHA; conservative CPU charge 0.35 h, no GPU."
   }
  ]
 }
