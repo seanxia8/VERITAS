@@ -12,12 +12,12 @@ Development output; no prospective grid evidence yet. Analytic fixtures and the 
 | R4b | E1 | fail | evaluated_from_stored_tables | 0, 1, 2, 3, 4 | results/jepa/20261017_wp3_e1a/aggregate_E1a.json; cells 33/42 pass at beta=10; beta=0.1/1 in table; E1b diagnostics results/jepa/20261017_wp3_e1b/aggregate_E1b.json |
 | R5 | E1 | not_evaluable | seed_evaluable_lt_4 | 0, 1, 2, 3, 4 | none |
 | B1 | E2-bridge | fail | not_every_seed_seed_0_only; abs(delta mean)=0.00942 below 2x seed floor 0.10254 (plain 0.525128 vs anchored 0.515705 nuisance R2) | 0, 1, 2 | results/jepa/wp4a_grid_combined/aggregate.json; docs/jepa/WP4A_BRIDGE_RESULTS.md |
-| R6 | E2 | not_run | v4 A4/A7 redesign | none | none |
-| R7 | E2 | not_run | v4 A4/A7 redesign | none | none |
-| R7b | E2 | not_run | v4 A7/A8 | none | none |
-| R8 | E2 | not_run | v4 A4/A7 redesign | none | none |
-| R11 | E2 | not_run | v4 A7/A8 | none | none |
-| R11b | E2 | not_run | v4 A7/A8 | none | none |
-| R12 | E2 | not_run | v4 A7/A8 | none | none |
+| R6 | E2 | not_run | author descope (gate G-DESCOPE, 31 Oct 2026) | none | extension evidence (registered:false): results/jepa/20261029_part_c/, 20261029_d2_partial/, 20261030_dejitter/ |
+| R7 | E2 | not_run | author descope (gate G-DESCOPE, 31 Oct 2026) | none | extension evidence (registered:false): results/jepa/20261030_dejitter/, 20261029_predictability/ |
+| R7b | E2 | not_run | author descope (gate G-DESCOPE, 31 Oct 2026) | none | gate: docs/jepa/GATE_GRID_DESCOPE_2026-10-31.md |
+| R8 | E2 | not_run | author descope (gate G-DESCOPE, 31 Oct 2026) | none | gate: docs/jepa/GATE_GRID_DESCOPE_2026-10-31.md |
+| R11 | E2 | not_run | author descope (gate G-DESCOPE, 31 Oct 2026) | none | gate: docs/jepa/GATE_GRID_DESCOPE_2026-10-31.md |
+| R11b | E2 | not_run | author descope (gate G-DESCOPE, 31 Oct 2026) | none | gate: docs/jepa/GATE_GRID_DESCOPE_2026-10-31.md |
+| R12 | E2 | not_evaluable | frozen section 3.5.3a detectability: F3 run-level ceiling 0.3226 < 0.6 | none | results/jepa/20261018_wp4b_detectability_r6/wp4b_detectability_wcte_r6_consistency.json; docs/jepa/A10_AUDIT_2026-10-23.md section 2 |
 | R9 | E3 | not_run | G6_manifest_and_E2_beta_transfer_pending | none | none |
 | R10 | E4 | not_run | WP5_acceptance_pending | none | none |

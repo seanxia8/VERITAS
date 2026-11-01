@@ -397,3 +397,11 @@ Runbook `92639fb`; experiment code `444cf58` (full suite 537/537 in 720.93 s). P
 ## MAE de-jitter extension, 31 Oct 2026
 
 Runbook `06c4313`; experiment code `692d90a` (suite 541/541 in 560.61 s) and report-only code `8888572` (suite 541/541). MAE does use time (token-time R² 0.92–0.96 against 0.004–0.026 for the de-jitter SIGReg checkpoints) and is 20–30× more jitter-sensitive (R_jit/phys 1.15–1.64; M-e supported). But it has almost no across gap to repair: across_trigger/within_trigger vertex is 1.153/1.026, so M-a is not supported and M-b/M-c read "unclear (no gap)" even though across_median is numerically 16–18 % better (0.097/0.101 vs 0.121/0.120 m). The prescription does not hurt within (M-d supported, 0.0852/0.0950 vs 0.1049/0.1165 m). All eight runs + smoke exit 0; L40S 4.634 GPU-h, ledger 101.799/170 h; results `registered: false` under `results/jepa/20261031_mae_dejitter/`; grid paused.
+
+## Grid descope, 31 Oct 2026
+
+Gate G-DESCOPE answered **A (descope)** by the author on 31 Oct 2026: the registered LUCiD A10 grid is descoped and no grid run is launched. `R6`, `R7`, `R7b`, `R8`, `R11` and `R11b` keep `not_run`, with the reason "author descope (gate G-DESCOPE, 31 Oct 2026)" and the extension evidence beside them; `R12` is `not_evaluable` by the frozen §3.5.3a check (F3 run-level ceiling 0.3226 < 0.6, no gate).
+
+A design check recorded before the descope: the gate's 15-run core cannot produce registered verdicts, because the frozen seed-floor rule needs all seven arms × three seeds in each F1-eligible cell (four cells, 84 runs, about 44–47 L40S GPU-h by the measured grid wall); A10's primary particle domain has no profiled detectability (`particle_R6_R7 = not_established_unprofiled`); and the full 147-run grid would put ledger + projection at about 187 h, above the 160 h start rule.
+
+No training was run; the L40S ledger is unchanged at 97.165 / 170. The non-registered extension evidence (`results/jepa/20261029_*`–`20261030_*`, plus the in-flight MAE de-jitter extension) is reported beside the `not_run` rows.
