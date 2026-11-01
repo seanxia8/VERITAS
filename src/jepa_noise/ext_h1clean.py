@@ -217,6 +217,7 @@ def _mse_with_and_without_noise(arm, batch, sigma: float) -> dict:
 def manipulation_check(config, gen, arms_config, geometry, data_root, *, device="cpu",
                        sigmas=SIGMA_LADDER, log=print) -> dict:
     """σ ladder on one fixed saved batch of the untrained seed-9000 arm (§3.4)."""
+    device = device if isinstance(device, torch.device) else torch.device(device)
     cell = lr.dev_cell(config)
     train_ds, _ = eh.datasets_for(cell, config, gen, geometry, Path(data_root))
     torch.manual_seed(9000)
