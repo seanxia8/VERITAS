@@ -6,7 +6,7 @@
   "note": "v4 §3.5.6 and §6.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 97.16505633333333,
+   "charged_gpu_hours": 101.79935633333332,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 10.745638888888886,
+   "charged_wall_hours": 12.025638888888885,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -86,7 +86,8 @@
    "predictability_20261029_note": "Includes conservative charges for two search attempts and 9ef9f19 tests; later jobs must be added.",
    "m_dose_20261030_note": "Ten-level extension charged conservatively at 1.533 h CPU (suite 0.188, focused 0.017, toy 0.03, in-memory dry run 0.08, deployment 0.05, ten levels 1.168); GPU 0. The 48 h generation cap remains far from binding.",
    "timing_20261030_note": "Timing extension charged conservatively at 1.08 h CPU (Part A 0.02, de-jitter 0.36 incl. one failed attempt, Part B 0.39, full suite 0.20, focused tests 0.03, deploy 0.05, report 0.03); GPU 0. The 48 h generation cap remains far from binding.",
-   "dejitter_20261030_note": "De-jitter extension charged 1.30 h CPU wall (suite 724 s + Part 1/linear CPU track incl. 8-way parallel workers), 0.316 Titan GPU-h (two floors) and 5.394 L40S GPU-h (smoke + six runs + one failed launch attempt). Ledger L40S 97.165/170 h, Titan 17.022 h, generation 10.746/48 h."
+   "dejitter_20261030_note": "De-jitter extension charged 1.30 h CPU wall (suite 724 s + Part 1/linear CPU track incl. 8-way parallel workers), 0.316 Titan GPU-h (two floors) and 5.394 L40S GPU-h (smoke + six runs + one failed launch attempt). Ledger L40S 97.165/170 h, Titan 17.022 h, generation 10.746/48 h.",
+   "mae_dejitter_20261031_note": "MAE de-jitter extension booked 1.28 h CPU wall (two suites 0.33 h + regeneration/sensitivity/token-time chain ~0.95 h), 4.6343 L40S GPU-h (smoke + eight MAE runs), 0 Titan. Ledger L40S 101.799/170 h, generation 12.026/48 h; extension storage 166 MB / 246 entries, free entries 33 953."
   },
   "e1_cpu_wall_hours": {
    "cap_wall_hours": 24,
@@ -2673,6 +2674,50 @@
    "wall_seconds": 26.43,
    "evidence": "/ceph/dwong/jepa/jobs/dejitter_across_median_s9000/",
    "note": "First launch rejected the smoke checkpoint in the same run dir (steps_scheduled mismatch); smoke dir archived inside the extension and the run relaunched fresh. Conservatively charged."
+  },
+  {
+   "id": "mae_dejitter_suites",
+   "campaign": "mae_dejitter_2026-10-31",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.33,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "692d90a+8888572",
+   "wall_seconds": 1191.8,
+   "evidence": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/logs/full_692d90a.log + full_8888572.log",
+   "note": "One full suite per deployed SHA: 541/541 in 560.61 s (experiment 692d90a) and 541/541 in 631.19 s (report-only 8888572); basetemps removed, gate files written."
+  },
+  {
+   "id": "mae_dejitter_cpu_part1_token_time",
+   "campaign": "mae_dejitter_2026-10-31",
+   "registered": false,
+   "host": "deepthought",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.95,
+   "gpu_hours": 0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "692d90abc67f44d98208bdfa0e9267c71cf7ac22",
+   "evidence": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/{part1,token_time.json,logs}",
+   "note": "sens-gen regeneration (S9 exact), 8-way sens-encode, 8-way token-time for de-jitter-stage labels, 8 MAE sens-encode + final 10-label aggregate, 8 MAE token-time + aggregate; temporary features memmaps deleted after use."
+  },
+  {
+   "id": "mae_dejitter_l40s_runs",
+   "campaign": "mae_dejitter_2026-10-31",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.0,
+   "gpu_hours": 4.6343,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "692d90abc67f44d98208bdfa0e9267c71cf7ac22",
+   "wall_seconds": 16683.51,
+   "evidence": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/*/ext_summary.json + logs/gpu_runner_report.json",
+   "note": "One 20-step smoke (689.62 s) and eight approved 10 000-step MAE runs (15 993.89 s; mae across/within x trigger/median x seeds 9000/9001); all exit 0, no drops, max 2 concurrent one per GPU, every launch guard-gated."
   }
  ]
 }
