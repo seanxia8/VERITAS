@@ -1,0 +1,167 @@
+{
+ "registered": false,
+ "extension": "h1_clean_2026-11-02",
+ "mode": "dry-run",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-02_H1_CLEAN.md (revision 3)",
+ "code_sha": "5ae6d6299fe6c7ce40aceb197a1a124f8e0db172",
+ "git_status": "",
+ "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+ "wall_seconds": 57.344,
+ "gate": {
+  "authorised": true,
+  "runbook": "/ceph/dwong/jepa/code/5ae6d62/docs/jepa/RUNBOOK_2026-11-02_H1_CLEAN.md",
+  "runbook_sha256": "e02214204b7a3965665faa459adc718d2f9c061860ef66a1cb84a3d1940812c6",
+  "decisions": "/ceph/dwong/jepa/code/5ae6d62/docs/jepa/DECISIONS.md"
+ },
+ "data": {
+  "registered": false,
+  "extension": "h12_causal_2026-11-01",
+  "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+  "check": "\u00a73.4 read-only development datasets",
+  "sets": {
+   "dev_train__F1__0.05__s20261017__n100000x1000": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_train__F1__0.05__s20261017__n100000x1000",
+    "key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "expected_sha256": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "pass": true
+   },
+   "dev_probe_train__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017",
+    "key": "dev_probe_train__F1__0.05__s20261017",
+    "expected_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017",
+    "key": "dev_probe_test__F1__0.05__s20261017",
+    "expected_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "pass": true
+   }
+  },
+  "regenerated": false,
+  "pass": true,
+  "regeneration": "forbidden (\u00a73.4: stop and report if absent/different)"
+ },
+ "checkpoints": {
+  "items_json": "/ceph/dwong/jepa/returns/ext_readout_20261101/items.json",
+  "items": {
+   "old9000": {
+    "arm": "sigreg_jepa",
+    "split": "within",
+    "seed": 9000,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/old9000.pt",
+    "source_sha256": "b1632266f2f8ca9fd49f9a06383734fda77432f5247294e79ed65bc1936f7503",
+    "expected_sha256": "b1632266f2f8ca9fd49f9a06383734fda77432f5247294e79ed65bc1936f7503",
+    "pass": true
+   },
+   "old9001": {
+    "arm": "sigreg_jepa",
+    "split": "within",
+    "seed": 9001,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/old9001.pt",
+    "source_sha256": "14e3590f9ed6649d86f3de751a56c3590bb748f0b4a15984bb056373bff97ceb",
+    "expected_sha256": "14e3590f9ed6649d86f3de751a56c3590bb748f0b4a15984bb056373bff97ceb",
+    "pass": true
+   },
+   "fix9000": {
+    "arm": "sigreg_jepa",
+    "split": "within",
+    "seed": 9000,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/fix9000.pt",
+    "source_sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+    "expected_sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+    "pass": true
+   },
+   "fix9001": {
+    "arm": "sigreg_jepa",
+    "split": "within",
+    "seed": 9001,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/fix9001.pt",
+    "source_sha256": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e",
+    "expected_sha256": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e",
+    "pass": true
+   },
+   "mae9000": {
+    "arm": "mae_mse",
+    "split": "within",
+    "seed": 9000,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/mae9000.pt",
+    "source_sha256": "efd54c2586f8b5378dfe2febffe2ceb954c50185f6b07939c2b892c825270664",
+    "expected_sha256": "efd54c2586f8b5378dfe2febffe2ceb954c50185f6b07939c2b892c825270664",
+    "pass": true
+   },
+   "across9000": {
+    "arm": "sigreg_jepa",
+    "split": "across",
+    "seed": 9000,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/across9000.pt",
+    "source_sha256": "ac332d4b602d28fe2fdc2b4c1094058eed33538be4f0a9bc5c18503eac73bd5f",
+    "expected_sha256": "ac332d4b602d28fe2fdc2b4c1094058eed33538be4f0a9bc5c18503eac73bd5f",
+    "pass": true
+   },
+   "across9001": {
+    "arm": "sigreg_jepa",
+    "split": "across",
+    "seed": 9001,
+    "init": false,
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/across9001.pt",
+    "source_sha256": "749e87376123ff629e8f2bf7f02f012f3ac965c181266b4710ce687c8055651a",
+    "expected_sha256": "749e87376123ff629e8f2bf7f02f012f3ac965c181266b4710ce687c8055651a",
+    "pass": true
+   },
+   "init9000": {
+    "arm": "sigreg_jepa",
+    "split": "within",
+    "seed": 9000,
+    "init": true,
+    "pass": true
+   }
+  },
+  "pass": true
+ },
+ "manipulation": {
+  "registered": false,
+  "extension": "h1_clean_2026-11-02",
+  "check": "\u00a73.4 manipulation check (untrained seed-9000 arm, fixed saved batch)",
+  "batch": {
+   "step": 0,
+   "n_events": 32,
+   "label": "TrainingLoader.batch_at(0), seed 9000"
+  },
+  "ratio_min": 1.5,
+  "checks": [
+   {
+    "mse_without_noise": 4.801726818084717,
+    "mse_with_noise": 4.810290336608887,
+    "ratio": 1.0017834247654234,
+    "sigma": 0.1,
+    "pass": false
+   },
+   {
+    "mse_without_noise": 4.801726818084717,
+    "mse_with_noise": 4.820296764373779,
+    "ratio": 1.0038673475173812,
+    "sigma": 0.15,
+    "pass": false
+   }
+  ],
+  "sigma_used": null,
+  "pass": false
+ },
+ "sigma": null
+}

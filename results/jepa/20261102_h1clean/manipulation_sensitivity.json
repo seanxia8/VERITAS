@@ -1,0 +1,76 @@
+{
+ "registered": false,
+ "extension": "h1_clean_2026-11-02",
+ "check": "diagnostic of the failed \u00a73.4 manipulation check (untrained seed-9000 arm)",
+ "batch": {
+  "step": 0,
+  "n_events": 32
+ },
+ "clean_mse": 4.801727294921875,
+ "rows": {
+  "0.1": {
+   "mse": 4.810290336608887,
+   "ratio": 1.0017833252829804,
+   "max_abs_delta": 1.3625752925872803,
+   "rel_fro_delta": 0.11618229746818542,
+   "encode_identical": true
+  },
+  "0.15": {
+   "mse": 4.820296287536621,
+   "ratio": 1.0038671485226542,
+   "max_abs_delta": 2.0609045028686523,
+   "rel_fro_delta": 0.17395035922527313,
+   "encode_identical": true
+  },
+  "0.3": {
+   "mse": 4.87376594543457,
+   "ratio": 1.0150026534386658,
+   "max_abs_delta": 4.2085723876953125,
+   "rel_fro_delta": 0.3443758487701416,
+   "encode_identical": true
+  },
+  "0.5": {
+   "mse": 5.001782417297363,
+   "ratio": 1.0416631578780118,
+   "max_abs_delta": 5.542905807495117,
+   "rel_fro_delta": 0.5582285523414612,
+   "encode_identical": true
+  },
+  "0.75": {
+   "mse": 5.252636909484863,
+   "ratio": 1.0939057107720076,
+   "max_abs_delta": 7.7592267990112305,
+   "rel_fro_delta": 0.7997767329216003,
+   "encode_identical": true
+  },
+  "1.0": {
+   "mse": 5.604272842407227,
+   "ratio": 1.1671368443464278,
+   "max_abs_delta": 9.93589973449707,
+   "rel_fro_delta": 1.0243334770202637,
+   "encode_identical": true
+  },
+  "1.5": {
+   "mse": 6.613157272338867,
+   "ratio": 1.377245492332039,
+   "max_abs_delta": 14.186905860900879,
+   "rel_fro_delta": 1.4558779001235962,
+   "encode_identical": true
+  },
+  "2.0": {
+   "mse": 8.033784866333008,
+   "ratio": 1.6731031091310067,
+   "max_abs_delta": 18.39792251586914,
+   "rel_fro_delta": 1.8833619356155396,
+   "encode_identical": true
+  }
+ },
+ "runbook_ladder": {
+  "sigmas": [
+   0.1,
+   0.15
+  ],
+  "ratio_min": 1.5
+ },
+ "finding": "the untrained predictor is nearly query-insensitive: the pre-declared sigma=0.10/0.15 give ratio 1.002/1.004; ratio>=1.5 needs sigma~1.8-2.0 scaled units; encoder input byte-identical at every sigma"
+}
