@@ -1,0 +1,259 @@
+{
+ "registered": false,
+ "extension": "readout_diagnostic_2026-11-01",
+ "readings": {
+  "Q1-a": {
+   "question": "trained-vs-random verdict is readout-dependent",
+   "supported_if": "full-input vertex > 1.1 x init floor AND half-pass vertex <= 1.1 x half-pass init floor, both seeds",
+   "verdict": "not supported",
+   "items": {
+    "fix9000": {
+     "full_input_vertex_m": 0.21925859104673262,
+     "init_full_input_vertex_m": 0.16007169092238768,
+     "full_ratio": 1.369752451437789,
+     "half_pass_vertex_m": 0.32545682503314255,
+     "init_half_pass_vertex_m": 0.17482124528478005,
+     "half_ratio": 1.8616548835525133,
+     "holds": false
+    },
+    "fix9001": {
+     "full_input_vertex_m": 0.20428123360020733,
+     "init_full_input_vertex_m": 0.16007169092238768,
+     "full_ratio": 1.276185891603126,
+     "half_pass_vertex_m": 0.29342929888496705,
+     "init_half_pass_vertex_m": 0.17482124528478005,
+     "half_ratio": 1.6784533161686215,
+     "holds": false
+    }
+   }
+  },
+  "Q1-b": {
+   "question": "half-pass label-version difference is not seed noise",
+   "supported_if": "half-pass vertex(fix) - half-pass vertex(old) > the pair's seed spread, both pairs",
+   "verdict": "supported",
+   "seeds": {
+    "9000": {
+     "half_pass_vertex_fix_m": 0.32545682503314255,
+     "half_pass_vertex_old_m": 0.14001981150483522,
+     "difference_m": 0.18543701352830733,
+     "seed_spread_m": 0.0320275261481755,
+     "spread_fix_m": 0.0320275261481755,
+     "spread_old_m": 0.00937194583818532,
+     "difference_gt_spread": true
+    },
+    "9001": {
+     "half_pass_vertex_fix_m": 0.29342929888496705,
+     "half_pass_vertex_old_m": 0.1306478656666499,
+     "difference_m": 0.16278143321831715,
+     "seed_spread_m": 0.0320275261481755,
+     "spread_fix_m": 0.0320275261481755,
+     "spread_old_m": 0.00937194583818532,
+     "difference_gt_spread": true
+    }
+   },
+   "note": "the pair's seed spread is the larger of the fix/old half-pass seed spreads (\u00a76 definition of 'worse by more than the spread')"
+  },
+  "Q1-c": {
+   "question": "propagated carries the same information as half_pass",
+   "supported_if": "same sign of the vertex difference in both forms and the mean difference exceeds 2 x the seed spread, every pair among {old, fix, mae}",
+   "verdict": "supported",
+   "pairs": {
+    "old|fix": {
+     "pair": [
+      "old",
+      "fix"
+     ],
+     "seeds": {
+      "half_pass": {
+       "seed_differences_m": [
+        -0.18543701352830733,
+        -0.16278143321831715
+       ],
+       "mean_difference_m": -0.17410922337331225,
+       "difference_seed_spread_m": 0.02265558030999018,
+       "item_seed_spread_m": 0.0320275261481755,
+       "exceeds_2x_spread": true,
+       "same_sign_both_seeds": true
+      },
+      "propagated": {
+       "seed_differences_m": [
+        -0.07915242675390635,
+        -0.06501231107000821
+       ],
+       "mean_difference_m": -0.07208236891195728,
+       "difference_seed_spread_m": 0.014140115683898141,
+       "item_seed_spread_m": 0.01808171215552279,
+       "exceeds_2x_spread": true,
+       "same_sign_both_seeds": true
+      }
+     },
+     "same_sign": true,
+     "holds": true
+    },
+    "old|mae": {
+     "pair": [
+      "old",
+      "mae"
+     ],
+     "seeds": {
+      "half_pass": {
+       "seed_differences_m": [
+        0.056803918463103786
+       ],
+       "mean_difference_m": 0.056803918463103786,
+       "difference_seed_spread_m": null,
+       "item_seed_spread_m": 0.00937194583818532,
+       "exceeds_2x_spread": true,
+       "same_sign_both_seeds": false
+      },
+      "propagated": {
+       "seed_differences_m": [
+        0.06870288683291002
+       ],
+       "mean_difference_m": 0.06870288683291002,
+       "difference_seed_spread_m": null,
+       "item_seed_spread_m": 0.003941596471624648,
+       "exceeds_2x_spread": true,
+       "same_sign_both_seeds": false
+      }
+     },
+     "same_sign": true,
+     "holds": true
+    },
+    "fix|mae": {
+     "pair": [
+      "fix",
+      "mae"
+     ],
+     "seeds": {
+      "half_pass": {
+       "seed_differences_m": [
+        0.2422409319914111
+       ],
+       "mean_difference_m": 0.2422409319914111,
+       "difference_seed_spread_m": null,
+       "item_seed_spread_m": 0.0320275261481755,
+       "exceeds_2x_spread": true,
+       "same_sign_both_seeds": false
+      },
+      "propagated": {
+       "seed_differences_m": [
+        0.14785531358681636
+       ],
+       "mean_difference_m": 0.14785531358681636,
+       "difference_seed_spread_m": null,
+       "item_seed_spread_m": 0.01808171215552279,
+       "exceeds_2x_spread": true,
+       "same_sign_both_seeds": false
+      }
+     },
+     "same_sign": true,
+     "holds": true
+    }
+   },
+   "note": "seed spread = the larger of the two items' seed spreads in that form (\u00a76 definition); the mean is over the two seeds"
+  },
+  "Q1-e": {
+   "question": "deterministic-layout signal (H1)",
+   "kind": "descriptive",
+   "values": {
+    "init9000": 0.8283663520347606,
+    "old9000": 0.9960865117048144,
+    "old9001": 0.9908185626652362,
+    "fix9000": 0.9969886012742276,
+    "fix9001": 0.9937337959586334,
+    "mae9000": 0.882864706557843,
+    "across9000": 1.00034976858557,
+    "across9001": 1.0003623434999447
+   }
+  },
+  "Q1-f": {
+   "question": "event-dependence signal (H2)",
+   "kind": "descriptive",
+   "values": {
+    "init9000": 0.07897473178893168,
+    "old9000": 2.7565425395691117e-06,
+    "old9001": 7.260840665402809e-06,
+    "fix9000": 8.016776171518009e-05,
+    "fix9001": 0.00016481596163020083,
+    "mae9000": 0.0454750718853029,
+    "across9000": 4.670153367344038e-07,
+    "across9001": 5.026418045314233e-07
+   }
+  },
+  "Q2-a": {
+   "question": "charge is destroyed, not just unreadable",
+   "supported_if": "MLP token ln q R2(fix, full_input) <= 0.1 AND ridge <= 0.05 AND init ridge >= 0.9",
+   "verdict": "not supported",
+   "seeds": {
+    "9000": {
+     "mlp_token_r2": 0.8148927130271063,
+     "ridge_token_r2": 0.017150370915072655,
+     "init_ridge_token_r2": 0.998298608207116,
+     "holds": false
+    },
+    "9001": {
+     "mlp_token_r2": 0.9217274616108281,
+     "ridge_token_r2": 0.05140108627415385,
+     "init_ridge_token_r2": 0.998298608207116,
+     "holds": false
+    }
+   }
+  },
+  "Q2-b": {
+   "question": "charge is present but nonlinearly encoded",
+   "supported_if": "MLP token ln q R2(fix, full_input) >= 0.5 AND ridge <= 0.1 (unclear 0.1-0.5)",
+   "verdict": "supported",
+   "seeds": {
+    "9000": {
+     "mlp_token_r2": 0.8148927130271063,
+     "ridge_token_r2": 0.017150370915072655,
+     "verdict": "supported"
+    },
+    "9001": {
+     "mlp_token_r2": 0.9217274616108281,
+     "ridge_token_r2": 0.05140108627415385,
+     "verdict": "supported"
+    }
+   }
+  },
+  "Q2-c": {
+   "question": "vertex information is destroyed",
+   "supported_if": "MLP vertex resolution(fix) > 1.1 x init MLP vertex",
+   "verdict": "not supported",
+   "seeds": {
+    "9000": {
+     "fix_mlp_vertex_m": 0.1375960616591495,
+     "init_mlp_vertex_m": 0.12936086849499817,
+     "ratio": 1.0636606205567471,
+     "holds": false
+    },
+    "9001": {
+     "fix_mlp_vertex_m": 0.11832963851551584,
+     "init_mlp_vertex_m": 0.12936086849499817,
+     "ratio": 0.9147251397751024,
+     "holds": false
+    }
+   }
+  },
+  "Q2-d": {
+   "question": "trained representation closer to physics than to a random projection",
+   "supported_if": "CKA(trained, raw physics) - CKA(trained, init) > 0.1 (unclear within +/-0.1)",
+   "verdict": "unclear",
+   "seeds": {
+    "9000": {
+     "cka_vs_raw_physics": 0.8761191665215102,
+     "cka_vs_init9000": 0.9027745548049104,
+     "difference": -0.026655388283400194,
+     "verdict": "unclear (within +/- 0.1)"
+    },
+    "9001": {
+     "cka_vs_raw_physics": 0.915000588046893,
+     "cka_vs_init9000": 0.9627917022605609,
+     "difference": -0.047791114213667885,
+     "verdict": "unclear (within +/- 0.1)"
+    }
+   }
+  }
+ }
+}

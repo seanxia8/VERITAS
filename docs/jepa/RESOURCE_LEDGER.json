@@ -1,12 +1,12 @@
 {
  "version": 1,
- "status": "a10_grid_paused_label_shortcut_diagnosis_20261023",
+ "status": "readout_q1q2_complete_20261101_h12_training_in_progress",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
-  "note": "v4 §3.5.6 and §6.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
+  "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 101.79935633333332,
+   "charged_gpu_hours": 102.091256,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 12.025638888888885,
+   "charged_wall_hours": 12.675639,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -525,7 +525,7 @@
    "code_sha": "89af5af",
    "job_kind": "probe",
    "evidence": "/ceph/dwong/jepa/returns/probe_deepthought_89af5af_v2/probe.json",
-   "note": "corrected 10-batch equivalence probe (pre-final_proj_norm grid fixture); part of the §6.1 equivalence test"
+   "note": "corrected 10-batch equivalence probe (pre-final_proj_norm grid fixture); part of the \u00a76.1 equivalence test"
   },
   {
    "id": "probe_deepthought2_89af5af_v2",
@@ -1378,7 +1378,7 @@
    "id": "ext_pregrid_partA_reproductions",
    "wall_seconds": 388,
    "exit_status": 0,
-   "note": "CPU wall envelope for once-only linear and population reproductions, 00:24:18Z–00:30:46Z; nice10,<=4 threads; both PASS; not LUCiD generation",
+   "note": "CPU wall envelope for once-only linear and population reproductions, 00:24:18Z\u201300:30:46Z; nice10,<=4 threads; both PASS; not LUCiD generation",
    "registered": false,
    "campaign": "ext_pregrid_20261025_cpu_validation",
    "host": "deepthought",
@@ -2442,7 +2442,7 @@
    "exit_status": 0,
    "code_sha": "273a7bf7da52562024bb3c27bc13f11dda5214fe",
    "evidence": "/ceph/dwong/jepa/returns/ext_m_dose_20261030/toy.json",
-   "note": "Exact-population toy at nine g levels; all §2.5 acceptance values reproduced (no S7)."
+   "note": "Exact-population toy at nine g levels; all \u00a72.5 acceptance values reproduced (no S7)."
   },
   {
    "id": "m_dose_dryrun_273a7bf",
@@ -2527,7 +2527,7 @@
    "exit_status": 0,
    "code_sha": "b6c55ab79ffc9438dbc675ab8d1d7f1c5b337feb",
    "evidence": "/ceph/dwong/jepa/returns/ext_timing_20261030/part_a.json",
-   "note": "S8 reproduction, layout check, §2.3 variants and §2.5 alignment on the stored covariances."
+   "note": "S8 reproduction, layout check, \u00a72.3 variants and \u00a72.5 alignment on the stored covariances."
   },
   {
    "id": "timing_dejitter",
@@ -2718,6 +2718,66 @@
    "wall_seconds": 16683.51,
    "evidence": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/*/ext_summary.json + logs/gpu_runner_report.json",
    "note": "One 20-step smoke (689.62 s) and eight approved 10 000-step MAE runs (15 993.89 s; mae across/within x trigger/median x seeds 9000/9001); all exit 0, no drops, max 2 concurrent one per GPU, every launch guard-gated."
+  },
+  {
+   "id": "readout_matrix_a",
+   "campaign": "readout_2026-11-01",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.03,
+   "gpu_hours": 0.1659,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "dff48026eb2242a6216981ece45be6825534a5a8",
+   "wall_seconds": 597.22,
+   "evidence": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_a/{matrix.json,reproduction_a.json} + /ceph/dwong/jepa/jobs/readout_matrix_a/",
+   "note": "Q1/Q2 matrix group a (init9000, old9000, old9001, fix9000 x 5 forms), guard-gated evaluation, GPU 0; \u00a74.2 reproduction_pass true."
+  },
+  {
+   "id": "readout_matrix_b2",
+   "campaign": "readout_2026-11-01",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.03,
+   "gpu_hours": 0.126,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "dff48026eb2242a6216981ece45be6825534a5a8",
+   "wall_seconds": 453.7,
+   "evidence": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_b/{matrix.json,reproduction_b.json} + /ceph/dwong/jepa/jobs/readout_matrix_b2/",
+   "note": "Q1/Q2 matrix group b (fix9001, mae9000, across9000, across9001; half_pass computed for the within items, n/a for across), guard-gated evaluation, GPU 1; \u00a74.2 reproduction_pass true."
+  },
+  {
+   "id": "readout_matrix_b_refused",
+   "campaign": "readout_2026-11-01",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.01,
+   "gpu_hours": 0.0,
+   "status": "failed",
+   "exit_status": 3,
+   "code_sha": "dff48026eb2242a6216981ece45be6825534a5a8",
+   "wall_seconds": 60.0,
+   "evidence": "/ceph/dwong/jepa/jobs/readout_matrix_b/ (claim refused) and logs/matrix_b.log",
+   "note": "First matrix_b launch raced the group-a claim and was refused on GPU 0 before start (no GPU used, 0 GPU-h); relaunched as readout_matrix_b2 on GPU 1."
+  },
+  {
+   "id": "readout_cpu_track",
+   "campaign": "readout_2026-11-01",
+   "registered": false,
+   "host": "deepthought+deepthought2",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.59,
+   "gpu_hours": 0.0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "dff48026eb2242a6216981ece45be6825534a5a8 -> 02283a632f0926578044539eec31bcbbb17c937e",
+   "wall_seconds": 2340.0,
+   "evidence": "/ceph/dwong/jepa/returns/ext_readout_20261101/{logs,nonlinear,results_readout}",
+   "note": "dry-run + two CPU debug matrix runs (code validation) + nonlinear ridge/MLP/CKA on the cached rows + report + two jepa_noise suites: 552 passed in 617.66 s on the deployed Q1/Q2 SHA dff4802 (deepthought) and the whole-repository suite on the superseded readout SHA (1101 passed / 9 host-specific failures). Conservative CPU charge 0.65 h."
   }
  ]
 }

@@ -1,0 +1,713 @@
+{
+ "registered": false,
+ "extension": "readout_diagnostic_2026-11-01",
+ "mode": "nonlinear",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-01_READOUT.md (revision 2)",
+ "code_sha": "02283a632f0926578044539eec31bcbbb17c937e",
+ "seed": 0,
+ "device": "cpu",
+ "matrix_sources": {
+  "init9000": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_a",
+  "old9000": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_a",
+  "old9001": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_a",
+  "fix9000": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_a",
+  "fix9001": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_b",
+  "mae9000": "/ceph/dwong/jepa/returns/ext_readout_20261101/matrix_b"
+ },
+ "items": {
+  "init9000": {
+   "forms": {
+    "full_input": {
+     "vertex_ridge": {
+      "resolution": 0.1600716909224089,
+      "median": 0.1409090235540425,
+      "n": 3400,
+      "alphas": [
+       0.01,
+       0.01,
+       0.01
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9821902689329984,
+       0.9823695095877341,
+       0.9800614709461362
+      ],
+      "r2_mean": 0.9815404164889562,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 174,
+      "resolution": 0.12936086849499817,
+      "resolution_median": 0.11366990851185171
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.998298608207116,
+      "alpha": 1.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9997764135270404
+      ],
+      "r2_mean": 0.9997764135270404,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 74
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.16007169092238768,
+      "token_log_charge_ridge": 0.9982986161421368
+     }
+    },
+    "half_pass": {
+     "vertex_ridge": {
+      "resolution": 0.1748212452846678,
+      "median": 0.1532202444032454,
+      "n": 3400,
+      "alphas": [
+       0.01,
+       0.01,
+       0.0001
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9837546161573058,
+       0.9852824702715842,
+       0.9802954258437072
+      ],
+      "r2_mean": 0.9831108374241991,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.1234929747862644,
+      "resolution_median": 0.1073549886023631
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.9983947105964449,
+      "alpha": 1.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9998593145178412
+      ],
+      "r2_mean": 0.9998593145178412,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 103
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.17482124528478005,
+      "token_log_charge_ridge": 0.9983947595281095
+     }
+    }
+   },
+   "split": "within"
+  },
+  "old9000": {
+   "forms": {
+    "full_input": {
+     "vertex_ridge": {
+      "resolution": 0.2644002914220611,
+      "median": 0.24396971809435405,
+      "n": 3400,
+      "alphas": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9699896637628828,
+       0.9682498357205898,
+       0.9675400486950773
+      ],
+      "r2_mean": 0.9685931827261833,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 199,
+      "resolution": 0.1737235048656947,
+      "resolution_median": 0.16052587989325842
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.004066248676930173,
+      "alpha": 100.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.5116189451171732
+      ],
+      "r2_mean": 0.5116189451171732,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 200
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.26440029142206084,
+      "token_log_charge_ridge": 0.004066090566591241
+     }
+    },
+    "half_pass": {
+     "vertex_ridge": {
+      "resolution": 0.14001981150483853,
+      "median": 0.1223930969285048,
+      "n": 3400,
+      "alphas": [
+       0.01,
+       0.01,
+       0.01
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.974824612015891,
+       0.9721922821616287,
+       0.9679936091642416
+      ],
+      "r2_mean": 0.9716701677805871,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.1630257399340186,
+      "resolution_median": 0.14714526409073575
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.6477979398711649,
+      "alpha": 1.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9253843228931409
+      ],
+      "r2_mean": 0.9253843228931409,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 105
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.14001981150483522,
+      "token_log_charge_ridge": 0.6478025368991569
+     }
+    }
+   },
+   "split": "within"
+  },
+  "old9001": {
+   "forms": {
+    "full_input": {
+     "vertex_ridge": {
+      "resolution": 0.23375939631380505,
+      "median": 0.2156865661297646,
+      "n": 3400,
+      "alphas": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9676370198154282,
+       0.9714708345161223,
+       0.9662696269124922
+      ],
+      "r2_mean": 0.9684591604146808,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.17452704940388497,
+      "resolution_median": 0.1610374962771399
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.0034920420725332857,
+      "alpha": 0.0001,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.3174335141851323
+      ],
+      "r2_mean": 0.3174335141851323,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 95
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.23375939631380574,
+      "token_log_charge_ridge": 0.003491508469864568
+     }
+    },
+    "half_pass": {
+     "vertex_ridge": {
+      "resolution": 0.1306478656666743,
+      "median": 0.1139532989837663,
+      "n": 3400,
+      "alphas": [
+       0.01,
+       0.01,
+       0.01
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9744802907507976,
+       0.9742189000717432,
+       0.9747528828490165
+      ],
+      "r2_mean": 0.9744840245571859,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.1551222476129432,
+      "resolution_median": 0.1408719841486883
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.772502153152617,
+      "alpha": 0.01,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9670319649278422
+      ],
+      "r2_mean": 0.9670319649278422,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 106
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.1306478656666499,
+      "token_log_charge_ridge": 0.7724948223221694
+     }
+    }
+   },
+   "split": "within"
+  },
+  "fix9000": {
+   "forms": {
+    "full_input": {
+     "vertex_ridge": {
+      "resolution": 0.21925859104673343,
+      "median": 0.19445012252031313,
+      "n": 3400,
+      "alphas": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.98085125638912,
+       0.9791598506807069,
+       0.9774929861421658
+      ],
+      "r2_mean": 0.9791680310706643,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.1375960616591495,
+      "resolution_median": 0.12133846064017491
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.017150370915072655,
+      "alpha": 100.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.8148927130271063
+      ],
+      "r2_mean": 0.8148927130271063,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 131
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.21925859104673262,
+      "token_log_charge_ridge": 0.01714988616328561
+     }
+    },
+    "half_pass": {
+     "vertex_ridge": {
+      "resolution": 0.32545682503314244,
+      "median": 0.3013493791779531,
+      "n": 3400,
+      "alphas": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9561441330348447,
+       0.9538565375064374,
+       0.9605465747646864
+      ],
+      "r2_mean": 0.9568490817686562,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.19917714113755672,
+      "resolution_median": 0.1777255190737004
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.00044490565513599645,
+      "alpha": 100.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.00012536433372201117
+      ],
+      "r2_mean": 0.00012536433372201117,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 12
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.32545682503314255,
+      "token_log_charge_ridge": 0.0004458054336091699
+     }
+    }
+   },
+   "split": "within"
+  },
+  "fix9001": {
+   "forms": {
+    "full_input": {
+     "vertex_ridge": {
+      "resolution": 0.20428123360020783,
+      "median": 0.17720508778035882,
+      "n": 3400,
+      "alphas": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9837814642721134,
+       0.9849628124888806,
+       0.9841962348898483
+      ],
+      "r2_mean": 0.9843135038836142,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.11832963851551584,
+      "resolution_median": 0.1043032612627211
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.05140108627415385,
+      "alpha": 100.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9217274616108281
+      ],
+      "r2_mean": 0.9217274616108281,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 130
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.20428123360020733,
+      "token_log_charge_ridge": 0.05140196992603796
+     }
+    },
+    "half_pass": {
+     "vertex_ridge": {
+      "resolution": 0.2934292988849677,
+      "median": 0.26922527799542917,
+      "n": 3400,
+      "alphas": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9723305973090733,
+       0.9674093890442452,
+       0.9649722648633696
+      ],
+      "r2_mean": 0.9682374170722294,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.17211176526592262,
+      "resolution_median": 0.15469367727586048
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.0016542211988540556,
+      "alpha": 100.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.5778794239007037
+      ],
+      "r2_mean": 0.5778794239007037,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 200
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.29342929888496705,
+      "token_log_charge_ridge": 0.0016544261393030002
+     }
+    }
+   },
+   "split": "within"
+  },
+  "mae9000": {
+   "forms": {
+    "full_input": {
+     "vertex_ridge": {
+      "resolution": 0.10494915326030178,
+      "median": 0.089222559390829,
+      "n": 3400,
+      "alphas": [
+       0.01,
+       0.01,
+       0.01
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9938969713357773,
+       0.9940354889267997,
+       0.9945563777107778
+      ],
+      "r2_mean": 0.9941629459911182,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.06824766755503109,
+      "resolution_median": 0.05712679308919508
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.9878498295099278,
+      "alpha": 1.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9993168874883818
+      ],
+      "r2_mean": 0.9993168874883818,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 75
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.10494915326031926,
+      "token_log_charge_ridge": 0.9878496034810144
+     }
+    },
+    "half_pass": {
+     "vertex_ridge": {
+      "resolution": 0.08321589304173765,
+      "median": 0.0703383197843154,
+      "n": 3400,
+      "alphas": [
+       0.01,
+       0.01,
+       0.01
+      ],
+      "n_train": 3400,
+      "n_test": 3400
+     },
+     "vertex_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.9944686190450618,
+       0.99371282757505,
+       0.9950132739385539
+      ],
+      "r2_mean": 0.9943982401862219,
+      "n_train": 3400,
+      "n_test": 3400,
+      "seed": 0,
+      "epochs_run": 200,
+      "resolution": 0.06865055289685311,
+      "resolution_median": 0.05779499044957537
+     },
+     "token_log_charge_ridge": {
+      "r2": 0.9832185900099788,
+      "alpha": 1.0,
+      "n_train": 108800,
+      "n_test": 108800
+     },
+     "token_log_charge_mlp": {
+      "status": "evaluated",
+      "r2_per_target": [
+       0.999106625511653
+      ],
+      "r2_mean": 0.999106625511653,
+      "n_train": 108800,
+      "n_test": 108800,
+      "seed": 0,
+      "epochs_run": 135
+     },
+     "n_token_rows": {
+      "train": 108800,
+      "test": 108800
+     },
+     "matrix_check": {
+      "vertex_ridge": 0.08321589304173144,
+      "token_log_charge_ridge": 0.9832188390133378
+     }
+    }
+   },
+   "split": "within"
+  }
+ },
+ "cka": {
+  "raw_physics_summary": "[vertex x, y, z, log yield] per event",
+  "init9000_vs_raw_physics": 0.8675997955868849,
+  "old9000_vs_init9000": 0.5637859109722396,
+  "old9000_vs_raw_physics": 0.5660938147849123,
+  "old9001_vs_init9000": 0.623647236342513,
+  "old9001_vs_raw_physics": 0.6376834066779513,
+  "fix9000_vs_init9000": 0.9027745548049104,
+  "fix9000_vs_raw_physics": 0.8761191665215102,
+  "fix9001_vs_init9000": 0.9627917022605609,
+  "fix9001_vs_raw_physics": 0.915000588046893,
+  "mae9000_vs_init9000": 0.9736500572450463,
+  "mae9000_vs_raw_physics": 0.8984916114424287
+ },
+ "complete": true,
+ "wall_seconds": 507.22
+}

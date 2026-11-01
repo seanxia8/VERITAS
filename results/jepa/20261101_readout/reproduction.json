@@ -1,0 +1,65 @@
+{
+ "registered": false,
+ "extension": "readout_diagnostic_2026-11-01",
+ "check": "\u00a74.2",
+ "tolerance_m": 0.001,
+ "groups": [
+  {
+   "registered": false,
+   "extension": "readout_diagnostic_2026-11-01",
+   "check": "\u00a74.2 full-input photon vertex",
+   "tolerance_m": 0.001,
+   "items": {
+    "old9000": {
+     "expected_m": 0.264401,
+     "got_m": 0.26440029142206084,
+     "abs_diff_m": 7.085779391569069e-07,
+     "pass": true
+    },
+    "old9001": {
+     "expected_m": 0.233759,
+     "got_m": 0.23375939631380574,
+     "abs_diff_m": 3.9631380574500774e-07,
+     "pass": true
+    },
+    "fix9000": {
+     "expected_m": 0.219258,
+     "got_m": 0.21925859104673262,
+     "abs_diff_m": 5.910467326120106e-07,
+     "pass": true
+    },
+    "init9000": {
+     "expected_m": 0.160072,
+     "got_m": 0.16007169092238768,
+     "abs_diff_m": 3.090776123093608e-07,
+     "pass": true
+    }
+   },
+   "reproduction_pass": true,
+   "group": "a"
+  },
+  {
+   "registered": false,
+   "extension": "readout_diagnostic_2026-11-01",
+   "check": "\u00a74.2 full-input photon vertex",
+   "tolerance_m": 0.001,
+   "items": {
+    "fix9001": {
+     "expected_m": 0.204281,
+     "got_m": 0.20428123360020733,
+     "abs_diff_m": 2.3360020734441989e-07,
+     "pass": true
+    },
+    "mae9000": {
+     "expected_m": 0.104949,
+     "got_m": 0.10494915326031926,
+     "abs_diff_m": 1.5326031925499972e-07,
+     "pass": true
+    }
+   },
+   "reproduction_pass": true,
+   "group": "b"
+  }
+ ],
+ "reproduction_pass": true
+}
