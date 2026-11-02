@@ -13,6 +13,7 @@ from __future__ import annotations
 import dataclasses
 import importlib.util
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -149,7 +150,10 @@ def _arch_run_finals():
     return sorted((ea.EXT_ROOT / "train" / "arch").glob("*/runs/*/final.pt"))
 
 
-@pytest.mark.skipif(not _arch_run_finals(), reason="arch run checkpoints are not on this host")
+@pytest.mark.skipif(
+    not (os.environ.get("JEPA_HEAVY_EVAL_TEST") == "1" and _arch_run_finals()),
+    reason="heavy evaluation-equivalence test runs only with JEPA_HEAVY_EVAL_TEST=1 "
+           "and the deployed arch run checkpoints")
 def test_evaluate_run_equals_registered_evaluate_arm_run_with_wrapper():
     from jepa_noise import ext_readout as readout
     run_dir = _arch_run_finals()[0].parent

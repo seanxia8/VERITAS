@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import shutil
 from pathlib import Path
 
@@ -166,7 +167,10 @@ def _scale_run_finals():
     return sorted((es.EXT_ROOT / "train" / "scale300k" / "runs").glob("*/final.pt"))
 
 
-@pytest.mark.skipif(not _scale_run_finals(), reason="scale run checkpoints are not on this host")
+@pytest.mark.skipif(
+    not (os.environ.get("JEPA_HEAVY_EVAL_TEST") == "1" and _scale_run_finals()),
+    reason="heavy evaluation-equivalence test runs only with JEPA_HEAVY_EVAL_TEST=1 "
+           "and the deployed scale run checkpoints")
 def test_evaluate_run_equals_registered_evaluate_arm_run():
     from jepa_noise import ext_readout as er
     config = lr.load_run_config(ROOT / "src/jepa_noise/configs/lucid_run_v0_mixed_calibrated.json")
