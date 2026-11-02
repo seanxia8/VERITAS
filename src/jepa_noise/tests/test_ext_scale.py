@@ -180,12 +180,13 @@ def test_evaluate_run_equals_registered_evaluate_arm_run():
     seed = int(json.loads((run_dir / "variant.json").read_text())["seed"])
     item = {"label": f"scale300k_{seed}", "arm": es.ARM_NAME, "split": "within",
             "seed": seed, "beta": None, "source": str(run_dir / "final.pt")}
+    device = torch.device("cpu")
     via_item = er.evaluate_item(item, probes, geometry, config, arms_config,
-                                device="cpu", max_events=200)
-    arm = er.item_arm(item, config, arms_config, geometry, device="cpu")
+                                device=device, max_events=200)
+    arm = er.item_arm(item, config, arms_config, geometry, device=device)
     via_arm = lr.evaluate_arm_run(arm, arm_name=es.ARM_NAME, cell=lr.dev_cell(config),
                                   geometry=geometry, probe_datasets=probes,
-                                  config=config, device=torch.device("cpu"),
+                                  config=config, device=device,
                                   mask_seed=int(config["views"]["mask_seed"]),
                                   max_events=200, save_embeddings=False)
     assert via_item["forms"]["full_input"]["vertex_resolution_m"] == pytest.approx(
