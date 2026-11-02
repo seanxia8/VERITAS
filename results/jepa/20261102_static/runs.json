@@ -1,0 +1,172 @@
+{
+ "registered": false,
+ "extension": "static_target_2026-11-02",
+ "manipulation": {
+  "checks": {
+   "event_columns_zero": true,
+   "geometry_columns_unchanged": true,
+   "original_features_unchanged": true
+  },
+  "label_event_fraction": 3.874821790132638e-16,
+  "label_event_fraction_max": 0.001,
+  "per_pmt_variance": 2.0026812886917953,
+  "static_deviation_max_abs": 0.0,
+  "n_events": 32,
+  "n_tokens": 1995,
+  "pass": true,
+  "reasons": [],
+  "note": "within + natural occupancy; the target-only label is a function of the fixed PMT geometry only (\u00a72)",
+  "registered": false,
+  "extension": "static_target_2026-11-02",
+  "check": "\u00a72 manipulation check (implementation guard)",
+  "batch": {
+   "step": 0,
+   "n_events": 32,
+   "label": "TrainingLoader.batch_at(0), seed 9000"
+  },
+  "splits": {
+   "split": "within",
+   "occupancy": "natural",
+   "cell_id": "dev_s005_within",
+   "pass": true
+  }
+ },
+ "splits": {
+  "split": "within",
+  "occupancy": "natural",
+  "cell_id": "dev_s005_within",
+  "pass": true
+ },
+ "runs": {
+  "9000": {
+   "variant": "static_target",
+   "seed": 9000,
+   "run_id": "dev_s005_within__sigreg_jepa__s9000",
+   "wall_seconds": 1405.203,
+   "checkpoint_sha256": "694f0661aa5a3551ae59960aa5c1eaebf83fbe9cc148911ab1ab214c5b3d4a5c",
+   "resumed_from_step": 0,
+   "full_input": {
+    "vertex_resolution_m": 0.16037354751510677,
+    "token_log_charge_r2": {
+     "r2": 0.9539324823859915,
+     "alpha": 0.01,
+     "n_train": 108800,
+     "n_test": 108800,
+     "status": "evaluated"
+    },
+    "effective_rank": 5.7063356853458345,
+    "participation_ratio": 3.628573148987559,
+    "event_sigreg": 1544.0780700826967,
+    "module_gain_r2": {
+     "status": "evaluated",
+     "value": 0.07031337226022771,
+     "source": "module_gain::run_mean",
+     "r2": [
+      0.07031337226022771
+     ],
+     "n_train": 21000,
+     "n_test": 21000
+    },
+    "f_layout": 0.8760942289813932,
+    "f_event": 0.01707643139484543
+   },
+   "half_pass": {
+    "vertex_resolution_m": 0.14606260060825346,
+    "token_log_charge_r2": {
+     "r2": 0.8946292614385372,
+     "alpha": 1.0,
+     "n_train": 108800,
+     "n_test": 108800,
+     "status": "evaluated"
+    },
+    "effective_rank": 10.095878541471802
+   },
+   "baselines": {
+    "init_full_input_vertex_m": 0.16007169092238768,
+    "init_half_pass_vertex_m": 0.17482124528478005
+   }
+  },
+  "9001": {
+   "variant": "static_target",
+   "seed": 9001,
+   "run_id": "dev_s005_within__sigreg_jepa__s9001",
+   "wall_seconds": 1403.121,
+   "checkpoint_sha256": "1c3426d26dd3a96afb84f87a5a93ea9596fe710baefb3edda84b678cb11d11bb",
+   "resumed_from_step": 0,
+   "full_input": {
+    "vertex_resolution_m": 0.16114796969023654,
+    "token_log_charge_r2": {
+     "r2": 0.9588269691861259,
+     "alpha": 0.0001,
+     "n_train": 108800,
+     "n_test": 108800,
+     "status": "evaluated"
+    },
+    "effective_rank": 6.443624813010551,
+    "participation_ratio": 4.081380090223747,
+    "event_sigreg": 1219.538458815527,
+    "module_gain_r2": {
+     "status": "evaluated",
+     "value": 0.11129871040493455,
+     "source": "module_gain::run_mean",
+     "r2": [
+      0.11129871040493455
+     ],
+     "n_train": 21000,
+     "n_test": 21000
+    },
+    "f_layout": 0.8360273189046521,
+    "f_event": 0.017265098291108307
+   },
+   "half_pass": {
+    "vertex_resolution_m": 0.15265689550372075,
+    "token_log_charge_r2": {
+     "r2": 0.8613232937700263,
+     "alpha": 1.0,
+     "n_train": 108800,
+     "n_test": 108800,
+     "status": "evaluated"
+    },
+    "effective_rank": 10.886729404078721
+   },
+   "baselines": {
+    "init_full_input_vertex_m": 0.16007169092238768,
+    "init_half_pass_vertex_m": 0.17482124528478005
+   }
+  }
+ },
+ "reading": {
+  "registered": false,
+  "extension": "static_target_2026-11-02",
+  "id": "static_target_r",
+  "question": "does an event-invariant (frozen static) target alone prevent learning? (two-sided descriptive contrast against E3)",
+  "criteria": "recovered: both seeds full vertex < 0.160072, full token R2 >= 0.5, half vertex < 0.174821, half token R2 >= 0.5; not recovered: both seeds full vertex >= 0.160072 or full token R2 < 0.5",
+  "verdict": "not recovered",
+  "direction": "not recovered (cannot distinguish staticity from a mere absence of target event-information; two-sided descriptive contrast against E3)",
+  "seeds": {
+   "9000": {
+    "full_input_vertex_m": 0.16037354751510677,
+    "full_input_token_r2": 0.9539324823859915,
+    "half_pass_vertex_m": 0.14606260060825346,
+    "half_pass_token_r2": 0.8946292614385372,
+    "full_criterion": "failed",
+    "recovers": false,
+    "fails": true
+   },
+   "9001": {
+    "full_input_vertex_m": 0.16114796969023654,
+    "full_input_token_r2": 0.9588269691861259,
+    "half_pass_vertex_m": 0.15265689550372075,
+    "half_pass_token_r2": 0.8613232937700263,
+    "full_criterion": "failed",
+    "recovers": false,
+    "fails": true
+   }
+  },
+  "floors": {
+   "full_input_m": 0.160072,
+   "half_pass_m": 0.174821,
+   "charge_r2_min": 0.5
+  }
+ }
+}

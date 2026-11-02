@@ -1,12 +1,12 @@
 {
  "version": 1,
- "status": "readout_q1q2_h12_position_and_code_origin_complete_h1clean_stopped_20261102",
+ "status": "static_target_complete_h1clean_stopped_20261102",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 104.634556,
+   "charged_gpu_hours": 105.644356,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -77,7 +77,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 14.595639,
+   "charged_wall_hours": 14.995639,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -2868,6 +2868,51 @@
    "wall_seconds": 1260.0,
    "evidence": "/ceph/dwong/jepa/returns/ext_h12_20261101/{e0e1_code_origin.json,logs/code_origin.log} and results/jepa/20261101_h12/e0e1_code_origin.json",
    "note": "Analysis addendum only (0 training): e0e1 --code-origin (per-PMT fixed-feature probes of the invariant component m_p, linear/MLP/kNN, 80/20 split by PMT) and the full jepa_noise suite 580 passed in 596.92 s on the deployed SHA; conservative CPU charge 0.35 h, no GPU."
+  },
+  {
+   "id": "static_target_l40s_runs",
+   "campaign": "static_target_2026-11-02",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.05,
+   "gpu_hours": 0.9894,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "f382ad173b2d9900e86b121b92f91e9f4fa4ec77",
+   "wall_seconds": 3561.9,
+   "evidence": "/ceph/dwong/jepa/returns/ext_static_20261102/{train,eval,smoke}/runs/*/ext_summary.json + /ceph/dwong/jepa/jobs/static_*",
+   "note": "One 20-step smoke (220.45 s), the two approved static-target runs (seeds 9000/9001, 1424.67 s / 1426.32 s) and one evaluation job (490.46 s); all exit 0, max 2 concurrent one per GPU, every launch guard-gated."
+  },
+  {
+   "id": "static_target_failed_smoke",
+   "campaign": "static_target_2026-11-02",
+   "registered": false,
+   "host": "deepthought2",
+   "device": "L40S",
+   "cpu_generation_wall_hours_conservative": 0.01,
+   "gpu_hours": 0.0204,
+   "status": "failed",
+   "exit_status": 1,
+   "code_sha": "c4dfb1902e73a6f313f4b67e55a1004b442f9c49",
+   "wall_seconds": 73.38,
+   "evidence": "/ceph/dwong/jepa/returns/ext_static_20261102/smoke_archive/dev_s005_within__sigreg_jepa__s9000__failed_postcheck_*",
+   "note": "First smoke attempt completed its 20 steps (checkpoint + finite train log) but the post-run fresh-start assertion rejected the runner's null resumed_from_step; the run directory was archived inside the extension and the smoke relaunched on the fixed SHA (no resume). Conservatively charged."
+  },
+  {
+   "id": "static_target_cpu_track",
+   "campaign": "static_target_2026-11-02",
+   "registered": false,
+   "host": "deepthought+deepthought2",
+   "device": "CPU",
+   "cpu_generation_wall_hours_conservative": 0.34,
+   "gpu_hours": 0.0,
+   "status": "complete",
+   "exit_status": 0,
+   "code_sha": "f382ad173b2d9900e86b121b92f91e9f4fa4ec77",
+   "wall_seconds": 1500.0,
+   "evidence": "/ceph/dwong/jepa/returns/ext_static_20261102/{plan.json,logs,results_static}",
+   "note": "Dry-run (data preflight + split pin + manipulation check), report and the full jepa_noise suite 589 passed in 600.08 s on deepthought; conservative CPU charge 0.40 h total for the campaign, no GPU."
   }
  ]
 }

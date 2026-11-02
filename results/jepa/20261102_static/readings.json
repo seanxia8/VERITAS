@@ -1,0 +1,38 @@
+{
+ "registered": false,
+ "extension": "static_target_2026-11-02",
+ "static_target_r": {
+  "registered": false,
+  "extension": "static_target_2026-11-02",
+  "id": "static_target_r",
+  "question": "does an event-invariant (frozen static) target alone prevent learning? (two-sided descriptive contrast against E3)",
+  "criteria": "recovered: both seeds full vertex < 0.160072, full token R2 >= 0.5, half vertex < 0.174821, half token R2 >= 0.5; not recovered: both seeds full vertex >= 0.160072 or full token R2 < 0.5",
+  "verdict": "not recovered",
+  "direction": "not recovered (cannot distinguish staticity from a mere absence of target event-information; two-sided descriptive contrast against E3)",
+  "seeds": {
+   "9000": {
+    "full_input_vertex_m": 0.16037354751510677,
+    "full_input_token_r2": 0.9539324823859915,
+    "half_pass_vertex_m": 0.14606260060825346,
+    "half_pass_token_r2": 0.8946292614385372,
+    "full_criterion": "failed",
+    "recovers": false,
+    "fails": true
+   },
+   "9001": {
+    "full_input_vertex_m": 0.16114796969023654,
+    "full_input_token_r2": 0.9588269691861259,
+    "half_pass_vertex_m": 0.15265689550372075,
+    "half_pass_token_r2": 0.8613232937700263,
+    "full_criterion": "failed",
+    "recovers": false,
+    "fails": true
+   }
+  },
+  "floors": {
+   "full_input_m": 0.160072,
+   "half_pass_m": 0.174821,
+   "charge_r2_min": 0.5
+  }
+ }
+}

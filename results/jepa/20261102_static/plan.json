@@ -1,0 +1,97 @@
+{
+ "registered": false,
+ "extension": "static_target_2026-11-02",
+ "mode": "dry-run",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-02_STATIC_TARGET.md (revision 2)",
+ "code_sha": "c4dfb1902e73a6f313f4b67e55a1004b442f9c49",
+ "git_status": "",
+ "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+ "wall_seconds": 19.635,
+ "gate": {
+  "authorised": true,
+  "runbook": "/ceph/dwong/jepa/code/c4dfb19/docs/jepa/RUNBOOK_2026-11-02_STATIC_TARGET.md",
+  "runbook_sha256": "516e408e8ba35d4f1de475afefb4420e726a3386d0824a7462c20414ddb5b456",
+  "decisions": "/ceph/dwong/jepa/code/c4dfb19/docs/jepa/DECISIONS.md",
+  "author_line": "frozen static-target \u53d8\u4f53\u8bad\u7ec3 \u6211\u6388\u6743"
+ },
+ "data": {
+  "registered": false,
+  "extension": "h12_causal_2026-11-01",
+  "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+  "check": "\u00a73.4 read-only development datasets",
+  "sets": {
+   "dev_train__F1__0.05__s20261017__n100000x1000": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_train__F1__0.05__s20261017__n100000x1000",
+    "key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "expected_sha256": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "pass": true
+   },
+   "dev_probe_train__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017",
+    "key": "dev_probe_train__F1__0.05__s20261017",
+    "expected_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017",
+    "key": "dev_probe_test__F1__0.05__s20261017",
+    "expected_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "pass": true
+   }
+  },
+  "regenerated": false,
+  "pass": true,
+  "regeneration": "forbidden (\u00a73.4: stop and report if absent/different)"
+ },
+ "splits": {
+  "split": "within",
+  "occupancy": "natural",
+  "cell_id": "dev_s005_within",
+  "pass": true
+ },
+ "readout": {
+  "readout_ext": "/ceph/dwong/jepa/returns/ext_readout_20261101",
+  "items_json": "/ceph/dwong/jepa/returns/ext_readout_20261101/items.json",
+  "items_json_exists": true,
+  "readout_ext_exists": true
+ },
+ "manipulation": {
+  "checks": {
+   "event_columns_zero": true,
+   "geometry_columns_unchanged": true,
+   "original_features_unchanged": true
+  },
+  "label_event_fraction": 3.874821790132638e-16,
+  "label_event_fraction_max": 0.001,
+  "per_pmt_variance": 2.0026812886917953,
+  "static_deviation_max_abs": 0.0,
+  "n_events": 32,
+  "n_tokens": 1995,
+  "pass": true,
+  "reasons": [],
+  "note": "within + natural occupancy; the target-only label is a function of the fixed PMT geometry only (\u00a72)",
+  "registered": false,
+  "extension": "static_target_2026-11-02",
+  "check": "\u00a72 manipulation check (implementation guard)",
+  "batch": {
+   "step": 0,
+   "n_events": 32,
+   "label": "TrainingLoader.batch_at(0), seed 9000"
+  },
+  "splits": {
+   "split": "within",
+   "occupancy": "natural",
+   "cell_id": "dev_s005_within",
+   "pass": true
+  }
+ }
+}
