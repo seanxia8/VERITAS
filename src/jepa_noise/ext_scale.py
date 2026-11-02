@@ -340,6 +340,27 @@ def load_cohort_and_probes(config, gen, geometry, data_root, *, code_sha, log=pr
     return cohort, train_ds, probes, probe_info
 
 
+def loader_config(config: dict, n_runs: int) -> dict:
+    """In-memory training config whose tokenised-run cache covers the whole cohort.
+
+    The registered config caches 128 tokenised runs.  With a 300-run cohort the
+    random 8-run choice per batch misses the cache ~57 % of the time and tokenising
+    a fresh run (~0.25 s) dominates the step time (>1.9 s/step, far outside the
+    per-run cap).  Raising ``data.loader_cache_runs`` to the cohort size tokenises
+    every run once (about 75 s of warm-up) and leaves the sampling protocol, batch
+    composition, hyper-parameters and the frozen config file untouched; ``run_one``
+    still records the config file's sha256.
+    """
+    n_runs = int(n_runs)
+    current = int(config["data"].get("loader_cache_runs", 12))
+    if n_runs <= current:
+        return config
+    import copy
+    out = copy.deepcopy(config)
+    out["data"]["loader_cache_runs"] = n_runs
+    return out
+
+
 def run_one_training(*, seed, out_root, config, gen, arms_config, geometry, device,
                      data_root, config_path, code_sha, status_text, steps=None,
                      probe_max_events=None, log=print) -> dict:
@@ -351,11 +372,12 @@ def run_one_training(*, seed, out_root, config, gen, arms_config, geometry, devi
     if scheduled != 20 and scheduled != STEPS:
         raise ValueError(f"scale training is authorised only for {STEPS} steps "
                          f"(or the 20-step smoke), got {scheduled}")
+    run_config = loader_config(config, len(train_ds.runs))
     run_id, run_dir = prepare_run_dir(out_root, seed, steps=scheduled, device=device)
     started = __import__("time").time()
     result = lr.run_one(
         arm_name=ARM_NAME, cell=lr.dev_cell(config), seed=int(seed), beta=None,
-        config=config, arms_config=arms_config, geometry=geometry,
+        config=run_config, arms_config=arms_config, geometry=geometry,
         loader_dataset=train_ds, probe_datasets=probes, dark_bank=None,
         out_root=Path(out_root), data_root=Path(data_root),
         config_sha=lr.sha256_file(config_path), code_sha=code_sha,
@@ -371,6 +393,8 @@ def run_one_training(*, seed, out_root, config, gen, arms_config, geometry, devi
                             steps=scheduled, resumed_from_step=resumed,
                             cohort=cohort)
     summary["smoke"] = scheduled == 20
+    summary["loader_cache_runs"] = int(run_config["data"].get("loader_cache_runs", 12))
+    summary["cohort_runs"] = int(len(train_ds.runs))
     summary["probes_preflight"] = {"pass": probe_info["preflight"].get("pass")}
     (run_dir / "ext_summary.json").write_text(json.dumps(summary, indent=1,
                                                          default=float) + "\n")

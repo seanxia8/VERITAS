@@ -135,9 +135,11 @@ def test_load_run_config_rejects_30000_steps_but_run_one_accepts_the_override(
         return {"run_dir": run_dir, "manifest": {}}
 
     monkeypatch.setattr(es, "assert_authorised", lambda root=None: {"authorised": True})
+    import types
     monkeypatch.setattr(es, "load_cohort_and_probes",
                         lambda *a, **k: ({"key": "k", "manifest_sha256": "a" * 64,
-                                          "validation": {"pass": True}}, None, {},
+                                          "validation": {"pass": True}},
+                                         types.SimpleNamespace(runs=[{}] * 300), {},
                                          {"preflight": {"pass": True}}))
     monkeypatch.setattr(es, "prepare_run_dir", fake_prepare)
     monkeypatch.setattr(lr, "run_one", fake_run_one)
@@ -286,3 +288,14 @@ def test_smoke_level_training_is_finite():
     metrics = arm._forward_sigreg(batch)["metrics"]
     assert all(np.isfinite(float(value)) for value in metrics.values())
     assert es.STEPS == 30000 and es.CONFIG_STEPS == 10000
+
+
+def test_loader_cache_override_covers_the_300_run_cohort():
+    config = lr.load_run_config(
+        ROOT / "src/jepa_noise/configs/lucid_run_v0_mixed_calibrated.json")
+    assert int(config["data"]["loader_cache_runs"]) == 128
+    overridden = es.loader_config(config, 300)
+    assert int(overridden["data"]["loader_cache_runs"]) == 300
+    assert int(config["data"]["loader_cache_runs"]) == 128        # frozen config untouched
+    assert overridden["training"] == config["training"]
+    assert es.loader_config(config, 100) is config                 # small cohorts unaffected
