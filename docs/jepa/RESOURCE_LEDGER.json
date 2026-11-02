@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 105.644356,
+   "charged_gpu_hours": 110.912,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -57,6 +57,14 @@
     "remaining_extension_projection_gpu_hours": 0.0,
     "ledger_plus_remaining_projection_with_reservations_gpu_hours": 142.33823966666665,
     "extension_charged_gpu_hours": 7.361116666666666
+   },
+   "scale_20261102": {
+    "registered": false,
+    "runs_gpu_hours": 4.2304,
+    "evaluation_gpu_hours": 0.2022,
+    "wasted_gpu_hours": 0.835,
+    "charged_total_gpu_hours": 5.267644,
+    "method": "two successful 30k-step runs (6967.12+8262.31 s), one evaluation job (727.86 s), five interrupted/aborted attempts + smoke (0.835 h); all included"
    }
   },
   "E2_lucid_titan_deepthought": {
@@ -77,7 +85,7 @@
   },
   "lucid_generation_cpu": {
    "cap_wall_hours": 48,
-   "charged_wall_hours": 14.995639,
+   "charged_wall_hours": 16.675639,
    "cores_at_most": 16,
    "note_dev_dataset_generation": "dev cohort data generated read-once and cached in /ceph/dwong/jepa/data/lucid_r6_v2 (dev_train 100 runs x 1000 events ~528 s in wp5_lucid_dev_step2; dev_probe_train remaining 120 runs ~72 s and dev_probe_test 200 runs ~59 s in wp5_lucid_dev_step2_v2 = 0.1906 h total, single-threaded (OMP=1), 1 core). Cache is code-sha-independent and reused by all later dev and grid runs.",
    "note_regeneration_s_p010": "s_p=0.10 regeneration into the fresh root 2026-10-18 11:48-11:59Z (dev_train 100 runs + dev_probe_train/test 200+200 runs; ~11.0 min, 0.1832 h, single-threaded, 1 core); old s_p=0.05 cache kept at /ceph/dwong/jepa/data/lucid_r6_v2/lucid__sp005_superseded",
@@ -87,7 +95,8 @@
    "m_dose_20261030_note": "Ten-level extension charged conservatively at 1.533 h CPU (suite 0.188, focused 0.017, toy 0.03, in-memory dry run 0.08, deployment 0.05, ten levels 1.168); GPU 0. The 48 h generation cap remains far from binding.",
    "timing_20261030_note": "Timing extension charged conservatively at 1.08 h CPU (Part A 0.02, de-jitter 0.36 incl. one failed attempt, Part B 0.39, full suite 0.20, focused tests 0.03, deploy 0.05, report 0.03); GPU 0. The 48 h generation cap remains far from binding.",
    "dejitter_20261030_note": "De-jitter extension charged 1.30 h CPU wall (suite 724 s + Part 1/linear CPU track incl. 8-way parallel workers), 0.316 Titan GPU-h (two floors) and 5.394 L40S GPU-h (smoke + six runs + one failed launch attempt). Ledger L40S 97.165/170 h, Titan 17.022 h, generation 10.746/48 h.",
-   "mae_dejitter_20261031_note": "MAE de-jitter extension booked 1.28 h CPU wall (two suites 0.33 h + regeneration/sensitivity/token-time chain ~0.95 h), 4.6343 L40S GPU-h (smoke + eight MAE runs), 0 Titan. Ledger L40S 101.799/170 h, generation 12.026/48 h; extension storage 166 MB / 246 entries, free entries 33 953."
+   "mae_dejitter_20261031_note": "MAE de-jitter extension booked 1.28 h CPU wall (two suites 0.33 h + regeneration/sensitivity/token-time chain ~0.95 h), 4.6343 L40S GPU-h (smoke + eight MAE runs), 0 Titan. Ledger L40S 101.799/170 h, generation 12.026/48 h; extension storage 166 MB / 246 entries, free entries 33 953.",
+   "scale_20261102_cohort_hours": 1.68
   },
   "e1_cpu_wall_hours": {
    "cap_wall_hours": 24,

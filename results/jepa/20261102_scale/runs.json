@@ -1,0 +1,106 @@
+{
+ "registered": false,
+ "extension": "scale_2026-11-02",
+ "cohort": {
+  "expected_key": "dev_train_300k__F1__0.05__s20261017__n300000x1000",
+  "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_train_300k__F1__0.05__s20261017__n300000x1000",
+  "present": true,
+  "manifest_sha256": "9a9dbe81ba63cea1c2ccad27e3d5cce7df9cb6e99faf0a9b340c6cec18c23a4a",
+  "validation": {
+   "key": "dev_train_300k__F1__0.05__s20261017__n300000x1000",
+   "checks": {
+    "key": true,
+    "n_events": true,
+    "n_runs": true,
+    "run_length": true,
+    "registered_false": true,
+    "event_start": true,
+    "law": true,
+    "setting": true
+   },
+   "pass": true,
+   "namespace": "lucid/dev_train_300k",
+   "event_start": 1300000,
+   "n_events": 300000,
+   "n_runs": 300,
+   "run_length": 1000,
+   "registered": false
+  }
+ },
+ "runs": {
+  "9000": {
+   "seed": 9000,
+   "wall_seconds": 6968.168,
+   "steps": 30000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "cohort_manifest_sha256": "9a9dbe81ba63cea1c2ccad27e3d5cce7df9cb6e99faf0a9b340c6cec18c23a4a",
+   "checkpoint_sha256": "218288c491030f3317c6ce3aad09a6e55d786446b2b606cdadb08fbfc8ef8fca",
+   "full_input": {
+    "vertex_m": 0.32583963002509053,
+    "token_charge_r2": 0.003164489640650081
+   },
+   "half_pass": {
+    "vertex_m": 0.32064313823295404,
+    "token_charge_r2": 5.6254649260512046e-05
+   },
+   "f_layout": 1.000329916250894,
+   "f_event": 9.946653175764994e-07,
+   "eff_rank": 4.883308474542325
+  },
+  "9001": {
+   "seed": 9001,
+   "wall_seconds": 8264.392,
+   "steps": 30000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "cohort_manifest_sha256": "9a9dbe81ba63cea1c2ccad27e3d5cce7df9cb6e99faf0a9b340c6cec18c23a4a",
+   "checkpoint_sha256": "07b0b7be8c2284274d3c43ed51cfbf69480962fe5197395a0842236b424d130c",
+   "full_input": {
+    "vertex_m": 0.2763139177800975,
+    "token_charge_r2": 0.004141043051729354
+   },
+   "half_pass": {
+    "vertex_m": 0.3191106659667583,
+    "token_charge_r2": 0.0002499630614832826
+   },
+   "f_layout": 1.0003300617880144,
+   "f_event": 1.2147389020573518e-06,
+   "eff_rank": 5.289363991051416
+  }
+ },
+ "reading": {
+  "registered": false,
+  "extension": "scale_2026-11-02",
+  "id": "scale_r",
+  "question": "is the collapse a scale artifact? (two-sided, both seeds)",
+  "criteria": {
+   "floors": {
+    "full_input_m": 0.160072,
+    "half_pass_m": 0.174821
+   },
+   "charge_r2_min": 0.5,
+   "rule": "recovered: both seeds full vertex < 0.160072, full token R2 >= 0.5, half vertex < 0.174821, half token R2 >= 0.5; not recovered: both seeds full vertex >= 0.160072 or full token R2 < 0.5"
+  },
+  "verdict": "not recovered",
+  "direction": "not recovered: the collapse persists at 3x data and 3x steps (optional pre-declared follow-up: 300k events at 10k steps)",
+  "per_seed": {
+   "9000": {
+    "full_input_vertex_m": 0.32583963002509053,
+    "full_input_token_r2": 0.003164489640650081,
+    "half_pass_vertex_m": 0.32064313823295404,
+    "half_pass_token_r2": 5.6254649260512046e-05,
+    "recovers": false,
+    "fails": true
+   },
+   "9001": {
+    "full_input_vertex_m": 0.2763139177800975,
+    "full_input_token_r2": 0.004141043051729354,
+    "half_pass_vertex_m": 0.3191106659667583,
+    "half_pass_token_r2": 0.0002499630614832826,
+    "recovers": false,
+    "fails": true
+   }
+  }
+ }
+}

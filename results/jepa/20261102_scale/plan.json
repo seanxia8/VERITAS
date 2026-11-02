@@ -1,0 +1,104 @@
+{
+ "registered": false,
+ "extension": "scale_2026-11-02",
+ "mode": "dry-run",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-02_SCALE.md",
+ "code_sha": "57295c46f831b97df26589616c13c549d6a5a012",
+ "git_status": "",
+ "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+ "steps": 30000,
+ "config_steps": 10000,
+ "wall_seconds": 1.031,
+ "floors": {
+  "full": 0.160072,
+  "half": 0.174821
+ },
+ "gate": {
+  "authorised": true,
+  "runbook": "/ceph/dwong/jepa/code/57295c4/docs/jepa/RUNBOOK_2026-11-02_SCALE.md",
+  "runbook_sha256": "073d1532eb603565b7deede465161c924d8eb1195b9b15dc1dad322e2d8a1c70",
+  "decisions": "/ceph/dwong/jepa/code/57295c4/docs/jepa/DECISIONS.md",
+  "author_line": "B \u7684\u4e0b\u4e00\u6279\u8bad\u7ec3\u6211\u5168\u90e8\u6388\u6743",
+  "b4a_row": "| B4a | scale\uff1a300k events / 30k steps\uff0c2 seeds | 2 | 3\u00d70.6 + eval 0.15 | **\u22483.9** |"
+ },
+ "cohort": {
+  "expected_key": "dev_train_300k__F1__0.05__s20261017__n300000x1000",
+  "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_train_300k__F1__0.05__s20261017__n300000x1000",
+  "present": true,
+  "manifest_sha256": "9a9dbe81ba63cea1c2ccad27e3d5cce7df9cb6e99faf0a9b340c6cec18c23a4a",
+  "validation": {
+   "key": "dev_train_300k__F1__0.05__s20261017__n300000x1000",
+   "checks": {
+    "key": true,
+    "n_events": true,
+    "n_runs": true,
+    "run_length": true,
+    "registered_false": true,
+    "event_start": true,
+    "law": true,
+    "setting": true
+   },
+   "pass": true,
+   "namespace": "lucid/dev_train_300k",
+   "event_start": 1300000,
+   "n_events": 300000,
+   "n_runs": 300,
+   "run_length": 1000,
+   "registered": false
+  }
+ },
+ "probes": {
+  "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+  "sets": {
+   "dev_probe_train__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017",
+    "exists": true,
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017/manifest.json",
+    "exists_manifest": true,
+    "expected_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017",
+    "exists": true,
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017/manifest.json",
+    "exists_manifest": true,
+    "expected_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "pass": true
+   }
+  },
+  "regeneration": "forbidden",
+  "dev_train_100k": {
+   "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_train__F1__0.05__s20261017",
+   "exists_manifest": true
+  },
+  "pass": true
+ },
+ "readout": {
+  "readout_ext": "/ceph/dwong/jepa/returns/ext_readout_20261101",
+  "items": "/ceph/dwong/jepa/returns/ext_readout_20261101/items.json",
+  "items_exists": true
+ },
+ "entries": {
+  "live": {
+   "free_entries": 44949,
+   "guard_level": "OK",
+   "guard_reasons": [],
+   "guard_timestamp": "2026-11-02T21:13:59Z",
+   "guard_json": "/ceph/dwong/jepa/jobs/guard_deepthought2.json"
+  },
+  "projection": {
+   "free_before": 44949,
+   "cohort": 1812,
+   "clone": 3059,
+   "suite": 1825,
+   "extension": 1000,
+   "projected_after": 37253,
+   "floor": 30000,
+   "pass": true
+  },
+  "pass": true
+ }
+}

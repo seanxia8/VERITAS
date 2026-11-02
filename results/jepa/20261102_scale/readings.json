@@ -1,0 +1,32 @@
+{
+ "registered": false,
+ "extension": "scale_2026-11-02",
+ "criteria": {
+  "floors": {
+   "full_input_m": 0.160072,
+   "half_pass_m": 0.174821
+  },
+  "charge_r2_min": 0.5,
+  "rule": "recovered: both seeds full vertex < 0.160072, full token R2 >= 0.5, half vertex < 0.174821, half token R2 >= 0.5; not recovered: both seeds full vertex >= 0.160072 or full token R2 < 0.5"
+ },
+ "verdict": "not recovered",
+ "per_seed": {
+  "9000": {
+   "full_input_vertex_m": 0.32583963002509053,
+   "full_input_token_r2": 0.003164489640650081,
+   "half_pass_vertex_m": 0.32064313823295404,
+   "half_pass_token_r2": 5.6254649260512046e-05,
+   "recovers": false,
+   "fails": true
+  },
+  "9001": {
+   "full_input_vertex_m": 0.2763139177800975,
+   "full_input_token_r2": 0.004141043051729354,
+   "half_pass_vertex_m": 0.3191106659667583,
+   "half_pass_token_r2": 0.0002499630614832826,
+   "recovers": false,
+   "fails": true
+  }
+ },
+ "direction": "not recovered: the collapse persists at 3x data and 3x steps (optional pre-declared follow-up: 300k events at 10k steps)"
+}
