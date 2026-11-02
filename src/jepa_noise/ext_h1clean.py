@@ -181,9 +181,11 @@ def prepare_run_dir(out_root, seed, *, sigma: float = SIGMA, steps=None,
 
 def assert_fresh_resume(status: dict, run_id: str = "") -> int:
     """The run must not have resumed: ``_checkpoint`` does not save the global RNG."""
-    resumed = status.get("resumed_from_step")
-    if resumed is None:
+    if "resumed_from_step" not in status:
         raise RuntimeError(f"{run_id}: run status has no resumed_from_step")
+    resumed = status["resumed_from_step"]
+    # a fresh run records null (no resume); any positive step is a resumed run
+    resumed = 0 if resumed is None else int(resumed)
     if int(resumed) != 0:
         raise RuntimeError(f"{run_id}: resumed_from_step={resumed} != 0; the query-noise "
                            f"stream cannot be replayed from a checkpoint")

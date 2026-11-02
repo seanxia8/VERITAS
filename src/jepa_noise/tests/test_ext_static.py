@@ -235,8 +235,11 @@ def test_run_dir_refusal_and_fresh_resume(tmp_path):
         es.prepare_run_dir(tmp_path / "train", 9000)
     from jepa_noise import ext_h1clean as ec
     assert ec.assert_fresh_resume({"resumed_from_step": 0}) == 0
+    assert ec.assert_fresh_resume({"resumed_from_step": None}) == 0   # fresh run
     with pytest.raises(RuntimeError, match="resumed_from_step"):
         ec.assert_fresh_resume({"resumed_from_step": 5})
+    with pytest.raises(RuntimeError, match="resumed_from_step"):
+        ec.assert_fresh_resume({})
 
 
 # ------------------------------------------------------ smoke training finite (7)
