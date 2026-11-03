@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 116.113,
+   "charged_gpu_hours": 116.1507,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -2945,13 +2945,13 @@
    "host": "deepthought2",
    "device": "L40S",
    "cpu_generation_wall_hours_conservative": 0.02,
-   "gpu_hours": 0.5899,
+   "gpu_hours": 0.6276,
    "status": "complete",
    "exit_status": 0,
    "code_sha": "eafbce6b3d0e9f6d1692cc005e9f825a967537d4",
-   "wall_seconds": 2123.5,
+   "wall_seconds": 2259.5,
    "evidence": "/ceph/dwong/jepa/returns/ext_arch_20261102/{smoke,eval,logs}/ + /ceph/dwong/jepa/jobs/arch_*",
-   "note": "One 20-step window128 seed-9000 smoke (256.9 s) and the per-variant evaluation jobs (1 866.6 s incl. the first round that exited 1 after writing complete eval data due to the variants.json helper-call bug; window128/window32 clean re-runs exit 0)."
+   "note": "One 20-step window128 seed-9000 smoke (256.9 s) and the per-variant evaluation jobs (2 002.6 s: first round exited 1 after writing complete eval data due to the variants.json helper-call bug; window128/window32/pred4 clean re-runs on the final SHA all exit 0)."
   },
   {
    "id": "arch_cpu_track",
