@@ -1,0 +1,129 @@
+{
+ "registered": false,
+ "extension": "view_design_2026-11-03",
+ "criteria": {
+  "floors": {
+   "full": 0.160072,
+   "half": 0.174821,
+   "charge_r2_min": 0.5
+  },
+  "rule": "recovered: both seeds full vertex strictly < 0.160072 m, full token ln q R2 >= 0.5, half vertex < 0.174821 m, half token R2 >= 0.5; not recovered: for each seed full vertex >= 0.160072 m or full token R2 < 0.5 (both seeds); else unclear"
+ },
+ "splits": {
+  "within": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.219283733629407,
+     "full_input_token_r2": 0.016902015519968394,
+     "half_pass_vertex_m": 0.32026297658003117,
+     "half_pass_token_r2": 0.0004631058605711891,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.20656192321745306,
+     "full_input_token_r2": 0.05424856171707815,
+     "half_pass_vertex_m": 0.2828706355586785,
+     "half_pass_token_r2": 0.001574335971318841,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "across": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.34938176004504273,
+     "full_input_token_r2": 0.0008039997128985732,
+     "half_pass_vertex_m": 0.3121764326300807,
+     "half_pass_token_r2": 0.0022255122177162745,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.3202868212946504,
+     "full_input_token_r2": 0.0013668167429006228,
+     "half_pass_vertex_m": 0.28612082546550976,
+     "half_pass_token_r2": 0.0022030244817630162,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "module_parity": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.185144299483132,
+     "full_input_token_r2": 0.07309987136110507,
+     "half_pass_vertex_m": 0.22034186456664465,
+     "half_pass_token_r2": 0.07370548431724355,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.16488757262769166,
+     "full_input_token_r2": 0.19299542378176027,
+     "half_pass_vertex_m": 0.19997736215915318,
+     "half_pass_token_r2": 0.10034766971026765,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "random_half": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.21606644477156614,
+     "full_input_token_r2": 0.01749481486803517,
+     "half_pass_vertex_m": 0.29409787482701083,
+     "half_pass_token_r2": 0.002336126458894805,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.1812047293992918,
+     "full_input_token_r2": 0.07938436430491314,
+     "half_pass_vertex_m": 0.22078987963368557,
+     "half_pass_token_r2": 0.0068098896124374475,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  }
+ },
+ "ranking": [
+  {
+   "split": "module_parity",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.17501593605541182,
+   "max_full_vertex_m": 0.185144299483132,
+   "min_full_vertex_m": 0.16488757262769166
+  },
+  {
+   "split": "random_half",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.19863558708542897,
+   "max_full_vertex_m": 0.21606644477156614,
+   "min_full_vertex_m": 0.1812047293992918
+  },
+  {
+   "split": "within",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.21292282842343002,
+   "max_full_vertex_m": 0.219283733629407,
+   "min_full_vertex_m": 0.20656192321745306
+  },
+  {
+   "split": "across",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.3348342906698466,
+   "max_full_vertex_m": 0.34938176004504273,
+   "min_full_vertex_m": 0.3202868212946504
+  }
+ ],
+ "recommendation": "no split in this set makes the physics learnable at the development budget; the view is not the lever (the target-content mechanism is) \u2014 best-ranked is module_parity (mean full vertex 0.175016 m), still above the floor"
+}

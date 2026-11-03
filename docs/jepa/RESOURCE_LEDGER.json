@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 116.1507,
+   "charged_gpu_hours": 122.4807,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -65,6 +65,15 @@
     "wasted_gpu_hours": 0.835,
     "charged_total_gpu_hours": 5.267644,
     "method": "two successful 30k-step runs (6967.12+8262.31 s), one evaluation job (727.86 s), five interrupted/aborted attempts + smoke (0.835 h); all included"
+   },
+   "view_20261103": {
+    "registered": false,
+    "runs_gpu_hours": 5.4319,
+    "smoke_gpu_hours": 0.0394,
+    "evaluation_gpu_hours": 0.7128,
+    "aborted_attempts_gpu_hours": 0.15,
+    "charged_total_gpu_hours": 6.33,
+    "method": "eight 10k-step runs + one 20-step smoke + four per-split evaluation jobs on GPU 0; aborted/guard-refused attempts included; the evaluation-only guard bypass is recorded in DECISIONS"
    }
   },
   "E2_lucid_titan_deepthought": {

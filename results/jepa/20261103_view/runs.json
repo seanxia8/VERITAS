@@ -1,0 +1,298 @@
+{
+ "registered": false,
+ "extension": "view_design_2026-11-03",
+ "splits": [
+  "within",
+  "across",
+  "module_parity",
+  "random_half"
+ ],
+ "random_half_salt": 20260101,
+ "runs": {
+  "within__9000": {
+   "split": "within",
+   "seed": 9000,
+   "wall_seconds": 2322.081,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "ad7e2765d0fd573393a7c9e4d5dc0fbea0f59cf2b05412abdc930fb849c0e059",
+   "full_input": {
+    "vertex_m": 0.219283733629407,
+    "token_charge_r2": 0.016902015519968394
+   },
+   "half_pass": {
+    "vertex_m": 0.32026297658003117,
+    "token_charge_r2": 0.0004631058605711891
+   },
+   "f_layout": 0.9970455065244372,
+   "f_event": 7.466286156107968e-05,
+   "eff_rank": 2.6692187440196182
+  },
+  "within__9001": {
+   "split": "within",
+   "seed": 9001,
+   "wall_seconds": 2317.196,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "696d21fc8c58e30fe9e77d5549903db1b1409b083e55cc4707e8806bb7baa855",
+   "full_input": {
+    "vertex_m": 0.20656192321745306,
+    "token_charge_r2": 0.05424856171707815
+   },
+   "half_pass": {
+    "vertex_m": 0.2828706355586785,
+    "token_charge_r2": 0.001574335971318841
+   },
+   "f_layout": 0.9934198203746778,
+   "f_event": 0.0001725350143589507,
+   "eff_rank": 2.8887673009060513
+  },
+  "across__9000": {
+   "split": "across",
+   "seed": 9000,
+   "wall_seconds": 2305.365,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "adfd06699beda9ac670bdd12c4c4d6f9b347c56c0fb01a721335bd2fa5f7f8e9",
+   "full_input": {
+    "vertex_m": 0.34938176004504273,
+    "token_charge_r2": 0.0008039997128985732
+   },
+   "half_pass": {
+    "vertex_m": 0.3121764326300807,
+    "token_charge_r2": 0.0022255122177162745
+   },
+   "f_layout": 1.0003503078539946,
+   "f_event": 4.745361743170556e-07,
+   "eff_rank": 14.254055037209767
+  },
+  "across__9001": {
+   "split": "across",
+   "seed": 9001,
+   "wall_seconds": 2311.183,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "b37b7b20b6304189a5591515cd672e075295fbae5a78f09d55322f688cc17718",
+   "full_input": {
+    "vertex_m": 0.3202868212946504,
+    "token_charge_r2": 0.0013668167429006228
+   },
+   "half_pass": {
+    "vertex_m": 0.28612082546550976,
+    "token_charge_r2": 0.0022030244817630162
+   },
+   "f_layout": 1.000362042178888,
+   "f_event": 4.0085501352020075e-07,
+   "eff_rank": 14.232853580370955
+  },
+  "module_parity__9000": {
+   "split": "module_parity",
+   "seed": 9000,
+   "wall_seconds": 2987.349,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "ff3ad23d19f43a9bba5959025a004f3864463642f8b0624bdccf23f1735477e4",
+   "full_input": {
+    "vertex_m": 0.185144299483132,
+    "token_charge_r2": 0.07309987136110507
+   },
+   "half_pass": {
+    "vertex_m": 0.22034186456664465,
+    "token_charge_r2": 0.07370548431724355
+   },
+   "f_layout": 0.9800061833636217,
+   "f_event": 0.0019512926004100553,
+   "eff_rank": 1.174592066725838
+  },
+  "module_parity__9001": {
+   "split": "module_parity",
+   "seed": 9001,
+   "wall_seconds": 2417.62,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "142bc7e6ec8441254b20e7ab7939e5dade14ded3d818fb444cd7e9ebb40e9987",
+   "full_input": {
+    "vertex_m": 0.16488757262769166,
+    "token_charge_r2": 0.19299542378176027
+   },
+   "half_pass": {
+    "vertex_m": 0.19997736215915318,
+    "token_charge_r2": 0.10034766971026765
+   },
+   "f_layout": 0.9353530901831626,
+   "f_event": 0.011244853935754681,
+   "eff_rank": 1.2148466405086076
+  },
+  "random_half__9000": {
+   "split": "random_half",
+   "seed": 9000,
+   "wall_seconds": 2390.177,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "c241e82d649dda592a57d442ac04d22d1fab921fcd5d421fd133e90712f45ce0",
+   "full_input": {
+    "vertex_m": 0.21606644477156614,
+    "token_charge_r2": 0.01749481486803517
+   },
+   "half_pass": {
+    "vertex_m": 0.29409787482701083,
+    "token_charge_r2": 0.002336126458894805
+   },
+   "f_layout": 0.9972100661552381,
+   "f_event": 7.981029106654815e-05,
+   "eff_rank": 2.153434842597902
+  },
+  "random_half__9001": {
+   "split": "random_half",
+   "seed": 9001,
+   "wall_seconds": 2507.183,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "probe_split": "within",
+   "checkpoint_sha256": "0e47e8c8b5b8624a0eb8417c74ef838760267bd1d5310494ffd6c6e120154bed",
+   "full_input": {
+    "vertex_m": 0.1812047293992918,
+    "token_charge_r2": 0.07938436430491314
+   },
+   "half_pass": {
+    "vertex_m": 0.22078987963368557,
+    "token_charge_r2": 0.0068098896124374475
+   },
+   "f_layout": 0.9868004201102192,
+   "f_event": 0.0005077245627235963,
+   "eff_rank": 1.9149746610526561
+  }
+ },
+ "readings": {
+  "within": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.219283733629407,
+     "full_input_token_r2": 0.016902015519968394,
+     "half_pass_vertex_m": 0.32026297658003117,
+     "half_pass_token_r2": 0.0004631058605711891,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.20656192321745306,
+     "full_input_token_r2": 0.05424856171707815,
+     "half_pass_vertex_m": 0.2828706355586785,
+     "half_pass_token_r2": 0.001574335971318841,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "across": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.34938176004504273,
+     "full_input_token_r2": 0.0008039997128985732,
+     "half_pass_vertex_m": 0.3121764326300807,
+     "half_pass_token_r2": 0.0022255122177162745,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.3202868212946504,
+     "full_input_token_r2": 0.0013668167429006228,
+     "half_pass_vertex_m": 0.28612082546550976,
+     "half_pass_token_r2": 0.0022030244817630162,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "module_parity": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.185144299483132,
+     "full_input_token_r2": 0.07309987136110507,
+     "half_pass_vertex_m": 0.22034186456664465,
+     "half_pass_token_r2": 0.07370548431724355,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.16488757262769166,
+     "full_input_token_r2": 0.19299542378176027,
+     "half_pass_vertex_m": 0.19997736215915318,
+     "half_pass_token_r2": 0.10034766971026765,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "random_half": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.21606644477156614,
+     "full_input_token_r2": 0.01749481486803517,
+     "half_pass_vertex_m": 0.29409787482701083,
+     "half_pass_token_r2": 0.002336126458894805,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.1812047293992918,
+     "full_input_token_r2": 0.07938436430491314,
+     "half_pass_vertex_m": 0.22078987963368557,
+     "half_pass_token_r2": 0.0068098896124374475,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  }
+ },
+ "ranking": [
+  {
+   "split": "module_parity",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.17501593605541182,
+   "max_full_vertex_m": 0.185144299483132,
+   "min_full_vertex_m": 0.16488757262769166
+  },
+  {
+   "split": "random_half",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.19863558708542897,
+   "max_full_vertex_m": 0.21606644477156614,
+   "min_full_vertex_m": 0.1812047293992918
+  },
+  {
+   "split": "within",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.21292282842343002,
+   "max_full_vertex_m": 0.219283733629407,
+   "min_full_vertex_m": 0.20656192321745306
+  },
+  {
+   "split": "across",
+   "verdict": "not recovered",
+   "mean_full_vertex_m": 0.3348342906698466,
+   "max_full_vertex_m": 0.34938176004504273,
+   "min_full_vertex_m": 0.3202868212946504
+  }
+ ],
+ "recommendation": "no split in this set makes the physics learnable at the development budget; the view is not the lever (the target-content mechanism is) \u2014 best-ranked is module_parity (mean full vertex 0.175016 m), still above the floor"
+}
