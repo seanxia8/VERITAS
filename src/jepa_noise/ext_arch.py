@@ -362,7 +362,7 @@ def evaluate_run_dirs(variant, run_dirs, probes, geometry, config, arms_config, 
     return runs
 
 
-def write_variants_json(ext_root, variant, run_dirs) -> dict:
+def write_variants_json(ext_root, run_dirs) -> dict:
     variants = {"registered": False, "extension": EXTENSION, "runs": {}}
     for run_dir in run_dirs:
         run_dir = Path(run_dir)
