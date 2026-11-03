@@ -18,8 +18,14 @@ Stages (in order)
    keyed Poisson number of dark photoelectrons per PMT, uniform in
    ``readout_window_ns``; they bypass QE/CE/survival and then share the SPE charge,
    gain, discriminator, T-Q walk and width of every other photoelectron;
-3. **charge** — ``n + sqrt(n) * spe_sigma * z`` with one fixed normal ``z`` per
-   channel (paired across cells), clipped at 0;
+3. **charge** — either the legacy Gaussian ``n + sqrt(n) * spe_sigma * z`` with
+   one fixed normal ``z`` per channel (paired across cells), clipped at 0; or,
+   with ``spe_charge`` set (R-7 v2, the ``pmt-response-v3`` default), the sum of
+   one tabulated SPE charge per photoelectron (WCSim's ``Getqpe``/``rn1pe``
+   distribution, :mod:`noise_module_lucid.spe_charge`), each keyed by that
+   photoelectron's persistent identity: the photon ID for source light, and
+   ``(channel, rank)`` for dark photoelectrons. A cell that removes a photon
+   leaves every other photoelectron's charge unchanged;
 4. **gain** — per-channel charge scale (``response.gain_drift_hits``); with a
    declared ``charge_domain_pe`` a charge above its upper bound is clamped to
    it and counted (``overflow_clamped``, an ADC-saturation analogue, D-Q);
@@ -30,8 +36,10 @@ Stages (in order)
    reference has zero residual walk and a threshold change leaves a
    charge-dependent residual (``response.leading_edge_time``);
 6. **digit width** — one keyed uniform per channel through the declared kernel:
-   the R-7 split normal (thesis Eq. 6.3, early ``sigma_e`` / late ``sigma_l``,
-   mode t0 = photon arrival + walk) or the legacy symmetric Gaussian. Both
+   the R-7 v2 WCSim 3-inch Gaussian (``timing_response.WCSimTTSWidth``, the v3
+   default), the R-7 thesis split normal (Eq. 6.3, early ``sigma_e`` / late
+   ``sigma_l``, mode t0 = photon arrival + walk; cross-check manifest only) or the
+   legacy v2 symmetric Gaussian. All
    kernels are deterministic functions of ``(charge, uniform)``, so a cell that
    moves a timing parameter never moves an unrelated draw. In the shipped
    reference ``reference_walk == walk_curve``, so the frozen-reference
@@ -90,6 +98,7 @@ class ReadoutParams:
     charge_domain_pe: Any = None
     dark_rate_hz: float = 0.0
     readout_window_ns: Any = None
+    spe_charge: Any = None   # TabulatedSPE (R-7 v2); requires spe_sigma == 0
 
     def moved_from(self, ref: "ReadoutParams") -> list[str]:
         """Names of the fields that differ from ``ref`` (a valid cell moves exactly one)."""
@@ -185,6 +194,11 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
         raise ValueError("invalid dark rate")
     if p.dark_rate_hz > 0 and photon_batch is None:
         raise ValueError("dark counts require an explicit photon-stage batch (keyed RNG)")
+    if p.spe_charge is not None:
+        if photon_batch is None:
+            raise ValueError("a tabulated SPE spectrum requires an explicit photon-stage batch (keyed RNG)")
+        if p.spe_sigma != 0:
+            raise ValueError("declare one SPE charge model: spe_sigma must be 0 when spe_charge is set")
     key = (lambda name: name) if stream is None else (lambda name: f"{stream}/{name}")
     rng = stage_rngs(seed)
     counts: dict[str, int] = {"photons_in": int(ids.size)}
@@ -204,6 +218,8 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
     keep = (keyed_uniform(seed, photon_batch.event_id, photon_batch.photon_id, key("detection")) < probabilities(detect)) if photon_batch is not None else efficiency_loss_hits(ids, survival, rng["efficiency"])
     ids, t = ids[keep], t[keep]
     counts["photons_detected"] = int(ids.size)
+    source_pid = np.asarray(photon_batch.photon_id)[keep] if photon_batch is not None else None
+    dark_ids = np.zeros(0, dtype=int)
     n_dark = np.zeros(n_channels, dtype=int)
     if p.dark_rate_hz > 0:
         dark_ids, dark_t = dark_photoelectrons(n_channels, p.dark_rate_hz, p.readout_window_ns, seed, photon_batch.event_id, key)
@@ -218,13 +234,26 @@ def readout_chain(photon_sensor, photon_time, n_channels: int, params: ReadoutPa
     hit = n_pe > 0
     counts["pmts_hit"] = int(hit.sum())
 
-    # 3. charge: one normal per channel, drawn for every channel (paired across cells)
-    if photon_batch is None:
-        z = rng["charge"].standard_normal(n_channels)
+    # 3. charge
+    if p.spe_charge is not None:
+        # R-7 v2: one tabulated SPE charge per photoelectron, keyed by its persistent identity
+        # (photon ID for source light, (channel, rank) for dark PE), summed per channel.
+        x_src = p.spe_charge.sample(keyed_uniform(seed, photon_batch.event_id, source_pid, key("spe_charge"))) if source_pid.size else np.zeros(0)
+        if dark_ids.size:
+            dark_rank = np.concatenate([np.arange(k) for k in n_dark])
+            x_dark = p.spe_charge.sample(keyed_uniform(seed, photon_batch.event_id, dark_ids*DARK_MAX_PER_CHANNEL + dark_rank, key("dark_spe_charge")))
+        else:
+            x_dark = np.zeros(0)
+        # ids is [detected source PE..., dark PE...] in that order (stage 2).
+        q = np.clip(np.bincount(ids, weights=np.concatenate([x_src, x_dark]), minlength=n_channels), 0.0, None)
     else:
-        from scipy.special import ndtri
-        z = ndtri(keyed_uniform(seed, photon_batch.event_id, np.arange(n_channels), key("charge")))
-    q = np.clip(n_pe + np.sqrt(n_pe) * p.spe_sigma * z, 0.0, None)
+        # legacy Gaussian: one normal per channel, drawn for every channel (paired across cells)
+        if photon_batch is None:
+            z = rng["charge"].standard_normal(n_channels)
+        else:
+            from scipy.special import ndtri
+            z = ndtri(keyed_uniform(seed, photon_batch.event_id, np.arange(n_channels), key("charge")))
+        q = np.clip(n_pe + np.sqrt(n_pe) * p.spe_sigma * z, 0.0, None)
 
     # 4. gain
     gain = _per_channel(p.gain, n_channels, "gain")

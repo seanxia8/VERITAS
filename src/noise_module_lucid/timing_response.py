@@ -13,11 +13,20 @@ Digit width, two declared kernels
   ``sqrt(2/pi) * (sigma_l - sigma_e)``. Values are literature proxies for the
   20-inch Hyper-Kamiokande Box&Line PMT, not WCTE's 3-inch PMT.
 
-Both expose ``jitter(q, u)`` (inverse-CDF draw from one uniform ``u`` per digit)
+* :class:`WCSimTTSWidth` — R-7 v2 (author message, 23 Oct 2026; decisions 3 Nov
+  2026), the default of ``pmt-response-v3``: WCSim's
+  ``PMT3inchR14374_WCTE::HitTimeSmearing`` for WCTE's 3-inch Hamamatsu R14374,
+  a symmetric Gaussian with ``sigma(Q) = sqrt(1.5**2 + R(min(Q, 4))**2) / 2.355``
+  ns. ``R`` is WCSim's 14-point table, interpolated as ROOT's
+  ``TGraph::Eval(Q, 0, "S")`` does (``TSpline3`` with no end conditions, i.e. de
+  Boor's not-a-knot cubic spline).
+
+All expose ``jitter(q, u)`` (inverse-CDF draw from one uniform ``u`` per digit)
 and ``mean_shift(q)``, so the readout chain treats them uniformly.
 """
 from dataclasses import dataclass
 import numpy as np
+from scipy.interpolate import CubicSpline
 from scipy.special import ndtr, ndtri
 
 SQRT_2_OVER_PI = float(np.sqrt(2.0 / np.pi))
@@ -195,6 +204,77 @@ class SplitNormalWidth:
         # Late half: CDF(x) = w + 2(1-w)(Phi(x/sigma_l) - 1/2).
         late = l * ndtri(np.clip(0.5 + (u - w) / (2.0 * (1.0 - w)), lo, hi))
         return np.where(u < w, early, late)
+
+
+@dataclass(frozen=True)
+class WCSimTTSWidth:
+    """WCSim ``PMT3inchR14374_WCTE::HitTimeSmearing`` (R-7 v2, the ``pmt-response-v3`` default).
+
+    ``sigma(Q) = sqrt(tts_fwhm**2 + R(min(Q, q_clamp))**2) / fwhm_to_sigma`` ns, a
+    symmetric Gaussian about the photon arrival plus walk (mean shift 0). ``R`` is
+    the FWHM charge-resolution table (WCSim ``c5ed0b1``, ``src/WCSimPMTObject.cc``
+    lines 3809-3843), interpolated with a not-a-knot cubic spline: ROOT's
+    ``TGraph::Eval(Q, 0, "S")`` builds a ``TSpline3`` with no end conditions, which
+    is de Boor's CUBSPL not-a-knot case (``scipy.interpolate.CubicSpline``,
+    ``bc_type="not-a-knot"``). Above ``q_clamp`` (4 PE) the width is constant, as
+    in WCSim. Below the first knot (0.2 PE) WCSim's spline would extrapolate; here
+    the declared charge domain must start at or above that knot, so no charge
+    ever reaches an extrapolated width. The per-module width factor multiplies
+    ``sigma``, as WCSim's ``TTSFF`` does.
+    """
+
+    charge_pe: tuple[float, ...]
+    resolution_fwhm_ns: tuple[float, ...]
+    tts_fwhm_ns: float = 1.5
+    q_clamp_pe: float = 4.0
+    domain_pe: tuple[float, float] = (0.25, 1000.0)
+    fwhm_to_sigma: float = 2.355
+
+    def __post_init__(self):
+        q = np.asarray(self.charge_pe, dtype=float)
+        r = np.asarray(self.resolution_fwhm_ns, dtype=float)
+        if q.ndim != 1 or len(q) < 4 or q.shape != r.shape:
+            raise ValueError("charge/resolution tables must be equal-length (>= 4 knots for a not-a-knot spline)")
+        if not np.all(np.isfinite(q)) or np.any(np.diff(q) <= 0) or q[0] <= 0:
+            raise ValueError("charge table must be finite, strictly increasing and positive")
+        if not np.all(np.isfinite(r)) or np.any(r < 0):
+            raise ValueError("resolution table must be finite and non-negative")
+        if not all(np.isfinite([self.tts_fwhm_ns, self.q_clamp_pe, self.fwhm_to_sigma])) or self.tts_fwhm_ns < 0 or self.fwhm_to_sigma <= 0:
+            raise ValueError("finite non-negative TTS FWHM and positive FWHM-to-sigma factor required")
+        if not q[0] < self.q_clamp_pe <= q[-1]:
+            raise ValueError("charge clamp must lie inside the resolution table")
+        domain([], self.domain_pe)
+        if self.domain_pe[0] < q[0]:
+            raise ValueError("charge domain starts below the first resolution knot; extrapolation forbidden")
+        object.__setattr__(self, "_spline", CubicSpline(q, r, bc_type="not-a-knot"))
+
+    def resolution_fwhm(self, q):
+        """``R(min(q, q_clamp))`` (ns FWHM) at measured charge ``q`` (PE)."""
+        q = domain(q, self.domain_pe)
+        return self._spline(np.minimum(q, self.q_clamp_pe))
+
+    def __call__(self, q):
+        """Gaussian ``sigma`` (ns) at measured charge ``q`` (PE)."""
+        return np.sqrt(self.tts_fwhm_ns ** 2 + self.resolution_fwhm(q) ** 2) / self.fwhm_to_sigma
+
+    def pdf(self, x, q):
+        """Gaussian density at offset ``x = t - t0`` (ns) at charge ``q``."""
+        s = self(q)
+        return np.exp(-np.asarray(x, dtype=float) ** 2 / (2.0 * s ** 2)) / (np.sqrt(2.0 * np.pi) * s)
+
+    def cdf(self, x, q):
+        """Cumulative probability of an offset ``x = t - t0`` (ns) at charge ``q``."""
+        return ndtr(np.asarray(x, dtype=float) / self(q))
+
+    def jitter(self, q, u):
+        """Symmetric-Gaussian inverse-CDF jitter: ``sigma(q) * ndtri(u)``."""
+        u = _uniforms(u, np.shape(q))
+        return self(q) * ndtri(u)
+
+    def mean_shift(self, q):
+        """Symmetric Gaussian: mode and mean coincide (shift 0)."""
+        domain(q, self.domain_pe)
+        return np.zeros(np.shape(q), dtype=float)
 
 
 def _uniforms(u, shape):

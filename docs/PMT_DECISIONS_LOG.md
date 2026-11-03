@@ -667,3 +667,154 @@ The R-7 values are proxies, labelled `literature_proxy_hk_20in` (HK 20-inch R128
 
 
 **R-7 fixture comparison, v2 against v3 (24 evaluation events of the existing 76-sensor synthetic fixture; `results/pmt_r7_dev_2026-10-23/fixture_comparison.json`, `scripts/pmt_r7_v2_v3_fixture_comparison.py`).** Hit PMTs per event 75.96 -> 75.12 (delta -0.83); mean within-event digit time spread 3.081 -> 3.235 ns (delta +0.154 ns); mean digit time 21.121 -> 21.297 ns. Only the response manifest changes: same events (30000-30023), same per-event seeds, dark-count stage on at 1 kHz in both. Caveats, all properties of this fixture: it is occupancy-saturated (4000 photons over 76 sensors, about 16 PE/PMT in v2 and 8 in v3), so the hit-PMT count sits near the 76-sensor ceiling and is compressed; and the about 3 ns within-event spread is dominated by time of flight across the cylinder, so it is only weakly sensitive to the kernel change. Nothing was re-run on the 60 pilot events.
+
+
+## Author message, 23 Oct 2026 (verbatim, R-7 v2)
+
+Written on 23 Oct 2026 (file `PMT_R7v2_WCSIM_3INCH_2026-10-23.md`); not delivered to the PMT agent then, so the first R-7 (E48-E57) was executed instead. Recorded and executed on 3 Nov 2026. Sections 1-2 are executed below; section 3 (the Deepthought container check) and the D-E message it refers to are not part of this execution and stay pending.
+
+> **R-7 v2. This supersedes my R-7 message of this morning** (the 20-inch thesis proxies). If you
+> have started R-7, stop and switch to this; record both messages verbatim in
+> `docs/PMT_DECISIONS_LOG.md` (author, 23 Oct 2026). CPU only.
+>
+> **Why.** WCTE's PMTs are 3-inch Hamamatsu R14374 tubes. The evidence:
+> - our pinned LUCiD geometry `config/wcte_geometry.npz` has `sensor_radius` = 0.04 m and
+>   105 mPMT modules × 19 PMTs;
+> - WCSim's WCTE configuration uses the `PMT3inchR14374_WCTE` object.
+>
+> That object carries 3-inch values for the quantities Junjie's 20-inch thesis can only
+> approximate. So the primary source for R-7 is **WCSim**, and the thesis becomes a cross-check.
+>
+> **Source to pin.** WCSim `github.com/WCSim/WCSim`, commit `c5ed0b1` (6 Oct 2026):
+> `src/WCSimPMTObject.cc`, class `PMT3inchR14374_WCTE` (around lines 3809–4020). Record the commit and
+> the file sha256. WCSim's own config notes that WCTE production uses the `WCTE/WCSim` fork; if that
+> fork's `PMT3inchR14374_WCTE` differs, report the differences and do not choose between them.
+>
+> ## 1. Adopt (schema `pmt-response-v3`, status `literature_proxy_wcsim_wcte_3in`)
+>
+> 1. **Timing kernel.** `HitTimeSmearing`, a Gaussian with
+>    σ(Q) = √(1.5² + R(min(Q, 4))²) / 2.355 ns:
+>    - 1.5 ns is the TTS FWHM;
+>    - R(Q) is WCSim's 14-point table, at Q = 0.2–4.0 PE, interpolated with a spline as `Eval(Q,0,"S")`
+>      does.
+>    - Expected values: about 0.81 ns at 0.2 PE, 0.77 at 0.25, 0.67 at 0.5, 0.65 at 1, and 0.64 at
+>      4 PE and above.
+>    - It replaces our synthetic table (2.5 / 1.5 / 0.8 / 0.5 ns). That table is about twice too wide
+>      at low charge for a 3-inch tube.
+>    - The per-module `timing_width_factor` still multiplies σ.
+>    - Do **not** adopt the thesis's asymmetric 20-inch kernel. Record it as a cross-check only.
+> 2. **QE(λ).** The `GetQE` table, 21 points at 300–700 nm, raw peak 0.2695 at 380 nm.
+>    - WCSim multiplies it by a legacy factor of 1/0.73. Its own comment calls that a 2015 workaround
+>      to be removed.
+>    - Adopt the **raw** table and record the factor as an open question for Junjie. Keep zero
+>      anchors outside 300–700 nm.
+> 3. **CE = 0.95** (`GetCollectionEfficiencyArray`). Record peak QE × CE ≈ 0.26.
+> 4. **SPE charge spectrum.** Extract the 501-point `Getqpe` cumulative table.
+>    - Fit it the way LUCiD's digitizer does: a Gaussian plus exponential (Bellamy 1994), with the
+>      mean divided out. Report the KS distance to the table.
+>    - Replace `spe_sigma` = 0.30 with the fitted shape. Report the effective σ.
+> 5. **Dark rate: 1 kHz, unchanged.** It matches WCSim's value, which WCSim itself marks
+>    "realistic/optimistic … ToDo". Record WCSim's dark-rate conversion factor, 1.126, without
+>    applying it.
+> 6. **Threshold 0.25 PE, unchanged.** Apply it to the digitised (SPE-smeared) charge, as LUCiD's
+>    digitizer and WCSim do. If ours cuts on the true photoelectron count, change that and count the
+>    effect.
+> 7. **Walk:** keep our synthetic `a + b/√q`. WCSim has no charge-dependent walk for this tube. Record
+>    the thesis's 20-inch T-Q comparison (from my first R-7) as context only.
+>
+> ## 2. Tests
+>
+> - σ(Q) matches the values above within 1%.
+> - The sampled SD matches σ(Q) within 3σ at 0.25, 1 and 4 PE.
+> - QE table interpolation and its anchors.
+> - Peak QE × CE within 0.24–0.28.
+> - SPE fit KS within the tolerance you declare before fitting.
+> - Threshold applied after charge smearing.
+> - The T-Q intervention still changes only the walk.
+> - Dark hits use the same kernels.
+> - The v2 response is still reproducible by its manifest hash.
+>
+> ## 3. A generator for the D-E step
+>
+> For step 1 of my D-E message, the pinned LUCiD revision already contains a full
+> PhotonSim/Geant4 production pipeline:
+> - the container `ghcr.io/cider-ml/lucid:latest`;
+> - `lucid/production/generate_events_with_particles.py`, with configs such as
+>   `configs/GeV/02_mu.json` and `04_e.json`;
+> - per-particle containment flags (`lucid/sources/writer.py`, `_compute_contained`).
+>
+> Check it first:
+> - Is Apptainer available on Deepthought?
+> - What is the image size? Report it before pulling. The image does not count against
+>   `PMT_DATA_CAP_GB`, but I want to know it.
+> - Can a μ⁻-only config at 100–350 MeV kinetic run on the WCTE detector?
+>
+> ## Constraints
+>
+> - JEPA stays pinned at `5f4ecc0`. Do not ask it to merge v3.
+> - Past R-4 results keep their v2 labels.
+>
+> ## Report
+>
+> Commit, push, and report:
+> - the v3 SHA;
+> - the WCSim commit and file hash;
+> - the tests;
+> - a v2-vs-v3 comparison on the existing fixture (hit PMTs per event, digit-time spread, hit
+>   efficiency at 1 PE);
+> - the container check.
+
+## Author decisions, 3 Nov 2026 (verbatim)
+
+Asked (Claude, 3 Nov 2026): "SPE 用什么：混合拟合的 KS 是 0.031，超过事先定的 0.02。我建议直接按 WCSim 那张 501 点的表抽样，不用拟合。" and "0.25 PE 的 σ：我建议按 WCSim 的样条取 0.760 ns，不用 0.77。"
+
+> 两个都按推荐
+
+That is: (1) the SPE charge is sampled directly from WCSim's 501-point `Getqpe` table, not fitted; (2) sigma at 0.25 PE is WCSim's spline value, 0.760 ns.
+
+## R-7 v2 execution, 3 Nov 2026
+
+- E58 (R-7 v2). R-7 v2 supersedes the first R-7 (E48-E57). Executed on CPU only, in a cloud clone of `pmt/r7-response-v3` at `4d4f37a`, then committed to the author's local repository; no GPU, no remote host, no WCTE data. JEPA stays pinned at `5f4ecc0` and was not asked to merge v3; no JEPA file was touched. Past R-4 results keep their v2 labels.
+- E59 (R-7 v2, source). WCSim `https://github.com/WCSim/WCSim` commit `c5ed0b127fd4ef13e5c34436c2c5385fcc9b26b3` (6 Oct 2026), `src/WCSimPMTObject.cc`, sha256 `caa9ad51f1e59f236905927102ff775c33d11aeb5b51a320c884b3392bf18b9f`, class `PMT3inchR14374_WCTE` (lines 3809-4020). The SPE sampler `WCSimWCPMT::rn1pe` is in `src/WCSimWCPMT.cc` at the same commit (sha256 `91c7b9b92a69b01769a964f9b60080bc5caf6efd764e9b27cdc7f5b9dce91efa`, lines 55-78). `scripts/pmt_r7v2_wcsim_manifest.py` refuses any other file hash, extracts every adopted table from the source, and rebuilds `configs/lucid_pmt/reference_v3.json` byte for byte (test `test_manifest_rebuilds_byte_identically_from_the_pinned_wcsim_file`, run when `WCSIM_PMT_OBJECT` points at the pinned file).
+- E60 (R-7 v2, versioning). `configs/lucid_pmt/reference_v3.json` (schema `pmt-response-v3`, status `literature_proxy_wcsim_wcte_3in`, sha256 `10309f9c5f8c4601fb082c85b173fac460fa23906d308db0eb0d65cf37858e32`, pinned as `response_manifest.V3_SHA256` and checked by `load_manifest`) is the default. The first R-7 manifest is kept byte-identical as `configs/lucid_pmt/reference_v3_thesis_xcheck.json` (sha256 `696ac1e6c87701c3b1390f2c1d5b08607fc1b051afbfc48e4d5d52b5a3459730`, pinned as `response_manifest.THESIS_XCHECK_SHA256` and checked by `load_manifest`), a cross-check only. It was superseded before any result used it (JEPA is on `5f4ecc0`, R-4/R-4b/R-4c on v2), so redefining the default v3 changes no existing result. v2 (`17636f9b...`) is unchanged. `SplitNormalWidth` stays in the code and is used only by the cross-check manifest; its tests moved to `test_r7_thesis_xcheck.py` and run on that manifest. The 23 Oct comparison script now names the cross-check manifest explicitly, so it still reproduces `results/pmt_r7_dev_2026-10-23/`.
+- E61 (R-7 v2, timing). `timing_response.WCSimTTSWidth`: a symmetric Gaussian about photon arrival + walk with sigma(Q) = sqrt(1.5^2 + R(min(Q,4))^2)/2.355 ns. How the spline was reproduced: ROOT's `TGraph::Eval(Q,0,"S")` builds a `TSpline3` with no end conditions, which is de Boor's CUBSPL not-a-knot case; `scipy.interpolate.CubicSpline(..., bc_type="not-a-knot")` over the 14 WCSim points reproduces it. (The 24 Oct brief called it a "natural" spline; that word was wrong. A natural spline gives different values and was not used.) Author decision 3 Nov: 0.760 ns at 0.25 PE. The R-7 v2 text's 0.77 is linear interpolation; the spline differs from it by 1.3%, and the test pins the spline. sigma = 0.8066 / 0.7599 / 0.6699 / 0.6468 / 0.6394 ns at 0.2 / 0.25 / 0.5 / 1 / >= 4 PE: within 1% of R-7 v2's values at 0.2, 0.5, 1 and >= 4 PE, and of the author's 0.760 at 0.25 PE. sigma is evaluated at the mean-normalised digitised charge (E64); in raw WCSim charge units sigma(0.25) would be 0.748 ns. Recorded, not applied: WCSim's SKI digitizer calls `HitTimeSmearing` with Q = max(q, 0.5) (`WCSimWCDigitizer.cc` lines 345-357 and 403-407), so in WCSim the digit sigma is flat at 0.670 ns below 0.5 PE. The author's 3 Nov decision (0.760 ns at 0.25 PE) was taken without this fact; it affects 6.2% of 1-PE digits, by up to +0.09 ns. The charge domain [0.25, 1000] PE starts above the first knot (0.2 PE), so no charge reaches WCSim's extrapolated region; a domain below the first knot is rejected. The per-module `timing_width_factor` multiplies sigma, as WCSim's `TTSFF` does.
+- E62 (R-7 v2, QE). The raw `GetQE` table: 21 points 300-700 nm, peak 0.2695 at 380 nm. The legacy 1/0.73 factor is recorded, not applied (open question for Junjie). QE is zero outside 300-700 nm, as the author instructs. This is implemented with zero anchors at 299.99 and 700.01 nm, plus the v2 domain anchors at 200 and 800 nm, so the LUCiD 200-800 nm photon band is accepted and gets QE 0 outside the table. `GetNbOfQEDefined` = 20 is not a dropped point: `WCSimPMTQE` loops `i < n` and reads `wavelength[i+1]` ("off by one bug fix"), so n counts intervals and all 21 points are used. This resolves the 20-vs-21 flag; no question to Junjie is needed. Recorded, not applied:
+  - WCSim's `GetPMTQE` (flag 1, `WCSimPMTQE.cc`) returns 0 only at <= 200 nm or >= 660 nm. Between 200 and 300 nm it extends the 300-320 nm segment linearly: QE 0.026 at 290 nm, positive down to 285.0 nm. It also cuts at 660 nm, inside the table.
+  - `WCTE.mac` sets `PMTQEMethod SensitiveDetector_Only` (method 3). `WCSimWCSD.cc` then passes ratio = 1/(1-0.25), which multiplies QE. So WCSim's effective WCTE QE is raw x 1/0.73 x 4/3 (peak 0.492). This factor is a second open question for Junjie, next to the 1/0.73.
+- E63 (R-7 v2, CE). `collection_efficiency` = 0.95 (`GetCollectionEfficiencyArray`, 95% in every bin). Peak QE x CE = 0.2695 x 0.95 = 0.256, inside the required 0.24-0.28.
+- E64 (R-7 v2, SPE). The KS tolerance, 0.02, was fixed before any fit in the 23-25 Oct WCSim extraction script (`_patches/pmt_r7v2/extract_v3.py`, `KS_TOL = 0.02`), outside the repository. The Gaussian+exponential fit (Bellamy 1994: w 0.0857, mu 1.023, sigma 0.377, tau 1.582 PE; effective relative sigma 0.567) has KS 0.0313 against the table, so it fails. The value depends on the fit objective (that fit is least squares on the CDF); a fit that minimises the KS distance directly reaches 0.024, still above 0.02. Author decision 3 Nov: sample the table directly. `spe_charge.TabulatedSPE` inverts the table's piecewise-linear CDF with one uniform per photoelectron. That is the same distribution as WCSim's two-uniform `rn1pe` (bin with probability cdf[i]-cdf[i-1], uniform inside it, raw charge (i-50+u)/22.83), checked by a two-sample KS test against an independent `rn1pe` re-implementation. The charge is divided by the table mean (1.0648 PE), as R-7 v2 item 4 asks ("with the mean divided out"), so 1 PE is the mean SPE charge for the threshold, walk and width. Relative sigma 0.4525 replaces `spe_sigma` = 0.30. Schema: v3 manifests may carry `spe_charge` (kernel `wcsim_qpe_table`) in place of `spe_sigma`; v2 and the cross-check keep `spe_sigma`. `ReadoutParams.spe_charge` is new, and `spe_sigma` must be 0 when it is set (one SPE model per response). The fit is recorded in the manifest (`wcsim_provenance.spe_fit_record`, `adopted: false`).
+- E65 (R-7 v2, SPE RNG). Each photoelectron's SPE charge has its own keyed identity: the persistent photon ID for source light (stream `spe_charge`), `(channel, rank)` for dark photoelectrons (stream `dark_spe_charge`). This differs from v2's single normal per channel. Consequence: a cell that removes photons (efficiency loss, module loss) leaves every surviving photoelectron's charge unchanged (tested). The v2/thesis Gaussian path is arithmetically unchanged: the 23 Oct fixture rows reproduce identically before and after this change in the same environment.
+- E66 (R-7 v2, threshold). Checked: the discriminator (readout stage 5) already acts on the digitised charge, after SPE smearing and gain. It never acted on the true PE count, so no code change was needed and there is no effect to count from that item. Tested: with exactly one true PE per channel, exactly the channels whose sampled charge is below 0.25 PE are lost. Correction to R-7 v2's wording ("as LUCiD's digitizer and WCSim do"): WCTE.mac uses WCSim's SKI digitizer (`/DAQ/Digitizer SKI`), which does not cut hard at 0.25 PE. `WCSimWCDigitizerSKI::Threshold` accepts with a turn-on polynomial in pe+0.1 (about 54% at 0.25 PE, 100% at >= 1.0 PE), then adds an N(0, 0.03) PE charge error; the digitizer also multiplies the accepted charge by 0.985. With this SPE table the SKI turn-on loses about 6.9% of 1-PE hits. All of this is recorded, not applied (`wcsim_provenance.recorded_not_applied.digitizer_ski`); the hard 0.25 PE cut is the author's item 6. What changes is the spectrum: the 1-PE loss at 0.25 PE is 2.96% under the WCSim table (2.68% if the raw, un-normalised WCSim charge were cut), against 0.62% under the Gaussian sigma 0.30.
+- E67 (R-7 v2, dark rate and walk). `dark_rate_hz` stays 1000.0. Its provenance is now WCSim `GetDarkRate` (status `literature_proxy_wcsim_wcte_3in`), and WCSim's dark-rate conversion factor 1.126 is recorded, not applied. Dark photoelectrons share the tabulated SPE charge and the WCSim width (tested). The walk stays the synthetic a + b/sqrt(q) (a = 0, b = 2 ns, q_sat = 50 PE): WCSim has no charge-dependent walk for this tube. The thesis's 20-inch T-Q comparison (first R-7) remains context only.
+- E68 (R-7 v2, WCTE fork). `https://github.com/WCTE/WCSim` has no `PMT3inchR14374_WCTE` class on any branch. Its `WCTE_mPMT` branch (`c1ec455`, 15 Sep 2023; `src/WCSimPMTObject.cc` sha256 `1cfbd68111d5609cf1711df749c0d2dfbd515e5e265164ccacf52d7fc4279106`) defines `PMT3inchR14374` with: a constant Gaussian sigma of 0.6 ns at every charge (comment: TTS 1.4 ns at 1 PE); a different `Getqpe` table (raw mean 1.0197 PE, relative sigma 0.433; max CDF difference 0.069); and a dark-rate conversion factor of 1.110. The QE table, the 1/0.73 factor, CE 95%, the 1 kHz dark rate and `GetNbOfQEDefined` are identical. The same plain `PMT3inchR14374` class, with identical values, is also in main WCSim `c5ed0b1` (line 3148), and `WCSimDetectorConfigs.cc` defaults mPMTs to it; WCSim's `WCTE.mac` selects `PMT3inchR14374_WCTE` instead (`/WCSim/mPMT/PMTtype_inner`, line 16). So the real difference is the `_WCTE` class against the plain class, not main WCSim against the fork. Reported, not chosen between (R-7 v2); which class WCTE production uses is an open question for Junjie.
+- E69 (R-7 v2, tests). New `src/noise_module_lucid/tests/test_r7v2_wcsim_v3.py` (16 tests). One test per R-7 v2 section-2 item:
+  - sigma within 1% of the stated values and of an independent spline;
+  - sampled SD within 3 SE at 0.25/1/4 PE, plus a KS test;
+  - QE table verbatim, linear, and zero outside 300-700 nm;
+  - peak QE x CE in 0.24-0.28;
+  - the declared fit tolerance recorded as failed, and the sampled spectrum against the table and against `rn1pe`;
+  - threshold after smearing;
+  - T-Q intervention changes only the walk;
+  - dark digits use the same width and SPE kernels;
+  - v2 and the cross-check reproducible by hash.
+
+  Plus: the width factor multiplies sigma exactly; removing a photon leaves the other photoelectrons' charges unchanged; v3 provenance labels; and the byte-identical manifest rebuild. Other test files changed:
+  - `test_r7_response_v3.py` became `test_r7_thesis_xcheck.py`, running on the cross-check manifest, with a pin test of its hash;
+  - `test_physical_tq.py` uses each kernel's own `mean_shift`/`cdf`/widest sigma and switches off `spe_charge` where it needs exact charges;
+  - `test_response_manifest.py` asserts that v3 differs from v2 only in QE, CE, timing width and SPE model (the `spe_sigma` -> `spe_charge` key), and that only threshold, QE, CE, timing width and dark rate are relabelled; `WCSimTTSWidth`/`TabulatedSPE` join the literal-response scan;
+  - `test_dark_counts.py`'s label check accepts the new dark-rate provenance.
+
+  Full `src/noise_module_lucid/tests` run in the cloud clone (Linux, Python 3.13.18, numpy 2.5.3, scipy 1.18.1): 231 passed, 1 failed, 2 skipped. The failure is `test_rate_zero_is_identical_to_the_pre_r6_reference`, a byte-level golden digest. It fails identically (digest `f96cc6fd...`) on the unchanged `4d4f37a` in the same environment, so it is environment-dependent last-bit floating point, not this change. On 23 Oct it passed in the author's macOS `.venv` (Python 3.12.7); rerun the suite there to confirm.
+- E70 (R-7 v2, independent review, 3 Nov 2026). A separate agent that had not seen the work reviewed the uncommitted change against the WCSim source.
+  - Verified: every adopted value against WCSim (all 500 `Getqpe` values, nothing lost or shifted); the spline against its own de Boor CUBSPL port, to 2e-16 (about 90% confident this matches ROOT, which was not run); `TabulatedSPE` against its own `rn1pe` with 2M draws (two-sample KS p = 0.73); the readout's photoelectron/draw alignment; byte-identical v2/thesis digits against `4d4f37a`; the fork facts; the numbers in E64 and E66.
+  - Fixed after review, with no physics value changed:
+    - E62: the reason for "zero outside 300-700 nm" was wrong; WCSim's extrapolation to 285 nm and the method-3 QE ratio 4/3 are now recorded.
+    - E66: the claim that WCSim cuts hard at 0.25 PE was false; the SKI turn-on, charge error and 0.985 factor are now recorded.
+    - E61: the 0.5 PE timing-charge floor and the normalisation choice are now recorded.
+    - E64: the KS-tolerance provenance and the objective dependence are now stated.
+    - E68: the class difference (`_WCTE` against plain) is now stated correctly.
+    - Code: the default v3 manifest is hash-pinned (`V3_SHA256`); `spe_charge` requires a JSON boolean and an integer offset.
+    - Tests: hard-coded de Boor reference values R(0.25) = 0.9757710 and R(0.5) = 0.4889332 replace a spline check that used the same scipy call as the code; the dark-digit charge check now removes the per-module gain.
+    - E59: the `rn1pe` line range.
+  - The fixture comparison it noted as missing is E71.
+

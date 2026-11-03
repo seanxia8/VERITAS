@@ -43,9 +43,11 @@ def digest(d):
     return h.hexdigest()
 
 
-def test_manifest_declares_synthetic_dark_rate_and_window():
+def test_manifest_declares_dark_rate_and_window():
     m = response_manifest.load_manifest()
-    assert m["parameters"]["dark_rate_hz"]["value"] == 1000.0 and m["parameters"]["dark_rate_hz"]["status"] == "synthetic_dev"
+    # R-7 v2: the 1 kHz value is unchanged; its provenance is now WCSim's R14374 GetDarkRate.
+    assert m["parameters"]["dark_rate_hz"]["value"] == 1000.0 and m["parameters"]["dark_rate_hz"]["status"] == "literature_proxy_wcsim_wcte_3in"
+    assert response_manifest.load_manifest(response_manifest.V2_PATH)["parameters"]["dark_rate_hz"]["status"] == "synthetic_dev"
     assert m["stage_owners"]["dark_counts"].startswith("readout")
     p = reference()
     assert p.dark_rate_hz == 1000.0 and p.readout_window_ns == (-200.0, 800.0)

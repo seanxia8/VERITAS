@@ -1,0 +1,291 @@
+{
+  "schema": "pmt-response-v3",
+  "status": "literature_proxy_dev",
+  "status_note": "adopted values are literature proxies from Xia (2019): threshold_pe is literature_sk, and spe_sigma, qe_curve, collection_efficiency and timing_width are literature_proxy_hk_20in; every other parameter keeps its v2 synthetic_dev value and provenance",
+  "supersedes": "pmt-response-v2 (configs/lucid_pmt/reference.json, sha256 17636f9bba69e10ea59bcbd83a884c003b4709ea5e1a6fabd94178a0be402e68); v2 is retained byte-identical and remains the label of past results (R-4, R-4b, R-4c) and of the pinned JEPA SHA 5f4ecc0",
+  "builder": "noise_module_lucid.response_manifest.reference_response(n_channels, channel_group)",
+  "target_candidate": {
+    "geometry": "WCTE",
+    "upstream_revision": "eaf2e89f579d6679e90020c732ac2c846895d691",
+    "pmt_type": "pending: WCTE config names no PMT hardware model",
+    "target_calibration": "pending"
+  },
+  "units": {
+    "length": "m",
+    "time": "ns",
+    "charge": "PE",
+    "wavelength": "nm"
+  },
+  "photon_stage": "incident_photons",
+  "stage_owners": {
+    "geometric_interception": "source",
+    "QE": "readout",
+    "CE": "readout",
+    "charge_gain": "readout",
+    "timing_location": "readout",
+    "timing_width": "readout split-normal digit kernel (thesis Eq. 6.3; sigma_e early, sigma_l late) with a per-module factor scaling both sigmas; upstream TTS forbidden",
+    "threshold": "readout",
+    "dark_counts": "readout (R-6): keyed Poisson dark photoelectrons per PMT, uniform in readout_window_ns, bypass QE/CE, then the same SPE charge, gain, discriminator, T-Q walk and width",
+    "pre_after_pulses": "off"
+  },
+  "transport": {
+    "prompt_direct": true,
+    "scattering": false,
+    "reflection": false,
+    "angular_acceptance": "uniform",
+    "concentrators": false,
+    "absorption": "off",
+    "dispersion": "off",
+    "spectrum": "fixture: uniform 300..600 nm synthetic, not Cherenkov; LUCiD pilots: PhotonSim Cherenkov photons in the 200..800 nm QE band"
+  },
+  "conventions": {
+    "detection": "QE(lambda)*CE[channel]*survival[channel]",
+    "gain": "dimensionless multiplier after PE detection and SPE smearing",
+    "timing": "forward ns; D-TQ walk(q)=a+b/sqrt(min(q,q_sat)) on the charge domain; frozen reference subtraction; digit width is the split-normal kernel of Eq. 6.3 with density sqrt(2/pi)/(sigma_e+sigma_l)*exp(-(t-t0)^2/(2 sigma^2)), sigma=sigma_e for t < t0 (early) and sigma=sigma_l for t >= t0 (late), mode t0 = photon arrival + walk, sigma_e/sigma_l from the charge table interpolated linearly in log10 q; sampled mean = t0 + sqrt(2/pi)*(sigma_l - sigma_e); digits earlier than photon arrival counted as digits_before_arrival",
+    "boundaries": "charge above charge_domain_pe upper bound clamped to it and counted (overflow_clamped); charge below the domain or wavelength outside the QE table rejected; no extrapolation",
+    "rng": "BLAKE2b pmt-v1 keyed by seed/event/persistent photon ID for detection, seed/event/channel for charge, timing and dark counts, and seed/event/(channel, rank) for dark times; dark-noise-only windows add a dark_window:<n> stream namespace",
+    "discriminator": "T-Q mode: continuous PE peak, threshold .25 PE; legacy threshold_walk mode retains sampled-template normalization",
+    "per_channel_factors": "factor_i = base + odd_group_delta * (group_i mod 2); group = dense mPMT module index on WCTE (D-G), contiguous 12-channel synthetic groups on the fixture",
+    "dark_counts": "dark PE join the detected PE before digitisation; one digit per PMT, so a dark PE earlier than the source light sets that digit's time; n_dark_true is evaluation-only truth; dark-noise-only windows use noise_module_lucid.readout.dark_noise_window(params, n_channels, seed=, run=, window=)"
+  },
+  "parameters": {
+    "survival": {
+      "value": 1.0,
+      "source": "synthetic development default; not thesis numerical calibration, not WCTE calibration",
+      "status": "synthetic_dev",
+      "sha256": "d0ff5974b6aa52cf562bea5921840c032a860a91a3512f7fe8f768f6bbe005f6"
+    },
+    "timing_offsets_ns": {
+      "value": 0.0,
+      "source": "synthetic development default; not thesis numerical calibration, not WCTE calibration",
+      "status": "synthetic_dev",
+      "sha256": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7"
+    },
+    "reference_offsets_ns": {
+      "value": 0.0,
+      "source": "synthetic development default; not thesis numerical calibration, not WCTE calibration",
+      "status": "synthetic_dev",
+      "sha256": "8aed642bf5118b9d3c859bd4be35ecac75b6e873cce34e7b6f554b06f75550d7"
+    },
+    "threshold_pe": {
+      "value": 0.25,
+      "source": "J. Xia, Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors, MSc thesis, University of Tokyo, July 2019, section 6.1: Super-K's -0.69 mV threshold corresponds to about 0.25 PE; literature proxy for the 50 cm Super-Kamiokande (R3600) PMT, not a measurement of WCTE's 3-inch PMT; status literature_sk (value unchanged from v2)",
+      "status": "literature_sk",
+      "sha256": "a30a043314fa89294fa2c1c989a01fbb5329e5c085a5c5a8d27317656de24ae0"
+    },
+    "walk_calibration_pe": {
+      "value": 0.25,
+      "source": "synthetic development default; not thesis numerical calibration, not WCTE calibration",
+      "status": "synthetic_dev",
+      "sha256": "a30a043314fa89294fa2c1c989a01fbb5329e5c085a5c5a8d27317656de24ae0"
+    },
+    "spe_sigma": {
+      "value": 0.3,
+      "source": "J. Xia, Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors, MSc thesis, University of Tokyo, July 2019, section 4.3: HK Box&Line single-photoelectron charge resolution 30.8%; literature proxy for the 20-inch Hyper-Kamiokande Box&Line (R12860) PMT, not a measurement of WCTE's 3-inch PMT; the thesis PDF is cited, not committed; status literature_proxy_hk_20in (value unchanged from v2)",
+      "status": "literature_proxy_hk_20in",
+      "sha256": "221764976efe04132774d96b0253cc31434c5261737469324f222621baf34b20"
+    },
+    "dead_channels": {
+      "value": [],
+      "source": "synthetic development default; not thesis numerical calibration, not WCTE calibration",
+      "status": "synthetic_dev",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "mv_per_pe": {
+      "value": 4.0,
+      "source": "synthetic development default; not thesis numerical calibration, not WCTE calibration",
+      "status": "synthetic_dev",
+      "sha256": "fbd04e1aae9ce0b11a8946e2c9ac2619f7428a64d32d01eff61d809dcb70ee8e"
+    },
+    "qe_curve": {
+      "value": {
+        "wavelength_nm": [
+          200,
+          280,
+          300,
+          320,
+          340,
+          350,
+          370,
+          400,
+          420,
+          450,
+          480,
+          500,
+          520,
+          540,
+          560,
+          600,
+          650,
+          700,
+          800
+        ],
+        "efficiency": [
+          0.0,
+          0.0,
+          0.01,
+          0.1,
+          0.23,
+          0.27,
+          0.29,
+          0.305,
+          0.29,
+          0.25,
+          0.19,
+          0.165,
+          0.13,
+          0.07,
+          0.045,
+          0.015,
+          0.002,
+          0.0,
+          0.0
+        ]
+      },
+      "source": "J. Xia, Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors, MSc thesis, University of Tokyo, July 2019, section 4.3, Fig. 4.3 (thesis ref. [21]): HK R12860 average quantum efficiency, digitised by the author by eye (about +/-1 percentage point of QE); zero-QE anchors outside 280-700 nm kept from v2; literature proxy for the 20-inch Hyper-Kamiokande Box&Line (R12860) PMT, not a measurement of WCTE's 3-inch PMT; the thesis PDF is cited, not committed",
+      "status": "literature_proxy_hk_20in",
+      "sha256": "d1891c727c1801051cc79275ca9fcff1fce9e95ffd3583de931000eed0999a1c"
+    },
+    "collection_efficiency": {
+      "value": 0.87,
+      "source": "J. Xia, Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors, MSc thesis, University of Tokyo, July 2019, section 4.2: HK Box&Line collection efficiency over the full 50 cm; peak QE x CE = 0.305 x 0.87 = 0.26535, which matches the HK requirement of 26% (Table 4.1); literature proxy for the 20-inch Hyper-Kamiokande Box&Line (R12860) PMT, not a measurement of WCTE's 3-inch PMT; the thesis PDF is cited, not committed",
+      "status": "literature_proxy_hk_20in",
+      "sha256": "36c219b3f13f25c1eca376a724b034427526bb99c51f33411cc5a75775cbe118"
+    },
+    "charge_domain_pe": {
+      "value": [
+        0.25,
+        1000.0
+      ],
+      "source": "runbook v2 \u00a73 D-Q: one domain [0.25,1000] PE everywhere; overflow clamped and counted",
+      "status": "synthetic_dev",
+      "sha256": "9d32055638fc08cf21e1ab542cd5fc6502685a9d167f96720c74c43ce01a6c95"
+    },
+    "walk": {
+      "value": {
+        "form": "inverse_sqrt",
+        "a_ns": 0.0,
+        "b_ns": 2.0,
+        "q_sat_pe": 50.0
+      },
+      "source": "runbook v2 \u00a73 D-TQ synthetic default (a=0, b=2 ns, q_sat=50 PE)",
+      "status": "synthetic_dev",
+      "sha256": "6011533836a08946e716f989b3e65653de4243952c17498dddf4c3dfb3586e3a"
+    },
+    "timing_width": {
+      "value": {
+        "kernel": "split_normal",
+        "charge_pe": [
+          0.25,
+          0.5,
+          1.0,
+          2.0,
+          3.0,
+          5.0,
+          10.0,
+          30.0,
+          100.0,
+          1000.0
+        ],
+        "sigma_e_ns": [
+          2.0,
+          1.53,
+          1.26,
+          1.04,
+          0.98,
+          0.86,
+          0.72,
+          0.65,
+          0.61,
+          0.75
+        ],
+        "sigma_l_ns": [
+          2.9,
+          1.82,
+          1.52,
+          1.76,
+          1.44,
+          1.13,
+          0.83,
+          0.6,
+          0.47,
+          0.49
+        ]
+      },
+      "source": "J. Xia, Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors, MSc thesis, University of Tokyo, July 2019, section 6.2 Eq. 6.3, Fig. 6.4(b) and Fig. 6.3 (sigma_r blue = early side, sigma_l magenta = late side), HK PMTs; digitised by the author by eye (about +/-0.1 ns); interpolated linearly in log10 q; the 2 PE bump is kept as measured; the values are read as standard deviations because section 6.2 says they feed Eq. 6.3 (Eq. 6.2 omits the factor 2, so a sqrt(2) re-reading is an open question for Junjie); literature proxy for the 20-inch Hyper-Kamiokande Box&Line (R12860) PMT, not a measurement of WCTE's 3-inch PMT; the thesis PDF is cited, not committed",
+      "status": "literature_proxy_hk_20in",
+      "sha256": "6881389af54b2f3e004dc014f117d3cc5fe716664c65aabf70c79510a715a22c"
+    },
+    "gain": {
+      "value": {
+        "rule": "group_parity",
+        "base": 1.0,
+        "odd_group_delta": 0.03
+      },
+      "source": "runbook v2 \u00a73 D-G: per-module factor rule on the mPMT map (WCTE) or synthetic groups (fixture); factor values synthetic",
+      "status": "synthetic_dev",
+      "sha256": "34b05a8d2523d0a40fb67758553bcbb9823f3ccc2012dac4f484f3d2b74f7a73"
+    },
+    "timing_width_factor": {
+      "value": {
+        "rule": "group_parity",
+        "base": 1.0,
+        "odd_group_delta": 0.05
+      },
+      "source": "runbook v2 \u00a73 D-G: per-module factor rule on the mPMT map (WCTE) or synthetic groups (fixture); factor values synthetic",
+      "status": "synthetic_dev",
+      "sha256": "294ce9ef18b53a764ea8710cc966d6fc621c7a78a349028e007ad811ef703b39"
+    },
+    "dark_rate_hz": {
+      "value": 1000.0,
+      "source": "R-6 (author, 18 Oct 2026): synthetic default 1 kHz per PMT; not a measured WCTE 3-inch PMT dark rate",
+      "status": "synthetic_dev",
+      "sha256": "4250638e192f9a123203e510b554639f0912688ad6ccdb3de696ba913112612a"
+    },
+    "readout_window_ns": {
+      "value": [
+        -200.0,
+        800.0
+      ],
+      "source": "R-6 engineering choice: 1 us window around the prompt light (forward ns, event time origin); dark hits are generated uniformly in it; source photons are not cut by it",
+      "status": "synthetic_dev",
+      "sha256": "58cb1b8c10e3f4270d49a6393d7548b5f99b4d659bd4805ed2debe8219f3b112"
+    }
+  },
+  "fit_config": {
+    "v_group": 0.2172409115942029,
+    "scale_ns": 3.0,
+    "t0_quantile": 0.2,
+    "grid": 5,
+    "min_digits": 6,
+    "max_iter": 400
+  },
+  "fixture": {
+    "geometry": "synthetic 76-sensor cylinder toy.cylinder_detector(4, 12, 2), NOT WCTE geometry",
+    "channels_per_group": 12,
+    "group_provenance": "synthetic_dev",
+    "group_source": "contiguous fixture channels; NOT physical crates",
+    "photons_per_event": 4000,
+    "photons_note": "v1 declared 4000; cut to 1000 in prompt_run_02 only to fit the old 100 PE domain; restored under D-Q"
+  },
+  "literature_provenance": {
+    "citation": "J. Xia, Upgrade and Calibration of Super-Kamiokande's Inner Photodetectors, MSc thesis, University of Tokyo, July 2019",
+    "note": "cited, not committed; the thesis measures 50 cm Super-K (R3600) and Hyper-K Box&Line (R12860) PMTs, not WCTE's 3-inch PMTs, so every adopted value is a proxy; a WCTE value from Junjie replaces a proxy as soon as it arrives",
+    "adopted": {
+      "threshold_pe": "section 6.1 (literature_sk)",
+      "spe_sigma": "section 4.3 (literature_proxy_hk_20in)",
+      "qe_curve": "section 4.3, Fig. 4.3 (literature_proxy_hk_20in)",
+      "collection_efficiency": "section 4.2 (literature_proxy_hk_20in)",
+      "timing_width": "section 6.2 Eq. 6.3, Fig. 6.3, Fig. 6.4(b) (literature_proxy_hk_20in)"
+    },
+    "checks": {
+      "peak_qe": 0.305,
+      "collection_efficiency": 0.87,
+      "peak_qe_times_ce": 0.26535,
+      "hk_requirement": 0.26,
+      "hk_requirement_source": "Table 4.1",
+      "within_required_band_0.25_0.29": true
+    },
+    "open_question": "whether the section 6.2 / Fig. 6.3 widths are standard deviations feeding Eq. 6.3 or are off by sqrt(2) because Eq. 6.2 omits the factor 2"
+  }
+}

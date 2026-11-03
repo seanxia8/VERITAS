@@ -1,4 +1,10 @@
-"""R-7 fixture comparison: frozen response v2 vs the new default v3.
+"""R-7 fixture comparison (23 Oct 2026): frozen response v2 vs the first R-7 v3.
+
+Since R-7 v2 the first R-7 manifest is the thesis cross-check
+``configs/lucid_pmt/reference_v3_thesis_xcheck.json`` (byte-identical to the
+``reference_v3.json`` this script read on 23 Oct), so ``v3`` below names that file and
+the script still reproduces ``results/pmt_r7_dev_2026-10-23/``. The three-way
+comparison with the R-7 v2 default is ``scripts/pmt_r7v2_fixture_comparison.py``.
 
 Run (CPU only, no WCTE data, no network):
 
@@ -10,8 +16,8 @@ Everything is fixed before the run:
 * the 24 evaluation events ``30000..30023`` are read out exactly as
   ``calibration.event_digits`` does, with the per-event seed ``event_id``;
 * only the response manifest changes: ``v2`` = ``configs/lucid_pmt/reference.json``
-  (pinned, frozen) through ``response_manifest.V2_PATH``, ``v3`` = the default
-  ``configs/lucid_pmt/reference_v3.json``. Both manifests carry the R-6 dark-count
+  (pinned, frozen) through ``response_manifest.V2_PATH``, ``v3`` = the first R-7
+  manifest, now ``response_manifest.THESIS_XCHECK_PATH``. Both manifests carry the R-6 dark-count
   stage at the same 1 kHz, so the dark-count stage is not a variable here.
 
 Reported per evaluation event and response: digit (hit-PMT) count, source-only
@@ -114,7 +120,7 @@ def run(out: Path = DEFAULT_OUT) -> dict:
 
     group = np.asarray(mapping.channel_group)
     ref_v2 = response_manifest.reference_response(det.n_channels, group, manifest=response_manifest.V2_PATH)
-    ref_v3 = response_manifest.reference_response(det.n_channels, group)
+    ref_v3 = response_manifest.reference_response(det.n_channels, group, manifest=response_manifest.THESIS_XCHECK_PATH)
     moved = ref_v2.moved_from(ref_v3)
     if set(moved) != {"qe_curve", "collection_efficiency", "timing_width"}:
         raise RuntimeError(f"R-7 must move exactly qe_curve, collection_efficiency and timing_width; moved {sorted(moved)}")
@@ -140,7 +146,7 @@ def run(out: Path = DEFAULT_OUT) -> dict:
         "numpy": np.__version__,
         "command": sys.argv,
         "manifest": {"v2": response_manifest.provenance(response_manifest.V2_PATH),
-                     "v3": response_manifest.provenance()},
+                     "v3": response_manifest.provenance(response_manifest.THESIS_XCHECK_PATH)},
         "response_difference_moved_fields": moved,
         "fixture": {
             "description": "synthetic 76-sensor cylinder (4 barrel rings x 12 + 2 cap rings, NOT WCTE geometry); "

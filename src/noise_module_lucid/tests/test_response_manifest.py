@@ -7,13 +7,14 @@ import numpy as np
 import pytest
 from noise_module_lucid import response_manifest
 from noise_module_lucid.readout import ReadoutParams
-from noise_module_lucid.timing_response import InverseSqrtWalk, SplitNormalWidth
+from noise_module_lucid.spe_charge import TabulatedSPE
+from noise_module_lucid.timing_response import InverseSqrtWalk, SplitNormalWidth, WCSimTTSWidth
 
 PACKAGE = Path(response_manifest.__file__).parent
-CTORS = {"ReadoutParams", "WalkCurve", "InverseSqrtWalk", "WidthCurve", "SplitNormalWidth", "QECurve", "ChannelWalkCurve"}
+CTORS = {"ReadoutParams", "WalkCurve", "InverseSqrtWalk", "WidthCurve", "SplitNormalWidth", "WCSimTTSWidth", "TabulatedSPE", "QECurve", "ChannelWalkCurve"}
 RESPONSE_FIELDS = set(ReadoutParams.__dataclass_fields__)
 # Modules that define the response types or build the reference from the manifest.
-BUILDERS = {"response_manifest.py", "timing_response.py", "quantum_efficiency.py"}
+BUILDERS = {"response_manifest.py", "timing_response.py", "quantum_efficiency.py", "spe_charge.py"}
 # Bare ReadoutParams() is the legacy toy chain (no QE, T-Q or width model), kept for historical results.
 LEGACY_DEFAULT = {"dataset.py", "readout.py"}
 # Declared cell/control constructions outside a ResponseCellSpec(...) call; each is an intervention, not a reference.
@@ -89,8 +90,8 @@ def test_pilots_build_from_the_manifest():
 
 def test_manifest_hashes_domain_and_fixture():
     m = response_manifest.load_manifest()
-    # R-7 (23 Oct 2026): v3 is the default; v2 stays loadable and hash-pinned.
-    assert m["schema"] == "pmt-response-v3" and m["status"] == "literature_proxy_dev"
+    # R-7 v2 (23 Oct 2026; decisions 3 Nov 2026): v3 (WCSim 3-inch) is the default; v2 stays loadable and hash-pinned.
+    assert m["schema"] == "pmt-response-v3" and m["status"] == "literature_proxy_wcsim_wcte_3in"
     assert m["parameters"]["charge_domain_pe"]["value"] == [0.25, 1000.0]
     assert m["parameters"]["walk"]["value"] == {"form": "inverse_sqrt", "a_ns": 0.0, "b_ns": 2.0, "q_sat_pe": 50.0}
     assert m["fixture"]["photons_per_event"] == 4000
@@ -98,18 +99,35 @@ def test_manifest_hashes_domain_and_fixture():
 
 
 def test_v3_changes_only_the_authorised_parameters():
-    """R-7 authorises QE, CE and timing width only; provenance labels are the stated ones."""
+    """R-7 v2 authorises QE, CE, the SPE spectrum, the timing width and the dark-rate provenance only."""
     v3 = response_manifest.load_manifest()
     v2 = response_manifest.load_manifest(response_manifest.V2_PATH)
-    changed = {k for k in v3["parameters"] if v3["parameters"][k]["value"] != v2["parameters"][k]["value"]}
+    # The Gaussian spe_sigma is replaced by the tabulated spe_charge; every other key is shared.
+    assert set(v3["parameters"]) - set(v2["parameters"]) == {"spe_charge"}
+    assert set(v2["parameters"]) - set(v3["parameters"]) == {"spe_sigma"}
+    common = set(v3["parameters"]) & set(v2["parameters"])
+    changed = {k for k in common if v3["parameters"][k]["value"] != v2["parameters"][k]["value"]}
     assert changed == {"qe_curve", "collection_efficiency", "timing_width"}
-    relabelled = {k for k in v3["parameters"] if v3["parameters"][k]["status"] != v2["parameters"][k]["status"]}
-    assert relabelled == {"threshold_pe", "spe_sigma", "qe_curve", "collection_efficiency", "timing_width"}
-    for name in ("survival", "timing_offsets_ns", "reference_offsets_ns", "walk_calibration_pe", "spe_sigma",
+    relabelled = {k for k in common if v3["parameters"][k]["status"] != v2["parameters"][k]["status"]}
+    assert relabelled == {"threshold_pe", "qe_curve", "collection_efficiency", "timing_width", "dark_rate_hz"}
+    for name in ("qe_curve", "collection_efficiency", "timing_width", "dark_rate_hz"):
+        assert v3["parameters"][name]["status"] == "literature_proxy_wcsim_wcte_3in", name
+    assert v3["parameters"]["spe_charge"]["status"] == "literature_proxy_wcsim_wcte_3in"
+    assert v3["parameters"]["threshold_pe"]["status"] == "literature_sk"
+    for name in ("survival", "timing_offsets_ns", "reference_offsets_ns", "walk_calibration_pe",
                  "dead_channels", "mv_per_pe", "charge_domain_pe", "walk", "gain", "timing_width_factor",
                  "dark_rate_hz", "readout_window_ns", "threshold_pe"):
         assert v3["parameters"][name]["value"] == v2["parameters"][name]["value"], name
         assert v3["parameters"][name]["sha256"] == v2["parameters"][name]["sha256"], name
+
+
+def test_spe_charge_only_in_v3_and_one_spe_model_per_response(tmp_path):
+    m = json.loads(response_manifest.V2_PATH.read_text())
+    bad = json.loads(json.dumps(m)); bad["parameters"]["spe_charge"] = bad["parameters"].pop("spe_sigma")
+    (tmp_path / "v2_table.json").write_text(json.dumps(bad))
+    with pytest.raises(ValueError, match="pmt-response-v3"): response_manifest.load_manifest(tmp_path / "v2_table.json")
+    p = response_manifest.reference_response(4, np.zeros(4, dtype=int))
+    assert p.spe_sigma == 0.0 and isinstance(p.spe_charge, TabulatedSPE)
 
 
 def test_tampered_or_incomplete_manifest_is_rejected(tmp_path):
@@ -129,7 +147,7 @@ def test_reference_response_any_size_and_group_rule():
     for n, group in ((76, np.arange(76)//12), (1995, response_manifest.module_groups(np.repeat(np.arange(105)*7, 19)))):
         p = response_manifest.reference_response(n, group)
         assert isinstance(p, ReadoutParams) and len(p.gain) == n and p.charge_domain_pe == (0.25, 1000.0)
-        assert isinstance(p.timing_width, SplitNormalWidth)
+        assert isinstance(p.timing_width, WCSimTTSWidth) and isinstance(p.spe_charge, TabulatedSPE)
         np.testing.assert_allclose(p.gain, 1+.03*(np.asarray(group) % 2))
         np.testing.assert_allclose(p.timing_width_factor, 1+.05*(np.asarray(group) % 2))
         assert p.walk_curve == p.reference_walk == InverseSqrtWalk(0.0, 2.0, 50.0, (0.25, 1000.0))

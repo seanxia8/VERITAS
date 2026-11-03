@@ -4,10 +4,11 @@ Tolerances declared before the first run: conditional means within 3 sigma_MC
 (sigma_MC = the wider side of the declared digit-width kernel / sqrt(N)); the
 early-digit fraction within 6 binomial SE of the analytic kernel CDF. Seed 71,
 20000 channels per charge point. Each charge point uses its own event ID, so its
-per-channel jitter draws are independent of the other points. Since R-7 the
-manifest's digit width is the split-normal kernel (thesis Eq. 6.3), whose mean
-sits sqrt(2/pi)(sigma_l - sigma_e) above the mode, so the mean checks carry that
-recorded shift. Synthetic validation only.
+per-channel jitter draws are independent of the other points. Since R-7 v2 the
+manifest's digit width is WCSim's 3-inch Gaussian (mean shift 0); the checks use
+the kernel's own ``mean_shift``/``cdf`` and widest sigma, so they also hold for the
+R-7 split normal (thesis cross-check), whose mean sits sqrt(2/pi)(sigma_l - sigma_e)
+above the mode. Synthetic validation only.
 """
 from dataclasses import replace
 import numpy as np
@@ -26,7 +27,12 @@ def flat(n):
     """Manifest response with unit detection, unit group factors and no dark counts (tested in
     test_dark_counts.py), so charge is set by gain alone."""
     p = response_manifest.reference_response(n, np.zeros(n, dtype=int))
-    return replace(p, qe_curve=QECurve(p.qe_curve.wavelength_nm, (1.0,)*len(p.qe_curve.wavelength_nm)), collection_efficiency=1.0, spe_sigma=0.0, dark_rate_hz=0.0)
+    return replace(p, qe_curve=QECurve(p.qe_curve.wavelength_nm, (1.0,)*len(p.qe_curve.wavelength_nm)), collection_efficiency=1.0, spe_sigma=0.0, spe_charge=None, dark_rate_hz=0.0)
+
+
+def widest_sigma(tw, q):
+    """The wider side of the declared kernel (both sides are sigma for a symmetric Gaussian)."""
+    return float(max(tw.sigma_e(q), tw.sigma_l(q))) if hasattr(tw, "sigma_e") else float(tw(q))
 
 
 def event_for(q):
@@ -53,7 +59,7 @@ def test_conditional_mean_follows_configured_curve(q):
     d = read(one_photon_per_channel(event=event_for(q)), p)
     assert len(d) == N and np.all(d.charge == q)
     tw = p.timing_width
-    sigma_mc = float(max(tw.sigma_e(q), tw.sigma_l(q))) / np.sqrt(N)
+    sigma_mc = widest_sigma(tw, q) / np.sqrt(N)
     configured = float(p.walk_curve(q)) + float(tw.mean_shift(q))
     assert float(p.walk_curve(q)) == pytest.approx(2/np.sqrt(q))
     assert abs(d.time.mean() - configured) < 3*sigma_mc
@@ -106,7 +112,7 @@ def test_overflow_is_clamped_and_counted_not_raised():
 
 
 @pytest.mark.parametrize("q", [1, 5])
-def test_digits_before_arrival_fraction_matches_split_normal(q):
+def test_digits_before_arrival_fraction_matches_the_kernel_cdf(q):
     p = replace(flat(N), gain=float(q))
     d = read(one_photon_per_channel(event=event_for(q)), p)
     # The raw delay is walk(q) + jitter, so a digit is early when jitter < -walk(q).

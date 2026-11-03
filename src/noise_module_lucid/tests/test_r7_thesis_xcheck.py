@@ -1,4 +1,10 @@
-"""R-7 acceptance (author message, 23 Oct 2026): literature-proxy response v3.
+"""R-7 (author message, 23 Oct 2026), first version: the thesis cross-check manifest.
+
+R-7 v2 (same day; decisions 3 Nov 2026) superseded these values before any result used
+them: the default ``pmt-response-v3`` is now WCSim's 3-inch R14374 response
+(``test_r7v2_wcsim_v3.py``). This file keeps the first R-7 reproducible: every test runs
+on ``configs/lucid_pmt/reference_v3_thesis_xcheck.json`` (byte-identical to the
+``reference_v3.json`` of d2f179f, pinned by ``THESIS_XCHECK_SHA256``), not on the default.
 
 The adopted values are proxies from J. Xia, *Upgrade and Calibration of
 Super-Kamiokande's Inner Photodetectors* (MSc thesis, University of Tokyo, July
@@ -32,6 +38,7 @@ from noise_module_lucid.timing_response import SplitNormalWidth, WidthCurve
 
 N = 20000
 SEED = 71
+THESIS = response_manifest.THESIS_XCHECK_PATH
 
 #: Fig. 4.3 of the thesis, HK R12860 average QE, exactly as the author transcribed it.
 THESIS_QE = {
@@ -47,7 +54,7 @@ THESIS_WIDTH = {
 }
 
 
-def reference(n=1995, groups=None, path=None):
+def reference(n=1995, groups=None, path=THESIS):
     groups = np.arange(n) // 19 if groups is None else groups
     return response_manifest.reference_response(n, groups, manifest=path)
 
@@ -83,7 +90,7 @@ def raw_flat(n, q):
 
 
 def test_qe_table_interpolation_and_zero_anchors():
-    m = response_manifest.load_manifest()
+    m = response_manifest.load_manifest(THESIS)
     value = m["parameters"]["qe_curve"]["value"]
     w = np.asarray(value["wavelength_nm"], dtype=float)
     e = np.asarray(value["efficiency"], dtype=float)
@@ -108,7 +115,7 @@ def test_qe_table_interpolation_and_zero_anchors():
 
 
 def test_peak_qe_times_ce_matches_the_hk_requirement():
-    m = response_manifest.load_manifest()
+    m = response_manifest.load_manifest(THESIS)
     peak = max(m["parameters"]["qe_curve"]["value"]["efficiency"])
     ce = m["parameters"]["collection_efficiency"]["value"]
     product = peak * ce
@@ -123,7 +130,7 @@ def test_peak_qe_times_ce_matches_the_hk_requirement():
 
 def test_timing_width_table_is_the_transcribed_thesis_table():
     """The manifest must carry Fig. 6.4(b)/6.3 verbatim, not merely a consistent table."""
-    m = response_manifest.load_manifest()
+    m = response_manifest.load_manifest(THESIS)
     value = m["parameters"]["timing_width"]["value"]
     assert value["kernel"] == "split_normal"
     assert value["charge_pe"] == THESIS_WIDTH["charge_pe"]
@@ -316,10 +323,15 @@ def test_dark_digits_use_the_same_split_normal_kernel():
 # ------------------------------------------------------- 4. versioning / hashes
 
 
-def test_v3_is_the_default_and_declares_literature_proxies():
-    m = response_manifest.load_manifest()
+def test_thesis_xcheck_is_archived_pinned_and_not_the_default():
+    m = response_manifest.load_manifest(THESIS)
     assert m["schema"] == "pmt-response-v3" and response_manifest.SCHEMA == "pmt-response-v3"
     assert m["status"] == "literature_proxy_dev"
+    # Byte-identical to the first R-7's reference_v3.json (d2f179f), and no longer the default.
+    assert response_manifest.manifest_sha256(THESIS) == response_manifest.THESIS_XCHECK_SHA256
+    assert response_manifest.THESIS_XCHECK_SHA256 == "696ac1e6c87701c3b1390f2c1d5b08607fc1b051afbfc48e4d5d52b5a3459730"
+    assert response_manifest.DEFAULT_PATH.resolve() != THESIS.resolve()
+    assert response_manifest.THESIS_XCHECK_SHA256 in response_manifest.load_manifest()["supersedes"]
     labels = {"threshold_pe": "literature_sk"}
     for name in ("spe_sigma", "qe_curve", "collection_efficiency", "timing_width"):
         labels[name] = "literature_proxy_hk_20in"
@@ -352,7 +364,7 @@ def test_v2_is_still_reproducible_by_its_manifest_hash():
 
 
 def test_v2_and_v3_walk_and_charge_domain_are_unchanged():
-    for path in (None, response_manifest.V2_PATH):
+    for path in (THESIS, response_manifest.V2_PATH):
         p = reference(1995, None, path=path)
         assert p.charge_domain_pe == (0.25, 1000.0)
         assert p.walk_curve == p.reference_walk
