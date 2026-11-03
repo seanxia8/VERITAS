@@ -817,4 +817,13 @@ That is: (1) the SPE charge is sampled directly from WCSim's 501-point `Getqpe` 
     - Tests: hard-coded de Boor reference values R(0.25) = 0.9757710 and R(0.5) = 0.4889332 replace a spline check that used the same scipy call as the code; the dark-digit charge check now removes the per-module gain.
     - E59: the `rn1pe` line range.
   - The fixture comparison it noted as missing is E71.
+- E71 (R-7 v2, fixture comparison). `scripts/pmt_r7v2_fixture_comparison.py` at `117f8db` (inputs clean), Linux, Python 3.13.18; result `results/pmt_r7v2_dev_2026-11-03/fixture_comparison.json`. Setup: the 24 evaluation events of the 76-sensor synthetic fixture (4000 photons/event, uniform 300-600 nm, NOT WCTE geometry), with only the manifest changing. Development evidence, not citable.
+
+| Response | Hit PMTs / event | Detected PE / event | Mean digit-time spread (ns) | 1-PE hit efficiency (analytic) |
+|---|---|---|---|---|
+| v2 (synthetic) | 75.96 | 1196.6 | 3.081 | 0.9936 (0.9938) |
+| v1 thesis cross-check | 75.12 | 611.5 | 3.235 | 0.9936 (0.9938) |
+| v3 WCSim 3-inch (default) | 75.29 | 697.3 | 3.022 | 0.9709 (0.9704) |
+
+  Reading: the fixture saturates the hit-PMT count (most of the 76 PMTs see many PE), and its digit-time spread (about 3 ns, event-to-event SD about 0.6 ns) is set by the source geometry. So neither metric resolves the width change from 1.5 ns (v2 at 1 PE) or the thesis split normal to WCSim's 0.65 ns. The changes that do show are the detected PE per event (QE x CE: v2 0.50 x 0.80, thesis 0.305 x 0.87, WCSim 0.2695 x 0.95) and the 1-PE hit efficiency. The latter is measured separately (20000 single-PE channels, unit detection, seed 20261103): the WCSim spectrum loses 2.9% of 1-PE hits at 0.25 PE, against 0.6% under the Gaussian sigma 0.30. A low-occupancy fixture or the contained-muon sample (D-E) is needed to see the timing change on events. The 23 Oct comparison (`results/pmt_r7_dev_2026-10-23/`) is left as it was; its script now names the cross-check manifest and reproduces its rows up to last-bit platform differences (at most 4.4e-16 ns).
 
