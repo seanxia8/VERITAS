@@ -274,19 +274,19 @@ def mode_readout(args) -> int:
     ef.assert_authorised("readout", root=root)
     config, gen, arms_config, geometry, device = load_setup(args)
     inventory = ef.build_inventory(root)
+    labels = None
     if args.include_t1 and args.item in ("A-1", "A-2"):
-        inventory["rows"].update(ef.t1_inventory_rows(ext_root(args)))
+        extra = ef.t1_inventory_rows(ext_root(args))
+        inventory["rows"].update(extra)
+        # B4: pass the T-1 labels explicitly; they are evaluated on the s = 0.30
+        # probes and booked to the T-1 cap (§5).
+        labels = ef.readout_label_list(args.item, inventory["rows"], include_t1=True)
+        print(json.dumps({"include_t1": sorted(extra), "labels": labels}), flush=True)
     out_dir = Path(args.out) if args.out else ext_root(args) / "stageA" / args.item
     body = READOUT_BODIES[args.item]
-    if args.item in ("A-1", "A-2") and args.include_t1:
-        payload = body(root=root, inventory=inventory, config=config, gen=gen,
-                       arms_config=arms_config, geometry=geometry,
-                       data_root=data_root(args), device=device, labels=None,
-                       log=print)
-    else:
-        payload = body(root=root, inventory=inventory, config=config, gen=gen,
-                       arms_config=arms_config, geometry=geometry,
-                       data_root=data_root(args), device=device, log=print)
+    payload = body(root=root, inventory=inventory, config=config, gen=gen,
+                   arms_config=arms_config, geometry=geometry,
+                   data_root=data_root(args), device=device, labels=labels, log=print)
     payload["wall_seconds"] = None
     path = out_dir / f"readout_{args.item}.json"
     write_json(path, payload)
@@ -324,8 +324,10 @@ def mode_train_t1(args) -> int:
                           geometry=geometry, data_root=data_root(args),
                           config_path=getattr(args, "config", None) or CONFIG_DEFAULT,
                           out_root=out_root, variant=args.variant, seed=int(args.seed),
-                          steps=steps, device=device, host_check=True, log=print)
+                          steps=steps, device=device, host_check=True,
+                          ext_root=ext_root(args), log=print)
     host = payload.get("host_check") or {}
+    cost = payload.get("cost") or {}
     summary = dict(payload.get("summary") or {})
     summary["host_check"] = host
     summary["run_dir"] = payload.get("run_dir")
@@ -335,8 +337,11 @@ def mode_train_t1(args) -> int:
                       "steps": steps, "smoke": smoke,
                       "host_check_pass": host.get("pass"),
                       "unexpected_differences": host.get("unexpected_differences"),
-                      "required": host.get("required")}, default=float), flush=True)
-    return 0 if host.get("pass") else 2
+                      "required": host.get("required"),
+                      "a1_s030_gate": payload.get("a1_gate"),
+                      "t1_cost": cost}, default=float), flush=True)
+    ok = bool(host.get("pass") and cost.get("cap_pass", True))
+    return 0 if ok else 2
 
 
 # ---------------------------------------------------------------------- report

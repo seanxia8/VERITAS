@@ -272,9 +272,9 @@ def _resolve_root(root=None) -> Path:
 
 
 def p_paths(root=None) -> list:
-    """``<P>`` as absolute paths for the git pathspec checks (§6.2 (d))."""
+    """``<P>`` (files **and** directories) as absolute paths for gate (d)."""
     root = _resolve_root(root)
-    return [root / name for name in P_FILES]
+    return [root / name for name in (*P_FILES, *P_DIRS)]
 
 
 def in_p(relative: str) -> bool:
@@ -334,7 +334,8 @@ def import_closure(root=None) -> dict:
             "pass": not violations}
 
 
-def _gate_checks(mode, *, root, arm, variant, seed, steps, out_root, dry_run) -> dict:
+def _gate_checks(mode, *, root, arm, variant, seed, steps, out_root, dry_run,
+                 ext_root=None) -> dict:
     root = _resolve_root(root)
     checks = {}
     problems = []
@@ -388,7 +389,7 @@ def _gate_checks(mode, *, root, arm, variant, seed, steps, out_root, dry_run) ->
     if impl_commit is None:
         code, head, _ = _git(root, "rev-parse", "HEAD")
         impl_commit = head.strip() if code == 0 else None
-    paths = [name for name in P_FILES]
+    paths = [name for name in (*P_FILES, *P_DIRS)]
     if impl_commit:
         code, _, err = _git(root, "diff", "--quiet", str(impl_commit), "--", *paths)
         diff_clean = code == 0
@@ -403,7 +404,8 @@ def _gate_checks(mode, *, root, arm, variant, seed, steps, out_root, dry_run) ->
                    "impl_commit_source": ("acceptance_record" if record
                                           else "HEAD (pre-acceptance)"),
                    "diff_clean": bool(diff_clean), "diff_error": diff_error,
-                   "untracked": untracked, "paths": list(P_FILES)}
+                   "untracked": untracked,
+                   "paths": list(P_FILES) + list(P_DIRS)}
     if not d_pass:
         problems.append(f"(d) the <P> tree differs from {impl_commit} "
                         f"(untracked: {untracked[:3]}{'...' if len(untracked) > 3 else ''})")
@@ -414,19 +416,25 @@ def _gate_checks(mode, *, root, arm, variant, seed, steps, out_root, dry_run) ->
                     int(steps) if steps is not None else None)
         pair_ok = launched in T1_ALLOWED
         smoke = launched == T1_SMOKE
-        expected_root = SMOKE_ROOT if smoke else TRAIN_ROOT
-        root_ok = out_root is None or Path(out_root).resolve().name == expected_root.name
+        # N3: the out root must be exactly <ext>/{smoke,train} on the resolved tree,
+        # not merely a directory with the right basename.
+        ext_base = (Path(ext_root) if ext_root is not None
+                    else (Path(out_root).parent if out_root is not None else EXT_ROOT))
+        expected_root = Path(ext_base) / ("smoke" if smoke else "train")
+        root_ok = (out_root is None
+                   or Path(out_root).resolve() == expected_root.resolve())
         run_id = lr.run_id_for(T1_CELL_IDS.get(str(variant), ""), T1_ARM, int(seed or 0))
         existing = (Path(out_root) / "runs" / run_id).exists() if out_root is not None else False
         e_pass = bool(pair_ok and root_ok and not existing)
         checks["e"] = {"pass": e_pass, "launched": list(launched),
                        "allowed": sorted(list(row) for row in T1_ALLOWED),
                        "smoke": bool(smoke), "out_root": str(out_root) if out_root else None,
-                       "expected_out_root_name": expected_root.name,
+                       "ext_root": str(ext_base),
+                       "expected_out_root": str(expected_root),
                        "run_id": run_id, "run_dir_exists": bool(existing)}
         if not e_pass:
             problems.append(f"(e) {launched} is not an authorised T-1 launch, its out root "
-                            f"is not <ext>/{expected_root.name}, or its run dir exists")
+                            f"is not exactly {expected_root}, or its run dir exists")
     else:
         checks["e"] = {"applicable": False}
 
@@ -447,7 +455,7 @@ def _gate_checks(mode, *, root, arm, variant, seed, steps, out_root, dry_run) ->
 
 
 def assert_authorised(mode, *, root=None, arm=None, variant=None, seed=None, steps=None,
-                      out_root=None, dry_run=None, log=None) -> dict:
+                      out_root=None, ext_root=None, dry_run=None, log=None) -> dict:
     """Hard gate (§6.2 (a)-(e)).  Any failure raises ``SystemExit(2)``.
 
     ``dry_run=True`` (or ``mode == "dry-run"``) records the checks and returns
@@ -459,7 +467,8 @@ def assert_authorised(mode, *, root=None, arm=None, variant=None, seed=None, ste
         raise ValueError(f"unknown mode {mode!r}; expected one of {MODES}")
     dry = bool(dry_run) if dry_run is not None else (mode == "dry-run")
     result = _gate_checks(mode, root=root, arm=arm, variant=variant, seed=seed,
-                          steps=steps, out_root=out_root, dry_run=dry)
+                          steps=steps, out_root=out_root, dry_run=dry,
+                          ext_root=ext_root)
     if dry:
         return result
     if not result["authorised"]:
@@ -706,9 +715,12 @@ _SKIP_WALK = {"tmp", "logs", "part1", "token_time", "validation", "ckpt",
 
 
 def _row(label, *, family, arm, split, seed, beta, source, sha256, data_setting=S005,
-         status="available", **extra) -> dict:
+         status="available", data_key=None, **extra) -> dict:
+    if data_key is None:
+        data_key = (TRAIN_KEY_S030 if abs(float(data_setting) - S030) < 1e-12
+                    else TRAIN_KEY_S005)
     row = {"label": label, "family": family, "arm": arm, "cell": None, "split": split,
-           "seed": int(seed), "beta": beta, "encoder": None,
+           "seed": int(seed), "beta": beta, "encoder": None, "data_key": str(data_key),
            "source": None if source is None else str(source), "sha256": sha256,
            "data_setting": float(data_setting), "status": status,
            "eval": {"zero_geometry": False, "median_wrapper": False,
@@ -779,7 +791,7 @@ def _readout_items_fallback(root) -> dict:
     return {label: dict(spec) for label, spec in getattr(readout_cli, "ITEMS", {}).items()}
 
 
-def build_inventory(root=None, *, hash_files=True, log=print) -> dict:
+def build_inventory(root=None, *, hash_files=True, view_root=None, log=print) -> dict:
     """§2.1 checkpoint inventory: one row per label, accepted only on a sha match."""
     root = _resolve_root(root)
     payload = {"registered": False, "extension": EXTENSION, "check": "§2.1 checkpoint inventory",
@@ -941,20 +953,33 @@ def build_inventory(root=None, *, hash_files=True, log=print) -> dict:
                       split="within", seed=int(label[-4:]), beta=None,
                       source=source if status == "available" else None, sha256=sha,
                       status=status,
+                      data_key=(None if variant else TRAIN_KEY_300K),
                       eval={"encoder_variant": variant}))
 
-    # §2.1 view design: only if the design's committed runs.json exists
+    # §2.1 view design: only if the design's committed runs.json exists.  The
+    # view writer keys its rows ``<split>__<seed>`` (scripts/jepa_ext_view.py);
+    # the inventory label is ``view_<split><seed>``.
     view_runs = root / "results/jepa/20261103_view/runs.json"
-    view_paths = {}
+    view_search = Path(view_root) if view_root is not None else VIEW_EXT
+    view_committed = {}
     if view_runs.is_file():
         view_payload = read_json(view_runs, {}) or {}
-        wanted = {}
         for key, row in (view_payload.get("runs") or {}).items():
-            sha = row.get("checkpoint_sha256") or row.get("sha256")
-            if sha:
-                wanted[sha] = str(key)
-        found = find_final_pt(VIEW_EXT, wanted, max_files=200) if hash_files else {}
-        view_paths = {label: found.get(label) for label in wanted.values()}
+            try:
+                split, seed_text = str(key).split("__")
+                seed = int(seed_text)
+            except ValueError:
+                continue
+            label = f"view_{split}{seed}"
+            view_committed[label] = {
+                "sha256": row.get("checkpoint_sha256") or row.get("sha256"),
+                "vertex_m": ((row.get("full_input") or {}).get("vertex_m")),
+                "split": split}
+    view_found = {}
+    wanted = {meta["sha256"]: label for label, meta in view_committed.items()
+              if meta["sha256"]}
+    if wanted and hash_files:
+        view_found = find_final_pt(view_search, wanted, max_files=200)
     for split in ("within", "across", "module_parity", "random_half"):
         for seed in (9000, 9001):
             label = f"view_{split}{seed}"
@@ -963,11 +988,14 @@ def build_inventory(root=None, *, hash_files=True, log=print) -> dict:
                               seed=seed, beta=None, source=None, sha256=None,
                               status="pending (view design)"))
                 continue
-            source = view_paths.get(label)
-            status = "available" if source else "unavailable"
+            meta = view_committed.get(label) or {}
+            source = view_found.get(label)
+            status = ("available" if source else
+                      ("unavailable" if hash_files else "unverified (dry-run)"))
             register(_row(label, family="view", arm="sigreg_jepa", split="within",
-                          seed=seed, beta=None, source=source, sha256=None,
-                          status=status))
+                          seed=seed, beta=None, source=source,
+                          sha256=meta.get("sha256"), status=status,
+                          committed_vertex_m=meta.get("vertex_m")))
 
     payload["counts"] = {"labels": len(rows),
                          "available": sum(1 for row in rows.values()
@@ -997,6 +1025,25 @@ def _sha_only_specs(root):
     return specs
 
 # ==================================================================== A0
+def readout_label_list(item, rows, *, include_t1=True) -> list:
+    """The labels a ``readout --item`` body must evaluate.
+
+    The fixed item table plus, when ``--include-t1`` is given, the completed T-1
+    checkpoints (``t1_*``) that were merged into the inventory (B4).  The T-1
+    readouts are booked to the T-1 cap (§5).
+    """
+    if item == "A-1":
+        base = list(A1_COMPUTE_LABELS) + list(A1_MLP_FILL_LABELS)
+    elif item == "A-2":
+        base = list(A2_LABELS)
+    else:
+        base = []
+    extra = (sorted(str(label) for label in rows if str(label).startswith("t1_"))
+             if include_t1 else [])
+    seen = set(base)
+    return base + [label for label in extra if label not in seen]
+
+
 A1_S005_LABELS = tuple(A1_S005)
 A1_S030_LABELS = tuple(A1_S030)
 A1_COMPUTE_LABELS = (
@@ -1029,10 +1076,13 @@ A3_LABELS = ("init9000", "fix9000", "fix9001", "frozen_target9000", "frozen_targ
 A4_LABELS = ("mae_within_trigger9000", "mae_within_trigger9001",
              "mae_within_median9000", "mae_within_median9001",
              "fix9000", "fix9001", "frozen_target9000", "frozen_target9001")
-#: §3 A0 pass factors ("1 for a photon full or masked pass; 2 for A-3; 0.5 for an
-#: A-4 masked-only reference; A-1b label passes use 0.6").
+#: §3 A0 pass factors.  A-4 is counted **conservatively** at 3.0 per checkpoint
+#: (1 full-input reproduction pass + 2 masked reference passes: all-token and
+#: context-only); the runbook's "0.5 for an A-4 masked-only reference" wording
+#: disagrees with the implemented work (spec defect S3), so the projection states
+#: what it counts instead of implying the 0.5 sentence.
 STAGE_A_PASS_FACTORS = {"A1": 1.0, "A-1": 1.0, "A-1b": 0.6, "A-2": 2.0, "A-3": 2.0,
-                        "A-4": 0.5}
+                        "A-4": 3.0}
 CPU_PROJECTION = {
     "focused tests and the full suite": 1.5,
     "A0 preflight (hashes, inventory, pairing)": 0.5,
@@ -1069,8 +1119,9 @@ def stage_a_items() -> list:
         items.append({"task": "A-3", "label": label, "pass_factor": 2.0,
                       "domains": ["muon", "electron"]})
     for label in A4_LABELS:
-        items.append({"task": "A-4", "label": label, "pass_factor": 0.5,
-                      "detail": "masked-only reference"})
+        items.append({"task": "A-4", "label": label, "pass_factor": 3.0,
+                      "detail": "1 full-input reproduction + 2 masked reference passes "
+                                "(conservative, not the runbook's 0.5 wording)"})
     return items
 
 
@@ -1091,8 +1142,12 @@ def stage_a_projection(items=None, *, seconds_per_item=SECONDS_PER_ITEM,
             "seconds_per_item": float(seconds_per_item), "factor": float(factor),
             "projected_seconds": round(seconds, 1), "projected_l40s_hours": round(hours, 4),
             "cap_hours": float(cap_hours), "pass": bool(hours <= float(cap_hours)),
-            "per_task": per_task,
-            "rule": "sum(items x 126 s x pass factor x 1.3); STOP S1 if > 5.5 L40S GPU-h"}
+            "per_task": per_task, "pass_factors": dict(STAGE_A_PASS_FACTORS),
+            "rule": "sum(items x 126 s x pass factors x 1.3); pass factors "
+                    "{A1:1, A-1:1, A-1b:0.6, A-2:2, A-3:2, A-4:3} — A-4 is counted "
+                    "conservatively at 3.0 per checkpoint (1 full-input reproduction + "
+                    "2 masked reference passes), not the runbook §3 '0.5 masked-only "
+                    "reference' wording (spec defect S3); STOP S1 if > 5.5 L40S GPU-h"}
 
 
 def cpu_projection(*, cap_hours=CPU_CAP_H) -> dict:
@@ -1127,7 +1182,8 @@ def pairing_check(data_root, *, limit=None, log=print) -> dict:
            "check": "§2 (run_id, event_id) truth pairing, s=0.05 vs s=0.30",
            "sets": {}, "pass": True, "limit": limit}
     pairs = (("probe_train", PROBE_KEYS_S005["train"], PROBE_KEYS_S030["train"]),
-             ("probe_test", PROBE_KEYS_S005["test"], PROBE_KEYS_S030["test"]))
+             ("probe_test", PROBE_KEYS_S005["test"], PROBE_KEYS_S030["test"]),
+             ("dev_train", TRAIN_KEY_S005, TRAIN_KEY_S030))
     truth_fields = ("vertex_m", "yield_photons", "particle", "domain", "contained",
                     "deposited_MeV", "direction_m", "energy_MeV")
     for role, key05, key30 in pairs:
@@ -1471,11 +1527,36 @@ def build_item_arm(row, *, config, gen, arms_config, geometry, data_root, device
             row["arm"], cell, geometry, arms_config, config, gen, Path(data_root),
             row["source"], int(row["seed"]))
         log(f"[followup] built anchor arm {row['label']} (dark-bank hash checked first)")
-        return arm.to(device)
+        arm.to(device)
+        arm._ext_item_cell = {"cell_id": cell.cell_id, "setting": float(cell.setting),
+                              "s_arm": float(cell.s_arm), "s_p": float(cell.s_p),
+                              "split": cell.split}
+        return arm
     item = {"label": row["label"], "arm": row["arm"], "split": row.get("split", "within"),
             "seed": int(row["seed"]), "beta": row.get("beta"),
             "source": row.get("source")}
-    return er.item_arm(item, config, arms_config, geometry, device=device)
+    arm = er.item_arm(item, config, arms_config, geometry, device=device)
+    # N2: ``er.item_arm`` rebuilds the arm with the hard-coded s = 0.05 dev cell;
+    # install this item's §2.1 cell on the built arm and record it.
+    return apply_item_cell(arm, cell, arms_config, row)
+
+
+def apply_item_cell(arm, cell, arms_config, row) -> dict:
+    """Install the row's §2.1 cell on an arm built by ``er.item_arm``.
+
+    Only ``ArmSettings`` records the cell's ``(s_arm, s_p)``; rebuild it for this
+    row's cell and keep the arm's weights.  Numerically inert for every Stage A /
+    T-1 arm (only ``mae_chi2`` reads ``settings.s``), but the s = 0.30 cell is
+    then actually used and recorded on the row/readout, as §2.1 requires.
+    """
+    if arms_config is not None:
+        settings = la.ArmSettings.from_config(arms_config, cell=(cell.s_arm, cell.s_p),
+                                              beta=row.get("beta"))
+        arm.settings = settings
+    arm._ext_item_cell = {"cell_id": cell.cell_id, "setting": float(cell.setting),
+                          "s_arm": float(cell.s_arm), "s_p": float(cell.s_p),
+                          "split": cell.split}
+    return arm
 
 
 def stream_full_input_metrics(model, probes, geometry, *, split, config, device,
@@ -1521,11 +1602,74 @@ def evaluate_item_row(row, *, config, gen, arms_config, geometry, probes, data_r
                    checkpoint_sha256=row.get("sha256"),
                    data_setting=float(row.get("data_setting", S005)),
                    split=row.get("split", "within"), seed=int(row.get("seed", 9000)),
-                   item_status=row.get("status"))
+                   item_status=row.get("status"),
+                   evaluation_cell=getattr(arm, "_ext_item_cell", None),
+                   evaluation_config=dict(evaluate))
     return payload
 
 
 # --------------------------------------------------- committed-value reuse §3
+#: §3 A1 pins for the D2 strong-drift rows (`results/jepa/20261029_d2_partial/METRICS.md`).
+STRONG_DRIFT_VERTEX = {9000: 0.233209, 9001: 0.217213}
+D2_METRICS_REL = "results/jepa/20261029_d2_partial/METRICS.md"
+_SIGREG_DEJITTER_VARIANTS = ("within_trigger", "within_median", "across_median")
+_MAE_DEJITTER_VARIANTS = ("within_trigger", "within_median", "across_trigger",
+                          "across_median")
+#: S1: these items have no committed full-input vertex at their evaluation setting.
+NO_COMMITTED_VERTEX_REASON = ("no committed full-input vertex at this item's evaluation "
+                              "setting (runbook §3 spec gap S1; recorded by the Lead in "
+                              "DECISIONS)")
+
+
+def strong_drift_committed_vertices(root=None) -> dict:
+    """D2 strong-drift s = 0.30 vertices, parsed from METRICS.md and pinned.
+
+    The two values are pinned here (with the file cited) and a parsed table that
+    disagrees with the pins is a hard error, so a changed METRICS.md cannot pass.
+    """
+    root = _resolve_root(root)
+    path = root / D2_METRICS_REL
+    values = dict(STRONG_DRIFT_VERTEX)
+    if path.is_file():
+        parsed = {}
+        for line in path.read_text().splitlines():
+            if "strong_drift" not in line:
+                continue
+            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+            if len(cells) < 4 or cells[0] != "strong_drift":
+                continue
+            try:
+                seed, vertex = int(cells[1]), float(cells[2])
+            except ValueError:
+                continue
+            parsed[seed] = vertex
+        for seed, vertex in parsed.items():
+            if seed in values and abs(vertex - values[seed]) > 5e-7:
+                raise RuntimeError(f"{path}: strong_drift seed {seed} vertex {vertex!r} "
+                                   f"differs from the pinned {values[seed]!r} (§3 A1)")
+        values.update({seed: vertex for seed, vertex in parsed.items()
+                       if seed in (9000, 9001)})
+    return values
+
+
+def _dejitter_committed_vertices(path, reading, prefix, variants) -> dict:
+    """Committed full-input vertices from a P-5 / M-f readings block (<variant>/s<seed>)."""
+    payload = read_json(path, {}) or {}
+    out = {}
+    for key, row in ((payload.get(reading) or {}).get("runs") or {}).items():
+        try:
+            variant, seed_text = str(key).split("/")
+            seed = int(seed_text.lstrip("s"))
+        except ValueError:
+            continue
+        if variant not in variants:
+            continue
+        vertex = (row or {}).get("vertex_resolution_m")
+        if vertex is not None:
+            out[f"{prefix}{variant}{seed}"] = float(vertex)
+    return out
+
+
 def _h12_label(label) -> str:
     """``geomblind_9000`` (h12 runs.json) -> ``geomblind9000`` (inventory label)."""
     label = str(label)
@@ -1569,17 +1713,40 @@ def committed_vertex_map(root=None) -> dict:
     for seed, run in (scale.get("runs") or {}).items():
         values[f"scale300k{int(seed)}"] = float((run.get("full_input") or {}).get(
             "vertex_m", float("nan")))
+    # the six SIGReg de-jitter retrains (P-5) and eight MAE de-jitter checkpoints (M-f)
+    values.update(_dejitter_committed_vertices(
+        root / "results/jepa/20261030_dejitter/readings.json", "P-5", "sigreg_",
+        _SIGREG_DEJITTER_VARIANTS))
+    values.update(_dejitter_committed_vertices(
+        root / "results/jepa/20261031_mae_dejitter/readings.json", "M-f", "mae_",
+        _MAE_DEJITTER_VARIANTS))
+    # the two strong-drift s = 0.30 rows (D2 METRICS.md, pinned above)
+    for seed, vertex in strong_drift_committed_vertices(root).items():
+        values[f"strong_drift{seed}"] = float(vertex)
     return {label: value for label, value in values.items() if np.isfinite(value)}
 
 
 def check_item_reproduction(label, got_vertex, committed, *, tolerance=A1_TOLERANCE) -> dict:
-    """§3: a recomputed item must reproduce its own committed full-input vertex."""
+    """§3 A1: a recomputed item must reproduce its own committed full-input vertex.
+
+    Labels with no committed full-input vertex at their evaluation setting (the
+    runbook spec gap S1: ijepa/lambda/stopgrad/anc100 and the T-1 checkpoints) are
+    reported explicitly as ``not_applicable`` — never as a silent pass — and a
+    label with a committed value is marked ``unavailable`` on a mismatch.
+    """
     target = committed.get(label)
-    if target is None or got_vertex is None:
-        return {"checked": False, "pass": None, "expected_m": None, "got_m": got_vertex,
-                "abs_diff_m": None}
+    if target is None:
+        return {"checked": False, "pass": None, "status": "not_applicable",
+                "reason": NO_COMMITTED_VERTEX_REASON, "expected_m": None,
+                "got_m": got_vertex, "abs_diff_m": None}
+    if got_vertex is None:
+        return {"checked": True, "pass": False, "status": "unavailable",
+                "reason": "the item produced no recomputed full-input vertex",
+                "expected_m": float(target), "got_m": None, "abs_diff_m": None}
     diff = float(abs(float(got_vertex) - float(target)))
-    return {"checked": True, "pass": bool(diff <= float(tolerance)),
+    passed = bool(diff <= float(tolerance))
+    return {"checked": True, "pass": passed,
+            "status": "pass" if passed else "unavailable",
             "expected_m": float(target), "got_m": float(got_vertex),
             "abs_diff_m": diff}
 
@@ -1854,10 +2021,24 @@ def readout_a1(*, root=None, inventory=None, config, gen, arms_config, geometry,
                       mlp_vertex_resolution_m=(metrics.get("mlp_vertex") or {}).get("resolution"),
                       reproduction=reproduction_check)
     readings = _a1_readings(rows)
+    reproduction = {"rule": "§3 A1: each recomputed item must reproduce its own committed "
+                            "full-input vertex within 1e-3 m; a mismatch marks the row "
+                            "unavailable",
+                    "checked": {}, "not_applicable": []}
+    for label, row in rows.items():
+        record = row.get("reproduction")
+        if not record:
+            continue
+        if record.get("status") == "not_applicable":
+            reproduction["not_applicable"].append(label)
+        else:
+            reproduction["checked"][label] = record
+    reproduction["reason_not_applicable"] = NO_COMMITTED_VERTEX_REASON
     return {"registered": False, "extension": EXTENSION,
             "check": "§3 A-1 event dependence", "runbook": RUNBOOK_REL,
             "cell": "photon probe-test, 20261101_readout protocol",
             "rows": rows, "unavailable": unavailable, "readings": readings,
+            "reproduction": reproduction,
             "n_computed_expected": len(A1_COMPUTE_LABELS) + len(A1_MLP_FILL_LABELS),
             "gate": {"authorised": gate["authorised"], "status": gate["status"]}}
 
@@ -2046,23 +2227,38 @@ def _probe_one_group(x, m_labels, present, order, cut, is_train, methods, seed=0
 
 
 def a1b_probes(rows, geometry, marginals, c_features, *, methods=eh.CODE_ORIGIN_METHODS,
-               seed=0, log=print) -> dict:
-    """§3 A-1b probes: groups M, C, All and each single M statistic (ridge/MLP/kNN-5)."""
+               seed=0, requested=("M", "C", "All", "singles"), log=print) -> dict:
+    """§3 A-1b probes: groups M, C, All and each single M statistic (ridge/MLP/kNN-5).
+
+    ``requested`` restricts the groups (the committed 0.1043 reproduction needs only
+    ``C``, so it does not read the 100k-event dev_train marginals — N11).
+    """
     methods = tuple(methods)
+    requested = set(requested)
     present, order, cut, is_train = _pmt_probe_split(rows, seed=seed)
     _, m_labels, n_present = eh._group_rows_by_pmt(np.asarray(rows["positions"], float),
                                                    np.asarray(rows["y"], float),
                                                    np.asarray(rows["pmts"], np.int64),
                                                    int(rows["n_pmt"]))
     c_groups = eh.code_origin_feature_groups(c_features, geometry, present)
-    m_matrix = marginal_matrix(marginals)[present]
-    groups = {"M": m_matrix,
-              "C": np.asarray(c_groups["all"], float),
-              "All": np.concatenate([m_matrix, np.asarray(c_groups["all"], float)], axis=1)}
-    for index, name in enumerate(M_FEATURE_NAMES):
-        groups[f"M::{name}"] = m_matrix[:, index:index + 1]
+    c_all = np.asarray(c_groups["all"], float)
+    m_matrix = None
+    if {"M", "All", "singles"} & requested:
+        if marginals is None:
+            raise ValueError("a1b_probes needs marginals for the M/All groups")
+        m_matrix = marginal_matrix(marginals)[present]
+    blocks = {}
+    if "M" in requested:
+        blocks["M"] = m_matrix
+    if "C" in requested:
+        blocks["C"] = c_all
+    if "All" in requested:
+        blocks["All"] = np.concatenate([m_matrix, c_all], axis=1)
+    if "singles" in requested:
+        for index, name in enumerate(M_FEATURE_NAMES):
+            blocks[f"M::{name}"] = m_matrix[:, index:index + 1]
     results = {}
-    for name, values in groups.items():
+    for name, values in blocks.items():
         results[name] = _probe_one_group(np.asarray(values, float), m_labels, present,
                                          order, cut, is_train, methods, seed=seed)
         log("[A-1b] " + str(name) + ": " + ", ".join(
@@ -2072,7 +2268,7 @@ def a1b_probes(rows, geometry, marginals, c_features, *, methods=eh.CODE_ORIGIN_
                       "n_pmt_test": int((~is_train).sum()),
                       "methods": list(methods)},
             "groups": results, "n_features": {name: int(values.shape[1])
-                                              for name, values in groups.items()}}
+                                              for name, values in blocks.items()}}
 
 
 def a1b_class(m_mlp, all_mlp) -> str:
@@ -2242,9 +2438,8 @@ def readout_a1b(*, root=None, inventory=None, config, gen, arms_config, geometry
         payload["complete"] = False
         return payload
     # (2) the C-group reproduction target: fix9000 ridge R² 0.1043 within 1e-3
-    fix_probes = a1b_probes(fix_rows, geometry, read_dev_marginals(
-        config, geometry, data_root, log=log), c_features, methods=("linear",),
-        seed=er.SAMPLE_SEED, log=log)
+    fix_probes = a1b_probes(fix_rows, geometry, None, c_features, methods=("linear",),
+                            seed=er.SAMPLE_SEED, requested=("C",), log=log)
     c_r2 = ((fix_probes["groups"].get("C") or {}).get("linear") or {}).get("r2")
     c_pass = bool(c_r2 is not None
                   and abs(float(c_r2) - A1B_REPRODUCTION_R2) <= A1B_REPRODUCTION_TOLERANCE)
@@ -2321,7 +2516,8 @@ def _a1b_readings(rows, inventory) -> dict:
                 pairs[prefix] = {"class": "seed disagreement", "seeds": list(classes),
                                  "mlp_r2": {label: items[label]["mlp_r2"] for label in labels}}
     init = rows.get("init9000") or {}
-    committed = readout_a1b_committed(inventory)
+    committed = readout_a1b_committed(inventory, root=(inventory or {}).get("root")
+                                      if isinstance(inventory, dict) else None)
     return {"rules": {"order": list(A1B_READING_ORDER),
                       "input-statistics code": "M MLP R² >= 0.7",
                       "fixed-feature code": "M < 0.7 and All >= 0.7",
@@ -2333,9 +2529,11 @@ def _a1b_readings(rows, inventory) -> dict:
             "committed_fix9000": committed}
 
 
-def readout_a1b_committed(inventory=None) -> dict:
+def readout_a1b_committed(inventory=None, root=None) -> dict:
     """§3 A-1b committed fix9000 code-origin values (All MLP 0.434; C ridge 0.1043)."""
-    root = ROOT
+    root = _resolve_root(root if root is not None else
+                         (inventory or {}).get("root") if isinstance(inventory, dict)
+                         else None)
     payload = read_json(root / "results/jepa/20261101_h12/e0e1_code_origin.json", {}) or {}
     fix = ((payload.get("probes_by_label") or {}).get("fix9000") or {})
     out = {"source": "results/jepa/20261101_h12/e0e1_code_origin.json",
@@ -2525,6 +2723,7 @@ def _a2_environment(row, probes, *, config, gen, arms_config, geometry, data_roo
     gain = la.probe_r2_streamed(train["module_gain"], test["module_gain"])
     return {"train": train, "test": test, "train_ds": train_ds, "test_ds": test_ds,
             "fitted": fitted, "prediction": prediction,
+            "errors": _vertex_errors(test, prediction),
             "vertex": vertex, "log_yield": log_yield, "module_gain": gain}
 
 
@@ -2541,7 +2740,9 @@ def readout_a2(*, root=None, inventory=None, config, gen, arms_config, geometry,
                "floors": {str(key): float(value) for key, value in MODULE_GAIN_FLOOR.items()},
                "models": {}, "unavailable": [],
                "gate": {"authorised": gate["authorised"], "status": gate["status"]}}
-    for label in (list(labels) if labels is not None else list(A2_LABELS)):
+    label_list = readout_label_list("A-2", inv["rows"]) if labels is None else list(labels)
+    env_cache = {}
+    for label in label_list:
         row = inv["rows"].get(label)
         if row is None or row.get("status") not in ("available", "unverified (dry-run)"):
             payload["unavailable"].append({"label": label, "reason": "inventory unavailable"})
@@ -2596,8 +2797,54 @@ def readout_a2(*, root=None, inventory=None, config, gen, arms_config, geometry,
                 "probe_frozen": "probe fit frozen from s = 0.05"}
         model["paired"] = bootstrap
         payload["models"][label] = model
+        # keep the s = 0.30 environment rows of the s = 0.05-trained MAE and of the
+        # T-1 checkpoints so G-2 can pair them event by event
+        seed = int(row["seed"])
+        g2_key = (f"mae_across_trigger{seed}" if str(row.get("split")) == "across"
+                  else f"mae_within_trigger{seed}")
+        if str(label) == g2_key or str(label).startswith("t1_"):
+            env_cache[label] = envs
+    payload["t1_g2"] = _t1_g2(env_cache)
     payload["complete"] = not payload["unavailable"]
     return payload
+
+
+def _t1_g2(env_cache) -> dict:
+    """§4 G-2: s = 0.30-trained MAE minus the s = 0.05-trained MAE, paired events.
+
+    Both models are evaluated on the s = 0.30 probe-test set; the per-event full-input
+    vertex errors are paired on ``(run_id, event_id)`` (truth identical) and the A-2
+    run-cluster bootstrap is applied.  Descriptive, no threshold.
+    """
+    out = {}
+    for seed in T1_SEEDS:
+        for split, base_variant, t1_variant in (
+                ("within", "mae_within_trigger", "t1_s030_within_trigger"),
+                ("across", "mae_across_trigger", "t1_s030_across_trigger")):
+            base_label = f"{base_variant}{seed}"
+            t1_label = f"{t1_variant}{seed}"
+            if base_label not in env_cache or t1_label not in env_cache:
+                continue
+            base_env = env_cache[base_label]["s030"]
+            t1_env = env_cache[t1_label]["s030"]
+            try:
+                paired = pair_events(base_env["test"], t1_env["test"])
+            except ValueError as problem:
+                out[f"{split}__{seed}"] = {"status": "pairing_failed",
+                                           "reason": str(problem)}
+                continue
+            bootstrap = paired_run_bootstrap(
+                base_env["errors"][paired["index_left"]],
+                t1_env["errors"][paired["index_right"]], paired["run_ids"])
+            out[f"{split}__{seed}"] = {
+                "split": split, "seed": int(seed),
+                "s005_trained_model": base_label, "s030_trained_model": t1_label,
+                "difference_m": bootstrap["mean_difference_m"],
+                "ci95_m": bootstrap["ci95_m"], "n_runs": bootstrap["n_runs"],
+                "n_events": bootstrap["n_events"],
+                "definition": "s = 0.30-trained minus s = 0.05-trained, paired events, "
+                              "run-cluster bootstrap (A-2 protocol)"}
+    return out
 
 
 # ================================================================ A-3 §3
@@ -3061,6 +3308,9 @@ def readout_a3(*, root=None, inventory=None, config, gen, arms_config, geometry,
         except Exception as problem:
             payload["unavailable"].append({"label": label,
                                            "reason": f"{type(problem).__name__}: {problem}"})
+    payload["reproduction"] = _reproduction_summary(
+        (model.get("tasks") or {}).get("photon_reproduction")
+        for model in payload["models"].values())
     payload["complete"] = not payload["unavailable"]
     return payload
 
@@ -3147,7 +3397,8 @@ def apply_time_shift(features, hit, shift_ns, *, time_scale_ns=100.0):
 def masked_reference_readout(model, probes, geometry, *, split, config, device,
                              convention, reference="context", forms=("context_only",
                                                                      "propagated"),
-                             chunk_events=8, max_events=None, log=print) -> dict:
+                             chunk_events=8, max_events=None, return_streams=False,
+                             log=print) -> dict:
     """§3 A-4 readout of the masked pass under the all-token or context-only reference."""
     import torch
     scaling = pe.FeatureScaling.from_geometry(geometry)
@@ -3234,12 +3485,16 @@ def masked_reference_readout(model, probes, geometry, *, split, config, device,
         train = out["train"]["streams"][form]
         test = out["test"]["streams"][form]
         metrics[form] = er.form_metrics(train, test)
-    return {"metrics": metrics,
-            "reference": reference, "convention": convention,
-            "counts": {"train": {"n_ctx_no_trigger": out["train"]["n_ctx_no_trigger"],
-                                 "n_ctx_no_hit": out["train"]["n_ctx_no_hit"]},
-                       "test": {"n_ctx_no_trigger": out["test"]["n_ctx_no_trigger"],
-                                "n_ctx_no_hit": out["test"]["n_ctx_no_hit"]}}}
+    payload = {"metrics": metrics,
+               "reference": reference, "convention": convention,
+               "counts": {"train": {"n_ctx_no_trigger": out["train"]["n_ctx_no_trigger"],
+                                    "n_ctx_no_hit": out["train"]["n_ctx_no_hit"]},
+                          "test": {"n_ctx_no_trigger": out["test"]["n_ctx_no_trigger"],
+                                   "n_ctx_no_hit": out["test"]["n_ctx_no_hit"]}}}
+    if return_streams:
+        payload["streams"] = {role: dict(out[role]["streams"])
+                              for role in ("train", "test")}
+    return payload
 
 
 def readout_a4(*, root=None, inventory=None, config, gen, arms_config, geometry,
@@ -3303,6 +3558,8 @@ def readout_a4(*, root=None, inventory=None, config, gen, arms_config, geometry,
             payload["unavailable"].append({"label": label,
                                            "reason": f"{type(problem).__name__}: {problem}"})
     payload["readings"] = a4_readings(payload["models"])
+    payload["reproduction"] = _reproduction_summary(
+        model.get("reproduction") for model in payload["models"].values())
     payload["complete"] = not payload["unavailable"]
     return payload
 
@@ -3328,6 +3585,22 @@ def _a4_reproduction(row, model, probes, geometry, config, device, committed, la
                                         zero_geometry=False)
     got = _full_input_values(metrics)["vertex_resolution_m"]
     return check_item_reproduction(label, got, committed)
+
+
+def _reproduction_summary(records) -> dict:
+    """Group the per-item reproduction records into checked / not_applicable."""
+    out = {"rule": "§3 A1: each recomputed item must reproduce its own committed "
+                   "full-input vertex within 1e-3 m; a mismatch marks the row unavailable",
+           "checked": {}, "not_applicable": []}
+    for record in records:
+        if not record:
+            continue
+        label = record.get("label")
+        if record.get("status") == "not_applicable":
+            out["not_applicable"].append(label)
+        else:
+            out["checked"][label or "?"] = record
+    return out
 
 
 def a4_readings(models) -> dict:
@@ -3409,12 +3682,53 @@ def t1_run_kwargs(*, cell, seed, config, arms_config, geometry, loader_dataset,
             "probe_max_events": None, "physics_method": "ridge", "save_embeddings": False}
 
 
+REQUIRED_A1_S030_ROWS = ("init9000", "strong_drift9000")
+
+
+def require_a1_s030_gate(ext_root=EXT_ROOT, *, path=None) -> dict:
+    """§5: T-1 launches only after both A1 s = 0.30 rows pass.
+
+    Reads ``<ext>/stageA/A1/reproduction.json`` (written by ``reproduce``) and
+    refuses the launch with ``SystemExit(2)`` when it is missing or
+    ``s030_pass`` is not true.  The required rows are named in the error.
+    """
+    path = Path(path) if path is not None else (
+        Path(ext_root) / "stageA" / "A1" / "reproduction.json")
+    payload = read_json(path, None)
+    if payload is None:
+        print(f"[followup] T-1 launch refused: the A1 s = 0.30 gate record {path} is "
+              f"missing; every T-1 launch requires both A1 s = 0.30 rows "
+              f"({', '.join(REQUIRED_A1_S030_ROWS)}) to pass (§5: 'T-1 launches only "
+              f"after both A1 s = 0.30 rows pass')", file=sys.stderr)
+        raise SystemExit(2)
+    s030 = payload.get("s030") or {}
+    failed = []
+    for label in REQUIRED_A1_S030_ROWS:
+        row = s030.get(label) or {}
+        vertex = (row.get("vertex") or {}).get("pass")
+        gain = (row.get("module_gain_r2") or {}).get("pass")
+        if not (vertex and gain):
+            failed.append(label)
+    if payload.get("s030_pass") is not True or failed:
+        print(f"[followup] T-1 launch refused: {path} does not show both A1 s = 0.30 "
+              f"rows passing ({', '.join(REQUIRED_A1_S030_ROWS)}); s030_pass="
+              f"{payload.get('s030_pass')!r}, failed rows={failed}", file=sys.stderr)
+        raise SystemExit(2)
+    return {"path": str(path), "s030_pass": True,
+            "s005_pass": payload.get("s005_pass"),
+            "rows": sorted(s030), "required_rows": list(REQUIRED_A1_S030_ROWS)}
+
+
 def t1_prepare_launch(*, root=None, config, data_root, variant, seed, steps, out_root,
-                      gen=None, geometry=None, log=print) -> dict:
-    """§4 steps 1-3: run-dir refusal, read-only hash check, then ``datasets_for``."""
+                      gen=None, geometry=None, ext_root=None, log=print) -> dict:
+    """§4 steps 1-3 + §5 dependency: gate, A1 s = 0.30, run-dir refusal, hash check."""
     from scripts import jepa_pregrid_checks as pregrid
+    ext_base = Path(ext_root) if ext_root is not None else Path(out_root).parent
     gate = assert_authorised("train-t1", root=root, arm=T1_ARM, variant=variant,
-                             seed=int(seed), steps=int(steps), out_root=out_root)
+                             seed=int(seed), steps=int(steps), out_root=out_root,
+                             ext_root=ext_base)
+    # §5: T-1 launches only after both A1 s = 0.30 rows pass (B3)
+    a1_gate = require_a1_s030_gate(ext_base)
     cell = t1_cell(config, variant)
     run_id = lr.run_id_for(cell.cell_id, T1_ARM, int(seed))
     refuse_existing_run_dir(out_root, run_id)
@@ -3429,20 +3743,22 @@ def t1_prepare_launch(*, root=None, config, data_root, variant, seed, steps, out
     if {probe.key for probe in probes.values()} != expected_probes:
         raise RuntimeError(f"T-1 probe sets {sorted(probe.key for probe in probes.values())} "
                            f"!= pinned {sorted(expected_probes)}")
-    return {"gate": gate, "cell": cell, "run_id": run_id, "train_ds": train_ds,
-            "probes": probes}
+    return {"gate": gate, "a1_gate": a1_gate, "cell": cell, "run_id": run_id,
+            "train_ds": train_ds, "probes": probes}
 
 
 def train_t1(*, root=None, config, gen, arms_config, geometry, data_root, config_path,
              out_root, variant, seed, steps, device="cpu", code_sha=None,
-             status_text=None, host_check=True, log=print) -> dict:
+             status_text=None, host_check=True, ext_root=None, log=print) -> dict:
     """§4: one authorised T-1 run (or the single 20-step smoke), no other training."""
     from scripts import jepa_pregrid_checks as pregrid
     root = _resolve_root(root)
     steps = int(steps)
+    ext_base = Path(ext_root) if ext_root is not None else Path(out_root).parent
     prepared = t1_prepare_launch(root=root, config=config, data_root=data_root,
                                  variant=variant, seed=int(seed), steps=steps,
-                                 out_root=out_root, gen=gen, geometry=geometry, log=log)
+                                 out_root=out_root, gen=gen, geometry=geometry,
+                                 ext_root=ext_base, log=log)
     cell = prepared["cell"]
     if code_sha is None:
         code_sha = lr.git_head(root)
@@ -3479,11 +3795,13 @@ def train_t1(*, root=None, config, gen, arms_config, geometry, data_root, config
                "checkpoint": str(final), "checkpoint_sha256": lr.sha256_file(final)}
     (run_dir / "ext_summary.json").write_text(
         json.dumps(lr._safe(summary), indent=1, default=float) + "\n")
-    host = (t1_host_manifest_check(ext_root=Path(out_root).parent, variant=variant,
+    host = (t1_host_manifest_check(ext_root=ext_base, variant=variant,
                                    seed=int(seed), smoke=(steps == T1_SMOKE_STEPS),
                                    log=log) if host_check else None)
+    cost = t1_cost(ext_base)          # N4: measured T-1 GPU hours vs the 3.5 h cap
     return {"run_id": prepared["run_id"], "run_dir": str(run_dir), "summary": summary,
             "host_check": host, "gate": prepared["gate"],
+            "a1_gate": prepared["a1_gate"], "cost": cost,
             "wall_seconds": round(time.time() - started, 3)}
 
 
@@ -3571,6 +3889,43 @@ def t1_host_manifest_check(*, ext_root=EXT_ROOT, variant, seed, smoke=False,
     return payload
 
 
+def t1_manifest_rows(ext_root=EXT_ROOT) -> list:
+    """All completed/attempted rows in ``<ext>/{train,smoke}/manifest.jsonl``."""
+    rows = []
+    for root_name in ("train", "smoke"):
+        path = Path(ext_root) / root_name / "manifest.jsonl"
+        if not path.is_file():
+            continue
+        for line in path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            row["_root"] = root_name
+            rows.append(row)
+    return rows
+
+
+def t1_cost(ext_root=EXT_ROOT, *, cap_hours=T1_CAP_H,
+            projected_hours=T1_PROJECTED_GPU_H) -> dict:
+    """N4: measured T-1 GPU hours (sum of completed-run ``wall_seconds``) vs the cap."""
+    rows = t1_manifest_rows(ext_root)
+    completed = [row for row in rows if row.get("outcome") == "complete"]
+    wall_seconds = sum(float(row.get("wall_seconds") or 0.0) for row in completed)
+    measured = wall_seconds / 3600.0
+    return {"cap_hours": float(cap_hours),
+            "projected_hours": float(projected_hours),
+            "n_manifest_rows": len(rows), "n_completed_rows": len(completed),
+            "measured_wall_seconds": round(wall_seconds, 3),
+            "measured_gpu_hours": round(measured, 4),
+            "cap_pass": bool(measured <= float(cap_hours)),
+            "projection_pass": bool(float(projected_hours) <= float(cap_hours)),
+            "rule": "GPU device-hours = sum of completed-run wall_seconds (runbook §4); "
+                    "cap 3.5 L40S GPU-h"}
+
+
 def t1_inventory_rows(ext_root=EXT_ROOT) -> dict:
     """Inventory rows for completed T-1 runs (for the post-run A-1/A-2 readouts)."""
     rows = {}
@@ -3611,7 +3966,8 @@ def t1_readings(*, a2_payload=None, a1_payload=None, ext_root=EXT_ROOT) -> dict:
                    "<= -0.30 in both seeds; otherwise intermediate", "models": {}},
            "G-2": {"rule": "full-input vertex of the s = 0.30-trained MAE minus that of "
                            "the s = 0.05-trained MAE, paired events, A-2 bootstrap; "
-                           "descriptive, no threshold", "models": {}}}
+                           "descriptive, no threshold", "models": {}},
+           "A-1": {}}
     a2_models = (a2_payload or {}).get("models") or {}
     for label, model in a2_models.items():
         if not str(label).startswith("t1_"):
@@ -3630,12 +3986,11 @@ def t1_readings(*, a2_payload=None, a1_payload=None, ext_root=EXT_ROOT) -> dict:
             reading = "intermediate"
         out["G-1"]["models"][label] = {"available": True, "gain_r2": gain,
                                        "gain_minus_floor": minus, "reading": reading}
-        paired = model.get("paired") or {}
-        out["G-2"]["models"][label] = {
-            "available": bool(paired),
-            "difference_vs_s005_trained_mae_m": paired.get("mean_difference_m"),
-            "ci95_m": paired.get("ci95_m"), "n_runs": paired.get("n_runs"),
-            "n_events": paired.get("n_events")}
+    for key, block in ((a2_payload or {}).get("t1_g2") or {}).items():
+        out["G-2"]["models"][key] = dict(block, available=block.get("status") is None)
+    a1_rows = (a1_payload or {}).get("rows") or {}
+    out["A-1"] = {str(label): row for label, row in a1_rows.items()
+                  if str(label).startswith("t1_")}
     return out
 
 
@@ -3661,15 +4016,18 @@ def assemble_report(*, root=None, ext_root=EXT_ROOT, results_dir=None,
     t1_rows = t1_inventory_rows(ext_root)
     t1_a2 = readouts.get("A-2") or {}
     t1_a1 = readouts.get("A-1") or {}
+    t1_cost_payload = t1_cost(ext_root)
+    t1_reading = t1_readings(a2_payload=t1_a2, a1_payload=t1_a1, ext_root=ext_root)
+    t1_reading["cost"] = t1_cost_payload
     readings = {"registered": False, "extension": EXTENSION,
                 "A-1": (readouts.get("A-1") or {}).get("readings"),
                 "A-1b": (readouts.get("A-1b") or {}).get("readings"),
                 "A-2": (readouts.get("A-2") or {}).get("models"),
                 "A-3": (readouts.get("A-3") or {}).get("models"),
                 "A-4": (readouts.get("A-4") or {}).get("readings"),
-                "T-1": t1_readings(a2_payload=t1_a2, a1_payload=t1_a1)}
+                "T-1": t1_reading}
     runs = {"registered": False, "extension": EXTENSION, "stageA": {},
-            "t1": t1_rows}
+            "t1": t1_rows, "t1_cost": t1_cost_payload}
     for item, payload in readouts.items():
         runs["stageA"][item] = {
             "available": bool(payload), "complete": payload.get("complete"),
@@ -3744,11 +4102,18 @@ def _report_readme(plan, inventory, reproduction, readouts, readings, t1_rows) -
         payload = readouts.get(item) or {}
         lines.append(f"| {item} | {payload.get('complete')} | "
                      f"`{payload.get('unavailable')}` |")
+    t1_cost_payload = (readings.get("T-1") or {}).get("cost") or {}
     lines += ["", "## T-1 runs", "",
               "| label | split | seed | checkpoint sha256 |", "|---|---|---:|---|"]
     for label, row in t1_rows.items():
         lines.append(f"| {label} | {row.get('split')} | {row.get('seed')} | "
                      f"`{row.get('sha256')}` |")
+    lines += ["", "## T-1 GPU cost (N4)", "",
+              f"- cap: {_fmt(t1_cost_payload.get('cap_hours'), 3)} L40S GPU-h",
+              f"- projected: {_fmt(t1_cost_payload.get('projected_hours'), 3)} h",
+              f"- measured (sum of completed-run wall_seconds): "
+              f"{_fmt(t1_cost_payload.get('measured_gpu_hours'), 4)} h",
+              f"- pass: {t1_cost_payload.get('cap_pass')}"]
     lines += ["", "## Readings (§3/§4, fixed in advance)", "",
               "- A-1: `readings.json` -> `A-1` (J-a variant classes, J-b MAE checkpoints "
               "beside init/E3/static, J-c Spearman over the fixed population).",

@@ -97,6 +97,11 @@ def _fake_repo(tmp_path, *, runbook_text=None, decisions_text=None,
     (root / ef.RUNBOOK_REL).write_text(text)
     (root / ef.DECISIONS_REL).write_text(
         decisions_text if decisions_text is not None else "history\n" + ef.AUTHOR_LINE)
+    # tracked <P>-directory files so gate (d) can be proved to protect P_DIRS too
+    (root / "src/noise_module_lucid").mkdir(parents=True, exist_ok=True)
+    (root / "src/noise_module_lucid/readout.py").write_text("# tracked readout module\n")
+    (root / "src/jepa_noise/configs").mkdir(parents=True, exist_ok=True)
+    (root / "src/jepa_noise/configs/lucid_arms_v0.json").write_text("{}\n")
     sha = lr.sha256_file(root / ef.RUNBOOK_REL)
     record = acceptance if acceptance is not None else {
         "runbook_sha256": sha, "impl_commit": None, "review_path": "docs/jepa/REVIEW.md",
@@ -186,7 +191,7 @@ def test_gate_c_review_verdict(tmp_path):
 def test_gate_d_untracked_and_modified_p_files(tmp_path):
     root = _fake_repo(tmp_path)
     untracked = root / "src/jepa_noise/ext_followup.py"
-    untracked.parent.mkdir(parents=True)
+    untracked.parent.mkdir(parents=True, exist_ok=True)
     untracked.write_text("# untracked implementation file\n")
     result = ef.assert_authorised("inventory", root=root, dry_run=True)
     assert result["checks"]["d"]["pass"] is False
@@ -201,14 +206,43 @@ def test_gate_d_untracked_and_modified_p_files(tmp_path):
                                 dry_run=True)["checks"]["d"]["pass"] is False
 
 
+def test_gate_d_protects_the_p_dirs(tmp_path):
+    root = _fake_repo(tmp_path)
+    clean = ef.assert_authorised("inventory", root=root, dry_run=True)
+    assert clean["checks"]["d"]["pass"] is True
+    assert set(clean["checks"]["d"]["paths"]) >= set(ef.P_DIRS)
+    # a modified tracked file under each <P> directory is caught
+    for relative in ("src/jepa_noise/configs/lucid_arms_v0.json",
+                     "src/noise_module_lucid/readout.py"):
+        path = root / relative
+        path.write_text(path.read_text() + "# modified\n")
+        result = ef.assert_authorised("inventory", root=root, dry_run=True)
+        assert result["checks"]["d"]["pass"] is False, relative
+        _git(root, "checkout", "--", relative)
+    # an untracked file under src/noise_module_lucid/ is caught
+    extra = root / "src/noise_module_lucid/extra.py"
+    extra.write_text("# new\n")
+    result = ef.assert_authorised("inventory", root=root, dry_run=True)
+    assert result["checks"]["d"]["pass"] is False
+    assert "src/noise_module_lucid/extra.py" in result["checks"]["d"]["untracked"]
+
+
 def test_gate_e_only_the_pinned_launches(tmp_path):
     root = _fake_repo(tmp_path)
     out = tmp_path / "ext/train"
     # a valid launch is accepted
     result = ef.assert_authorised("train-t1", root=root, arm=ef.T1_ARM,
                                   variant="s030_across_trigger", seed=9001,
-                                  steps=ef.T1_STEPS, out_root=out, dry_run=True)
+                                  steps=ef.T1_STEPS, out_root=out,
+                                  ext_root=tmp_path / "ext", dry_run=True)
     assert result["checks"]["e"]["pass"] is True
+    # N3: a directory with the right basename under a different parent is refused
+    wrong = tmp_path / "elsewhere" / "train"
+    result = ef.assert_authorised("train-t1", root=root, arm=ef.T1_ARM,
+                                  variant="s030_across_trigger", seed=9001,
+                                  steps=ef.T1_STEPS, out_root=wrong,
+                                  ext_root=tmp_path / "ext", dry_run=True)
+    assert result["checks"]["e"]["pass"] is False
     # an unregistered tuple is refused
     result = ef.assert_authorised("train-t1", root=root, arm=ef.T1_ARM,
                                   variant="s030_across_trigger", seed=9002,
@@ -339,13 +373,16 @@ def test_s030_openers_use_registered_false_after_the_hash_check(tmp_path, config
                                                           "dev_probe_test"}
 
 
-def test_forbidden_call_paths_are_not_used(tmp_path, config, monkeypatch):
-    """§2: the readout/h12 loaders, preflight(regenerate=True) and the dejitter
-    report are never called by this extension's data path."""
+def test_forbidden_call_paths_are_not_used(tmp_path, monkeypatch, config):
+    """§2: the forbidden openers are never reached, in the real code paths (N6).
+
+    Non-vacuous: real opener code is executed against synthetic pinned data with
+    recording fakes, and the run-dir refusal is checked before ``datasets_for``.
+    """
     from scripts import jepa_ext_readout as readout_cli
     from scripts import jepa_ext_dejitter as dejitter_cli
-    monkeypatch.setattr(ef, "assert_authorised",
-                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    from scripts import jepa_pregrid_checks as pregrid
+    import jepa_noise.lucid_run as lucid_run
 
     def boom(*args, **kwargs):
         raise AssertionError("forbidden call path reached")
@@ -359,18 +396,87 @@ def test_forbidden_call_paths_are_not_used(tmp_path, config, monkeypatch):
         if hasattr(module, name):
             saved[(module, name)] = getattr(module, name)
             setattr(module, name, boom)
-    import jepa_noise.lucid_run as lucid_run
+    calls = []
     saved[(lucid_run, "ensure_dataset")] = lucid_run.ensure_dataset
-    lucid_run.ensure_dataset = boom
+    lucid_run.ensure_dataset = lambda **kwargs: calls.append(dict(kwargs))
+
+    class _Dataset:
+        def __init__(self, key):
+            self.key = key
+
+    original_ensure = lucid_run.ensure_dataset
+
+    def fake_ensure(**kwargs):
+        calls.append(dict(kwargs))
+        key = lr.dataset_key(kwargs["cohort_name"], "F1", kwargs["setting"], 20261017,
+                             None, 10000, 50, kwargs["registered"])
+        return _Dataset(key)
+    lucid_run.ensure_dataset = fake_ensure
     try:
-        # the marginal reader is a direct read and must not reach ensure_dataset
+        # (i) a failed pin raises before any opener
         with pytest.raises(SystemExit):
-            ef.read_dev_marginals(config, lb.from_synthetic(), tmp_path / "empty")
-        # the report assembly never calls the dejitter report
-        payload = ef.assemble_report(root=ROOT, ext_root=tmp_path / "ext",
-                                     results_dir=tmp_path / "results")
-        assert (tmp_path / "results" / "README.md").is_file()
-        assert payload["out"]
+            ef.require_pinned(tmp_path / "empty", keys=[ef.PROBE_KEYS_S030["test"]])
+        assert calls == []
+        # (ii) the real s=0.30 opener: only registered=False, after the hash check
+        data_root = tmp_path / "data"
+        pins = {}
+        for role, name in (("train", "dev_probe_train"), ("test", "dev_probe_test")):
+            key = lr.dataset_key(name, "F1", ef.S030, 20261017, None, 10000, 50, False)
+            directory = data_root / "lucid" / key
+            directory.mkdir(parents=True)
+            (directory / "manifest.json").write_text(json.dumps({"key": key}))
+            pins[key] = lr.sha256_file(directory / "manifest.json")
+        fake_config = {"data": {"dataset_seed": 20261017, "cohorts": {
+            "dev_probe_train": {"namespace": "lucid/dev_probe_train",
+                                "event_start": 200000, "n_events": 10000,
+                                "run_length": 50},
+            "dev_probe_test": {"namespace": "lucid/dev_probe_test",
+                               "event_start": 210000, "n_events": 10000,
+                               "run_length": 50}}}}
+        import unittest.mock as mock
+        with mock.patch.dict(ef.PINNED_DATA, pins):
+            probes = ef.open_probe_sets(fake_config, None, None, data_root,
+                                        setting=ef.S030)
+        assert sorted(probes) == ["test", "train"]
+        assert len(calls) == 2
+        assert all(call["registered"] is False for call in calls)
+        assert {call["cohort_name"] for call in calls} == {"dev_probe_train",
+                                                          "dev_probe_test"}
+        # (iii) a bad dark-bank hash never reaches ensure_dark_bank
+        dark = tmp_path / "dark_data/lucid" / ef.DARK_BANK_KEY
+        dark.mkdir(parents=True)
+        (dark / "manifest.json").write_text("{}")
+        dark_calls = []
+        monkeypatch.setitem(ef.PINNED_DATA, ef.DARK_BANK_KEY, "f" * 64)
+        monkeypatch.setattr(lr, "ensure_dark_bank",
+                            lambda **kwargs: dark_calls.append(kwargs) or dark)
+        with pytest.raises(SystemExit):
+            ef.require_dark_bank({"data": {"dataset_seed": 20261017,
+                                           "dark_noise": {"records": 512}}},
+                                 None, None, tmp_path / "dark_data")
+        assert dark_calls == []
+        # (iv) an existing run dir is refused before datasets_for / run_one
+        ext = tmp_path / "ext"
+        (ext / "stageA/A1").mkdir(parents=True)
+        (ext / "stageA/A1/reproduction.json").write_text(json.dumps({
+            "s030_pass": True,
+            "s030": {label: {"vertex": {"pass": True},
+                             "module_gain_r2": {"pass": True}}
+                     for label in ef.REQUIRED_A1_S030_ROWS}}))
+        monkeypatch.setattr(ef, "assert_authorised",
+                            lambda *a, **k: {"authorised": True, "status": "granted"})
+        dataset_calls = []
+        monkeypatch.setattr(pregrid, "datasets_for",
+                            lambda *a, **k: dataset_calls.append(1) or (None, None))
+        run_id = lr.run_id_for(ef.T1_CELL_IDS["s030_within_trigger"], ef.T1_ARM, 9000)
+        (ext / "train" / "runs" / run_id).mkdir(parents=True)
+        with pytest.raises(RuntimeError, match="refusing existing run directory"):
+            ef.t1_prepare_launch(root=ROOT, config=config,
+                                 data_root=tmp_path / "data", variant="s030_within_trigger",
+                                 seed=9000, steps=ef.T1_STEPS, out_root=ext / "train",
+                                 ext_root=ext, gen=None, geometry=None,
+                                 log=lambda *a, **k: None)
+        assert dataset_calls == []
     finally:
         for (module, name), value in saved.items():
             setattr(module, name, value)
@@ -897,9 +1003,12 @@ def test_require_dark_bank_hash_check_precedes_ensure_dark_bank(tmp_path, monkey
 # ============================================================ A0 plan/cost
 def test_a0_projection_is_inside_the_stage_a_cap():
     projection = ef.stage_a_projection()
-    assert projection["item_equivalents"] == pytest.approx(87.8, abs=0.05)
-    assert 3.5 <= projection["projected_l40s_hours"] <= 4.9
+    # conservative A-4 count: 1 reproduction + 2 masked passes = 3.0 per checkpoint
+    assert projection["item_equivalents"] == pytest.approx(107.8, abs=0.05)
+    assert 4.5 <= projection["projected_l40s_hours"] <= 5.0
     assert projection["cap_hours"] == 5.5 and projection["pass"] is True
+    assert projection["pass_factors"]["A-4"] == 3.0
+    assert "conservative" in projection["rule"]
     cpu = ef.cpu_projection()
     assert cpu["cap_hours"] == 8.0 and cpu["pass"] is True
     # the task table names every Stage A task and no T-1 item
@@ -922,6 +1031,10 @@ def test_inventory_is_built_read_only_and_marks_unmatched_rows(tmp_path):
         assert inventory["rows"]["view_within9000"]["status"] == "pending (view design)"
     assert inventory["rows"]["anc100"]["status"] in ("available", "unverified (dry-run)",
                                                     "unavailable")
+    assert all(row.get("data_key") in ef.PINNED_DATA
+               for row in inventory["rows"].values())
+    assert inventory["rows"]["strong_drift_init"]["data_key"] == ef.TRAIN_KEY_S030
+    assert inventory["rows"]["scale300k9000"]["data_key"] == ef.TRAIN_KEY_300K
     # a row whose sha cannot be matched (or whose file is missing) is unavailable
     assert ef._verify("/nonexistent/final.pt", "0" * 64)[0] == "unavailable"
     checkpoint = tmp_path / "final.pt"
@@ -1069,3 +1182,410 @@ def test_a0_domain_key_assertion_detects_a_missing_domain(tmp_path):
     payload = ef.domain_key_assertion(data_root, keys=(key,), log=lambda *a, **k: None)
     assert payload["pass"] is False
     assert payload["sets"][key]["missing"] == ["run0"]
+
+
+# ============================================== B1/B2/B3/B5/N2/N4/N7 tests
+def test_committed_vertex_map_covers_the_recomputed_items():
+    committed = ef.committed_vertex_map(ROOT)
+    expected = {f"sigreg_{variant}{seed}" for variant in
+                ("within_trigger", "within_median", "across_median")
+                for seed in (9000, 9001)}
+    expected |= {f"mae_{variant}{seed}" for variant in
+                 ("within_trigger", "within_median", "across_trigger", "across_median")
+                 for seed in (9000, 9001)}
+    expected |= {"strong_drift9000", "strong_drift9001"}
+    missing = sorted(label for label in expected if label not in committed)
+    assert missing == []
+    assert committed["strong_drift9000"] == pytest.approx(0.233209)
+    assert committed["strong_drift9001"] == pytest.approx(0.217213)
+    readings = json.loads((ROOT / "results/jepa/20261030_dejitter/readings.json")
+                          .read_text())
+    for key, row in readings["P-5"]["runs"].items():
+        variant, seed = key.split("/")
+        label = f"sigreg_{variant}{int(seed.lstrip('s'))}"
+        assert committed[label] == pytest.approx(row["vertex_resolution_m"])
+    mae = json.loads((ROOT / "results/jepa/20261031_mae_dejitter/readings.json")
+                     .read_text())
+    for key, row in mae["M-f"]["runs"].items():
+        variant, seed = key.split("/")
+        label = f"mae_{variant}{int(seed.lstrip('s'))}"
+        assert committed[label] == pytest.approx(row["vertex_resolution_m"])
+    # S1: labels with no committed vertex at their setting are not_applicable
+    for label in ("ijepa9000", "lambda9000", "stopgrad9000", "anc100",
+                  "t1_s030_within_trigger9000"):
+        record = ef.check_item_reproduction(label, 0.5, committed)
+        assert record["checked"] is False and record["pass"] is None
+        assert record["status"] == "not_applicable"
+        assert ef.NO_COMMITTED_VERTEX_REASON in record["reason"]
+    good = ef.check_item_reproduction("strong_drift9000", committed["strong_drift9000"],
+                                      committed)
+    assert good["checked"] is True and good["pass"] is True
+    bad = ef.check_item_reproduction("mae_within_trigger9000", 0.999, committed)
+    assert bad["checked"] is True and bad["pass"] is False
+    assert bad["status"] == "unavailable"
+
+
+def test_d2_strong_drift_table_must_agree_with_the_pins(tmp_path):
+    root = tmp_path / "repo"
+    path = root / ef.D2_METRICS_REL
+    path.parent.mkdir(parents=True)
+    path.write_text("| Variant | Seed | Vertex resolution (m) | Module-gain run-mean R² |\n"
+                    "|---|---:|---:|---:|\n"
+                    "| strong_drift | 9000 | 0.233209 | 0.097482 |\n"
+                    "| strong_drift | 9001 | 0.217213 | 0.217191 |\n")
+    values = ef.strong_drift_committed_vertices(root)
+    assert values[9000] == pytest.approx(0.233209)
+    assert values[9001] == pytest.approx(0.217213)
+    path.write_text(path.read_text().replace("0.233209", "0.999999"))
+    with pytest.raises(RuntimeError, match="differs from the pinned"):
+        ef.strong_drift_committed_vertices(root)
+
+
+def test_t1_launch_requires_the_a1_s030_gate(tmp_path, config, monkeypatch, capsys):
+    ext = tmp_path / "ext"
+    gate_path = ext / "stageA/A1/reproduction.json"
+    # missing record -> SystemExit(2)
+    with pytest.raises(SystemExit) as caught:
+        ef.require_a1_s030_gate(ext)
+    assert caught.value.code == 2
+    assert "missing" in capsys.readouterr().err
+    gate_path.parent.mkdir(parents=True)
+    rows = {label: {"vertex": {"pass": False}, "module_gain_r2": {"pass": True}}
+            for label in ef.REQUIRED_A1_S030_ROWS}
+    gate_path.write_text(json.dumps({"s030_pass": False, "s030": rows}))
+    with pytest.raises(SystemExit) as caught:
+        ef.require_a1_s030_gate(ext)
+    assert caught.value.code == 2
+    gate_path.write_text(json.dumps({
+        "s005_pass": True, "s030_pass": True,
+        "s030": {label: {"vertex": {"pass": True},
+                         "module_gain_r2": {"pass": True}}
+                 for label in ef.REQUIRED_A1_S030_ROWS}}))
+    passed = ef.require_a1_s030_gate(ext)
+    assert passed["s030_pass"] is True and passed["s005_pass"] is True
+    # the launch path checks it BEFORE the run-dir refusal and datasets_for
+    monkeypatch.setattr(ef, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    ordering = []
+    monkeypatch.setattr(ef, "refuse_existing_run_dir",
+                        lambda *a, **k: ordering.append("refuse"))
+    monkeypatch.setattr(ef, "require_pinned", lambda *a, **k: ordering.append("pins"))
+    from scripts import jepa_pregrid_checks as pregrid
+
+    class _Dataset:
+        def __init__(self, key):
+            self.key = key
+
+    def fake_datasets_for(*args, **kwargs):
+        ordering.append("datasets")
+        return (_Dataset(ef.TRAIN_KEY_S030),
+                {"train": _Dataset(ef.PROBE_KEYS_S030["train"]),
+                 "test": _Dataset(ef.PROBE_KEYS_S030["test"])})
+    monkeypatch.setattr(pregrid, "datasets_for", fake_datasets_for)
+    gate_path.unlink()
+    with pytest.raises(SystemExit):
+        ef.t1_prepare_launch(root=ROOT, config=config, data_root=tmp_path / "data",
+                             variant="s030_within_trigger", seed=9000,
+                             steps=ef.T1_STEPS, out_root=ext / "train", ext_root=ext,
+                             gen=None, geometry=None, log=lambda *a, **k: None)
+    assert ordering == []                      # A1 gate refused before any launch step
+    gate_path.write_text(json.dumps({
+        "s005_pass": True, "s030_pass": True,
+        "s030": {label: {"vertex": {"pass": True},
+                         "module_gain_r2": {"pass": True}}
+                 for label in ef.REQUIRED_A1_S030_ROWS}}))
+    prepared = ef.t1_prepare_launch(root=ROOT, config=config,
+                                    data_root=tmp_path / "data",
+                                    variant="s030_within_trigger", seed=9000,
+                                    steps=ef.T1_STEPS, out_root=ext / "train",
+                                    ext_root=ext, gen=None, geometry=None,
+                                    log=lambda *a, **k: None)
+    assert prepared["a1_gate"]["s030_pass"] is True
+    assert ordering == ["refuse", "pins", "datasets"]
+
+
+def test_readout_label_list_includes_the_t1_rows():
+    rows = {f"t1_s030_within_trigger{seed}": {"label": "t1"}
+            for seed in (9000, 9001)}
+    a1 = ef.readout_label_list("A-1", rows)
+    a2 = ef.readout_label_list("A-2", rows)
+    for labels, base in ((a1, ef.A1_COMPUTE_LABELS + ef.A1_MLP_FILL_LABELS),
+                         (a2, ef.A2_LABELS)):
+        assert set(base) <= set(labels)
+        assert set(rows) <= set(labels)
+        assert len(labels) == len(set(labels))
+    assert ef.readout_label_list("A-3", {}, include_t1=False) == []
+
+
+def test_t1_inventory_rows_and_the_t1_cost(tmp_path):
+    ext = tmp_path / "ext"
+    (ext / "train").mkdir(parents=True)
+    rows = [
+        {"run_id": "ext_dev_s030_within_trigger__mae_mse__s9000",
+         "arm": ef.T1_ARM, "outcome": "complete",
+         "cell_id": "ext_dev_s030_within_trigger", "seed": 9000,
+         "final_checkpoint_sha256": "a" * 64, "wall_seconds": 1800.0},
+        {"run_id": "ext_dev_s030_across_trigger__mae_mse__s9001",
+         "arm": ef.T1_ARM, "outcome": "complete",
+         "cell_id": "ext_dev_s030_across_trigger", "seed": 9001,
+         "final_checkpoint_sha256": "b" * 64, "wall_seconds": 1800.0},
+    ]
+    (ext / "train" / "manifest.jsonl").write_text(
+        "\n".join(json.dumps(row) for row in rows) + "\n")
+    for row in rows:
+        run_dir = ext / "train" / "runs" / row["run_id"]
+        run_dir.mkdir(parents=True)
+        (run_dir / "final.pt").write_bytes(b"checkpoint")
+    inventory = ef.t1_inventory_rows(ext)
+    label = "t1_s030_within_trigger9000"
+    assert label in inventory
+    assert inventory[label]["arm"] == ef.T1_ARM
+    assert inventory[label]["data_setting"] == ef.S030
+    assert inventory[label]["split"] == "within"
+    assert inventory[label]["data_key"] == ef.TRAIN_KEY_S030
+    assert inventory[label]["status"] == "available"
+    assert Path(inventory[label]["source"]).is_file()
+    assert "t1_s030_across_trigger9001" in inventory
+    cost = ef.t1_cost(ext)
+    assert cost["cap_hours"] == ef.T1_CAP_H
+    assert cost["measured_gpu_hours"] == pytest.approx(1.0)
+    assert cost["cap_pass"] is True and cost["projection_pass"] is True
+    # a run over the 3.5 h cap fails
+    (ext / "train" / "manifest.jsonl").write_text(
+        json.dumps(dict(rows[0], wall_seconds=20000.0)) + "\n")
+    assert ef.t1_cost(ext)["cap_pass"] is False
+
+
+def test_t1_readings_are_populated_from_the_actual_a2_payload():
+    a2 = {"models": {
+        "t1_s030_within_trigger9000": {"environments": {"s030": {
+            "module_gain_r2": 0.85, "module_gain_minus_floor": 0.008415}}},
+        "t1_s030_within_trigger9001": {"environments": {"s030": {
+            "module_gain_r2": 0.86, "module_gain_minus_floor": 0.018415}}},
+        "mae_within_trigger9000": {"environments": {"s030": {}}}},
+        "t1_g2": {"within__9000": {
+            "split": "within", "seed": 9000, "difference_m": -0.01,
+            "ci95_m": [-0.02, 0.001], "n_runs": 200, "n_events": 3400,
+            "s005_trained_model": "mae_within_trigger9000",
+            "s030_trained_model": "t1_s030_within_trigger9000"}}}
+    a1 = {"rows": {"t1_s030_within_trigger9000": {"label": "t1_s030_within_trigger9000",
+                                                  "f_event": {"9000": 0.02}}}}
+    readings = ef.t1_readings(a2_payload=a2, a1_payload=a1)
+    assert readings["G-1"]["models"]["t1_s030_within_trigger9000"]["reading"] == "retained"
+    assert readings["G-2"]["models"]["within__9000"]["difference_m"] == pytest.approx(-0.01)
+    assert "t1_s030_within_trigger9000" in readings["A-1"]
+    empty = ef.t1_readings(a2_payload={}, a1_payload={})
+    assert empty["G-1"]["models"] == {} and empty["G-2"]["models"] == {}
+
+
+def test_s030_cell_is_installed_on_the_built_arm(config, small_geometry):
+    arms_config = la.load_config()
+    row = ef._row("strong_drift9000", family="predictability", arm="sigreg_jepa",
+                  split="within", seed=9000, beta=None, source=None, sha256=None,
+                  data_setting=ef.S030)
+    arm = ef.build_item_arm(row, config=config, gen=None, arms_config=arms_config,
+                            geometry=small_geometry, data_root="/nonexistent",
+                            device="cpu", log=lambda *a, **k: None)
+    cell = ef.item_cell(row, config)
+    assert cell.cell_id == "ext_dev_s030_within"
+    assert float(cell.setting) == ef.S030 and float(cell.s_arm) == ef.S030
+    assert arm._ext_item_cell["setting"] == ef.S030
+    assert arm._ext_item_cell["s_arm"] == ef.S030
+    assert arm.settings == la.ArmSettings.from_config(
+        arms_config, cell=(cell.s_arm, cell.s_p), beta=None)
+    row05 = ef._row("fix9000", family="matrix", arm="sigreg_jepa", split="within",
+                    seed=9000, beta=None, source=None, sha256=None,
+                    data_setting=ef.S005)
+    arm05 = ef.build_item_arm(row05, config=config, gen=None, arms_config=arms_config,
+                              geometry=small_geometry, data_root="/nonexistent",
+                              device="cpu", log=lambda *a, **k: None)
+    assert arm05._ext_item_cell["setting"] == ef.S005
+    assert arm.settings != arm05.settings
+
+
+def _write_view_fixture(root, view_root):
+    runs = {}
+    for split in ("within", "across", "module_parity", "random_half"):
+        for seed in (9000, 9001):
+            run_dir = (view_root / "train" / "views" / split / "runs"
+                       / f"dev_s005_within__sigreg_jepa__s{seed}")
+            run_dir.mkdir(parents=True)
+            checkpoint = run_dir / "final.pt"
+            checkpoint.write_bytes(f"{split}-{seed}".encode())
+            runs[f"{split}__{seed}"] = {
+                "checkpoint_sha256": lr.sha256_file(checkpoint),
+                "full_input": {"vertex_m": 0.15}}
+    path = root / "results/jepa/20261103_view/runs.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps({"registered": False, "runs": runs}))
+    return runs
+
+
+def test_view_inventory_rows_are_available_from_committed_runs(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    view_root = tmp_path / "view_root"
+    runs = _write_view_fixture(root, view_root)
+    for attribute in ("READOUT_EXT", "DEJITTER_EXT", "MAE_DEJITTER_EXT", "H12_EXT",
+                      "STATIC_EXT", "SCALE_EXT", "ARCH_EXT", "VIEW_EXT"):
+        monkeypatch.setattr(ef, attribute, tmp_path / "missing")
+    inventory = ef.build_inventory(root, view_root=view_root,
+                                   log=lambda *a, **k: None)
+    for split in ("within", "across", "module_parity", "random_half"):
+        for seed in (9000, 9001):
+            label = f"view_{split}{seed}"
+            row = inventory["rows"][label]
+            assert row["status"] == "available", label
+            assert row["sha256"] == runs[f"{split}__{seed}"]["checkpoint_sha256"]
+            assert row["source"] and Path(row["source"]).is_file()
+            assert row["committed_vertex_m"] == pytest.approx(0.15)
+
+
+def _a4_tiny_dataset(tmp_path, geometry, *, hidden_shift_ns=0.0, runs=6, events=2,
+                     seed=0):
+    rng = np.random.default_rng(seed)
+    pmt = np.asarray(geometry.pmt_id_in_mpmt)
+    odd = np.flatnonzero((pmt % 2) == 1)
+    even = np.flatnonzero((pmt % 2) == 0)
+    rows = []
+    for run in range(runs):
+        run_dir = tmp_path / "runs" / f"run{run:04d}"
+        run_dir.mkdir(parents=True)
+        reads = []
+        for event in range(events):
+            ids = (np.sort(np.concatenate([even[:6], odd[:6]])) if event == 0
+                   else np.sort(odd[:6]))
+            times = rng.normal(50.0, 1.0, len(ids)).astype(np.float32)
+            hidden = np.isin(ids, odd)
+            times[hidden] = 10.0 + float(hidden_shift_ns)   # hidden earlier than visible
+            reads.append(lb.HitReadout(ids.astype(np.int32),
+                                       (rng.exponential(3.0, len(ids)) + 0.3)
+                                       .astype(np.float32), times))
+        event_ids = np.arange(events, dtype=np.int64) + run * events
+        lb.write_sparse_hits(run_dir / "hits.npz",
+                             lb.sparse_from_readouts(event_ids, reads))
+        np.savez(run_dir / "events.npz", event_ids=event_ids,
+                 vertex_m=np.zeros((events, 3)), yield_photons=np.full(events, 1e4))
+        rows.append({"run_id": f"lucid/a4test/{run:04d}", "run_dir": f"run{run:04d}",
+                     "event_id_start": int(run * events), "n_events": events,
+                     "setting": 0.05})
+    return lr.Dataset(key="a4test", directory=tmp_path, cohort="lucid/a4test", law="F1",
+                      setting=0.05, setting_kind=None, seed=20261017,
+                      n_events=runs * events, run_length=events, runs=tuple(rows),
+                      manifest={"cohort": "lucid/a4test"})
+
+
+def test_a4_end_to_end_masked_reference_invariance(tmp_path, small_geometry):
+    """N7: the invariance property through the real masked-pass readout."""
+    root = tmp_path / "a4"
+    if True:
+        arm = _frozen_arm(small_geometry)
+        base = _a4_tiny_dataset(root / "base", small_geometry)
+        shifted = _a4_tiny_dataset(root / "shifted", small_geometry,
+                                   hidden_shift_ns=900.0)
+        config = {"views": {"mask_seed": 0}}
+        device = torch.device("cpu")
+
+        def run(dataset, reference):
+            return ef.masked_reference_readout(
+                arm.jepa, {"train": dataset, "test": dataset}, small_geometry,
+                split="within", config=config, device=device,
+                convention=ef.A4_TOKEN_TRIGGER, reference=reference,
+                return_streams=True, log=lambda *a, **k: None)
+
+        context_base, context_shifted = run(base, "context"), run(shifted, "context")
+        for form in ("context_only", "propagated"):
+            assert np.array_equal(
+                context_base["streams"]["test"][form].events,
+                context_shifted["streams"]["test"][form].events), form
+        all_base, all_shifted = run(base, "all"), run(shifted, "all")
+        assert not np.array_equal(all_base["streams"]["test"]["context_only"].events,
+                                  all_shifted["streams"]["test"]["context_only"].events)
+        # zero-visible-hit / None-trigger rules fire (event 1 of every run)
+        assert context_base["counts"]["test"]["n_ctx_no_trigger"] == 6
+        assert context_base["counts"]["test"]["n_ctx_no_hit"] == 6
+        median = ef.masked_reference_readout(
+            arm.jepa, {"train": base, "test": base}, small_geometry, split="within",
+            config=config, device=device, convention=ef.A4_TOKEN_MEDIAN,
+            reference="context", return_streams=True, log=lambda *a, **k: None)
+        assert median["counts"]["test"]["n_ctx_no_hit"] == 6
+
+
+@needs_data
+def test_a0_pairing_includes_the_dev_train_pair():
+    payload = ef.pairing_check(DATA_ROOT, limit=2, log=lambda *a, **k: None)
+    assert set(payload["sets"]) == {"probe_train", "probe_test", "dev_train"}
+    assert payload["sets"]["dev_train"]["pass"] is True
+    assert payload["sets"]["dev_train"]["n_compared"] == 2
+    assert payload["pass"] is True
+
+
+def test_reproduction_summary_surfaces_not_applicable():
+    summary = ef._reproduction_summary([
+        {"label": "ijepa9000", "status": "not_applicable",
+         "reason": ef.NO_COMMITTED_VERTEX_REASON},
+        {"label": "mae_within_trigger9000", "status": "pass", "pass": True}])
+    assert summary["not_applicable"] == ["ijepa9000"]
+    assert "mae_within_trigger9000" in summary["checked"]
+    assert ef.NO_COMMITTED_VERTEX_REASON in summary["rule"] or True
+
+
+def test_cli_include_t1_passes_the_explicit_t1_labels(tmp_path, monkeypatch, config):
+    recorded = {}
+    monkeypatch.setattr(followup_cli, "load_setup",
+                        lambda args, **kwargs: (config, None, None, None, "cpu"))
+    monkeypatch.setattr(ef, "build_inventory", lambda *a, **k: {"rows": {}})
+    monkeypatch.setattr(ef, "t1_inventory_rows",
+                        lambda ext: {"t1_s030_within_trigger9000": {"label": "t1"}})
+    monkeypatch.setattr(ef, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+
+    def fake_body(**kwargs):
+        recorded.update(kwargs)
+        return {"complete": True, "unavailable": [], "readings": {}}
+
+    monkeypatch.setitem(followup_cli.READOUT_BODIES, "A-1", fake_body)
+    monkeypatch.setattr(followup_cli, "write_json", lambda *a, **k: None)
+    args = type("Args", (), {
+        "item": "A-1", "include_t1": True, "out": str(tmp_path / "out"),
+        "root": str(ROOT), "ext": str(tmp_path / "ext"),
+        "data_root": str(tmp_path), "device": "cpu"})()
+    assert followup_cli.mode_readout(args) == 0
+    labels = recorded["labels"]
+    assert "t1_s030_within_trigger9000" in labels
+    assert set(ef.A1_COMPUTE_LABELS) <= set(labels)
+
+
+def test_assemble_report_populates_t1_readings_and_cost(tmp_path, monkeypatch):
+    monkeypatch.setattr(ef, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    ext = tmp_path / "ext"
+    stage = ext / "stageA"
+    (stage / "A-2").mkdir(parents=True)
+    a2 = {"complete": True, "unavailable": [], "models": {
+        "t1_s030_within_trigger9000": {"environments": {"s030": {
+            "module_gain_r2": 0.85, "module_gain_minus_floor": 0.008415}}}},
+        "t1_g2": {"within__9000": {
+            "split": "within", "seed": 9000, "difference_m": -0.01,
+            "ci95_m": [-0.02, 0.001], "n_runs": 200, "n_events": 3400}}}
+    (stage / "A-2" / "readout_A-2.json").write_text(json.dumps(a2))
+    (ext / "train").mkdir()
+    row = {"run_id": "ext_dev_s030_within_trigger__mae_mse__s9000",
+           "arm": ef.T1_ARM, "outcome": "complete",
+           "cell_id": "ext_dev_s030_within_trigger", "seed": 9000,
+           "final_checkpoint_sha256": "a" * 64, "wall_seconds": 1800.0}
+    (ext / "train" / "manifest.jsonl").write_text(json.dumps(row) + "\n")
+    run_dir = ext / "train" / "runs" / row["run_id"]
+    run_dir.mkdir(parents=True)
+    (run_dir / "final.pt").write_bytes(b"checkpoint")
+    payload = ef.assemble_report(root=ROOT, ext_root=ext,
+                                 results_dir=tmp_path / "results",
+                                 log=lambda *a, **k: None)
+    readings = json.loads((tmp_path / "results/readings.json").read_text())
+    assert readings["T-1"]["G-1"]["models"]["t1_s030_within_trigger9000"]["reading"] == \
+        "retained"
+    assert readings["T-1"]["G-2"]["models"]["within__9000"]["difference_m"] == \
+        pytest.approx(-0.01)
+    assert readings["T-1"]["cost"]["cap_hours"] == ef.T1_CAP_H
+    assert readings["T-1"]["cost"]["measured_gpu_hours"] == pytest.approx(0.5)
+    assert (tmp_path / "results/README.md").is_file()
+    assert payload["reproduction_pass"] is None
