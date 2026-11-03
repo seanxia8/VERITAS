@@ -1,0 +1,77 @@
+{
+ "registered": false,
+ "extension": "arch_2026-11-02",
+ "criteria": {
+  "floors": {
+   "full": 0.160072,
+   "half": 0.174821,
+   "charge_r2_min": 0.5
+  },
+  "rule": "recovered: both seeds full vertex strictly < 0.160072 m, full token ln q R2 >= 0.5, half vertex < 0.174821 m, half token R2 >= 0.5; not recovered: for each seed full vertex >= 0.160072 m or full token R2 < 0.5 (both seeds); else unclear"
+ },
+ "variants": {
+  "window128": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.16305760507917144,
+     "full_input_token_r2": 0.10352587593582407,
+     "half_pass_vertex_m": 0.19222149187286805,
+     "half_pass_token_r2": 0.006375913263462651,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.1629221464734353,
+     "full_input_token_r2": 0.14230864131412713,
+     "half_pass_vertex_m": 0.19085293803991135,
+     "half_pass_token_r2": 0.0071180121643603655,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "window32": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.2150584362209638,
+     "full_input_token_r2": 0.024696068751282385,
+     "half_pass_vertex_m": 0.35343538322375667,
+     "half_pass_token_r2": 0.0011124203199206484,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.20684566277454092,
+     "full_input_token_r2": 0.05913596172992264,
+     "half_pass_vertex_m": 0.33119133631841563,
+     "half_pass_token_r2": 0.0005448533484093687,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "pred4": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.23363949767741307,
+     "full_input_token_r2": 0.016478627457625294,
+     "half_pass_vertex_m": 0.33418885247518937,
+     "half_pass_token_r2": 0.0009706076530976437,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.20786618812158816,
+     "full_input_token_r2": 0.04460542593867811,
+     "half_pass_vertex_m": 0.34662474613362493,
+     "half_pass_token_r2": 0.0031231009431572643,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  }
+ }
+}

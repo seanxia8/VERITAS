@@ -1,0 +1,246 @@
+{
+ "registered": false,
+ "extension": "arch_2026-11-02",
+ "variants": {
+  "window128": {
+   "window": 128,
+   "shift": 64
+  },
+  "window32": {
+   "window": 32,
+   "shift": 16
+  },
+  "pred4": {
+   "n_pred_blocks": 4
+  }
+ },
+ "runs": {
+  "window128__9000": {
+   "variant": "window128",
+   "seed": 9000,
+   "wall_seconds": 3254.185,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "encoder": {
+    "window": 128,
+    "shift": 64,
+    "n_pred_blocks": 2,
+    "default_window": 64,
+    "default_shift": 32
+   },
+   "checkpoint_sha256": "7245cd1c973a3815dd1b4f45db2f30dcec3fa3d6ddbf1c57a53e20bf1f3452be",
+   "full_input": {
+    "vertex_m": 0.16305760507917144,
+    "token_charge_r2": 0.10352587593582407
+   },
+   "half_pass": {
+    "vertex_m": 0.19222149187286805,
+    "token_charge_r2": 0.006375913263462651
+   },
+   "f_layout": 0.9677977970861408,
+   "f_event": 0.001289246949412497,
+   "eff_rank": 1.464214950308036
+  },
+  "window128__9001": {
+   "variant": "window128",
+   "seed": 9001,
+   "wall_seconds": 3126.245,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "encoder": {
+    "window": 128,
+    "shift": 64,
+    "n_pred_blocks": 2,
+    "default_window": 64,
+    "default_shift": 32
+   },
+   "checkpoint_sha256": "52e69641dc50144fbd9f75126ff08d5dca099cfdaaf3a888d8caca9f18d20fe7",
+   "full_input": {
+    "vertex_m": 0.1629221464734353,
+    "token_charge_r2": 0.14230864131412713
+   },
+   "half_pass": {
+    "vertex_m": 0.19085293803991135,
+    "token_charge_r2": 0.0071180121643603655
+   },
+   "f_layout": 0.9696542822024148,
+   "f_event": 0.0009661512355323156,
+   "eff_rank": 2.037394438786168
+  },
+  "window32__9000": {
+   "variant": "window32",
+   "seed": 9000,
+   "wall_seconds": 2417.121,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "encoder": {
+    "window": 32,
+    "shift": 16,
+    "n_pred_blocks": 2,
+    "default_window": 64,
+    "default_shift": 32
+   },
+   "checkpoint_sha256": "22339fb9a717d634b5ce9b0eddef95b93a2118ed7859fefbd47c449bf27ee19d",
+   "full_input": {
+    "vertex_m": 0.2150584362209638,
+    "token_charge_r2": 0.024696068751282385
+   },
+   "half_pass": {
+    "vertex_m": 0.35343538322375667,
+    "token_charge_r2": 0.0011124203199206484
+   },
+   "f_layout": 0.9966461932830231,
+   "f_event": 0.00013889925177474753,
+   "eff_rank": 2.0990404998007715
+  },
+  "window32__9001": {
+   "variant": "window32",
+   "seed": 9001,
+   "wall_seconds": 2343.927,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "encoder": {
+    "window": 32,
+    "shift": 16,
+    "n_pred_blocks": 2,
+    "default_window": 64,
+    "default_shift": 32
+   },
+   "checkpoint_sha256": "01a29a1c6fc609239ccdb6189d5fd6fb8e84d57c4ec1f075ceab530e5f46d6db",
+   "full_input": {
+    "vertex_m": 0.20684566277454092,
+    "token_charge_r2": 0.05913596172992264
+   },
+   "half_pass": {
+    "vertex_m": 0.33119133631841563,
+    "token_charge_r2": 0.0005448533484093687
+   },
+   "f_layout": 0.9946162365296085,
+   "f_event": 0.00013125556379837028,
+   "eff_rank": 3.322627287764754
+  },
+  "pred4__9000": {
+   "variant": "pred4",
+   "seed": 9000,
+   "wall_seconds": 2733.993,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "encoder": {
+    "window": 64,
+    "shift": 32,
+    "n_pred_blocks": 4,
+    "default_window": 64,
+    "default_shift": 32
+   },
+   "checkpoint_sha256": "fa5137b3818a3008390a614a005a11293b4ea32333d940c98b0f57169c17efc0",
+   "full_input": {
+    "vertex_m": 0.23363949767741307,
+    "token_charge_r2": 0.016478627457625294
+   },
+   "half_pass": {
+    "vertex_m": 0.33418885247518937,
+    "token_charge_r2": 0.0009706076530976437
+   },
+   "f_layout": 0.9961096186369629,
+   "f_event": 6.88106629062625e-05,
+   "eff_rank": 2.9254117552868437
+  },
+  "pred4__9001": {
+   "variant": "pred4",
+   "seed": 9001,
+   "wall_seconds": 2724.808,
+   "steps": 10000,
+   "resumed_from_step": 0,
+   "metrics_finite": true,
+   "encoder": {
+    "window": 64,
+    "shift": 32,
+    "n_pred_blocks": 4,
+    "default_window": 64,
+    "default_shift": 32
+   },
+   "checkpoint_sha256": "806f47fce4d703acdf4c0acf3f04ffcd34bf620dce8396978cdda2d9a0f2d940",
+   "full_input": {
+    "vertex_m": 0.20786618812158816,
+    "token_charge_r2": 0.04460542593867811
+   },
+   "half_pass": {
+    "vertex_m": 0.34662474613362493,
+    "token_charge_r2": 0.0031231009431572643
+   },
+   "f_layout": 0.9925092489762989,
+   "f_event": 0.00015154694796419685,
+   "eff_rank": 3.5031883535070087
+  }
+ },
+ "readings": {
+  "window128": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.16305760507917144,
+     "full_input_token_r2": 0.10352587593582407,
+     "half_pass_vertex_m": 0.19222149187286805,
+     "half_pass_token_r2": 0.006375913263462651,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.1629221464734353,
+     "full_input_token_r2": 0.14230864131412713,
+     "half_pass_vertex_m": 0.19085293803991135,
+     "half_pass_token_r2": 0.0071180121643603655,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "window32": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.2150584362209638,
+     "full_input_token_r2": 0.024696068751282385,
+     "half_pass_vertex_m": 0.35343538322375667,
+     "half_pass_token_r2": 0.0011124203199206484,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.20684566277454092,
+     "full_input_token_r2": 0.05913596172992264,
+     "half_pass_vertex_m": 0.33119133631841563,
+     "half_pass_token_r2": 0.0005448533484093687,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  },
+  "pred4": {
+   "verdict": "not recovered",
+   "per_seed": {
+    "9000": {
+     "full_input_vertex_m": 0.23363949767741307,
+     "full_input_token_r2": 0.016478627457625294,
+     "half_pass_vertex_m": 0.33418885247518937,
+     "half_pass_token_r2": 0.0009706076530976437,
+     "recovers": false,
+     "fails": true
+    },
+    "9001": {
+     "full_input_vertex_m": 0.20786618812158816,
+     "full_input_token_r2": 0.04460542593867811,
+     "half_pass_vertex_m": 0.34662474613362493,
+     "half_pass_token_r2": 0.0031231009431572643,
+     "recovers": false,
+     "fails": true
+    }
+   }
+  }
+ }
+}

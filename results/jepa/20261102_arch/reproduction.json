@@ -1,0 +1,21 @@
+{
+ "registered": false,
+ "extension": "h12_causal_2026-11-01",
+ "check": "\u00a74.2 reproduction",
+ "tolerance_m": 0.001,
+ "items": {
+  "fix9000": {
+   "expected_m": 0.219258,
+   "got_m": 0.21925859104673262,
+   "abs_diff_m": 5.910467326120106e-07,
+   "pass": true
+  },
+  "init9000": {
+   "expected_m": 0.160072,
+   "got_m": 0.16007169092238768,
+   "abs_diff_m": 3.090776123093608e-07,
+   "pass": true
+  }
+ },
+ "reproduction_pass": true
+}
