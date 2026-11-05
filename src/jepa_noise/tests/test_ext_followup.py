@@ -1210,9 +1210,15 @@ def test_committed_vertex_map_covers_the_recomputed_items():
         variant, seed = key.split("/")
         label = f"mae_{variant}{int(seed.lstrip('s'))}"
         assert committed[label] == pytest.approx(row["vertex_resolution_m"])
-    # S1: labels with no committed vertex at their setting are not_applicable
-    for label in ("ijepa9000", "lambda9000", "stopgrad9000", "anc100",
-                  "t1_s030_within_trigger9000"):
+    # C4: the D2 s = 0.05 rows are the committed vertices of ijepa/lambda/stopgrad
+    for label, vertex in ef.D2_S005_VERTEX.items():
+        assert committed[label] == pytest.approx(vertex)
+        record = ef.check_item_reproduction(label, vertex + 5e-4, committed)
+        assert record["checked"] is True and record["pass"] is True
+        record = ef.check_item_reproduction(label, vertex + 5e-3, committed)
+        assert record["status"] == "unavailable"
+    # S1 (narrowed by C4): labels with no committed vertex at their setting
+    for label in ("anc100", "t1_s030_within_trigger9000"):
         record = ef.check_item_reproduction(label, 0.5, committed)
         assert record["checked"] is False and record["pass"] is None
         assert record["status"] == "not_applicable"
@@ -1239,6 +1245,31 @@ def test_d2_strong_drift_table_must_agree_with_the_pins(tmp_path):
     path.write_text(path.read_text().replace("0.233209", "0.999999"))
     with pytest.raises(RuntimeError, match="differs from the pinned"):
         ef.strong_drift_committed_vertices(root)
+
+
+def test_d2_s005_rows_match_the_committed_table_and_the_q1q2_protocol():
+    """C4: the committed METRICS.md agrees with the pins, and D2 used the Q1/Q2 protocol."""
+    values = ef.d2_s005_committed_vertices(ROOT)
+    assert values == pytest.approx(ef.D2_S005_VERTEX)
+    text = (ROOT / ef.D2_METRICS_REL).read_text()
+    matrix = json.loads((ROOT / "results/jepa/20261101_readout/matrix.json").read_text())
+    for seed in (9000, 9001):
+        full = matrix["items"][f"across{seed}"]["forms"]["full_input"]
+        assert f"| across | {seed} | {full['vertex_resolution_m']:.6f} |" in text
+    assert "0.219259 m (9000), 0.204281 m (9001)" in text
+
+
+def test_d2_s005_table_must_agree_with_the_pins(tmp_path):
+    root = tmp_path / "repo"
+    path = root / ef.D2_METRICS_REL
+    path.parent.mkdir(parents=True)
+    path.write_text("| Variant | Seed | Vertex resolution (m) | Module-gain run-mean R² |\n"
+                    "|---|---:|---:|---:|\n"
+                    "| ijepa | 9000 | 0.209150 | 0.030165 |\n")
+    assert ef.d2_s005_committed_vertices(root)["ijepa9000"] == pytest.approx(0.209150)
+    path.write_text(path.read_text().replace("0.209150", "0.300000"))
+    with pytest.raises(RuntimeError, match="differs from the pinned"):
+        ef.d2_s005_committed_vertices(root)
 
 
 def test_t1_launch_requires_the_a1_s030_gate(tmp_path, config, monkeypatch, capsys):
@@ -1354,6 +1385,30 @@ def test_t1_inventory_rows_and_the_t1_cost(tmp_path):
     (ext / "train" / "manifest.jsonl").write_text(
         json.dumps(dict(rows[0], wall_seconds=20000.0)) + "\n")
     assert ef.t1_cost(ext)["cap_pass"] is False
+
+
+def test_t1_smoke_never_replaces_the_seed9000_within_run(tmp_path):
+    """Acceptance check 6 Nov: the 20-step smoke shares variant and seed with a real run."""
+    ext = tmp_path / "ext"
+    real = {"run_id": "ext_dev_s030_within_trigger__mae_mse__s9000", "arm": ef.T1_ARM,
+            "outcome": "complete", "cell_id": "ext_dev_s030_within_trigger",
+            "seed": 9000, "final_checkpoint_sha256": "a" * 64, "wall_seconds": 1800.0}
+    smoke = dict(real, final_checkpoint_sha256="c" * 64, wall_seconds=60.0,
+                 steps=ef.T1_SMOKE_STEPS)
+    for root_name, row in (("train", real), ("smoke", smoke)):
+        (ext / root_name).mkdir(parents=True)
+        (ext / root_name / "manifest.jsonl").write_text(json.dumps(row) + "\n")
+        run_dir = ext / root_name / "runs" / row["run_id"]
+        run_dir.mkdir(parents=True)
+        (run_dir / "final.pt").write_bytes(b"checkpoint")
+    inventory = ef.t1_inventory_rows(ext)
+    real_row = inventory["t1_s030_within_trigger9000"]
+    assert real_row["sha256"] == "a" * 64 and real_row["smoke"] is False
+    assert Path(real_row["source"]).parts[-4] == "train"
+    assert inventory["t1smoke_s030_within_trigger9000"]["smoke"] is True
+    labels = ef.readout_label_list("A-2", inventory, include_t1=True)
+    assert "t1_s030_within_trigger9000" in labels
+    assert not any(label.startswith("t1smoke_") for label in labels)
 
 
 def test_t1_readings_are_populated_from_the_actual_a2_payload():

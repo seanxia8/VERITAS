@@ -1611,6 +1611,16 @@ def evaluate_item_row(row, *, config, gen, arms_config, geometry, probes, data_r
 # --------------------------------------------------- committed-value reuse §3
 #: §3 A1 pins for the D2 strong-drift rows (`results/jepa/20261029_d2_partial/METRICS.md`).
 STRONG_DRIFT_VERTEX = {9000: 0.233209, 9001: 0.217213}
+#: Acceptance condition C4 (6 Nov 2026): the D2 rows for ijepa/lambda/stopgrad are
+#: s = 0.05 evaluations of the ``ext_dev_s005_within_*`` checkpoints on the same
+#: protocol as the Q1/Q2 matrix (D2's across rows equal matrix across9000/9001 and its
+#: fix references equal fix9000/9001), so they are these items' committed full-input
+#: vertices.  Pinned here; a METRICS.md row that disagrees is a hard error.
+D2_S005_VERTEX = {
+    "ijepa9000": 0.209150, "ijepa9001": 0.194992,
+    "lambda9000": 0.220055, "lambda9001": 0.199603,
+    "stopgrad9000": 0.219583, "stopgrad9001": 0.189377,
+}
 D2_METRICS_REL = "results/jepa/20261029_d2_partial/METRICS.md"
 _SIGREG_DEJITTER_VARIANTS = ("within_trigger", "within_median", "across_median")
 _MAE_DEJITTER_VARIANTS = ("within_trigger", "within_median", "across_trigger",
@@ -1649,6 +1659,26 @@ def strong_drift_committed_vertices(root=None) -> dict:
                                    f"differs from the pinned {values[seed]!r} (§3 A1)")
         values.update({seed: vertex for seed, vertex in parsed.items()
                        if seed in (9000, 9001)})
+    return values
+
+
+def d2_s005_committed_vertices(root=None) -> dict:
+    """C4: the D2 s = 0.05 vertices of ijepa/lambda/stopgrad, parsed and pinned."""
+    root = _resolve_root(root)
+    path = root / D2_METRICS_REL
+    values = dict(D2_S005_VERTEX)
+    if path.is_file():
+        for line in path.read_text().splitlines():
+            cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+            if len(cells) < 4 or cells[0] not in ("ijepa", "lambda", "stopgrad"):
+                continue
+            try:
+                label, vertex = f"{cells[0]}{int(cells[1])}", float(cells[2])
+            except ValueError:
+                continue
+            if label in values and abs(vertex - values[label]) > 5e-7:
+                raise RuntimeError(f"{path}: {label} vertex {vertex!r} differs from the "
+                                   f"pinned {values[label]!r} (acceptance C4)")
     return values
 
 
@@ -1723,6 +1753,8 @@ def committed_vertex_map(root=None) -> dict:
     # the two strong-drift s = 0.30 rows (D2 METRICS.md, pinned above)
     for seed, vertex in strong_drift_committed_vertices(root).items():
         values[f"strong_drift{seed}"] = float(vertex)
+    # C4: the six D2 s = 0.05 rows (ijepa/lambda/stopgrad), pinned above
+    values.update(d2_s005_committed_vertices(root))
     return {label: value for label, value in values.items() if np.isfinite(value)}
 
 
@@ -1730,7 +1762,7 @@ def check_item_reproduction(label, got_vertex, committed, *, tolerance=A1_TOLERA
     """§3 A1: a recomputed item must reproduce its own committed full-input vertex.
 
     Labels with no committed full-input vertex at their evaluation setting (the
-    runbook spec gap S1: ijepa/lambda/stopgrad/anc100 and the T-1 checkpoints) are
+    runbook spec gap S1, narrowed by acceptance C4: anc100 and the T-1 checkpoints) are
     reported explicitly as ``not_applicable`` — never as a silent pass — and a
     label with a committed value is marked ``unavailable`` on a mismatch.
     """
@@ -3946,7 +3978,13 @@ def t1_inventory_rows(ext_root=EXT_ROOT) -> dict:
                 continue
             run_id = str(row.get("run_id"))
             source = Path(ext_root) / root_name / "runs" / run_id / "final.pt"
-            label = f"t1_{variant}{int(row.get('seed'))}"
+            # Acceptance check 6 Nov 2026: the 20-step smoke has the same variant and
+            # seed as the seed-9000 within run, so a shared label let the smoke row
+            # (read second) replace the real 10 000-step run in the --include-t1
+            # readouts.  The smoke keeps its own "t1smoke_" label, which
+            # readout_label_list (prefix "t1_") never evaluates.
+            prefix = "t1smoke_" if smoke else "t1_"
+            label = f"{prefix}{variant}{int(row.get('seed'))}"
             item = _row(label, family="t1", arm=T1_ARM,
                         split="across" if "across" in variant else "within",
                         seed=int(row.get("seed")), beta=None, source=source,
