@@ -1,0 +1,85 @@
+{
+ "registered": false,
+ "extension": "mae_jepa_followup_2026-11-03",
+ "check": "\u00a73 A1 reproduction gate",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-03_MAE_JEPA_FOLLOWUP.md",
+ "tolerance": 0.001,
+ "s005": {
+  "init9000": {
+   "expected_m": 0.160072,
+   "got_m": 0.16007169092238768,
+   "abs_diff_m": 3.090776123093608e-07,
+   "pass": true,
+   "status": "recomputed"
+  },
+  "fix9000": {
+   "expected_m": 0.219258,
+   "got_m": 0.21925859104673262,
+   "abs_diff_m": 5.910467326120106e-07,
+   "pass": true,
+   "status": "recomputed"
+  },
+  "mae9000": {
+   "expected_m": 0.104949,
+   "got_m": 0.10494915326031926,
+   "abs_diff_m": 1.5326031925499972e-07,
+   "pass": true,
+   "status": "recomputed"
+  },
+  "sigreg_within_median9000": {
+   "expected_m": 0.222653,
+   "got_m": 0.22265329083884297,
+   "abs_diff_m": 2.9083884298120033e-07,
+   "pass": true,
+   "status": "recomputed"
+  },
+  "mae_within_trigger9000": {
+   "expected_m": 0.104916,
+   "got_m": 0.10491560199168913,
+   "abs_diff_m": 3.9800831086456157e-07,
+   "pass": true,
+   "status": "recomputed"
+  }
+ },
+ "s030": {
+  "init9000": {
+   "vertex": {
+    "expected_m": 0.170301,
+    "got_m": 0.17030114189844825,
+    "abs_diff_m": 1.4189844824152864e-07,
+    "pass": true
+   },
+   "module_gain_r2": {
+    "expected": 0.841585,
+    "got": 0.8415853679010885,
+    "abs_diff": 3.6790108848272496e-07,
+    "pass": true
+   },
+   "status": "recomputed"
+  },
+  "strong_drift9000": {
+   "vertex": {
+    "expected_m": 0.233209,
+    "got_m": 0.23320894119996516,
+    "abs_diff_m": 5.880003484115548e-08,
+    "pass": true
+   },
+   "module_gain_r2": {
+    "expected": 0.097482,
+    "got": 0.09748208673426129,
+    "abs_diff": 8.673426128702477e-08,
+    "pass": true
+   },
+   "status": "recomputed"
+  }
+ },
+ "s005_pass": true,
+ "s030_pass": true,
+ "reproduction_pass": true,
+ "gate": {
+  "authorised": true,
+  "status": "granted"
+ },
+ "stops": [],
+ "wall_seconds": null
+}
