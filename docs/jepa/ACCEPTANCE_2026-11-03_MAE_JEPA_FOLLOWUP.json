@@ -1,0 +1,93 @@
+{
+ "runbook_sha256": "063e908774ffe29b3d59ef40ab54ef5d02ff462b6aa1e49eef57c61c49e7af24",
+ "impl_commit": "7214e9925135694edfd0788dc6484ce59594b840",
+ "review_path": "docs/jepa/REVIEW_2026-11-03_MAE_JEPA_FOLLOWUP.md",
+ "review_verdict": "PASS",
+ "lead": "Dowling Wong (author, lead)",
+ "date": "2026-11-06",
+ "extension": "mae_jepa_followup_2026-11-03",
+ "registered": false,
+ "accepted_on_top_of": "3ba19d1 (origin/JEPA) + the 6 Nov acceptance-fix patch; round 1 BLOCK, round 2 PASS at 59c0a0d, round 3 = focused re-review of the patch, appended to review_path",
+ "conditions": [
+  {
+   "id": "C0",
+   "source": "acceptance check 6 Nov (new, blocking)",
+   "text": "t1_inventory_rows labelled the 20-step T-1 smoke t1_s030_within_trigger9000, the same label as the real seed-9000 within run, and read the smoke root second, so every --include-t1 readout (the T-1 A-1/A-2 rows, G-1, G-2) would have evaluated the smoke checkpoint in place of the 10 000-step run. The patch gives the smoke its own t1smoke_ label. Apply the patch byte-identically, run the focused tests and the full suite once on the new SHA, and get a fresh-context focused re-review of the patch diff (checklist items ii, iv and v plus the two fixes) appended to review_path. Only on PASS is impl_commit filled in and this record committed."
+  },
+  {
+   "id": "C1",
+   "source": "review E1",
+   "text": "Record the test evidence exactly: on deepthought2 at 59c0a0d the full src/jepa_noise/tests suite is 666 passed, 2 skipped, 3 deselected (exit 0); the 3 deselected test_guard launcher tests fail identically at the untouched f5b7434 checkout and are pre-existing; the deepthought full-suite attempt was killed (rc 143) and no log shows those 3 tests passing on deepthought. Add one DECISIONS line that supersedes the unsupported wording in the 3 Nov environment line (iii); do not edit old lines."
+  },
+  {
+   "id": "C2",
+   "source": "review R3",
+   "text": "Add one DECISIONS line correcting the S3 record: plan.json reports only the conservative Stage A projection (107.8 item-equivalents = 4.9049 L40S h); the runbook-rule figure (87.8 = 3.9949 h) is not written anywhere."
+  },
+  {
+   "id": "C3",
+   "source": "review E2",
+   "text": "The entries preflight is re-checked live at A0 and before T-1. The last reviewed value was 37,234 -> 31,350 projected (3 Nov). If the projection is below 30,000 the affected work is STOPPED per runbook section 5; no deletion is authorised by this record."
+  },
+  {
+   "id": "C4",
+   "source": "acceptance check 6 Nov (new)",
+   "text": "The S1 deviation is wrong for ijepa, lambda and stopgrad. Their D2 rows in results/jepa/20261029_d2_partial/METRICS.md are s = 0.05 evaluations (run ids ext_dev_s005_within_*; the across rows there equal the Q1/Q2 matrix across9000/9001 full-input vertices 0.348113/0.333464, and the fix references 0.219259/0.204281 equal fix9000/9001). Committed full-input vertices therefore exist: ijepa 0.209150/0.194992, lambda 0.220055/0.199603, stopgrad 0.219583/0.189377 m. The patch pins them (D2_S005_VERTEX, d2_s005_committed_vertices) so the runbook section 3 A1 rule applies: a label outside 1e-3 m is unavailable and left out of J-a and J-c. anc100 has no committed full-input vertex and stays not_applicable (this also settles review R4). One DECISIONS line narrows the 3 Nov S1 record accordingly."
+  },
+  {
+   "id": "C5",
+   "source": "review R1",
+   "text": "The A-3/A-4 reproduction summaries lose the item label. Build the README reproduction tables from the per-model records, never from the summary."
+  },
+  {
+   "id": "C6",
+   "source": "review R2",
+   "text": "T-1 cost is the sum of launcher wall time over every T-1 attempt, including failed attempts and the smoke. Use that figure for the 3.5 h cap and the ledger, not t1_cost(), which counts only completed rows."
+  },
+  {
+   "id": "C7",
+   "source": "acceptance check 6 Nov (new)",
+   "text": "Stage A GPU time is measured from the launcher status of each job, because the readout and reproduce payloads write wall_seconds = null. One CLI call (reproduce, or readout --item X) is one 'item' for the runbook's 'stop before an item, never mid-item' rule: before each call, measured cumulative Stage A hours + that group's A0 projection + the projection of every group that comes earlier in the runbook's fixed order but has not run yet (D5) must be within the cap; otherwise that group is not_run (cap)."
+  },
+  {
+   "id": "C8",
+   "source": "acceptance check 6 Nov (new)",
+   "text": "Before launching A-1b, check read-only that /ceph/dwong/jepa/returns/ext_h12_20261101/e0e1_rows.npz exists and that ext_h12._read_label_cache accepts it (fix sha 2d912a2d..., 2000 events). If not, A-1b is 'unavailable (no committed label cache)' and no GPU time is spent on it."
+  }
+ ],
+ "author_decisions": [
+  {
+   "id": "D1",
+   "decision": "Stage A execution cap 6.5 L40S GPU-h (was 5.5). The A0 projection gate in code stays at 5.5 and is unchanged.",
+   "reason": "The implemented GPU jobs also carry CPU work that the 126 s/item calibration does not include (A-1b reads the 100k and 300k dev_train marginals inside the job; A-3 fits and the A-2 bootstrap run in-job). With 4.90 h projected against 5.5, A-3 (last in the order) would be the item most likely lost. Ledger check: 122.4807 + 6.5 + 3.5 = 132.48 <= 160."
+  },
+  {
+   "id": "D2",
+   "decision": "No guard bypass in this extension. Every GPU job goes through scripts/jepa_run.sh. A guard HOLD means wait and retry (about every 15 min); it is not a STOP. Send the author a one-line status note every 24 h of continuous HOLD.",
+   "reason": "The 3 Nov view-design evaluations bypassed the guard; a bypass also skips the per-process memory cap that only the launcher sets. The other user's jobs on deepthought2 take priority."
+  },
+  {
+   "id": "D3",
+   "decision": "If Deepthought is unreachable or drops SSH sessions, the CPU-only steps (inventory, report, standalone checks) run on deepthought2 CPU with nice -n 10 and OMP/MKL/OPENBLAS threads = 4. Never a Deepthought GPU. One DECISIONS line.",
+   "reason": "Deepthought dropped every SSH session after 5-7 min from 3 Nov 11:37 CET; the Phase-1 work already used this fallback. The scripts/jepa_cpu_launch.py front door is restricted to the predictability modules and to deepthought, so CPU steps run directly."
+  },
+  {
+   "id": "D4",
+   "decision": "The execution agent runs on the author's Mac, reaches both hosts over SSH, and pushes to branch JEPA from the Mac only.",
+   "reason": "Neither host has GitHub push credentials (3 Nov environment line (ii))."
+  },
+  {
+   "id": "D5",
+   "decision": "Run A-1 and A-2 once each, with --include-t1, after the four T-1 runs are complete. Until then the Stage A job slot runs A-1b -> A-4 -> A-3 (their relative order unchanged). If T-1 cannot complete (an A1 s = 0.30 row fails, or a T-1 run fails after one fix attempt), run A-1 and A-2 without --include-t1 as soon as the slot is free. The wall time of an --include-t1 job is split between the Stage A and T-1 caps in proportion to item-equivalents (A-1: 39 base / 4 T-1; A-2: 8 base / 8 T-1). No reading, threshold or item changes.",
+   "reason": "As implemented, readout --include-t1 recomputes the whole base list plus the T-1 labels (readout_label_list), so running A-1/A-2 in Stage A and again for T-1 would compute the 47 base equivalents twice (about 2.1 L40S h) and push T-1 past its 3.5 h cap. Projected T-1 total with D5: 4 x 0.555 + smoke + 12 equivalents x 0.0455 h = about 2.8 h."
+  }
+ ],
+ "patch": {
+  "file": "_patches/0001-jepa-followup-acceptance-fixes-2026-11-06.patch",
+  "sha256": "3c372354822f9812c52a461c30133a606a60f3a89a677c15f2539d663cb1d98d",
+  "touches": [
+   "src/jepa_noise/ext_followup.py",
+   "src/jepa_noise/tests/test_ext_followup.py"
+  ]
+ }
+}

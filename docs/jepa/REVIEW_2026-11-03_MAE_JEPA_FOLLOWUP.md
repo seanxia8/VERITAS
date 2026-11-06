@@ -903,3 +903,280 @@ constraints were honoured: only this review document was written in the clone; t
 implementation, runbook, registered files, DECISIONS/STATE and ledger were not modified; no
 commit or push was made and no ACCEPTANCE record was written. All temporary review directories
 under `/ceph/dwong/jepa/tmp/pytest_review_*` were removed.
+
+---
+
+# Re-review (round 3) — 2026-11-06
+
+**Reviewed delta:** `git diff 3ba19d1..7214e99` — 2 files, +98/−5
+(`src/jepa_noise/ext_followup.py`, `src/jepa_noise/tests/test_ext_followup.py`), byte-identical
+to the supplied `/ceph/dwong/jepa/tmp/r3_review/diff_3ba19d1_7214e99.patch` (sha256
+`9e82ec3173ed5123af3739231332685e71d87a9a414f4cb460870e518347f187`; `diff -u` empty). Reviewed
+object: branch `JEPA` at `7214e9925135694edfd0788dc6484ce59594b840` (parent `3ba19d1`), blobs
+`4cb938dacc1ac8d635c3b5e230ed6b4dbb4982db` (`ext_followup.py`) and
+`9791a7922c86df51c9b7c1db6e65572cae1ccfe7` (`test_ext_followup.py`); `git status` clean before
+this review and containing only this document afterwards. The runbook sha256
+`063e908774ffe29b3d59ef40ab54ef5d02ff462b6aa1e49eef57c61c49e7af24` and the acceptance template
+sha256 `c1560349df9fd7c679d7d61e0a461775d947a3a292666526ad0a4fc6b93b05e8` were verified. Scope:
+acceptance conditions C0 and C4 (the two defects this patch fixes), the three new tests (focused
+count 53 → 56), re-issued §6.4 checklist items (ii), (iv) and (v) on `7214e99`, and the Lead's
+focused/full/dry-run evidence in `/ceph/dwong/jepa/tmp/followup_r3_20261106/`.
+
+**New overall verdict: PASS** for the patch. Both fixes are correct and demonstrated; all three
+new tests fail on the pre-patch tree and pass at HEAD; (ii), (iv) and (v) pass on `7214e99`; the
+focused suite is 56 passed and the full suite 669 passed / 2 skipped / 3 deselected, exit 0; the
+dry run reports `gate_pending_acceptance` with a passing closure, zero violations and no setup
+errors. The only open items are one record line required by C4 and one live execution condition
+(the entries preflight, currently below the floor); neither is a code defect and neither needs a
+code change before the acceptance record.
+
+| Item | Verdict | Main evidence |
+|---|---|---|
+| Fix 1 — C0 T-1 smoke label collision | **PASS** | `ext_followup.py:3964, 3979, 3986-3996, 1041`; pre-patch `3ba19d1:…:3932, 3949, 3956`; demonstration below |
+| Fix 2 — C4 D2 s = 0.05 reproduction targets | **PASS** | `ext_followup.py:1619-1623, 1665-1682, 1757, 1761-1782`; `results/jepa/20261029_d2_partial/METRICS.md:7-12`; six `ext_summary.json` |
+| Three new tests | **PASS** | `test_ext_followup.py:1250, 1262, 1390`; 53 → 56; 3 failed at `3ba19d1`, 3 passed at HEAD |
+| Byte-identical application | **PASS** | diff sha256 `9e82ec31…f187`, blobs `4cb938da…82db` / `9791a792…cfe7`, 2 files only |
+| (ii) inventory and evaluation configuration | **PASS** | 54 labels / 54 available / 0 unavailable / 0 pending; T-1 mapping demonstrated; dry-run inventory |
+| (iv) A1 reproduction on s = 0.05 and s = 0.30 | **PASS** | `A1_S005`/`A1_S030` re-checked; `require_a1_s030_gate:3720-3752`; mismatch → `unavailable` |
+| (v) gate (a)–(e) | **PASS** | dry run: a/b/d pass, c pending, closure pass; (e) allow-list demonstrated |
+| Evidence | **PASS** | focused 56 passed 624.41 s rc 0; full 669/2/3 815.58 s rc 0; dry run as above |
+
+## Fix 1 (C0) — the smoke can no longer replace the seed-9000 within run: PASS
+
+The pre-patch function read the two roots `((False, "train"), (True, "smoke"))`
+(`3ba19d1:src/jepa_noise/ext_followup.py:3932`) and gave **both** rows the same label
+`t1_{variant}{seed}` (`:3949`), so the second read (the smoke) overwrote the real row in
+`rows[label]` (`:3956`). The run id is identical for both roots because it is derived from
+cell/arm/seed only (`lucid_run.py:202-204`), so before the patch the single surviving
+`t1_s030_within_trigger9000` row had its `source` under `<ext>/smoke/runs/…` and carried the
+20-step checkpoint's sha256. That label is exactly what `readout_label_list` selects
+(`ext_followup.py:1041`), what the CLI merges into the inventory for `--include-t1`
+(`scripts/jepa_ext_followup.py:276-284`), and what the A-1/A-2 bodies then evaluate — so the
+T-1 A-1/A-2 rows and the G-1/G-2 readings for the within-9000 run would all have used the
+smoke's checkpoint in place of the 10 000-step run, exactly as C0 states.
+
+Post-patch the smoke keeps its own prefix (`ext_followup.py:3986-3988`), the item still carries
+`smoke` (`:3996`), and the source is still built from the root actually read (`:3979`).
+Demonstrated on a complete synthetic tree (four real runs under `train`, the 20-step smoke under
+`smoke`, same run id): the four real labels map to the `train` sources with their own shas,
+`t1smoke_s030_within_trigger9000` maps to the `smoke` source with `smoke = True`, and
+`readout_label_list` returns 43 A-1 labels (39 base + the 4 real T-1) and 8 A-2 labels (4 base +
+4 T-1) with **no** `t1smoke_*` label (the string does not start with `t1_`). The four real T-1
+labels are therefore still returned.
+
+Smoke detection is by **source root** (the loop variable at `:3964`), not by the manifest
+`steps` field. That is consistent with the launcher: gate (e) requires the smoke's `out_root` to
+be exactly `<ext>/smoke` and a 10 000-step run's to be `<ext>/train` (`:412-448`), the CLI forces
+`steps = T1_SMOKE_STEPS` and `out_root = <ext>/smoke` for `--smoke`
+(`scripts/jepa_ext_followup.py:305-309`), and `T1_ALLOWED` (`:225-227`) contains exactly one
+20-step tuple. A 20-step row mis-rooted under `train` would still receive a `t1_` label, but no
+CLI path can produce one (non-blocking R3-4).
+
+Other consumers of the `t1_` prefix are not broken: `t1_readings` filters the four real labels
+(`:4011, :4031`), `_t1_g2` hard-codes the four real labels (`:2854-2857`), and `t1_cost`
+(`:3943-3959`) iterates the manifest rows of both roots and never uses the label. The only
+visible change outside the readouts is the report's "T-1 runs" table, which now lists the smoke
+as a fifth, explicitly labelled `t1smoke_…` row (`:4142-4148`); no reading, threshold or cost
+consumes it (non-blocking R3-2).
+
+Genuineness of the new test: run against the pre-patch tree (old `ext_followup.py` from
+`3ba19d1`, HEAD test file), `test_t1_smoke_never_replaces_the_seed9000_within_run` fails with
+`assert 'cccc…' == 'aaaa…'` — the smoke, read second, replaced the real row — and it passes at
+HEAD. That is precisely the collision and the "smoke read second" ordering hazard.
+
+## Fix 2 (C4) — the six D2 s = 0.05 vertices are committed reproduction targets: PASS
+
+`D2_S005_VERTEX` (`ext_followup.py:1619-1623`) pins ijepa 0.209150/0.194992, lambda
+0.220055/0.199603 and stopgrad 0.219583/0.189377; each is exactly the
+`results/jepa/20261029_d2_partial/METRICS.md:7-12` row. The protocol claim is independently
+confirmed, not taken from the acceptance text:
+
+* the six `ext_summary.json` files under
+  `results/jepa/20261029_d2_partial/returns/ext_pregrid_20261025/train/{ijepa,lambda,stopgrad}_s900{0,1}/runs/ext_dev_s005_within_*/`
+  record `cell: ext_dev_s005_within_{ijepa,lambda,stopgrad}`, `split: within`, `spread: 0.05`,
+  step 10000, and full-input vertices 0.209149763 / 0.194991722 / 0.220055133 / 0.199603069 /
+  0.219582958 / 0.189377155 — the METRICS rows;
+* the D2 `across` rows 0.348113/0.333464 (`METRICS.md:5-6`) equal the Q1/Q2 matrix
+  `across9000`/`across9001` full-input vertices 0.3481133106/0.333463657, and the fixed-within
+  references 0.219259/0.204281 (`METRICS.md:16`) equal the matrix `fix9000`/`fix9001` vertices
+  0.2192585910/0.2042812336 (`results/jepa/20261101_readout/matrix.json`).
+
+So the six rows are s = 0.05 evaluations on the Q1/Q2 protocol and are the committed full-input
+vertices of those items.
+
+`d2_s005_committed_vertices` (`:1665-1682`) returns the pins and parses `METRICS.md`; a row whose
+value differs from its pin by more than `5e-7` raises `RuntimeError` — the reader never
+substitutes the parsed value. The tolerance is sound against the table's own rounding: the table
+prints six decimals, so the smallest visible change is 1e-6, and `5e-7` accepts the correctly
+rounded pin while rejecting any visible disagreement. `committed_vertex_map` adds the six labels
+(`:1757`), and `check_item_reproduction` (`:1761-1782`) returns `checked=True, pass=True,
+status="pass"` inside 1e-3 m and `checked=True, pass=False, status="unavailable"` outside it.
+Demonstrated on the clone: the map has 44 labels and contains all six; `got = pin` and
+`pin ± 5e-4` pass, `pin + 5e-3` is `unavailable`; `anc100` and `t1_s030_within_trigger9000` are
+`not_applicable` with the written S1 reason (so R4 is settled), and
+`d2_s005_committed_vertices(ROOT) == D2_S005_VERTEX`.
+
+No reading, threshold or item changed: the delta adds only these pins/targets and the T-1
+prefix. `A1_S005` (`:170-176`), `A1_S030` (`:177-180`), `A1_TOLERANCE = 1e-3` (`:181`) and
+`MODULE_GAIN_FLOOR` (`:183`) are untouched, and the five s = 0.05 and two s = 0.30 A1 rows were
+re-checked against the committed artifacts (largest deviation 5.9e-7 m; the s = 0.30 init and
+strong-drift values from `METRICS.md:16` and `:13`). A mismatch in a recomputed A-1 row is
+dropped before the readings are assembled: `readout_a1` appends it to `unavailable` and
+`continue`s (`:2035-2040`), and `_a1_readings` only uses rows with `status == "available"`
+(`:1911-1956`), so a failed reproduction is left out of J-a/J-c.
+
+**Record condition:** C4 also requires "one DECISIONS line [that] narrows the 3 Nov S1 record".
+That line is **not** in the tree: `docs/jepa/DECISIONS.md:2455` still says the only committed
+vertices for ijepa/lambda/stopgrad are the s = 0.30 D2 values, which C4 has now shown to be
+wrong. This is a record item, not a code defect; it must be added with the acceptance record
+(see the conditions at the end).
+
+## The three new tests — PASS
+
+`src/jepa_noise/tests/test_ext_followup.py` goes from 53 to 56 `def test_` functions between
+`3ba19d1` and HEAD, and the delta adds exactly three (`git diff … | grep '^+def test_'`); no test
+was removed. The three are `test_d2_s005_rows_match_the_committed_table_and_the_q1q2_protocol`
+(`:1250`), `test_d2_s005_table_must_agree_with_the_pins` (`:1262`) and
+`test_t1_smoke_never_replaces_the_seed9000_within_run` (`:1390`); the existing
+`test_committed_vertex_map_covers_the_recomputed_items` (`:1188`) was extended, not replaced, to
+require `checked=True` for the six labels and `unavailable` on a 5e-3 m mismatch.
+
+* `test_d2_s005_rows_match…` parses the real table through the reader, compares the result with
+  the pins, and asserts that the across rows and the fixed-within references in `METRICS.md`
+  match `matrix.json`; it would fail if either the pins or the committed table/protocol link
+  changed.
+* `test_d2_s005_table_must_agree…` writes a one-row table that agrees (returns 0.209150) and then
+  rewrites the value to 0.300000 and requires `RuntimeError` — both the agree and the reject
+  path.
+* `test_t1_smoke_never…` builds both roots with the same run id and asserts the real row keeps
+  the `train` source and its own sha while the smoke is separately labelled and excluded from
+  `readout_label_list`.
+
+Every new test fails on the pre-patch tree. I rebuilt a `3ba19d1` shim (`ext_followup.py` from
+`3ba19d1`, HEAD tests, the real `results/`) and ran only these three: **3 failed, 53 deselected
+in 4.68 s, rc 1** — the two D2 tests with `AttributeError` (`d2_s005_committed_vertices` did not
+exist) and the T-1 test with the `'cccc…' == 'aaaa…'` collision. The same three at HEAD: **3
+passed, 53 deselected in 3.19 s, rc 0**. (Evidence saved in
+`/ceph/dwong/jepa/tmp/r3_review/prepatch_tests.log`; the shim was removed.)
+
+## Byte-identical application — PASS
+
+HEAD is `7214e9925135694edfd0788dc6484ce59594b840` with parent `3ba19d1`; `git diff
+3ba19d1..7214e99` has sha256 `9e82ec31…f187`, identical to the supplied patch (`diff -u` empty),
+and touches **only** the two intended files. The HEAD blob ids are
+`4cb938dacc1ac8d635c3b5e230ed6b4dbb4982db` and `9791a7922c86df51c9b7c1db6e65572cae1ccfe7`.
+`git status --porcelain` was empty at the start and contains only this review document at the
+end.
+
+## Re-issued §6.4 (ii) — inventory and evaluation configuration: PASS
+
+The patch does not touch `build_inventory`/`_row` for any non-T-1 family; on the current tree
+`build_inventory` yields **54 labels / 54 available / 0 unavailable / 0 pending** (families:
+predictability 9, matrix 8, dejitter_mae 8, view 8, dejitter_sigreg 6, arch 6, h12 4, static 2,
+scale 2, init_floor 1), and the dry run records the same counts (`setup.inventory`). The changed
+function was re-verified with a complete synthetic T-1 tree: the four real rows carry
+`data_setting = 0.30`, `cell = ext_dev_s030_{within,across}` and `data_key =
+dev_train__F1__0.3__s20261017__n100000x1000`; the smoke carries the `t1smoke_` label,
+`smoke = True` and the `smoke` source; and `readout_label_list`/`--include-t1` map A-1/A-2 to
+exactly the four real checkpoints (see Fix 1). No label, source path or evaluation configuration
+was silently changed.
+
+## Re-issued §6.4 (iv) — A1 reproduction on s = 0.05 and s = 0.30: PASS
+
+The two A1 tables are unchanged and correct against the committed artifacts: `A1_S005`
+0.160072/0.219258/0.104949/0.222653/0.104916 vs matrix init9000 0.16007169, fix9000 0.21925859,
+mae9000 0.10494915, P-5 sigreg within_median 0.22265329 and M-f mae within_trigger 0.10491560
+(all within 5.9e-7 m); `A1_S030` init9000 0.170301 m / R² 0.841585 and strong_drift9000
+0.233209 m / 0.097482 are `METRICS.md:16` and `:13`. With C4 the own-reproduction set is the
+previous targets plus the six D2 s = 0.05 vertices; `anc100` and the `t1_*` items remain
+`not_applicable`; a mismatch is `unavailable` and excluded from J-a/J-c. T-1 launch is still
+gated on **both** s = 0.30 rows: `require_a1_s030_gate` (`:3720-3752`) requires `s030_pass is
+True` and, for each of `REQUIRED_A1_S030_ROWS = ("init9000", "strong_drift9000")` (`:3717`), a
+passing vertex and module-gain check, and `t1_prepare_launch` calls it before any launch step
+(`:3763` before `:3766`). The negative/positive test `test_t1_launch_requires_the_a1_s030_gate`
+ran green in the focused suite.
+
+## Re-issued §6.4 (v) — gate (a)–(e): PASS
+
+* **(a)** `_gate_checks` computes the runbook sha256 and compares it with the record (or
+  `RUNBOOK_SHA256`, `:93`) while pending: `checks.a.pass = True`, computed `063e9087…af24`.
+* **(b)** `section_zero` finds `## 0.`; `AUTHOR_LINE = "我同意T-1训练"` (`:98`) is present in §0
+  and in `DECISIONS.md`: `checks.b = {in_section_zero: True, in_decisions: True, pass: True}`.
+* **(c)** `ACCEPTANCE_KEYS` (`:95-96`) is exactly `{runbook_sha256, impl_commit, review_path,
+  review_verdict, lead, date}`; a present record must have all six and `review_verdict ==
+  "PASS"`. The record does not exist yet, so `checks.c.status = "gate_pending_acceptance"`, and
+  `assert_authorised("dry-run")` returns the pending state without crashing (demonstrated:
+  `status = gate_pending_acceptance`, `authorised = False`, `problems = []`); a non-dry-run mode
+  still denies hard with `SystemExit(2)`.
+* **(d)** the pathspec is `P_FILES + P_DIRS` (27 paths, including both directories),
+  `impl_commit` is the record value or HEAD before acceptance; `git diff --quiet` is clean and
+  `git ls-files --others` is empty (`checks.d.pass = True`, `untracked = []`).
+* **(e)** `T1_ALLOWED` (`:225-227`) is the four 10 000-step `(arm, variant, seed)` tuples plus
+  exactly one 20-step smoke (`T1_SMOKE`); the out root must resolve to exactly
+  `<ext>/{train,smoke}`, and an existing run dir is refused. Demonstrated on an empty `<ext>`:
+  the pinned real launch and the pinned smoke pass; 9999 steps, seed 9002, the wrong root, a
+  10 000-step run in the smoke root and an existing run dir all fail.
+
+## Evidence — PASS
+
+* Focused (`focused.log`, `rc_focused.txt`): **56 passed in 624.41 s (0:10:24)**,
+  `FOCUSED_RC=0`.
+* Full `src/jepa_noise/tests` (`full.log`, `rc_full.txt`): **669 passed, 2 skipped, 3 deselected
+  in 815.58 s (0:13:35)**, `FULL_RC=0`. The three deselected tests are exactly the long-standing
+  environmental `test_guard` launcher tests — the command line captured while the run was live
+  was `--deselect
+  …test_guard.py::test_launcher_records_the_real_job_pid_and_it_is_never_foreign --deselect
+  …test_launcher_enforces_the_timeout_and_writes_status --deselect
+  …test_launcher_claim_blocks_a_second_start_on_the_same_gpu` — the same three as round 2, and
+  `git diff --name-only 3ba19d1..7214e99` does not include `test_guard.py` (they hard-code
+  `--host deepthought`, `test_guard.py:1396-1397`, and are host-specific; the DECISIONS line
+  records 2 failed / 1 passed on a targeted deepthought run).
+* Dry run (`dryrun.log`, `rc_dryrun.txt`, payload
+  `/ceph/dwong/jepa/tmp/followup_dryrun_20261106`, code_sha `7214e99`, `git_status` empty):
+  `gate_status = gate_pending_acceptance`, `authorised = false`, `closure_pass = true`, **71
+  modules checked, 27 forced read-only imports, 0 violations**, `setup_errors = []`,
+  `DRYRUN_RC=0`; data and pairing pass; projection 107.8 item-equivalents = 4.9049 h ≤ 5.5; both
+  T-1 cells and the probe sets recorded.
+* Observed, not rounded: the dry run's entries preflight snapshot (guard
+  `2026-11-06T00:27:04Z`) is `free_entries = 34,316` → projected `28,432` against the 30,000
+  floor, so `setup.entries.pass = false` (the two evidence basetemps alone hold 3,670 entries:
+  842 focused + 2,828 full). This is a live §5/C3 execution STOP, not a dry-run/setup error and
+  not a patch defect; it must be re-checked (after the basetemps are removed) at A0/T-1. Round 2
+  saw the same transient effect (37,234 → 31,350 after cleanup).
+* The focused and full runs executed on deepthought2 CPU (not a GPU), consistent with the
+  recorded environment deviation; the longer runtimes than round 2 (624 s vs 295 s focused) are
+  host/NFS behaviour — the pytest process was repeatedly in NFS `D` state — not a difference in
+  the tests.
+
+## Non-blocking findings
+
+* **R3-1 (record, C4).** The required DECISIONS line narrowing the 3 Nov S1 record is missing
+  (`DECISIONS.md:2455` still states the old, now-disproved claim). Add one new line at
+  acceptance (C1's convention is "add one line, do not edit old lines").
+* **R3-2 (reporting).** The report's "T-1 runs" table now includes the smoke as a fifth row
+  (`_report_readme` `:4142-4148`). It is labelled `t1smoke_…` and no reading or cost uses it, but
+  a reader counting four T-1 runs should be aware of it.
+* **R3-3 (test/reader robustness).** `d2_s005_committed_vertices` rejects a *disagreeing* table
+  row, but a *deleted* row would pass unnoticed (the pins still govern), and
+  `test_d2_s005_rows_match…` does not assert that the six rows are present in the text. The pins
+  being authoritative makes this safe, but a presence assertion would be stronger.
+* **R3-4 (defensive).** The smoke is identified by its source root, not by the manifest `steps`
+  value; a 20-step row mis-rooted under `train` would still get a `t1_` label. The CLI and gate
+  (e) make that unreachable; keying on `steps == T1_SMOKE_STEPS` as a cross-check would be
+  belt-and-braces only.
+
+## Conditions for the acceptance record
+
+1. Fill `impl_commit` with `7214e9925135694edfd0788dc6484ce59594b840` (the SHA reviewed here) and
+   commit the acceptance record only on this PASS.
+2. Add the C4 DECISIONS line (R3-1) as a new line, and — per C3 — record the entries preflight
+   value observed at acceptance time; before any GPU work, re-run it after the evidence basetemps
+   are removed and stop if the projection is still below 30,000 (the dry-run value above is below
+   it).
+3. No code change is required.
+
+**Re-review verdict: PASS** for the C0/C4 patch on `7214e99`. This review was read-only except
+for this document: no commit and no push were made, and the implementation, the runbook,
+`DECISIONS.md`/`STATE.md`, the ledger and the acceptance template were not modified. Scratch
+files (the pre-patch failure log and the diff comparison) are under
+`/ceph/dwong/jepa/tmp/r3_review/`; the temporary shim tree and fixtures were removed.
