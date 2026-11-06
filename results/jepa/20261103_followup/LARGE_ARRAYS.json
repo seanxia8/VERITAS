@@ -1,0 +1,84 @@
+{
+ "extension": "mae_jepa_followup_2026-11-03",
+ "registered": false,
+ "note": "Large arrays stay on /ceph and are not committed; their sha256 is recorded here. Only JSON, README and log files are in the repository.",
+ "code_sha": "feed8c959808041590e64f4f6c56b17305e1197a",
+ "interpreter": {
+  "gpu_deepthought2": "/home/dwong/anaconda3/bin/python3",
+  "python_version": "3.12.2 (conda-forge, GCC 12.3.0)",
+  "source": "the launcher default in scripts/jepa_run.sh (JEPA_PYTHON was never set in this execution) and the live guard status `guard.interpreter` of deepthought2; the latest deepthought2 run manifests (arch/view) used the same default interpreter",
+  "jobs": {
+   "guard_status_interpreter": "/home/dwong/anaconda3/bin/python3",
+   "launcher_default": "exec \"${JEPA_PYTHON:-/home/dwong/anaconda3/bin/python3}\" \\",
+   "launcher_default_source": "scripts/jepa_run.sh:43"
+  }
+ },
+ "arrays": [
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/smoke/runs/ext_dev_s030_within_trigger__mae_mse__s9000/checkpoint.pt",
+   "bytes": 7491646,
+   "sha256": "6bc118451a0f58f3a2e9dae05edf71f4f3262e4948711c5ec44c8575f6715e2b",
+   "role": "T-1 training checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/smoke/runs/ext_dev_s030_within_trigger__mae_mse__s9000/final.pt",
+   "bytes": 7490201,
+   "sha256": "b5993029c93ddb23d3fcbdcebfb320d3fe4053e92459ae89c39b3bce9bf11d90",
+   "role": "T-1 checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9000/checkpoint.pt",
+   "bytes": 7491646,
+   "sha256": "b71b6164b06a618aad28d5015b732e5c82527920ca13fabddca115e9f331587c",
+   "role": "T-1 training checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9000/final.pt",
+   "bytes": 7490201,
+   "sha256": "accc9016b9b2270777033f76fc15636ecaca17da6c4531e0853816f78c30a475",
+   "role": "T-1 checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9001/checkpoint.pt",
+   "bytes": 7491646,
+   "sha256": "1ae467d72c6e3e1796262f4c1fb07f6907ba003ccf76186d956d79084ded09c2",
+   "role": "T-1 training checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9001/final.pt",
+   "bytes": 7490201,
+   "sha256": "a8752fde554f7715bc96a67c3f5b717131e313155ae84a6497216710b6d193f8",
+   "role": "T-1 checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9000/checkpoint.pt",
+   "bytes": 7491646,
+   "sha256": "0af63f3329c973f0fa4261ce7a1535fbbdbef89937209b14f80ab7953d26b191",
+   "role": "T-1 training checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9000/final.pt",
+   "bytes": 7490201,
+   "sha256": "683f3ef9474ed0be3febcdc005bd4bbb0ed8ecd793b6df580b655e7f25462dbb",
+   "role": "T-1 checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9001/checkpoint.pt",
+   "bytes": 7491646,
+   "sha256": "4059da12af8d4b5a5468eb5894f9bcd60ef85f3f151bef368d17151b0483bdeb",
+   "role": "T-1 training checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9001/final.pt",
+   "bytes": 7490201,
+   "sha256": "415b38031182fe4d5dd5f444ff12febe84cdd6a2e9ef9ce3774ab5a0e7bd8611",
+   "role": "T-1 checkpoint"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_h12_20261101/e0e1_rows.npz",
+   "bytes": 133683850,
+   "sha256": "486cb862b706b5cfbe16454491be7171d9ca67c3b16e360cfa5ef43903cc3216",
+   "role": "committed fix9000 label cache read by A-1b (C8)"
+  }
+ ]
+}

@@ -138,3 +138,9 @@
 - **T-1 measured: 2.6811 L40S h of the 3.5 h cap**
 - Failed attempts are included (A-1b/A-4/A-3 CLI-kwarg failures, the A-4 guard SHED attempt).
 - The `--include-t1` walls are split 39/43 + 4/43 (A-1) and 8/16 + 8/16 (A-2) per D5.
+
+## Large arrays and environment
+
+The large arrays stay on `/ceph` and are not committed; `LARGE_ARRAYS.json` records every file > 5 MB with its byte size and sha256 (11 files, 208 593 085 bytes): the five T-1 checkpoints (`final.pt` + `checkpoint.pt` per run, ~7.5 MB each under `<ext>/{train,smoke}/runs/`) and the committed fix9000 label cache `/ceph/dwong/jepa/returns/ext_h12_20261101/e0e1_rows.npz` (133 683 850 bytes) that A-1b reads under C8.
+
+**Interpreter.** The deepthought2 GPU jobs ran `/home/dwong/anaconda3/bin/python3` (Python 3.12.2, conda-forge GCC 12.3.0): the launcher default in `scripts/jepa_run.sh:43` (`JEPA_PYTHON` was never set in this execution), confirmed by the live guard status `guard.interpreter` and by the same default in the latest deepthought2 run manifests (arch/view). A0/report used the same interpreter on the CPU hosts; the A0 `plan.json` records that environment (`python 3.12.2`, numpy 1.26.4, torch 2.5.1+cu121 on Deepthought).
