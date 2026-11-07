@@ -430,8 +430,12 @@ def test_forbidden_call_paths_are_not_reached_by_the_setup_paths(tmp_path,
     assert xs.r1_payload(ROOT, results_dir=tmp_path / "missing", dry_run=True,
                          log=lambda *a, **k: None)["status"] == "not_run"
     assert calls == []          # the unapproved ensure_dataset path was not used
-    # the gate is called from the library entry points (not only the CLI): the
-    # pre-acceptance gate raises SystemExit(2) without a dry-run flag
+    # the gate is called from the library entry points (not only the CLI): before
+    # the acceptance record exists the gate raises SystemExit(2) without a
+    # dry-run flag.  The repository now carries its own acceptance record, so the
+    # pending state is pinned explicitly here (state-independent test); whether a
+    # real accepted tree grants is covered by test_gate_positive_and_pending_acceptance.
+    monkeypatch.setattr(xs, "acceptance_record", lambda root=None: None)
     for call in (lambda: xs.r1_payload(ROOT, results_dir=tmp_path / "missing",
                                        log=lambda *a, **k: None),
                  lambda: xs.assemble_report(root=ROOT, data_dir=tmp_path,
