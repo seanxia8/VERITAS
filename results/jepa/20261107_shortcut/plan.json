@@ -1,0 +1,235 @@
+{
+ "registered": false,
+ "extension": "shortcut_followup_2026-11-07",
+ "variant": "target_posfree",
+ "mode": "preflight",
+ "root": "/ceph/dwong/jepa/code/followup_20261103",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+ "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+ "code_sha": "3c3caeeb76d721cffec984c6f182e29d684b0cf5",
+ "git_status": "",
+ "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+ "ext_root": "/ceph/dwong/jepa/returns/ext_shortcut_20261107",
+ "data": {
+  "registered": false,
+  "extension": "h12_causal_2026-11-01",
+  "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+  "check": "\u00a73.4 read-only development datasets",
+  "sets": {
+   "dev_train__F1__0.05__s20261017__n100000x1000": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_train__F1__0.05__s20261017__n100000x1000",
+    "key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "expected_sha256": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "b1b3f4f401bcee48c49c347b67d7f5cbd4410213f08ef8b9d2848edc9f2cd13a",
+    "pass": true
+   },
+   "dev_probe_train__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017",
+    "key": "dev_probe_train__F1__0.05__s20261017",
+    "expected_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.05__s20261017": {
+    "directory": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017",
+    "key": "dev_probe_test__F1__0.05__s20261017",
+    "expected_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "exists": true,
+    "exists_manifest": true,
+    "manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "pass": true
+   }
+  },
+  "regenerated": false,
+  "pass": true,
+  "regeneration": "forbidden (\u00a73.4: stop and report if absent/different)"
+ },
+ "s1": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "id": "S1",
+  "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+  "ledger_job": "E2_lucid_l40s_deepthought2",
+  "ledger_charged_gpu_hours": 129.7461,
+  "part_a_cap_hours": 4.0,
+  "part_b_cap_hours": 1.5,
+  "sum_hours": 135.2461,
+  "ceiling_hours": 160.0,
+  "pass": true,
+  "rule": "L40S ledger + Part A cap (4.0) + Part B cap (1.5) <= 160 (front matter \u00a7F3)"
+ },
+ "caps": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "id": "\u00a78.1 cost projection",
+  "items_hours": {
+   "runs": 1.0,
+   "smoke": 0.06,
+   "evaluation": 0.14,
+   "reproduction": 0.14
+  },
+  "projected_total_hours": 1.34,
+  "cap_hours": 1.5,
+  "pass": true,
+  "rule": "reproduction, smoke, two runs and evaluation together <= 1.5 h"
+ },
+ "entries": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "snapshot": {
+   "available": true,
+   "guard_json": "/ceph/dwong/jepa/jobs/guard_deepthought2.json",
+   "free_entries": 27260,
+   "guard_level": "HOLD",
+   "guard_timestamp": "2026-11-07T03:58:55Z"
+  },
+  "projection": {
+   "free_before": 27260,
+   "clone": 3059,
+   "suite": 1825,
+   "part_a_writes": 1000,
+   "part_b_writes": 1000,
+   "projected_after": 20376,
+   "floor": 30000,
+   "pass": false
+  },
+  "pass": false,
+  "gpu_slot_available": false
+ },
+ "readout_items": {
+  "path": "/ceph/dwong/jepa/returns/ext_readout_20261101/items.json",
+  "exists": true
+ },
+ "pass": false,
+ "gate": {
+  "authorised": true,
+  "status": "granted",
+  "mode": "preflight",
+  "extension": "shortcut_followup_2026-11-07",
+  "checks": {
+   "a": {
+    "pass": true,
+    "runbook": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "expected_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "author_line": "\u4e00\u4e8c\u4e09\u6211\u90fd\u6279\uff0c\u5199\u6210\u4e00\u4e2arunbook",
+    "author_line_in_section_zero": true,
+    "pending_acceptance": false
+   },
+   "b": {
+    "pass": true,
+    "status": "PASS",
+    "record": {
+     "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+     "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+     "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "review_verdict": "PASS",
+     "lead": "Dowling Wong (author, lead)",
+     "date": "2026-11-07"
+    },
+    "missing_keys": [],
+    "review_verdict": "PASS"
+   },
+   "c": {
+    "pass": true,
+    "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+    "impl_commit_source": "acceptance_record",
+    "diff_clean": true,
+    "diff_error": null,
+    "untracked": [],
+    "paths": [
+     "src/jepa_noise/__init__.py",
+     "src/jepa_noise/ext_shortcut.py",
+     "src/jepa_noise/ext_h12.py",
+     "src/jepa_noise/ext_readout.py",
+     "src/jepa_noise/ext_followup.py",
+     "src/jepa_noise/lucid_run.py",
+     "src/jepa_noise/lucid_arms.py",
+     "src/jepa_noise/lucid_bombs.py",
+     "src/jepa_noise/lucid_views.py",
+     "src/jepa_noise/point_encoder.py",
+     "src/jepa_noise/bridge_run.py",
+     "src/jepa_noise/train.py",
+     "src/jepa_noise/crlb.py",
+     "src/jepa_noise/jepa.py",
+     "src/jepa_noise/backbone.py",
+     "src/jepa_noise/linear.py",
+     "src/jepa_noise/probes.py",
+     "src/jepa_noise/metrics.py",
+     "src/jepa_noise/sigreg.py",
+     "scripts/__init__.py",
+     "scripts/jepa_ext_shortcut.py",
+     "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "src/noise_module_lucid/",
+     "src/jepa_noise/configs/"
+    ]
+   }
+  },
+  "problems": [],
+  "acceptance": {
+   "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+   "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+   "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+   "review_verdict": "PASS",
+   "lead": "Dowling Wong (author, lead)",
+   "date": "2026-11-07"
+  },
+  "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b"
+ },
+ "wall_seconds": 0.426,
+ "import_closure": {
+  "checked_modules": 26,
+  "outside_allowlist": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "part_b_forced_transitive_imports": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}

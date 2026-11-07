@@ -1,0 +1,898 @@
+{
+ "registered": false,
+ "extension": "paper3_repair_pilot_2026-11-06",
+ "check": "X0-a preflight \u00a74",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+ "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+ "code_sha": "3c3caeeb76d721cffec984c6f182e29d684b0cf5",
+ "git_status": "",
+ "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+ "gate": {
+  "status": "granted"
+ },
+ "stops": [
+  "entries projection failed (\u00a78)"
+ ],
+ "wall_seconds": 109.949,
+ "data": {
+  "registered": false,
+  "extension": "mae_jepa_followup_2026-11-03",
+  "check": "\u00a72 pinned data manifests",
+  "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+  "sets": {
+   "dev_probe_train__F1__0.05__s20261017": {
+    "key": "dev_probe_train__F1__0.05__s20261017",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017/manifest.json",
+    "exists": true,
+    "expected_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.05__s20261017": {
+    "key": "dev_probe_test__F1__0.05__s20261017",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017/manifest.json",
+    "exists": true,
+    "expected_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "pass": true
+   },
+   "dev_probe_train__F1__0.3__s20261017__n10000x50": {
+    "key": "dev_probe_train__F1__0.3__s20261017__n10000x50",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.3__s20261017__n10000x50/manifest.json",
+    "exists": true,
+    "expected_sha256": "6df84887b3469723da3ddb0646c292ab655b263d6063f5fd713432a53514bb46",
+    "manifest_sha256": "6df84887b3469723da3ddb0646c292ab655b263d6063f5fd713432a53514bb46",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.3__s20261017__n10000x50": {
+    "key": "dev_probe_test__F1__0.3__s20261017__n10000x50",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.3__s20261017__n10000x50/manifest.json",
+    "exists": true,
+    "expected_sha256": "c68d83d1ef8cb202f3937f7cd48e3f74bd94f6d44ae203591053fde0605d1be2",
+    "manifest_sha256": "c68d83d1ef8cb202f3937f7cd48e3f74bd94f6d44ae203591053fde0605d1be2",
+    "pass": true
+   }
+  },
+  "pass": true,
+  "regeneration": "forbidden (no data generation in this extension)"
+ },
+ "runs": {
+  "s005_train": {
+   "key": "dev_probe_train__F1__0.05__s20261017",
+   "n_runs": 200,
+   "n_checked": 200,
+   "mismatches": [],
+   "twin_missing": [],
+   "pass": true
+  },
+  "s005_test": {
+   "key": "dev_probe_test__F1__0.05__s20261017",
+   "n_runs": 200,
+   "n_checked": 200,
+   "mismatches": [],
+   "twin_missing": [],
+   "pass": true
+  },
+  "s030_train": {
+   "key": "dev_probe_train__F1__0.3__s20261017__n10000x50",
+   "n_runs": 200,
+   "n_checked": 200,
+   "mismatches": [],
+   "twin_missing": [],
+   "pass": true
+  },
+  "s030_test": {
+   "key": "dev_probe_test__F1__0.3__s20261017__n10000x50",
+   "n_runs": 200,
+   "n_checked": 200,
+   "mismatches": [],
+   "twin_missing": [],
+   "pass": true
+  }
+ },
+ "twin_content": {
+  "n_runs": 400,
+  "n_events": 20000,
+  "mismatches": [],
+  "pass": true
+ },
+ "swtw_content": {
+  "n_events": 20000,
+  "n_common_hits": 12075105,
+  "max_relative_difference": 1.1679816330444963e-07,
+  "mismatches": [],
+  "pass": true,
+  "rtol": 2e-07
+ },
+ "mu_reconstruction": {
+  "key": "dev_probe_test__F1__0.3__s20261017__n10000x50",
+  "n_events": 3400,
+  "max_relative_difference": 5.7334676923170224e-08,
+  "mismatches": [],
+  "pass": true,
+  "rtol": 1e-06
+ },
+ "hw_condition": {
+  "s005_train": "available",
+  "s005_test": "available",
+  "s030_train": "available",
+  "s030_test": "available"
+ },
+ "readings_stopped": {
+  "twin_mismatch": [],
+  "swtw_mismatch": [],
+  "mu_p_unavailable": []
+ },
+ "content_pass": true,
+ "inventory": {
+  "registered": false,
+  "extension": "paper3_repair_pilot_2026-11-06",
+  "check": "\u00a72.3 checkpoint inventory (Part A core list)",
+  "root": "/ceph/dwong/jepa/code/followup_20261103",
+  "hash_files": true,
+  "rows": {
+   "mae_within_trigger9000": {
+    "label": "mae_within_trigger9000",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9000/final.pt",
+    "sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49"
+   },
+   "mae_within_trigger9001": {
+    "label": "mae_within_trigger9001",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9001/final.pt",
+    "sha256": "210845c4d40f94b1f518de2dbf10c4ab8a3b0d7237a4c97a1f5bf7eba86539f1",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "210845c4d40f94b1f518de2dbf10c4ab8a3b0d7237a4c97a1f5bf7eba86539f1"
+   },
+   "mae_across_trigger9000": {
+    "label": "mae_across_trigger9000",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s005_across",
+    "split": "across",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_across__mae_mse__s9000/final.pt",
+    "sha256": "30eae1fec959eb22fec5417d4d089dcfacd6d1042b5ebf17a71d85d50aa85a64",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "30eae1fec959eb22fec5417d4d089dcfacd6d1042b5ebf17a71d85d50aa85a64"
+   },
+   "mae_across_trigger9001": {
+    "label": "mae_across_trigger9001",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s005_across",
+    "split": "across",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_across__mae_mse__s9001/final.pt",
+    "sha256": "77d36d84b033a9b973afdfefab9b5f0505abf30e5887d8df7c130f52b090986f",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "77d36d84b033a9b973afdfefab9b5f0505abf30e5887d8df7c130f52b090986f"
+   },
+   "t1_s030_within_trigger9000": {
+    "label": "t1_s030_within_trigger9000",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9000/final.pt",
+    "sha256": "683f3ef9474ed0be3febcdc005bd4bbb0ed8ecd793b6df580b655e7f25462dbb",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "683f3ef9474ed0be3febcdc005bd4bbb0ed8ecd793b6df580b655e7f25462dbb"
+   },
+   "t1_s030_within_trigger9001": {
+    "label": "t1_s030_within_trigger9001",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9001/final.pt",
+    "sha256": "415b38031182fe4d5dd5f444ff12febe84cdd6a2e9ef9ce3774ab5a0e7bd8611",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "415b38031182fe4d5dd5f444ff12febe84cdd6a2e9ef9ce3774ab5a0e7bd8611"
+   },
+   "t1_s030_across_trigger9000": {
+    "label": "t1_s030_across_trigger9000",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_across",
+    "split": "across",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9000/final.pt",
+    "sha256": "accc9016b9b2270777033f76fc15636ecaca17da6c4531e0853816f78c30a475",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "accc9016b9b2270777033f76fc15636ecaca17da6c4531e0853816f78c30a475"
+   },
+   "t1_s030_across_trigger9001": {
+    "label": "t1_s030_across_trigger9001",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_across",
+    "split": "across",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9001/final.pt",
+    "sha256": "a8752fde554f7715bc96a67c3f5b717131e313155ae84a6497216710b6d193f8",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "a8752fde554f7715bc96a67c3f5b717131e313155ae84a6497216710b6d193f8"
+   },
+   "init9000": {
+    "label": "init9000",
+    "family": "matrix",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": null,
+    "sha256": null,
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "init": true
+   },
+   "fix9000": {
+    "label": "fix9000",
+    "family": "matrix",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/fix9000.pt",
+    "sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714"
+   },
+   "fix9001": {
+    "label": "fix9001",
+    "family": "matrix",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/fix9001.pt",
+    "sha256": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e"
+   },
+   "frozen_target9000": {
+    "label": "frozen_target9000",
+    "family": "h12",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_h12_20261101/train/frozen_target/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+    "sha256": "8c6341c75d1463d0dcf0582a980c4b6cc700c9d755a2904305e7bcb36be8138f",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false
+    },
+    "actual_sha256": "8c6341c75d1463d0dcf0582a980c4b6cc700c9d755a2904305e7bcb36be8138f"
+   },
+   "frozen_target9001": {
+    "label": "frozen_target9001",
+    "family": "h12",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_h12_20261101/train/frozen_target/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+    "sha256": "54122fa57a0018828754c61f6675ae5a240fc785abfcaab62f394397f375ffb5",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false
+    },
+    "actual_sha256": "54122fa57a0018828754c61f6675ae5a240fc785abfcaab62f394397f375ffb5"
+   },
+   "ijepa9000": {
+    "label": "ijepa9000",
+    "family": "predictability",
+    "arm": "ijepa_ema",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/train/ijepa_s9000/runs/ext_dev_s005_within_ijepa__ijepa_ema__s9000/final.pt",
+    "sha256": "fe24c64a7ba7b8cad0e1d91a03db6cc829fc488254df79b6eb2b9853a092e034",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "fe24c64a7ba7b8cad0e1d91a03db6cc829fc488254df79b6eb2b9853a092e034"
+   },
+   "ijepa9001": {
+    "label": "ijepa9001",
+    "family": "predictability",
+    "arm": "ijepa_ema",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_pregrid_20261025/train/ijepa_s9001/runs/ext_dev_s005_within_ijepa__ijepa_ema__s9001/final.pt",
+    "sha256": "5ab7d1d0240f17591cead28dd1f537210bb0de23621f9aef3f994a75d22b9551",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "5ab7d1d0240f17591cead28dd1f537210bb0de23621f9aef3f994a75d22b9551"
+   },
+   "static_target9000": {
+    "label": "static_target9000",
+    "family": "static",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_static_20261102/train/static_target/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+    "sha256": "694f0661aa5a3551ae59960aa5c1eaebf83fbe9cc148911ab1ab214c5b3d4a5c",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "694f0661aa5a3551ae59960aa5c1eaebf83fbe9cc148911ab1ab214c5b3d4a5c"
+   },
+   "static_target9001": {
+    "label": "static_target9001",
+    "family": "static",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_static_20261102/train/static_target/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+    "sha256": "1c3426d26dd3a96afb84f87a5a93ea9596fe710baefb3edda84b678cb11d11bb",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "1c3426d26dd3a96afb84f87a5a93ea9596fe710baefb3edda84b678cb11d11bb"
+   },
+   "mae_within_median9000": {
+    "label": "mae_within_median9000",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_median__mae_mse__s9000/final.pt",
+    "sha256": "e0c08cf78d74a5494f06bed7b97a0c05edf101ba18528ae06d6b0c60f3f176f9",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": true,
+     "time_convention": "median"
+    },
+    "actual_sha256": "e0c08cf78d74a5494f06bed7b97a0c05edf101ba18528ae06d6b0c60f3f176f9"
+   },
+   "mae_within_median9001": {
+    "label": "mae_within_median9001",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_median__mae_mse__s9001/final.pt",
+    "sha256": "d690b6f3fea60569ddcfe66ecc4de21c68c8907ddb7d44e53d6bdd09e67ba700",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": true,
+     "time_convention": "median"
+    },
+    "actual_sha256": "d690b6f3fea60569ddcfe66ecc4de21c68c8907ddb7d44e53d6bdd09e67ba700"
+   }
+  },
+  "unavailable": [],
+  "optional": [
+   "ijepa9000",
+   "ijepa9001",
+   "static_target9000",
+   "static_target9001",
+   "mae_within_median9000",
+   "mae_within_median9001"
+  ],
+  "counts": {
+   "labels": 19,
+   "available": 19,
+   "unavailable": 0,
+   "core": 13,
+   "optional": 6
+  }
+ },
+ "hardware_and_software": {
+  "hardware": {
+   "cpu_count": 40,
+   "machine": "x86_64"
+  },
+  "software": {
+   "python": "3.12.2",
+   "platform": "Linux-4.18.0-553.156.1.el8_10.x86_64-x86_64-with-glibc2.28",
+   "host": "deepthought",
+   "numpy": "1.26.4",
+   "torch": "2.5.1+cu121",
+   "cuda_available": true
+  }
+ },
+ "gpu_projection": {
+  "n_models": 13,
+  "photon_sets": 375,
+  "particle_sets": 34,
+  "photon_set_wall_s": 13.0,
+  "particle_set_wall_s": 88.0,
+  "factor": 1.3,
+  "projected_l40s_hours": 2.8409,
+  "cap_hours": 4.0,
+  "pass": true,
+  "optional_models": [
+   "ijepa9000",
+   "ijepa9001",
+   "static_target9000",
+   "static_target9001",
+   "mae_within_median9000",
+   "mae_within_median9001"
+  ],
+  "optional_projected_hours": 0.7605,
+  "with_optional_projected_hours": 3.6014,
+  "with_optional_pass": true,
+  "rule": "optional models run only if the with-optional projection fits the cap; otherwise they are dropped (\u00a78.1)"
+ },
+ "gpu_projection_core": {
+  "n_models": 13,
+  "photon_sets": 375,
+  "particle_sets": 34,
+  "photon_set_wall_s": 13.0,
+  "particle_set_wall_s": 88.0,
+  "factor": 1.3,
+  "projected_l40s_hours": 2.8409,
+  "cap_hours": 4.0,
+  "pass": true,
+  "optional_models": [
+   "ijepa9000",
+   "ijepa9001",
+   "static_target9000",
+   "static_target9001",
+   "mae_within_median9000",
+   "mae_within_median9001"
+  ],
+  "optional_projected_hours": 0.7605,
+  "with_optional_projected_hours": 3.6014,
+  "with_optional_pass": true,
+  "rule": "optional models run only if the with-optional projection fits the cap; otherwise they are dropped (\u00a78.1)"
+ },
+ "cpu_projection": {
+  "tasks": {
+   "focused_tests": 0.3,
+   "full_test_suite_once": 0.5,
+   "x0a_preflight": 0.25,
+   "x1_fits_and_bootstrap": 1.1,
+   "x1_embedding_cache_io": 0.3,
+   "x2_fits_and_identification": 1.2,
+   "x3a_fisher": 0.8,
+   "x3b_leace_and_permutations": 1.0,
+   "report": 0.25
+  },
+  "projected_hours": 5.7,
+  "cap_hours": 6.0,
+  "pass": true
+ },
+ "entries": {
+  "snapshot": {
+   "available": true,
+   "guard_json": "/ceph/dwong/jepa/jobs/guard_deepthought2.json",
+   "free_entries": 27260,
+   "guard_level": "HOLD",
+   "guard_reasons": [
+    "utilisation window not populated (1/3 samples, span 0 s/240 s; warming up)",
+    "free entries 27260 < 30000; write no new data",
+    "no GPU satisfies the start condition",
+    "GPU 0: 5-minute mean utilisation is unknown",
+    "GPU 1: 5-minute mean utilisation is unknown"
+   ],
+   "guard_timestamp": "2026-11-07T03:58:55Z"
+  },
+  "pass": false,
+  "projection": {
+   "free_before": 27260,
+   "clone": 3059,
+   "suite": 1825,
+   "extension": 2400,
+   "projected_after": 19976,
+   "floor": 30000,
+   "pass": false
+  },
+  "gpu_slot_available": false
+ },
+ "s1": {
+  "available": true,
+  "charged_gpu_hours": 129.7461,
+  "part_a_cap_hours": 4.0,
+  "part_b_cap_hours": 1.5,
+  "sum_hours": 135.2461,
+  "ceiling_hours": 160.0,
+  "pass": true,
+  "rule": "L1 ledger + Part A cap + Part B cap <= 160 (front matter \u00a7F3)"
+ },
+ "pass": false,
+ "closure": {
+  "checked_modules": 70,
+  "outside_allowlist": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}

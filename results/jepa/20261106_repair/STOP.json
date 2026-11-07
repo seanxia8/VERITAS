@@ -1,0 +1,41 @@
+{
+ "registered": false,
+ "extension": "paper3_repair_pilot_2026-11-06",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+ "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+ "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+ "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
+ "review_verdict": "PASS",
+ "stop": {
+  "condition": "entries-preflight failure",
+  "source": "Part A §8.4 (STOP list) and front matter §F3",
+  "detail": "free entries 27,260; projection = 27,260 - clone 3,059 - suite 1,825 - extension 2,400 = 19,976 < floor 30,000; guard level HOLD with reason 'free entries 27260 < 30000; write no new data' (snapshot 2026-11-07T03:58:55Z, guard_deepthought2.json)",
+  "evidence": "results/jepa/20261106_repair/plan.json -> entries (pass false); the live Ceph quota free count is 27,260 (max_files 500000 - rfiles - rsubdirs); the runbook's expected 37,986 free at ac8e220 is stale because another project (hcp_xopt_20261106, 9,900 entries, created 6 Nov 13:34) consumed the difference; no deletion of any other project's data is authorised",
+  "not_a_stop": "the GPU projection (2.8409 h core / 3.6014 h with optional < 4.0), the CPU projection (5.70 h < 6.0) and S1 (135.2461 < 160) all pass"
+ },
+ "executed": {
+  "X0-a preflight": "complete (plan.json): data manifest hashes pass (4/4 sets); run state/twin/events checks pass 200/200 runs per set; twin content pass; SWtw content pass; mu_p reconstruction pass; inventory 19/19 available (13 core + 6 optional, hashes verified); hardware/software recorded; GPU/CPU projections and S1 pass; closure pass. The only failing check is entries.",
+  "X3-a fisher": "complete (x3_fisher.json): 1,000 events; P0 pass (max efficient/known ln Y charge-information ratio 1.21e-15 < 1e-6); 5 model rows (C-mean, C-mean+occupancy, C-var_all, C-var_ge1, C-var_ge3); closure pass"
+ },
+ "not_run": [
+  "X0-b reproduction gate (GPU)",
+  "X1 (GPU) and its report section",
+  "X2 (GPU) and its report section",
+  "X3-b (GPU) and its report section",
+  "report (full README/tables/figures; only the X0-a and X3-a payloads exist)"
+ ],
+ "execution_time_adapter": {
+  "path": "/ceph/dwong/jepa/tmp/jepa_rb_20261107/fix/wrap_repair.py",
+  "reason": "The accepted preflight serialisation crashed on a nested os.PathLike in the inventory rows (json.dumps(default=float) cannot convert PosixPath), which prevented X0-a from writing inventory.json/plan.json. The adapter patches only ext_repair._jsonable to stringify os.PathLike and then runs the unmodified CLI, gate and mode body with the same outputs; no reading, threshold, path or logic changes, and gate (c) is unaffected (no <P> file edited). Recorded in DECISIONS.md (§0.1 fix-it-yourself, 6 Nov precedent).",
+  "known_defect_for_a_future_review": "ext_repair._jsonable does not stringify os.PathLike; a proper fix belongs in <P> and needs a re-review and a new acceptance record."
+ },
+ "resources": {
+  "gpu_hours": 0.0,
+  "gpu_cap_hours": 4.0,
+  "gpu_note": "no GPU job was launched: the entries-preflight STOP blocked X0-b/X1/X2/X3-b, and the live guard was HOLD",
+  "cpu_wall_hours_estimate": 2.0,
+  "cpu_cap_hours": 6.0,
+  "l40s_ledger_before": 129.7461,
+  "l40s_ledger_after": 129.7461
+ }
+}

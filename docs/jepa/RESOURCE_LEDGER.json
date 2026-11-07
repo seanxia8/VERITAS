@@ -1,6 +1,6 @@
 {
  "version": 1,
- "status": "arch_complete_scale_complete_static_complete_followup_executed_20261106",
+ "status": "arch_complete_scale_complete_static_complete_followup_executed_20261106_repair_shortcut_stopped_entries_20261107",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
@@ -136,6 +136,40 @@
     "data_generated": false,
     "code_sha": "feed8c959808041590e64f4f6c56b17305e1197a",
     "evidence": "/ceph/dwong/jepa/returns/ext_followup_20261103/ + /ceph/dwong/jepa/jobs/"
+   },
+   "repair_shortcut_2026-11-07": {
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+    "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
+    "review_verdict": "PASS",
+    "part_a": {
+     "gpu_hours": 0.0,
+     "gpu_cap_hours": 4.0,
+     "cpu_wall_hours": 2.0,
+     "cpu_cap_hours": 6.0,
+     "status": "STOP: entries-preflight failure; X0-a preflight + X3-a fisher executed; X0-b/X1/X2/X3-b/report not_run"
+    },
+    "part_b": {
+     "gpu_hours": 0.0,
+     "gpu_cap_hours": 1.5,
+     "cpu_wall_hours": 1.2,
+     "cpu_cap_hours": 2.0,
+     "status": "STOP: entries-preflight failure; preflight only; R-2 not run; R-1 not_run (pilot outputs missing)"
+    },
+    "l40s_charged_before": 129.7461,
+    "l40s_charged_after": 129.7461,
+    "s1_hours": 135.2461,
+    "generation_cap_untouched": true,
+    "data_generated": false,
+    "entries_preflight": {
+     "free_before": 27260,
+     "projected_after": 19976,
+     "floor": 30000,
+     "pass": false,
+     "guard_level": "HOLD",
+     "guard_timestamp": "2026-11-07T03:58:55Z"
+    },
+    "evidence": "/ceph/dwong/jepa/returns/ext_repair_20261106/x0 + x3; /ceph/dwong/jepa/returns/ext_shortcut_20261107/plan.json; logs /ceph/dwong/jepa/tmp/jepa_rb_20261107/"
    }
   }
  },
