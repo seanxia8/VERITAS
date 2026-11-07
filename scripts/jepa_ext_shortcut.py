@@ -30,6 +30,28 @@ r1            R-1 (CPU, report only): reads the Part A repair pilot read-only an
 report        assembles ``results/jepa/20261107_shortcut/``; ``--r1-only`` fills
               only the R-1 block later, when the pilot outputs exist.
 
+Addendum (7 Nov 2026, v1; ``RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md``): the three
+``addendum-*`` modes run under the shared addendum budget (0.35 L40S h, 3 wall-h
+CPU, ledger ``/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl``) and never
+consult the closed Part B (1.5 h) cap.
+
+addendum-evaluate
+              D5: one evaluation job for the two existing run directories, exactly
+              Part B §5.3 -- full input and half pass via ``ext_h12.evaluate_run``
+              plus the label-pass ``f_event`` over the §5.2 64 events; R2-a/R2-b/
+              R2-c follow Part B §5.4 unchanged.  Writes
+              ``<ext>/eval/addendum_eval.json``.
+addendum-r1   Addendum §2: re-reads the pilot's updated ``x1.json``/``x2.json``/
+              ``readings.json`` read-only and re-emits R-1 with the D1-corrected
+              ``rho_LR``; the Part B §3 rule, families and table are unchanged.
+              Writes ``<ext>/r1_addendum.json``.
+addendum-report
+              Addendum §5/§10: updates ``results/jepa/20261107_shortcut/`` in place
+              (``README.md``, ``readings.json``, ``report.json``, ``runs.json``,
+              ``OUTCOME.json``) with the R2 readings, the corrected R-1 and the
+              "Superseded 7 Nov values" table, and writes
+              ``ADDENDUM_2026-11-07.json`` with the R-2 evaluation record.
+
 Every mode re-checks the executed-import closure at its end (§9.2).  Nothing here
 edits a registered module, config, prediction or verdict, and no data is ever
 generated.
@@ -548,6 +570,165 @@ def mode_report(args, started) -> int:
     return 2 if payload.get("too_big") else 0
 
 
+# --------------------------------------------------- addendum (7 Nov 2026, v1)
+def _book_addendum(part, mode, kind, seconds) -> dict:
+    return xs.record_addendum_job(part, mode=mode, kind=kind, wall_seconds=seconds)
+
+
+def mode_addendum_evaluate(args, started) -> int:
+    """D5: the one R-2 evaluation job for the two run directories (§6)."""
+    root = repo_root(args)
+    gate = xs.assert_authorised("addendum-evaluate", root=root)
+    s1 = xs.addendum_s1_check_or_stop(root)
+    budget = xs.assert_addendum_budget(
+        "gpu", xs.ADDENDUM_COST_BY_ITEM["r2_evaluation"], part="B")
+    config, gen, arms_config, geometry, device = load_setup(args)
+    cell = lr.dev_cell(config)
+    train_ds, probes = xs.open_datasets(cell, config, gen, geometry, data_root(args))
+    batches = xs.label_batches(train_ds, geometry, config, device=device)
+    run_dirs = _run_dirs(args)
+    job_started = time.time()
+    try:
+        runs = xs.evaluate_run_dirs(run_dirs, probes, geometry, config, arms_config,
+                                    device=device, batches=batches, root=root,
+                                    mode="addendum-evaluate")
+    except BaseException:
+        _book_addendum("B", "addendum-evaluate", "gpu",
+                       round(time.time() - job_started, 3))
+        raise
+    payload = {"registered": False, "extension": xs.EXTENSION,
+               "mode": "addendum-evaluate",
+               "addendum": {"path": xs.ADDENDUM_REL,
+                            "sha256": xs.ADDENDUM_SHA256,
+                            "date": xs.ADDENDUM_DATE,
+                            "author_line": xs.ADDENDUM_AUTHOR_LINE},
+               "gate": gate, "s1": s1, "budget_before": budget,
+               "code_sha": lr.git_head(root), "device": str(device),
+               "cell_id": cell.cell_id,
+               "run_dirs": [str(path) for path in run_dirs],
+               "label_events": int(sum(batch.features.size(0) for batch in batches)),
+               "runs": runs, "readings": xs.r2_readings(runs),
+               "statistic_audit": xs.statistic_audit(runs),
+               "complete": True, "wall_seconds": round(time.time() - started, 3)}
+    job = _book_addendum("B", "addendum-evaluate", "gpu", payload["wall_seconds"])
+    payload["addendum_job"] = job
+    payload["budget_after"] = xs.addendum_hours()
+    out_dir = Path(getattr(args, "out", None) or (ext_root(args) / "eval"))
+    out = out_dir / "addendum_eval.json"
+    code = _closure_end(payload, out, root, mode="addendum-evaluate")
+    print(json.dumps({"out": str(out), "seeds": sorted(runs),
+                      "run_dirs": payload["run_dirs"],
+                      "label_events": payload["label_events"],
+                      "r2_a": payload["readings"]["r2_a"].get("class"),
+                      "r2_b": payload["readings"]["r2_b"].get("verdict"),
+                      "budget_gpu_hours": payload["budget_after"]["gpu_hours"],
+                      "budget_gpu_cap_hours": xs.ADDENDUM_GPU_CAP_H,
+                      "closure_pass": payload["import_closure"]["pass"],
+                      "wall_h": payload["wall_seconds"] / 3600.0},
+                     default=float), flush=True)
+    if code:
+        return code
+    missing = [seed for seed in ("9000", "9001") if seed not in sorted(runs)]
+    if missing:
+        print(f"[shortcut] addendum-evaluate needs both run directories (missing "
+              f"seed(s) {missing}); the two seeds are seeds 9000 and 9001",
+              file=sys.stderr, flush=True)
+        return 2
+    if payload["readings"].get("status") != "complete":
+        print(f"[shortcut] addendum-evaluate: R2 readings "
+              f"{payload['readings'].get('status')!r}", file=sys.stderr, flush=True)
+        return 2
+    return 0
+
+
+def mode_addendum_r1(args, started) -> int:
+    """Addendum §2: the R-1 rerun with the D1-corrected ``rho_LR`` (read-only)."""
+    root = repo_root(args)
+    gate = xs.assert_authorised("addendum-r1", root=root)
+    budget = xs.assert_addendum_budget(
+        "cpu", xs.ADDENDUM_COST_BY_JOB["addendum-r1"], part="B")
+    status = xs.pilot_status(root)
+    job_started = time.time()
+    try:
+        payload = xs.r1_payload(root, mode="addendum-r1",
+                                ext_root=xs.PILOT_EXT_ROOT)
+    except BaseException:
+        _book_addendum("B", "addendum-r1", "cpu",
+                       round(time.time() - job_started, 3))
+        raise
+    payload.update(gate=gate, mode="addendum-r1", budget_before=budget,
+                   wall_seconds=round(time.time() - started, 3),
+                   code_sha=lr.git_head(root),
+                   addendum={"path": xs.ADDENDUM_REL,
+                             "sha256": xs.ADDENDUM_SHA256,
+                             "date": xs.ADDENDUM_DATE,
+                             "author_line": xs.ADDENDUM_AUTHOR_LINE,
+                             "read_only": "the pilot's x1.json/x2.json/"
+                                          "readings.json are never written"})
+    payload["pilot_files"] = {
+        name: {"path": row["path"],
+               "sha256": (lr.sha256_file(Path(row["path"]))
+                          if row.get("exists") else None)}
+        for name, row in (status.get("files") or {}).items()}
+    out = _out_json(getattr(args, "out", None), "r1_addendum.json",
+                    default_dir=ext_root(args))
+    job = _book_addendum("B", "addendum-r1", "cpu", payload["wall_seconds"])
+    payload["addendum_job"] = job
+    code = _closure_end(payload, out, root, mode="addendum-r1")
+    reading = payload.get("reading") or {}
+    print(json.dumps({"out": str(out), "status": payload["status"],
+                      "reason": payload.get("reason"),
+                      "verdict": reading.get("verdict"),
+                      "generative_median_rho_lr":
+                          (reading.get("generative_median") or {}).get("rho_lr"),
+                      "frozen_target_rho_lr":
+                          (reading.get("frozen_target") or {}).get("rho_lr"),
+                      "closure_pass": payload["import_closure"]["pass"]},
+                     default=float), flush=True)
+    if code:
+        return code
+    # R-1 not_run (pilot outputs missing) is not a STOP (Part B §3).
+    return 0
+
+
+def mode_addendum_report(args, started) -> int:
+    """Addendum §5/§10: update the Part B results in place and record D5."""
+    root = repo_root(args)
+    gate = xs.assert_authorised("addendum-report", root=root)
+    budget = xs.assert_addendum_budget(
+        "cpu", xs.ADDENDUM_COST_BY_JOB["addendum-report"], part="B")
+    job_started = time.time()
+    try:
+        payload = xs.assemble_addendum_report(
+            root=root, data_dir=ext_root(args),
+            results_dir=getattr(args, "out", None), ext_root=ext_root(args),
+            budget=budget)
+    except BaseException:
+        _book_addendum("B", "addendum-report", "cpu",
+                       round(time.time() - job_started, 3))
+        raise
+    payload.update(gate=gate, mode="addendum-report", budget_before=budget,
+                   wall_seconds=round(time.time() - started, 3))
+    job = _book_addendum("B", "addendum-report", "cpu", payload["wall_seconds"])
+    payload["addendum_job"] = job
+    payload["addendum_hours"] = xs.addendum_hours()
+    path = Path(payload["results_dir"]) / "report.json"
+    code = _closure_end(payload, path, root, mode="addendum-report")
+    print(json.dumps({"results_dir": payload["results_dir"],
+                      "r2_status": payload.get("r2_status"),
+                      "r1_status": payload.get("r1_status"),
+                      "complete": payload.get("complete"),
+                      "superseded": len(payload.get("superseded") or []),
+                      "statistic_audit_pass": payload.get("statistic_audit_pass"),
+                      "addendum_file": payload.get("addendum_file"),
+                      "too_big": payload.get("too_big"),
+                      "closure_pass": payload["import_closure"]["pass"]},
+                     default=float), flush=True)
+    if code:
+        return code
+    return 2 if payload.get("too_big") else 0
+
+
 # ------------------------------------------------------------------- helpers
 def _require_plan(ext_root_path) -> dict:
     path = Path(ext_root_path) / "plan.json"
@@ -626,13 +807,73 @@ def parser():
     rep.add_argument("--r1-only", action="store_true")
     _common(rep)
     rep.add_argument("--device", default="cpu")
+    # ---- addendum (7 Nov 2026, v1): the 0.35 h GPU / 3 wall-h CPU budget ----
+    ae = sub.add_parser(
+        "addendum-evaluate",
+        help="D5: the one R-2 evaluation job for the two run directories "
+             "(full input + half pass via ext_h12.evaluate_run, plus the "
+             "label-pass f_event over the §5.2 events); addendum 0.35 h GPU "
+             "budget, never the closed Part B 1.5 h cap",
+        description="D5 R-2 evaluation (addendum §6; evaluation only, no "
+                    "training).  One job for the two existing run directories, "
+                    "exactly Part B §5.3: ext_h12.evaluate_run full input and half "
+                    "pass, plus the label-pass f_event over the §5.2 64 events; "
+                    "R2-a/R2-b/R2-c follow Part B §5.4 unchanged.  Runs under the "
+                    "shared addendum budget (refuses SystemExit(2) 'not_run (cap)' "
+                    "if the 0.35 L40S-h cap would be crossed) and does not consult "
+                    "the closed Part B cap.")
+    ae.add_argument("--run", action="append", default=None,
+                    help="a completed run directory (repeat once per seed; "
+                         "default: every directory under <ext>/train/runs, i.e. "
+                         "the two ext_shortcut_20261107 runs)")
+    ae.add_argument("--out", default=None,
+                    help="output directory (default <ext>/eval); writes "
+                         "addendum_eval.json")
+    _common(ae)
+    ae.add_argument("--device", default="auto")
+    ar = sub.add_parser(
+        "addendum-r1",
+        help="Addendum §2: re-read the pilot's updated x1.json/x2.json/"
+             "readings.json (read-only) and re-emit R-1 with the D1-corrected "
+             "rho_LR; §3 rule, families and table unchanged; addendum CPU budget",
+        description="R-1 rerun (addendum §2/§8 step 3).  Re-reads the Part A "
+                    "pilot's updated x1.json/x2.json/readings.json read-only and "
+                    "re-emits R-1 with the corrected rho_LR.  Writes "
+                    "<ext>/r1_addendum.json under the addendum CPU budget; the "
+                    "pilot results and <ext> are never written.")
+    ar.add_argument("--out", default=None,
+                    help="output JSON or directory (default <ext>/r1_addendum.json)")
+    _common(ar)
+    ar.add_argument("--device", default="cpu")
+    arep = sub.add_parser(
+        "addendum-report",
+        help="Addendum §5/§10: update results/jepa/20261107_shortcut/ in place "
+             "(README, readings, report, runs, OUTCOME) with the R2 readings, the "
+             "corrected R-1 and the superseded-7-Nov table; write "
+             "ADDENDUM_2026-11-07.json",
+        description="Addendum report (addendum §5 D4/§10).  Updates "
+                    "results/jepa/20261107_shortcut/{README.md,readings.json,"
+                    "report.json,runs.json,OUTCOME.json} in place with the R2 "
+                    "readings (D5), the corrected R-1 (D1), the Part B "
+                    "\"Superseded 7 Nov values\" table and the readings "
+                    "completeness; writes ADDENDUM_2026-11-07.json with the R-2 "
+                    "evaluation record.  Part B has no figures (the six are "
+                    "Part A's).")
+    arep.add_argument("--out", default=None,
+                      help="results directory (default results/jepa/"
+                           "20261107_shortcut)")
+    _common(arep)
+    arep.add_argument("--device", default="cpu")
     return p
 
 
 BODIES = {"dry-run": mode_dry_run, "preflight": mode_preflight,
           "manipulation": mode_manipulation, "reproduce": mode_reproduce,
           "smoke": mode_smoke, "train": mode_train, "evaluate": mode_evaluate,
-          "r1": mode_r1, "report": mode_report}
+          "r1": mode_r1, "report": mode_report,
+          "addendum-evaluate": mode_addendum_evaluate,
+          "addendum-r1": mode_addendum_r1,
+          "addendum-report": mode_addendum_report}
 
 
 def main(argv=None):

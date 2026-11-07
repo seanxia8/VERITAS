@@ -23,6 +23,27 @@ Sections
 * X3-a Fisher accounting and P0 (§7.1);
 * X3-b invariant variants and LEACE (§7.2);
 * report assembly and the cost/cap projections (§8).
+
+Addendum 2026-11-07 (``docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md``)
+--------------------------------------------------------------------------
+The addendum modes implement its §8 order and are booked to its own 0.35 h GPU /
+3.0 h CPU caps (the closed Part A and Part B caps are never consulted):
+
+* ``addendum-selfcheck`` (CPU): D1 identity on probe-test for the 13 core models,
+  the removed share, the recovered fraction and the descriptive flag; an identity
+  failure is the S9 STOP for the D1 reruns only;
+* ``addendum-x2`` (CPU): D1 rerun of X2-c, the X2-d latent stream and X2-f from
+  the sha-verified cached embeddings (the source/raw streams are reused);
+* ``addendum-x2e`` (GPU): EST(latent) probe-test sets, rho_EST(latent) and the
+  latent repair with the raw-unit Â;
+* ``addendum-x3`` (CPU): D2 rerun of the X3-b readings for every family, with the
+  corrected X3-4 statistics; the init9000 gain-blind tokens are read from their
+  sha-verified cache or reported ``not_run (gpu needed)``;
+* ``addendum-report`` (CPU): D4 ``READINGS_SUMMARY.md``, ``SUMMARY.json``,
+  ``ADDENDUM_2026-11-07.json``, ``OUTCOME.json`` and the labelled/legended figures.
+
+Execution order: ``addendum-selfcheck`` -> ``addendum-x2`` -> ``addendum-x3``
+(CPU) -> ``addendum-x2e`` (GPU) -> ``addendum-report`` (CPU).
 """
 from __future__ import annotations
 
@@ -45,7 +66,9 @@ from . import point_encoder as pe
 from . import probes as pr
 
 __all__ = [
-    "EXTENSION", "MODES", "EXT_ROOT", "RESULTS_DIR", "RUNBOOK_REL", "ACCEPTANCE_REL",
+    "EXTENSION", "MODES", "ADDENDUM_MODES", "EXT_ROOT", "RESULTS_DIR", "RUNBOOK_REL",
+    "ADDENDUM_REL", "ADDENDUM_SHA256", "ADDENDUM_AUTHOR_LINE", "ADDENDUM_GPU_CAP_H",
+    "ADDENDUM_CPU_CAP_H", "ADDENDUM_JOBS", "ACCEPTANCE_REL",
     "DECISIONS_REL", "P_FILES", "P_DIRS", "FORCED_IMPORT_EXCEPTIONS", "PINNED_DATA",
     "PROBE_KEYS_S005", "PROBE_KEYS_S030", "CORE_MODELS", "OPTIONAL_MODELS",
     "MAE_MODELS", "X1_PARTICLE_MODELS", "X0B_TARGETS", "NOISY_SIGMAS", "FISHER_SIGMAS",
@@ -69,12 +92,24 @@ __all__ = [
     "raw_inv_features", "invariant_features", "leace_fit", "leace_erase",
     "leace_cross_covariance", "permutation_maxima", "reduction_rank",
     "random_control_basis", "x3", "x3_readings", "mode_setup", "read_json", "write_json",
-    "assemble_report",
+    "assemble_report", "raw_map", "addendum_hours", "assert_addendum_budget",
+    "record_addendum_job", "addendum_selfcheck", "addendum_x2", "addendum_x2e",
+    "addendum_x3", "addendum_report",
 ]
 
 # ---------------------------------------------------------------- extension
 EXTENSION = "paper3_repair_pilot_2026-11-06"
-MODES = ("dry-run", "preflight", "reproduce", "x1", "x2", "x3-fisher", "x3", "report")
+MODES = ("dry-run", "preflight", "reproduce", "x1", "x2", "x3-fisher", "x3", "report",
+         "addendum-selfcheck", "addendum-x2", "addendum-x2e", "addendum-x3",
+         "addendum-report")
+#: Addendum §8 modes (7 Nov 2026).  They are booked against the addendum's own
+#: 0.35 L40S h / 3 wall-hours caps; the closed Part A and Part B caps are never
+#: consulted by them.
+ADDENDUM_MODES = ("addendum-selfcheck", "addendum-x2", "addendum-x2e", "addendum-x3",
+                  "addendum-report")
+_ADDENDUM_GPU_MODES = ("addendum-x2e",)
+_ADDENDUM_CPU_MODES = ("addendum-selfcheck", "addendum-x2", "addendum-x3",
+                       "addendum-report")
 
 ROOT = Path(__file__).resolve().parents[2]
 EXT_ROOT = Path("/ceph/dwong/jepa/returns/ext_repair_20261106")
@@ -83,9 +118,17 @@ JOBS_DIR = Path("/ceph/dwong/jepa/jobs")
 GUARD_JSON = JOBS_DIR / "guard_deepthought2.json"
 
 RUNBOOK_REL = "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md"
+#: The 7 Nov 2026 addendum is now authoritative (D1–D5); its sha256 is fixed in
+#: code so an acceptance record can never point at a different addendum.
+ADDENDUM_REL = "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md"
+ADDENDUM_SHA256 = "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a"
+ADDENDUM_AUTHOR_LINE = "写进weekly report，然后我选A，你写一个小runbook"
+ADDENDUM_GPU_CAP_H = 0.35
+ADDENDUM_CPU_CAP_H = 3.0
+ADDENDUM_JOBS = Path("/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl")
 ACCEPTANCE_REL = "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json"
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
-                   "lead", "date")
+                   "lead", "date", "addendum_path", "addendum_sha256")
 DECISIONS_REL = "docs/jepa/DECISIONS.md"
 
 #: §9.2 (c): the reviewed path set ``<P>``.  ``git diff --quiet <impl_commit> -- <P>``
@@ -374,6 +417,36 @@ def _gate_checks(mode, *, root) -> dict:
                    "pending_acceptance": bool(pending)}
     if not a_pass and not pending:
         problems.append("(a) the committed runbook sha256 does not match the acceptance record")
+
+    # (a2) the committed addendum (7 Nov 2026, authoritative for D1-D5): its sha256
+    # is the fixed constant, the record carries the same value and path, and the §0
+    # author line is present verbatim.  A record missing the two new fields DENIES
+    # (it is not the pre-acceptance pending state).
+    addendum_path = root / ADDENDUM_REL
+    addendum_present = addendum_path.is_file()
+    computed_addendum = lr.sha256_file(addendum_path) if addendum_present else None
+    addendum_text = addendum_path.read_text() if addendum_present else ""
+    author_line = ADDENDUM_AUTHOR_LINE in addendum_text
+    expected_addendum = (record or {}).get("addendum_sha256")
+    record_addendum_path = (record or {}).get("addendum_path")
+    a2_pass = bool(addendum_present
+                   and computed_addendum == ADDENDUM_SHA256
+                   and expected_addendum == ADDENDUM_SHA256
+                   and author_line
+                   and record_addendum_path == ADDENDUM_REL)
+    checks["a2"] = {"pass": a2_pass, "addendum": str(addendum_path),
+                    "addendum_present": bool(addendum_present),
+                    "addendum_sha256": computed_addendum,
+                    "expected_addendum_sha256": expected_addendum,
+                    "author_line_present": bool(author_line),
+                    "record_addendum_path": record_addendum_path,
+                    "expected_addendum_path": ADDENDUM_REL,
+                    "pending_acceptance": bool(pending)}
+    if not a2_pass and not pending:
+        problems.append(
+            "(a2) the committed addendum is absent, its sha256 is not "
+            f"{ADDENDUM_SHA256}, the §0 author line is missing, or the acceptance "
+            f"record lacks addendum_path={ADDENDUM_REL!r}/addendum_sha256={ADDENDUM_SHA256!r}")
 
     # (b) acceptance record schema and review verdict
     if record is None:
@@ -825,11 +898,18 @@ def hardware_and_software() -> dict:
     return ef.hardware_and_software()
 
 
+#: Payload keys that are never readings and are not JSON-serialisable: the
+#: per-event error arrays plus the stored probe-fit objects (``RidgeFit``) and
+#: their predictions.  Addendum D3 (execution fix 8) folds the runtime adapter's
+#: ``fitted``/``prediction`` drop into ``<P>`` so ``x3.json`` serialises on its own.
+_INTERNAL_KEYS = ("__errors__", "errors", "fitted", "prediction")
+
+
 def _strip_internal(value):
-    """Drop per-event internal error arrays from a payload before it is written."""
+    """Drop per-event error arrays and stored probe objects before a payload is written."""
     if isinstance(value, dict):
         return {key: _strip_internal(item) for key, item in value.items()
-                if key not in ("__errors__", "errors")}
+                if key not in _INTERNAL_KEYS}
     if isinstance(value, (list, tuple)):
         return [_strip_internal(item) for item in value]
     return value
@@ -2305,12 +2385,26 @@ def _x1e(model, rho_swunit) -> dict:
 
 
 def _x1f(model) -> dict:
+    """X1-f: log-yield and electron-energy resolutions for N, D, SWunit and HW.
+
+    Runbook §5 X1-f.  The legacy 7 Nov keys ``resolution``/``r2`` still point at
+    the electron-energy block so an old reader keeps working.
+    """
     out = {}
     for name in ENERGY_CONDITIONS:
         energy = ((model.get("particle") or {}).get(name) or {}).get("energy") or {}
-        out[name] = {"resolution": energy.get("resolution"),
-                     "r2": (energy.get("r2") or {}).get("r2"),
-                     "n_contained_test": energy.get("n_contained_test")}
+        photon = ((model.get("conditions") or {}).get(name) or {}).get("log_yield") or {}
+        energy_r2 = (energy.get("r2") or {}).get("r2")
+        out[name] = {
+            "log_yield_resolution": photon.get("resolution"),
+            "log_yield_ci95": photon.get("ci95"),
+            "log_yield_r2": (photon.get("r2") or {}).get("r2"),
+            "energy_resolution": energy.get("resolution"),
+            "energy_ci95": energy.get("ci95"),
+            "energy_r2": energy_r2,
+            "n_contained_test": energy.get("n_contained_test"),
+            "resolution": energy.get("resolution"),
+            "r2": energy_r2}
     return out
 
 
@@ -2658,10 +2752,11 @@ def _fit_equivariance_occupancy(features_n, features_d, occupancy, run_ids) -> n
                             target_names=tuple(f"z{i}" for i in range(delta.shape[1])),
                             meta={})
     fitted = la.fit_probe(train)
-    coefficients = np.stack([probe["fit"].coefficients if probe["status"] == "fit"
-                             else np.zeros(occupancy.shape[1])
-                             for probe in fitted["fits"]], axis=1)
-    return coefficients.T
+    # D1: the map acts on raw u, so stack coefficients/scale, not coefficients.
+    mapped = raw_map(fitted)
+    if mapped is None or mapped.size == 0:
+        return np.zeros((len(fitted["fits"]), occupancy.shape[1]))
+    return np.asarray(mapped, float)
 
 
 def _pearson(x, y) -> float | None:
@@ -2793,20 +2888,64 @@ def identification_report(estimates: dict, truth: dict) -> dict:
                             for index, run in enumerate(common)}}
 
 
-def _stack_coefficients(fit) -> np.ndarray:
-    """The fitted map Â (``n_dim x n_modules``) of one ``equivariance_fit`` result."""
+def raw_map(fit) -> np.ndarray | None:
+    """The drift map in raw units, ``Â_raw[d, m] = coefficients_d[m] / scale_d[m]``.
+
+    ``probes.fit_ridge`` standardises its inputs before the ridge
+    (``RidgeFit.predict(u) = ((u-mean)/scale) @ coefficients + intercept``), so
+    the map that acts on raw ``u`` is ``coefficients / scale``, not
+    ``coefficients``.  This is the only route to ``RidgeFit.coefficients``
+    (addendum D1; enforced by a test that greps this module).
+
+    Accepts one ``RidgeFit`` (returns its ``(m,)`` row), one ``fit_probe`` probe
+    entry ``{"status", "fit"}`` (returns the row or ``None``), or a whole
+    ``fit_probe`` / ``equivariance_fit`` result (returns the stacked
+    ``(n_dim, m)`` map).  A constant column carries ``scale = 1`` and a zero
+    coefficient (``fit_ridge``), so it stays ``Â_raw[:, m] = 0`` naturally; a zero
+    scale from any other source is treated as 1 to keep the row finite.
+    """
+    if fit is None:
+        return None
+    if hasattr(fit, "coefficients") and hasattr(fit, "scale"):
+        coefficients = np.asarray(fit.coefficients, float)
+        scale = np.asarray(fit.scale, float)
+        safe = np.where(scale == 0.0, 1.0, scale)
+        return coefficients / safe
+    if not isinstance(fit, dict):
+        return None
+    if "fitted" in fit:                       # an ``equivariance_fit`` result
+        fit = fit.get("fitted")
+        if fit is None:
+            return None
+    if "fits" not in fit and "fit" in fit:    # one probe entry
+        return raw_map(fit["fit"]) if fit.get("status") == "fit" else None
+    fits = fit.get("fits")
+    if not fits:
+        return None
+    rows = [raw_map(probe) for probe in fits]
+    width = next((np.asarray(row).size for row in rows if row is not None), 0)
+    rows = [np.zeros(width) if row is None else np.asarray(row, float).ravel()
+            for row in rows]
+    return np.stack(rows, axis=0)
+
+
+def _stack_coefficients(fit) -> np.ndarray | None:
+    """The fitted raw map Â_raw (``n_dim x n_modules``) of one ``equivariance_fit``."""
     fits = (fit or {}).get("fitted", {}).get("fits") or []
     if not fits:
         return None
-    width = int(np.asarray(fits[0]["fit"].scale).size) if fits[0].get("status") == "fit" \
-        else int((fit.get("train_mean") or np.zeros(0)).size)
-    columns = []
+    width = None
     for probe in fits:
         if probe.get("status") == "fit":
-            columns.append(np.asarray(probe["fit"].coefficients, float))
-        else:
-            columns.append(np.zeros(width))
-    return np.stack(columns, axis=1).T
+            width = int(np.asarray(probe["fit"].scale).size)
+            break
+    if width is None:
+        width = int((fit.get("train_mean") or np.zeros(0)).size)
+    rows = []
+    for probe in fits:
+        row = raw_map(probe)
+        rows.append(np.zeros(width) if row is None else np.asarray(row, float).ravel())
+    return np.stack(rows, axis=0)
 
 
 def _x2c(rows, delta, occupancy, geometry, frozen, A_hat) -> dict:
@@ -4043,6 +4182,22 @@ def x3(root=None, *, config, gen, arms_config, geometry, inventory=None,
     return payload
 
 
+def init9000_token_cache(ext_root) -> EmbeddingCache:
+    """The sha-verified cache of the X3-b gain-blind (invariant) init9000 tokens.
+
+    Written by ``_x3_init9000`` when ``x3`` runs on the GPU and read by the CPU
+    ``addendum-x3`` mode.  A missing entry is reported as ``not_run (gpu needed)``,
+    never silently skipped (addendum D2 rerun rule).
+    """
+    return EmbeddingCache(_addendum_dir(ext_root) / "init9000")
+
+
+_INIT9000_TOKEN_KEYS = tuple(
+    f"{domain}__{kind}__{role}__{name}"
+    for domain in ("photon", "particle") for kind in ("standard", "invariant")
+    for role, name in (("train", "N"), ("test", "N"), ("drift", "D")))
+
+
 def _x3_init9000(inv, probes005, probes030, geometry, config, arms_config, gen,
                  data_root, device, truth, ext_root, *, limit=None, log=print) -> dict:
     """X3-b init9000: invariant tokens for photon and particle events (§7.2).
@@ -4054,6 +4209,7 @@ def _x3_init9000(inv, probes005, probes030, geometry, config, arms_config, gen,
     if row is None:
         return {"status": "unavailable", "reason": "init9000 absent"}
     cache = embedding_cache(ext_root, "init9000")
+    token_cache = init9000_token_cache(ext_root)
     split = row_split(row)
     with ef.item_eval_context(row):
         arm = ef.build_item_arm(row, config=config, gen=gen, arms_config=arms_config,
@@ -4067,13 +4223,18 @@ def _x3_init9000(inv, probes005, probes030, geometry, config, arms_config, gen,
     invariant = {"train": {}, "test": {}, "drift": {}}
     for role, dataset in datasets.items():
         condition = build_condition(condition_names[role], dataset, geometry)
+        name = condition_names[role]
         standard[role] = stream_condition_embeddings(
             model, dataset, geometry, condition, split=split, config=config,
-            device=device, cache=None, max_events=limit, log=log)
+            device=device, cache=token_cache,
+            cache_key=f"photon__standard__{role}__{name}",
+            max_events=limit, log=log)
         with invariant_token_context(geometry):
             invariant[role] = stream_condition_embeddings(
                 model, dataset, geometry, condition, split=split, config=config,
-                device=device, cache=None, max_events=limit, log=log)
+                device=device, cache=token_cache,
+                cache_key=f"photon__invariant__{role}__{name}",
+                max_events=limit, log=log)
     standard_variant = _embedding_variant(standard)
     invariant_variant = _embedding_variant(invariant)
     # particle N (train, test) and D (test): the electron-energy reading
@@ -4082,13 +4243,16 @@ def _x3_init9000(inv, probes005, probes030, geometry, config, arms_config, gen,
         particle[name] = {"train": {}, "test": {}, "drift": {}}
     for role, dataset in datasets.items():
         condition = build_condition(condition_names[role], dataset, geometry)
+        name = condition_names[role]
         truth_key = "test" if role == "drift" else role
         particle["standard"][role] = stream_condition_particles(
             model, dataset, truth[truth_key], geometry, condition, device=device,
+            cache=token_cache, cache_key=f"particle__standard__{role}__{name}",
             max_events=limit, log=log)
         with invariant_token_context(geometry):
             particle["invariant"][role] = stream_condition_particles(
                 model, dataset, truth[truth_key], geometry, condition, device=device,
+                cache=token_cache, cache_key=f"particle__invariant__{role}__{name}",
                 max_events=limit, log=log)
     standard_particle = _embedding_variant(particle["standard"])
     invariant_particle = _embedding_variant(particle["invariant"])
@@ -4391,26 +4555,56 @@ def _variant_reading(entry, standard, invariant, *, leace=None) -> dict:
     return result
 
 
+def metric_statistic(metric):
+    """The point statistic of one §7.2 metric: mean error for vertex, RMS otherwise.
+
+    D2: ``vertex`` uses the mean 3-D error for both the point and the run-cluster
+    interval (``ef.paired_run_bootstrap``, as in X1); log-yield and energy use the
+    RMS for both.  Every comparison in this module must use the same statistic on
+    both sides (X1-c, X3-2, X3-3, ``_gain_specific`` and ``_ratio_and_ci`` already
+    do: X1's bootstrap is mean/mean, and the X3-1 comparisons are RMS/RMS because
+    both resolutions are RMS).
+    """
+    return np.mean if str(metric) == "vertex" else rms
+
+
 def _compare_at_d(calibrated, invariant, metric) -> dict:
-    """Calibrated minus invariant at D for one metric, with a run-cluster CI."""
+    """Calibrated minus invariant at D for one metric, with a run-cluster CI.
+
+    D2: the vertex point and interval both use the mean error
+    (``ef.paired_run_bootstrap`` as in X1); log-yield and energy both use the RMS.
+    The point is computed on the same aligned pairs as the interval.
+    """
     left = _metric_rows(calibrated, metric, "D")
     right = _metric_rows(invariant, metric, "D")
     if left is None or right is None:
         return {"status": "not available", "calibration_better": None,
                 "invariance_better": None}
-    difference = float(right["resolution"]) - float(left["resolution"])
-    out = {"difference": difference, "ci95": None,
+    out = {"difference": None, "ci95": None, "statistic": ("mean" if metric == "vertex"
+                                                           else "rms"),
            "calibration_better": None, "invariance_better": None}
     aligned = _align_metric_pair(left, right)
     if aligned is not None:
         left_errors, right_errors, run_ids = aligned
-        bootstrap = paired_cluster_bootstrap(left_errors, right_errors, run_ids,
-                                             statistic=rms)
-        out["ci95"] = bootstrap["ci95"]
+        if metric == "vertex":
+            bootstrap = ef.paired_run_bootstrap(left_errors, right_errors, run_ids)
+            out["difference"] = float(bootstrap["mean_difference_m"])
+            out["ci95"] = [float(value) for value in bootstrap["ci95_m"]]
+        else:
+            bootstrap = paired_cluster_bootstrap(left_errors, right_errors, run_ids,
+                                                 statistic=rms)
+            out["difference"] = float(bootstrap["difference"])
+            out["ci95"] = [float(value) for value in bootstrap["ci95"]]
+        out["bootstrap"] = bootstrap
+        out["n_events"] = int(left_errors.size)
+    if out["difference"] is None:
+        # no paired keys: fall back to the block resolutions, never to a mixed statistic
+        out["difference"] = (float(right["resolution"]) - float(left["resolution"]))
+    if out["ci95"] is not None:
         # difference = res_invariant - res_calibrated: positive means calibration
         # gives the lower (better) resolution
-        out["calibration_better"] = bool(bootstrap["ci95"][0] > 0)
-        out["invariance_better"] = bool(bootstrap["ci95"][1] < 0)
+        out["calibration_better"] = bool(out["ci95"][0] > 0)
+        out["invariance_better"] = bool(out["ci95"][1] < 0)
     return out
 
 
@@ -4506,8 +4700,20 @@ def _gain_specific(x3_1, standard, invariant, controls) -> dict:
     return out
 
 
+def _crlb_from_json(value) -> float:
+    """A null CRLB in ``x3_fisher.json`` is ∞ (Appendix E; JSON cannot store inf)."""
+    if value is None:
+        return float("inf")
+    return float(value)
+
+
 def _x3_five(fisher, variants) -> dict:
-    """X3-5: empirical ρ_E(log-yield) next to √(CRLB_inv/CRLB_known) for ln Y."""
+    """X3-5: empirical ρ_E(log-yield) next to √(CRLB_inv/CRLB_known) for ln Y.
+
+    D3 (execution fix 7): ``x3_fisher.json`` cannot represent an infinite CRLB, so
+    a JSON ``null`` on the efficient (``inv``) read is read as ∞ — the runbook's
+    Appendix E convention — instead of failing on it.
+    """
     rows = {}
     models = (fisher.get("models") or {})
     for name in ("C-mean", "C-mean+occupancy", "C-var_all", "C-var_ge1", "C-var_ge3"):
@@ -4515,10 +4721,16 @@ def _x3_five(fisher, variants) -> dict:
         known = (model.get("median_crlb") or {}).get("known")
         inv = (model.get("median_crlb") or {}).get("inv")
         ratio = None
-        if known and inv and known[3] > 0:
-            ratio = (float("inf") if np.isinf(inv[3]) else
-                     float(math.sqrt(inv[3] / known[3])))
-        rows[name] = {"theory_ratio_lnY": ratio}
+        if known and inv:
+            known_y = known[3] if len(known) > 3 else None
+            inv_y = _crlb_from_json(inv[3] if len(inv) > 3 else None)
+            if known_y is not None and math.isfinite(float(known_y)) \
+                    and float(known_y) > 0:
+                ratio = (float("inf") if math.isinf(inv_y)
+                         else float(math.sqrt(inv_y / float(known_y))))
+        rows[name] = {"theory_ratio_lnY": ratio,
+                      "efficient_lnY_crlb": (None if not inv or len(inv) <= 3
+                                             else inv[3])}
     empirical = None
     for key, variant in (variants or {}).items():
         entry = (variant.get("X3-1") or {}).get("log_yield") or {}
@@ -4547,7 +4759,7 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
     setup["inventory"] = inventory if inventory is not None else part_a_inventory(
         root, hash_files=False, log=lambda *a, **k: None)
     setup["inventory_counts"] = setup["inventory"]["counts"]
-    if probes is None and mode != "report":
+    if probes is None and mode not in ("report", "addendum-report"):
         probes = {"s005": open_probe_sets(config, gen, geometry, data_root,
                                           setting=S005, log=lambda *a, **k: None),
                   "s030": open_probe_sets(config, gen, geometry, data_root,
@@ -4640,6 +4852,17 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
             setup["plan"]["init_arm"] = {"arm": row.get("arm"),
                                          "d_model": int(getattr(arm, "d_model", 0) or 0)}
         setup["plan"]["entries"] = entries_preflight(log=log)
+    if mode in ADDENDUM_MODES or mode == "dry-run":
+        setup["plan"]["addendum"] = {
+            "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+            "modes": list(ADDENDUM_MODES),
+            "gpu_cap_hours": ADDENDUM_GPU_CAP_H,
+            "cpu_cap_hours": ADDENDUM_CPU_CAP_H,
+            "gpu_projection": dict(_ADDENDUM_GPU_PROJECTION),
+            "cpu_projection": dict(_ADDENDUM_CPU_PROJECTION),
+            "ledger": str(ADDENDUM_JOBS), "hours": addendum_hours(),
+            "cap_rule": "addendum caps only; the closed Part A and Part B caps "
+                        "are not consulted"}
     setup["plan"]["projection"] = setup["plan"].get("projection") or gpu_projection()
     setup["plan"]["cpu_projection"] = cpu_projection()
     setup["plan"]["s1"] = s1_projection(root)
@@ -4713,7 +4936,11 @@ def _plot(figure_path, draw):
 
 def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
                    x3_payload=None, fisher_payload=None, log=print) -> dict:
-    """Write the seven §9.6 figures from the readings; skipped without matplotlib."""
+    """Write the §9.6 figures from the readings; skipped without matplotlib.
+
+    Addendum D4: every figure has axis labels and a legend, and the identification
+    figure names its three streams (source / raw / latent).
+    """
     try:
         import matplotlib
         matplotlib.use("Agg")
@@ -4721,6 +4948,8 @@ def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
         return {"status": "unavailable", "reason": str(problem), "figures": []}
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    x1_models = (x1_payload or {}).get("models") or {}
+    x2_models = (x2_payload or {}).get("models") or {}
     x1 = (readings.get("x1") or {}).get("families") or {}
     x3 = (readings.get("x3") or {}).get("variants") or {}
     written, skipped = [], []
@@ -4732,82 +4961,135 @@ def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
                 rows.append((family, seed, row))
         return rows
 
+    def model_rows(field):
+        rows = []
+        for label, model in sorted(x1_models.items()):
+            family, seed = _family(label)
+            rows.append((label, f"{family}/{seed}", model))
+        return rows
+
     def draw_drift_ladder(axes):
         values = {}
-        for model in ((x1_payload or {}).get("models") or {}).values():
+        for label, model in sorted(x1_models.items()):
             conditions = model.get("conditions") or {}
             for condition in ("N", "D", "SWtw", "SWunit", "HW"):
                 entry = (conditions.get(condition) or {}).get("vertex") or {}
                 if entry.get("mean_error_m") is not None:
                     values.setdefault(condition, []).append(float(entry["mean_error_m"]))
         labels = [name for name in ("N", "D", "SWtw", "SWunit", "HW") if values.get(name)]
-        axes.boxplot([values[name] for name in labels], labels=labels)
+        if labels:
+            # matplotlib 3.8 spells this ``labels``; 3.9+ ``tick_labels``
+            try:
+                axes.boxplot([values[name] for name in labels], labels=labels)
+            except TypeError:  # pragma: no cover - newer matplotlib
+                axes.boxplot([values[name] for name in labels], tick_labels=labels)
+        axes.plot([], [], color="tab:blue", label=f"models (n = {len(x1_models)})")
+        axes.set_xlabel("condition")
         axes.set_ylabel("vertex mean error (m)")
+        axes.legend(fontsize=7)
 
     def draw_rho(axes):
-        rows = family_rows()
-        labels = [f"{family}/{seed}" for family, seed, _row in rows]
-        width = 0.38
+        rows = model_rows("vertex")
+        labels = [name for _label, name, _model in rows]
         index = np.arange(len(rows))
-        for offset, key in (("-w", "rho_swtw"), ("+w", "rho_swunit")):
-            values = [((row.get("X1-b") or {}).get("rho") if key == "rho_swtw"
-                       else None) for _f, _s, row in rows]
-            axes.bar(index + (width if offset == "+w" else 0), values, width=width,
-                     label=key)
+        width = 0.38
+        series = (("-w", "rho_swtw", "rho_SWtw (frozen drift cost)"),
+                  ("+w", "rho_swunit", "rho_SWunit (unit-gain calibration)"))
+        any_value = False
+        for offset, (_tag, key, legend) in enumerate(series):
+            values = []
+            for _label, _name, model in rows:
+                value = model.get(key)
+                values.append(float("nan") if value is None else float(value))
+            if np.isfinite(values).any():
+                axes.bar(index + offset * width, values, width=width, label=legend)
+                any_value = True
+        if not any_value:                       # fall back to the readings table
+            values = [float((row.get("X1-b") or {}).get("rho") or 0.0)
+                      for _f, _s, row in family_rows()]
+            axes.bar(index[:len(values)], values, width=width, label="rho (X1-b)")
+            labels = [f"{family}/{seed}" for family, seed, _row in family_rows()]
         axes.set_xticks(index + width / 2)
         axes.set_xticklabels(labels, rotation=90, fontsize=6)
+        axes.set_xlabel("model")
         axes.set_ylabel("recovered fraction")
-        axes.legend()
+        axes.legend(fontsize=7)
 
     def draw_r2(axes):
         names, values = [], []
-        for model in ((x2_payload or {}).get("models") or {}).values():
-            names.append(f"{model.get('family')}{model.get('seed')}")
-            values.append(((model.get("X2-b") or {}).get("occupancy") or {}).get("r2_cs"))
-            axes.set_ylabel("R²_eq")
-        axes.bar(np.arange(len(names)), [value or 0.0 for value in values])
+        for label, model in sorted(x2_models.items()):
+            family, seed = _family(label)
+            names.append(f"{family}/{seed}")
+            values.append((((model.get("X2-b") or {}).get("occupancy") or {})
+                           .get("r2_cs")))
+        axes.bar(np.arange(len(names)),
+                 [float("nan") if value is None else float(value) for value in values],
+                 label="R²_eq (occupancy model, Δz_cs)")
         axes.set_xticks(np.arange(len(names)))
         axes.set_xticklabels(names, rotation=90, fontsize=6)
+        axes.set_xlabel("model")
+        axes.set_ylabel("R²_eq")
+        axes.legend(fontsize=7)
 
     def draw_identification(axes):
-        names, errors = [], {}
-        for model in ((x2_payload or {}).get("models") or {}).values():
-            name = f"{model.get('family')}{model.get('seed')}"
-            names.append(name)
-            for stream, block in (model.get("X2-d") or {}).items():
-                if isinstance(block, dict) and block.get("median_run_rms") is not None:
-                    errors.setdefault(stream, []).append(float(block["median_run_rms"]))
+        streams = (("source", "source (known light)"), ("raw", "raw (unlabelled)"),
+                   ("latent", "latent (unlabelled)"))
+        names, values = [], {stream: [] for stream, _label in streams}
+        for label, model in sorted(x2_models.items()):
+            family, seed = _family(label)
+            names.append(f"{family}/{seed}")
+            for stream, _legend in streams:
+                block = (model.get("X2-d") or {}).get(stream) or {}
+                value = block.get("median_run_rms")
+                values[stream].append(float("nan") if value is None else float(value))
         index = np.arange(len(names))
-        for offset, (stream, values) in enumerate(sorted(errors.items())):
-            axes.bar(index + 0.8 * offset / max(len(errors), 1), values, width=0.8)
-        axes.set_ylabel("median run RMS error")
+        width = 0.8 / max(len(streams), 1)
+        for position, (stream, legend) in enumerate(streams):
+            axes.bar(index + position * width, values[stream], width=width, label=legend)
+        axes.set_xticks(index + width)
+        axes.set_xticklabels(names, rotation=90, fontsize=6)
+        axes.set_xlabel("model")
+        axes.set_ylabel("median per-run RMS error")
+        axes.legend(fontsize=7)
 
     def draw_fisher(axes):
         models = (fisher_payload or {}).get("models") or {}
         for name, block in sorted(models.items()):
-            ratios = (block.get("median_crlb") or {})
-            known = np.asarray(ratios.get("known") or [], float)
-            inv = np.asarray(ratios.get("inv") or [], float)
+            crlbs = (block.get("median_crlb") or {})
+            known = _float_array(crlbs.get("known"))
+            inv = _float_array(crlbs.get("inv"))
             if known.size == 4 and inv.size == 4:
                 with np.errstate(divide="ignore", invalid="ignore"):
                     axes.plot(np.arange(4), inv / known, marker="o", label=name)
         axes.set_xticks(np.arange(4))
         axes.set_xticklabels(THETA_NAMES)
+        axes.set_xlabel("parameter θ")
         axes.set_ylabel("median CRLB ratio (inv/known)")
         axes.legend(fontsize=6)
 
     def draw_price(axes):
-        names, values = [], []
+        names, values, controls = [], [], []
         for name, variant in sorted(x3.items()):
             entry = (variant.get("X3-1") or {}).get("log_yield") or {}
-            if entry.get("rho_E") is not None:
-                names.append(name)
-                values.append(float(entry["rho_E"]))
-        axes.bar(np.arange(len(names)), values)
-        axes.axhline(1.0, color="k", linewidth=0.8)
+            if entry.get("rho_E") is None:
+                continue
+            names.append(name)
+            values.append(float(entry["rho_E"]))
+            controls.append(entry.get("rho_control_q95"))
+        axes.bar(np.arange(len(names)), values, label="ρ_E (log-yield)")
+        axes.axhline(1.0, color="k", linewidth=0.8, label="no price (ρ_E = 1)")
+        points = [(index, float(value)) for index, value in enumerate(controls)
+                  if value is not None]
+        if points:
+            axes.scatter([index for index, _value in points],
+                         [value for _index, value in points], marker="D",
+                         color="tab:red", zorder=3,
+                         label="20 random controls, 95th percentile")
         axes.set_xticks(np.arange(len(names)))
         axes.set_xticklabels(names, rotation=90, fontsize=6)
-        axes.set_ylabel("ρ_E (log-yield)")
+        axes.set_xlabel("variant")
+        axes.set_ylabel("ρ_E (log-yield resolution ratio)")
+        axes.legend(fontsize=6)
 
     plan = {
         "drift_ladder.png": draw_drift_ladder,
@@ -4828,6 +5110,12 @@ def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
             "skipped": skipped}
 
 
+def _float_array(values):
+    """A float array with JSON nulls as NaN (for plotting CRLB rows)."""
+    return np.asarray([float("nan") if value is None else float(value)
+                       for value in (values or [])], float)
+
+
 def _plot_residual_split(axes, family_rows):
     rows = family_rows()
     names = [f"{family}/{seed}" for family, seed, _row in rows]
@@ -4838,8 +5126,10 @@ def _plot_residual_split(axes, family_rows):
     axes.bar(index, r_ni, bottom=r_cs, label="R_ni (non-invertible)")
     axes.set_xticks(index)
     axes.set_xticklabels(names, rotation=90, fontsize=6)
+    axes.set_xlabel("model")
     axes.set_ylabel("residual (m)")
-    axes.legend()
+    axes.legend(fontsize=7)
+
 
 
 def assemble_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print) -> dict:
@@ -4965,3 +5255,1286 @@ def _fmt(value, digits=6):
     if isinstance(value, (int, float)):
         return f"{value:.{digits}g}"
     return str(value)
+
+
+# ================================================ addendum (7 Nov 2026) §6/§8
+#: Addendum §6 projections (L40S h).  Only the addendum modes consult these; the
+#: closed Part A (4.0 h) and Part B (1.5 h) caps are never reused (§6).
+_ADDENDUM_GPU_PROJECTION = {"addendum-x2e": 0.06}
+#: CPU wall-hour projections against the addendum's 3.0 h cap.
+_ADDENDUM_CPU_PROJECTION = {"addendum-selfcheck": 0.15, "addendum-x2": 0.75,
+                            "addendum-x3": 1.50, "addendum-report": 0.10}
+#: The only outcomes that may be written as "not_run" (never invented values).
+_ADDENDUM_NOT_RUN = "not_run"
+
+
+def _addendum_dir(ext_root) -> Path:
+    return Path(ext_root) / "addendum"
+
+
+def addendum_hours() -> dict:
+    """Booked addendum hours by kind, summed over every part's ledger lines (§6)."""
+    total = {"gpu": 0.0, "cpu": 0.0, "jobs": 0, "path": str(ADDENDUM_JOBS)}
+    path = Path(ADDENDUM_JOBS)
+    if not path.is_file():
+        return total
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        kind = str(row.get("kind", "")).lower()
+        if kind in ("gpu", "cpu"):
+            total[kind] += float(row.get("hours") or 0.0)
+            total["jobs"] += 1
+    return total
+
+
+def assert_addendum_budget(kind, projected_hours, *, part="A") -> dict:
+    """Refuse a job that would cross the addendum's 0.35 h GPU / 3.0 h CPU caps.
+
+    The closed Part A and Part B caps are not consulted (§6).  A refusal is
+    ``SystemExit(2)`` with a clear ``not_run (cap)`` message, so the caller never
+    silently skips the item.
+    """
+    kind = str(kind).lower()
+    if kind not in ("gpu", "cpu"):
+        raise ValueError(f"unknown addendum budget kind {kind!r}")
+    cap = ADDENDUM_GPU_CAP_H if kind == "gpu" else ADDENDUM_CPU_CAP_H
+    used = float(addendum_hours().get(kind, 0.0))
+    projected = float(projected_hours or 0.0)
+    if used + projected > cap:
+        message = (f"addendum budget: {kind} already {used:.3f} h + projected "
+                   f"{projected:.3f} h > {cap:.2f} h cap (part {part}); "
+                   f"refusing: not_run (cap)")
+        print(f"[repair] {message}", file=sys.stderr)
+        raise SystemExit(2)
+    return {"kind": kind, "used_hours": used, "projected_hours": projected,
+            "cap_hours": cap, "remaining_hours": cap - used, "part": str(part),
+            "pass": True}
+
+
+def record_addendum_job(mode, kind, wall_seconds, *, part="A") -> dict:
+    """Append one JSON line to the shared addendum ledger (atomic O_APPEND write)."""
+    seconds = max(0.0, float(wall_seconds or 0.0))
+    row = {"utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+           "part": str(part), "mode": str(mode), "kind": str(kind),
+           "wall_seconds": round(seconds, 3), "hours": round(seconds / 3600.0, 6)}
+    path = Path(ADDENDUM_JOBS)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+        try:
+            os.write(descriptor, (json.dumps(row) + "\n").encode("utf-8"))
+        finally:
+            os.close(descriptor)
+        row["recorded"] = True
+    except OSError as problem:  # pragma: no cover - a missing ledger mount
+        row["recorded"] = False
+        row["reason"] = str(problem)
+    return row
+
+
+def _addendum_budget_for(mode) -> dict:
+    """The addendum cap check of one addendum mode (GPU or CPU per §8)."""
+    if mode in _ADDENDUM_GPU_MODES:
+        return assert_addendum_budget("gpu", _ADDENDUM_GPU_PROJECTION.get(mode, 0.0),
+                                      part="A")
+    return assert_addendum_budget("cpu", _ADDENDUM_CPU_PROJECTION.get(mode, 0.0),
+                                  part="A")
+
+
+def _addendum_finish(mode, payload, *, root, started, kind) -> dict:
+    payload["budget"] = record_addendum_job(mode, kind, time.time() - started, part="A")
+    payload["hours"] = addendum_hours()
+    payload["closure"] = _assert_closure(mode, root)
+    payload["wall_seconds"] = round(time.time() - started, 3)
+    return payload
+
+
+def _cached_condition_rows(cache, roles, names) -> tuple:
+    """Load one model's cached embedding rows; a missing key returns ``None``+the keys."""
+    if cache is None:
+        return None, [f"{role}__{name}" for role in roles for name in names]
+    rows, missing = {role: {} for role in roles}, []
+    for role in roles:
+        for name in names:
+            key = embedding_cache_key(role, name)
+            if not cache.has(key):
+                missing.append(key)
+                continue
+            rows[role][name] = cache.fetch(key, lambda: {})
+    return (None if missing else rows), missing
+
+
+# --------------------------------------------------------- D1 self-check §2
+def _relative_error(actual, reference) -> float:
+    """Relative Frobenius (or max-abs when the reference is zero) difference."""
+    actual = np.asarray(actual, float)
+    reference = np.asarray(reference, float)
+    denominator = float(np.linalg.norm(reference))
+    if denominator > 0.0:
+        return float(np.linalg.norm(actual - reference) / denominator)
+    return float(np.max(np.abs(actual - reference))) if actual.size else 0.0
+
+
+def d1_identity_reference(fitted, u) -> np.ndarray:
+    """``predict(u) - predict(0)`` from ``fit_probe`` fits, one column per target."""
+    u = np.asarray(u, float)
+    zero = np.zeros((1, u.shape[1]))
+    columns = []
+    for probe in fitted.get("fits") or []:
+        if probe.get("status") == "fit":
+            fit = probe["fit"]
+            columns.append(np.asarray(fit.predict(u), float)
+                           - np.asarray(fit.predict(zero), float))
+        else:
+            columns.append(np.zeros(u.shape[0]))
+    return np.stack(columns, axis=1)
+
+
+def d1_identity_check(fitted, u, *, tolerance=1e-8) -> dict:
+    """Check ``u Â_rawᵀ == predict(u) − predict(0)`` on the given design (D1)."""
+    A_raw = raw_map(fitted)
+    if A_raw is None or not (fitted.get("fits") or []):
+        return {"pass": False, "reason": "no fitted probe", "tolerance": tolerance}
+    predicted = np.asarray(u, float) @ np.asarray(A_raw, float).T
+    reference = d1_identity_reference(fitted, u)
+    relative = _relative_error(predicted, reference)
+    return {"pass": bool(relative <= float(tolerance)), "relative_error": relative,
+            "tolerance": float(tolerance), "n_events": int(np.asarray(u).shape[0]),
+            "leading_fit_mean_dtype": str(np.asarray(
+                (fitted["fits"][0].get("fit").mean)).dtype)}
+
+
+def _d1_check_model(rows, delta, occupancy_n, geometry, *, tolerance=1e-8) -> dict:
+    """One model's D1 checks and descriptives on probe-train fits, probe-test u_S."""
+    train, test = rows["train"], rows["test"]
+    n_train = np.asarray(train["N"]["events"], float)
+    n_test = np.asarray(test["N"]["events"], float)
+    s_train = np.asarray(pair_embedding_rows(train["N"], train["S"])[1]["events"], float)
+    s_test = np.asarray(pair_embedding_rows(test["N"], test["S"])[1]["events"], float)
+    delta_train = {run: delta[run] for run in set(
+        np.asarray(train["N"]["run_ids"]).astype(str)) if run in delta}
+    delta_test = {run: delta[run] for run in set(
+        np.asarray(test["N"]["run_ids"]).astype(str)) if run in delta}
+    u_train = occupancy_design(train["S"], delta_train, occupancy_n["train"], geometry)
+    u_test = occupancy_design(test["S"], delta_test, occupancy_n["test"], geometry)
+    fit = equivariance_fit(u_train, s_train - n_train, u_test, s_test - n_test,
+                           run_ids_train=np.asarray(train["N"]["run_ids"]),
+                           run_ids_test=np.asarray(test["N"]["run_ids"]),
+                           kind="occupancy")
+    identity = d1_identity_check(fit["fitted"], u_test, tolerance=tolerance)
+    A_raw = np.asarray(raw_map(fit), float)
+    repaired = s_test - u_test @ A_raw.T
+    denominator = float(np.mean(np.sum((s_test - n_test) ** 2, axis=1)))
+    numerator = float(np.mean(np.sum((repaired - n_test) ** 2, axis=1)))
+    removed = None if denominator <= 0.0 else 1.0 - numerator / denominator
+    frozen = fit_vertex_probe(train["N"])
+    v_n = vertex_row(test["N"], fitted=frozen)["mean_error_m"]
+    v_s = vertex_row(test["S"], fitted=frozen)["mean_error_m"]
+    repaired_rows = dict(test["S"])
+    repaired_rows["events"] = repaired
+    v_repaired = vertex_row(repaired_rows, fitted=frozen)["mean_error_m"]
+    recovered = None
+    if None not in (v_s, v_n, v_repaired) and abs(float(v_s) - float(v_n)) > 0.0:
+        recovered = float((float(v_s) - float(v_repaired)) / (float(v_s) - float(v_n)))
+    r2_eq = fit.get("r2_eq")
+    flag = bool(r2_eq is not None and float(r2_eq) >= 0.4
+                and recovered is not None and recovered < 0.0)
+    return {"status": "evaluated", "identity": identity,
+            "identity_pass": bool(identity.get("pass")),
+            "r2_eq": r2_eq, "removed_share": removed,
+            "recovered_fraction": recovered, "v_N_m": v_n, "v_S_m": v_s,
+            "v_S_repaired_m": v_repaired,
+            "flag": flag,
+            "flag_text": ("latent repair fails even on the fitting condition"
+                          if flag else None),
+            "n_train": int(u_train.shape[0]), "n_test": int(u_test.shape[0])}
+
+
+def addendum_selfcheck(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
+                       ext_root=EXT_ROOT, root=None, labels=None,
+                       tolerance=1e-8, log=print) -> dict:
+    """Addendum D1/C1 self-check (CPU, before any X2 rerun; §2 and §8 order).
+
+    On probe-test, for each of the 13 core models: check
+    ``u_S Â_rawᵀ == predict(u_S) − predict(0)`` on the probe-train fits to
+    ``tolerance`` (1e-8 relative), and report the removed share, the recovered
+    fraction and the "latent repair fails even on the fitting condition" flag.
+    An identity failure is the S9 STOP for the D1 reruns only (§9).
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum-selfcheck", root=root, log=log)
+    budget = _addendum_budget_for("addendum-selfcheck")
+    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    names = ("N", "D", "S")
+    conditions = {role: build_conditions(
+        {"s005": probes005[role], "s030": probes030[role]}, geometry, names)
+        for role in ("train", "test")}
+    occupancy_n = {role: occupancy_counts(probes005[role], conditions[role]["N"],
+                                          geometry) for role in ("train", "test")}
+    delta = run_log_gain_vectors(probes030["train"], geometry)
+    delta.update(run_log_gain_vectors(probes030["test"], geometry))
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum D1 self-check §2", "addendum": ADDENDUM_REL,
+               "addendum_sha256": ADDENDUM_SHA256, "gate": {"status": gate["status"]},
+               "budget": budget, "models": {}, "identity_tolerance": float(tolerance),
+               "stop": None, "flags": [], "unavailable": [], "wall_seconds": None}
+    for label in (list(CORE_MODELS) if labels is None else list(labels)):
+        cache = embedding_cache(ext_root, label)
+        rows, missing = _cached_condition_rows(cache, ("train", "test"), names)
+        if rows is None:
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": "sha-verified X1 embeddings absent",
+                                           "missing": missing})
+            continue
+        try:
+            row = _d1_check_model(rows, delta, occupancy_n, geometry,
+                                  tolerance=tolerance)
+        except SystemExit:
+            raise
+        except Exception as problem:  # pragma: no cover - a missing/shifted cache
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": f"{type(problem).__name__}: {problem}"})
+            continue
+        payload["models"][label] = row
+        if row.get("flag"):
+            payload["flags"].append({"label": label,
+                                     "flag": row.get("flag_text"),
+                                     "r2_eq": row.get("r2_eq"),
+                                     "recovered_fraction": row.get("recovered_fraction")})
+    evaluated = [row for row in payload["models"].values()
+                 if row.get("status") == "evaluated"]
+    payload["n_models"] = len(payload["models"])
+    payload["identity_pass"] = bool(evaluated) and all(
+        bool(row.get("identity_pass")) for row in evaluated)
+    payload["complete"] = (payload["n_models"] == len(
+        list(CORE_MODELS) if labels is None else list(labels)) and not payload["unavailable"])
+    if not payload["identity_pass"]:
+        payload["stop"] = ("S9: the D1 identity u_S Â_rawᵀ == predict(u_S) − predict(0) "
+                           "fails on real data after one fix attempt; the D1 reruns "
+                           "(addendum-x2/x2e and R-1) stop, the other items continue")
+    payload["meta"] = {"runs": [label for label in payload["models"]],
+                       "note": "a positive removed share means the raw-unit map removes "
+                               "the charge-scale part; the flag is descriptive, not a STOP"}
+    return _addendum_finish("addendum-selfcheck", payload, root=root, started=started,
+                            kind="cpu")
+
+
+# ------------------------------------------------- D1 reruns: X2-c/d/f (CPU) §2
+def _addendum_x2_model(rows, delta, occupancy, geometry, truth_test,
+                       truth_train) -> dict:
+    """X2-c, the X2-d latent stream and X2-f of one model, all from raw-unit Â."""
+    train, test = rows["train"], rows["test"]
+    n_train = np.asarray(train["N"]["events"], float)
+    n_test = np.asarray(test["N"]["events"], float)
+    s_train = np.asarray(pair_embedding_rows(train["N"], train["S"])[1]["events"], float)
+    s_test = np.asarray(pair_embedding_rows(test["N"], test["S"])[1]["events"], float)
+    d_train = np.asarray(pair_embedding_rows(train["N"], train["D"])[1]["events"], float)
+    d_test = np.asarray(pair_embedding_rows(test["N"], test["D"])[1]["events"], float)
+    delta_train = {run: delta[run] for run in set(
+        np.asarray(train["N"]["run_ids"]).astype(str)) if run in delta}
+    delta_test = {run: delta[run] for run in set(
+        np.asarray(test["N"]["run_ids"]).astype(str)) if run in delta}
+    u_train = occupancy_design(train["S"], delta_train, occupancy["n"]["train"], geometry)
+    u_test = occupancy_design(test["S"], delta_test, occupancy["n"]["test"], geometry)
+    fit_cs = equivariance_fit(u_train, s_train - n_train, u_test, s_test - n_test,
+                              run_ids_train=np.asarray(train["N"]["run_ids"]),
+                              run_ids_test=np.asarray(test["N"]["run_ids"]),
+                              kind="occupancy")
+    A_hat = _stack_coefficients(fit_cs)          # D1: raw units
+    frozen = fit_vertex_probe(train["N"])
+    x2c = _x2c(rows, delta, occupancy["d"]["test"], geometry, frozen, A_hat)
+    occ_events_train = occupancy_design(train["N"], delta_train,
+                                        occupancy["d"]["train"], geometry)
+    _, occ_mean_train = _run_mean_vectors(train["N"]["run_ids"], occ_events_train)
+    occ_events_test = occupancy_design(test["N"], delta_test,
+                                       occupancy["d"]["test"], geometry)
+    _, occ_mean_test = _run_mean_vectors(test["N"]["run_ids"], occ_events_test)
+    latent = latent_stream_estimates(
+        features_n_train=n_train, features_d_train=d_train,
+        run_ids_train=np.asarray(train["N"]["run_ids"]),
+        occupancy_events_train=occ_events_train,
+        occupancy_mean_train=occ_mean_train, features_n_reference=n_train,
+        features_d_test=d_test, run_ids_test=np.asarray(test["N"]["run_ids"]),
+        occupancy_events_test=occ_events_test,
+        occupancy_mean_test=occ_mean_test, truth_train=truth_train)
+    x2d = {"latent": identification_report(latent["estimates"], truth_test),
+           "latent_cv": latent["cv"]}
+    whitening = whitening_matrix(n_train, np.asarray(train["N"]["run_ids"]))
+    occ_n_train = occupancy_design(train["N"], delta_train,
+                                   occupancy["n"]["train"], geometry)
+    x2f = identifiability_spectrum(A_hat, whitening["W"], occ_n_train.mean(axis=0))
+    estimates = {str(run): np.asarray(value, float).tolist()
+                 for run, value in latent["estimates"].items()}
+    model = {"status": "evaluated", "r2_eq": fit_cs.get("r2_eq"),
+             "A_hat": np.asarray(A_hat, float).tolist(),
+             "A_hat_units": "raw (coefficients / scale)",
+             "X2-c": x2c, "X2-d": x2d, "X2-f": x2f,
+             "reused": {"source": True, "raw": True},
+             "n_train": int(u_train.shape[0]), "n_test": int(u_test.shape[0])}
+    return {"model": model, "latent_estimates": estimates}
+
+
+def addendum_x2(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
+                ext_root=EXT_ROOT, root=None, labels=None, log=print) -> dict:
+    """D1 rerun (CPU): X2-c, the X2-d latent stream and X2-f from cached embeddings.
+
+    The source and raw streams do not use Â and are reused unchanged from the 7 Nov
+    payload; this mode only writes an ``x2_addendum.json`` overlay so the 7 Nov
+    ``x2.json`` (and therefore the superseded table's old values) stays intact.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum-x2", root=root, log=log)
+    budget = _addendum_budget_for("addendum-x2")
+    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    names = ("N", "D", "S")
+    conditions = {role: build_conditions(
+        {"s005": probes005[role], "s030": probes030[role]}, geometry, names)
+        for role in ("train", "test")}
+    occupancy = {
+        "n": {role: occupancy_counts(probes005[role], conditions[role]["N"], geometry)
+              for role in ("train", "test")},
+        "d": {role: occupancy_counts(probes030[role], conditions[role]["D"], geometry)
+              for role in ("train", "test")}}
+    delta = run_log_gain_vectors(probes030["train"], geometry)
+    delta.update(run_log_gain_vectors(probes030["test"], geometry))
+    truth_test, truth_train = _gain_truth(probes030, geometry)
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum D1 rerun: X2-c, X2-d latent, X2-f", "addendum":
+               ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+               "gate": {"status": gate["status"]}, "budget": budget,
+               "A_hat_units": "raw (coefficients / scale)",
+               "reused": {"X2-d": {"source": True, "raw": True}},
+               "models": {}, "latent_estimates": {}, "unavailable": [],
+               "wall_seconds": None}
+    for label in (list(CORE_MODELS) if labels is None else list(labels)):
+        cache = embedding_cache(ext_root, label)
+        rows, missing = _cached_condition_rows(cache, ("train", "test"), names)
+        if rows is None:
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": "sha-verified X1 embeddings absent",
+                                           "missing": missing})
+            continue
+        try:
+            out = _addendum_x2_model(rows, delta, occupancy, geometry,
+                                     truth_test, truth_train)
+        except SystemExit:
+            raise
+        except Exception as problem:  # pragma: no cover - a missing/shifted cache
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": f"{type(problem).__name__}: {problem}"})
+            continue
+        payload["models"][label] = out["model"]
+        payload["latent_estimates"][label] = out["latent_estimates"]
+    payload = _strip_internal(payload)
+    payload["complete"] = not payload["unavailable"]
+    return _addendum_finish("addendum-x2", payload, root=root, started=started,
+                            kind="cpu")
+
+
+# --------------------------------------- D1 rerun: EST(latent) X2-e (GPU) §2/§6
+def addendum_x2e(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFAULT,
+                 device="auto", ext_root=EXT_ROOT, root=None, labels=None, limit=None,
+                 log=print) -> dict:
+    """D1 rerun (GPU, §6): re-encode EST(latent) probe-test sets and read ρ_EST(latent).
+
+    EST(source) and EST(raw) are reused unchanged.  The λ-selected δ̂_latent
+    estimates come from ``x2_addendum.json`` (``addendum-x2``), so no probe-test
+    truth enters this mode; the latent repair is ``_latent_repair_rows`` with the
+    corrected raw-unit Â.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum-x2e", root=root, log=log)
+    budget = _addendum_budget_for("addendum-x2e")
+    base = read_json(Path(ext_root) / "x2" / "x2.json", {}) or {}
+    extra = read_json(_addendum_dir(ext_root) / "x2_addendum.json", {}) or {}
+    estimates_all = extra.get("latent_estimates") or {}
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum D1 rerun: X2-e EST(latent)", "addendum": ADDENDUM_REL,
+               "addendum_sha256": ADDENDUM_SHA256,
+               "gate": {"status": gate["status"]}, "budget": budget,
+               "reused": {"EST(source)": True, "EST(raw)": True},
+               "models": {}, "unavailable": [], "wall_seconds": None}
+    if not estimates_all:
+        payload["status"] = "not_run (addendum-x2 first)"
+        payload["complete"] = False
+        return _addendum_finish("addendum-x2e", payload, root=root, started=started,
+                                kind="gpu")
+    inv = part_a_inventory(root, hash_files=False, log=lambda *a, **k: None)
+    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    conditions_d = {role: build_condition("D", probes030[role], geometry)
+                    for role in ("train", "test")}
+    occupancy_d = {role: occupancy_counts(probes030[role], conditions_d[role], geometry)
+                   for role in ("train", "test")}
+    for label in (list(CORE_MODELS) if labels is None else list(labels)):
+        estimate = estimates_all.get(label)
+        row = inv["rows"].get(label)
+        if estimate is None:
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": "latent estimates absent"})
+            continue
+        if row is None or row.get("status") not in ("available", "unverified (dry-run)"):
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": "inventory unavailable"})
+            continue
+        cache = embedding_cache(ext_root, label)
+        rows_test, missing = _cached_condition_rows(
+            cache, ("test",), ("N", "D", "SWmod"))
+        rows_train, missing_train = _cached_condition_rows(cache, ("train",), ("N",))
+        if rows_test is None or rows_train is None:
+            payload["unavailable"].append({
+                "label": label, "status": _ADDENDUM_NOT_RUN,
+                "reason": "sha-verified X1 embeddings absent",
+                "missing": list(missing or []) + list(missing_train or [])})
+            continue
+        try:
+            with ef.item_eval_context(row):
+                arm = ef.build_item_arm(row, config=config, gen=gen,
+                                        arms_config=arms_config, geometry=geometry,
+                                        data_root=data_root, device=device, log=log)
+            model = getattr(arm, "jepa", arm)
+            frozen = fit_vertex_probe(rows_train["N"])
+            v_n = vertex_row(rows_test["N"], fitted=frozen)["mean_error_m"]
+            v_d = vertex_row(rows_test["D"], fitted=frozen)["mean_error_m"]
+            if v_n is None or v_d is None or abs(float(v_d) - float(v_n)) <= 0.0:
+                raise ValueError("drift cost undefined: ρ_EST has no denominator")
+            ceiling = None
+            if "SWmod" in rows_test:
+                v_swmod = vertex_row(rows_test["SWmod"], fitted=frozen)["mean_error_m"]
+                if v_swmod is not None:
+                    ceiling = float((float(v_d) - float(v_swmod))
+                                    / (float(v_d) - float(v_n)))
+            condition = build_condition("EST(latent)", probes030["test"], geometry,
+                                        estimates=estimate)
+            est_rows = stream_condition_embeddings(
+                model, probes030["test"], geometry, condition,
+                split=row_split(row), config=config, device=device, cache=None,
+                max_events=limit, log=log)
+            v_est = vertex_row(est_rows, fitted=frozen)["mean_error_m"]
+            entry = {"rho_EST_latent": (None if v_est is None else
+                                        float((float(v_d) - float(v_est))
+                                              / (float(v_d) - float(v_n)))),
+                     "v_EST_latent_m": v_est, "ceiling_rho_SWmod": ceiling,
+                     "v_N_m": v_n, "v_D_m": v_d}
+            A_raw = extra["models"][label].get("A_hat")
+            if A_raw is not None:
+                repaired = _latent_repair_rows(rows_test["D"], occupancy_d["test"],
+                                               geometry, np.asarray(A_raw, float),
+                                               estimate)
+                v_lr = vertex_row(repaired, fitted=frozen)["mean_error_m"]
+                entry["latent_repair_rho_LR"] = (None if v_lr is None else
+                                                 float((float(v_d) - float(v_lr))
+                                                       / (float(v_d) - float(v_n))))
+                entry["v_latent_repair_m"] = v_lr
+                entry["latent_repair_uses_raw_map"] = True
+            # the two unchanged streams: reuse the 7 Nov X2-e readings verbatim
+            streams = ((base.get("models") or {}).get(label) or {}).get("X2-e", {}) \
+                or {}
+            entry["reused_streams"] = {
+                name: (streams.get("streams") or {}).get(name)
+                for name in ("source", "raw")}
+            payload["models"][label] = entry
+        except SystemExit:
+            raise
+        except Exception as problem:  # pragma: no cover - a missing checkpoint/GPU
+            payload["unavailable"].append({"label": label, "status": _ADDENDUM_NOT_RUN,
+                                           "reason": f"{type(problem).__name__}: {problem}"})
+            continue
+    payload["complete"] = not payload["unavailable"]
+    return _addendum_finish("addendum-x2e", payload, root=root, started=started,
+                            kind="gpu")
+
+
+# -------------------------------------- D2 rerun: X3-b readings (CPU) §3/§7.2
+def _x3_init9000_from_cache(inv, ext_root, probes005, probes030, geometry) -> dict:
+    """The init9000 X3-b family from the sha-verified gain-blind-token cache.
+
+    Absent or unverifiable cache: ``not_run (gpu needed)`` — never a silent skip
+    (addendum §3 rerun rule and §8 GPU ordering).
+    """
+    cache = init9000_token_cache(ext_root)
+    missing = [key for key in _INIT9000_TOKEN_KEYS if not cache.has(key)]
+    if missing:
+        return {"status": "not_run (gpu needed)",
+                "reason": "no sha-verified init9000 gain-blind-token cache at "
+                          "<ext>/addendum/init9000",
+                "missing": missing}
+    try:
+        rows = {key: cache.fetch(key, lambda: {}) for key in _INIT9000_TOKEN_KEYS}
+    except RuntimeError as problem:
+        return {"status": "not_run (gpu needed)",
+                "reason": f"init9000 token cache sha mismatch: {problem}"}
+    def block(domain, kind):
+        return {role: rows[f"{domain}__{kind}__{role}__{name}"]
+                for role, name in (("train", "N"), ("test", "N"), ("drift", "D"))}
+    standard_variant = _embedding_variant(block("photon", "standard"))
+    invariant_variant = _embedding_variant(block("photon", "invariant"))
+    standard_particle = _embedding_variant(block("particle", "standard"))
+    invariant_particle = _embedding_variant(block("particle", "invariant"))
+    if standard_particle.get("energy"):
+        standard_variant["energy"] = standard_particle["energy"]
+    if invariant_particle.get("energy"):
+        invariant_variant["energy"] = invariant_particle["energy"]
+    out = {"status": "evaluated", "source": "sha-verified cached tokens",
+           "split": row_split((inv.get("rows") or {}).get("init9000") or {}),
+           "standard": standard_variant, "invariant": invariant_variant}
+    cache_x1 = embedding_cache(ext_root, "init9000")
+    calibrated = {}
+    try:
+        n_train = (cache_x1.fetch(embedding_cache_key("train", "N"), lambda: {})
+                   if cache_x1.has(embedding_cache_key("train", "N")) else None)
+        swunit = (cache_x1.fetch(embedding_cache_key("test", "SWunit"), lambda: {})
+                  if cache_x1.has(embedding_cache_key("test", "SWunit")) else None)
+        if n_train is not None and swunit is not None:
+            calibrated["vertex"] = {"D": vertex_row(swunit,
+                                                    fitted=fit_vertex_probe(n_train))}
+            calibrated["log_yield"] = {"D": log_yield_row(
+                swunit, fitted=fit_log_yield_probe(n_train))}
+        n_particle = (cache_x1.fetch("particle__train__N", lambda: {})
+                      if cache_x1.has("particle__train__N") else None)
+        sw_particle = (cache_x1.fetch("particle__test__SWunit", lambda: {})
+                       if cache_x1.has("particle__test__SWunit") else None)
+        if n_particle is not None and sw_particle is not None:
+            calibrated["energy"] = {"D": energy_metrics(
+                n_particle, sw_particle, fitted=fit_energy_probe(n_particle))}
+    except Exception as problem:  # pragma: no cover - a missing/shifted cache
+        calibrated = {"status": "unavailable", "reason": str(problem)}
+    out["calibrated"] = calibrated
+    return out
+
+
+def addendum_x3(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFAULT,
+                ext_root=EXT_ROOT, root=None, limit=None, log=print) -> dict:
+    """D2 rerun (CPU): X3-1 … X3-5 for every family with the corrected statistics.
+
+    Raw features are recomputed on the CPU; the LEACE family is rebuilt from the
+    sha-verified X1 cached embeddings; the init9000 gain-blind tokens are read from
+    their verified cache or reported ``not_run (gpu needed)``.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum-x3", root=root, log=log)
+    budget = _addendum_budget_for("addendum-x3")
+    inv = part_a_inventory(root, log=log)
+    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    truth = {role: ef.load_particle_truth(data_root, PROBE_KEYS_S005[role])
+             for role in ("train", "test")}
+    swunit = build_condition("SWunit", probes030["test"], geometry)
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum D2 rerun: X3-b readings §7.2", "addendum":
+               ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+               "gate": {"status": gate["status"]}, "budget": budget,
+               "statistics": {"vertex": "mean", "log_yield": "rms", "energy": "rms"},
+               "families": {}, "unavailable": [], "not_run": [], "wall_seconds": None}
+    standard = {}
+    for role, dataset, truth_role in (("train", probes005["train"], "train"),
+                                      ("test", probes005["test"], "test"),
+                                      ("drift", probes030["test"], "test")):
+        standard[role] = _variant_metric_rows(
+            raw_std_features(dataset, geometry, truth=truth[truth_role])["merged"])
+    invariant = {
+        "train": _variant_metric_rows(raw_inv_features(probes005["train"], geometry)),
+        "test": _variant_metric_rows(raw_inv_features(probes005["test"], geometry)),
+        "drift": _variant_metric_rows(raw_inv_features(probes030["test"], geometry))}
+    calibrated = _variant_metric_rows(raw_std_features(
+        probes030["test"], geometry, truth=truth["test"],
+        condition=swunit)["merged"])
+    payload["families"]["raw"] = _feature_variant("raw", standard, invariant,
+                                                  calibrated_rows=calibrated)
+    payload["families"]["init9000"] = _x3_init9000_from_cache(
+        inv, ext_root, probes005, probes030, geometry)
+    if payload["families"]["init9000"].get("status") != "evaluated":
+        payload["not_run"].append({"family": "init9000",
+                                   "status": "not_run (gpu needed)"})
+    payload["families"]["leace"] = _x3_leace(inv, probes005, probes030, geometry,
+                                             ext_root, limit=limit, log=log)
+    fisher = read_json(Path(ext_root) / "x3" / "x3_fisher.json", None)
+    payload["readings"] = x3_readings(payload, fisher=fisher)
+    payload = _strip_internal(payload)
+    payload["complete"] = bool(payload["readings"]["variants"])
+    return _addendum_finish("addendum-x3", payload, root=root, started=started,
+                            kind="cpu")
+
+
+# ============================================ addendum D4: committed summary
+#: The addendum §5 D4 completeness list, used to report every missing item as
+#: ``not_run`` instead of inventing a value.
+_D4_X1_ITEMS = ("X1-c", "X1-d", "X1-e", "X1-f")
+_D4_X2_ITEMS = ("X2-a", "X2-d", "X2-e", "X2-f")
+_D4_X3_ITEMS = ("rank", "unerased_concept_r2", "erased_concept_r2", "X3-1",
+                "X3-2", "X3-3", "X3-4")
+
+
+def _pick(mapping, *path, default=None):
+    """Follow a key path through nested dicts; a missing key returns ``default``."""
+    value = mapping
+    for key in path:
+        if not isinstance(value, dict) or key not in value:
+            return default
+        value = value[key]
+    return value
+
+
+def _utc_now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def _x1_seed_summary(model) -> dict:
+    """Every D4 X1 item of one model record, plus the 7 Nov flat keys."""
+    model = model or {}
+    comparisons = model.get("comparisons") or {}
+    delta = _mean_difference(comparisons.get("D"))
+    delta_ci = _ci95(comparisons.get("D"))
+    v_n, v_d = _frozen_mean(model, "N"), _frozen_mean(model, "D")
+    denominator = (None if v_n is None or v_d is None or abs(float(v_d) - float(v_n)) <= 0
+                   else float(v_d) - float(v_n))
+    rho = {}
+    for key, name in (("rho_swtw", "SWtw"), ("rho_swunit", "SWunit")):
+        value = _frozen_mean(model, name)
+        rho[key] = (None if denominator is None or value is None
+                    else float((float(v_d) - float(value)) / denominator))
+    row = {"X1-a": {"delta_D_m": delta, "ci95_m": delta_ci,
+                    "eligible": eligibility(delta, delta_ci)},
+           "X1-b": {"rho": rho["rho_swtw"],
+                    "eligible": eligibility(delta, delta_ci),
+                    "class": (_x1b_class(rho["rho_swtw"])
+                              if eligibility(delta, delta_ci) else None)},
+           "X1-c": _x1c(comparisons), "X1-d": _x1d(comparisons),
+           "X1-e": _x1e(model, rho["rho_swunit"]), "X1-f": _x1f(model),
+           "X1-g": _x1g(model),
+           # the 7 Nov flat keys stay for a reader of the old SUMMARY.json
+           "delta_D_m": delta, "ci95_m": delta_ci,
+           "eligible": eligibility(delta, delta_ci),
+           "rho_swtw": rho["rho_swtw"], "rho_swunit": rho["rho_swunit"],
+           "class_swtw": (_x1b_class(rho["rho_swtw"])
+                          if eligibility(delta, delta_ci) else None),
+           "share_cs": _x1g(model).get("share_cs"),
+           "class_x1g": _x1g(model).get("class")}
+    return row
+
+
+def _x2_seed_summary(base_model, extra_model=None, x2e_entry=None) -> dict:
+    """Every D4 X2 item of one model, with the D1 rerun overlays when present."""
+    model = base_model or {}
+    extra = extra_model or {}
+    x2e = x2e_entry or {}
+    split = model.get("split")
+    b_occ = ((model.get("X2-b") or {}).get("occupancy") or {})
+    b_glob = ((model.get("X2-b") or {}).get("global") or {})
+    c = extra.get("X2-c") or model.get("X2-c") or {}
+    out = {"split": split,
+           "X2-a": model.get("X2-a"),
+           "X2-b": {"r2_cs": b_occ.get("r2_cs"), "class": b_occ.get("class"),
+                    "r2_tot": b_glob.get("r2_tot")},
+           "X2-c": {"rho_LR": c.get("rho_LR"), "class": c.get("class"),
+                    "v_LR_m": c.get("v_LR_m"),
+                    "source": "addendum-x2 (raw-unit Â)" if extra else "7 Nov"},
+           "X2-d": {}, "X2-e": {}, "X2-f": {}}
+    labels = {"source": "source (known light)",
+              "raw": "raw (unlabelled physics data)",
+              "latent": "latent (unlabelled, calibrated in simulation)"}
+    base_d = model.get("X2-d") or {}
+    extra_d = extra.get("X2-d") or {}
+    for stream in ("source", "raw", "latent"):
+        block = ((extra_d.get(stream) if stream == "latent" else None)
+                 or base_d.get(stream) or {})
+        out["X2-d"][stream] = {
+            "label": labels[stream], "median_run_rms": block.get("median_run_rms"),
+            "pearson_r": block.get("pearson_r"), "coverage": block.get("coverage"),
+            "n_runs": block.get("n_runs"),
+            "source": "addendum-x2" if (stream == "latent"
+                                        and extra_d.get(stream)) else "7 Nov"}
+    if extra_d.get("latent_cv"):
+        out["X2-d"]["latent_cv"] = extra_d["latent_cv"]
+    base_e = model.get("X2-e") or {}
+    streams_e = dict(base_e.get("streams") or {})
+    if x2e:
+        streams_e["latent"] = {"rho_EST": x2e.get("rho_EST_latent"),
+                               "source": "addendum-x2e"}
+    out["X2-e"] = {
+        "rho_EST": {name: (entry or {}).get("rho_EST")
+                    for name, entry in streams_e.items()},
+        "ceiling_rho_SWmod": base_e.get("ceiling_rho_SWmod"),
+        "latent_repair_rho_LR": x2e.get("latent_repair_rho_LR",
+                                        base_e.get("latent_repair_rho_LR")),
+        "reused_streams": ["source", "raw"]}
+    f = extra.get("X2-f") or model.get("X2-f") or {}
+    out["X2-f"] = {"singular_values": f.get("singular_values"),
+                   "max_singular_value": f.get("max_singular_value"),
+                   "condition_number": f.get("condition_number"),
+                   "median_crlb": f.get("median_crlb"),
+                   "crlb_per_module": f.get("crlb_per_module"),
+                   "source": "addendum-x2 (raw-unit Â)" if extra.get("X2-f")
+                             else "7 Nov"}
+    # the 7 Nov flat keys stay for a reader of the old SUMMARY.json
+    out["r2_eq"] = out["X2-b"]["r2_cs"]
+    out["class"] = out["X2-b"]["class"]
+    out["rho_lr"] = out["X2-c"]["rho_LR"]
+    return out
+
+
+def _x3_variant_summary(name, reading, family_entry) -> dict:
+    """Every D4 X3-b item of one variant pair (§7.2, corrected X3-4)."""
+    reading = reading or {}
+    entry = family_entry or {}
+    sanity = entry.get("sanity") or {}
+    out = {"variant": name, "family_status": entry.get("status"),
+           "concept": entry.get("concept"), "rank": entry.get("rank"),
+           "unerased_concept_r2": sanity.get("unerased_r2"),
+           "erased_concept_r2": sanity.get("erased_r2"),
+           "erasure_sanity_status": sanity.get("status"),
+           "X3-1": {}, "X3-2": reading.get("X3-2"),
+           "X3-3": reading.get("X3-3"), "X3-4": reading.get("X3-4"),
+           "X3-1-gain_specific": reading.get("X3-1-gain_specific")}
+    price = reading.get("X3-1") or {}
+    for metric in ("log_yield", "energy"):
+        item = price.get(metric) or {}
+        out["X3-1"][metric] = {
+            "rho_E": item.get("rho_E"), "ci95": item.get("ci95"),
+            "class": item.get("class"), "gain_specific": item.get("gain_specific"),
+            "rho_control_q95": item.get("rho_control_q95"),
+            "n_controls": len(item.get("rho_controls") or []) or None}
+    # the 7 Nov flat keys stay for a reader of the old SUMMARY.json
+    yield_item = out["X3-1"].get("log_yield") or {}
+    energy_item = out["X3-1"].get("energy") or {}
+    out["log_yield_rho"] = yield_item.get("rho_E")
+    out["log_yield_class"] = yield_item.get("class")
+    out["energy_class"] = energy_item.get("class")
+    return out
+
+
+def _x1_summary_families(x1_payload) -> dict:
+    models = (x1_payload or {}).get("models") or {}
+    families = {}
+    for label, model in sorted(models.items()):
+        family, seed = _family(label)
+        families.setdefault(family, {})[seed] = _x1_seed_summary(model)
+    return families
+
+
+def _x2_summary_families(x2_payload, x2_add=None, x2e_add=None) -> dict:
+    base_models = (x2_payload or {}).get("models") or {}
+    extra_models = (x2_add or {}).get("models") or {}
+    x2e_models = (x2e_add or {}).get("models") or {}
+    families = {}
+    for label in sorted(set(base_models) | set(extra_models)):
+        family, seed = _family(label)
+        families.setdefault(family, {})[seed] = _x2_seed_summary(
+            base_models.get(label), extra_models.get(label), x2e_models.get(label))
+    return families
+
+
+def _x3_summary_variants(x3_stage, base_x3) -> tuple:
+    families = ((x3_stage or {}).get("families")
+                or (base_x3 or {}).get("families") or {})
+    readings = ((x3_stage or {}).get("readings")
+                or (base_x3 or {}).get("readings") or {})
+    leace_models = ((families.get("leace") or {}).get("models") or {})
+    variants, not_run = {}, []
+    for name, reading in sorted((readings.get("variants") or {}).items()):
+        entry = families.get(name) if name in ("raw", "init9000") \
+            else leace_models.get(name)
+        variants[name] = _x3_variant_summary(name, reading, entry)
+    for key, entry in sorted(leace_models.items()):
+        if entry.get("status") in ("not_applicable", "unavailable",
+                                   "unavailable (erasure incomplete)"):
+            not_run.append({"variant": key, "status": entry.get("status"),
+                            "reason": entry.get("reason")})
+    init = (families.get("init9000") or {})
+    if init.get("status") not in (None, "evaluated"):
+        not_run.append({"variant": "init9000", "status": init.get("status"),
+                        "reason": init.get("reason")})
+    return variants, readings.get("X3-5"), not_run
+
+
+def _part_b_r1(root) -> tuple:
+    """The 7 Nov R-1 reading (old) and any addendum rerun (new), if present."""
+    shortcut = Path(root) / "results/jepa/20261107_shortcut"
+    old = _pick(read_json(shortcut / "readings.json", {}) or {}, "r1", "reading")
+    new = None
+    for name in ("r1_addendum.json", "ADDENDUM_2026-11-07.json"):
+        payload = read_json(shortcut / name, None)
+        if payload:
+            new = (payload.get("r1") or payload.get("R-1") or payload.get("reading")
+                   or payload.get("reruns", {}).get("R-1"))
+            if new:
+                break
+    return old, new
+
+
+def _superseded_rows(*, old_x2, new_x2, old_x3, new_x3, r1_old, r1_new) -> list:
+    """The addendum §5 D4 "Superseded 7 Nov values" table (old, new, defect ID)."""
+    rows = []
+    old_models = (old_x2 or {}).get("models") or {}
+    new_models = (new_x2 or {}).get("models") or {}
+    for label in sorted(set(old_models) | set(new_models)):
+        old_model = old_models.get(label) or {}
+        new_model = new_models.get(label) or {}
+        old_c = old_model.get("X2-c") or {}
+        new_c = new_model.get("X2-c") or old_c
+        rows.append(_superseded_row("rho_LR", "D1", label,
+                                    old_c.get("rho_LR"), new_c.get("rho_LR"),
+                                    new_c is not None))
+        old_lat = ((old_model.get("X2-d") or {}).get("latent") or {})
+        new_lat = ((new_model.get("X2-d") or {}).get("latent") or {})
+        new_lat_value = (new_lat.get("median_run_rms")
+                         if new_model.get("X2-d") else None)
+        rows.append(_superseded_row("X2-d latent median_run_rms", "D1", label,
+                                    old_lat.get("median_run_rms"), new_lat_value,
+                                    bool(new_model.get("X2-d"))))
+        old_e = ((((old_model.get("X2-e") or {}).get("streams")) or {})
+                 .get("latent") or {})
+        new_e = ((((new_model.get("X2-e") or {}).get("streams")) or {})
+                 .get("latent") or {})
+        rows.append(_superseded_row("X2-e latent rho_EST", "D1", label,
+                                    old_e.get("rho_EST"), new_e.get("rho_EST"),
+                                    bool(new_model.get("X2-e"))))
+        old_f = old_model.get("X2-f") or {}
+        new_f = new_model.get("X2-f") or {}
+        rows.append(_superseded_row("X2-f max singular value", "D1", label,
+                                    old_f.get("max_singular_value"),
+                                    new_f.get("max_singular_value"),
+                                    bool(new_f)))
+        rows.append(_superseded_row("X2-f median per-module CRLB", "D1", label,
+                                    old_f.get("median_crlb"),
+                                    new_f.get("median_crlb"), bool(new_f)))
+    old_readings = ((old_x3 or {}).get("readings") or {}).get("variants") or {}
+    new_readings = ((new_x3 or {}).get("readings") or {}).get("variants") or {}
+    for variant in sorted(set(old_readings) | set(new_readings)):
+        old_v = old_readings.get(variant) or {}
+        new_v = new_readings.get(variant) or {}
+        for metric in ("vertex", "energy", "log_yield"):
+            old_x34 = (old_v.get("X3-4") or {}).get(metric) or {}
+            new_x34 = (new_v.get("X3-4") or {}).get(metric) or {}
+            rows.append(_superseded_row(f"X3-4 {metric}", "D2", variant,
+                                        {"difference": old_x34.get("difference"),
+                                         "ci95": old_x34.get("ci95")},
+                                        {"difference": new_x34.get("difference"),
+                                         "ci95": new_x34.get("ci95")},
+                                        bool(new_x34)))
+    rows.append(_superseded_row("R-1 reading", "D1", "Part B", r1_old, r1_new,
+                                bool(r1_new)))
+    return rows
+
+
+def _superseded_row(item, defect, scope, old, new, rerun) -> dict:
+    if not rerun or new is None:
+        status = _ADDENDUM_NOT_RUN
+    elif old == new:
+        status = "unchanged"
+    else:
+        status = "superseded"
+    return {"item": item, "defect": defect, "scope": scope,
+            "old": old, "new": new, "status": status}
+
+
+def _addendum_run_status(payload, entries, mode) -> dict:
+    payload = payload or {}
+    if not payload:
+        return {"mode": mode, "status": "not_run", "reason": "payload absent"}
+    if payload.get("status", "").startswith("not_run"):
+        return {"mode": mode, "status": payload["status"],
+                "reason": payload.get("reason")}
+    return {"mode": mode,
+            "status": "complete" if payload.get("complete", True) else "incomplete",
+            "entries": entries, "not_run": payload.get("unavailable") or []}
+
+
+def _addendum_summary_markdown(summary, *, target) -> str:
+    """The committed READINGS_SUMMARY.md with every §5 D4 item per model and seed."""
+    lines = ["# Part A — reading-level summary (addendum 2026-11-07)", "",
+             "Runbook `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` plus the "
+             "addendum `docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md` "
+             f"(`{ADDENDUM_SHA256}`).", "",
+             "The full per-event payloads (`x1.json`, `x2.json`, `x3.json`, "
+             "`readings.json`) stay on `/ceph/dwong/jepa/returns/ext_repair_20261106/"
+             "{x0,x1,x2,x3}` with sha256 recorded in `LARGE_ARRAYS.json`; this "
+             "committed summary and `SUMMARY.json` carry every reading the addendum "
+             "§5 D4 lists.", "",
+             f"Superseded values are listed in the last table; absent readings are "
+             f"`{_ADDENDUM_NOT_RUN}`, never invented.", ""]
+    # ---------------------------------------------------------------- X1
+    lines += ["## X1 — drift cost, calibration and precision curve", "",
+              "### X1-a / X1-b", "",
+              "| family | seed | Δ_D (m) | CI95 (m) | eligible | ρ_SWtw | X1-b class |",
+              "|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x1") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            a, b = row.get("X1-a") or {}, row.get("X1-b") or {}
+            lines.append(f"| {family} | {seed} | {_fmt(a.get('delta_D_m'))} | "
+                         f"{_fmt_ci(a.get('ci95_m'))} | {a.get('eligible')} | "
+                         f"{_fmt(b.get('rho'))} | {b.get('class')} |")
+    lines += ["", "### X1-c — calibration against refit (both paired differences)", "",
+              "| family | seed | SWunit(frozen)−D(refit) | CI95 | class | "
+              "SWunit(refit)−D(refit) | CI95 | class |",
+              "|---|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x1") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            c = row.get("X1-c") or {}
+            frozen = c.get("SWunit") or {}
+            refit = c.get("SWunit_refit") or {}
+            lines.append(f"| {family} | {seed} | {_fmt(frozen.get('difference_m'))} | "
+                         f"{_fmt_ci(frozen.get('ci95_m'))} | {frozen.get('reading')} | "
+                         f"{_fmt(refit.get('difference_m'))} | "
+                         f"{_fmt_ci(refit.get('ci95_m'))} | {refit.get('reading')} |")
+    lines += ["", "### X1-d — three ceilings", "",
+              "| family | seed | HW−N | SWunitN−N | SWunit−HW |", "|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x1") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            d = (row.get("X1-d") or {}).get("primary") or {}
+            def _cell(key):
+                item = d.get(key) or {}
+                return (f"{_fmt(item.get('difference_m'))} "
+                        f"{_fmt_ci(item.get('ci95_m'))}")
+            lines.append(f"| {family} | {seed} | {_cell('HW')} | {_cell('SWunitN')} | "
+                         f"{_cell('SWunit_vs_HW')} |")
+    lines += ["", "### X1-e — ρ_NOISY(σ) and σ½", "",
+              "| family | seed | ρ(0.01) | ρ(0.02) | ρ(0.05) | ρ(0.10) | σ½ |",
+              "|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x1") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            e = row.get("X1-e") or {}
+            rho = e.get("rho") or {}
+            half = e.get("sigma_half") or {}
+            lines.append(f"| {family} | {seed} | {_fmt(rho.get('0.01'))} | "
+                         f"{_fmt(rho.get('0.02'))} | {_fmt(rho.get('0.05'))} | "
+                         f"{_fmt(rho.get('0.1'))} | {_fmt(half.get('value'))} |")
+    lines += ["", "### X1-f — log-yield and electron-energy resolutions", "",
+              "| family | seed | log-yield N | D | SWunit | HW | energy N | D | "
+              "SWunit | HW |", "|---|---|---|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x1") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            f = row.get("X1-f") or {}
+            def _yield(name):
+                return _fmt((f.get(name) or {}).get("log_yield_resolution"))
+            def _energy(name):
+                return _fmt((f.get(name) or {}).get("energy_resolution"))
+            lines.append(f"| {family} | {seed} | {_yield('N')} | {_yield('D')} | "
+                         f"{_yield('SWunit')} | {_yield('HW')} | {_energy('N')} | "
+                         f"{_energy('D')} | {_energy('SWunit')} | {_energy('HW')} |")
+    # ---------------------------------------------------------------- X2
+    lines += ["", "## X2 — X2-a decomposition", "",
+              "| family | seed | share_cs | share_ni | v_S−v_N (m) | v_D−v_S (m) | "
+              "additivity (m) |", "|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x2") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            a = row.get("X2-a") or {}
+            lines.append(f"| {family} | {seed} | {_fmt(a.get('share_cs'))} | "
+                         f"{_fmt(a.get('share_ni'))} | {_fmt(a.get('v_S_minus_v_N'))} | "
+                         f"{_fmt(a.get('v_D_minus_v_S'))} | "
+                         f"{_fmt(a.get('additivity_check'))} |")
+    lines += ["", "### X2-b / X2-c — equivariance and latent repair (corrected ρ_LR)", "",
+              "| family | seed | R²_eq (occupancy, Δz_cs) | X2-b class | ρ_LR | "
+              "X2-c class | source |", "|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x2") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            b, c = row.get("X2-b") or {}, row.get("X2-c") or {}
+            lines.append(f"| {family} | {seed} | {_fmt(b.get('r2_cs'))} | "
+                         f"{b.get('class')} | {_fmt(c.get('rho_LR'))} | "
+                         f"{c.get('class')} | {c.get('source')} |")
+    lines += ["", "### X2-d — identified module gains, **labelled** streams", "",
+              "| family | seed | stream | median per-run RMS | Pearson r | coverage | "
+              "source |", "|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x2") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            for stream in ("source", "raw", "latent"):
+                d = (row.get("X2-d") or {}).get(stream) or {}
+                lines.append(f"| {family} | {seed} | {d.get('label')} | "
+                             f"{_fmt(d.get('median_run_rms'))} | "
+                             f"{_fmt(d.get('pearson_r'))} | {_fmt(d.get('coverage'))} | "
+                             f"{d.get('source')} |")
+    lines += ["", "### X2-e — ρ_EST(k) beside the ceiling", "",
+              "| family | seed | ρ_EST(source) | ρ_EST(raw) | ρ_EST(latent) | "
+              "ρ_SWmod (ceiling) | latent repair ρ_LR |",
+              "|---|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x2") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            e = row.get("X2-e") or {}
+            rho = e.get("rho_EST") or {}
+            lines.append(f"| {family} | {seed} | {_fmt(rho.get('source'))} | "
+                         f"{_fmt(rho.get('raw'))} | {_fmt(rho.get('latent'))} | "
+                         f"{_fmt(e.get('ceiling_rho_SWmod'))} | "
+                         f"{_fmt(e.get('latent_repair_rho_LR'))} |")
+    lines += ["", "### X2-f — identification spectrum of W Â_raw and per-module CRLB", "",
+              "| family | seed | max singular value | condition number | "
+              "median per-module CRLB | per-module CRLB |",
+              "|---|---|---|---|---|---|"]
+    for family, seeds in sorted((summary.get("x2") or {}).items()):
+        for seed, row in sorted(seeds.items()):
+            f = row.get("X2-f") or {}
+            crlb = f.get("crlb_per_module") or []
+            lines.append(f"| {family} | {seed} | "
+                         f"{_fmt(f.get('max_singular_value'))} | "
+                         f"{_fmt(f.get('condition_number'))} | "
+                         f"{_fmt(f.get('median_crlb'))} | "
+                         f"{_fmt_list(crlb)} |")
+    # ---------------------------------------------------------------- X3
+    lines += ["", "## X3-b — every family, including LEACE E1 and E2r", "",
+              "| variant | rank r | concept | unerased R² | erased R² | "
+              "ρ_E (log-yield) | class | control q95 | gain-specific |",
+              "|---|---|---|---|---|---|---|---|---|"]
+    for name, row in sorted((summary.get("x3") or {}).items()):
+        y = (row.get("X3-1") or {}).get("log_yield") or {}
+        lines.append(f"| {name} | {_fmt(row.get('rank'), 6)} | "
+                     f"{_fmt(row.get('concept'))} | "
+                     f"{_fmt(row.get('unerased_concept_r2'))} | "
+                     f"{_fmt(row.get('erased_concept_r2'))} | "
+                     f"{_fmt(y.get('rho_E'))} | {y.get('class')} | "
+                     f"{_fmt(y.get('rho_control_q95'))} | {y.get('gain_specific')} |")
+    lines += ["", "### X3-b — X3-2, X3-3 and the corrected X3-4", "",
+              "| variant | X3-2 Δv (m) | X3-3 standard robust | X3-3 invariant "
+              "robust | X3-4 vertex Δ [CI] | X3-4 energy Δ [CI] | X3-4 log-yield "
+              "Δ [CI] | X3-4 verdict |", "|---|---|---|---|---|---|---|---|"]
+    for name, row in sorted((summary.get("x3") or {}).items()):
+        x2r = row.get("X3-2") or {}
+        x3r = row.get("X3-3") or {}
+        x4 = row.get("X3-4") or {}
+        def _ci(metric):
+            item = x4.get(metric) or {}
+            return (f"{_fmt(item.get('difference'))} "
+                    f"{_fmt_ci(item.get('ci95'))}")
+        lines.append(f"| {name} | {_fmt(x2r.get('difference_m'))} | "
+                     f"{(x3r.get('standard') or {}).get('robust')} | "
+                     f"{(x3r.get('invariant') or {}).get('robust')} | "
+                     f"{_ci('vertex')} | {_ci('energy')} | {_ci('log_yield')} | "
+                     f"{x4.get('verdict')} |")
+    x35 = summary.get("x3_5") or {}
+    if x35:
+        lines += ["", "### X3-5 — theory beside experiment (ln Y)", "",
+                  f"Empirical ρ_E (log-yield): `{_fmt(x35.get('empirical_rho_E_log_yield'))}`", ""]
+        for model, row in sorted((x35.get("theory_rows") or {}).items()):
+            lines.append(f"- **{model}**: √(CRLB_inv/CRLB_known) = "
+                         f"`{_fmt(row.get('theory_ratio_lnY'))}`")
+    # ------------------------------------------------------- self-check
+    self_check = summary.get("self_check") or {}
+    lines += ["", "## Addendum D1 self-check (CPU, probe-test)", "",
+              f"Identity pass: `{self_check.get('identity_pass')}`; STOP: "
+              f"`{self_check.get('stop')}`.", "",
+              "| model | identity | rel. error | R²_eq | removed share | recovered "
+              "fraction | flag |", "|---|---|---|---|---|---|---|"]
+    for label, row in sorted((self_check.get("models") or {}).items()):
+        identity = row.get("identity") or {}
+        lines.append(f"| {label} | {row.get('identity_pass')} | "
+                     f"{_fmt(identity.get('relative_error'))} | "
+                     f"{_fmt(row.get('r2_eq'))} | {_fmt(row.get('removed_share'))} | "
+                     f"{_fmt(row.get('recovered_fraction'))} | "
+                     f"{row.get('flag_text')} |")
+    # ------------------------------------------------ superseded table
+    lines += ["", "## Superseded 7 Nov values", "",
+              "| item | scope | defect | old value | new value | status |",
+              "|---|---|---|---|---|---|"]
+    for row in summary.get("superseded") or []:
+        lines.append(f"| {row.get('item')} | {row.get('scope')} | "
+                     f"{row.get('defect')} | {_fmt_value(row.get('old'))} | "
+                     f"{_fmt_value(row.get('new'))} | {row.get('status')} |")
+    not_run = summary.get("not_run") or []
+    lines += ["", "## Not run / unavailable", ""]
+    if not_run:
+        for row in not_run:
+            lines.append(f"- {row}")
+    else:
+        lines.append("None: every item above was read from a data-driven payload.")
+    lines += ["", "## Sources", ""]
+    for name, info in sorted((summary.get("sources") or {}).items()):
+        lines.append(f"- `{name}`: {info}")
+    return "\n".join(lines) + "\n"
+
+
+def _fmt_ci(value):
+    if not isinstance(value, (list, tuple)) or len(value) != 2:
+        return "—"
+    return f"[{_fmt(value[0])}, {_fmt(value[1])}]"
+
+
+def _fmt_list(values, digits=4):
+    if not values:
+        return "—"
+    return "[" + ", ".join(_fmt(value, digits) for value in values) + "]"
+
+
+def _fmt_value(value):
+    if value is None:
+        return f"`{_ADDENDUM_NOT_RUN}`"
+    if isinstance(value, dict):
+        return "`" + json.dumps(_jsonable(value), sort_keys=True) + "`"
+    if isinstance(value, (list, tuple)):
+        return "`" + json.dumps(_jsonable(list(value))) + "`"
+    return _fmt(value)
+
+
+def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print) -> dict:
+    """D4 (CPU): write the complete committed summary, addendum JSON and figures."""
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum-report", root=root, log=log)
+    budget = _addendum_budget_for("addendum-report")
+    ext_root = Path(ext_root)
+    target = Path(results_dir) if results_dir is not None else root / RESULTS_DIR
+    target.mkdir(parents=True, exist_ok=True)
+    x1 = _read_stage(ext_root, "x1/x1.json") or {}
+    x2 = _read_stage(ext_root, "x2/x2.json") or {}
+    x3 = _read_stage(ext_root, "x3/x3.json") or {}
+    x3_fisher = _read_stage(ext_root, "x3/x3_fisher.json")
+    addendum_dir = _addendum_dir(ext_root)
+    d1 = read_json(addendum_dir / "d1_selfcheck.json", None)
+    x2_add = read_json(addendum_dir / "x2_addendum.json", None)
+    x2e_add = read_json(addendum_dir / "x2e_addendum.json", None)
+    x3_add = read_json(addendum_dir / "x3_addendum.json", None)
+    r1_old, r1_new = _part_b_r1(root)
+    x1_families = _x1_summary_families(x1)
+    x2_families = _x2_summary_families(x2, x2_add, x2e_add)
+    x3_variants, x3_five, x3_not_run = _x3_summary_variants(x3_add, x3)
+    new_x2_models = {}
+    for label, model in ((x2_add or {}).get("models") or {}).items():
+        merged = dict(model)
+        rerun_e = ((x2e_add or {}).get("models") or {}).get(label)
+        if rerun_e:
+            base_e = dict(merged.get("X2-e") or {})
+            streams = dict(base_e.get("streams") or {})
+            streams["latent"] = {"rho_EST": rerun_e.get("rho_EST_latent")}
+            base_e["streams"] = streams
+            merged["X2-e"] = base_e
+        new_x2_models[label] = merged
+    superseded = _superseded_rows(
+        old_x2=x2, new_x2={"models": new_x2_models}, old_x3=x3,
+        new_x3=(x3_add or {}), r1_old=r1_old, r1_new=r1_new)
+    not_run = []
+    for mode, payload in (("addendum-selfcheck", d1), ("addendum-x2", x2_add),
+                          ("addendum-x2e", x2e_add), ("addendum-x3", x3_add)):
+        if not payload:
+            not_run.append({"mode": mode, "status": _ADDENDUM_NOT_RUN,
+                            "reason": "payload absent"})
+        elif payload.get("status", "").startswith("not_run"):
+            not_run.append({"mode": mode, "status": payload.get("status"),
+                            "reason": payload.get("reason")})
+    not_run += x3_not_run
+    if r1_new is None:
+        not_run.append({"mode": "R-1 (Part B)", "status": _ADDENDUM_NOT_RUN,
+                        "reason": "Part B addendum payload absent"})
+    sources = {
+        "x1": f"{ext_root}/x1/x1.json",
+        "x2 (7 Nov)": f"{ext_root}/x2/x2.json",
+        "x3 (7 Nov)": f"{ext_root}/x3/x3.json",
+        "x3_fisher": f"{ext_root}/x3/x3_fisher.json",
+        "D1 self-check": str(addendum_dir / "d1_selfcheck.json"),
+        "X2 rerun": str(addendum_dir / "x2_addendum.json"),
+        "X2-e rerun": str(addendum_dir / "x2e_addendum.json"),
+        "X3 rerun": str(addendum_dir / "x3_addendum.json"),
+        "R-1 (Part B)": "results/jepa/20261107_shortcut/readings.json"}
+    summary = {"registered": False, "extension": EXTENSION,
+               "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+               "generated_utc": _utc_now(), "accounting_note":
+               "addendum modes are booked to the addendum 0.35 h GPU / 3.0 h CPU "
+               "caps; the closed Part A and Part B caps are not consulted",
+               "x1": x1_families, "x2": x2_families, "x3": x3_variants,
+               "x3_5": x3_five,
+               "x3_fisher_p0": (x3_fisher or {}).get("p0"),
+               "self_check": d1 or {}, "superseded": superseded,
+               "not_run": not_run, "sources": sources,
+               "figures": _figure_names()}
+    # figures: the D4 labels/legends, with the latent stream overlay in place
+    x2_for_figures = {"models": {}}
+    for label, model in ((x2 or {}).get("models") or {}).items():
+        merged = dict(model)
+        extra = ((x2_add or {}).get("models") or {}).get(label) or {}
+        if extra.get("X2-d"):
+            merged["X2-d"] = {**((model or {}).get("X2-d") or {}),
+                              **{key: value for key, value in extra["X2-d"].items()
+                                 if key in ("latent", "latent_cv")}}
+        x2_for_figures["models"][label] = merged
+    chosen_readings = {"registered": False,
+                       "x1": {"families": ((x1 or {}).get("readings") or {}).get(
+                           "families") or {}},
+                       "x2": {},
+                       "x3": {"variants": ((x3_add or {}).get("readings")
+                                           or (x3 or {}).get("readings")
+                                           or {}).get("variants") or {}}}
+    figures = render_figures(chosen_readings, target, x1_payload=x1,
+                             x2_payload=x2_for_figures,
+                             x3_payload=(x3_add or x3), fisher_payload=x3_fisher,
+                             log=log)
+    summary["figures"] = figures
+    addendum = {"registered": False, "extension": EXTENSION,
+                "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+                "generated_utc": _utc_now(), "gate": {"status": gate["status"]},
+                "self_check": d1 or {"status": _ADDENDUM_NOT_RUN},
+                "reruns": {
+                    "X2-c": _addendum_run_status(
+                        x2_add, sorted(((x2_add or {}).get("models") or {})),
+                        "addendum-x2"),
+                    "X2-d latent": _addendum_run_status(
+                        x2_add, sorted(((x2_add or {}).get("models") or {})),
+                        "addendum-x2"),
+                    "X2-f": _addendum_run_status(
+                        x2_add, sorted(((x2_add or {}).get("models") or {})),
+                        "addendum-x2"),
+                    "X2-e latent": _addendum_run_status(
+                        x2e_add, sorted(((x2e_add or {}).get("models") or {})),
+                        "addendum-x2e"),
+                    "X3-b readings": _addendum_run_status(
+                        x3_add, sorted(((x3_add or {}).get("readings") or {}).get(
+                            "variants") or {}), "addendum-x3"),
+                    "R-1": ({"status": "complete" if r1_new else _ADDENDUM_NOT_RUN,
+                             "source": "results/jepa/20261107_shortcut/"
+                                       "readings.json"})},
+                "superseded": superseded, "not_run": not_run,
+                "budget": addendum_hours(), "figures": figures,
+                "sources": sources}
+    write_json(target / "SUMMARY.json", summary)
+    (target / "READINGS_SUMMARY.md").write_text(
+        _addendum_summary_markdown(summary, target=target))
+    write_json(target / "ADDENDUM_2026-11-07.json", addendum)
+    write_json(target / "OUTCOME.json", _addendum_outcome(
+        summary, addendum, root=root, d1=d1, x2e_add=x2e_add, x3_add=x3_add,
+        r1_new=r1_new))
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum D4 report", "path": str(target),
+               "summary": str(target / "SUMMARY.json"),
+               "readings_summary": str(target / "READINGS_SUMMARY.md"),
+               "addendum_json": str(target / "ADDENDUM_2026-11-07.json"),
+               "outcome": str(target / "OUTCOME.json"),
+               "figures": figures, "superseded": len(superseded),
+               "not_run": not_run, "gate": {"status": gate["status"]},
+               "budget": budget}
+    return _addendum_finish("addendum-report", payload, root=root, started=started,
+                            kind="cpu")
+
+
+def _addendum_outcome(summary, addendum, *, root, d1, x2e_add, x3_add,
+                      r1_new) -> dict:
+    """The updated OUTCOME.json: statuses only, every value traced to a payload."""
+    root = _resolve_root(root)
+    code, head, _ = _git(root, "rev-parse", "HEAD")
+    reruns = addendum.get("reruns") or {}
+    items = {
+        "D1 self-check": ("STOP (S9)" if (d1 or {}).get("stop") else
+                          "complete" if d1 else _ADDENDUM_NOT_RUN),
+        "X2-c rerun": reruns.get("X2-c", {}).get("status"),
+        "X2-d latent rerun": reruns.get("X2-d latent", {}).get("status"),
+        "X2-f rerun": reruns.get("X2-f", {}).get("status"),
+        "X2-e EST(latent)": reruns.get("X2-e latent", {}).get("status"),
+        "X3-b readings rerun": reruns.get("X3-b readings", {}).get("status"),
+        "R-1 rerun": reruns.get("R-1", {}).get("status"),
+        "report": "complete"}
+    return {"registered": False, "extension": EXTENSION,
+            "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+            "generated_utc": _utc_now(),
+            "impl_commit": (head.strip() if code == 0 else None),
+            "items": items,
+            "superseded_values": len([row for row in summary.get("superseded") or []
+                                      if row.get("status") == "superseded"]),
+            "not_run": summary.get("not_run") or [],
+            "budget_hours": addendum_hours(),
+            "note": "execution adapters are retired: fixes 7-8 live in <P> "
+                    "(_x3_five null = ∞; _strip_internal drops fitted/prediction)"}

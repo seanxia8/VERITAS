@@ -17,7 +17,9 @@ from __future__ import annotations
 
 import dataclasses
 import importlib.util
+import inspect
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -137,11 +139,24 @@ def tiny(tmp_path, geometry):
             "s030": sets["s030"]}
 
 
-def _fake_repo(tmp_path, *, acceptance=True, record_mutator=None):
-    """A throw-away repository with the committed runbook and an acceptance record."""
+def _fake_repo(tmp_path, *, acceptance=True, record_mutator=None, addendum=True,
+               addendum_mutator=None):
+    """A throw-away repository with the committed runbook and an acceptance record.
+
+    The committed addendum is copied byte-for-byte from the real worktree, so the
+    addendum sha256 gate (a2) is satisfied without hard-coding a fake file; the
+    record carries ``addendum_path``/``addendum_sha256`` unless a mutator removes
+    them (the "record missing the new fields -> denied" case).
+    """
     root = tmp_path / "repo"
     (root / "docs/jepa").mkdir(parents=True)
     (root / rp.RUNBOOK_REL).write_text("## 0. Authority\n\nPart A text.\n")
+    if addendum:
+        target = root / rp.ADDENDUM_REL
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rp.ADDENDUM_REL, target)
+        if addendum_mutator is not None:
+            addendum_mutator(target)
     (root / "src/noise_module_lucid").mkdir(parents=True, exist_ok=True)
     (root / "src/noise_module_lucid/readout.py").write_text("# tracked\n")
     (root / "src/jepa_noise/configs").mkdir(parents=True, exist_ok=True)
@@ -155,7 +170,9 @@ def _fake_repo(tmp_path, *, acceptance=True, record_mutator=None):
                           capture_output=True, check=True).stdout.strip()
     record = {"runbook_sha256": sha, "impl_commit": head,
               "review_path": "docs/jepa/REVIEW.md", "review_verdict": "PASS",
-              "lead": "lead", "date": "2026-11-07"}
+              "lead": "lead", "date": "2026-11-07",
+              "addendum_path": rp.ADDENDUM_REL,
+              "addendum_sha256": rp.ADDENDUM_SHA256}
     if record_mutator is not None:
         record_mutator(record, root)
     if acceptance:
@@ -168,7 +185,7 @@ def test_gate_positive_and_pending_acceptance(tmp_path):
     root = _fake_repo(tmp_path)
     result = rp.assert_authorised("x1", root=root)
     assert result["authorised"] is True and result["status"] == "granted"
-    assert all(result["checks"][key]["pass"] for key in ("a", "b", "c"))
+    assert all(result["checks"][key]["pass"] for key in ("a", "a2", "b", "c"))
     pending = _fake_repo(tmp_path / "pending", acceptance=False)
     row = rp.assert_authorised("x1", root=pending, dry_run=True)
     assert row["status"] == "gate_pending_acceptance" and row["authorised"] is False
@@ -432,7 +449,7 @@ def _particle_truth(dataset, geometry):
 
 
 def test_raw_std_particle_rows_reproduce_ext_followup_bit_identically(tiny, geometry):
-    from scripts import jepa_ext_repair  # noqa: F401  (import side of the CLI)
+    importlib.import_module("scripts.jepa_ext_repair")
     dataset = tiny["s005"]["dataset"]
     truth = _event_truth(dataset, geometry)
     ours = rp.raw_std_features(dataset, geometry, truth=truth)
@@ -896,7 +913,21 @@ def test_cli_modes_and_defaults():
     with pytest.raises(SystemExit):
         parser.parse_args(["dry-run"])          # --out is required
     assert set(rp.MODES) == {"dry-run", "preflight", "reproduce", "x1", "x2",
-                             "x3-fisher", "x3", "report"}
+                             "x3-fisher", "x3", "report", "addendum-selfcheck",
+                             "addendum-x2", "addendum-x2e", "addendum-x3",
+                             "addendum-report"}
+    # the addendum §8 modes parse with their devices and the report --out
+    for mode, device in (("addendum-selfcheck", "cpu"), ("addendum-x2", "cpu"),
+                         ("addendum-x3", "cpu"), ("addendum-report", "cpu"),
+                         ("addendum-x2e", "auto")):
+        parsed = parser.parse_args([mode])
+        assert parsed.mode == mode and parsed.device == device
+    assert parser.parse_args(["addendum-x2e", "--limit", "3"]).limit == 3
+    assert parser.parse_args(["addendum-report", "--out", "/tmp/results"]).out == \
+        "/tmp/results"
+    help_text = parser.format_help()
+    for mode in rp.ADDENDUM_MODES:
+        assert mode in help_text
 
 
 # ==================================================== cross-part (R-1) contract
@@ -1075,8 +1106,6 @@ def test_stream_condition_particles_executes_and_caches(tiny, geometry):
 def test_x1_particle_executes_with_all_conditions(tiny, geometry):
     model = _tiny_model(geometry)
     s005, s030 = tiny["s005"]["dataset"], tiny["s030"]["dataset"]
-    probes = {"s005": {"train": s005, "test": s005},
-              "s030": {"train": s030, "test": s030}}
     conditions = {role: rp.build_conditions(
         {"s005": s005, "s030": s030}, geometry, ("N", "D", "SWunit", "HW"))
         for role in ("train", "test")}
@@ -1209,7 +1238,6 @@ def test_x3_leace_reads_the_keys_x1_writes(tmp_path, tiny, geometry):
 
 
 def test_leace_sanity_protocol_is_enforced():
-    rng = np.random.default_rng(5)
     run_ids = np.repeat([f"r{index}" for index in range(8)], 3).astype(object)
     event_ids = np.tile(np.arange(3), 8)
 
@@ -1669,3 +1697,766 @@ def test_merge_standard_rows_aligns_every_column_for_domain_masks():
     log_yield_mask = np.isfinite(merged["log_yield"]) & (
         np.asarray(merged["domain"]) == "photon")
     assert int(log_yield_mask.sum()) == 3
+
+
+# ==========================================================================
+# Addendum 2026-11-07 focused tests (D1, D2, D3, D4, gates, budget, CLI)
+# ==========================================================================
+def _synthetic_equivariance(*, runs=10, per_run=5, dims=4, modules=6, seed=0,
+                            constant_column=True):
+    """Noiseless Δz = u Aᵀ on run-grouped rows, with an optional constant column."""
+    rng = np.random.default_rng(int(seed))
+    run_ids = np.repeat([f"r{index}" for index in range(int(runs))],
+                        int(per_run)).astype(object)
+    u = rng.standard_normal((run_ids.size, int(modules)))
+    if constant_column:
+        u[:, -1] = 3.0
+    A = rng.standard_normal((int(dims), int(modules)))
+    if constant_column:
+        A[:, -1] = 0.0
+    delta = u @ A.T
+    split = int(runs) // 2
+    train = np.isin(run_ids, [f"r{index}" for index in range(split)])
+    fit = rp.equivariance_fit(u[train], delta[train], u[~train], delta[~train],
+                              run_ids_train=run_ids[train],
+                              run_ids_test=run_ids[~train], kind="occupancy")
+    return {"u": u, "delta": delta, "A": A, "run_ids": run_ids,
+            "train": train, "fit": fit}
+
+
+def _predict_reference_map(fit, u):
+    """A[d, m] from the fits' own ``predict(u) - predict(0)``, no raw_map access."""
+    fits = fit["fitted"]["fits"]
+    u = np.asarray(u, float)
+    zero = np.zeros((1, u.shape[1]))
+    out = np.zeros((len(fits), u.shape[1]))
+    for column in range(u.shape[1]):
+        basis = np.zeros((1, u.shape[1]))
+        basis[0, column] = 1.0
+        for index, probe in enumerate(fits):
+            if probe.get("status") == "fit":
+                fit_row = probe["fit"]
+                out[index, column] = float(fit_row.predict(basis)[0]
+                                           - fit_row.predict(zero)[0])
+    return out
+
+
+# ---------------------------------------------------------------------- D1 §2
+def test_raw_map_identity_on_random_data_including_a_constant_column():
+    case = _synthetic_equivariance()
+    A_raw = rp._stack_coefficients(case["fit"])
+    assert A_raw.shape == case["A"].shape
+    # the constant standardised column has a zero coefficient -> raw map row 0
+    assert np.allclose(A_raw[:, -1], 0.0, atol=1e-14)
+    predicted = case["u"] @ A_raw.T
+    reference = rp.d1_identity_reference(case["fit"]["fitted"], case["u"])
+    relative = float(np.linalg.norm(predicted - reference)
+                     / np.linalg.norm(reference))
+    assert relative <= 1e-10
+    row = rp.raw_map(case["fit"]["fitted"]["fits"][0])
+    assert row.shape == (case["u"].shape[1],)
+    assert np.allclose(row, case["fit"]["fitted"]["fits"][0]["fit"].coefficients
+                       / case["fit"]["fitted"]["fits"][0]["fit"].scale)
+
+
+def test_raw_map_recovers_a_synthetic_map_to_one_over_a_million():
+    case = _synthetic_equivariance(seed=1)
+    A_raw = rp._stack_coefficients(case["fit"])
+    recovered = np.max(np.abs(A_raw - case["A"])) / np.max(np.abs(case["A"]))
+    assert recovered <= 1e-6
+    # the constant column stays exactly zero on both sides
+    assert np.allclose(A_raw[:, -1], 0.0, atol=1e-14)
+
+
+def test_raw_map_is_the_only_route_to_ridge_coefficients():
+    import ast
+    source = Path(rp.__file__).read_text()
+    tree = ast.parse(source)
+    owners = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        for child in ast.walk(node):
+            if isinstance(child, ast.Attribute) and child.attr == "coefficients":
+                owners.append(node.name)
+    assert owners, "the module no longer reads RidgeFit.coefficients at all"
+    assert set(owners) == {"raw_map"}, (
+        f"RidgeFit.coefficients is read outside raw_map by {sorted(set(owners))}")
+
+
+def test_every_consumer_matches_the_predict_reference(monkeypatch, geometry):
+    case = _synthetic_equivariance(seed=2)
+    A_raw = rp._stack_coefficients(case["fit"])
+    u_test = case["u"][~case["train"]]
+    A_ref = _predict_reference_map(case["fit"], u_test)
+    assert np.allclose(A_raw, A_ref, rtol=1e-10, atol=1e-12)
+    dims, modules = case["A"].shape
+    rng = np.random.default_rng(7)
+    # latent_estimate: the design and the solve are linear in Â, so Â_raw == A_ref
+    W = rng.standard_normal((dims, dims))
+    occupancy = rng.random(modules)
+    zbar = rng.standard_normal(dims)
+    estimate = rp.latent_estimate(zbar, occupancy, A_raw, W)
+    reference = rp.latent_estimate(zbar, occupancy, A_ref, W)
+    assert np.allclose(estimate["design"], reference["design"], atol=1e-12)
+    assert np.allclose(estimate["delta"], reference["delta"], rtol=0, atol=1e-12)
+    # identifiability_spectrum uses W Â at the mean occupancy
+    spectrum = rp.identifiability_spectrum(A_raw, W, occupancy)
+    spectrum_reference = rp.identifiability_spectrum(A_ref, W, occupancy)
+    assert np.allclose(spectrum["singular_values"],
+                       spectrum_reference["singular_values"], rtol=1e-12)
+    # _latent_repair_rows subtracts u Âᵀ
+    count = 4 * 5
+    run_ids = np.repeat([f"r{index}" for index in range(4)], 5).astype(object)
+    event_ids = np.tile(np.arange(5), 4)
+    rows = {"events": rng.standard_normal((count, dims)),
+            "run_ids": run_ids, "event_ids": event_ids,
+            "vertex": rng.standard_normal((count, 3)),
+            "log_yield": rng.standard_normal(count), "n_hit": np.full(count, 5)}
+    counts = {(str(run), int(event)): rng.random(modules)
+              for run, event in zip(run_ids, event_ids)}
+    gains = {f"r{index}": rng.standard_normal(modules) for index in range(4)}
+    repaired = rp._latent_repair_rows(rows, counts, geometry, A_raw, gains)
+    repaired_ref = rp._latent_repair_rows(rows, counts, geometry, A_ref, gains)
+    assert np.allclose(repaired["events"], repaired_ref["events"], atol=1e-12)
+    # _x2c applies the map to raw u and scores the repaired D rows
+    captured = []
+
+    def fake_predictions(fitted, dataset):
+        captured.append(np.asarray(dataset.x, float))
+        return np.zeros((dataset.x.shape[0], 3))
+
+    monkeypatch.setattr(rp.la, "probe_predictions", fake_predictions)
+    delta = {run: rng.standard_normal(modules) for run in np.unique(run_ids)}
+    test_rows = {"N": dict(rows), "D": dict(rows)}
+    consumed = rp._x2c({"test": test_rows}, delta, counts, geometry, object(),
+                       A_raw)
+    expected = (np.asarray(rows["events"], float)
+                - rp.occupancy_design(test_rows["D"], delta, counts, geometry)
+                @ A_raw.T)
+    # the repaired D design is the rows passed to the frozen probe's predict
+    assert any(np.allclose(seen, expected, atol=1e-12) for seen in captured)
+    assert consumed["A_hat"] is not None
+
+
+def test_d1_check_model_reports_descriptives_and_flag(tiny, tmp_path, geometry):
+    sets = _tiny_many(tmp_path, geometry)
+    probes005 = {"train": sets["s005"]["dataset"], "test": sets["s005_test"]["dataset"]}
+    probes030 = {"train": sets["s030"]["dataset"], "test": sets["s030_test"]["dataset"]}
+    conditions = {role: rp.build_conditions(
+        {"s005": probes005[role], "s030": probes030[role]}, geometry, ("N", "D", "S"))
+        for role in ("train", "test")}
+    rows = {
+        "train": {"N": _synthetic_rows(probes005["train"], geometry, seed=11),
+                  "S": _synthetic_rows(probes005["train"], geometry, seed=12),
+                  "D": _synthetic_rows(probes030["train"], geometry, seed=13)},
+        "test": {"N": _synthetic_rows(probes005["test"], geometry, seed=14),
+                 "S": _synthetic_rows(probes005["test"], geometry, seed=15),
+                 "D": _synthetic_rows(probes030["test"], geometry, seed=16)}}
+    delta = rp.run_log_gain_vectors(probes030["train"], geometry)
+    delta.update(rp.run_log_gain_vectors(probes030["test"], geometry))
+    occupancy_n = {role: rp.occupancy_counts(probes005[role],
+                                             conditions[role]["N"], geometry)
+                   for role in ("train", "test")}
+    out = rp._d1_check_model(rows, delta, occupancy_n, geometry)
+    assert out["status"] == "evaluated"
+    assert out["identity_pass"] is True
+    assert out["identity"]["relative_error"] <= 1e-8
+    assert out["removed_share"] is not None
+    assert out["recovered_fraction"] is not None
+    assert out["flag"] is False and out["flag_text"] is None
+
+
+def test_addendum_selfcheck_stop_rule_and_output_contract(tmp_path, monkeypatch):
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_addendum_budget_for", lambda mode: {"pass": True})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "open_probe_sets",
+                        lambda *args, **kwargs: {"train": object(), "test": object()})
+    monkeypatch.setattr(rp, "build_conditions",
+                        lambda *args, **kwargs: {"N": object(), "D": object(),
+                                                 "S": object()})
+    monkeypatch.setattr(rp, "occupancy_counts", lambda *args, **kwargs: {})
+    monkeypatch.setattr(rp, "run_log_gain_vectors", lambda *args, **kwargs: {})
+    monkeypatch.setattr(rp, "embedding_cache", lambda *args, **kwargs: object())
+    monkeypatch.setattr(rp, "_cached_condition_rows",
+                        lambda *args, **kwargs: ({"train": {}, "test": {}}, []))
+    state = {"pass": True}
+
+    def fake_model(*args, **kwargs):
+        return {"status": "evaluated", "identity_pass": state["pass"],
+                "identity": {"relative_error": 0.0 if state["pass"] else 1e-3},
+                "r2_eq": 0.5, "removed_share": 0.9, "recovered_fraction": 0.3,
+                "flag": False, "flag_text": None, "v_N_m": 0.1, "v_S_m": 0.12,
+                "v_S_repaired_m": 0.11, "n_train": 1, "n_test": 1}
+
+    monkeypatch.setattr(rp, "_d1_check_model", fake_model)
+    ok = rp.addendum_selfcheck(config={}, gen={}, geometry=None, root=tmp_path)
+    assert ok["identity_pass"] is True and ok["stop"] is None
+    assert ok["n_models"] == len(rp.CORE_MODELS)
+    assert ok["budget"]["recorded"] is True
+    assert {"gpu", "cpu"} <= set(ok["hours"])
+    state["pass"] = False
+    failed = rp.addendum_selfcheck(config={}, gen={}, geometry=None, root=tmp_path)
+    assert failed["identity_pass"] is False
+    assert str(failed["stop"]).startswith("S9")
+    assert "D1 reruns" in failed["stop"]
+
+
+# ---------------------------------------------------------------------- D2 §3
+def _d2_variant(metric, errors, run_ids, event_ids):
+    if metric == "vertex":
+        resolution = float(np.mean(errors))
+        return {"vertex": {"D": {"status": "evaluated", "mean_error_m": resolution,
+                                 "resolution": resolution,
+                                 "__errors__": np.asarray(errors, float),
+                                 "run_ids": run_ids, "event_ids": event_ids}}}
+    return {metric: {"D": {"status": "evaluated",
+                            "resolution": float(np.sqrt(np.mean(errors ** 2))),
+                            "errors": np.asarray(errors, float),
+                            "run_ids": run_ids, "event_ids": event_ids}}}
+
+
+def test_x3_4_vertex_point_and_interval_both_use_the_mean():
+    run_ids = np.repeat([f"r{index}" for index in range(40)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 40)
+    offsets = np.repeat(np.linspace(-0.002, 0.002, 40), 4)
+    left = 0.10 + offsets
+    right = 0.12 + offsets
+    out = rp._compare_at_d(_d2_variant("vertex", left, run_ids, event_ids),
+                           _d2_variant("vertex", right, run_ids, event_ids),
+                           "vertex")
+    assert out["statistic"] == "mean"
+    assert out["difference"] == pytest.approx(float(right.mean()) - float(left.mean()),
+                                              abs=1e-12)
+    assert out["ci95"][0] <= out["difference"] <= out["ci95"][1]
+    assert out["calibration_better"] is True
+    assert out["invariance_better"] is False
+    assert rp.metric_statistic("vertex") is np.mean
+    assert rp.metric_statistic("energy") is rp.rms
+    assert rp.metric_statistic("log_yield") is rp.rms
+
+
+def test_compare_at_d_point_inside_its_95_interval_for_each_metric():
+    run_ids = np.repeat([f"r{index}" for index in range(40)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 40)
+    offsets = np.repeat(np.linspace(-0.002, 0.002, 40), 4)
+    left = 0.10 + offsets
+    right = 0.13 + offsets
+    for metric in ("vertex", "log_yield", "energy"):
+        out = rp._compare_at_d(_d2_variant(metric, left, run_ids, event_ids),
+                               _d2_variant(metric, right, run_ids, event_ids),
+                               metric)
+        assert out["ci95"] is not None
+        assert out["ci95"][0] <= out["difference"] <= out["ci95"][1], metric
+        if metric != "vertex":
+            assert out["statistic"] == "rms"
+            assert out["difference"] == pytest.approx(
+                rp.rms(right) - rp.rms(left), abs=1e-12)
+
+
+def test_every_other_comparison_uses_a_matched_statistic():
+    # X1-c reads the mean point and the mean interval from bootstrap_difference
+    entry = rp._x1c({"SWunit_vs_D_refit": {"mean": {"mean_difference_m": -0.004,
+                                                     "ci95_m": [-0.005, -0.003]},
+                                           "rms": {"difference": 0.002,
+                                                   "ci95": [0.001, 0.003]}}})
+    assert entry["SWunit"]["difference_m"] == pytest.approx(-0.004)
+    assert entry["SWunit"]["ci95_m"] == [-0.005, -0.003]
+    assert entry["SWunit"]["reading"] == "calibration better"
+    # X3-1's interval is the RMS paired bootstrap, matching both RMS resolutions
+    run_ids = np.repeat([f"r{index}" for index in range(10)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 10)
+    left = _metric_block(0.20, np.linspace(0.18, 0.22, run_ids.size),
+                         run_ids, event_ids)
+    right = _metric_block(0.25, np.linspace(0.23, 0.27, run_ids.size),
+                          run_ids, event_ids)
+    ratio = rp._ratio_and_ci(left, right)
+    expected = rp.paired_cluster_bootstrap(left["errors"], right["errors"],
+                                           run_ids, statistic=rp.rms)["ci95"]
+    assert ratio["ci95"] == pytest.approx(expected)
+    # X3-2 is descriptive (a difference, no interval) and uses the mean vertex error
+    assert "ci95" not in rp._variant_reading(
+        {}, {"vertex": {"N": left}}, {"vertex": {"N": right}})["X3-2"]
+
+
+# ---------------------------------------------------------------------- D3 §4
+def test_x3_five_treats_a_null_efficient_crlb_as_infinity():
+    fisher = {"models": {
+        "C-mean": {"median_crlb": {"known": [1.0, 1.0, 1.0, 1.0],
+                                   "inv": [1.0, 1.0, 1.0, None]}},
+        "C-var_all": {"median_crlb": {"known": [1.0, 1.0, 1.0, 1.0],
+                                      "inv": [1.0, 1.0, 1.0, 4.0]}}}}
+    out = rp._x3_five(fisher, {})
+    assert out["theory_rows"]["C-mean"]["theory_ratio_lnY"] == float("inf")
+    assert out["theory_rows"]["C-mean"]["efficient_lnY_crlb"] is None
+    assert out["theory_rows"]["C-var_all"]["theory_ratio_lnY"] == pytest.approx(2.0)
+    # serialises: JSON null is what the file holds, infinity is restored on read
+    path = rp.RESULTS_DIR  # only a name; no file is touched here
+    assert isinstance(path, str)
+
+
+def test_strip_internal_drops_fitted_and_prediction_and_x3_serialises(tmp_path):
+    payload = {"families": {"leace": {"models": {"a/E1": {
+        "fitted": {"fits": [object()]}, "prediction": np.zeros((2, 3)),
+        "errors": [1.0, 2.0], "__errors__": np.zeros(2), "rank": 1,
+        "sanity": {"unerased_r2": 0.5}}}}}}
+    stripped = rp._strip_internal(payload)
+    assert stripped == {"families": {"leace": {"models": {"a/E1": {
+        "rank": 1, "sanity": {"unerased_r2": 0.5}}}}}}
+    target = tmp_path / "x3.json"
+    rp.write_json(target, stripped)
+    assert json.loads(target.read_text())["families"]["leace"]["models"]["a/E1"][
+        "rank"] == 1
+    # an un-stripped payload with fit objects cannot serialise: the drop is required
+    with pytest.raises(TypeError):
+        json.dumps({"fitted": object()})
+
+
+# ------------------------------------------------------- gate (a2) §7 and §9.2
+def test_gate_a2_missing_addendum_fields_denies_not_pending(tmp_path):
+    def drop(record, root):
+        record.pop("addendum_path")
+        record.pop("addendum_sha256")
+
+    root = _fake_repo(tmp_path, record_mutator=drop)
+    result = rp.assert_authorised("x1", root=root, dry_run=True)
+    assert result["status"] == "denied"          # never the pending state
+    assert result["checks"]["a2"]["pass"] is False
+    assert result["checks"]["b"]["missing_keys"] == ["addendum_path",
+                                                    "addendum_sha256"]
+    with pytest.raises(SystemExit) as caught:
+        rp.assert_authorised("x1", root=root)
+    assert caught.value.code == 2
+
+
+def test_gate_a2_addendum_sha_mismatch_denies(tmp_path):
+    def tamper(path):
+        path.write_text(path.read_text() + "\nlate edit\n")
+
+    root = _fake_repo(tmp_path, addendum_mutator=tamper)
+    result = rp.assert_authorised("x1", root=root, dry_run=True)
+    assert result["checks"]["a2"]["pass"] is False
+    assert result["checks"]["a2"]["addendum_sha256"] != rp.ADDENDUM_SHA256
+    assert result["status"] == "denied"
+    with pytest.raises(SystemExit):
+        rp.assert_authorised("x1", root=root)
+
+    def wrong_hash(record, root):
+        record["addendum_sha256"] = "0" * 64
+
+    other = _fake_repo(tmp_path / "wrong_hash", record_mutator=wrong_hash)
+    assert rp.assert_authorised("x1", root=other,
+                                dry_run=True)["checks"]["a2"]["pass"] is False
+
+
+def test_gate_a2_author_line_and_path_are_checked(tmp_path):
+    def strip_line(path):
+        path.write_text(path.read_text().replace(rp.ADDENDUM_AUTHOR_LINE, "removed"))
+
+    no_line = _fake_repo(tmp_path / "no_line", addendum_mutator=strip_line)
+    check = rp.assert_authorised("x1", root=no_line, dry_run=True)["checks"]["a2"]
+    assert check["pass"] is False and check["author_line_present"] is False
+
+    def wrong_path(record, root):
+        record["addendum_path"] = "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md"
+        record["addendum_path"] = "docs/jepa/OTHER_ADDENDUM.md"
+
+    bad_path = _fake_repo(tmp_path / "bad_path", record_mutator=wrong_path)
+    check = rp.assert_authorised("x1", root=bad_path, dry_run=True)["checks"]["a2"]
+    assert check["pass"] is False and check["record_addendum_path"] is not None
+
+
+def test_gate_complete_record_and_committed_addendum_grants(tmp_path):
+    root = _fake_repo(tmp_path)
+    result = rp.assert_authorised("addendum-report", root=root)
+    assert result["authorised"] is True and result["status"] == "granted"
+    assert result["checks"]["a2"]["pass"] is True
+    assert result["checks"]["a2"]["author_line_present"] is True
+
+
+def test_gate_rejects_a_record_pointing_at_a_different_committed_addendum(tmp_path):
+    def wrong_hash(record, root):
+        record["addendum_sha256"] = "f" * 64
+
+    root = _fake_repo(tmp_path, record_mutator=wrong_hash)
+    with pytest.raises(SystemExit):
+        rp.assert_authorised("addendum-selfcheck", root=root)
+
+
+# --------------------------------------------------- addendum budget §6 / §8.4
+def test_addendum_budget_ledger_caps_and_projection(tmp_path, monkeypatch):
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "addendum_jobs.jsonl")
+    monkeypatch.chdir(tmp_path)
+    assert rp.addendum_hours()["gpu"] == 0.0
+    rp.record_addendum_job("addendum-x2e", "gpu", 36.0, part="A")
+    rp.record_addendum_job("addendum-x3", "cpu", 180.0, part="A")
+    rp.record_addendum_job("r2-evaluation", "gpu", 0.30 * 3600.0, part="B")
+    hours = rp.addendum_hours()
+    assert hours["gpu"] == pytest.approx(0.31)
+    assert hours["cpu"] == pytest.approx(0.05)
+    assert hours["jobs"] == 3
+    lines = [json.loads(line) for line in
+             (tmp_path / "addendum_jobs.jsonl").read_text().splitlines()]
+    assert {"utc", "part", "mode", "kind", "wall_seconds", "hours"} <= set(lines[0])
+    assert rp.ADDENDUM_GPU_CAP_H == 0.35 and rp.ADDENDUM_CPU_CAP_H == 3.0
+    with pytest.raises(SystemExit) as caught:
+        rp.assert_addendum_budget("gpu", 0.06, part="A")
+    assert caught.value.code == 2
+    rp.record_addendum_job("x3-cpu", "cpu", 2.90 * 3600.0, part="A")
+    with pytest.raises(SystemExit):
+        rp.assert_addendum_budget("cpu", 0.20, part="A")
+    assert rp.addendum_hours()["cpu"] > 2.9
+
+
+def test_addendum_modes_do_not_consult_the_closed_part_a_or_b_caps():
+    assert not hasattr(rp, "_ADDENDUM_GPU_CAP_H")
+    # the addendum caps are the only ones the addendum modes read
+    assert rp.ADDENDUM_GPU_CAP_H < rp.PART_A_GPU_CAP_H
+    assert rp.ADDENDUM_CPU_CAP_H < rp.CPU_CAP_H
+    assert rp.ADDENDUM_MODES == ("addendum-selfcheck", "addendum-x2", "addendum-x2e",
+                                 "addendum-x3", "addendum-report")
+    # every addendum mode is a registered gated mode
+    assert set(rp.ADDENDUM_MODES) <= set(rp.MODES)
+
+
+# ------------------------------------------------ D1 reuse of source / raw §2
+def test_addendum_x2_reuses_the_source_and_raw_streams():
+    assert "A_hat" not in inspect.signature(rp.source_estimate).parameters
+    assert "A_hat" not in inspect.signature(rp.raw_estimate).parameters
+    base = {"split": "within",
+            "X2-a": {}, "X2-b": {"occupancy": {"r2_cs": 0.7, "class": "partly"}},
+            "X2-c": {"rho_LR": -0.5},
+            "X2-d": {"source": {"median_run_rms": 0.010, "pearson_r": 0.9,
+                                "coverage": 1.0, "n_runs": 8},
+                     "raw": {"median_run_rms": 0.011, "pearson_r": 0.8,
+                             "coverage": 1.0, "n_runs": 8},
+                     "latent": {"median_run_rms": -0.002}},
+            "X2-e": {"streams": {"source": {"rho_EST": 0.6},
+                                 "raw": {"rho_EST": 0.5},
+                                 "latent": {"rho_EST": -0.1}},
+                     "ceiling_rho_SWmod": 0.8},
+            "X2-f": {"max_singular_value": 1.0}}
+    extra = {"X2-c": {"rho_LR": 0.6, "class": "latent repair works"},
+             "X2-d": {"latent": {"median_run_rms": 0.004, "pearson_r": 0.95,
+                                 "coverage": 1.0, "n_runs": 8}},
+             "X2-f": {"max_singular_value": 2.0}}
+    row = rp._x2_seed_summary(base, extra, {"rho_EST_latent": 0.7})
+    assert row["X2-d"]["source"]["median_run_rms"] == 0.010
+    assert row["X2-d"]["raw"]["median_run_rms"] == 0.011
+    assert row["X2-d"]["latent"]["median_run_rms"] == 0.004
+    assert row["X2-d"]["latent"]["source"] == "addendum-x2"
+    assert row["X2-d"]["source"]["source"] == "7 Nov"
+    assert row["X2-e"]["rho_EST"]["source"] == 0.6
+    assert row["X2-e"]["rho_EST"]["latent"] == 0.7
+    assert row["X2-e"]["reused_streams"] == ["source", "raw"]
+
+
+# -------------------------------------------- D2 init9000 cache / not_run §3
+def test_x3_init9000_from_cache_reports_not_run_then_reads(tmp_path, geometry):
+    inv = {"rows": {"init9000": {"label": "init9000", "split": "across"}}}
+    absent = rp._x3_init9000_from_cache(inv, tmp_path, None, None, geometry)
+    assert absent["status"] == "not_run (gpu needed)"
+    cache = rp.init9000_token_cache(tmp_path)
+    for key in rp._INIT9000_TOKEN_KEYS:
+        domain, kind, role, name = key.split("__")
+        run_ids = np.repeat([f"r{index}" for index in range(5)], 4).astype(object)
+        rows = {"events": np.random.default_rng(0).standard_normal((20, 4)),
+                "run_ids": run_ids, "event_ids": np.tile(np.arange(4), 5),
+                "vertex": np.zeros((20, 3)),
+                "log_yield": np.zeros(20), "n_hit": np.full(20, 5)}
+        if domain == "particle":
+            rows.update({"particle": np.array(["electron"] * 20, dtype=object),
+                         "contained": np.ones(20, bool),
+                         "deposited_MeV": np.linspace(100.0, 900.0, 20),
+                         "direction": np.zeros((20, 3))})
+        cache.fetch(key, lambda rows=rows: rows)
+    present = rp._x3_init9000_from_cache(inv, tmp_path, None, None, geometry)
+    assert present["status"] == "evaluated"
+    assert "vertex" in present["standard"] and "log_yield" in present["invariant"]
+
+
+# --------------------------------------------------- D4 summary + figures §5
+def _d4_x1_model(geometry):
+    names = ("N", "D", "SWtw", "SWunit", "SWmod", "SWunitN", "HW")
+    conditions = {}
+    for index, name in enumerate(names):
+        conditions[name] = {
+            "vertex": {"mean_error_m": 0.10 + 0.004 * index, "status": "evaluated"},
+            "log_yield": {"resolution": 0.20 + 0.01 * index,
+                          "ci95": [0.19, 0.21], "r2": {"r2": 0.3}},
+            "refit_vertex": {"mean_error_m": 0.095 + 0.004 * index,
+                             "status": "evaluated"}}
+    for sigma in ("0.01", "0.02", "0.05", "0.1"):
+        conditions[f"NOISY({sigma})"] = {
+            "vertex": {"mean_error_m": 0.105, "status": "evaluated"},
+            "log_yield": {"resolution": 0.25, "ci95": [0.24, 0.26], "r2": {"r2": 0.2}}}
+    def mean(name):
+        return conditions[name]["vertex"]["mean_error_m"]
+    def refit(name):
+        return conditions[name]["refit_vertex"]["mean_error_m"]
+    def comparison(left, right):
+        difference = float(left - right)
+        return {"mean": {"mean_difference_m": difference,
+                         "ci95_m": [difference - 0.001, difference + 0.001]},
+                "rms": {"difference": difference, "ci95": [difference - 0.001,
+                                                          difference + 0.001]}}
+    comparisons = {
+        "D": comparison(mean("D"), mean("N")),
+        "D_refit": comparison(refit("D"), mean("N")),
+        "SWunit_vs_D_refit": comparison(mean("SWunit"), refit("D")),
+        "SWunit_refit_vs_D_refit": comparison(refit("SWunit"), refit("D")),
+        "HW": comparison(mean("HW"), mean("N")),
+        "SWunitN": comparison(mean("SWunitN"), mean("N")),
+        "SWunit_vs_HW": comparison(mean("SWunit"), mean("HW"))}
+    particle = {name: {"energy": {"resolution": 0.05, "ci95": [0.04, 0.06],
+                                  "r2": {"r2": 0.4}, "n_contained_test": 600}}
+                for name in ("N", "D", "SWunit", "HW")}
+    return {"split": "within", "conditions": conditions,
+            "comparisons": comparisons, "particle": particle}
+
+
+def _d4_x3_reading(rho, *, vertex_difference, gain_specific):
+    return {"X3-1": {"log_yield": {"rho_E": rho, "ci95": [rho - 0.1, rho + 0.1],
+                                   "class": "price present",
+                                   "gain_specific": gain_specific,
+                                   "rho_control_q95": 1.10,
+                                   "rho_controls": [1.0] * 20},
+                      "energy": {"rho_E": rho, "ci95": [rho - 0.1, rho + 0.1],
+                                 "class": "price present", "gain_specific": None}},
+            "X3-2": {"difference_m": vertex_difference},
+            "X3-3": {"standard": {"robust": True}, "invariant": {"robust": False}},
+            "X3-4": {"vertex": {"difference": vertex_difference,
+                                "ci95": [vertex_difference - 0.001,
+                                         vertex_difference + 0.001]},
+                     "energy": {"difference": 0.02, "ci95": [0.01, 0.03]},
+                     "log_yield": {"difference": 0.05, "ci95": [0.04, 0.06]},
+                     "verdict": "calibration dominates", "status": "evaluated"}}
+
+
+def _d4_fixtures(tmp_path, geometry):
+    ext = tmp_path / "ext"
+    label = "mae_within_trigger9000"
+    x1 = {"models": {label: _d4_x1_model(geometry)}}
+    x2_model = {
+        "split": "within",
+        "X2-a": {"share_cs": 0.9, "share_ni": 0.1, "v_S_minus_v_N": 0.004,
+                 "v_D_minus_v_S": 0.012, "additivity_check": 0.0005},
+        "X2-b": {"occupancy": {"r2_cs": 0.7, "class": "partly equivariant"},
+                 "global": {"r2_tot": 0.8}},
+        "X2-c": {"rho_LR": -0.5, "class": "fails"},
+        "X2-d": {"source": {"median_run_rms": 0.010, "pearson_r": 0.9,
+                            "coverage": 1.0, "n_runs": 8},
+                 "raw": {"median_run_rms": 0.011, "pearson_r": 0.8,
+                         "coverage": 1.0, "n_runs": 8},
+                 "latent": {"median_run_rms": -0.002, "pearson_r": 0.2,
+                            "coverage": 1.0, "n_runs": 8}},
+        "X2-e": {"streams": {"source": {"rho_EST": 0.6},
+                             "raw": {"rho_EST": 0.5},
+                             "latent": {"rho_EST": -0.1}},
+                 "ceiling_rho_SWmod": 0.8},
+        "X2-f": {"singular_values": [3.0, 2.0, 1.0], "max_singular_value": 3.0,
+                 "condition_number": 1e6, "median_crlb": 0.5,
+                 "crlb_per_module": [0.1] * 6}}
+    x2 = {"models": {label: x2_model}}
+    families = {
+        "raw": {"status": "evaluated"},
+        "init9000": {"status": "evaluated"},
+        "leace": {"status": "evaluated", "models": {
+            f"{label}/E1": {"status": "evaluated", "rank": 1, "concept": "E1",
+                            "sanity": {"unerased_r2": 0.5, "erased_r2": 0.001,
+                                       "status": "evaluated"}},
+            f"{label}/E2r": {"status": "evaluated", "rank": 5, "concept": "E2r",
+                             "sanity": {"unerased_r2": 0.4, "erased_r2": 0.002,
+                                        "status": "evaluated"}},
+            "mae_within_trigger9001/E2r": {"status": "not_applicable", "rank": 0,
+                                           "reason": "r = 0: not applicable"}}}}
+    x3 = {"families": families, "readings": {
+        "variants": {"raw": _d4_x3_reading(3.5, vertex_difference=0.134,
+                                           gain_specific=None),
+                     "init9000": _d4_x3_reading(1.2, vertex_difference=0.002,
+                                                gain_specific=None),
+                     f"{label}/E1": _d4_x3_reading(1.4, vertex_difference=0.003,
+                                                  gain_specific=True),
+                     f"{label}/E2r": _d4_x3_reading(1.5, vertex_difference=0.004,
+                                                   gain_specific=True)},
+        "X3-5": {"empirical_rho_E_log_yield": 3.5,
+                 "theory_rows": {"C-mean": {"theory_ratio_lnY": None},
+                                 "C-mean+occupancy": {"theory_ratio_lnY": 2.1}},
+                 "rule": "C-mean alone gives ∞ by P0"}}}
+    fisher = {"models": {"C-mean": {"median_crlb": {"known": [1, 1, 1, 1],
+                                                    "inv": [1, 1, 1, None]}}},
+              "p0": {"pass": True}}
+    return ext, label, x1, x2, x3, fisher
+
+
+def _write_d4_stage(ext, x1, x2, x3, fisher):
+    rp.write_json(ext / "x1" / "x1.json", x1)
+    rp.write_json(ext / "x2" / "x2.json", x2)
+    rp.write_json(ext / "x3" / "x3.json", x3)
+    rp.write_json(ext / "x3" / "x3_fisher.json", fisher)
+
+
+def _write_d4_addendum(ext, label, *, corrected=True):
+    d1 = {"identity_pass": corrected, "stop": None if corrected else "S9: x",
+          "n_models": 1, "complete": True, "unavailable": [], "flags": [],
+          "models": {label: {"status": "evaluated", "identity_pass": corrected,
+                             "identity": {"relative_error": 1e-16},
+                             "r2_eq": 0.5, "removed_share": 0.9,
+                             "recovered_fraction": 0.4, "flag": False,
+                             "flag_text": None}}}
+    x2_add = {
+        "complete": True, "unavailable": [], "A_hat_units": "raw", "reused": {},
+        "latent_estimates": {label: {"r0": [0.0] * 6}},
+        "models": {label: {
+            "X2-c": {"rho_LR": 0.6, "class": "latent repair works"},
+            "X2-d": {"latent": {"median_run_rms": 0.004, "pearson_r": 0.95,
+                                "coverage": 1.0, "n_runs": 8}},
+            "X2-f": {"singular_values": [3.5, 2.0, 1.0],
+                     "max_singular_value": 3.5, "median_crlb": 0.4,
+                     "crlb_per_module": [0.08] * 6},
+            "A_hat": [[0.0] * 6]}}}
+    x2e_add = {"complete": True, "unavailable": [], "models": {label: {
+        "rho_EST_latent": 0.7, "latent_repair_rho_LR": 0.65,
+        "ceiling_rho_SWmod": 0.8}}}
+    x3_add = {"complete": True, "readings": {"variants": {
+        "raw": _d4_x3_reading(3.5, vertex_difference=0.1337,
+                              gain_specific=None),
+        "init9000": _d4_x3_reading(1.2, vertex_difference=0.002,
+                                   gain_specific=None),
+        f"{label}/E1": _d4_x3_reading(1.4, vertex_difference=0.003,
+                                      gain_specific=True),
+        f"{label}/E2r": _d4_x3_reading(1.5, vertex_difference=0.004,
+                                       gain_specific=True)},
+        "X3-5": {"empirical_rho_E_log_yield": 3.5, "theory_rows": {},
+                 "rule": "x"}}}
+    rp.write_json(ext / "addendum" / "d1_selfcheck.json", d1)
+    rp.write_json(ext / "addendum" / "x2_addendum.json", x2_add)
+    rp.write_json(ext / "addendum" / "x2e_addendum.json", x2e_add)
+    rp.write_json(ext / "addendum" / "x3_addendum.json", x3_add)
+    return x2_add, x2e_add, x3_add
+
+
+def test_addendum_report_writes_every_d4_item_and_the_superseded_table(
+        tmp_path, geometry, monkeypatch):
+    ext, label, x1, x2, x3, fisher = _d4_fixtures(tmp_path, geometry)
+    _write_d4_stage(ext, x1, x2, x3, fisher)
+    x2_add, _x2e_add, _x3_add = _write_d4_addendum(ext, label)
+    root = tmp_path / "repo"
+    (root / "results/jepa/20261107_shortcut").mkdir(parents=True)
+    rp.write_json(root / "results/jepa/20261107_shortcut/readings.json",
+                  {"r1": {"reading": {"verdict": "contradicts",
+                                      "generative_median": {"r2_eq": 0.2}}}})
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    result = rp.addendum_report(root=root, ext_root=ext,
+                                results_dir=root / rp.RESULTS_DIR,
+                                log=lambda *a, **k: None)
+    summary = rp.read_json(Path(result["summary"]))
+    # X1-c, X1-d, X1-e, X1-f per model and seed
+    seed_row = summary["x1"]["mae_within_trigger"]["9000"]
+    assert set(seed_row["X1-c"]) == {"SWunit", "SWunit_refit"}
+    assert set((seed_row["X1-d"] or {})["primary"]) == {"HW", "SWunitN",
+                                                         "SWunit_vs_HW"}
+    assert set(seed_row["X1-e"]["rho"]) == {"0.01", "0.02", "0.05", "0.1"}
+    assert "sigma_half" in seed_row["X1-e"]
+    assert {"N", "D", "SWunit", "HW"} <= set(seed_row["X1-f"])
+    assert seed_row["X1-f"]["N"]["log_yield_resolution"] is not None
+    assert seed_row["X1-f"]["N"]["energy_resolution"] is not None
+    # X2-a, X2-d labelled streams, X2-e, X2-f
+    x2_row = summary["x2"]["mae_within_trigger"]["9000"]
+    assert x2_row["X2-a"]["additivity_check"] is not None
+    assert x2_row["X2-c"]["rho_LR"] == pytest.approx(0.6)
+    for stream in ("source", "raw", "latent"):
+        assert x2_row["X2-d"][stream]["median_run_rms"] is not None
+        assert "label" in x2_row["X2-d"][stream]
+    assert set(x2_row["X2-e"]["rho_EST"]) == {"source", "raw", "latent"}
+    assert x2_row["X2-e"]["rho_EST"]["latent"] == pytest.approx(0.7)
+    assert x2_row["X2-f"]["max_singular_value"] == pytest.approx(3.5)
+    # X3-b every family, including LEACE E1/E2r with rank and sanity R²
+    variants = summary["x3"]
+    for name in ("raw", "init9000", f"{label}/E1", f"{label}/E2r"):
+        assert name in variants
+    assert variants[f"{label}/E2r"]["rank"] == 5
+    assert variants[f"{label}/E1"]["unerased_concept_r2"] == pytest.approx(0.5)
+    assert variants[f"{label}/E1"]["erased_concept_r2"] == pytest.approx(0.001)
+    assert variants[f"{label}/E1"]["X3-1"]["log_yield"]["gain_specific"] is True
+    assert variants[f"{label}/E1"]["X3-1"]["log_yield"]["rho_control_q95"] == \
+        pytest.approx(1.10)
+    assert variants["raw"]["X3-2"] is not None and variants["raw"]["X3-3"]
+    assert variants["raw"]["X3-4"]["verdict"] == "calibration dominates"
+    assert summary["x3_5"]["empirical_rho_E_log_yield"] == pytest.approx(3.5)
+    # the superseded table: every replaced number, old value, new value, defect
+    items = {(row["item"], row["scope"]) for row in summary["superseded"]}
+    assert ("rho_LR", label) in items
+    assert ("X2-d latent median_run_rms", label) in items
+    assert ("X2-e latent rho_EST", label) in items
+    assert ("X2-f max singular value", label) in items
+    assert ("X3-4 vertex", "raw") in items
+    assert ("R-1 reading", "Part B") in items
+    superseded = {(row["item"], row["scope"]): row
+                  for row in summary["superseded"]}
+    assert superseded[("rho_LR", label)]["defect"] == "D1"
+    assert superseded[("rho_LR", label)]["old"] == pytest.approx(-0.5)
+    assert superseded[("rho_LR", label)]["new"] == pytest.approx(0.6)
+    assert superseded[("rho_LR", label)]["status"] == "superseded"
+    assert superseded[("X3-4 vertex", "raw")]["defect"] == "D2"
+    assert superseded[("X3-4 vertex", "raw")]["status"] == "superseded"
+    assert superseded[("X2-e latent rho_EST", label)]["new"] == pytest.approx(0.7)
+    assert superseded[("X2-e latent rho_EST", label)]["old"] == pytest.approx(-0.1)
+    # the committed markdown carries the table and the labelled streams
+    markdown = (Path(result["path"]) / "READINGS_SUMMARY.md").read_text()
+    assert "Superseded 7 Nov values" in markdown
+    assert "latent (unlabelled" in markdown
+    assert "source (known light)" in markdown
+    # the addendum JSON carries self-check, reruns and the superseded table
+    addendum = rp.read_json(Path(result["addendum_json"]))
+    assert addendum["addendum_sha256"] == rp.ADDENDUM_SHA256
+    assert "self_check" in addendum and "reruns" in addendum
+    assert addendum["reruns"]["X2-c"]["status"] == "complete"
+    assert addendum["superseded"]
+    assert (Path(result["path"]) / "OUTCOME.json").is_file()
+    assert result["figures"]["status"] in ("evaluated", "unavailable")
+
+
+def test_addendum_report_never_invents_a_missing_value(tmp_path, monkeypatch):
+    ext = tmp_path / "ext_empty"
+    root = tmp_path / "repo"
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    result = rp.addendum_report(root=root, ext_root=ext,
+                                results_dir=tmp_path / "results",
+                                log=lambda *a, **k: None)
+    summary = rp.read_json(Path(result["summary"]))
+    assert summary["x1"] == {} and summary["x2"] == {} and summary["x3"] == {}
+    assert any(row["status"] == "not_run" for row in summary["not_run"])
+    markdown = (Path(result["path"]) / "READINGS_SUMMARY.md").read_text()
+    assert "not_run" in markdown
+    assert "Superseded 7 Nov values" in markdown
+
+
+def test_addendum_report_uses_the_7_nov_flat_keys_for_backward_compatibility(
+        tmp_path, geometry, monkeypatch):
+    ext, label, x1, x2, x3, fisher = _d4_fixtures(tmp_path, geometry)
+    _write_d4_stage(ext, x1, x2, x3, fisher)
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    result = rp.addendum_report(root=tmp_path / "repo", ext_root=ext,
+                                results_dir=tmp_path / "results",
+                                log=lambda *a, **k: None)
+    summary = rp.read_json(Path(result["summary"]))
+    x1_row = summary["x1"]["mae_within_trigger"]["9000"]
+    assert {"delta_D_m", "ci95_m", "eligible", "rho_swtw", "class_swtw",
+            "share_cs", "class_x1g"} <= set(x1_row)
+    x2_row = summary["x2"]["mae_within_trigger"]["9000"]
+    assert {"r2_eq", "class", "rho_lr"} <= set(x2_row)
+    x3_row = summary["x3"]["raw"]
+    assert {"log_yield_rho", "log_yield_class", "energy_class"} <= set(x3_row)

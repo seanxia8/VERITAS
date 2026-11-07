@@ -21,6 +21,29 @@ Part B has three pieces:
 * **R-3** (desk, done at design time): citation only (the CLI ``report`` mode
   writes the four references into the README).
 
+Addendum (7 Nov 2026, v1; ``RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md``, sha256
+``abe0904a…0621a``)
+------------------------------------------------------------------------------
+The addendum closes the 7 Nov gaps without training or data generation:
+
+* **D5** -- the R-2 evaluation that the closed Part B cap refused: one job for the
+  two existing run directories (full input + half pass via
+  ``ext_h12.evaluate_run``, plus the label-pass ``f_event`` over the §5.2 64
+  events).  ``r2_readings`` reports ``not_run`` when the run directories carry no
+  evaluation, never the 7 Nov "single-seed (not classified)" label.
+* **D1/R-1** -- the R-1 rerun re-reads the pilot's updated
+  ``x1.json``/``x2.json``/``readings.json`` read-only and re-emits R-1 with the
+  corrected ``rho_LR`` (the §3 rule, families and table unchanged).
+* **D2 (Part B side)** -- :func:`statistic_audit` checks every comparison for a
+  mean point estimate beside an RMS interval; the vertex point here is the mean
+  3-D error and no comparison pairs a point with a bootstrap interval.
+* **budget/gate** -- the addendum modes book into the shared
+  :data:`ADDENDUM_JOBS` ledger under the 0.35 L40S-h / 3 wall-h CPU caps (the
+  closed Part A 4.0 h and Part B 1.5 h caps are never consulted), and the gate
+  additionally requires the committed addendum's sha256, its §0 author line and
+  the record's ``addendum_path``/``addendum_sha256`` (a record missing them is
+  DENIED, not pending).
+
 The variant is installed by rebinding ``arm._encode_views`` through a
 process-level ``lucid_run.build_arm`` wrapper
 (:func:`build_arm_patch` / :func:`attach_posfree_target`), as in
@@ -110,6 +133,14 @@ __all__ = [
     "r1_payload", "s1_check", "entries_preflight", "cost_projection",
     "assert_gpu_budget", "assert_cpu_budget", "record_job", "job_hours",
     "assemble_report", "large_arrays",
+    # addendum (7 Nov 2026, v1): the shared gate, budget and report helpers
+    "ADDENDUM_REL", "ADDENDUM_SHA256", "ADDENDUM_AUTHOR_LINE",
+    "ADDENDUM_GPU_CAP_H", "ADDENDUM_CPU_CAP_H", "ADDENDUM_JOBS",
+    "ADDENDUM_MODES", "ADDENDUM_COST_BY_ITEM", "ADDENDUM_COST_BY_JOB",
+    "ADDENDUM_RESULTS_FILE", "ADDENDUM_DATE", "addendum_jobs",
+    "addendum_hours", "assert_addendum_budget", "record_addendum_job",
+    "addendum_s1_check", "addendum_s1_check_or_stop", "statistic_audit",
+    "COMPARISON_STATISTICS", "r2_evaluation_record", "assemble_addendum_report",
 ]
 
 # ---------------------------------------------------------------- extension
@@ -119,6 +150,10 @@ ARM_NAME = "sigreg_jepa"
 CELL_ID = "dev_s005_within"
 MODES = ("dry-run", "preflight", "manipulation", "reproduce", "smoke", "train",
          "evaluate", "r1", "report")
+#: Addendum §2/§6/§8: the addendum-only modes (run under the addendum 0.35 h GPU /
+#: 3 wall-h CPU caps, never the closed 7 Nov caps).
+ADDENDUM_MODES = ("addendum-evaluate", "addendum-r1", "addendum-report")
+ALL_MODES = MODES + ADDENDUM_MODES
 #: §5.3 / §9.1: the only authorised training launches.
 TRAIN_SEEDS = (9000, 9001)
 TRAIN_STEPS = 10000
@@ -143,8 +178,26 @@ RUNBOOK_REL = "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md"
 #: this value and gate (a) compares against it).
 RUNBOOK_SHA256 = "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b"
 ACCEPTANCE_REL = "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json"
+#: --- addendum (7 Nov 2026, v1; sha256 abe0904a…0621a) ----------------------
+#: Addendum §7: the re-issued acceptance record has the six 7 Nov keys plus
+#: ``addendum_path`` and ``addendum_sha256``; a record missing either is DENIED,
+#: never ``gate_pending_acceptance`` (that state is only for an absent record).
+ADDENDUM_REL = "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md"
+ADDENDUM_SHA256 = "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a"
+ADDENDUM_AUTHOR_LINE = "写进weekly report，然后我选A，你写一个小runbook"
+ADDENDUM_DATE = "2026-11-07"
+ADDENDUM_GPU_CAP_H = 0.35
+ADDENDUM_CPU_CAP_H = 3.0
+#: The shared addendum ledger (one JSON line per CPU/GPU job; O_APPEND).
+ADDENDUM_JOBS = Path("/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl")
+#: Addendum §6 projections (L40S h); the R-2 evaluation is Part B's only GPU item.
+ADDENDUM_COST_BY_ITEM = {"r2_evaluation": 0.14, "est_latent": 0.06,
+                         "init9000_tokens": 0.07}
+ADDENDUM_COST_BY_JOB = {"addendum-evaluate": ADDENDUM_COST_BY_ITEM["r2_evaluation"],
+                        "addendum-r1": 0.02, "addendum-report": 0.02}
+ADDENDUM_RESULTS_FILE = "ADDENDUM_2026-11-07.json"
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
-                   "lead", "date")
+                   "lead", "date", "addendum_path", "addendum_sha256")
 DECISIONS_REL = "docs/jepa/DECISIONS.md"
 #: Part B §0 line 1, verbatim; the date is recorded on the runbook (line 1170).
 AUTHOR_LINE = "一二三我都批，写成一个runbook"
@@ -165,6 +218,8 @@ P_FILES = (
     "src/jepa_noise/sigreg.py",
     "scripts/__init__.py", "scripts/jepa_ext_shortcut.py",
     RUNBOOK_REL,
+    #: Addendum §7: the committed addendum must be unchanged as well.
+    ADDENDUM_REL,
 )
 P_DIRS = ("src/noise_module_lucid/", "src/jepa_noise/configs/")
 #: Modules outside <P> that a <P> module *forces* into the executed import
@@ -401,15 +456,44 @@ def _gate_checks(mode, *, root) -> dict:
     sha_pass = bool(computed_runbook is not None
                     and computed_runbook == expected_runbook)
     line_pass = bool(block and AUTHOR_LINE in block)
-    a_pass = bool(sha_pass and line_pass)
+    # (a, addendum §7) the committed addendum: its sha256 is the committed value
+    # (and the acceptance record's), its §0 block carries the §0 author line, and
+    # the record names ``addendum_path`` and ``addendum_sha256``.
+    addendum_file = root / ADDENDUM_REL
+    computed_addendum = (lr.sha256_file(addendum_file) if addendum_file.is_file()
+                         else None)
+    expected_addendum = ((record or {}).get("addendum_sha256") if record
+                         else ADDENDUM_SHA256)
+    addendum_text = addendum_file.read_text() if addendum_file.is_file() else ""
+    addendum_block = author_section(addendum_text, ADDENDUM_AUTHOR_LINE)
+    addendum_sha_pass = bool(computed_addendum is not None
+                             and computed_addendum == ADDENDUM_SHA256
+                             and computed_addendum == expected_addendum)
+    addendum_line_pass = bool(addendum_block
+                              and ADDENDUM_AUTHOR_LINE in addendum_block)
+    addendum_path_pass = bool(record is None
+                              or str(record.get("addendum_path")) == ADDENDUM_REL)
+    a_pass = bool(sha_pass and line_pass and addendum_sha_pass
+                  and addendum_line_pass and addendum_path_pass)
     checks["a"] = {"pass": a_pass, "runbook": str(runbook_path),
                    "runbook_sha256": computed_runbook,
                    "expected_sha256": expected_runbook,
                    "author_line": AUTHOR_LINE, "author_line_in_section_zero": line_pass,
+                   "addendum": str(addendum_file),
+                   "addendum_sha256": computed_addendum,
+                   "addendum_sha256_committed": ADDENDUM_SHA256,
+                   "expected_addendum_sha256": expected_addendum,
+                   "addendum_sha256_pass": addendum_sha_pass,
+                   "addendum_author_line": ADDENDUM_AUTHOR_LINE,
+                   "addendum_author_line_in_section_zero": addendum_line_pass,
+                   "addendum_path_in_record": (record or {}).get("addendum_path"),
+                   "addendum_path_match": addendum_path_pass,
                    "pending_acceptance": bool(pending)}
     if not a_pass and not pending:
         problems.append("(a) the committed runbook sha256 and/or the §0 author line "
-                        "does not match the acceptance record")
+                        "does not match the acceptance record; or the committed "
+                        "addendum (sha256, §0 author line, "
+                        "addendum_path/addendum_sha256 in the record) does not")
 
     # (b) acceptance record schema and review verdict.
     if record is None:
@@ -480,8 +564,8 @@ def assert_authorised(mode, *, root=None, dry_run=None, log=None) -> dict:
     ``gate_pending_acceptance`` rather than a failure, and the executed-import
     closure is asserted as part of the same report.
     """
-    if mode not in MODES:
-        raise ValueError(f"unknown mode {mode!r}; expected one of {MODES}")
+    if mode not in ALL_MODES:
+        raise ValueError(f"unknown mode {mode!r}; expected one of {ALL_MODES}")
     dry = bool(dry_run) if dry_run is not None else (mode == "dry-run")
     result = _gate_checks(mode, root=root)
     if dry:
@@ -536,6 +620,117 @@ def assert_launch_allowed(mode, *, seed=None, steps=None, out_root=None) -> dict
             print(f"[shortcut] training guard: {problem}", file=sys.stderr)
         raise SystemExit(2)
     return detail
+
+
+# =============================================================== addendum §6
+#: The shared addendum budget (Part A and Part B book into one ledger; addendum
+#: §6).  The CLOSED 7 Nov Part A (4.0 h) and Part B (1.5 h) caps are never
+#: consulted by an addendum mode.
+def addendum_jobs(path=None) -> list:
+    """The rows of the shared addendum ledger (one JSON line per job)."""
+    path = Path(path) if path is not None else ADDENDUM_JOBS
+    recorded = []
+    if path.is_file():
+        for line in path.read_text().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            row = read_json_text(line)
+            if isinstance(row, dict):
+                recorded.append(row)
+    return recorded
+
+
+def addendum_hours(path=None) -> dict:
+    """Recorded addendum hours by kind (addendum §6: GPU 0.35 h, CPU 3.0 h)."""
+    path = Path(path) if path is not None else ADDENDUM_JOBS
+    rows = addendum_jobs(path)
+    gpu = sum(float(row.get("hours") or 0.0) for row in rows
+              if str(row.get("kind")) == "gpu")
+    cpu = sum(float(row.get("hours") or 0.0) for row in rows
+              if str(row.get("kind")) == "cpu")
+    return {"path": str(path), "rows": rows, "n_rows": len(rows),
+            "gpu_hours": round(gpu, 4), "cpu_hours": round(cpu, 4),
+            "gpu_cap_hours": ADDENDUM_GPU_CAP_H,
+            "cpu_cap_hours": ADDENDUM_CPU_CAP_H,
+            "parts": sorted({str(row.get("part")) for row in rows
+                             if row.get("part") is not None})}
+
+
+def assert_addendum_budget(kind, projected_hours, part="B", *, path=None) -> dict:
+    """Refuse an addendum job that would cross 0.35 GPU-h or 3.0 CPU wall-h.
+
+    The projection is the addendum §6 item projection (Part B R-2 evaluation
+    0.14 h; Part A EST(latent) 0.06 h; init9000 gain-blind tokens <= 0.07 h).
+    A refusal is ``SystemExit(2)`` and the item is recorded as ``not_run
+    (cap)`` (addendum §6).  The closed 7 Nov caps are not read.
+    """
+    kind = str(kind).lower()
+    if kind not in ("gpu", "cpu"):
+        raise ValueError(f"kind must be 'gpu' or 'cpu', got {kind!r}")
+    hours = addendum_hours(path)
+    spent = float(hours[f"{kind}_hours"])
+    cap = ADDENDUM_GPU_CAP_H if kind == "gpu" else ADDENDUM_CPU_CAP_H
+    estimate = 0.0 if projected_hours is None else float(projected_hours)
+    total = round(spent + estimate, 4)
+    if total > cap:
+        print(f"[shortcut] addendum cap STOP: {kind.upper()} {spent:.4f} h booked + "
+              f"{estimate:.4f} h projected = {total:.4f} h > {cap} h (addendum §6, "
+              f"part {part}); the item is not_run (cap)", file=sys.stderr)
+        raise SystemExit(2)
+    return {"kind": kind, "part": str(part), "spent_hours": spent,
+            "estimate_hours": estimate, "projected_total_hours": total,
+            "cap_hours": cap, "pass": True, "ledger": str(hours["path"])}
+
+
+def record_addendum_job(part, *, mode, kind, wall_seconds, path=None) -> dict:
+    """Append one addendum job row to the shared ledger (O_APPEND).
+
+    The row has exactly the addendum §6 fields ``{utc, part, mode, kind,
+    wall_seconds, hours}``; one JSON line is appended in a single ``write`` to a
+    file opened with ``O_APPEND`` so concurrent Part A/Part B bookings do not
+    interleave.
+    """
+    path = Path(path) if path is not None else ADDENDUM_JOBS
+    seconds = None if wall_seconds is None else round(float(wall_seconds), 3)
+    row = {"utc": lr.utcnow(), "part": str(part), "mode": str(mode),
+           "kind": str(kind), "wall_seconds": seconds,
+           "hours": None if seconds is None else round(seconds / 3600.0, 6)}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:  # O_APPEND: atomic line
+        handle.write(json.dumps(lr._safe(row), default=float) + "\n")
+    return row
+
+
+def addendum_s1_check(root=None) -> dict:
+    """Addendum §6 S1: L40S ledger + the addendum GPU cap (0.35) <= 160."""
+    root = _resolve_root(root)
+    ledger = read_json(root / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}
+    entry = (ledger.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2") or {}
+    charged = entry.get("charged_gpu_hours")
+    total = (float(charged) + ADDENDUM_GPU_CAP_H if charged is not None else None)
+    return {"registered": False, "extension": EXTENSION, "id": "S1 (addendum)",
+            "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+            "ledger_job": "E2_lucid_l40s_deepthought2",
+            "ledger_charged_gpu_hours": charged,
+            "addendum_cap_hours": ADDENDUM_GPU_CAP_H,
+            "sum_hours": None if total is None else round(total, 4),
+            "ceiling_hours": S1_CEILING_H,
+            "pass": bool(total is not None and total <= S1_CEILING_H),
+            "rule": "L40S ledger + addendum GPU cap (0.35) <= 160 (addendum §6; the "
+                    "closed Part A and Part B caps are not consulted)"}
+
+
+def addendum_s1_check_or_stop(root=None) -> dict:
+    """Addendum S1 is a STOP: no addendum GPU job may launch when it is crossed."""
+    result = addendum_s1_check(root)
+    if not result["pass"]:
+        print(f"[shortcut] addendum S1 STOP: L40S ledger "
+              f"{result['ledger_charged_gpu_hours']} + "
+              f"{result['addendum_cap_hours']} = {result['sum_hours']} > "
+              f"{result['ceiling_hours']} h (addendum §6)", file=sys.stderr)
+        raise SystemExit(2)
+    return result
 
 
 # ================================================================ variant §5.1
@@ -1014,13 +1209,17 @@ def reproduce(config, arms_config, geometry, probes, readout_items, *, device,
 
 # ============================================================= evaluation §5.3
 def evaluate_run_dirs(run_dirs, probes, geometry, config, arms_config, *, device,
-                      batches=None, max_events=None, root=None, dry_run=None) -> dict:
+                      batches=None, max_events=None, root=None, dry_run=None,
+                      mode="evaluate") -> dict:
     """The readout protocol (full input + half pass) for every ``final.pt``.
 
     For each final checkpoint it also reports the label-pass ``f_event`` over the
     same events as §5.2 (``batches``, the 64-event training-cell selection).
+
+    ``mode`` is the gating mode (``evaluate``, or ``addendum-evaluate`` for the
+    addendum §6 R-2 evaluation); both use the same readout protocol.
     """
-    assert_authorised("evaluate", root=_resolve_root(root), dry_run=dry_run)
+    assert_authorised(mode, root=_resolve_root(root), dry_run=dry_run)
     runs = {}
     for run_dir in run_dirs:
         run_dir = Path(run_dir)
@@ -1116,8 +1315,55 @@ def _module_gain(form: dict):
     return gain.get("value") if isinstance(gain, dict) else gain
 
 
+def _run_has_evaluation(run) -> bool:
+    """True when a run entry carries the §5.3 readout (full input and half pass)."""
+    if not isinstance(run, dict):
+        return False
+    full, half = run.get("full_input"), run.get("half_pass")
+    return bool(isinstance(full, dict) and full and isinstance(half, dict) and half)
+
+
+def r2_not_run_readings(*, reason, references=None) -> dict:
+    """The ``not_run`` R2-a/R2-b/R2-c payload (addendum §6: never "single-seed").
+
+    Until the single evaluation job has produced a readout for at least one run
+    directory there is no reading at all; the 7 Nov label "single-seed (not
+    classified)" described a run without an evaluation and is forbidden here.
+    """
+    base_r2_b = recovery_rule({})
+    base_r2_b.update({"verdict": "not_run", "status": "not_run", "seeds": {}})
+    return {
+        "status": "not_run",
+        "reason": str(reason),
+        "r2_a": {"registered": False, "extension": EXTENSION, "id": "R2-a",
+                 "question": "the §4 class of target_posfree on full-input f_event",
+                 "class": "not_run", "status": "not_run", "f_event": {}, "seeds": [],
+                 "criteria": "the §4 A-1 class needs full-input f_event in both "
+                             "seeds (>= 0.01 both: event-dependent; <= 1e-3 both: "
+                             "event-invariant; otherwise intermediate)"},
+        "r2_b": base_r2_b,
+        "r2_c": {"id": "R2-c", "descriptive": True, "status": "not_run",
+                 "seeds": {},
+                 "references": dict(REFERENCE_VALUES if references is None
+                                    else references),
+                 "note": "descriptive; the reference values are never thresholds"},
+    }
+
+
 def r2_readings(runs: dict, *, references=None) -> dict:
-    """R2-a, R2-b and R2-c from the evaluation runs (§5.4)."""
+    """R2-a, R2-b and R2-c from the evaluation runs (§5.4).
+
+    Addendum §6 label fix: when the run directories carry no evaluation (the
+    ``evaluate``/``addendum-evaluate`` job has not run) the readings are
+    ``not_run``; they are never labelled "single-seed (not classified)".
+    """
+    runs = {seed: run for seed, run in dict(runs or {}).items()
+            if _run_has_evaluation(run)}
+    if not runs:
+        return r2_not_run_readings(
+            reason="the run directories carry no evaluation (the R-2 evaluation "
+                   "job has not run); R2-a/R2-b/R2-c are not_run",
+            references=references)
     f_event = {}
     for seed, run in runs.items():
         value = _layout_field(run["full_input"], "f_event")
@@ -1144,10 +1390,215 @@ def r2_readings(runs: dict, *, references=None) -> dict:
             "label_pass_f_layout": label.get("f_layout"),
             "label_pass_n_events": label.get("n_events"),
         }
-    r2_c = {"id": "R2-c", "descriptive": True, "seeds": rows,
+    r2_c = {"id": "R2-c", "descriptive": True, "status": "complete", "seeds": rows,
             "references": dict(REFERENCE_VALUES if references is None else references),
             "note": "descriptive; the reference values are never thresholds"}
-    return {"r2_a": r2_a, "r2_b": r2_b, "r2_c": r2_c}
+    return {"status": "complete", "r2_a": r2_a, "r2_b": r2_b, "r2_c": r2_c}
+
+
+# ===================================== D2 statistic audit (Part B side, addendum)
+#: The statistic of every point estimate that ``ext_shortcut`` reports or
+#: compares.  ``vertex_resolution_m`` is the **mean** 3-D error
+#: (``ext_readout.vertex_resolution`` -> ``lucid_run._vertex_error`` ->
+#: ``errors.mean()``); addendum D2's defect was a mean point beside an RMS
+#: bootstrap interval, so a vertex interval may only be a mean-error interval.
+COMPARISON_STATISTICS = {
+    "vertex_resolution_m": "mean",
+    "resolution": "mean",
+    "vertex": "mean",
+    "median": "median",
+    "failure_rate": "fraction",
+    "token_log_charge_r2": "r2",
+    "r2": "r2",
+    "module_gain_r2": "r2",
+    "f_layout": "fraction",
+    "f_event": "fraction",
+    "effective_rank": "rank",
+    "participation_ratio": "rank",
+}
+#: Interval names that carry a root-mean-square statistic (the addendum D2 defect).
+RMS_STATISTIC_ALIASES = ("rms", "rmse", "root_mean_square", "root-mean-square",
+                         "root mean square")
+_INTERVAL_TOKENS = ("ci95", "ci_", "_ci", "interval", "bootstrap", "confidence")
+_INTERVAL_SUFFIXES = ("_ci95", "_ci", "_bootstrap_interval", "_bootstrap",
+                      "_confidence_interval", "_interval")
+
+
+def _declared_point_statistic(metric) -> str | None:
+    """The declared statistic of a point estimate, or ``None`` when unmapped."""
+    text = str(metric).lower()
+    if text in COMPARISON_STATISTICS:
+        return COMPARISON_STATISTICS[text]
+    head = text.rsplit(".", 1)[0]
+    if head in COMPARISON_STATISTICS:
+        return COMPARISON_STATISTICS[head]
+    leaf = text.rsplit(".", 1)[-1]
+    if leaf in COMPARISON_STATISTICS:
+        return COMPARISON_STATISTICS[leaf]
+    for name in sorted(COMPARISON_STATISTICS, key=len, reverse=True):
+        if text.startswith(name + ".") or text.endswith("." + name):
+            return COMPARISON_STATISTICS[name]
+    return None
+
+
+def _interval_statistic(interval) -> str | None:
+    """The statistic an interval block declares (``statistic``/``estimator``/...)."""
+    if not isinstance(interval, dict):
+        return None
+    for key in ("statistic", "estimator", "method", "interval_statistic"):
+        value = interval.get(key)
+        if value is not None:
+            return str(value).strip().lower()
+    return None
+
+
+def _interval_metric(key, interval) -> str:
+    """The point metric an interval belongs to (explicit field or key suffix)."""
+    if isinstance(interval, dict):
+        for name in ("metric", "point_metric", "for_metric"):
+            value = interval.get(name)
+            if value:
+                return str(value)
+    text = str(key).lower()
+    for suffix in _INTERVAL_SUFFIXES:
+        if text.endswith(suffix):
+            return text[: -len(suffix)]
+    return text
+
+
+def _interval_blocks(block) -> list:
+    """``(key, interval_dict)`` pairs in ``block`` whose name marks an interval."""
+    found = []
+    if not isinstance(block, dict):
+        return found
+    for key, value in block.items():
+        if not isinstance(value, dict):
+            continue
+        lowered = str(key).lower()
+        if any(token in lowered for token in _INTERVAL_TOKENS):
+            found.append((str(key), value))
+    return found
+
+
+def _audit_interval(seed, form_name, interval_key, base_metric, interval) -> dict:
+    """Compare one interval's statistic with the statistic of its point metric."""
+    point_statistic = _declared_point_statistic(base_metric)
+    interval_statistic = _interval_statistic(interval)
+    record = {"seed": str(seed), "form": form_name, "interval": interval_key,
+              "metric": str(base_metric), "point_statistic": point_statistic,
+              "interval_statistic": interval_statistic, "match": None,
+              "reason": None, "pass": False}
+    if point_statistic is None or interval_statistic is None:
+        record["reason"] = ("unmapped statistic: the interval's statistic cannot be "
+                            "checked against its point estimate")
+        return record
+    same = point_statistic == interval_statistic or (
+        point_statistic in RMS_STATISTIC_ALIASES
+        and interval_statistic in RMS_STATISTIC_ALIASES)
+    record["match"] = bool(same)
+    record["pass"] = bool(same)
+    if not same:
+        record["reason"] = (f"point statistic {point_statistic!r} but interval "
+                            f"statistic {interval_statistic!r} (addendum D2)")
+    return record
+
+
+def statistic_audit(runs=None, *, evaluations=None) -> dict:
+    """Addendum D2 audit of every ``ext_shortcut`` comparison, Part B side.
+
+    The rule (addendum §3): a point estimate and any interval reported beside it
+    must use the same statistic, and the point must be computed on the same
+    aligned pairs as the interval.  In this module:
+
+    * ``evaluate_run_dirs`` reports the **mean** vertex error
+      (``er.vertex_resolution``, ``errors.mean()``), the token ln q R² and the
+      effective rank from the same streamed event pairs; it reports no bootstrap
+      interval, so there is no mean-point/RMS-interval pair (the X3-4 defect is
+      Part A's);
+    * R2-a is a §4 threshold decision on full-input ``f_event`` (a fraction) and
+      R2-b a set of threshold decisions on the vertex mean and token R² points;
+      neither pairs a point with an interval.
+
+    Any interval that a future payload does carry is checked here: its declared
+    statistic must equal the statistic of the point it belongs to.  A mismatch is
+    a finding and ``pass`` is False.
+    """
+    source = evaluations if evaluations is not None else runs
+    source = dict(source or {})
+    points, pairs, findings = [], [], []
+    for seed, run in sorted(source.items(), key=lambda row: str(row[0])):
+        if not isinstance(run, dict):
+            continue
+        for form_name in ("full_input", "half_pass"):
+            form = run.get(form_name)
+            if not isinstance(form, dict) or not form:
+                continue
+            for metric_key, value in form.items():
+                statistic = _declared_point_statistic(metric_key)
+                if statistic is not None:
+                    points.append({"seed": str(seed), "form": form_name,
+                                   "metric": str(metric_key),
+                                   "statistic": statistic, "interval_paired": False})
+                if not isinstance(value, dict):
+                    continue
+                # the point leaf of the metric block (``vertex.resolution``,
+                # ``token_log_charge_r2.r2``, ``module_gain_r2.value``, ...)
+                leaf = None
+                for inner_key, inner_value in value.items():
+                    if isinstance(inner_value, dict):
+                        continue
+                    if _declared_point_statistic(f"{metric_key}.{inner_key}") is not None:
+                        leaf = str(inner_key)
+                        break
+                for inner_key, inner_value in value.items():
+                    if not isinstance(inner_value, dict):
+                        continue
+                    lowered = str(inner_key).lower()
+                    if not any(token in lowered for token in _INTERVAL_TOKENS):
+                        continue
+                    base = (inner_value.get("metric") if isinstance(inner_value, dict)
+                            else None)
+                    if not base:
+                        base = f"{metric_key}.{leaf or 'value'}"
+                    record = _audit_interval(
+                        seed, form_name, f"{metric_key}.{inner_key}", base,
+                        inner_value)
+                    pairs.append(record)
+                    if not record["pass"]:
+                        findings.append(record)
+            for interval_key, interval in _interval_blocks(form):
+                base = _interval_metric(interval_key, interval)
+                record = _audit_interval(seed, form_name, interval_key, base, interval)
+                pairs.append(record)
+                if not record["pass"]:
+                    findings.append(record)
+    decisions = [
+        {"id": "R2-a", "comparison": "the §4 class of target_posfree on full-input "
+                                     "f_event",
+         "point_statistic": "fraction", "interval_paired": False,
+         "rule": "three-valued threshold on both seeds' point f_event"},
+        {"id": "R2-b", "comparison": "the §4 recovery rule",
+         "point_statistic": "mean (vertex) / r2 (token ln q)",
+         "interval_paired": False,
+         "rule": "thresholds on the point estimates; no interval is compared"},
+        {"id": "R2-c", "comparison": "the per-seed descriptive table",
+         "point_statistic": "mean vertex / r2 / rank / fraction; no interval",
+         "interval_paired": False, "rule": "descriptive points only"},
+    ]
+    return {"registered": False, "extension": EXTENSION, "id": "D2 (Part B)",
+            "scope": "ext_shortcut",
+            "vertex_point_statistic": "mean",
+            "vertex_point_source": "ext_readout.vertex_resolution -> "
+                                   "lucid_run._vertex_error: errors.mean()",
+            "point_estimates": points, "interval_pairs": pairs,
+            "findings": findings, "decisions": decisions,
+            "pass": bool(not findings),
+            "rule": "a point estimate may only be paired with an interval computed "
+                    "from the same statistic on the same aligned pairs; the vertex "
+                    "point is the mean error, so a vertex interval must be a mean "
+                    "interval (never RMS) -- addendum D2",
+            "n_evaluated_runs": len([run for run in source.values()
+                                     if _run_has_evaluation(run)])}
 
 
 # ==================================================================== R-1 §3
@@ -1664,10 +2115,16 @@ def pilot_status(root=None, *, results_dir=None) -> dict:
 
 
 def r1_payload(root=None, *, results_dir=None, ext_root=PILOT_EXT_ROOT,
-               dry_run=None, log=print) -> dict:
-    """The R-1 report payload; ``not_run`` until the pilot outputs exist (§3)."""
+               dry_run=None, mode="r1", log=print) -> dict:
+    """The R-1 report payload; ``not_run`` until the pilot outputs exist (§3).
+
+    ``mode`` is the gating mode (``r1``, or ``addendum-r1`` for the addendum §2
+    R-1 rerun that re-reads the pilot's updated ``x1.json``/``x2.json``/
+    ``readings.json`` read-only and re-emits R-1 with the D1-corrected
+    ``rho_LR``; the §3 rule, families and table are unchanged).
+    """
     root = _resolve_root(root)
-    assert_authorised("r1", root=root, dry_run=dry_run)
+    assert_authorised(mode, root=root, dry_run=dry_run)
     status = pilot_status(root, results_dir=results_dir)
     base = {"registered": False, "extension": EXTENSION, "id": "R-1",
             "results_dir": status["results_dir"],
@@ -2184,3 +2641,414 @@ def assemble_report(*, root=None, data_dir=None, results_dir=None, ext_root=EXT_
     return {"results_dir": str(results), "readings": readings,
             "r1_status": r1.get("status"), "sizes": sizes, "too_big": too_big,
             "large_arrays": len(large["files"])}
+
+
+# ==================================== addendum §2/§6/§7: D5, R-1 rerun, report
+def r2_evaluation_record(runs, *, run_dirs=(), evaluation=None, budget=None,
+                         audit=None) -> dict:
+    """The addendum ``ADDENDUM_2026-11-07.json`` record of the D5 R-2 evaluation.
+
+    One evaluation job for the two run directories: full input and half pass via
+    ``ext_h12.evaluate_run`` plus the label-pass ``f_event`` over the §5.2 events
+    (Part B §5.3), read by the unchanged §5.4 readings.
+    """
+    runs = dict(runs or {})
+    return {
+        "registered": False, "extension": EXTENSION, "id": "D5",
+        "item": "R-2 evaluation (evaluation only; no training)",
+        "protocol": "one job for the two run directories, exactly Part B §5.3: "
+                    "ext_h12.evaluate_run full input and half pass, plus the "
+                    "label-pass f_event over the §5.2 64 events",
+        "run_dirs": [str(path) for path in run_dirs],
+        "seeds": sorted(str(seed) for seed in runs),
+        "n_runs": len(runs),
+        "runs": {str(seed): {"run_id": run.get("run_id"),
+                             "run_dir": run.get("run_dir"),
+                             "checkpoint_sha256": run.get("checkpoint_sha256"),
+                             "full_input": run.get("full_input"),
+                             "half_pass": run.get("half_pass"),
+                             "label_fractions": run.get("label_fractions")}
+                 for seed, run in runs.items()},
+        "readings": r2_readings(runs),
+        "statistic_audit": (audit if audit is not None
+                            else statistic_audit(runs)),
+        "budget": budget,
+        "evaluation_source": None if evaluation is None else str(evaluation),
+        "status": "complete" if runs else "not_run",
+    }
+
+
+def _r1_numeric(payload, quantity, seed=None):
+    """A numeric R-1 reading field from the reading payload (or ``None``)."""
+    reading = (payload or {}).get("reading")
+    if not isinstance(reading, dict):
+        return None
+    if quantity in ("r2_eq", "rho_lr"):
+        if seed is None:
+            return (reading.get("generative_median") or {}).get(quantity)
+        values = ((reading.get("frozen_target") or {}).get(quantity) or {})
+        return values.get(str(seed))
+    return reading.get(quantity)
+
+
+def addendum_superseded(old_readings, old_outcome, readings, r1) -> list:
+    """The "Superseded 7 Nov values" table for Part B (addendum §5 D4/§10).
+
+    Lists each replaced number: R-1's ``rho_LR`` (invalid under D1, replaced by the
+    D1-corrected rerun), and R2-a/R2-b when they change from the empty 7 Nov
+    readings (the R-2 evaluation was refused by the closed Part B cap); R2-c's
+    per-seed rows are likewise replaced from empty.  The 7 Nov values are read
+    from the committed results files before they are updated in place.
+    """
+    old_readings = old_readings if isinstance(old_readings, dict) else {}
+    old_outcome = old_outcome if isinstance(old_outcome, dict) else {}
+    old_r1 = old_readings.get("r1")
+    if not isinstance(old_r1, dict):
+        old_r1 = {"reading": old_outcome.get("r1_reading") or {}}
+    rows = []
+
+    def _row(quantity, old, new, defect, evidence, changed=None):
+        rows.append({"quantity": str(quantity),
+                     "superseded_7_nov": old,
+                     "new_value": new,
+                     "changed": bool(changed) if changed is not None else
+                     (str(old) != str(new)),
+                     "defect": defect, "evidence": evidence})
+
+    # R-1 rho_LR: the generative median and each frozen_target seed (D1).
+    _row("R-1 generative-median ρ_LR", _r1_numeric(old_r1, "rho_lr"),
+         _r1_numeric(r1, "rho_lr"), "D1",
+         f"{r1.get('results_dir', PILOT_RESULTS_DIR)}/x2.json (corrected ρ_LR, "
+         f"read-only)")
+    for seed in (9000, 9001):
+        _row(f"R-1 frozen_target{seed} ρ_LR",
+             _r1_numeric(old_r1, "rho_lr", seed),
+             _r1_numeric(r1, "rho_lr", seed), "D1",
+             f"{r1.get('results_dir', PILOT_RESULTS_DIR)}/x2.json (corrected "
+             f"ρ_LR, read-only)")
+    new_r2a = (readings.get("r2_a") or {}).get("class")
+    old_r2a = (old_readings.get("r2_a") or {}).get("class")
+    if new_r2a and new_r2a != old_r2a:
+        _row("R2-a class", old_r2a, new_r2a, "D5",
+             "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)")
+    new_r2b = (readings.get("r2_b") or {}).get("verdict")
+    old_r2b = (old_readings.get("r2_b") or {}).get("verdict")
+    if new_r2b and new_r2b != old_r2b:
+        _row("R2-b verdict", old_r2b, new_r2b, "D5",
+             "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)")
+    old_r2c = (old_readings.get("r2_c") or {}).get("seeds") or {}
+    new_r2c = (readings.get("r2_c") or {}).get("seeds") or {}
+    if new_r2c and not old_r2c:
+        _row("R2-c per-seed rows", "empty", sorted(new_r2c), "D5",
+             "the addendum R-2 evaluation")
+    return rows
+    new_r2a = (readings.get("r2_a") or {}).get("class")
+    old_r2a = (old_readings.get("r2_a") or {}).get("class")
+    if new_r2a and new_r2a != old_r2a:
+        _row("R2-a class", old_r2a, new_r2a, "D5",
+             "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)")
+    new_r2b = (readings.get("r2_b") or {}).get("verdict")
+    old_r2b = (old_readings.get("r2_b") or {}).get("verdict")
+    if new_r2b and new_r2b != old_r2b:
+        _row("R2-b verdict", old_r2b, new_r2b, "D5",
+             "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)")
+    old_r2c = (old_readings.get("r2_c") or {}).get("seeds") or {}
+    new_r2c = (readings.get("r2_c") or {}).get("seeds") or {}
+    if new_r2c and not old_r2c:
+        _row("R2-c per-seed rows", "empty", sorted(new_r2c), "D5",
+             "the addendum R-2 evaluation")
+    return rows
+
+
+def _addendum_readme_section(*, record, superseded, r1, readings, hours,
+                             completeness, audit, gate=None) -> str:
+    """The README's addendum section (D4/§10: completeness, superseded, figures)."""
+    lines = ["", "## Addendum (7 Nov 2026, v1) — D5 R-2 evaluation and corrected R-1",
+             "",
+             f"Addendum: `{ADDENDUM_REL}` (sha256 `{ADDENDUM_SHA256}`), committed "
+             f"unchanged; §0 author line: > \"{ADDENDUM_AUTHOR_LINE}\".",
+             "This section updates the 7 Nov record in place (addendum §5 D4 / §10): "
+             "the R2 readings were empty in the 7 Nov record because the closed Part B "
+             "cap refused the evaluation, and the R-1 `ρ_LR` values were invalid "
+             "through the D1 drift-map scale defect.", "",
+             "### D5 R-2 evaluation (evaluation only; no training)", "",
+             f"- protocol: {record.get('protocol', '')}",
+             f"- status: **{record.get('status')}**",
+             f"- evaluation source: `{record.get('evaluation_source')}`",
+             "- run directories: "
+             + (", ".join(f"`{path}`" for path in record.get("run_dirs") or [])
+                or "n/a"), "",
+             "| seed | run dir | full vertex m | half vertex m | full token R² | "
+             "half token R² | eff. rank | f_layout | label f_event |",
+             "|---:|---|---:|---:|---:|---:|---:|---:|---:|"]
+    for seed, run in sorted((record.get("runs") or {}).items()):
+        full = run.get("full_input") or {}
+        half = run.get("half_pass") or {}
+        label = run.get("label_fractions") or {}
+        lines.append(
+            f"| {seed} | `{run.get('run_dir')}` | "
+            f"{_fmt(full.get('vertex_resolution_m'))} | "
+            f"{_fmt(half.get('vertex_resolution_m'))} | "
+            f"{_fmt((full.get('token_log_charge_r2') or {}).get('r2'))} | "
+            f"{_fmt((half.get('token_log_charge_r2') or {}).get('r2'))} | "
+            f"{_fmt(full.get('effective_rank'))} | "
+            f"{_fmt(_layout_field(full, 'f_layout'))} | "
+            f"{_fmt(label.get('f_event'))} |")
+    r2a = readings.get("r2_a") or {}
+    r2b = readings.get("r2_b") or {}
+    lines += ["",
+              f"- R2-a event dependence (primary): **{r2a.get('class', 'n/a')}**",
+              f"- R2-b recovery: **{r2b.get('verdict', 'n/a')}**",
+              f"- R2-c: {len((readings.get('r2_c') or {}).get('seeds') or {})} seed "
+              f"row(s), descriptive; reference values are never thresholds.", ""]
+    lines += ["### Readings completeness (Part B)", "",
+              "| reading | status | value |", "|---|---|---|"]
+    for name, row in (completeness or {}).items():
+        value = row.get("value")
+        if value is None:
+            value = row.get("verdict") or row.get("seeds") or ""
+        lines.append(f"| {name} | {row.get('status')} | {_fmt(value)} |")
+    lines += ["", "`complete` is true only when R2-a/R2-b/R2-c and R-1 are all "
+              "present (addendum §5 D4 readings completeness for Part B).", ""]
+    lines += ["### Superseded 7 Nov values (Part B)", ""]
+    if superseded:
+        lines += ["| quantity | superseded 7 Nov value | new value | defect | evidence |",
+                  "|---|---|---|---|---|"]
+        for row in superseded:
+            lines.append(f"| {row['quantity']} | {_fmt(row['superseded_7_nov'])} | "
+                         f"{_fmt(row['new_value'])} | {row['defect']} | "
+                         f"{row['evidence']} |")
+    else:
+        lines += ["No Part B value is replaced: there is no R-1 or R2 value in the "
+                  "7 Nov record that the addendum changes."]
+    lines += ["", "### D2 statistic audit (Part B side)", "",
+              f"- pass: {_fmt(audit.get('pass'))}; vertex point statistic: "
+              f"{audit.get('vertex_point_statistic')} "
+              f"(`{audit.get('vertex_point_source')}`)",
+              "- no comparison in `ext_shortcut` pairs a point estimate with a "
+              "differently-defined interval; if a payload carries an interval, its "
+              "declared statistic is checked against the point it belongs to.", "",
+              "### Figures", "",
+              "Part B produces **no figures**.  The addendum's six figures (with the "
+              "D4 axis labels and legends, and the three-stream identification figure) "
+              "are Part A's, under `results/jepa/20261106_repair/`; this README "
+              "therefore has no figure legends to list (addendum §5 D4, Part B).", "",
+              "### Addendum budget (shared ledger, addendum §6)", ""]
+    ledger = hours or {}
+    lines += [f"- GPU {ledger.get('gpu_hours')} h of "
+              f"{ADDENDUM_GPU_CAP_H} h; CPU {ledger.get('cpu_hours')} h of "
+              f"{ADDENDUM_CPU_CAP_H} h; ledger `{ledger.get('path')}`.",
+              "- the closed Part A (4.0 h) and Part B (1.5 h) caps are not consulted "
+              "by the addendum modes.", ""]
+    return "\n".join(lines) + "\n"
+
+
+def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
+                             ext_root=EXT_ROOT, dry_run=None, budget=None,
+                             log=print) -> dict:
+    """Update ``results/jepa/20261107_shortcut/`` in place (addendum §5/§10).
+
+    Writes ``README.md``, ``readings.json``, ``report.json``, ``runs.json``,
+    ``OUTCOME.json`` and ``ADDENDUM_2026-11-07.json`` with the addendum R-2
+    readings, the corrected R-1, the Part B superseded table and the R-2
+    evaluation record.  The pilot results ``<pilot results>`` and ``<pilot ext>``
+    are only read.
+    """
+    root = _resolve_root(root)
+    gate = assert_authorised("addendum-report", root=root, dry_run=dry_run)
+    ext_root = Path(ext_root)
+    results = (Path(results_dir) if results_dir is not None
+               else root / RESULTS_DIR)
+    read_dir = Path(data_dir) if data_dir is not None else ext_root
+    results.mkdir(parents=True, exist_ok=True)
+
+    # ---- inputs, read-only -------------------------------------------------
+    evaluation_path = read_dir / "eval" / "addendum_eval.json"
+    if not evaluation_path.is_file():
+        evaluation_path = read_dir / "eval" / "eval.json"
+    evaluation = read_json(evaluation_path, {}) or {}
+    runs = evaluation.get("runs") or {}
+    r1_path = read_dir / "r1_addendum.json"
+    r1 = read_json(r1_path, None)
+    if not isinstance(r1, dict) or not r1:
+        r1 = r1_payload(root, mode="addendum-r1", ext_root=PILOT_EXT_ROOT, log=log)
+        r1_path = None
+    run_dirs = evaluation.get("run_dirs") or [
+        run.get("run_dir") for run in runs.values() if run.get("run_dir")]
+    plan = read_json(read_dir / "plan.json", {}) or {}
+    manipulation = read_json(read_dir / "manipulation.json", {}) or {}
+    reproduction = read_json(read_dir / "reproduction.json", {}) or {}
+
+    old_readings = read_json(results / "readings.json", {}) or {}
+    old_outcome = read_json(results / "OUTCOME.json", {}) or {}
+    old_runs = read_json(results / "runs.json", {}) or {}
+
+    # ---- readings ----------------------------------------------------------
+    r2 = r2_readings(runs)
+    audit = statistic_audit(runs)
+    record = r2_evaluation_record(runs, run_dirs=run_dirs,
+                                  evaluation=evaluation_path, budget=budget,
+                                  audit=audit)
+    readings = dict(old_readings) if isinstance(old_readings, dict) else {}
+    readings.setdefault("registered", False)
+    readings.setdefault("extension", EXTENSION)
+    readings.setdefault("variant", VARIANT)
+    readings.update(r2)
+    readings["r1"] = r1
+    superseded = addendum_superseded(old_readings, old_outcome, readings, r1)
+    completeness = {
+        "R2-a": {"status": r2.get("status"),
+                 "value": (readings.get("r2_a") or {}).get("class")},
+        "R2-b": {"status": r2.get("status"),
+                 "value": (readings.get("r2_b") or {}).get("verdict")},
+        "R2-c": {"status": r2.get("status"),
+                 "seeds": sorted((readings.get("r2_c") or {}).get("seeds") or {})},
+        "R-1": {"status": r1.get("status"),
+                "value": (r1.get("reading") or {}).get("verdict")},
+    }
+    complete = bool(r2.get("status") == "complete" and r1.get("status") == "complete")
+    readings["addendum"] = {
+        "path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256, "date": ADDENDUM_DATE,
+        "author_line": ADDENDUM_AUTHOR_LINE, "status": "updated",
+        "evaluation": str(evaluation_path),
+        "r2_status": r2.get("status"), "r1_status": r1.get("status"),
+        "complete": complete, "completeness": completeness,
+        "superseded": superseded, "statistic_audit_pass": audit.get("pass"),
+        "budget": budget,
+    }
+
+    # ---- runs.json ---------------------------------------------------------
+    runs_table = {str(seed): {key: run.get(key) for key in
+                              ("run_id", "run_dir", "checkpoint_sha256",
+                               "ext_summary", "label_fractions", "full_input",
+                               "half_pass")}
+                  for seed, run in runs.items()}
+    runs_payload = dict(old_runs) if isinstance(old_runs, dict) else {}
+    runs_payload.setdefault("registered", False)
+    runs_payload.setdefault("extension", EXTENSION)
+    runs_payload.setdefault("variant", VARIANT)
+    runs_payload["manipulation"] = manipulation.get("pass")
+    runs_payload["runs"] = runs_table
+    runs_payload["readings"] = {"r2_a": readings["r2_a"], "r2_b": readings["r2_b"]}
+    runs_payload["r2_c"] = readings["r2_c"]
+    runs_payload["addendum"] = {"path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256,
+                                "runs": sorted(runs_table)}
+
+    # ---- OUTCOME.json ------------------------------------------------------
+    outcome = dict(old_outcome) if isinstance(old_outcome, dict) else {}
+    if not outcome:
+        outcome = {"registered": False, "extension": EXTENSION,
+                   "runbook": RUNBOOK_REL, "runbook_sha256": RUNBOOK_SHA256,
+                   "acceptance_record": ACCEPTANCE_REL}
+    outcome["status"] = "addendum_updated"
+    outcome["addendum"] = {"path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256,
+                           "date": ADDENDUM_DATE,
+                           "author_line": ADDENDUM_AUTHOR_LINE,
+                           "impl_commit": lr.git_head(root),
+                           "results_file": ADDENDUM_RESULTS_FILE}
+    items = dict(outcome.get("items") or {})
+    items["evaluate (addendum D5)"] = (
+        f"{'PASS' if r2.get('status') == 'complete' else 'not_run'} (D5: one "
+        f"evaluation job for the two run directories under the addendum "
+        f"{ADDENDUM_GPU_CAP_H} h cap; R2-a "
+        f"{(readings.get('r2_a') or {}).get('class')!r}, R2-b "
+        f"{(readings.get('r2_b') or {}).get('verdict')!r}; "
+        f"{record.get('n_runs')} run(s) evaluated)")
+    items["R-1 (addendum rerun)"] = (
+        f"{r1.get('status')} (D1-corrected ρ_LR re-read read-only from "
+        f"{r1.get('results_dir')}; the §3 rule, families and table are unchanged)")
+    outcome["items"] = items
+    if isinstance(r1.get("reading"), dict):
+        reading = dict(r1["reading"])
+        outcome["r1_reading"] = {
+            "verdict": reading.get("verdict"),
+            "meaning": reading.get("note"),
+            "generative_median": reading.get("generative_median"),
+            "frozen_target": reading.get("frozen_target"),
+            "caveat": reading.get("caveat"),
+            "supersedes_7_nov": True, "defect": "D1",
+        }
+    outcome["r2_readings"] = {"R2-a": (readings.get("r2_a") or {}).get("class"),
+                              "R2-b": (readings.get("r2_b") or {}).get("verdict"),
+                              "R2-c": sorted((readings.get("r2_c") or {})
+                                             .get("seeds") or {}),
+                              "status": r2.get("status")}
+    outcome["superseded"] = superseded
+    outcome["readings_completeness"] = completeness
+    resources = dict(outcome.get("resources") or {})
+    resources["addendum"] = addendum_hours()
+    resources["addendum_gpu_cap_hours"] = ADDENDUM_GPU_CAP_H
+    resources["addendum_cpu_cap_hours"] = ADDENDUM_CPU_CAP_H
+    resources["addendum_note"] = ("booked on the shared addendum ledger "
+                                  f"{ADDENDUM_JOBS}; the 7 Nov caps are closed and "
+                                  f"are not reused")
+    outcome["resources"] = resources
+
+    # ---- ADDENDUM_2026-11-07.json -----------------------------------------
+    addendum_payload = {
+        "registered": False, "extension": EXTENSION, "part": "B",
+        "addendum": {"path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256,
+                     "date": ADDENDUM_DATE, "author_line": ADDENDUM_AUTHOR_LINE,
+                     "impl_commit": lr.git_head(root),
+                     "acceptance_record": ACCEPTANCE_REL},
+        "items": {
+            "D5_r2_evaluation": record,
+            "R1_rerun": {"status": r1.get("status"),
+                         "reading": r1.get("reading"),
+                         "source": (str(r1_path) if r1_path is not None
+                                    else "recomputed read-only from the pilot"),
+                         "pilot_results_dir": r1.get("results_dir"),
+                         "superseded": superseded},
+            "D2_statistic_audit": audit,
+            "D4_readings_completeness": completeness,
+            "completed": complete,
+        },
+        "figures": "Part B produces no figures; the addendum's six figures are "
+                   "Part A's under results/jepa/20261106_repair/",
+        "budget": addendum_hours(),
+        "outputs": ["README.md", "readings.json", "report.json", "runs.json",
+                    "OUTCOME.json", ADDENDUM_RESULTS_FILE],
+    }
+
+    # ---- README.md ---------------------------------------------------------
+    hours = job_hours(ext_root)
+    readme = _readme(runbook_sha256=lr.sha256_file(root / RUNBOOK_REL)
+                     if (root / RUNBOOK_REL).is_file() else None,
+                     code_sha=lr.git_head(root), plan=plan,
+                     manipulation=manipulation, reproduction=reproduction,
+                     runs=runs_table, readings=readings, r1=r1, hours=hours)
+    readme += _addendum_readme_section(
+        record=record, superseded=superseded, r1=r1, readings=readings,
+        hours=addendum_hours(), completeness=completeness, audit=audit, gate=gate)
+
+    # ---- write in place ----------------------------------------------------
+    write_json(results / "readings.json", readings)
+    write_json(results / "runs.json", runs_payload)
+    write_json(results / ADDENDUM_RESULTS_FILE, addendum_payload)
+    write_json(results / "OUTCOME.json", outcome)
+    (results / "README.md").write_text(readme)
+    sizes = {path.name: path.stat().st_size for path in sorted(results.glob("*.json"))}
+    too_big = {name: size for name, size in sizes.items() if size > 5_000_000}
+    report_payload = {"registered": False, "extension": EXTENSION,
+                      "mode": "addendum-report", "gate": gate,
+                      "addendum": addendum_payload["addendum"],
+                      "results_dir": str(results),
+                      "evaluation": str(evaluation_path), "r1_source": str(r1_path),
+                      "readings": readings, "runs": runs_table,
+                      "r1_status": r1.get("status"), "r2_status": r2.get("status"),
+                      "complete": complete, "statistic_audit": audit,
+                      "superseded": superseded, "budget": budget,
+                      "addendum_hours": addendum_hours(),
+                      "sizes": sizes, "too_big": too_big}
+    (results / "report.json").write_text(
+        json.dumps(lr._safe(report_payload), indent=1, default=float) + "\n")
+    log(f"[shortcut] addendum report: {results} (R2-a "
+        f"{(readings.get('r2_a') or {}).get('class')}, R2-b "
+        f"{(readings.get('r2_b') or {}).get('verdict')}, R1 {r1.get('status')}, "
+        f"{len(superseded)} superseded value(s))")
+    return {"results_dir": str(results), "readings": readings,
+            "r1_status": r1.get("status"), "r2_status": r2.get("status"),
+            "complete": complete, "superseded": superseded,
+            "addendum_file": str(results / ADDENDUM_RESULTS_FILE),
+            "statistic_audit_pass": audit.get("pass"), "sizes": sizes,
+            "too_big": too_big, "report_path": str(results / "report.json")}

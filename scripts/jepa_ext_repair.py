@@ -18,6 +18,33 @@ x3-fisher  X3-a Fisher accounting and P0: ``x3_fisher.json``.
 x3         X3-b invariant variants and LEACE: ``x3.json``.
 report     merges everything into ``results/jepa/20261106_repair/``.
 
+Addendum 2026-11-07 modes (``docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md``,
+sha256 ``abe0904a…0621a``), in the §8 execution order
+------------------------------------------------------------------
+addendum-selfcheck  CPU: D1 identity on probe-test for the 13 core models,
+                    the removed share / recovered fraction / flag; writes
+                    ``<ext>/addendum/d1_selfcheck.json``.  An identity failure is
+                    the S9 STOP for the D1 reruns (exit 2).
+addendum-x2         CPU: D1 rerun of X2-c, the X2-d latent stream and X2-f from
+                    the sha-verified cached embeddings; writes
+                    ``<ext>/addendum/x2_addendum.json`` (the 7 Nov ``x2.json`` is
+                    kept intact for the superseded table).
+addendum-x2e        GPU: re-encode the EST(latent) probe-test sets for the 13 core
+                    models and read rho_EST(latent) + latent repair; EST(source)
+                    and EST(raw) are reused.  Writes ``x2e_addendum.json``.
+addendum-x3         CPU: D2 rerun of X3-1…X3-5 for every family (raw features
+                    recomputed, LEACE rebuilt from the sha-verified cache, the
+                    init9000 gain-blind tokens read from their verified cache or
+                    reported ``not_run (gpu needed)``); writes ``x3_addendum.json``.
+addendum-report     CPU: D4 summary — ``READINGS_SUMMARY.md``, ``SUMMARY.json``,
+                    ``ADDENDUM_2026-11-07.json``, ``OUTCOME.json`` and the six
+                    labelled/legended figures in ``results/jepa/20261106_repair/``.
+
+Addendum §8 order: addendum-selfcheck -> addendum-x2 -> addendum-x3 (CPU) ->
+addendum-x2e (GPU) -> addendum-report (CPU).  The addendum modes are booked to
+the addendum's own 0.35 h GPU / 3.0 h CPU caps; the closed Part A and Part B caps
+are never consulted.
+
 No training mode exists, no data is generated, and no registered module, config,
 prediction or verdict is edited.
 """
@@ -157,6 +184,13 @@ def mode_dry_run(args) -> int:
     write_json(out, payload)
     summary = {"plan": str(out), "gate_status": gate["status"],
                "authorised": gate["authorised"],
+               "gate_checks": {key: value.get("pass") for key, value
+                               in (gate.get("checks") or {}).items()},
+               "addendum_gate": (gate.get("checks") or {}).get("a2"),
+               "addendum_modes": sorted(mode for mode in payload["setup"]
+                                        if mode.startswith("addendum")),
+               "addendum_plan": ((payload["setup"].get("addendum-selfcheck")
+                                  or {}).get("plan") or {}).get("addendum"),
                "closure_pass": payload["closure"]["pass"],
                "closure_violations": payload["closure"]["violations"],
                "closure_forced_imports": [row["path"] for row in
@@ -304,6 +338,107 @@ def mode_report(args) -> int:
     return 0 if (payload.get("reproduction_pass") and not payload.get("too_big")) else 2
 
 
+# ------------------------------------------------------------------- addendum
+def _addendum_path(args, name) -> Path:
+    return ext_root(args) / "addendum" / name
+
+
+def mode_addendum_selfcheck(args) -> int:
+    """Addendum D1/C1 self-check (CPU): identity on probe-test, then the S9 STOP."""
+    root = repo_root(args)
+    config, gen, _arms_config, geometry, _device = load_setup(args,
+                                                              device_default="cpu")
+    payload = rep.addendum_selfcheck(
+        config=config, gen=gen, geometry=geometry, data_root=data_root(args),
+        ext_root=ext_root(args), root=root, log=print)
+    path = _addendum_path(args, "d1_selfcheck.json")
+    write_json(path, payload)
+    print(json.dumps({"out": str(path), "identity_pass": payload["identity_pass"],
+                      "stop": payload["stop"], "flags": payload["flags"],
+                      "models": sorted(payload["models"]),
+                      "n_models": payload["n_models"],
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return 0 if payload["identity_pass"] else 2
+
+
+def mode_addendum_x2(args) -> int:
+    """Addendum D1 rerun (CPU): X2-c, the X2-d latent stream and X2-f."""
+    root = repo_root(args)
+    config, gen, _arms_config, geometry, _device = load_setup(args,
+                                                              device_default="cpu")
+    payload = rep.addendum_x2(
+        config=config, gen=gen, geometry=geometry, data_root=data_root(args),
+        ext_root=ext_root(args), root=root, log=print)
+    path = _addendum_path(args, "x2_addendum.json")
+    write_json(path, payload)
+    print(json.dumps({"out": str(path), "complete": payload["complete"],
+                      "models": sorted(payload["models"]),
+                      "unavailable": payload["unavailable"],
+                      "A_hat_units": payload["A_hat_units"],
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return 0 if payload["complete"] else 2
+
+
+def mode_addendum_x2e(args) -> int:
+    """Addendum D1 rerun (GPU): EST(latent) sets and rho_EST(latent)."""
+    root = repo_root(args)
+    config, gen, arms_config, geometry, device = load_setup(args)
+    payload = rep.addendum_x2e(
+        config=config, gen=gen, arms_config=arms_config, geometry=geometry,
+        data_root=data_root(args), device=device, ext_root=ext_root(args),
+        root=root, limit=args.limit, log=print)
+    path = _addendum_path(args, "x2e_addendum.json")
+    write_json(path, payload)
+    print(json.dumps({"out": str(path), "complete": payload["complete"],
+                      "status": payload.get("status"),
+                      "models": sorted(payload["models"]),
+                      "unavailable": payload["unavailable"],
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return 0 if payload["complete"] else 2
+
+
+def mode_addendum_x3(args) -> int:
+    """Addendum D2 rerun (CPU): X3-1…X3-5 for every family."""
+    root = repo_root(args)
+    config, gen, arms_config, geometry, _device = load_setup(args,
+                                                             device_default="cpu")
+    payload = rep.addendum_x3(
+        config=config, gen=gen, arms_config=arms_config, geometry=geometry,
+        data_root=data_root(args), ext_root=ext_root(args), root=root,
+        limit=args.limit, log=print)
+    path = _addendum_path(args, "x3_addendum.json")
+    write_json(path, payload)
+    print(json.dumps({"out": str(path), "complete": payload["complete"],
+                      "variants": sorted((payload["readings"] or {}).get(
+                          "variants") or {}),
+                      "not_run": payload["not_run"],
+                      "statistics": payload["statistics"],
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return 0 if payload["complete"] else 2
+
+
+def mode_addendum_report(args) -> int:
+    """Addendum D4 (CPU): the complete committed summary, JSON and figures."""
+    root = repo_root(args)
+    payload = rep.addendum_report(root=root, ext_root=ext_root(args),
+                                  results_dir=args.out, log=print)
+    print(json.dumps({"path": payload["path"],
+                      "summary": payload["summary"],
+                      "readings_summary": payload["readings_summary"],
+                      "addendum_json": payload["addendum_json"],
+                      "outcome": payload["outcome"],
+                      "figures": (payload.get("figures") or {}).get("n_figures"),
+                      "superseded": payload.get("superseded"),
+                      "not_run": payload.get("not_run"),
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return 0
+
+
 # ---------------------------------------------------------------------- parser
 def _common(parser):
     parser.add_argument("--root", default=None, help="repository root (default: this repo)")
@@ -364,6 +499,27 @@ def parser():
     report.add_argument("--out", default=None)
     _common(report)
     report.add_argument("--device", default="cpu")
+    # ---------------------------------------------------- addendum 7 Nov modes
+    sc = sub.add_parser("addendum-selfcheck")
+    _common(sc)
+    sc.add_argument("--device", default="cpu")
+    ax2 = sub.add_parser("addendum-x2")
+    _common(ax2)
+    ax2.add_argument("--device", default="cpu")
+    ax2e = sub.add_parser("addendum-x2e")
+    _limit(ax2e)
+    _common(ax2e)
+    ax2e.add_argument("--device", default="auto")
+    ax3 = sub.add_parser("addendum-x3")
+    _limit(ax3)
+    _common(ax3)
+    ax3.add_argument("--device", default="cpu")
+    areport = sub.add_parser("addendum-report")
+    areport.add_argument("--out", default=None,
+                         help="results directory (default: <root>/results/jepa/"
+                              "20261106_repair)")
+    _common(areport)
+    areport.add_argument("--device", default="cpu")
     return p
 
 
@@ -371,7 +527,12 @@ def main(argv=None):
     args = parser().parse_args(argv)
     handlers = {"dry-run": mode_dry_run, "preflight": mode_preflight,
                 "reproduce": mode_reproduce, "x1": mode_x1, "x2": mode_x2,
-                "x3-fisher": mode_x3_fisher, "x3": mode_x3, "report": mode_report}
+                "x3-fisher": mode_x3_fisher, "x3": mode_x3, "report": mode_report,
+                "addendum-selfcheck": mode_addendum_selfcheck,
+                "addendum-x2": mode_addendum_x2,
+                "addendum-x2e": mode_addendum_x2e,
+                "addendum-x3": mode_addendum_x3,
+                "addendum-report": mode_addendum_report}
     return handlers[args.mode](args)
 
 
