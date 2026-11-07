@@ -785,7 +785,9 @@ def read_json(path, default=None):
 
 
 def _jsonable(value):
-    """Recursive JSON form: numpy arrays/scalars, non-finite floats and tuples."""
+    """Recursive JSON form: numpy arrays/scalars, non-finite floats, paths, tuples."""
+    if isinstance(value, os.PathLike):
+        return str(value)
     if isinstance(value, dict):
         return {str(key): _jsonable(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
@@ -1650,12 +1652,19 @@ def check_reproduction(label, got, expected, *, tolerance=X0B_TOLERANCE_M) -> di
 
 def _frozen_refit_vertex(model, probes, condition, split, config, device, *,
                          cache=None, log=print) -> dict:
-    """N (frozen = refit) and D (refit and frozen) vertex rows of one model."""
+    """N (frozen = refit) and D (refit and frozen) vertex rows of one model.
+
+    The caller passes the single-setting probe dict
+    ``{"train", "test", "geometry"}``; the §2.5 condition is built per role on the
+    dataset it is about to stream (the same convention as ``identity_check``), so
+    the train run directories are inside their own condition's set.
+    """
+    geometry = probes["geometry"]
     rows = {}
-    for role, dataset in (("train", probes[condition["train"]]["train"]),
-                          ("test", probes[condition["test"]]["test"])):
+    for role, dataset in (("train", probes["train"]), ("test", probes["test"])):
+        role_condition = build_condition(condition["name"], dataset, geometry)
         rows[role] = stream_condition_embeddings(
-            model, dataset, probes["geometry"], condition["condition"], split=split,
+            model, dataset, geometry, role_condition, split=split,
             config=config, device=device, cache=cache,
             cache_key=embedding_cache_key(role, condition["name"]), log=log)
     fitted = fit_vertex_probe(rows["train"])
@@ -1794,9 +1803,11 @@ def identity_check(*, root=None, config, gen, arms_config, geometry,
                 if not np.array_equal(plain_features, wrapped_features):
                     entry["features_bit_identical"] = False
                     entry["pass"] = False
+                encode_device = (device if isinstance(device, torch.device)
+                                 else torch.device(device))
                 with torch.no_grad():
-                    left = model.encode(plain.features)
-                    right = model.encode(wrapped.features)
+                    left = model.encode(plain.features.to(encode_device))
+                    right = model.encode(wrapped.features.to(encode_device))
                 difference = float(np.max(np.abs(np.asarray(left.detach().cpu())
                                                   - np.asarray(right.detach().cpu())))) \
                     if left.numel() else 0.0

@@ -993,7 +993,7 @@ def _tiny_model(geometry, seed=9000):
 def test_row_split_propagates_into_streaming(monkeypatch):
     assert rp.row_split({"split": "across"}) == "across"
     assert rp.row_split({}) == "within"
-    calls = []
+    calls, conditions = [], []
 
     def fake_stream(model, dataset, geometry, condition, *, split, config, device,
                     cache, cache_key, log, **kwargs):
@@ -1002,15 +1002,33 @@ def test_row_split_propagates_into_streaming(monkeypatch):
                                                                   dtype=object),
                 "event_ids": np.arange(2), "vertex": np.zeros((2, 3))}
 
+    def fake_condition(name, dataset, geometry, **kwargs):
+        conditions.append((name, dataset))
+        return {"built_for": dataset}
+
+    monkeypatch.setattr(rp, "build_condition", fake_condition)
     monkeypatch.setattr(rp, "stream_condition_embeddings", fake_stream)
     monkeypatch.setattr(rp, "fit_vertex_probe", lambda rows: {})
     monkeypatch.setattr(rp.la, "probe_predictions", lambda fitted, dataset: np.zeros(
         (2, 3)))
-    probes = {"geometry": None, "s005": {"train": "x", "test": "y"}}
+    # production call shape: reproduction() passes the single-setting dict
+    probes = {"geometry": None, "train": "train_ds", "test": "test_ds"}
     condition = {"name": "N", "train": "s005", "test": "s005", "condition": None}
     rp._frozen_refit_vertex(None, probes, condition, "across", {}, "cpu",
                             cache=None, log=lambda *a, **k: None)
     assert calls == ["across", "across"]
+    # §2.5: the condition is built per role on the dataset it streams
+    assert conditions == [("N", "train_ds"), ("N", "test_ds")]
+
+
+def test_jsonable_and_write_json_handle_paths(tmp_path):
+    payload = {"p": tmp_path, "nested": [tmp_path / "a.npz"], "value": 1.5}
+    out = rp._jsonable(payload)
+    assert out == {"p": str(tmp_path), "nested": [str(tmp_path / "a.npz")],
+                   "value": 1.5}
+    target = tmp_path / "payload.json"
+    rp.write_json(target, payload)
+    assert json.loads(target.read_text())["nested"] == [str(tmp_path / "a.npz")]
 
 
 def test_identity_check_runs_on_both_roles(tiny, geometry):
