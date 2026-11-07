@@ -3536,13 +3536,32 @@ _UNIFIED_FIELDS = ("features", "run_ids", "event_ids", "vertex", "log_yield",
                    "domain")
 
 
+def _neutral_row_array(reference, length) -> np.ndarray:
+    """A neutral column for one source that lacks a field of the merged table.
+
+    ``ef.raw_event_features`` (particle events) has no ``log_yield`` and the
+    photon table has no ``particle`` name, so the merged table must fill the
+    missing side rather than concatenate a shorter column (which misaligned the
+    per-domain metric masks).
+    """
+    ref = np.asarray(reference)
+    shape = (int(length),) + ref.shape[1:]
+    if ref.dtype == bool:
+        return np.zeros(shape, dtype=bool)
+    if ref.dtype.kind in ("U", "S", "O"):
+        return np.full(shape, "none", dtype=object)
+    return np.full(shape, np.nan, dtype=float)
+
+
 def merge_standard_rows(particle_rows, photon_rows) -> dict:
-    """Merge the particle and photon raw-std tables into one event table."""
+    """Merge the particle and photon raw-std tables into one aligned event table."""
     particle = {name: np.asarray(particle_rows[name]) for name in _UNIFIED_FIELDS
                 if name in particle_rows and name != "domain"}
     particle["domain"] = np.asarray(
         [("muon" if value == "muon" else "electron" if value == "electron" else "none")
          for value in np.asarray(particle_rows.get("particle", [])).astype(str)])
+    particle_len = int(len(particle.get("run_ids", [])))
+    photon_len = int(len(np.asarray(photon_rows.get("run_ids", []))))
     merged = {}
     for name in _UNIFIED_FIELDS:
         left = particle.get(name)
@@ -3550,11 +3569,10 @@ def merge_standard_rows(particle_rows, photon_rows) -> dict:
         if left is None and right is None:
             continue
         if left is None:
-            merged[name] = right
-        elif right is None:
-            merged[name] = left
-        else:
-            merged[name] = np.concatenate([left, right])
+            left = _neutral_row_array(right, particle_len)
+        if right is None:
+            right = _neutral_row_array(left, photon_len)
+        merged[name] = np.concatenate([np.asarray(left), np.asarray(right)])
     names = photon_rows.get("feature_names")
     if names is not None:
         merged["feature_names"] = names

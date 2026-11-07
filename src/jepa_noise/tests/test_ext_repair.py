@@ -1638,3 +1638,34 @@ def test_x3_raw_family_uses_the_s005_truth_for_the_drift_role(monkeypatch, tmp_p
     assert seen[2][2] is None          # standard: no calibration condition
     assert seen[3][2] == "COND:SWunit"  # calibrated: condition on the D probe-test
     assert built == [("SWunit", "TEST0.3")]
+
+
+def test_merge_standard_rows_aligns_every_column_for_domain_masks():
+    """The raw-std merged table must be rectangular: particle rows lack log_yield."""
+    particle = {"features": np.zeros((2, 10)),
+                "run_ids": np.array(["r0", "r0"], dtype=object),
+                "event_ids": np.array([1, 2]), "vertex": np.zeros((2, 3)),
+                "particle": np.array(["muon", "electron"]),
+                "contained": np.array([True, False]),
+                "deposited_MeV": np.array([100.0, 200.0]),
+                "direction": np.zeros((2, 3)), "n_hit": np.array([5, 6])}
+    photon = {"features": np.ones((3, 10)),
+              "run_ids": np.array(["r0"] * 3, dtype=object),
+              "event_ids": np.array([3, 4, 5]), "vertex": np.zeros((3, 3)),
+              "log_yield": np.array([7.0, 8.0, 9.0]),
+              "particle": np.array(["photon"] * 3),
+              "contained": np.zeros(3, bool),
+              "deposited_MeV": np.full(3, np.nan),
+              "direction": np.zeros((3, 3)), "n_hit": np.array([2, 3, 4]),
+              "domain": np.array(["photon"] * 3)}
+    merged = rp.merge_standard_rows(particle, photon)
+    for name in ("features", "run_ids", "event_ids", "vertex", "domain", "particle",
+                 "contained", "deposited_MeV", "direction", "n_hit", "log_yield"):
+        assert len(merged[name]) == 5, name
+    assert np.isnan(merged["log_yield"][:2]).all()
+    assert np.allclose(merged["log_yield"][2:], [7.0, 8.0, 9.0])
+    assert list(merged["domain"]) == ["muon", "electron", "photon", "photon", "photon"]
+    # the per-domain masks now select the intended rows with no shape error
+    log_yield_mask = np.isfinite(merged["log_yield"]) & (
+        np.asarray(merged["domain"]) == "photon")
+    assert int(log_yield_mask.sum()) == 3
