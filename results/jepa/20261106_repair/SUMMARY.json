@@ -11,7 +11,7 @@
     "rho_swtw": 1.0028801074287108,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9893564988616376,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.016586361425603602,
@@ -23,7 +23,7 @@
     "rho_swtw": 1.0114164761011544,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9924389264110064,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "frozen_target": {
@@ -37,7 +37,7 @@
     "rho_swtw": 1.003287712761013,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0022306694579364,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.01791625680355427,
@@ -49,7 +49,7 @@
     "rho_swtw": 0.9978333079740663,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9957832489936345,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "ijepa": {
@@ -63,7 +63,7 @@
     "rho_swtw": 1.018468345107505,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0219646070675326,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.02165434087514098,
@@ -75,7 +75,7 @@
     "rho_swtw": 1.0064984896166693,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9924721430909993,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "init": {
@@ -89,7 +89,7 @@
     "rho_swtw": 0.9944793343149229,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9899615679795581,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "mae_across_trigger": {
@@ -103,7 +103,7 @@
     "rho_swtw": 0.994802357054155,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0020802975842615,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.017192167893439914,
@@ -115,7 +115,7 @@
     "rho_swtw": 0.998604994464385,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0184234714597573,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "mae_within_median": {
@@ -129,7 +129,7 @@
     "rho_swtw": 1.001883441034805,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.011899161471919,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.012227480906945892,
@@ -141,7 +141,7 @@
     "rho_swtw": 0.9905227521812597,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9820518669671636,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "mae_within_trigger": {
@@ -155,7 +155,7 @@
     "rho_swtw": 0.9874654998601331,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9655219635770047,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.01658199379954582,
@@ -167,7 +167,7 @@
     "rho_swtw": 0.996049578965043,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9887533404812484,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "static_target": {
@@ -181,7 +181,7 @@
     "rho_swtw": 0.9993866577894799,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9898998304925308,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.017293190351014176,
@@ -193,7 +193,7 @@
     "rho_swtw": 1.0041322381609692,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0011457408911153,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "t1_s030_across_trigger": {
@@ -207,7 +207,7 @@
     "rho_swtw": 0.9956197637651626,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9895513318801225,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.011860701886699465,
@@ -219,7 +219,7 @@
     "rho_swtw": 1.0018275442790123,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0094562235253006,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   },
   "t1_s030_within_trigger": {
@@ -233,7 +233,7 @@
     "rho_swtw": 0.9872548986898794,
     "class_swtw": "charge-scale dominated",
     "share_cs": 0.9654578177262231,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    },
    "9001": {
     "delta_D_m": 0.009850747625732667,
@@ -245,7 +245,7 @@
     "rho_swtw": 1.0004712544379688,
     "class_swtw": "charge-scale dominated",
     "share_cs": 1.0114691021373188,
-    "class_x1g": null
+    "class_x1g": "residual charge-scale dominated"
    }
   }
  },
@@ -253,79 +253,79 @@
   "fix": {
    "9000": {
     "r2_eq": 0.2514129671783629,
-    "class": null,
+    "class": "non-equivariant",
     "rho_lr": -0.8887818262789069
    },
    "9001": {
     "r2_eq": 0.2880371343196978,
-    "class": null,
+    "class": "non-equivariant",
     "rho_lr": -0.8354556194642937
    }
   },
   "frozen_target": {
    "9000": {
     "r2_eq": 0.7077025052837376,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.533840048787172
    },
    "9001": {
     "r2_eq": 0.727779335545238,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.5864968707636384
    }
   },
   "init": {
    "9000": {
     "r2_eq": 0.7711081469884691,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.7046875991796347
    }
   },
   "mae_across_trigger": {
    "9000": {
     "r2_eq": 0.1901406644641499,
-    "class": null,
+    "class": "non-equivariant",
     "rho_lr": -0.7192959824175895
    },
    "9001": {
     "r2_eq": 0.22328999694044527,
-    "class": null,
+    "class": "non-equivariant",
     "rho_lr": -1.0228357203803662
    }
   },
   "mae_within_trigger": {
    "9000": {
     "r2_eq": 0.6633901129102977,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.6364232658920607
    },
    "9001": {
     "r2_eq": 0.43284828854879354,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.6304387006267047
    }
   },
   "t1_s030_across_trigger": {
    "9000": {
     "r2_eq": 0.19230379889089821,
-    "class": null,
+    "class": "non-equivariant",
     "rho_lr": -1.2290302549342118
    },
    "9001": {
     "r2_eq": 0.20491442510576785,
-    "class": null,
+    "class": "non-equivariant",
     "rho_lr": -0.5486774170471186
    }
   },
   "t1_s030_within_trigger": {
    "9000": {
     "r2_eq": 0.46685642084042944,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.500949910210284
    },
    "9001": {
     "r2_eq": 0.43235082144648507,
-    "class": null,
+    "class": "partly equivariant",
     "rho_lr": -0.7885105605081398
    }
   }
