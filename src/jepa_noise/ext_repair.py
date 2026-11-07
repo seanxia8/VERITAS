@@ -31,7 +31,6 @@ import dataclasses
 import json
 import math
 import os
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -65,8 +64,7 @@ __all__ = [
     "x1", "x1_readings", "occupancy_counts", "run_log_gain_vectors",
     "equivariance_fit", "x2_decomposition",
     "source_estimate", "raw_estimate", "latent_estimate",
-    "latent_cv", "whitening_matrix", "identifiability_spectrum",
-    "x2_est_closure", "x2", "fisher_inputs", "crlb_report",
+    "latent_cv", "whitening_matrix", "identifiability_spectrum", "x2", "fisher_inputs", "crlb_report",
     "fisher_accounting", "p0_check", "raw_photon_features", "raw_std_features",
     "raw_inv_features", "invariant_features", "leace_fit", "leace_erase",
     "leace_cross_covariance", "permutation_maxima", "reduction_rank",
@@ -237,6 +235,9 @@ LEACE_PERM_NAMESPACE = "paper3/x3/leace_perm"
 LEACE_RAND_NAMESPACE = "paper3/x3/leace_rand"
 LEACE_PERMUTATIONS = 200
 LEACE_RANDOM_CONTROLS = 20
+#: §7.2 X3-3 robustness thresholds: |Δv| <= 2 mm and <= 5 % relative energy change.
+_X3_ROBUST_VERTEX_M = 0.002
+_X3_ROBUST_ENERGY_REL = 0.05
 LEACE_RTOL = 1e-8
 LEACE_SANITY_R2 = 0.02
 E2_PLANTED_RANK = 5
@@ -270,7 +271,7 @@ CPU_PROJECTION = {
     "x3b_leace_and_permutations": 1.00, "report": 0.25,
 }
 #: §8.1 GPU set counts, by stage (per-set wall × 1.3 projection factor).
-X1_PHOTON_SETS_PER_MODEL = 16
+X1_PHOTON_SETS_PER_MODEL = 22  # 11 condition names x both roles (§5)
 X1_PARTICLE_SETS = {model: (6 if model in MAE_MODELS else 5)
                     for model in X1_PARTICLE_MODELS}
 X0B_SETS_PER_MODEL = 2
@@ -487,6 +488,11 @@ def module_of_pmt(geometry) -> np.ndarray:
     """Dense module index per PMT (``DetectorGeometry.module_index``; §2.2 ``mod(p)``)."""
     index = getattr(geometry, "module_of_pmt", None)
     return np.asarray(geometry.module_index if index is None else index, np.int64)
+
+
+def row_split(row) -> str:
+    """The §3.2 view split of an inventory row (``ext_followup`` uses the same rule)."""
+    return str((row or {}).get("split", "within"))
 
 
 def run_spec(row, dataset) -> lb.RunSpec:
@@ -877,6 +883,8 @@ class EmbeddingCache:
         path.parent.mkdir(parents=True, exist_ok=True)
         payload = {name: np.asarray(out[name])
                    for name in self.ARRAY_NAMES if name in out}
+        if "run_ids" in payload:
+            payload["run_ids"] = np.asarray(payload["run_ids"]).astype(str)
         payload["embeddings"] = np.asarray(out["events"])
         np.savez_compressed(path, **payload)
         digest = lr.sha256_file(path)
@@ -915,8 +923,9 @@ def stream_condition_embeddings(model, dataset, geometry, condition, *, split, c
         k: rows[k] for k in ("cache_status", "cache_sha256") if k in rows}
 
 
-def stream_condition_particles(model, dataset, truth, geometry, condition, *, cache=None,
-                               cache_key=None, max_events=None, max_runs=None, log=print) -> dict:
+def stream_condition_particles(model, dataset, truth, geometry, condition, *, device="cpu",
+                               cache=None, cache_key=None, max_events=None,
+                               max_runs=None, log=print) -> dict:
     """Particle (muon/electron) embeddings of one probe set under one condition (§3.2)."""
     names = ("events", "run_ids", "event_ids", "particle", "direction", "deposited_MeV",
              "contained", "n_hit", "vertex")
@@ -1153,7 +1162,7 @@ def classify_seeds(entries, classify) -> dict:
     classes = {label for _seed, label in labelled if label is not None}
     if len(entries) == 1:
         label = labelled[0][1]
-        return {"class": (f"single seed (not classified)" if label is not None
+        return {"class": ("single seed (not classified)" if label is not None
                           else "not classified"),
                 "single_seed_class": label,
                 "per_seed": [{"seed": labelled[0][0], "class": labelled[0][1]}]}
@@ -1573,26 +1582,50 @@ def preflight(root=None, *, data_root=DATA_ROOT_DEFAULT, config, gen, geometry,
         payload["mu_reconstruction"] = mu_reconstruction(
             probes030["test"], geometry, gen,
             dataset_seed=int(config["data"]["dataset_seed"]), limit_runs=limit)
-        for name in ("twin_content", "swtw_content", "mu_reconstruction"):
-            if not payload[name]["pass"]:
-                payload["stops"].append(f"{name} content check failed (§4)")
-        if payload["twin_content"]["mismatches"]:
-            payload["hw_condition"] = "unavailable"
-        else:
-            payload["hw_condition"] = "available"
+        # §4: a content mismatch stops only the readings that rely on it
+        blocked = {"twin_mismatch": [], "swtw_mismatch": [], "mu_p_unavailable": []}
+        if not payload["twin_content"]["pass"]:
+            blocked["twin_mismatch"] = ["HW condition (X1, X1-d, X1-g secondary, X3-b)"]
+        if not payload["swtw_content"]["pass"]:
+            blocked["swtw_mismatch"] = ["X1-b", "X1-g", "X1-d's v_HW − v_N", "X2-a",
+                                        "X2-b", "X2-c"]
+        if not payload["mu_reconstruction"]["pass"]:
+            blocked["mu_p_unavailable"] = ["X2-d source stream"]
+        roles = {}
+        for name, dataset in (("s005_train", probes005["train"]),
+                              ("s005_test", probes005["test"]),
+                              ("s030_train", probes030["train"]),
+                              ("s030_test", probes030["test"])):
+            roles[name] = "available" if all(
+                (dataset.directory / "runs" / row["run_dir"]
+                 / "twin_hits.npz").is_file() for row in dataset.runs) else "unavailable"
+        payload["hw_condition"] = roles
+        payload["readings_stopped"] = blocked
+        payload["content_pass"] = bool(payload["twin_content"]["pass"]
+                                       and payload["swtw_content"]["pass"]
+                                       and payload["mu_reconstruction"]["pass"])
     payload["inventory"] = inv
     if inv["unavailable"]:
         payload["stops"].append("checkpoint inventory: "
                                 f"{len(inv['unavailable'])} unavailable row(s)")
     payload["hardware_and_software"] = hardware_and_software()
     payload["gpu_projection"] = gpu_projection()
+    payload["gpu_projection_core"] = gpu_projection(list(CORE_MODELS))
     payload["cpu_projection"] = cpu_projection()
     payload["entries"] = entries_preflight(log=log)
     payload["s1"] = s1_projection(root)
-    for name in ("entries", "s1"):
+    for name in ("entries", "s1", "gpu_projection", "cpu_projection"):
         row = payload[name]
         if row.get("pass") is False:
             payload["stops"].append(f"{name} projection failed (§8)")
+    if payload["gpu_projection"].get("pass") is False:
+        if payload["gpu_projection_core"].get("pass"):
+            payload["optional_dropped"] = True
+            payload["stops"].append(
+                "optional models dropped: the with-optional GPU projection "
+                "exceeds the cap (§8.1)")
+        else:
+            payload["stops"].append("core GPU projection exceeds 4.0 L0 h (STOP S1)")
     payload["pass"] = bool(not payload["stops"])
     payload["closure"] = _assert_closure("preflight", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
@@ -1618,7 +1651,7 @@ def _frozen_refit_vertex(model, probes, condition, split, config, device, *,
     for role, dataset in (("train", probes[condition["train"]]["train"]),
                           ("test", probes[condition["test"]]["test"])):
         rows[role] = stream_condition_embeddings(
-            model, dataset, probes["geometry"], condition["condition"], split="within",
+            model, dataset, probes["geometry"], condition["condition"], split=split,
             config=config, device=device, cache=cache,
             cache_key=embedding_cache_key(role, condition["name"]), log=log)
     fitted = fit_vertex_probe(rows["train"])
@@ -1662,10 +1695,11 @@ def reproduction(root=None, *, config, gen, arms_config, geometry,
                                     geometry=geometry, data_root=data_root,
                                     device=device, log=log)
         model = getattr(arm, "jepa", arm)
+        split = row_split(row)
         n = _frozen_refit_vertex(model, dict(sets["s005"], geometry=geometry), condition_n,
-                                 "within", config, device, cache=cache, log=log)
+                                 split, config, device, cache=cache, log=log)
         d = _frozen_refit_vertex(model, dict(sets["s030"], geometry=geometry), condition_d,
-                                 "within", config, device, cache=cache, log=log)
+                                 split, config, device, cache=cache, log=log)
         # D frozen: the N probe applied unchanged to the D test embeddings
         frozen_d = la.probe_predictions(
             n["fitted"],
@@ -1690,6 +1724,9 @@ def reproduction(root=None, *, config, gen, arms_config, geometry,
     payload["identity"] = identity_check(root=root, config=config, gen=gen,
                                          arms_config=arms_config, geometry=geometry,
                                          data_root=data_root, inventory=inv, device=device,
+                                         label="mae_within_trigger9000",
+                                         split=row_split(inv["rows"].get(
+                                             "mae_within_trigger9000") or {}),
                                          log=log)
     payload["pass"] = bool(payload["pass"] and payload["identity"]["pass"])
     payload["closure"] = _assert_closure("reproduce", root)
@@ -1699,39 +1736,53 @@ def reproduction(root=None, *, config, gen, arms_config, geometry,
 
 def identity_check(*, root=None, config, gen, arms_config, geometry,
                    data_root=DATA_ROOT_DEFAULT, inventory=None, device="cpu",
-                   label="mae_within_trigger9000", limit=None, log=print) -> dict:
-    """§4 identity check: factor 1 through §2.5 is bit-identical, embeddings <= 1e-6."""
+                   label="mae_within_trigger9000", limit=None, probes005=None,
+                   probes030=None, model=None, split=None, log=print) -> dict:
+    """§4 identity check: factor 1 through §2.5 is bit-identical, embeddings <= 1e-6.
+
+    The conditions are built per role (N on the s = 0.05 sets, D on the s = 0.30
+    sets), so both the train and the test run directories are inside the condition's
+    own set; the view split comes from the model's inventory row.
+    """
     root = _resolve_root(root)
     inv = inventory if inventory is not None else part_a_inventory(root, log=log)
-    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
-    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
-    row = inv["rows"].get(label)
-    if row is None:
-        return {"pass": False, "reason": f"{label} absent from the inventory"}
-    with ef.item_eval_context(row):
-        arm = ef.build_item_arm(row, config=config, gen=gen, arms_config=arms_config,
-                                geometry=geometry, data_root=data_root, device=device,
-                                log=log)
-    model = getattr(arm, "jepa", arm)
+    if probes005 is None:
+        probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005,
+                                    log=log)
+    if probes030 is None:
+        probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030,
+                                    log=log)
+    row = inv["rows"].get(label) or {}
+    if model is None:
+        if not row:
+            return {"pass": False, "reason": f"{label} absent from the inventory"}
+        with ef.item_eval_context(row):
+            arm = ef.build_item_arm(row, config=config, gen=gen,
+                                    arms_config=arms_config, geometry=geometry,
+                                    data_root=data_root, device=device, log=log)
+        model = getattr(arm, "jepa", arm)
+    split = row_split(row) if split is None else str(split)
     mask_seed = int(config["views"]["mask_seed"])
     scaling = pe.FeatureScaling.from_geometry(geometry)
-    out = {"label": label, "sets": {}, "pass": True,
+    out = {"label": label, "sets": {}, "pass": True, "split": split,
            "tolerance": IDENTITY_EMBEDDING_TOLERANCE, "features_bit_identical": True}
-    conditions = (("s005", probes005, build_condition("N", probes005["test"], geometry)),
-                  ("s030", probes030, build_condition("D", probes030["test"], geometry)))
     import torch
-    for name, probes, condition in conditions:
+    for name, probes, condition_name in (("s005", probes005, "N"),
+                                         ("s030", probes030, "D")):
         entry = {"n_runs": 0, "max_embedding_difference": 0.0,
                  "features_bit_identical": True, "pass": True}
         for role in ("train", "test"):
+            if role not in probes:
+                continue
             dataset = _truncate(probes[role], max_runs=limit)
+            condition = build_condition(condition_name, dataset, geometry)
             for run_row in dataset.runs:
                 source = dataset.directory / "runs" / run_row["run_dir"]
-                plain = lr._probe_batch(source, geometry, split="within",
+                plain = lr._probe_batch(source, geometry, split=split,
                                         mask_seed=mask_seed, occupancy="natural",
                                         scaling=scaling, limit=8)
                 with hit_transform_context(condition):
-                    wrapped = lr._probe_batch(source, geometry, split="within",
+                    wrapped = lr._probe_batch(source, geometry, split=split,
                                               mask_seed=mask_seed, occupancy="natural",
                                               scaling=scaling, limit=8)
                 plain_features = np.asarray(plain.features.detach().cpu())
@@ -1755,7 +1806,6 @@ def identity_check(*, root=None, config, gen, arms_config, geometry,
                                              and entry["features_bit_identical"])
         out["pass"] = bool(out["pass"] and entry["pass"])
     return out
-
 
 
 # ================================================================== X1 §5
@@ -1845,14 +1895,17 @@ def x1(root=None, *, config, gen, arms_config, geometry, inventory=None,
     probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
     particle_truth = {role: ef.load_particle_truth(data_root, PROBE_KEYS_S005[role])
                       for role in ("train", "test")}
-    names = condition_names_x1()
+    hw_available = _twins_present(probes030["train"]) and \
+        _twins_present(probes030["test"])
+    names = [name for name in condition_names_x1()
+             if name != "HW" or hw_available]
     conditions = {role: build_conditions(
         {"s005": probes005[role], "s030": probes030[role]}, geometry, names)
         for role in ("train", "test")}
     payload = {"registered": False, "extension": EXTENSION, "check": "X1 §5 calibration",
                "runbook": RUNBOOK_REL, "conditions": names, "models": {},
-               "unavailable": [], "gate": {"status": gate["status"]},
-               "wall_seconds": None}
+               "unavailable": [], "hw_unavailable": not hw_available,
+               "gate": {"status": gate["status"]}, "wall_seconds": None}
     selected = model_rows(inv, include_optional=include_optional) if labels is None \
         else list(labels)
     for label in selected:
@@ -1867,6 +1920,7 @@ def x1(root=None, *, config, gen, arms_config, geometry, inventory=None,
                                         arms_config=arms_config, geometry=geometry,
                                         data_root=data_root, device=device, log=log)
             model = getattr(arm, "jepa", arm)
+            split = row_split(row)
             photon = {role: {} for role in ("train", "test")}
             for role in ("train", "test"):
                 for name in names:
@@ -1875,14 +1929,17 @@ def x1(root=None, *, config, gen, arms_config, geometry, inventory=None,
                                else probes030[role])
                     photon[role][name] = stream_condition_embeddings(
                         model, dataset, geometry, conditions[role][name],
-                        split="within", config=config, device=device, cache=cache,
+                        split=split, config=config, device=device, cache=cache,
                         cache_key=embedding_cache_key(role, name),
                         max_events=limit, log=log)
             particle = None
             if label in X1_PARTICLE_MODELS:
+                particle_names = tuple(name for name in PARTICLE_CONDITIONS
+                                       if name != "HW" or hw_available)
                 particle = _x1_particle(model, particle_truth, geometry, probes005,
                                         probes030, conditions, label=label,
-                                        cache=cache, limit=limit, log=log)
+                                        names=particle_names, cache=cache,
+                                        device=device, limit=limit, log=log)
             model_payload = _x1_model(row, photon, particle, config=config)
         except SystemExit:
             raise
@@ -1898,24 +1955,32 @@ def x1(root=None, *, config, gen, arms_config, geometry, inventory=None,
     return payload
 
 
+def _twins_present(dataset) -> bool:
+    """True when every run of a set has its nominal twin on disk (§4 HW condition)."""
+    return all((Path(dataset.directory) / "runs" / row["run_dir"]
+                / "twin_hits.npz").is_file() for row in dataset.runs)
+
+
 def _x1_particle(model, particle_truth, geometry, probes005, probes030, conditions,
-                 *, label=None, cache=None, limit=None, log=print) -> dict:
+                 *, label=None, names=None, cache=None, device="cpu", limit=None,
+                 log=print) -> dict:
     """The §5 particle sets of the six listed models.
 
     The four MAE models also carry the D probe-train set, which the X3-b particle
     eraser needs; every particle embedding is cached for that item.
     """
     out = {"train": {}, "test": {}}
+    particle_names = tuple(PARTICLE_CONDITIONS if names is None else names)
     plan = {"train": (("N", "D") if label in MAE_MODELS else ("N",)),
-            "test": PARTICLE_CONDITIONS}
+            "test": particle_names}
     for role in ("train", "test"):
         for name in plan[role]:
             base = _condition_base(name)[0]
             dataset = probes005[role] if _SOURCE[base] == S005 else probes030[role]
             out[role][name] = stream_condition_particles(
                 model, dataset, particle_truth[role], geometry, conditions[role][name],
-                cache=cache, cache_key=f"particle__{role}__{name}",
-                max_events=limit, log=log)
+                device=device, cache=cache,
+                cache_key=f"particle__{role}__{name}", max_events=limit, log=log)
     return out
 
 
@@ -1995,12 +2060,32 @@ def _x1_model(row, photon, particle, *, config) -> dict:
             photon["test"]["D"], out["conditions"]["D"]["refit_vertex"]["__errors__"],
             photon["test"][name],
             out["conditions"][name]["refit_vertex"]["__errors__"])
-    out["comparisons"]["SWunit_vs_HW"] = bootstrap_difference(
-        photon["test"]["HW"], frozen["HW"], photon["test"]["SWunit"], frozen["SWunit"])
+    if "HW" in out["conditions"] and "SWunit" in out["conditions"]:
+        out["comparisons"]["SWunit_vs_HW"] = bootstrap_difference(
+            photon["test"]["HW"], frozen["HW"], photon["test"]["SWunit"],
+            frozen["SWunit"])
+    # §5 X1-g secondary (descriptive): the unit-gain reference split
+    hw_refit = (out["conditions"]["HW"]["refit_vertex"]
+                if "HW" in out["conditions"] else None)
+    d_refit = (out["conditions"]["D"]["refit_vertex"]
+               if "D" in out["conditions"] else None)
+    swunit_refit = (out["conditions"]["SWunit"]["refit_vertex"]
+                    if "SWunit" in out["conditions"] else None)
+    if hw_refit is not None and d_refit is not None:
+        out["comparisons"]["D_refit_vs_HW_refit"] = bootstrap_difference(
+            photon["test"]["D"], d_refit["__errors__"], photon["test"]["HW"],
+            hw_refit["__errors__"])
+    if hw_refit is not None and swunit_refit is not None:
+        out["comparisons"]["SWunit_refit_vs_HW_refit"] = bootstrap_difference(
+            photon["test"]["SWunit"], swunit_refit["__errors__"],
+            photon["test"]["HW"], hw_refit["__errors__"])
+    if hw_refit is not None:
+        out["comparisons"]["N_vs_HW_refit"] = bootstrap_difference(
+            n_rows, frozen["N"], photon["test"]["HW"], hw_refit["__errors__"])
     attach_x1_canonical(out)
     if particle:
         frozen_energy = fit_energy_probe(particle["train"]["N"])
-        for name in PARTICLE_CONDITIONS:
+        for name in list(particle["test"]):
             rows = particle["test"][name]
             out["particle"][name] = {
                 "energy": energy_metrics(particle["train"]["N"], rows,
@@ -2173,10 +2258,18 @@ def _comparison_row(comparison) -> dict:
 
 
 def _x1d(comparisons) -> dict:
-    out = {"HW": _comparison_row(comparisons.get("HW")),
-           "SWunitN": _comparison_row(comparisons.get("SWunitN")),
-           "SWunit_vs_HW": _comparison_row(comparisons.get("SWunit_vs_HW"))}
-    return out
+    """X1-d ceilings, plus the §5 secondary unit-gain split (descriptive)."""
+    return {"primary": {"HW": _comparison_row(comparisons.get("HW")),
+                        "SWunitN": _comparison_row(comparisons.get("SWunitN")),
+                        "SWunit_vs_HW": _comparison_row(
+                            comparisons.get("SWunit_vs_HW"))},
+            "secondary": {
+                "D_refit_minus_HW_refit": _comparison_row(
+                    comparisons.get("D_refit_vs_HW_refit")),
+                "SWunit_refit_minus_HW_refit": _comparison_row(
+                    comparisons.get("SWunit_refit_vs_HW_refit")),
+                "N_minus_HW_refit": _comparison_row(
+                    comparisons.get("N_vs_HW_refit"))}}
 
 
 def _x1e(model, rho_swunit) -> dict:
@@ -2341,15 +2434,16 @@ def latent_repair_class(rho) -> str | None:
     return "partial"
 
 
-def x2_decomposition(n_test, d_test, s_test, *, frozen_fit, swtw_fit) -> dict:
+def x2_decomposition(n_test, d_test, s_test, *, frozen_fit, swtw_fit,
+                     swtw_test=None) -> dict:
     """X2-a: variance shares and frozen-probe costs of the two drift parts (§6)."""
     _paired_s, aligned_s = pair_embedding_rows(n_test, s_test)
     _paired_d, aligned_d = pair_embedding_rows(n_test, d_test)
     dz_cs = (np.asarray(aligned_s["events"], float)
              - np.asarray(n_test["events"], float))
-    dz_ni = (np.asarray(d_test["events"], float)
+    dz_ni = (np.asarray(aligned_d["events"], float)
              - np.asarray(aligned_s["events"], float))
-    dz_tot = (np.asarray(d_test["events"], float)
+    dz_tot = (np.asarray(aligned_d["events"], float)
               - np.asarray(n_test["events"], float))
     denom = float(np.mean(np.sum(dz_tot ** 2, axis=1)))
     out = {"share_cs": (None if denom <= 0 else float(np.mean(np.sum(dz_cs ** 2, axis=1)))
@@ -2360,7 +2454,8 @@ def x2_decomposition(n_test, d_test, s_test, *, frozen_fit, swtw_fit) -> dict:
     v_n = vertex_row(n_test, fitted=frozen_fit)["mean_error_m"]
     v_s = vertex_row(s_test, fitted=frozen_fit)["mean_error_m"]
     v_d = vertex_row(d_test, fitted=frozen_fit)["mean_error_m"]
-    v_swtw = vertex_row(s_test, fitted=swtw_fit)["mean_error_m"]
+    v_swtw = (None if swtw_test is None
+              else vertex_row(swtw_test, fitted=swtw_fit)["mean_error_m"])
     out.update({"v_S_minus_v_N": None if None in (v_s, v_n) else float(v_s) - float(v_n),
                 "v_D_minus_v_S": None if None in (v_d, v_s) else float(v_d) - float(v_s),
                 "additivity_check": None if None in (v_d, v_n, v_s, v_swtw) else
@@ -2413,6 +2508,18 @@ def latent_estimate(zbar_delta, occupancy, A_hat, W, *, lam=0.0, centre=None,
             "lam": float(lam), "design": design, "target": target}
 
 
+def _standardisation(designs, *, eps=0.0) -> tuple:
+    """Column centre/scale pooled from the training folds' designs (§6, Appendix C)."""
+    designs = [np.asarray(design, float) for design in designs if np.asarray(design).size]
+    if not designs:
+        return None, None
+    flat = np.concatenate(designs, axis=0)
+    centre = flat.mean(axis=0)
+    scale = flat.std(axis=0)
+    scale = np.where(scale <= float(eps), 1.0, scale)
+    return centre, scale
+
+
 def latent_cv(*, features_n, features_d, run_ids, occupancy_by_run, truth,
               seed=0, folds=5) -> dict:
     """λ by five-fold run-grouped CV on probe-train, refit inside every fold (§6).
@@ -2434,7 +2541,8 @@ def latent_cv(*, features_n, features_d, run_ids, occupancy_by_run, truth,
                       if fold_of[index] != fold]
         validation_runs = [runs[index] for index in range(len(runs))
                            if fold_of[index] == fold]
-        if not train_runs or not validation_runs:
+        if len(train_runs) < 5 or not validation_runs:
+            # five run-grouped folds need at least five runs (§6/Appendix C)
             continue
         train_mask = np.isin(run_ids, train_runs)
         whitening = whitening_matrix(features_n[train_mask], run_ids[train_mask])
@@ -2536,7 +2644,7 @@ def _fit_equivariance_occupancy(features_n, features_d, occupancy, run_ids) -> n
     coefficients = np.stack([probe["fit"].coefficients if probe["status"] == "fit"
                              else np.zeros(occupancy.shape[1])
                              for probe in fitted["fits"]], axis=1)
-    return coefficients
+    return coefficients.T
 
 
 def _pearson(x, y) -> float | None:
@@ -2668,6 +2776,43 @@ def identification_report(estimates: dict, truth: dict) -> dict:
                             for index, run in enumerate(common)}}
 
 
+def _stack_coefficients(fit) -> np.ndarray:
+    """The fitted map Â (``n_dim x n_modules``) of one ``equivariance_fit`` result."""
+    fits = (fit or {}).get("fitted", {}).get("fits") or []
+    if not fits:
+        return None
+    width = int(np.asarray(fits[0]["fit"].scale).size) if fits[0].get("status") == "fit" \
+        else int((fit.get("train_mean") or np.zeros(0)).size)
+    columns = []
+    for probe in fits:
+        if probe.get("status") == "fit":
+            columns.append(np.asarray(probe["fit"].coefficients, float))
+        else:
+            columns.append(np.zeros(width))
+    return np.stack(columns, axis=1).T
+
+
+def _x2c(rows, delta, occupancy, geometry, frozen, A_hat) -> dict:
+    """X2-c: z̃ = z_D − Â u(δ_r) with the occupancy model, then P_N (§6)."""
+    if A_hat is None:
+        return {"status": "not available", "rho_LR": None}
+    test_u = occupancy_design(rows["test"]["D"], delta, occupancy, geometry)
+    repaired = dict(rows["test"]["D"])
+    repaired["events"] = (np.asarray(rows["test"]["D"]["events"], float)
+                          - np.asarray(test_u, float) @ np.asarray(A_hat, float).T)
+    prediction = la.probe_predictions(
+        frozen, ef._probe_dataset(repaired, "vertex", target_names=("x", "y", "z")))
+    repaired_errors = ef._vertex_errors(repaired, prediction)
+    v_n = vertex_row(rows["test"]["N"], fitted=frozen)["mean_error_m"]
+    v_d = vertex_row(rows["test"]["D"], fitted=frozen)["mean_error_m"]
+    v_lr = float(repaired_errors.mean())
+    rho = None if v_d is None or v_n is None or abs(float(v_d) - float(v_n)) <= 0 \
+        else float((float(v_d) - v_lr) / (float(v_d) - float(v_n)))
+    return {"v_LR_m": v_lr, "v_D_m": v_d, "v_N_m": v_n, "rho_LR": rho,
+            "errors": repaired_errors, "class": latent_repair_class(rho),
+            "A_hat": np.asarray(A_hat, float).tolist()}
+
+
 def identifiability_spectrum(A_hat, W, occupancy_mean, *, n_events_per_run=17) -> dict:
     """X2-f: singular values of W Â at mean occupancy and the implied per-module CRLB."""
     A_hat = np.asarray(A_hat, float)
@@ -2705,8 +2850,13 @@ def x2(root=None, *, config, gen, arms_config, geometry, inventory=None,
         for role in ("train", "test")}
     delta = run_log_gain_vectors(probes030["train"], geometry)
     delta.update(run_log_gain_vectors(probes030["test"], geometry))
-    occupancy = {role: occupancy_counts(
-        probes030[role], conditions[role]["D"], geometry) for role in ("train", "test")}
+    # §6 X2-b uses the N hits for n_e,m; X2-c and the latent stream use the D hits
+    occupancy = {"n": {role: occupancy_counts(probes005[role], conditions[role]["N"],
+                                              geometry)
+                       for role in ("train", "test")},
+                 "d": {role: occupancy_counts(probes030[role], conditions[role]["D"],
+                                              geometry)
+                       for role in ("train", "test")}}
     payload = {"registered": False, "extension": EXTENSION, "check": "X2 §6",
                "runbook": RUNBOOK_REL, "models": {}, "unavailable": [],
                "gate": {"status": gate["status"]}, "wall_seconds": None}
@@ -2723,6 +2873,7 @@ def x2(root=None, *, config, gen, arms_config, geometry, inventory=None,
                                         arms_config=arms_config, geometry=geometry,
                                         data_root=data_root, device=device, log=log)
             model = getattr(arm, "jepa", arm)
+            split = row_split(row)
             rows = {role: {} for role in ("train", "test")}
             for role in ("train", "test"):
                 for name in names:
@@ -2731,13 +2882,13 @@ def x2(root=None, *, config, gen, arms_config, geometry, inventory=None,
                                else probes030[role])
                     rows[role][name] = stream_condition_embeddings(
                         model, dataset, geometry, conditions[role][name],
-                        split="within", config=config, device=device, cache=cache,
+                        split=split, config=config, device=device, cache=cache,
                         cache_key=embedding_cache_key(role, name),
                         max_events=limit, log=log)
             payload["models"][label] = _x2_model(
                 row, model, rows, delta, occupancy, conditions, probes005, probes030,
                 geometry, config=config, gen=gen, data_root=data_root,
-                ext_root=ext_root, device=device, cache=cache, log=log)
+                ext_root=ext_root, device=device, cache=cache, split=split, log=log)
         except SystemExit:
             raise
         except Exception as problem:  # pragma: no cover
@@ -2746,6 +2897,7 @@ def x2(root=None, *, config, gen, arms_config, geometry, inventory=None,
             continue
     payload["readings"] = x2_readings(payload)
     payload = _strip_internal(payload)
+    payload["complete"] = not payload["unavailable"]
     payload["closure"] = _assert_closure("x2", root)
     return payload
 
@@ -2759,17 +2911,22 @@ def _run_mean_vectors(run_ids, per_event):
 
 
 def _x2_model(row, model, rows, delta, occupancy, conditions, probes005, probes030,
-              geometry, *, config, gen, data_root, ext_root, device, cache, log=print) -> dict:
+              geometry, *, config, gen, data_root, ext_root, device, cache,
+              split=None, log=print) -> dict:
     """One model's X2-a … X2-f block."""
     label = str(row["label"])
     family, seed = _family(label)
-    out = {"label": label, "family": family, "seed": seed, "X2-a": None, "X2-b": {},
-           "X2-c": None, "X2-d": {}, "X2-e": {}, "X2-f": None}
+    split = row_split(row) if split is None else str(split)
+    out = {"label": label, "family": family, "seed": seed, "split": split,
+           "X2-a": None, "X2-b": {}, "X2-c": None, "X2-d": {}, "X2-e": {}, "X2-f": None}
     frozen = fit_vertex_probe(rows["train"]["N"])
-    # X2-a decomposition
+    # X2-a decomposition (the additivity check uses the SWtw rows, not the S rows)
+    swtw_key = embedding_cache_key("test", "SWtw")
+    swtw_test = (cache.fetch(swtw_key, lambda: {})
+                 if cache is not None and cache.has(swtw_key) else None)
     out["X2-a"] = x2_decomposition(rows["test"]["N"], rows["test"]["D"],
                                    rows["test"]["S"], frozen_fit=frozen,
-                                   swtw_fit=frozen)
+                                   swtw_fit=frozen, swtw_test=swtw_test)
     delta_train = {run: delta[run] for run in set(
         np.asarray(rows["train"]["D"]["run_ids"]).astype(str)) if run in delta}
     delta_test = {run: delta[run] for run in set(
@@ -2778,9 +2935,9 @@ def _x2_model(row, model, rows, delta, occupancy, conditions, probes005, probes0
     for kind in ("occupancy", "global"):
         if kind == "occupancy":
             u_train = occupancy_design(rows["train"]["S"], delta_train,
-                                       occupancy["train"], geometry)
+                                       occupancy["n"]["train"], geometry)
             u_test = occupancy_design(rows["test"]["S"], delta_test,
-                                      occupancy["test"], geometry)
+                                      occupancy["n"]["test"], geometry)
         else:
             u_train = global_design(rows["train"]["S"], delta_train, geometry)
             u_test = global_design(rows["test"]["S"], delta_test, geometry)
@@ -2812,8 +2969,8 @@ def _x2_model(row, model, rows, delta, occupancy, conditions, probes005, probes0
             entry["A_hat"] = _stack_coefficients(fit_cs)
         out["X2-b"][kind] = entry
     A_hat = out["X2-b"]["occupancy"]["A_hat"]
-    # X2-c latent repair with the true gains
-    out["X2-c"] = _x2c(rows, delta, occupancy, geometry, frozen, A_hat)
+    # X2-c latent repair with the true gains (n_e,m from the D hits)
+    out["X2-c"] = _x2c(rows, delta, occupancy["d"]["test"], geometry, frozen, A_hat)
     # X2-d identification: truth and the three streams
     truth_test, truth_train = _gain_truth(probes030, geometry)
     dataset_seed = int(config["data"]["dataset_seed"])
@@ -2824,11 +2981,11 @@ def _x2_model(row, model, rows, delta, occupancy, conditions, probes005, probes0
     out["X2-d"]["raw"] = identification_report(raw["estimates"], truth_test)
     out["X2-d"]["truth"] = {run: value.tolist() for run, value in truth_test.items()}
     occ_events_train = occupancy_design(rows["train"]["N"], delta_train,
-                                        occupancy["train"], geometry)
+                                        occupancy["d"]["train"], geometry)
     _, occ_mean_train = _run_mean_vectors(rows["train"]["N"]["run_ids"],
                                           occ_events_train)
     occ_events_test = occupancy_design(rows["test"]["N"], delta_test,
-                                       occupancy["test"], geometry)
+                                       occupancy["d"]["test"], geometry)
     _, occ_mean_test = _run_mean_vectors(rows["test"]["N"]["run_ids"],
                                          occ_events_test)
     latent = latent_stream_estimates(
@@ -2847,7 +3004,8 @@ def _x2_model(row, model, rows, delta, occupancy, conditions, probes005, probes0
     # X2-e closing the loop: EST(k) conditions and latent repair with δ̂_latent
     out["X2-e"] = _x2e(model=model, rows=rows, probes030=probes030, geometry=geometry,
                        config=config, gen=gen, device=device, cache=cache,
-                       frozen=frozen, delta=delta, occupancy=occupancy,
+                       frozen=frozen, delta=delta, occupancy=occupancy["d"],
+                       split=split,
                        estimates={"source": source["estimates"],
                                   "raw": raw["estimates"],
                                   "latent": latent["estimates"]},
@@ -2856,8 +3014,10 @@ def _x2_model(row, model, rows, delta, occupancy, conditions, probes005, probes0
     if A_hat is not None:
         whitening = whitening_matrix(np.asarray(rows["train"]["N"]["events"], float),
                                      np.asarray(rows["train"]["N"]["run_ids"]))
+        occ_n_train = occupancy_design(rows["train"]["N"], delta_train,
+                                       occupancy["n"]["train"], geometry)
         out["X2-f"] = identifiability_spectrum(
-            A_hat, whitening["W"], occ_events_train.mean(axis=0))
+            A_hat, whitening["W"], occ_n_train.mean(axis=0))
     return attach_x2_canonical(out)
 
 
@@ -2878,15 +3038,16 @@ def _gain_truth(probes030, geometry):
 
 
 def _x2e(*, model, rows, probes030, geometry, config, gen, device, cache, frozen,
-         delta, occupancy, estimates, A_hat, log=print) -> dict:
+         delta, occupancy, estimates, A_hat, split="within", log=print) -> dict:
     """X2-e: ρ_EST(k) from each stream next to the ceiling ρ_SWmod (§6)."""
     out = {"streams": {}, "ceiling_rho_SWmod": None}
     v_n = vertex_row(rows["test"]["N"], fitted=frozen)["mean_error_m"]
     v_d = vertex_row(rows["test"]["D"], fitted=frozen)["mean_error_m"]
     if v_n is None or v_d is None or abs(float(v_d) - float(v_n)) <= 0:
         return {"status": "not available"}
-    swmod = (cache.fetch("test__SWmod") if cache is not None
-             and cache.has("test__SWmod") else None)
+    swmod = (cache.fetch(embedding_cache_key("test", "SWmod"), lambda: {})
+             if cache is not None and cache.has(embedding_cache_key("test", "SWmod"))
+             else None)
     if swmod is not None:
         v_swmod = vertex_row(swmod, fitted=frozen)["mean_error_m"]
         out["ceiling_rho_SWmod"] = float((float(v_d) - float(v_swmod))
@@ -2896,7 +3057,7 @@ def _x2e(*, model, rows, probes030, geometry, config, gen, device, cache, frozen
             condition = build_condition(f"EST({stream})", probes030["test"], geometry,
                                         estimates=estimate)
             est_rows = stream_condition_embeddings(
-                model, probes030["test"], geometry, condition, split="within",
+                model, probes030["test"], geometry, condition, split=split,
                 config=config, device=device, cache=None, log=log)
             v_est = vertex_row(est_rows, fitted=frozen)["mean_error_m"]
             out["streams"][stream] = {
@@ -2951,27 +3112,6 @@ def x2_readings(payload) -> dict:
         block["classes"]["X2-c"] = combine(
             lambda model: latent_repair_class((model.get("X2-c") or {}).get("rho_LR")))
         out["families"][family] = block
-    return out
-
-
-def x2_est_closure(payload, *, conditions, estimates, frozen_fits, probes, geometry,
-                   config, device, log=print) -> dict:
-    """X2-e: EST(k) conditions from each stream's δ̂, frozen P_N (§6)."""
-    out = {"streams": {}}
-    for stream, estimate in estimates.items():
-        name = f"EST({stream})"
-        try:
-            condition = build_condition(name, probes["test"], geometry,
-                                        estimates=estimate["estimates"])
-        except Exception as problem:  # pragma: no cover
-            out["streams"][stream] = {"status": "unavailable", "reason": str(problem)}
-            continue
-        rows = stream_condition_embeddings(
-            None, probes["test"], geometry, condition, split="within", config=config,
-            device=device, cache=None, log=log)
-        v_n = (payload.get("v_N") or {})
-        row = vertex_row(rows, fitted=frozen_fits[stream])
-        out["streams"][stream] = {"condition": name, "vertex": row}
     return out
 
 
@@ -3196,7 +3336,8 @@ def fisher_accounting(geometry, gen, *, n_events=1000, seed=20261106,
     for model, options in models.items():
         crlbs = {name: [] for name in ("known", "inv")}
         crlbs.update({f"{sigma:g}": [] for sigma in sigmas})
-        n_infinite = {"inv": 0, **{f"{sigma:g}": 0 for sigma in sigmas}}
+        n_infinite = {"inv": [0, 0, 0, 0],
+                      **{f"{sigma:g}": [0, 0, 0, 0] for sigma in sigmas}}
         p0_failures = 0
         for index, event in enumerate(inputs):
             if limit is not None and index >= int(limit):
@@ -3214,17 +3355,23 @@ def fisher_accounting(geometry, gen, *, n_events=1000, seed=20261106,
             report = crlb_report(blocks, sigmas=sigmas)
             crlbs["known"].append(report["known"]["crlb"])
             crlbs["inv"].append(report["inv"]["crlb"])
-            n_infinite["inv"] += report["inv"]["n_infinite"]
+            for name in report["inv"]["infinite"]:
+                n_infinite["inv"][THETA_NAMES.index(name)] += 1
             for sigma in sigmas:
                 key = f"{sigma:g}"
                 crlbs[key].append(report["cal"][key]["crlb"])
-                n_infinite[key] += report["cal"][key]["n_infinite"]
+                for name in report["cal"][key]["infinite"]:
+                    n_infinite[key][THETA_NAMES.index(name)] += 1
             if model == "C-mean":
                 check = p0_check(blocks)
                 payload["p0"].setdefault("ratios", []).append(check["ratio"])
                 if not check["pass"]:
                     p0_failures += 1
-        block = {"n_events": int(len(crlbs["inv"])), "n_infinite": n_infinite,
+        block = {"n_events": int(len(crlbs["inv"])),
+                 "n_infinite": {"per_case_total": n_infinite,
+                                "per_case_parameter": {
+                                    case: dict(zip(THETA_NAMES, counts))
+                                    for case, counts in n_infinite.items()}},
                  "median_crlb": {}, "median_ratio": {}}
         for name, values in crlbs.items():
             array = np.asarray(values, float)
@@ -3402,12 +3549,22 @@ def raw_std_features(dataset, geometry, truth=None, *, condition=None) -> dict:
 
     For muon/electron events the particle rows are ``ext_followup.raw_event_features``
     itself, so they reproduce it bit-identically; the photon rows use the same
-    formula written for photon events.
+    formula written for photon events.  When ``condition`` is given every hit read
+    goes through the §2.5 transform, so ``condition=SWunit-D`` is the calibrated
+    raw variant.
     """
-    particle = ef.raw_event_features(dataset, geometry, truth=truth)
-    photon = raw_photon_features(dataset, geometry)
-    return {"particle": particle, "photon": photon,
-            "merged": merge_standard_rows(particle, photon)}
+    def produce():
+        return {"particle": ef.raw_event_features(dataset, geometry, truth=truth),
+                "photon": _features_from_stores(dataset, geometry, weighted=True,
+                                                domains=("photon",))}
+
+    if condition is not None:
+        with hit_transform_context(condition):
+            produced = produce()
+    else:
+        produced = produce()
+    produced["merged"] = merge_standard_rows(produced["particle"], produced["photon"])
+    return produced
 
 
 def raw_inv_features(dataset, geometry, *, condition=None) -> dict:
@@ -3577,7 +3734,6 @@ def permutation_maxima(x, z, run_ids, *, n_permutations=LEACE_PERMUTATIONS,
     W, _W_inv, _eps = whitening_from_covariance(x.T @ x / len(x)
                                                 - np.outer(x.mean(0), x.mean(0)))
     runs = np.unique(run_ids)
-    rows_of = {run: np.flatnonzero(run_ids == run) for run in runs}
     rng = rng if rng is not None else np.random.default_rng(0)
     maxima = np.empty(int(n_permutations), float)
     for index in range(int(n_permutations)):
@@ -3607,7 +3763,6 @@ def reduction_rank(x, z, run_ids, *, key, label, domain, n_permutations=LEACE_PE
 # ------------------------------------------------------ X3-b variants §7.2
 def e1_concepts(dataset, geometry) -> dict:
     """E1: the twin-charge-weighted effective log gain of each event (§7.2)."""
-    mod = module_of_pmt(geometry)
     out = {}
     for row in dataset.runs:
         run_id = str(row["run_id"])
@@ -3698,10 +3853,25 @@ def _feature_variant(name, standard_rows, invariant_rows, calibrated_rows=None) 
     return out
 
 
+def _random_control_bases(label, domain, concept, d, r, n=LEACE_RANDOM_CONTROLS):
+    """§7.2 random controls: one keyed stream per control index ``i``."""
+    bases = []
+    for index in range(int(n)):
+        rng = lb.keyed_rng(20261106, LEACE_RAND_NAMESPACE,
+                           f"{label}/{domain}/{concept}/{index}")
+        bases.append(random_control_basis(rng, int(d), int(r)))
+    return bases
+
+
 def _leace_variant(*, label, domain, rows, concepts, rank=None,
                    permutations=LEACE_PERMUTATIONS,
                    random_controls=LEACE_RANDOM_CONTROLS) -> dict:
-    """Fit a LEACE eraser on pooled N and D probe-train embeddings and score it."""
+    """Fit a LEACE eraser on pooled N and D probe-train embeddings and score it.
+
+    The §7.2 erasure sanity is enforced: an unerased concept R² <= 0.02 makes the
+    variant ``not_applicable``; an erased R² > 0.02 makes it
+    ``unavailable (erasure incomplete)``.
+    """
     train_n, train_d = rows["train"]["N"], rows["train"]["D"]
     test_n, test_d = rows["test"]["N"], rows["test"]["D"]
     x = np.concatenate([np.asarray(train_n["events"], float),
@@ -3711,27 +3881,33 @@ def _leace_variant(*, label, domain, rows, concepts, rank=None,
     z = np.concatenate([np.asarray(concepts["train"]["N"], float),
                         np.asarray(concepts["train"]["D"], float)]).reshape(x.shape[0], -1)
     eraser = leace_fit(x, z, rank=rank)
-    erased = {"train": erase_rows(train_n, eraser),
-              "test": erase_rows(test_n, eraser),
-              "drift": erase_rows(test_d, eraser)}
-    standard = {"train": train_n, "test": test_n, "drift": test_d}
     sanity = leace_sanity(eraser, x, z, run_ids,
                           np.asarray(test_n["events"], float),
                           np.asarray(concepts["test"]["N"], float),
                           np.asarray(test_n["run_ids"]).astype(str))
     concept = "E1" if eraser["rank"] == 1 else "E2r"
-    out = {"standard": _embedding_variant(standard),
+    if not sanity["applicable"]:
+        return {"status": "not_applicable", "sanity": sanity, "concept": concept,
+                "rank": int(eraser["rank"]),
+                "reason": "unerased concept R² <= 0.02: concept not linearly present"}
+    if not sanity["complete"]:
+        return {"status": "unavailable (erasure incomplete)", "sanity": sanity,
+                "concept": concept, "rank": int(eraser["rank"]),
+                "reason": "erased concept R² > 0.02: erasure incomplete"}
+    erased = {"train": erase_rows(train_n, eraser),
+              "test": erase_rows(test_n, eraser),
+              "drift": erase_rows(test_d, eraser)}
+    standard = {"train": train_n, "test": test_n, "drift": test_d}
+    out = {"status": "evaluated", "standard": _embedding_variant(standard),
            "variant": _embedding_variant(erased), "sanity": sanity,
            "concept": concept, "rank": int(eraser["rank"]), "controls": []}
-    if sanity["applicable"]:
-        rng = lb.keyed_rng(20261106, LEACE_RAND_NAMESPACE, f"{label}/{domain}/{concept}")
-        for _index in range(int(random_controls)):
-            basis = random_control_basis(rng, eraser["W"].shape[0],
-                                         eraser["U_r"].shape[1])
-            erased_random = {"train": erase_rows(train_n, eraser, U_r=basis),
-                             "test": erase_rows(test_n, eraser, U_r=basis),
-                             "drift": erase_rows(test_d, eraser, U_r=basis)}
-            out["controls"].append(_embedding_variant(erased_random))
+    bases = _random_control_bases(label, domain, concept, eraser["W"].shape[0],
+                                  eraser["U_r"].shape[1], random_controls)
+    for basis in bases:
+        erased_random = {"train": erase_rows(train_n, eraser, U_r=basis),
+                         "test": erase_rows(test_n, eraser, U_r=basis),
+                         "drift": erase_rows(test_d, eraser, U_r=basis)}
+        out["controls"].append(_embedding_variant(erased_random))
     return out
 
 
@@ -3807,7 +3983,8 @@ def x3(root=None, *, config, gen, arms_config, geometry, inventory=None,
                  "drift": _variant_metric_rows(raw_inv_features(probes030["test"],
                                                                geometry))}
     calibrated = _variant_metric_rows(raw_std_features(
-        probes030["test"], geometry, truth=truth["test"])["merged"])
+        probes030["test"], geometry, truth=truth["test"],
+        condition=swunit)["merged"])
     payload["families"]["raw"] = _feature_variant("raw", standard, invariant,
                                                   calibrated_rows=calibrated)
     # init9000 invariant tokens (photon and particle)
@@ -3820,46 +3997,93 @@ def x3(root=None, *, config, gen, arms_config, geometry, inventory=None,
                              log=log)
     payload["readings"] = x3_readings(payload, fisher=fisher_payload)
     payload = _strip_internal(payload)
+    payload["complete"] = bool(payload["readings"]["variants"])
     payload["closure"] = _assert_closure("x3", root)
     return payload
 
 
 def _x3_init9000(inv, probes005, probes030, geometry, config, arms_config, gen,
                  data_root, device, truth, ext_root, *, limit=None, log=print) -> dict:
+    """X3-b init9000: invariant tokens for photon and particle events (§7.2).
+
+    Photon N (train, test) and D (test), particle N (train, test) and D (test); the
+    calibrated variant is the standard frozen probe on the X1 SWunit D inputs.
+    """
     row = inv["rows"].get("init9000")
     if row is None:
         return {"status": "unavailable", "reason": "init9000 absent"}
+    cache = embedding_cache(ext_root, "init9000")
+    split = row_split(row)
     with ef.item_eval_context(row):
         arm = ef.build_item_arm(row, config=config, gen=gen, arms_config=arms_config,
                                 geometry=geometry, data_root=data_root, device=device,
                                 log=log)
     model = getattr(arm, "jepa", arm)
+    datasets = {"train": probes005["train"], "test": probes005["test"],
+                "drift": probes030["test"]}
+    condition_names = {"train": "N", "test": "N", "drift": "D"}
     standard = {"train": {}, "test": {}, "drift": {}}
     invariant = {"train": {}, "test": {}, "drift": {}}
-    for role, dataset in (("train", probes005["train"]), ("test", probes005["test"])):
-        condition = build_condition("N", dataset, geometry)
+    for role, dataset in datasets.items():
+        condition = build_condition(condition_names[role], dataset, geometry)
         standard[role] = stream_condition_embeddings(
-            model, dataset, geometry, condition, split="within", config=config,
+            model, dataset, geometry, condition, split=split, config=config,
             device=device, cache=None, max_events=limit, log=log)
         with invariant_token_context(geometry):
             invariant[role] = stream_condition_embeddings(
-                model, dataset, geometry, condition, split="within", config=config,
+                model, dataset, geometry, condition, split=split, config=config,
                 device=device, cache=None, max_events=limit, log=log)
-    drift_condition = build_condition("D", probes030["test"], geometry)
-    standard["drift"] = stream_condition_embeddings(
-        model, probes030["test"], geometry, drift_condition, split="within",
-        config=config, device=device, cache=None, max_events=limit, log=log)
-    with invariant_token_context(geometry):
-        invariant["drift"] = stream_condition_embeddings(
-            model, probes030["test"], geometry, drift_condition, split="within",
-            config=config, device=device, cache=None, max_events=limit, log=log)
-    return {"status": "evaluated",
-            "standard": _embedding_variant(standard),
-            "invariant": _embedding_variant(invariant)}
+    standard_variant = _embedding_variant(standard)
+    invariant_variant = _embedding_variant(invariant)
+    # particle N (train, test) and D (test): the electron-energy reading
+    particle = {}
+    for name in ("standard", "invariant"):
+        particle[name] = {"train": {}, "test": {}, "drift": {}}
+    for role, dataset in datasets.items():
+        condition = build_condition(condition_names[role], dataset, geometry)
+        truth_key = "test" if role == "drift" else role
+        particle["standard"][role] = stream_condition_particles(
+            model, dataset, truth[truth_key], geometry, condition, device=device,
+            max_events=limit, log=log)
+        with invariant_token_context(geometry):
+            particle["invariant"][role] = stream_condition_particles(
+                model, dataset, truth[truth_key], geometry, condition, device=device,
+                max_events=limit, log=log)
+    standard_particle = _embedding_variant(particle["standard"])
+    invariant_particle = _embedding_variant(particle["invariant"])
+    if standard_particle.get("energy"):
+        standard_variant["energy"] = standard_particle["energy"]
+    if invariant_particle.get("energy"):
+        invariant_variant["energy"] = invariant_particle["energy"]
+    out = {"status": "evaluated", "split": split, "standard": standard_variant,
+           "invariant": invariant_variant, "particle": particle["invariant"]}
+    # calibrated: standard frozen probe on the X1 SWunit D inputs
+    calibrated = {}
+    try:
+        n_train = (cache.fetch(embedding_cache_key("train", "N"), lambda: {})
+                   if cache.has(embedding_cache_key("train", "N")) else None)
+        swunit = (cache.fetch(embedding_cache_key("test", "SWunit"), lambda: {})
+                  if cache.has(embedding_cache_key("test", "SWunit")) else None)
+        if n_train is not None and swunit is not None:
+            calibrated["vertex"] = {"D": vertex_row(
+                swunit, fitted=fit_vertex_probe(n_train))}
+            calibrated["log_yield"] = {"D": log_yield_row(
+                swunit, fitted=fit_log_yield_probe(n_train))}
+        n_particle = (cache.fetch("particle__train__N", lambda: {})
+                      if cache.has("particle__train__N") else None)
+        sw_particle = (cache.fetch("particle__test__SWunit", lambda: {})
+                       if cache.has("particle__test__SWunit") else None)
+        if n_particle is not None and sw_particle is not None:
+            calibrated["energy"] = {"D": energy_metrics(
+                n_particle, sw_particle, fitted=fit_energy_probe(n_particle))}
+    except Exception as problem:  # pragma: no cover - a missing/shifted cache
+        calibrated = {"status": "unavailable", "reason": str(problem)}
+    out["calibrated"] = calibrated
+    return out
 
 
 def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=print):
-    """LEACE variants of the X1-cached embeddings (photon); descriptive."""
+    """LEACE variants of the X1-cached embeddings (photon; particle for the MAEs)."""
     planned = ("mae_within_trigger9000", "mae_within_trigger9001",
                "mae_across_trigger9000", "mae_across_trigger9001",
                "t1_s030_within_trigger9000", "t1_s030_within_trigger9001",
@@ -3872,21 +4096,21 @@ def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=
     e2 = {role: {setting: e2_concepts(probes005[role] if setting == "N"
                                       else probes030[role], geometry)
                  for setting in ("N", "D")} for role in ("train", "test")}
+    keys = {(role, setting): embedding_cache_key(role, setting)
+            for role in ("train", "test") for setting in ("N", "D")}
     for label in planned:
-        row = inv["rows"].get(label)
         cache = embedding_cache(ext_root, label)
-        keys = {("train", "N"): "N__train", ("train", "D"): "D__train",
-                ("test", "N"): "N__test", ("test", "D"): "D__test"}
         if not all(cache.has(key) for key in keys.values()):
             out["unavailable"].append({"label": label,
                                        "reason": "X1 embeddings are not cached"})
             continue
-        rows = {role: {setting: cache.fetch(keys[(role, setting)])
+        rows = {role: {setting: cache.fetch(keys[(role, setting)], lambda: {})
                        for setting in ("N", "D")} for role in ("train", "test")}
         for concept, rank in (("E1", 1), ("E2r", None)):
             source = e1 if concept == "E1" else e2
             concepts = {role: {setting: _concept_matrix(rows[role][setting],
-                                                       source[role][setting], kind="E1")
+                                                       source[role][setting],
+                                                       kind=concept)
                                for setting in ("N", "D")}
                         for role in ("train", "test")}
             if concept == "E2r" and rank is None:
@@ -3912,13 +4136,19 @@ def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=
                 out["models"][f"{label}/{concept}"] = {
                     "status": "unavailable", "reason": str(problem)}
                 continue
-            if cache.has("SWunit__test"):
-                swuni = cache.fetch("SWunit__test")
+            if variant.get("status") != "evaluated":
+                out["models"][f"{label}/{concept}"] = variant
+                continue
+            swunit_key = embedding_cache_key("test", "SWunit")
+            n_key = embedding_cache_key("train", "N")
+            if cache.has(swunit_key) and cache.has(n_key):
+                swuni = cache.fetch(swunit_key, lambda: {})
+                n_train = cache.fetch(n_key, lambda: {})
                 variant["calibrated"] = {
-                    "vertex": vertex_row(swuni,
-                                         fitted=fit_vertex_probe(rows["train"]["N"])),
-                    "log_yield": log_yield_row(
-                        swuni, fitted=fit_log_yield_probe(rows["train"]["N"]))}
+                    "vertex": {"D": vertex_row(
+                        swuni, fitted=fit_vertex_probe(n_train))},
+                    "log_yield": {"D": log_yield_row(
+                        swuni, fitted=fit_log_yield_probe(n_train))}}
             if label in MAE_MODELS:
                 _attach_particle_energy(variant, label, geometry, e1, e2, cache,
                                         concept=concept, log=log)
@@ -3928,13 +4158,12 @@ def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=
 
 def _particle_rows(cache, role, setting):
     key = f"particle__{role}__{setting}"
-    return cache.fetch(key) if cache.has(key) else None
+    return cache.fetch(key, lambda: {}) if cache.has(key) else None
 
 
 def _particle_concepts(rows, e1, e2, role, setting, concept):
-    if concept == "E1":
-        return _concept_matrix(rows, e1[role][setting], kind="E1")
-    return _concept_matrix(rows, e2[role][setting], kind="E1")
+    source = e1 if concept == "E1" else e2
+    return _concept_matrix(rows, source[role][setting], kind=concept)
 
 
 def _attach_particle_energy(variant, label, geometry, e1, e2, cache, *, concept,
@@ -3983,14 +4212,58 @@ def _attach_particle_energy(variant, label, geometry, e1, e2, cache, *, concept,
     return variant
 
 
+def _metric_rows(variant, metric, environment) -> dict | None:
+    """One variant's per-event metric block (resolution, errors, run/event ids)."""
+    block = ((variant or {}).get(metric) or {}).get(environment)
+    if not block or block.get("status") == "not_evaluable":
+        return None
+    errors = block.get("__errors__", block.get("errors"))
+    errors = None if errors is None else np.asarray(errors, float).ravel()
+    run_ids = np.asarray(block.get("run_ids", []), dtype=object).astype(str)
+    event_ids = np.asarray(block.get("event_ids", []), np.int64)
+    if metric == "vertex":
+        resolution = block.get("mean_error_m")
+    else:
+        resolution = block.get("resolution")
+    if resolution is None:
+        return None
+    return {"resolution": float(resolution), "errors": errors,
+            "run_ids": run_ids, "event_ids": event_ids}
+
+
+def _align_metric_pair(left, right):
+    """Align two metric blocks on ``(run_id, event_id)``; raise if keys differ."""
+    if left is None or right is None or left.get("errors") is None \
+            or right.get("errors") is None:
+        return None
+    if left["errors"].size != left["run_ids"].size \
+            or right["errors"].size != right["run_ids"].size:
+        return None
+    keys_left = [(run, int(event)) for run, event in zip(left["run_ids"],
+                                                         left["event_ids"])]
+    keys_right = {key: index for index, key in enumerate(
+        zip(right["run_ids"], right["event_ids"]))}
+    if len(keys_left) != len(set(keys_left)) or set(keys_left) != set(keys_right):
+        raise ValueError("metric blocks do not share their (run_id, event_id) keys")
+    order = np.asarray([keys_right[key] for key in keys_left], np.int64)
+    return (left["errors"], right["errors"][order], left["run_ids"])
+
+
 def _ratio_and_ci(left, right) -> dict:
-    """res_right / res_left, and the paired run-cluster CI of the difference."""
+    """res_right / res_left and the paired run-cluster CI of the RMS difference."""
     if left is None or right is None:
-        return {"rho": None}
-    bootstrap = paired_cluster_bootstrap(np.abs(left), np.abs(right),
-                                         np.zeros(len(left), dtype=object),
-                                         statistic=rms)
-    return {"rho": float(right / left) if left else None, "bootstrap": bootstrap}
+        return {"rho": None, "ci95": None, "bootstrap": None}
+    rho = (float(right["resolution"]) / float(left["resolution"])
+           if left["resolution"] else None)
+    out = {"rho": rho, "ci95": None, "bootstrap": None}
+    aligned = _align_metric_pair(left, right)
+    if aligned is not None:
+        left_errors, right_errors, run_ids = aligned
+        bootstrap = paired_cluster_bootstrap(left_errors, right_errors, run_ids,
+                                             statistic=rms)
+        out["bootstrap"] = bootstrap
+        out["ci95"] = bootstrap["ci95"]
+    return out
 
 
 def x3_readings(payload, *, fisher=None) -> dict:
@@ -4008,7 +4281,7 @@ def x3_readings(payload, *, fisher=None) -> dict:
             init, init.get("standard"), init.get("invariant"))
     leace = families.get("leace") or {}
     for key, entry in (leace.get("models") or {}).items():
-        if entry.get("status") == "unavailable":
+        if entry.get("status") != "evaluated" or entry.get("standard") is None:
             continue
         out["variants"][key] = _variant_reading(entry, entry.get("standard"),
                                                 entry.get("variant"), leace=entry)
@@ -4021,52 +4294,50 @@ def _variant_reading(entry, standard, invariant, *, leace=None) -> dict:
     """X3-1 … X3-4 for one variant pair (``standard`` may be a raw/embedding block)."""
     standard = standard or {}
     invariant = invariant or {}
-    result = {}
-    # energy price
-    result["X3-1"] = {}
+    result = {"X3-1": {}}
     for metric in ("log_yield", "energy"):
         left = _metric_rows(standard, metric, "N")
         right = _metric_rows(invariant, metric, "N")
-        if left is None or right is None:
-            result["X3-1"][metric] = {"status": "not available"}
-            continue
-        ratio = _ratio_and_ci(left["resolution"], right["resolution"])
-        result["X3-1"][metric] = {"rho_E": ratio.get("rho"),
-                                  "bootstrap": ratio.get("bootstrap")}
-    # vertex price
+        ratio = _ratio_and_ci(left, right)
+        ratio["rho_E"] = ratio.get("rho")
+        result["X3-1"][metric] = ratio
     v_std = _metric_rows(standard, "vertex", "N")
     v_inv = _metric_rows(invariant, "vertex", "N")
     result["X3-2"] = {"difference_m": (None if not (v_std and v_inv)
-                                       else float(v_inv["mean_error_m"])
-                                       - float(v_std["mean_error_m"]))}
-    # robustness at D
+                                       else float(v_inv["resolution"])
+                                       - float(v_std["resolution"]))}
     result["X3-3"] = _x3_robustness(standard, invariant)
-    # calibrated against invariant at D
     calibrated = (entry or {}).get("calibrated")
     result["X3-4"] = _x3_dominance(calibrated, invariant)
-    # gain-specific flag for LEACE
     if leace and leace.get("controls"):
-        result["X3-1-gain_specific"] = _gain_specific(result["X3-1"], standard,
-                                                      leace["controls"])
+        result["X3-1-gain_specific"] = _gain_specific(
+            result["X3-1"], standard, invariant, leace["controls"])
     return result
 
 
-def _metric_rows(variant, metric, environment) -> dict | None:
-    block = ((variant or {}).get(metric) or {}).get(environment)
-    if not block or block.get("status") == "not_evaluable":
-        return None
-    if metric == "vertex":
-        if block.get("mean_error_m") is None:
-            return None
-        return {"resolution": block["mean_error_m"],
-                "mean_error_m": block["mean_error_m"],
-                "__errors__": block.get("__errors__")}
-    if block.get("resolution") is None:
-        return None
-    return {"resolution": block["resolution"], "__errors__": block.get("__errors__")}
+def _compare_at_d(calibrated, invariant, metric) -> dict:
+    """Calibrated minus invariant at D for one metric, with a run-cluster CI."""
+    left = _metric_rows(calibrated, metric, "D")
+    right = _metric_rows(invariant, metric, "D")
+    if left is None or right is None:
+        return {"status": "not available", "calibration_better": None,
+                "invariance_better": None}
+    difference = float(right["resolution"]) - float(left["resolution"])
+    out = {"difference": difference, "ci95": None,
+           "calibration_better": None, "invariance_better": None}
+    aligned = _align_metric_pair(left, right)
+    if aligned is not None:
+        left_errors, right_errors, run_ids = aligned
+        bootstrap = paired_cluster_bootstrap(left_errors, right_errors, run_ids,
+                                             statistic=rms)
+        out["ci95"] = bootstrap["ci95"]
+        out["calibration_better"] = bool(bootstrap["ci95"][1] < 0)
+        out["invariance_better"] = bool(bootstrap["ci95"][0] > 0)
+    return out
 
 
 def _x3_robustness(standard, invariant) -> dict:
+    """X3-3: robustness at D against the same variant's N reading (§7.2)."""
     out = {}
     for name, variant in (("standard", standard), ("invariant", invariant)):
         v_n = _metric_rows(variant, "vertex", "N")
@@ -4075,8 +4346,8 @@ def _x3_robustness(standard, invariant) -> dict:
         y_d = _metric_rows(variant, "log_yield", "D")
         e_n = _metric_rows(variant, "energy", "N")
         e_d = _metric_rows(variant, "energy", "D")
-        delta_v = (None if not (v_n and v_d) else float(v_d["mean_error_m"])
-                   - float(v_n["mean_error_m"]))
+        delta_v = (None if not (v_n and v_d) else float(v_d["resolution"])
+                   - float(v_n["resolution"]))
         energy_change = (None if not (e_n and e_d) else
                          (float(e_d["resolution"]) - float(e_n["resolution"]))
                          / float(e_n["resolution"]) if e_n["resolution"] else None)
@@ -4092,56 +4363,63 @@ def _x3_robustness(standard, invariant) -> dict:
 
 
 def _x3_dominance(calibrated, invariant) -> dict:
+    """X3-4: calibrated against invariant at D, then the combined verdict (§7.2)."""
     if not calibrated:
-        return {"status": "not available"}
-    out = {"vertex": _compare_at_d(calibrated, invariant, "vertex"),
-           "energy": _compare_at_d(calibrated, invariant, "energy"),
-           "log_yield": _compare_at_d(calibrated, invariant, "log_yield")}
+        return {"status": "not available", "verdict": "not available"}
+    out = {metric: _compare_at_d(calibrated, invariant, metric)
+           for metric in ("vertex", "energy", "log_yield")}
+    vertex, energy = out["vertex"], out["energy"]
+    evaluated = vertex.get("status") != "not available" \
+        and energy.get("status") != "not available"
+    calibration = bool(vertex.get("calibration_better")
+                       and energy.get("calibration_better"))
+    invariance = bool(vertex.get("invariance_better")
+                      and energy.get("invariance_better"))
+    out["verdict"] = ("calibration dominates" if calibration else
+                      "invariance dominates" if invariance else
+                      "mixed" if evaluated else "not available")
+    out["status"] = "evaluated" if evaluated else "not available"
     return out
 
 
-def _compare_at_d(calibrated, invariant, metric) -> dict:
-    left = _metric_rows(calibrated, metric, "D")
-    right = _metric_rows(invariant, metric, "D")
-    if left is None or right is None:
-        return {"status": "not available"}
-    left_errors = np.asarray(left.get("__errors__", []), float)
-    right_errors = np.asarray(right.get("__errors__", []), float)
-    if left_errors.size != right_errors.size or not left_errors.size:
-        return {"difference": float(right["resolution"]) - float(left["resolution"])}
-    bootstrap = paired_cluster_bootstrap(left_errors, right_errors,
-                                         np.zeros(left_errors.size, dtype=object),
-                                         statistic=rms)
-    return {"difference": float(right["resolution"]) - float(left["resolution"]),
-            "ci95": bootstrap["ci95"],
-            "calibration_better": bool(bootstrap["ci95"][1] < 0),
-            "invariance_better": bool(bootstrap["ci95"][0] > 0)}
-
-
-def _gain_specific(x3_1, standard, controls) -> dict:
-    """§7.2 gain-specific flag: LEACE ρ_E > q95 of the 20 control ratios, and a CI."""
+def _gain_specific(x3_1, standard, invariant, controls) -> dict:
+    """§7.2 gain-specific flag: both the control-q95 and the control-mean CI conditions."""
     out = {}
     for metric in ("log_yield", "energy"):
         entry = x3_1.get(metric) or {}
         reference = _metric_rows(standard, metric, "N")
-        if entry.get("rho_E") is None or reference is None:
-            out[metric] = {"status": "not available"}
+        leace = _metric_rows(invariant, metric, "N")
+        if entry.get("rho_E") is None or reference is None or leace is None:
+            out[metric] = {"status": "not available", "gain_specific": None}
             continue
         standard_resolution = float(reference["resolution"])
-        ratios, resolutions = [], []
+        ratios, control_errors = [], []
+        aligned_leace = None
         for control in controls:
             rows = _metric_rows(control, metric, "N")
             if rows is None or standard_resolution <= 0:
                 continue
             ratios.append(float(rows["resolution"]) / standard_resolution)
-            resolutions.append(float(rows["resolution"]))
+            aligned = _align_metric_pair(leace, rows)
+            if aligned is not None:
+                aligned_leace = (aligned[0], aligned[2])
+                control_errors.append(aligned[1])
         q95 = float(np.quantile(ratios, 0.95)) if ratios else None
+        condition_q95 = bool(q95 is not None and entry["rho_E"] > q95)
+        condition_ci = False
+        ci95 = None
+        if control_errors and aligned_leace is not None:
+            mean_control = np.mean(np.stack(control_errors, axis=0), axis=0)
+            bootstrap = paired_cluster_bootstrap(aligned_leace[0], mean_control,
+                                                 aligned_leace[1], statistic=rms)
+            ci95 = bootstrap["ci95"]
+            condition_ci = bool(bootstrap["ci95"][0] > 0.0
+                                or bootstrap["ci95"][1] < 0.0)
         out[metric] = {"n_controls": len(ratios), "rho_control_q95": q95,
-                       "rho_controls": ratios,
-                       "mean_control_resolution": (float(np.mean(resolutions))
-                                                   if resolutions else None),
-                       "gain_specific": bool(q95 is not None
-                                             and entry["rho_E"] > q95)}
+                       "rho_controls": ratios, "ci95": ci95,
+                       "condition_q95": condition_q95,
+                       "condition_ci_excludes_zero": condition_ci,
+                       "gain_specific": bool(condition_q95 and condition_ci)}
     return out
 
 
@@ -4195,10 +4473,6 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
         setting: {role: dataset.key for role, dataset in value.items()}
         for setting, value in probes.items()}
     if probes is not None:
-        datasets = {"s005": {"train": probes["s005"]["train"],
-                             "test": probes["s005"]["test"]},
-                    "s030": {"train": probes["s030"]["train"],
-                             "test": probes["s030"]["test"]}}
         if mode in ("x1", "dry-run"):
             names = condition_names_x1()
             setup["conditions"] = {
@@ -4358,15 +4632,13 @@ def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
                    x3_payload=None, fisher_payload=None, log=print) -> dict:
     """Write the seven §9.6 figures from the readings; skipped without matplotlib."""
     try:
-        import matplotlib  # noqa: F401
+        import matplotlib
         matplotlib.use("Agg")
-        import matplotlib.pyplot as plt  # noqa: F401
     except Exception as problem:  # pragma: no cover - matplotlib is optional
         return {"status": "unavailable", "reason": str(problem), "figures": []}
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     x1 = (readings.get("x1") or {}).get("families") or {}
-    x2 = (readings.get("x2") or {}).get("families") or {}
     x3 = (readings.get("x3") or {}).get("variants") or {}
     written, skipped = [], []
 
@@ -4381,7 +4653,6 @@ def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
         values = {}
         for model in ((x1_payload or {}).get("models") or {}).values():
             conditions = model.get("conditions") or {}
-            name = f"{model.get('family')}{model.get('seed')}"
             for condition in ("N", "D", "SWtw", "SWunit", "HW"):
                 entry = (conditions.get(condition) or {}).get("vertex") or {}
                 if entry.get("mean_error_m") is not None:
@@ -4464,12 +4735,12 @@ def render_figures(readings, out_dir, *, x1_payload=None, x2_payload=None,
         "fisher_crlb_ratio.png": draw_fisher,
         "price_of_invariance.png": draw_price,
     }
-    for name, draw in plan.items():
-        path = out_dir / name
+    for _name, draw in plan.items():
+        path = out_dir / _name
         if _plot(path, draw):
             written.append(str(path))
         else:
-            skipped.append(name)
+            skipped.append(_name)
     return {"status": "evaluated", "figures": written, "n_figures": len(written),
             "skipped": skipped}
 
@@ -4503,14 +4774,17 @@ def assemble_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
     x2 = _read_stage(ext_root, "x2/x2.json")
     x3_fisher = _read_stage(ext_root, "x3/x3_fisher.json")
     x3 = _read_stage(ext_root, "x3/x3.json")
+    x1_complete = bool((x1 or {}).get("complete"))
+    x2_complete = bool((x2 or {}).get("complete"))
+    x3_complete = bool((x3 or {}).get("complete"))
     readings = {"registered": False, "extension": EXTENSION,
                 "check": "repair-pilot readings", "reproduction":
                 (reproduction or {}).get("pass"),
-                "x1": {"completed": bool((x1 or {}).get("complete")),
+                "x1": {"complete": x1_complete, "completed": x1_complete,
                        **((x1 or {}).get("readings") or {})},
-                "x2": {"completed": bool((x2 or {}).get("readings") is not None),
+                "x2": {"complete": x2_complete, "completed": x2_complete,
                        **((x2 or {}).get("readings") or {})},
-                "x3": {"completed": bool((x3 or {}).get("readings") is not None),
+                "x3": {"complete": x3_complete, "completed": x3_complete,
                        **((x3 or {}).get("readings") or {})},
                 "plan": {"pass": (plan or {}).get("pass")},
                 "x3_fisher_p0": ((x3_fisher or {}).get("p0"))}
@@ -4532,8 +4806,14 @@ def assemble_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
                "path": str(target), "readings": readings, "figures": figures,
                "large_arrays": {"n_files": large["n_files"]},
                "reproduction_pass": (reproduction or {}).get("pass"),
-               "complete": all(payload is not None for payload in
-                               (plan, reproduction, x1, x2, x3_fisher, x3)),
+               "complete": bool(plan is not None and reproduction is not None
+                                and x1_complete and x2_complete and x3_complete
+                                and x3_fisher is not None),
+               "completeness": {"x1": x1_complete, "x2": x2_complete,
+                                "x3": x3_complete,
+                                "reproduction": reproduction is not None,
+                                "fisher": x3_fisher is not None,
+                                "plan": plan is not None},
                "too_big": False, "gate": {"status": gate["status"]}}
     payload["closure"] = _assert_closure("report", root)
     return payload
@@ -4579,7 +4859,7 @@ def _report_readme(readings, reproduction, figures) -> str:
                   f"Empirical ρ_E (log-yield): `{_fmt(fisher.get('empirical_rho_E_log_yield'))}`"]
         for name, row in sorted((fisher.get("theory_rows") or {}).items()):
             lines.append(f"- {name}: √(CRLB_inv/CRLB_known) = "
-                         f"`{_fmt(row.get('theory_lnY'))}`")
+                         f"`{_fmt(row.get('theory_ratio_lnY'))}`")
     lines += ["", "## Budget and stops", "",
               "See `plan.json` for the GPU/CPU projections, the combined S1 rule and the "
               "free-entry preflight. Per-readings tables: `readings.json`."]

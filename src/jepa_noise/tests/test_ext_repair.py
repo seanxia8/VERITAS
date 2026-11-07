@@ -79,13 +79,14 @@ def geometry():
     return lb.from_synthetic(SMALL)
 
 
-def _tiny_dataset(tmp_path, geometry, *, setting, n_runs=2, events=6, name=None):
+def _tiny_dataset(tmp_path, geometry, *, setting, n_runs=2, events=6, name=None,
+                  run_start=0):
     """Generate and write a tiny shared-draw synthetic probe set (test-only)."""
     directory = tmp_path / (name or f"set_{setting:g}")
     directory.mkdir(parents=True, exist_ok=True)
     runs = [lb.RunSpec(f"lucid/dev_probe_train/{index:04d}", "lucid/dev_probe_train",
                        "F1", float(setting), index * events, events, 20261017)
-            for index in range(n_runs)]
+            for index in range(int(run_start), int(run_start) + int(n_runs))]
     rows, generated = [], {}
     for run in runs:
         produced = lb.generate_run(geometry, GEN, run, with_twin=True)
@@ -652,6 +653,7 @@ def _fisher_event_inputs(geometry):
     rng = np.random.default_rng(6)
     n_pmt = int(geometry.n_pmt)
     mu = rng.uniform(1.0, 60.0, n_pmt)
+    mu[:8] = 0.2          # low-light PMTs exercise the >=1 PE variance-term cut
     dmu = np.zeros((n_pmt, 4))
     dmu[:, :3] = rng.standard_normal((n_pmt, 3)) * mu[:, None]
     dmu[:, 3] = mu
@@ -696,12 +698,17 @@ def test_c_var_mu_cut_applies_only_to_the_pmts_it_names(geometry):
     expected = 0.5 * (joint[keep].T * (1.0 / variance[keep])) @ joint[keep]
     cut = rp.variance_term_information(mu, dmu, mod, cuts=1.0)
     assert np.allclose(cut, expected, rtol=1e-12, atol=0.0)
-    # PMTs below the cut contribute nothing: zeroing their rows leaves it unchanged
+    # PMTs below the cut contribute nothing: changing their mu leaves the cut
+    # information exactly unchanged (they are excluded) while the uncut term moves
     below = ~keep
-    assert np.allclose(cut[4:, 4:][:, :] * 0.0, np.zeros_like(cut[4:, 4:] * 0.0))
-    joint_below = np.concatenate([np.zeros((int(below.sum()), 4)),
-                                  np.zeros((int(below.sum()), n_modules))], axis=1)
-    assert joint_below.shape[1] == 4 + n_modules
+    assert below.any()
+    perturbed = mu.copy()
+    perturbed[below] *= 0.3
+    cut_perturbed = rp.variance_term_information(perturbed, dmu, mod, cuts=1.0)
+    assert np.array_equal(cut, cut_perturbed)
+    uncut = rp.variance_term_information(mu, dmu, mod)
+    uncut_perturbed = rp.variance_term_information(perturbed, dmu, mod)
+    assert not np.allclose(uncut, uncut_perturbed)
 
 
 def test_c_mean_lnY_is_infinite_and_xyz_match_the_pseudoinverse(geometry):
@@ -936,3 +943,447 @@ def test_canonical_reader_keys_are_attached_to_each_model_record():
     # undefined values are explicit nulls, not missing keys
     empty = rp.attach_x2_canonical({})
     assert empty["r2_eq"] is None and empty["class"] is None and empty["rho_lr"] is None
+
+
+# ======================================= mode-body execution (review B1/B2/B4/B5/B6)
+def _synthetic_rows(dataset, geometry, *, dim=4, seed=0, tag=None):
+    """Minimal embedding rows for one tiny probe set (no encoder is run)."""
+    rng = np.random.default_rng(int(seed))
+    rows = {"events": [], "run_ids": [], "event_ids": [], "vertex": [],
+            "log_yield": [], "n_hit": []}
+    for row in dataset.runs:
+        run_dir = dataset.directory / "runs" / row["run_dir"]
+        with np.load(run_dir / "events.npz", allow_pickle=False) as data:
+            event_ids = np.asarray(data["event_ids"], np.int64)
+            vertex = np.asarray(data["vertex_m"], float)
+            yields = np.asarray(data["yield_photons"], float)
+        count = event_ids.size
+        rows["events"].append(rng.standard_normal((count, int(dim))))
+        rows["run_ids"].append(np.full(count, str(row["run_id"]), dtype=object))
+        rows["event_ids"].append(event_ids)
+        rows["vertex"].append(vertex)
+        rows["log_yield"].append(np.log(np.maximum(yields, 1e-30)))
+        rows["n_hit"].append(np.full(count, 10, np.int64))
+    out = {name: (np.concatenate(values) if name not in ("events", "vertex")
+                  else np.asarray(np.concatenate(values), float)) for name, values
+           in rows.items()}
+    if tag is not None:
+        out["tag"] = tag
+    return out
+
+
+def _tiny_many(tmp_path, geometry, *, runs=6, events=3):
+    """Train and probe-test sets with disjoint run ids (two settings each)."""
+    sets = {}
+    for setting, label, run_start in ((rp.S005, "s005", 0), (rp.S030, "s030", 0),
+                                      (rp.S005, "s005_test", runs),
+                                      (rp.S030, "s030_test", runs)):
+        sets[label] = _tiny_dataset(tmp_path, geometry, setting=setting,
+                                    n_runs=runs, events=events,
+                                    name=f"{label}_{run_start}", run_start=run_start)
+    return sets
+
+
+def _tiny_model(geometry, seed=9000):
+    return la.random_init_floor("sigreg_jepa", geometry,
+                                encoder_config=pe.EncoderConfig(window=16, shift=8),
+                                seed=int(seed))
+
+
+def test_row_split_propagates_into_streaming(monkeypatch):
+    assert rp.row_split({"split": "across"}) == "across"
+    assert rp.row_split({}) == "within"
+    calls = []
+
+    def fake_stream(model, dataset, geometry, condition, *, split, config, device,
+                    cache, cache_key, log, **kwargs):
+        calls.append(split)
+        return {"events": np.zeros((2, 2)), "run_ids": np.asarray(["r0", "r0"],
+                                                                  dtype=object),
+                "event_ids": np.arange(2), "vertex": np.zeros((2, 3))}
+
+    monkeypatch.setattr(rp, "stream_condition_embeddings", fake_stream)
+    monkeypatch.setattr(rp, "fit_vertex_probe", lambda rows: {})
+    monkeypatch.setattr(rp.la, "probe_predictions", lambda fitted, dataset: np.zeros(
+        (2, 3)))
+    probes = {"geometry": None, "s005": {"train": "x", "test": "y"}}
+    condition = {"name": "N", "train": "s005", "test": "s005", "condition": None}
+    rp._frozen_refit_vertex(None, probes, condition, "across", {}, "cpu",
+                            cache=None, log=lambda *a, **k: None)
+    assert calls == ["across", "across"]
+
+
+def test_identity_check_runs_on_both_roles(tiny, geometry):
+    model = _tiny_model(geometry)
+    probes005 = {"train": tiny["s005"]["dataset"], "test": tiny["s005"]["dataset"]}
+    probes030 = {"train": tiny["s030"]["dataset"], "test": tiny["s030"]["dataset"]}
+    inventory = {"rows": {"mae_within_trigger9000": {
+        "label": "mae_within_trigger9000", "split": "across"}}}
+    result = rp.identity_check(root=None, config=lr.load_run_config(ROOT / rp.CONFIG_REL),
+                               gen=GEN, arms_config=la.load_config(ROOT / rp.ARMS_REL),
+                               geometry=geometry, inventory=inventory,
+                               probes005=probes005, probes030=probes030,
+                               model=model, log=lambda *a, **k: None)
+    assert result["pass"] is True
+    assert result["split"] == "across"
+    # both roles (train and test) of each set are exercised
+    assert result["sets"]["s005"]["n_runs"] == 4
+    assert result["sets"]["s030"]["n_runs"] == 4
+    assert result["sets"]["s005"]["features_bit_identical"] is True
+
+
+def test_stream_condition_particles_executes_and_caches(tiny, geometry):
+    dataset = tiny["s005"]["dataset"]
+    model = _tiny_model(geometry)
+    truth = _event_truth(dataset, geometry)
+    condition = rp.build_condition("N", dataset, geometry)
+    import tempfile
+    cache = rp.EmbeddingCache(tempfile.mkdtemp())
+    rows = rp.stream_condition_particles(model, dataset, truth, geometry, condition,
+                                         device="cpu", cache=cache,
+                                         cache_key="particle__test__N",
+                                         log=lambda *a, **k: None)
+    assert rows["events"].shape[0] > 0
+    assert set(rows["particle"]) <= {"muon", "electron"}
+    assert cache.has("particle__test__N")
+    again = rp.stream_condition_particles(model, dataset, truth, geometry, condition,
+                                          device="cpu", cache=cache,
+                                          cache_key="particle__test__N",
+                                          log=lambda *a, **k: None)
+    assert again["cache_status"] == "reused"
+    assert np.array_equal(rows["events"], again["events"])
+
+
+def test_x1_particle_executes_with_all_conditions(tiny, geometry):
+    model = _tiny_model(geometry)
+    s005, s030 = tiny["s005"]["dataset"], tiny["s030"]["dataset"]
+    probes = {"s005": {"train": s005, "test": s005},
+              "s030": {"train": s030, "test": s030}}
+    conditions = {role: rp.build_conditions(
+        {"s005": s005, "s030": s030}, geometry, ("N", "D", "SWunit", "HW"))
+        for role in ("train", "test")}
+    truth = {role: _event_truth(s005, geometry) for role in ("train", "test")}
+    import tempfile
+    cache = rp.EmbeddingCache(tempfile.mkdtemp())
+    probes005 = {"train": s005, "test": s005}
+    probes030 = {"train": s030, "test": s030}
+    out = rp._x1_particle(model, truth, geometry, probes005, probes030, conditions,
+                          label="mae_within_trigger9000", cache=cache, device="cpu",
+                          log=lambda *a, **k: None)
+    assert set(out["train"]) == {"N", "D"}
+    assert set(out["test"]) == {"N", "D", "SWunit", "HW"}
+    for role in ("train", "test"):
+        for rows in out[role].values():
+            assert rows["events"].shape[0] > 0
+    assert cache.has("particle__train__D")
+    assert cache.has("particle__test__HW")
+
+
+def test_x2_model_executes_and_exposes_the_canonical_keys(tmp_path, tiny, geometry,
+                                                          monkeypatch):
+    sets = _tiny_many(tmp_path, geometry)
+    s005, s030 = sets["s005"]["dataset"], sets["s030"]["dataset"]
+    s005_test, s030_test = sets["s005_test"]["dataset"], sets["s030_test"]["dataset"]
+    probes005 = {"train": s005, "test": s005_test}
+    probes030 = {"train": s030, "test": s030_test}
+    sources = {"train": {"N": s005, "S": s005, "D": s030},
+               "test": {"N": s005_test, "S": s005_test, "D": s030_test}}
+    conditions = {role: rp.build_conditions(
+        {"s005": probes005[role], "s030": probes030[role]}, geometry,
+        ("N", "D", "S")) for role in ("train", "test")}
+    rows = {role: {name: _synthetic_rows(source, geometry, dim=4,
+                                         seed=index + 1 + (10 if role == "test" else 0))
+                   for index, (name, source) in enumerate(sources[role].items())}
+            for role in ("train", "test")}
+    delta = rp.run_log_gain_vectors(s030, geometry)
+    delta.update(rp.run_log_gain_vectors(s030_test, geometry))
+    occupancy = {"n": {role: rp.occupancy_counts(probes005[role],
+                                                 conditions[role]["N"], geometry)
+                       for role in ("train", "test")},
+                 "d": {role: rp.occupancy_counts(probes030[role],
+                                                 conditions[role]["D"], geometry)
+                       for role in ("train", "test")}}
+    cache = rp.EmbeddingCache(tmp_path / "cache")
+    # X2-e streams EST rows; feed the existing N rows instead of a real forward
+    monkeypatch.setattr(rp, "stream_condition_embeddings",
+                        lambda *args, **kwargs: rows["test"]["N"])
+    config = lr.load_run_config(ROOT / rp.CONFIG_REL)
+    out = rp._x2_model({"label": "mae_within_trigger9000", "split": "within"},
+                       _tiny_model(geometry), rows, delta, occupancy, conditions,
+                       probes005, probes030, geometry, config=config, gen=GEN,
+                       data_root=tmp_path, ext_root=tmp_path / "ext",
+                       device="cpu", cache=cache, log=lambda *a, **k: None)
+    assert out["X2-a"]["share_cs"] is not None
+    assert out["X2-b"]["occupancy"]["r2_cs"] is not None
+    assert set(("r2_eq", "class", "rho_lr")) <= set(out)
+    for stream in ("source", "raw", "latent"):
+        assert stream in out["X2-d"]
+    assert out["X2-f"] is not None
+    assert "X2-e" in out
+
+
+def test_x3_readings_execute_with_run_cluster_bootstraps(tmp_path):
+    rng = np.random.default_rng(4)
+    run_ids = np.repeat([f"r{index}" for index in range(10)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 10)
+
+    def block(base):
+        errors = np.abs(rng.normal(base, 0.01 * base, run_ids.size))
+        return {"resolution": float(np.sqrt(np.mean(errors ** 2))),
+                "mean_error_m": float(errors.mean()), "__errors__": errors,
+                "run_ids": run_ids, "event_ids": event_ids}
+
+    standard = {"vertex": {"N": block(0.10), "D": block(0.108)},
+                "log_yield": {"N": block(0.20), "D": block(0.21)},
+                "energy": {"N": block(0.05), "D": block(0.052)}}
+    invariant = {"vertex": {"N": block(0.111)}, "log_yield": {"N": block(0.25)},
+                 "energy": {"N": block(0.06)},
+                 "vertex_D": block(0.12)}
+    invariant["vertex"] = {"N": block(0.111), "D": block(0.12)}
+    invariant["log_yield"] = {"N": block(0.25), "D": block(0.27)}
+    invariant["energy"] = {"N": block(0.06), "D": block(0.07)}
+    calibrated = {"vertex": {"D": block(0.112)}, "energy": {"D": block(0.055)},
+                  "log_yield": {"D": block(0.26)}}
+    controls = []
+    for _index in range(20):
+        controls.append({"vertex": {"N": block(0.113)},
+                         "log_yield": {"N": block(0.252)},
+                         "energy": {"N": block(0.061)}})
+    entry = {"status": "evaluated", "standard": standard, "variant": invariant,
+             "calibrated": calibrated, "controls": controls}
+    payload = {"families": {"leace": {"models": {"model/E1": entry}}}}
+    readings = rp.x3_readings(payload)
+    variant = readings["variants"]["model/E1"]
+    assert variant["X3-1"]["log_yield"]["rho_E"] is not None
+    assert variant["X3-1"]["log_yield"]["ci95"] is not None
+    assert variant["X3-3"]["standard"]["robust"] is not None
+    assert variant["X3-4"]["verdict"] in ("calibration dominates",
+                                          "invariance dominates", "mixed",
+                                          "not available")
+    gain = variant["X3-1-gain_specific"]
+    assert gain["log_yield"]["condition_q95"] is not None
+    assert gain["log_yield"]["gain_specific"] is not None
+    robustness = rp._x3_robustness(standard, invariant)
+    assert robustness["invariant"]["delta_vertex_m"] is not None
+    dominance = rp._x3_dominance(calibrated, invariant)
+    assert dominance["status"] == "evaluated"
+
+
+def test_x3_leace_reads_the_keys_x1_writes(tmp_path, tiny, geometry):
+    sets = _tiny_many(tmp_path, geometry)
+    s005, s030 = sets["s005"]["dataset"], sets["s030"]["dataset"]
+    probes005 = {"train": s005, "test": s005}
+    probes030 = {"train": s030, "test": s030}
+    label = "mae_within_trigger9000"
+    cache = rp.embedding_cache(tmp_path / "ext", label)
+    for role, dataset, seed in (("train", s005, 1), ("test", s005, 2)):
+        for setting, source in (("N", s005), ("D", s030)):
+            rows = _synthetic_rows(source, geometry, dim=4, seed=seed)
+            cache.fetch(rp.embedding_cache_key(role, setting), lambda rows=rows: rows)
+    inventory = {"rows": {label: {"label": label, "split": "within"}}}
+    out = rp._x3_leace(inventory, probes005, probes030, geometry, tmp_path / "ext")
+    assert label not in [row["label"] for row in out["unavailable"]]
+    assert any(key.startswith(label) for key in out["models"])
+    entry = out["models"].get(f"{label}/E1")
+    assert entry is not None
+    assert entry.get("status") in ("evaluated", "not_applicable",
+                                   "unavailable (erasure incomplete)")
+
+
+def test_leace_sanity_protocol_is_enforced():
+    rng = np.random.default_rng(5)
+    run_ids = np.repeat([f"r{index}" for index in range(8)], 3).astype(object)
+    event_ids = np.tile(np.arange(3), 8)
+
+    def rows(seed, concept_scale=0.0):
+        rng_local = np.random.default_rng(seed)
+        x = rng_local.standard_normal((run_ids.size, 4))
+        z = rng_local.standard_normal((run_ids.size, 1))
+        x[:, 0] += concept_scale * z[:, 0]
+        return {"events": x, "run_ids": run_ids, "event_ids": event_ids}, z
+
+    train_n, z_train = rows(1, 3.0)
+    train_d, _ = rows(2, 3.0)
+    test_n, z_test = rows(3, 3.0)
+    test_d, _ = rows(4, 3.0)
+    concept_rows = {"train": {"N": z_train, "D": train_d["events"][:, :1] * 0.0},
+                    "test": {"N": z_test}}
+    variant = rp._leace_variant(
+        label="concept-test", domain="photon",
+        rows={"train": {"N": train_n, "D": train_d},
+              "test": {"N": test_n, "D": test_d}},
+        concepts=concept_rows, rank=1)
+    assert variant["status"] == "evaluated"
+    # a rank-0 eraser erases nothing: the concept R² stays high -> unavailable
+    incomplete = rp._leace_variant(
+        label="concept-test", domain="photon",
+        rows={"train": {"N": train_n, "D": train_d},
+              "test": {"N": test_n, "D": test_d}},
+        concepts=concept_rows, rank=0)
+    assert incomplete["status"] == "unavailable (erasure incomplete)"
+    # an absent concept (independent x and z) -> not applicable
+    absent = rp._leace_variant(
+        label="concept-absent", domain="photon",
+        rows={"train": {"N": rows(10)[0], "D": rows(11)[0]},
+              "test": {"N": rows(12)[0], "D": rows(13)[0]}},
+        concepts={"train": {"N": rows(20)[1], "D": rows(21)[1]},
+                  "test": {"N": rows(22)[1]}}, rank=1)
+    assert absent["status"] == "not_applicable"
+
+
+def test_random_control_keys_are_per_index():
+    bases = rp._random_control_bases("label", "photon", "E1", 8, 1, 20)
+    assert len(bases) == 20
+    assert bases[0].shape == (8, 1)
+    assert not np.allclose(bases[0], bases[1])
+    repeat = rp._random_control_bases("label", "photon", "E1", 8, 1, 20)
+    for left, right in zip(bases, repeat):
+        assert np.allclose(left, right)
+    first = bases[0][:, 0]
+    direct = rp.random_control_basis(
+        lb.keyed_rng(20261106, rp.LEACE_RAND_NAMESPACE, "label/photon/E1/0"), 8, 1)[:, 0]
+    assert np.allclose(np.abs(first), np.abs(direct))
+
+
+def test_raw_std_features_honours_the_condition(tiny, geometry):
+    dataset = tiny["s030"]["dataset"]
+    truth = _event_truth(dataset, geometry)
+    condition = rp.build_condition("SWunit", dataset, geometry)
+    plain = rp.raw_std_features(dataset, geometry, truth=truth)["merged"]
+    calibrated = rp.raw_std_features(dataset, geometry, truth=truth,
+                                     condition=condition)["merged"]
+    photon = np.asarray(plain["domain"]) == "photon"
+    assert photon.any()
+    assert not np.allclose(plain["features"][photon], calibrated["features"][photon])
+    # the first feature is ln(sum q): check it against the SWunit-scaled charges
+    factor = condition.factor(str(dataset.runs[0]["run_id"]))
+    store = lb.read_sparse_hits(dataset.directory / "runs"
+                                / dataset.runs[0]["run_dir"] / "hits.npz")
+    expected = np.log(np.maximum(
+        np.asarray(store.charge_pe, np.float64) * factor[np.asarray(store.pmt_id)], 1e-6))
+    index = np.flatnonzero(photon)[0]
+    assert calibrated["features"][index, 0] >= 0.0
+    assert expected.size > 0
+
+
+def test_x2_additivity_uses_the_swtw_rows(monkeypatch):
+    def fake_vertex_row(rows, *, fitted):
+        return {"mean_error_m": float(rows["tag"])}
+
+    monkeypatch.setattr(rp, "vertex_row", fake_vertex_row)
+    rows = {"run_ids": np.asarray(["r0"], dtype=object), "event_ids": np.array([0]),
+            "vertex": np.zeros((1, 3)), "events": np.zeros((1, 2)),
+            "log_yield": np.zeros(1), "n_hit": np.array([1])}
+    n = dict(rows, tag=0.10)
+    d = dict(rows, tag=0.13)
+    s = dict(rows, tag=0.11)
+    swtw = dict(rows, tag=0.12)
+    out = rp.x2_decomposition(n, d, s, frozen_fit=None, swtw_fit=None,
+                              swtw_test=swtw)
+    assert abs(out["additivity_check"]) < 1e-12
+    wrong = rp.x2_decomposition(n, d, s, frozen_fit=None, swtw_fit=None,
+                                swtw_test=s)
+    assert wrong["additivity_check"] > 0.0
+
+
+def test_embedding_cache_round_trip_uses_the_x1_key_scheme(tmp_path):
+    cache = rp.EmbeddingCache(tmp_path / "x1" / "mae_within_trigger9000")
+    rows = {"events": np.arange(12, dtype=np.float32).reshape(6, 2),
+            "event_ids": np.arange(6), "run_ids": np.asarray(["r"] * 6, dtype=object)}
+    key = rp.embedding_cache_key("test", "N")
+    assert key == "test__N"
+    first = cache.fetch(key, lambda: rows)
+    assert first["cache_status"] == "written"
+    second = cache.fetch(key, lambda: {"events": np.zeros((1, 1), np.float32)})
+    assert second["cache_status"] == "reused"
+    assert np.array_equal(second["events"], rows["events"])
+    with np.load(cache.path(key), allow_pickle=False) as data:
+        assert {"embeddings", "event_ids", "run_ids"} <= set(data.files)
+
+
+def test_report_flags_both_complete_and_completed(tmp_path, monkeypatch):
+    ext = tmp_path / "ext"
+    for relative, payload in (
+            ("x0/plan.json", {"pass": True}),
+            ("x0/reproduction.json", {"pass": True}),
+            ("x1/x1.json", {"complete": True, "readings": {"families": {}}}),
+            ("x2/x2.json", {"complete": False, "readings": {"families": {}}}),
+            ("x3/x3_fisher.json", {"p0": {"pass": True}, "models": {}}),
+            ("x3/x3.json", {"complete": True, "readings": {"variants": {}}})):
+        path = ext / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload))
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda *args, **kwargs: {"status": "granted",
+                                                 "authorised": True})
+    monkeypatch.setattr(rp, "_assert_closure", lambda *args, **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "render_figures",
+                        lambda *args, **kwargs: {"status": "unavailable",
+                                                 "figures": []})
+    payload = rp.assemble_report(root=tmp_path, ext_root=ext,
+                                 results_dir=tmp_path / "results",
+                                 log=lambda *a, **k: None)
+    readings = json.loads((tmp_path / "results" / "readings.json").read_text())
+    assert readings["x1"]["complete"] is True
+    assert readings["x1"]["completed"] is True
+    assert readings["x2"]["complete"] is False
+    assert readings["x2"]["completed"] is False
+    assert payload["completeness"]["x2"] is False
+    assert payload["complete"] is False
+
+
+def test_preflight_scopes_content_stops_and_hw_unavailable(tmp_path, tiny, geometry,
+                                                          monkeypatch):
+    inv = {"rows": {}, "unavailable": [], "counts": {"labels": 0}}
+    probes = {"s005": {"train": tiny["s005"]["dataset"],
+                       "test": tiny["s005"]["dataset"]},
+              "s030": {"train": tiny["s030"]["dataset"],
+                       "test": tiny["s030"]["dataset"]}}
+    # one missing twin makes the HW condition unavailable for that set
+    (tiny["s005"]["dataset"].directory / "runs"
+     / tiny["s005"]["dataset"].runs[0]["run_dir"] / "twin_hits.npz").unlink()
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda *a, **k: {"status": "granted", "authorised": True})
+    monkeypatch.setattr(rp, "_assert_closure", lambda *a, **k: {"pass": True})
+    monkeypatch.setattr(rp, "hardware_and_software", lambda: {})
+    monkeypatch.setattr(rp, "entries_preflight", lambda **k: {"pass": True})
+    monkeypatch.setattr(rp, "s1_projection", lambda *a, **k: {"pass": True})
+    monkeypatch.setattr(rp, "data_status", lambda *a, **k: {"pass": True, "sets": {}})
+    monkeypatch.setattr(rp, "open_probe_sets",
+                        lambda config, gen, geometry, data_root, *, setting, log:
+                        probes["s005"] if setting == rp.S005 else probes["s030"])
+    monkeypatch.setattr(rp, "check_run_states",
+                        lambda *a, **k: {"pass": True, "mismatches": [],
+                                         "twin_missing": []})
+    monkeypatch.setattr(rp, "check_twin_content",
+                        lambda *a, **k: {"pass": False, "mismatches": [{"role": "train"}]})
+    monkeypatch.setattr(rp, "check_swtw_content",
+                        lambda *a, **k: {"pass": False, "mismatches": [{"role": "test"}]})
+    monkeypatch.setattr(rp, "mu_reconstruction",
+                        lambda *a, **k: {"pass": False, "mismatches": [{}]})
+    config = lr.load_run_config(ROOT / rp.CONFIG_REL)
+    payload = rp.preflight(root=tmp_path, config=config, gen=GEN,
+                           geometry=geometry, inventory=inv, limit=1,
+                           log=lambda *a, **k: None)
+    # a content mismatch is not a global STOP; it is scoped to its readings
+    assert payload["stops"] == []
+    assert payload["content_pass"] is False
+    assert "X1-b" in payload["readings_stopped"]["swtw_mismatch"]
+    assert payload["readings_stopped"]["mu_p_unavailable"] == ["X2-d source stream"]
+    assert payload["hw_condition"]["s005_train"] == "unavailable"
+    assert payload["hw_condition"]["s030_train"] == "available"
+
+
+def test_fisher_accounting_executes_with_per_parameter_inf_counts(geometry,
+                                                                  monkeypatch):
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda *a, **k: {"status": "granted", "authorised": True})
+    monkeypatch.setattr(rp, "_assert_closure", lambda *a, **k: {"pass": True})
+    payload = rp.fisher_accounting(geometry, GEN, n_events=2, limit=2,
+                                   log=lambda *a, **k: None)
+    assert payload["p0"]["pass"] is True
+    assert set(payload["models"]) == {"C-mean", "C-mean+occupancy", "C-var_all",
+                                      "C-var_ge1", "C-var_ge3"}
+    counts = payload["models"]["C-mean"]["n_infinite"]["per_case_parameter"]
+    assert set(counts["inv"]) == set(rp.THETA_NAMES)
+    assert counts["inv"]["lnY"] == 2

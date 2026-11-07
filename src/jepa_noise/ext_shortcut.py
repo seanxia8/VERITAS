@@ -49,17 +49,26 @@ R-1 input contract (read-only)
 ------------------------------
 R-1 expects the pilot's report-mode outputs in
 ``results/jepa/20261106_repair/``: ``readings.json`` with ``x1`` and ``x2``
-sections, ``x1.json`` and ``x2.json`` with one block per model label (either
-``payload["models"][label]`` / ``payload["readings"][label]`` /
-``payload[label]`` or a label-keyed block found recursively).  The fields it
-reads, by candidate key (the first present wins), are listed in
-:data:`R1_FIELDS`.  For the response size it reads the pilot's cached N and D
-photon probe-test embeddings from ``<pilot ext>/x1/<label>/``; a cache file is
-accepted only if its ``.sha256`` sidecar (or the pilot's ``LARGE_ARRAYS.json``)
-matches, and a mismatch is refused.  The cache file name must contain the
-``N`` or ``D`` condition token (``...__N.npz`` / ``...__D.npz``) and the
-``.npz`` must hold the embeddings under one of :data:`CACHE_EMBEDDING_KEYS` and
-the pairing keys under :data:`CACHE_EVENT_KEYS` / :data:`CACHE_RUN_KEYS`.
+sections (each marked ``completed`` or ``complete``), and ``x1.json`` /
+``x2.json`` with one block per model label (either ``payload["models"][label]``
+/ ``payload["readings"][label]`` / ``payload[label]`` or a label-keyed block
+found recursively).  Part A writes the X1 fields (``delta_d_m``,
+``delta_d_eligible``, ``rho_swtw``, ``rho_swunit``, ``share_cs``) into
+``x1.json`` and the X2 fields (``r2_eq``, ``class``, ``rho_lr``) into
+``x2.json``; R-1 therefore reads **both** payloads for every model, taking each
+field from the payload that carries it and falling back to the other payload
+when it is absent.  The fields it reads, by candidate key (the first present
+wins), are listed in :data:`R1_FIELDS`.
+
+For the response size it reads the pilot's cached N and D **photon** probe-test
+embeddings from ``<pilot ext>/x1/<label>/`` (particle/muon/electron caches are
+excluded, and photon ``test__N``/``test__D`` names are preferred).  A cache file
+is accepted only if its ``.sha256`` sidecar (or the pilot's
+``LARGE_ARRAYS.json``) matches, and a mismatch is refused.  The cache file name
+must contain the ``N`` or ``D`` condition token (``...__N.npz`` /
+``...__D.npz``) and the ``.npz`` must hold the embeddings under one of
+:data:`CACHE_EMBEDDING_KEYS` and the pairing keys under :data:`CACHE_EVENT_KEYS`
+/ :data:`CACHE_RUN_KEYS`.
 
 No data generation of any kind happens anywhere in this module.
 """
@@ -82,10 +91,7 @@ import torch.nn.functional as F
 from . import ext_followup as ef
 from . import ext_h12 as eh
 from . import ext_readout as er
-from . import lucid_arms as la
-from . import lucid_bombs as lb
 from . import lucid_run as lr
-from . import point_encoder as pe
 
 __all__ = [
     "EXTENSION", "VARIANT", "ARM_NAME", "CELL_ID", "MODES", "EXT_ROOT",
@@ -1164,9 +1170,21 @@ R1_OPTIONAL = {
 }
 R1_LABELS = {label: family for family, labels in R1_FAMILIES.items()
              for label in labels}
+#: §3 "the eight generative models": the fixed core list, **never** the optional
+#: ``mae_within_median`` rows (N11).
+R1_GENERATIVE_CORE = tuple(R1_FAMILIES["generative"])
 R1_ALL_LABELS = {label: family for family, labels in
                  list(R1_FAMILIES.items()) + list(R1_OPTIONAL.items())
                  for label in labels}
+#: Which pilot payload a field belongs to (Part A writes the X1 fields into
+#: ``x1.json`` and the X2 fields into ``x2.json``); each field is taken from its
+#: own payload first and falls back to the other payload when absent (B7).
+R1_FIELD_PAYLOAD = {
+    "delta_d": "x1", "delta_d_eligible": "x1", "rho_swtw": "x1",
+    "rho_swunit": "x1", "share_cs": "x1",
+    "r2_eq": "x2", "x2_class": "x2", "rho_lr": "x2",
+    "f_layout": "x1", "f_event": "x1", "response_size": "x1",
+}
 #: Candidate field keys (first present wins) in the pilot's per-model blocks.
 R1_FIELDS = {
     "response_size": ("response_size", "S", "s", "x2_a.response_size"),
@@ -1252,6 +1270,28 @@ def _get(block, *paths):
             if isinstance(current, dict) and "value" in current:
                 return current["value"]
             return current
+    return None
+
+
+def _field_from_payloads(blocks, candidates, preferred=None):
+    """First present field value across the per-payload model blocks (B7).
+
+    ``blocks`` maps ``"x1"``/``"x2"`` to the model block of that payload (only the
+    payloads that carry the label are present).  Part A writes the X1 fields into
+    ``x1.json`` and the X2 fields into ``x2.json``; a field is therefore read from
+    its own payload first (``preferred``) and falls back to the other payload
+    only when it is absent there.
+    """
+    ordered = []
+    if preferred in blocks and blocks[preferred] is not None:
+        ordered.append(blocks[preferred])
+    for name in ("x1", "x2"):
+        if name != preferred and blocks.get(name) is not None:
+            ordered.append(blocks[name])
+    for block in ordered:
+        value = _get(block, *candidates)
+        if value is not None:
+            return value
     return None
 
 
@@ -1381,9 +1421,10 @@ def r1_reading(rows: dict) -> dict:
     on both quantities, contradicts when it is below both seeds on both, otherwise
     mixed.
     """
-    generative = [row for label, row in rows.items()
-                  if R1_ALL_LABELS.get(str(label)) == "generative"
-                  and row.get("status") == "available"]
+    # §3: the median over the eight generative models, never the optional
+    # ``mae_within_median`` rows (N11).
+    generative = [rows.get(label) for label in R1_GENERATIVE_CORE
+                  if (rows.get(label) or {}).get("status") == "available"]
     frozen = {seed: rows.get(f"frozen_target{seed}") for seed in (9000, 9001)}
     quantities = ("r2_eq", "rho_lr")
     medians = {name: _median([row.get(name) for row in generative])
@@ -1420,7 +1461,9 @@ def r1_reading(rows: dict) -> dict:
             "question": "are generative (MAE) encoders more repairable than the "
                         "working joint-embedding encoder?",
             "caveat": "with 8 against 2 models this is a description, not a test",
-            "generative_median": dict(medians, n_models=len(generative)),
+            "generative_median": dict(medians, n_models=len(generative),
+                                      n_core_models=len(R1_GENERATIVE_CORE),
+                                      labels=list(R1_GENERATIVE_CORE)),
             "frozen_target": seeds, "verdict": verdict, "note": note,
             "comparisons": comparisons,
             "criteria": "supports: generative median > both frozen_target seeds on "
@@ -1435,6 +1478,26 @@ def cache_condition(name: str):
             if token in text:
                 return condition
     return None
+
+
+#: §3 response size uses the **photon** probe-test cache only: the pilot also
+#: caches particle/muon/electron embeddings (``particle__test__N.npz``) in the
+#: same directory, and a name-only condition match would pick those first (B8).
+PARTICLE_CACHE_TOKENS = ("particle", "muon", "electron")
+PHOTON_CACHE_PREFIXES = ("test__", "probe_test__", "probe__test__", "photon")
+
+
+def is_particle_cache(name) -> bool:
+    """True when a cache file name denotes a particle/muon/electron embedding."""
+    text = Path(str(name)).name.lower()
+    return any(token in text for token in PARTICLE_CACHE_TOKENS)
+
+
+def _photon_cache_rank(name) -> int:
+    """Sort key: photon probe-test names first, then other photon-like names."""
+    text = Path(str(name)).name.lower()
+    return 0 if any(text.startswith(prefix) or prefix in text
+                    for prefix in PHOTON_CACHE_PREFIXES) else 1
 
 
 def _sidecar_sha(path: Path, *, large_arrays=None, ext_root=None) -> tuple:
@@ -1538,17 +1601,26 @@ def cache_files(ext_root, label, *, large_arrays=None) -> dict:
     """
     directory = Path(ext_root) / "x1" / str(label)
     out = {"directory": str(directory), "exists": directory.is_dir(),
-           "conditions": {}}
+           "conditions": {}, "excluded_particle": [],
+           "selection_rule": "photon probe-test caches only (particle/muon/electron "
+                             "excluded; test__N/test__D preferred)"}
     if not directory.is_dir():
         return out
     for path in sorted(directory.glob("*.npz")):
+        if is_particle_cache(path.name):
+            out["excluded_particle"].append(path.name)
+            continue
         condition = cache_condition(path.name)
         if condition is None:
             continue
         expected, source = _sidecar_sha(path, large_arrays=large_arrays,
                                         ext_root=ext_root)
         out["conditions"].setdefault(condition, []).append(
-            {"path": str(path), "expected_sha256": expected, "sha_source": source})
+            {"path": str(path), "expected_sha256": expected, "sha_source": source,
+             "photon": True})
+    for rows in out["conditions"].values():
+        rows.sort(key=lambda row: (_photon_cache_rank(row["path"]),
+                                   Path(row["path"]).name))
     return out
 
 
@@ -1577,8 +1649,10 @@ def pilot_status(root=None, *, results_dir=None) -> dict:
         present = section is not None
         failed = False
         if isinstance(section, dict):
+            # Part A writes ``completed``; accept ``complete`` too (cross-contract).
+            finished = section.get("completed", section.get("complete"))
             failed = (section.get("status") in ("failed", "not_run", "incomplete")
-                      or section.get("complete") is False)
+                      or finished is False)
         sections.append(bool(present and not failed))
     status["complete"] = all(sections)
     if not status["complete"]:
@@ -1609,13 +1683,18 @@ def r1_payload(root=None, *, results_dir=None, ext_root=PILOT_EXT_ROOT,
     labels = sorted(R1_ALL_LABELS)
     table, unknown = {}, []
     for label in labels:
-        block = find_model_block(x1, label) or find_model_block(x2, label)
+        blocks, sources = {}, []
+        for name, payload in (("x1", x1), ("x2", x2)):
+            block = find_model_block(payload, label)
+            if block is not None:
+                blocks[name] = _model_block(block, label)
+                sources.append(name)
         row = {"family": family_of(label),
-               "status": "available" if block is not None else "unavailable"}
-        if block is not None:
-            block = _model_block(block, label)
-            for name, candidates in R1_FIELDS.items():
-                row[name] = _get(block, *candidates)
+               "status": "available" if blocks else "unavailable",
+               "payloads": sources}
+        for name, candidates in R1_FIELDS.items():
+            row[name] = _field_from_payloads(
+                blocks, candidates, R1_FIELD_PAYLOAD.get(name))
         row.update(r1_class(row))
         table[label] = row
     for payload in (x1, x2):

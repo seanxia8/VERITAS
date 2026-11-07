@@ -20,6 +20,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import sys
+import types
 from pathlib import Path
 
 import numpy as np
@@ -28,7 +30,6 @@ import pytest
 torch = pytest.importorskip("torch")
 
 from jepa_noise import ext_followup as ef  # noqa: E402
-from jepa_noise import ext_h12 as eh  # noqa: E402
 from jepa_noise import ext_readout as er  # noqa: E402
 from jepa_noise import ext_shortcut as xs  # noqa: E402
 from jepa_noise import lucid_arms as la  # noqa: E402
@@ -563,6 +564,13 @@ def test_gate_c_untracked_and_modified_p_paths(tmp_path):
 
 
 def test_forced_import_classification():
+    """B9: test the classifier itself, not the whole pytest process's closure.
+
+    In the full suite other extensions' tests import repository modules outside
+    Part B's <P>, so a whole-process "all violations are test files" assertion is
+    only valid in a one-file run.  The per-mode closure stays a dry-run check; this
+    test pins the forced-import classification deterministically.
+    """
     assert xs.in_p("src/jepa_noise/ext_shortcut.py")
     assert xs.in_p("src/noise_module_lucid/readout.py")
     assert xs.in_p(xs.RUNBOOK_REL)
@@ -571,17 +579,233 @@ def test_forced_import_classification():
     for relative in xs.PART_B_FORCED_TRANSITIVE_IMPORTS:
         assert not xs.in_p(relative)
         assert xs.forced_import(relative)
-    assert xs.forced_import("src/reconstruction_model/__init__.py")
-    # the real closure passes once the pytest modules are set aside
+    # ext_followup's own exceptions stay forced as well
+    for relative in ("src/reconstruction_model/model.py",
+                     "src/noise_module/core/generator.py"):
+        assert not xs.in_p(relative)
+        assert xs.forced_import(relative)
+    assert not xs.forced_import("src/jepa_noise/ext_view.py")
+
+    def _insert(module_name, relative):
+        module = types.ModuleType(module_name)
+        module.__file__ = str(ROOT / relative)
+        saved = sys.modules.get(module_name)
+        sys.modules[module_name] = module
+        return saved
+
+    # deterministic synthetic modules exercise the classifier in every context
+    cases = (("probe_outside_p", "src/jepa_noise/ext_view.py", "violations"),
+             ("probe_forced_arch", "src/jepa_noise/ext_arch.py",
+              "part_b_forced_transitive_imports"),
+             ("probe_forced_dejitter", "src/jepa_noise/ext_dejitter.py",
+              "part_b_forced_transitive_imports"),
+             ("probe_forced_recon", "src/reconstruction_model/model.py",
+              "forced_import_exceptions"),
+             ("probe_forced_noise", "src/noise_module/core/generator.py",
+              "forced_import_exceptions"))
+    try:
+        for module_name, relative, bucket in cases:
+            saved = _insert(module_name, relative)
+            try:
+                closure = xs.import_closure(ROOT)
+                assert relative in {row["path"] for row in closure[bucket]}, \
+                    (relative, bucket)
+            finally:
+                if saved is None:
+                    sys.modules.pop(module_name, None)
+                else:
+                    sys.modules[module_name] = saved
+    finally:
+        for module_name, _relative, _bucket in cases:
+            sys.modules.pop(module_name, None)
+    # forced imports are never counted as violations (whatever else the pytest
+    # process has imported); the modes' own closure is asserted by the dry run
     closure = xs.import_closure(ROOT)
-    assert closure["pass"] is False or closure["violations"] == []
-    non_test = [row for row in closure["violations"]
-                if not row["path"].startswith("src/jepa_noise/tests/")]
-    assert non_test == []
-    assert any(row["path"] == "src/jepa_noise/ext_arch.py"
-               for row in closure["part_b_forced_transitive_imports"])
-    assert any(row["path"].startswith("src/reconstruction_model/")
-               for row in closure["forced_import_exceptions"])
+    violations = {row["path"] for row in closure["violations"]}
+    forced = ({row["path"] for row in closure["forced_import_exceptions"]}
+              | {row["path"] for row in closure["part_b_forced_transitive_imports"]})
+    assert not (violations & forced)
+    # the classification itself (suite-context independent)
+    assert xs.forced_import("src/jepa_noise/ext_arch.py")
+    assert xs.forced_import("src/jepa_noise/ext_dejitter.py")
+    assert xs.forced_import("src/reconstruction_model/model.py")
+    assert xs.forced_import("src/noise_module/core/generator.py")
+    assert "src/jepa_noise/ext_arch.py" not in violations
+    assert "src/reconstruction_model/model.py" not in violations
+
+
+# ==================================== R-1 pilot payloads (B7 / B8 / cross-contract / N11)
+def _noop(*_args, **_kwargs):
+    return None
+
+
+def _part_a_payloads(generative_r2, generative_rho, *, frozen_r2=0.5, frozen_rho=0.5):
+    """Part-A-shaped ``x1.json``/``x2.json`` bodies (``ext_repair`` canonical keys).
+
+    X1 writes ``delta_d_m``/``delta_d_eligible``/``rho_swtw``/``rho_swunit``/
+    ``share_cs`` into x1.json; X2 writes ``r2_eq``/``class``/``rho_lr`` into
+    x2.json.  One payload alone therefore cannot supply the R-1 reading (B7).
+    """
+    x1_models, x2_models = {}, {}
+    for label in xs.R1_GENERATIVE_CORE:
+        x1_models[label] = {"delta_d_m": 0.03, "delta_d_eligible": False,
+                            "rho_swtw": 0.9, "rho_swunit": 0.8, "share_cs": 0.8}
+        x2_models[label] = {"r2_eq": generative_r2, "class": "equivariant",
+                            "rho_lr": generative_rho}
+    for seed in (9000, 9001):
+        label = f"frozen_target{seed}"
+        x1_models[label] = {"delta_d_m": 0.01, "delta_d_eligible": False,
+                            "rho_swtw": 0.5, "rho_swunit": 0.5, "share_cs": 0.5}
+        x2_models[label] = {"r2_eq": frozen_r2, "class": "partly equivariant",
+                            "rho_lr": frozen_rho}
+    return {"models": x1_models}, {"models": x2_models}
+
+
+def _write_pilot(directory, x1, x2, *, flag_key="completed", x1_flag=True,
+                 x2_flag=True):
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "x1.json").write_text(json.dumps(x1))
+    (directory / "x2.json").write_text(json.dumps(x2))
+    (directory / "readings.json").write_text(
+        json.dumps({"x1": {flag_key: x1_flag}, "x2": {flag_key: x2_flag}}))
+    return directory
+
+
+def _save_cache(directory, name, embeddings, run_ids, event_ids):
+    path = Path(directory) / name
+    np.savez(path, embeddings=np.asarray(embeddings, dtype=np.float64),
+             run_ids=np.asarray(run_ids, dtype=object),
+             event_ids=np.asarray(event_ids, dtype=np.int64))
+    (Path(str(path) + ".sha256")).write_text(lr.sha256_file(path) + "  " + name + "\n")
+    return path
+
+
+def test_r1_merges_both_pilot_payloads_and_produces_the_fixed_reading(tmp_path,
+                                                                     monkeypatch):
+    """B7: X1 fields from x1.json and X2 fields from x2.json are both read."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    label = xs.R1_GENERATIVE_CORE[0]
+    for verdict, generative_r2, generative_rho in (("supports", 0.9, 0.9),
+                                                   ("contradicts", 0.2, 0.2)):
+        pilot = tmp_path / verdict
+        x1, x2 = _part_a_payloads(generative_r2, generative_rho)
+        _write_pilot(pilot, x1, x2)
+        payload = xs.r1_payload(ROOT, results_dir=pilot, log=_noop)
+        assert payload["status"] == "complete"
+        row = payload["table"][label]
+        # the X2 fields come from x2.json (they are absent from x1.json)
+        assert row["r2_eq"] == pytest.approx(generative_r2)
+        assert row["rho_lr"] == pytest.approx(generative_rho)
+        assert row["x2_class"] == "equivariant"
+        # the X1 fields come from x1.json (they are absent from x2.json)
+        assert row["rho_swtw"] == pytest.approx(0.9)
+        assert row["share_cs"] == pytest.approx(0.8)
+        assert row["delta_d"] == pytest.approx(0.03)
+        assert row["payloads"] == ["x1", "x2"]
+        assert payload["reading"]["generative_median"]["n_models"] == 8
+        expected = (["above", "above"] if verdict == "supports"
+                    else ["below", "below"])
+        assert payload["reading"]["verdict"] == verdict
+        assert payload["reading"]["comparisons"] == expected
+
+
+def test_r1_field_falls_back_to_the_other_pilot_payload(tmp_path, monkeypatch):
+    """B7: each field falls back to the other payload when absent."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    pilot = tmp_path / "pilot"
+    x1, x2 = _part_a_payloads(0.9, 0.9)
+    label = xs.R1_GENERATIVE_CORE[0]
+    x1["models"][label]["r2_eq"] = 0.88          # only in x1
+    del x2["models"][label]["r2_eq"]             # force the fallback to x1
+    del x1["models"][label]["delta_d_m"]         # absent everywhere
+    x1["models"][label]["rho_lr"] = 0.77         # both present: own payload wins
+    _write_pilot(pilot, x1, x2)
+    row = xs.r1_payload(ROOT, results_dir=pilot, log=_noop)["table"][label]
+    assert row["r2_eq"] == pytest.approx(0.88)   # fell back to x1
+    assert row["rho_lr"] == pytest.approx(0.9)   # x2 (its own payload) wins
+    assert row["delta_d"] is None
+    assert row["payloads"] == ["x1", "x2"]
+
+
+def test_r1_response_size_uses_the_photon_cache_not_the_particle_cache(tmp_path,
+                                                                      monkeypatch):
+    """B8: S is computed from the photon probe-test embeddings only."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    pilot = tmp_path / "pilot"
+    x1, x2 = _part_a_payloads(0.9, 0.9)
+    _write_pilot(pilot, x1, x2)
+    label = xs.R1_GENERATIVE_CORE[0]
+    cache_dir = tmp_path / "ext" / "x1" / label
+    cache_dir.mkdir(parents=True)
+    n = np.asarray([[0.0, 0.0, 0.0, 0.0], [2.0, 0.0, 0.0, 0.0],
+                    [1.0, 1.0, 0.0, 0.0]])
+    d = n + 1.0       # numerator 4.0, N-row denominator 8/9 -> S = 4.5
+    _save_cache(cache_dir, "test__N.npz", n, ["r0", "r0", "r0"], [1, 2, 3])
+    _save_cache(cache_dir, "test__D.npz", d, ["r0", "r0", "r0"], [1, 2, 3])
+    rng = np.random.default_rng(0)
+    particle_n = rng.normal(size=(5, 16))
+    particle_d = rng.normal(size=(5, 16))
+    _save_cache(cache_dir, "particle__test__N.npz", particle_n, ["p"] * 5,
+                [1, 2, 3, 4, 5])
+    _save_cache(cache_dir, "particle__test__D.npz", particle_d, ["p"] * 5,
+                [1, 2, 3, 4, 5])
+    found = xs.cache_files(tmp_path / "ext", label)
+    assert sorted(found["excluded_particle"]) == ["particle__test__D.npz",
+                                                  "particle__test__N.npz"]
+    for rows in found["conditions"].values():
+        assert rows and all("particle" not in row["path"] for row in rows)
+    assert {Path(row["path"]).name for row in found["conditions"]["N"]} == {
+        "test__N.npz"}
+    first = xs._first_verified(found["conditions"]["N"], None, tmp_path / "ext")
+    assert Path(first["path"]).name == "test__N.npz"
+    row = xs.r1_payload(ROOT, results_dir=pilot, ext_root=tmp_path / "ext",
+                        log=_noop)["table"][label]
+    assert row["response_size"] == pytest.approx(4.5)
+    assert row["response_size_detail"]["dim"] == 4          # photon dim, not 16
+    assert row["response_size_detail"]["n_paired"] == 3
+    assert xs.is_particle_cache("particle__test__N.npz") is True
+    assert xs.is_particle_cache("test__N.npz") is False
+
+
+def test_pilot_status_accepts_completed_or_complete(tmp_path):
+    """Cross-contract: Part A writes ``completed``; accept ``complete`` too."""
+    x1, x2 = _part_a_payloads(0.9, 0.9)
+    for key in ("completed", "complete"):
+        pilot = _write_pilot(tmp_path / key, x1, x2, flag_key=key)
+        status = xs.pilot_status(ROOT, results_dir=pilot)
+        assert status["complete"] is True
+    pilot = _write_pilot(tmp_path / "incomplete", x1, x2)
+    (pilot / "readings.json").write_text(json.dumps({"x1": {"completed": False},
+                                                     "x2": {"completed": True}}))
+    status = xs.pilot_status(ROOT, results_dir=pilot)
+    assert status["complete"] is False
+    assert "not completed" in status["reason"]
+    (pilot / "readings.json").write_text(json.dumps({
+        "x1": {"completed": True, "status": "failed"}, "x2": {"completed": True}}))
+    assert xs.pilot_status(ROOT, results_dir=pilot)["complete"] is False
+
+
+def test_r1_median_uses_exactly_the_eight_core_generative_models():
+    """N11: the optional ``mae_within_median`` rows never enter the median."""
+    rows = {}
+    core_values = [0.5] * 4 + [0.9] * 4
+    for label, value in zip(xs.R1_GENERATIVE_CORE, core_values):
+        rows[label] = {"status": "available", "r2_eq": value, "rho_lr": value}
+    for label in xs.R1_OPTIONAL["generative"]:
+        rows[label] = {"status": "available", "r2_eq": 0.0, "rho_lr": 0.0}
+    for seed in (9000, 9001):
+        rows[f"frozen_target{seed}"] = {"status": "available", "r2_eq": 0.6,
+                                        "rho_lr": 0.6}
+    reading = xs.r1_reading(rows)
+    assert reading["generative_median"]["n_models"] == 8
+    assert reading["generative_median"]["r2_eq"] == pytest.approx(0.7)
+    assert reading["generative_median"]["rho_lr"] == pytest.approx(0.7)
+    # including the two optional zero rows would have moved the median to 0.5
+    assert reading["verdict"] == "supports"
 
 
 # ==================================================================== parser
