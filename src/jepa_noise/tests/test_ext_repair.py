@@ -1438,3 +1438,131 @@ def test_x3_init9000_executes_photon_particle_and_calibrated(tmp_path, tiny, geo
     assert out["standard"].get("energy") is not None
     assert out["calibrated"].get("vertex", {}).get("D") is not None
     assert out["calibrated"].get("energy", {}).get("D") is not None
+
+
+# ===================================================== review B10 (X3-b readings)
+rms = rp.rms
+
+
+def _metric_block(resolution, errors, run_ids=None, event_ids=None):
+    block = {"status": "evaluated", "resolution": float(resolution),
+             "mean_error_m": float(resolution), "errors": np.asarray(errors, float),
+             "__errors__": np.asarray(errors, float)}
+    if run_ids is not None:
+        block["run_ids"] = np.asarray(run_ids, dtype=object)
+        block["event_ids"] = np.asarray(event_ids, np.int64)
+    return block
+
+
+def _paired_blocks(rho, *, paired=True):
+    run_ids = np.repeat([f"r{index}" for index in range(5)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 5)
+    base = np.linspace(0.10, 0.20, run_ids.size)
+    left = _metric_block(rms(base), base, run_ids if paired else None,
+                         event_ids if paired else None)
+    right = _metric_block(rms(base * rho), base * rho, run_ids if paired else None,
+                          event_ids if paired else None)
+    return left, right
+
+
+def test_x3_price_class_uses_the_fixed_thresholds():
+    standard, invariant = _paired_blocks(1.30)
+    reading = rp._variant_reading({}, {"log_yield": {"N": standard},
+                                       "energy": {"N": standard}},
+                                  {"log_yield": {"N": invariant},
+                                   "energy": {"N": invariant}})
+    assert reading["X3-1"]["log_yield"]["rho_E"] > rp._X3_PRICE_HIGH
+    assert reading["X3-1"]["log_yield"]["ci95"] is not None
+    assert reading["X3-1"]["log_yield"]["class"] == "price present"
+    assert reading["X3-1"]["energy"]["class"] == "price present"
+    assert reading["X3-1"]["classes"] == {"log_yield": "price present",
+                                          "energy": "price present"}
+    # rho_E <= 1.05 is no price without needing the CI
+    standard_low, invariant_low = _paired_blocks(1.02, paired=False)
+    low = rp._variant_reading(
+        {}, {"log_yield": {"N": standard_low}},
+        {"log_yield": {"N": invariant_low}})
+    assert low["X3-1"]["log_yield"]["class"] == "no price"
+    # 1.05 < rho_E < 1.2 (or a CI straddling 0) is unclear
+    standard_mid, invariant_mid = _paired_blocks(1.10)
+    mid = rp._variant_reading(
+        {}, {"log_yield": {"N": standard_mid}},
+        {"log_yield": {"N": invariant_mid}})
+    assert mid["X3-1"]["log_yield"]["class"] == "unclear"
+    # a missing CI with rho_E >= 1.2 is explicitly not available
+    standard_hi, invariant_hi = _paired_blocks(1.30, paired=False)
+    no_ci = rp._variant_reading({}, {"log_yield": {"N": standard_hi}},
+                                {"log_yield": {"N": invariant_hi}})
+    assert no_ci["X3-1"]["log_yield"]["ci95"] is None
+    assert no_ci["X3-1"]["log_yield"]["class"] == "not available (CI missing)"
+
+
+def _log_yield_rows(*, seed, shift=0.0, runs=8, events=5, dim=2):
+    rng = np.random.default_rng(seed)
+    count = runs * events
+    features = rng.standard_normal((count, dim))
+    log_yield = features[:, 0] * 0.3 + shift + rng.normal(0, 0.01, count)
+    return {"events": features, "log_yield": log_yield,
+            "run_ids": np.repeat([f"r{index}" for index in range(runs)],
+                                 events).astype(object),
+            "event_ids": np.tile(np.arange(events), runs),
+            "vertex": np.zeros((count, 3)), "n_hit": np.full(count, 5)}
+
+
+def test_log_yield_row_returns_pairing_keys_and_a_real_ci():
+    train = _log_yield_rows(seed=1)
+    test = _log_yield_rows(seed=2, runs=4)
+    fitted = rp.fit_log_yield_probe(train)
+    block = rp.log_yield_row(test, fitted=fitted)
+    assert "run_ids" in block and "event_ids" in block
+    assert len(block["errors"]) == len(block["run_ids"]) == len(block["event_ids"])
+    assert block["run_ids"].shape[0] > 0
+    invariant_rows = _log_yield_rows(seed=2, shift=0.2, runs=4)
+    invariant_block = rp.log_yield_row(invariant_rows, fitted=fitted)
+    reading = rp._variant_reading(
+        {}, {"log_yield": {"N": block}},
+        {"log_yield": {"N": invariant_block}})
+    entry = reading["X3-1"]["log_yield"]
+    assert entry["ci95"] is not None
+    assert entry["rho_E"] is not None
+    assert entry["class"] in ("price present", "no price", "unclear")
+
+
+def test_missing_log_yield_ci_is_not_available_not_a_failed_condition():
+    standard, invariant = _paired_blocks(1.30, paired=False)
+    controls = [{"log_yield": {"N": standard}} for _index in range(3)]
+    reading = rp._variant_reading({}, {"log_yield": {"N": standard}},
+                                  {"log_yield": {"N": invariant}},
+                                  leace={"controls": controls})
+    gain = reading["X3-1-gain_specific"]["log_yield"]
+    assert gain["status"] == "not available (CI missing)"
+    assert gain["gain_specific"] is None
+    assert gain["condition_ci_excludes_zero"] is None
+
+
+def test_raw_feature_family_x3_4_has_a_real_verdict(monkeypatch):
+    def rows(tag, scale=1.0):
+        run_ids = np.repeat([f"r{index}" for index in range(5)], 4).astype(object)
+        event_ids = np.tile(np.arange(4), 5)
+        base = np.linspace(0.10, 0.20, run_ids.size) * float(scale)
+        return {"tag": tag, "run_ids": run_ids, "event_ids": event_ids,
+                "blocks": {kind: _metric_block(tag, base, run_ids, event_ids)
+                           for kind in ("vertex", "log_yield", "energy")}}
+
+    def fake_feature_probe_metrics(train, test, *, kind="vertex", fitted=None):
+        return dict(test["blocks"][kind])
+
+    monkeypatch.setattr(rp, "feature_probe_metrics", fake_feature_probe_metrics)
+    # calibrated: lower resolution and smaller per-event errors at D than invariant
+    calibrated = rows(0.08, scale=0.5)
+    variant = rp._feature_variant(
+        "raw", {"train": rows(0.08), "test": rows(0.10), "drift": rows(0.20)},
+        {"train": rows(0.08), "test": rows(0.10), "drift": rows(0.20)},
+        calibrated_rows=calibrated)
+    # B10.3: the calibrated raw block is nested per metric under "D"
+    assert variant["calibrated"]["vertex"]["D"] is not None
+    assert "D" in variant["calibrated"]["energy"]
+    readings = rp.x3_readings({"families": {"raw": variant}})
+    dominance = readings["variants"]["raw"]["X3-4"]
+    assert dominance["status"] == "evaluated"
+    assert dominance["verdict"] == "calibration dominates"

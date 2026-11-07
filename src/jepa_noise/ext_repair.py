@@ -238,6 +238,9 @@ LEACE_RANDOM_CONTROLS = 20
 #: §7.2 X3-3 robustness thresholds: |Δv| <= 2 mm and <= 5 % relative energy change.
 _X3_ROBUST_VERTEX_M = 0.002
 _X3_ROBUST_ENERGY_REL = 0.05
+#: §7.2 X3-1 fixed price class thresholds on rho_E = res_inv(N) / res_std(N).
+_X3_PRICE_HIGH = 1.20
+_X3_PRICE_NONE = 1.05
 LEACE_RTOL = 1e-8
 LEACE_SANITY_R2 = 0.02
 E2_PLANTED_RANK = 5
@@ -1869,12 +1872,14 @@ def log_yield_row(rows, *, fitted) -> dict:
                                                                 float).ravel()
     keep = np.isfinite(errors)
     run_ids = np.asarray(rows["run_ids"], dtype=object)[keep]
+    event_ids = np.asarray(rows["event_ids"], np.int64)[keep]
     return {"resolution": (float(np.sqrt(np.mean(errors[keep] ** 2)))
                            if keep.any() else None),
             "ci95": (cluster_bootstrap(errors[keep], run_ids, statistic=rms)["ci95"]
                      if keep.any() else None),
             "r2": _r2_from_predictions(prediction, test.y),
-            "n_events": int(keep.sum()), "errors": errors}
+            "n_events": int(keep.sum()), "errors": errors[keep],
+            "run_ids": run_ids, "event_ids": event_ids}
 
 
 def _mean_difference(comparison) -> float | None:
@@ -3845,12 +3850,16 @@ def _feature_variant(name, standard_rows, invariant_rows, calibrated_rows=None) 
            "invariant": block(invariant_rows["train"], invariant_rows["test"],
                               invariant_rows["drift"]), "name": name}
     if calibrated_rows is not None:
+        # the calibrated raw variant is evaluated at D only; keep the same
+        # {"metric": {"D": block}} shape _compare_at_d expects (review B10.3)
         train = standard_rows["train"]
         out["calibrated"] = {
-            "vertex": feature_probe_metrics(train, calibrated_rows, kind="vertex"),
-            "log_yield": feature_probe_metrics(train, calibrated_rows,
-                                               kind="log_yield"),
-            "energy": feature_probe_metrics(train, calibrated_rows, kind="energy")}
+            "vertex": {"D": feature_probe_metrics(train, calibrated_rows,
+                                                  kind="vertex")},
+            "log_yield": {"D": feature_probe_metrics(train, calibrated_rows,
+                                                     kind="log_yield")},
+            "energy": {"D": feature_probe_metrics(train, calibrated_rows,
+                                                  kind="energy")}}
     return out
 
 
@@ -4250,6 +4259,21 @@ def _align_metric_pair(left, right):
     return (left["errors"], right["errors"][order], left["run_ids"])
 
 
+def _price_class(rho, ci95) -> str:
+    """§7.2 X3-1 fixed price class from rho_E and its run-cluster CI."""
+    if rho is None:
+        return "not available"
+    excludes_zero = bool(ci95 is not None
+                         and (float(ci95[0]) > 0.0 or float(ci95[1]) < 0.0))
+    if rho >= _X3_PRICE_HIGH:
+        if ci95 is None:
+            return "not available (CI missing)"
+        return "price present" if excludes_zero else "unclear"
+    if rho <= _X3_PRICE_NONE:
+        return "no price"
+    return "unclear"
+
+
 def _ratio_and_ci(left, right) -> dict:
     """res_right / res_left and the paired run-cluster CI of the RMS difference."""
     if left is None or right is None:
@@ -4301,6 +4325,12 @@ def _variant_reading(entry, standard, invariant, *, leace=None) -> dict:
         right = _metric_rows(invariant, metric, "N")
         ratio = _ratio_and_ci(left, right)
         ratio["rho_E"] = ratio.get("rho")
+        ci = ratio.get("ci95")
+        ratio["ci_excludes_zero"] = bool(ci is not None
+                                         and (float(ci[0]) > 0.0
+                                              or float(ci[1]) < 0.0))
+        ratio["class"] = _price_class(ratio["rho_E"], ci)
+        ratio["gain_specific"] = None
         result["X3-1"][metric] = ratio
     v_std = _metric_rows(standard, "vertex", "N")
     v_inv = _metric_rows(invariant, "vertex", "N")
@@ -4311,8 +4341,22 @@ def _variant_reading(entry, standard, invariant, *, leace=None) -> dict:
     calibrated = (entry or {}).get("calibrated")
     result["X3-4"] = _x3_dominance(calibrated, invariant)
     if leace and leace.get("controls"):
-        result["X3-1-gain_specific"] = _gain_specific(
-            result["X3-1"], standard, invariant, leace["controls"])
+        gain = _gain_specific(result["X3-1"], standard, invariant,
+                              leace["controls"])
+        result["X3-1-gain_specific"] = gain
+        # carry the per-control ratios and the gain-specific flag in X3-1 itself
+        for metric in ("log_yield", "energy"):
+            entry = result["X3-1"].get(metric) or {}
+            block = gain.get(metric) or {}
+            entry["rho_controls"] = block.get("rho_controls")
+            entry["rho_control_q95"] = block.get("rho_control_q95")
+            entry["gain_specific"] = block.get("gain_specific")
+            entry["gain_specific_conditions"] = {
+                "control_q95": block.get("condition_q95"),
+                "ci_excludes_zero": block.get("condition_ci_excludes_zero")}
+    result["X3-1"]["classes"] = {
+        metric: (result["X3-1"].get(metric) or {}).get("class")
+        for metric in ("log_yield", "energy")}
     return result
 
 
@@ -4332,8 +4376,10 @@ def _compare_at_d(calibrated, invariant, metric) -> dict:
         bootstrap = paired_cluster_bootstrap(left_errors, right_errors, run_ids,
                                              statistic=rms)
         out["ci95"] = bootstrap["ci95"]
-        out["calibration_better"] = bool(bootstrap["ci95"][1] < 0)
-        out["invariance_better"] = bool(bootstrap["ci95"][0] > 0)
+        # difference = res_invariant - res_calibrated: positive means calibration
+        # gives the lower (better) resolution
+        out["calibration_better"] = bool(bootstrap["ci95"][0] > 0)
+        out["invariance_better"] = bool(bootstrap["ci95"][1] < 0)
     return out
 
 
@@ -4407,18 +4453,23 @@ def _gain_specific(x3_1, standard, invariant, controls) -> dict:
                 control_errors.append(aligned[1])
         q95 = float(np.quantile(ratios, 0.95)) if ratios else None
         condition_q95 = bool(q95 is not None and entry["rho_E"] > q95)
-        condition_ci = False
-        ci95 = None
-        if control_errors and aligned_leace is not None:
-            mean_control = np.mean(np.stack(control_errors, axis=0), axis=0)
-            bootstrap = paired_cluster_bootstrap(aligned_leace[0], mean_control,
-                                                 aligned_leace[1], statistic=rms)
-            ci95 = bootstrap["ci95"]
-            condition_ci = bool(bootstrap["ci95"][0] > 0.0
-                                or bootstrap["ci95"][1] < 0.0)
-        out[metric] = {"n_controls": len(ratios), "rho_control_q95": q95,
-                       "rho_controls": ratios, "ci95": ci95,
-                       "condition_q95": condition_q95,
+        if not control_errors or aligned_leace is None:
+            out[metric] = {"status": "not available (CI missing)",
+                           "n_controls": len(ratios), "rho_control_q95": q95,
+                           "rho_controls": ratios, "ci95": None,
+                           "condition_q95": condition_q95,
+                           "condition_ci_excludes_zero": None,
+                           "gain_specific": None}
+            continue
+        mean_control = np.mean(np.stack(control_errors, axis=0), axis=0)
+        bootstrap = paired_cluster_bootstrap(aligned_leace[0], mean_control,
+                                             aligned_leace[1], statistic=rms)
+        ci95 = bootstrap["ci95"]
+        condition_ci = bool(bootstrap["ci95"][0] > 0.0
+                            or bootstrap["ci95"][1] < 0.0)
+        out[metric] = {"status": "evaluated", "n_controls": len(ratios),
+                       "rho_control_q95": q95, "rho_controls": ratios,
+                       "ci95": ci95, "condition_q95": condition_q95,
                        "condition_ci_excludes_zero": condition_ci,
                        "gain_specific": bool(condition_q95 and condition_ci)}
     return out
@@ -4847,12 +4898,20 @@ def _report_readme(readings, reproduction, figures) -> str:
                      f"{(block.get('classes') or {}).get('X2-c', {}).get('class')} |")
     lines += ["", "## X3 — the price of invariance", ""]
     x3 = (readings.get("x3") or {}).get("variants") or {}
-    lines += ["| variant | ρ_E (log-yield) | ρ_E (energy) | Δv (m) |",
-              "|---|---|---|---|"]
+    lines += ["| variant | ρ_E (log-yield) | class (log-yield) | ρ_E (energy) | "
+              "class (energy) | gain-specific | Δv (m) |",
+              "|---|---|---|---|---|---|---|"]
     for name, variant in sorted(x3.items()):
         price = variant.get("X3-1") or {}
-        lines.append(f"| {name} | {_fmt((price.get('log_yield') or {}).get('rho_E'))} | "
-                     f"{_fmt((price.get('energy') or {}).get('rho_E'))} | "
+        yield_entry = price.get("log_yield") or {}
+        energy_entry = price.get("energy") or {}
+        gain = (yield_entry.get("gain_specific")
+                if yield_entry.get("gain_specific") is not None
+                else energy_entry.get("gain_specific"))
+        lines.append(f"| {name} | {_fmt(yield_entry.get('rho_E'))} | "
+                     f"{yield_entry.get('class')} | "
+                     f"{_fmt(energy_entry.get('rho_E'))} | "
+                     f"{energy_entry.get('class')} | {_fmt(gain)} | "
                      f"{_fmt((variant.get('X3-2') or {}).get('difference_m'))} |")
     fisher = (readings.get("x3") or {}).get("X3-5") or {}
     if fisher:
