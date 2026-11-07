@@ -1702,6 +1702,13 @@ def test_merge_standard_rows_aligns_every_column_for_domain_masks():
 # ==========================================================================
 # Addendum 2026-11-07 focused tests (D1, D2, D3, D4, gates, budget, CLI)
 # ==========================================================================
+def _dummy_entries(**kwargs):
+    """A deterministic passing addendum entries preflight for tests."""
+    return {"pass": True, "free_entries": 40000, "projected_after": 39800,
+            "floor": 30000, "projection": {"addendum": 200, "floor": 30000},
+            "basis": "the addendum's own projected writes only"}
+
+
 def _synthetic_equivariance(*, runs=10, per_run=5, dims=4, modules=6, seed=0,
                             constant_column=True):
     """Noiseless Δz = u Aᵀ on run-grouped rows, with an optional constant column."""
@@ -1873,6 +1880,8 @@ def test_addendum_selfcheck_stop_rule_and_output_contract(tmp_path, monkeypatch)
                         lambda mode, **kwargs: {"status": "granted"})
     monkeypatch.setattr(rp, "_addendum_budget_for", lambda mode: {"pass": True})
     monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
     monkeypatch.setattr(rp, "open_probe_sets",
                         lambda *args, **kwargs: {"train": object(), "test": object()})
     monkeypatch.setattr(rp, "build_conditions",
@@ -1896,6 +1905,7 @@ def test_addendum_selfcheck_stop_rule_and_output_contract(tmp_path, monkeypatch)
     ok = rp.addendum_selfcheck(config={}, gen={}, geometry=None, root=tmp_path)
     assert ok["identity_pass"] is True and ok["stop"] is None
     assert ok["n_models"] == len(rp.CORE_MODELS)
+    assert ok["entries"]["pass"] is True
     assert ok["budget"]["recorded"] is True
     assert {"gpu", "cpu"} <= set(ok["hours"])
     state["pass"] = False
@@ -2356,6 +2366,9 @@ def test_addendum_report_writes_every_d4_item_and_the_superseded_table(
                         lambda mode, **kwargs: {"status": "granted"})
     monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
     monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "ext_shortcut_absent")
     result = rp.addendum_report(root=root, ext_root=ext,
                                 results_dir=root / rp.RESULTS_DIR,
                                 log=lambda *a, **k: None)
@@ -2433,6 +2446,9 @@ def test_addendum_report_never_invents_a_missing_value(tmp_path, monkeypatch):
                         lambda mode, **kwargs: {"status": "granted"})
     monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
     monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "ext_shortcut_absent")
     result = rp.addendum_report(root=root, ext_root=ext,
                                 results_dir=tmp_path / "results",
                                 log=lambda *a, **k: None)
@@ -2452,6 +2468,9 @@ def test_addendum_report_uses_the_7_nov_flat_keys_for_backward_compatibility(
                         lambda mode, **kwargs: {"status": "granted"})
     monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
     monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "ext_shortcut_absent")
     result = rp.addendum_report(root=tmp_path / "repo", ext_root=ext,
                                 results_dir=tmp_path / "results",
                                 log=lambda *a, **k: None)
@@ -2508,6 +2527,10 @@ def test_addendum_init9000_budget_refusal_uses_the_addendum_cap(tmp_path, monkey
     monkeypatch.setattr(rp, "ADDENDUM_JOBS", ledger)
     monkeypatch.setattr(rp, "assert_authorised",
                         lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "addendum_s1_check_or_stop",
+                        lambda **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
     assert rp._ADDENDUM_GPU_PROJECTION["addendum-init9000"] == 0.07
     with pytest.raises(SystemExit) as caught:
         rp.assert_addendum_budget("gpu", 0.07, part="A")
@@ -2528,6 +2551,11 @@ def test_addendum_init9000_already_cached_short_circuits(tmp_path, monkeypatch):
                         lambda mode, **kwargs: {"status": "granted"})
     monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
     monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "addendum_s1_check_or_stop",
+                        lambda **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "ext_shortcut_absent")
 
     def boom(*args, **kwargs):
         raise AssertionError("the encode path ran despite a verified cache")
@@ -2540,6 +2568,8 @@ def test_addendum_init9000_already_cached_short_circuits(tmp_path, monkeypatch):
                                    root=tmp_path)
     assert payload["status"] == "already_cached"
     assert payload["complete"] is True and payload["cache_verified"] is True
+    assert payload["s1"]["pass"] is True
+    assert payload["entries"]["pass"] is True
     assert payload["budget"]["kind"] == "gpu"
     assert payload["budget"]["recorded"] is True
     assert payload["budget"]["hours"] == pytest.approx(0.0, abs=1e-4)
@@ -2557,6 +2587,11 @@ def test_addendum_init9000_setup_path_records_the_projection_and_does_not_encode
     monkeypatch.setattr(rp, "stream_condition_embeddings", boom)
     monkeypatch.setattr(rp, "stream_condition_particles", boom)
     monkeypatch.setattr(rp.ef, "build_item_arm", boom)
+    monkeypatch.setattr(rp, "addendum_s1_check",
+                        lambda root=None, **kwargs: {"pass": True,
+                                                     "id": "S1 (addendum)"})
+    monkeypatch.setattr(rp, "addendum_entries_preflight",
+                        lambda **kwargs: _dummy_entries())
     probes = {"s005": {"train": tiny["s005"]["dataset"],
                        "test": tiny["s005"]["dataset"]},
               "s030": {"train": tiny["s030"]["dataset"],
@@ -2571,3 +2606,283 @@ def test_addendum_init9000_setup_path_records_the_projection_and_does_not_encode
     assert "addendum-init9000" in plan["modes"]
     assert plan["gpu_cap_hours"] == 0.35 and plan["cpu_cap_hours"] == 3.0
     assert not (tmp_path / "ext" / "addendum" / "init9000").exists()
+
+
+# ==========================================================================
+# Addendum review A1–A4 fixes (round after the BLOCK at 923276a)
+# ==========================================================================
+def _write_7nov_results(root, x1, x2, x3):
+    """The 7 Nov results payloads that addendum_report preserves and updates."""
+    target = root / rp.RESULTS_DIR
+    rp.write_json(target / "x1.json", x1)
+    rp.write_json(target / "x2.json", x2)
+    rp.write_json(target / "x3.json", x3)
+    rp.write_json(target / "readings.json", {
+        "registered": False, "extension": rp.EXTENSION,
+        "x1": {"complete": True, **(x1.get("readings") or {})},
+        "x2": {"complete": True, **(x2.get("readings") or {})},
+        "x3": {"complete": True, **(x3.get("readings") or {})},
+        "reproduction": True})
+    return target
+
+
+# ---------------------------------------------------------------- A1 (D1→R-1)
+def test_addendum_report_updates_results_in_place_and_preserves_7nov(
+        tmp_path, geometry, monkeypatch):
+    ext, label, x1, x2, x3, fisher = _d4_fixtures(tmp_path, geometry)
+    _write_d4_stage(ext, x1, x2, x3, fisher)
+    _write_d4_addendum(ext, label)
+    root = tmp_path / "repo"
+    target = _write_7nov_results(root, x1, x2, x3)
+    original_x2 = (target / "x2.json").read_bytes()
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "ext_shortcut_absent")
+    result = rp.addendum_report(root=root, ext_root=ext, results_dir=target,
+                                log=lambda *a, **k: None)
+    # A1: the corrected rho_LR reaches the pilot payload that Part B R-1 reads
+    updated = rp.read_json(target / "x2.json")
+    assert updated["models"][label]["X2-c"]["rho_LR"] == pytest.approx(0.6)
+    assert updated["models"][label]["rho_lr"] == pytest.approx(0.6)
+    assert updated["models"][label]["X2-f"]["max_singular_value"] == \
+        pytest.approx(3.5)
+    readings = rp.read_json(target / "readings.json")
+    seed = readings["x2"]["families"]["mae_within_trigger"]["seeds"]["9000"]
+    assert seed["X2-c"] == pytest.approx(0.6)
+    assert readings["x3"]["variants"]["raw"]["X3-1"]["log_yield"]["rho_E"] == \
+        pytest.approx(3.5)
+    # A1: the 7 Nov originals are preserved write-once with sha256 sidecars
+    preserved = ext / "addendum" / "preserved_7nov"
+    assert (preserved / "x2.json").read_bytes() == original_x2
+    assert rp.read_json(preserved / "x2.json")["models"][label]["X2-c"][
+        "rho_LR"] == pytest.approx(-0.5)
+    for name in ("x1", "x2", "x3", "readings"):
+        assert (preserved / f"{name}.json").is_file()
+        sidecar = preserved / f"{name}.json.sha256"
+        assert sidecar.is_file()
+        assert sidecar.read_text().strip() == lr.sha256_file(
+            preserved / f"{name}.json")
+    assert set(result["results_updated"]) == {"x1", "x2", "x3", "readings"}
+    # A1/A2: the superseded row's old value comes from the preserved copy
+    summary = rp.read_json(Path(result["summary"]))
+    row = [item for item in summary["superseded"]
+           if item["item"] == "rho_LR" and item["scope"] == label][0]
+    assert row["old"] == pytest.approx(-0.5) and row["new"] == pytest.approx(0.6)
+    # a second run does not overwrite the preserved copies
+    before = {name: (preserved / f"{name}.json").read_bytes()
+              for name in ("x1", "x2", "x3", "readings")}
+    rp.addendum_report(root=root, ext_root=ext, results_dir=target,
+                       log=lambda *a, **k: None)
+    for name, payload in before.items():
+        assert (preserved / f"{name}.json").read_bytes() == payload
+
+
+# ---------------------------------------------------------------------- A2
+def test_superseded_r1_row_is_populated_from_part_b_payloads(
+        tmp_path, geometry, monkeypatch):
+    ext, label, x1, x2, x3, fisher = _d4_fixtures(tmp_path, geometry)
+    _write_d4_stage(ext, x1, x2, x3, fisher)
+    _write_d4_addendum(ext, label)
+    root = tmp_path / "repo"
+    target = _write_7nov_results(root, x1, x2, x3)
+    shortcut = root / "results/jepa/20261107_shortcut"
+    rp.write_json(shortcut / "readings.json", {"r1": {"reading": {
+        "verdict": "contradicts", "generative_median": {"r2_eq": 0.2}}}})
+    new_reading = {"verdict": "supports", "generative_median": {"r2_eq": 0.55}}
+    part_b = tmp_path / "ext_shortcut"
+    rp.write_json(part_b / "r1_addendum.json",
+                  {"status": "complete", "reading": new_reading, "table": {}})
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", part_b)
+    result = rp.addendum_report(root=root, ext_root=ext, results_dir=target,
+                                log=lambda *a, **k: None)
+    addendum = rp.read_json(Path(result["addendum_json"]))
+    row = [item for item in addendum["superseded"]
+           if item["item"] == "R-1 reading"][0]
+    assert row["status"] == "superseded"
+    assert row["old"]["verdict"] == "contradicts"
+    assert row["new"]["verdict"] == "supports"
+    assert addendum["reruns"]["R-1"]["status"] == "complete"
+    # (b) the Part B report's results shape: items.R1_rerun
+    rp.write_json(shortcut / "ADDENDUM_2026-11-07.json",
+                  {"items": {"R1_rerun": {"verdict": "supports",
+                                          "generative_median": {"r2_eq": 0.55}}}})
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "absent")
+    again = rp.addendum_report(root=root, ext_root=ext, results_dir=target,
+                               log=lambda *a, **k: None)
+    addendum = rp.read_json(Path(again["addendum_json"]))
+    row = [item for item in addendum["superseded"]
+           if item["item"] == "R-1 reading"][0]
+    assert row["new"]["verdict"] == "supports"
+    assert row["old"]["verdict"] == "contradicts"      # preserved, not lost
+
+
+# ---------------------------------------------------------------------- A3
+def test_addendum_s1_pass_at_current_ledger_and_stop_at_159_7(tmp_path):
+    passing = {"v4_caps": {"E2_lucid_l40s_deepthought2": {
+        "charged_gpu_hours": 129.7461}}}
+    ok = rp.addendum_s1_check(tmp_path, ledger=passing)
+    assert ok["pass"] is True
+    assert ok["sum_hours"] == pytest.approx(130.0961)
+    assert ok["addendum_cap_hours"] == 0.35
+    assert ok["ceiling_hours"] == 160.0
+    assert "not consulted" in ok["rule"]
+    failing = {"v4_caps": {"E2_lucid_l40s_deepthought2": {
+        "charged_gpu_hours": 159.7}}}
+    assert rp.addendum_s1_check(tmp_path, ledger=failing)["pass"] is False
+    with pytest.raises(SystemExit) as caught:
+        rp.addendum_s1_check_or_stop(tmp_path, ledger=failing)
+    assert caught.value.code == 2
+
+
+def test_addendum_gpu_modes_stop_on_s1_before_work(tmp_path, monkeypatch):
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "addendum_s1_check",
+                        lambda root=None, **kwargs: {
+                            "pass": False, "ledger_charged_gpu_hours": 159.7,
+                            "addendum_cap_hours": 0.35, "sum_hours": 160.05,
+                            "ceiling_hours": 160.0})
+    boom = lambda *args, **kwargs: (_ for _ in ()).throw(
+        AssertionError("work ran before the addendum S1 STOP"))
+    monkeypatch.setattr(rp, "part_a_inventory", boom)
+    monkeypatch.setattr(rp, "open_probe_sets", boom)
+    for call in (
+            lambda: rp.addendum_init9000(config={}, gen={}, arms_config={},
+                                         geometry=None, ext_root=tmp_path / "ext",
+                                         root=tmp_path),
+            lambda: rp.addendum_x2e(config={}, gen={}, arms_config={},
+                                    geometry=None, ext_root=tmp_path / "ext",
+                                    root=tmp_path)):
+        with pytest.raises(SystemExit) as caught:
+            call()
+        assert caught.value.code == 2
+
+
+# ---------------------------------------------------------------------- A4
+def test_addendum_entries_preflight_revised_basis_pass_and_fail(capsys):
+    ok = rp.addendum_entries_preflight(free_entries=35770)
+    assert ok["pass"] is True
+    assert ok["free_entries"] == 35770 and ok["projected_after"] == 35570
+    assert ok["projection"] == {"addendum": 200, "floor": 30000}
+    assert "own projected writes" in ok["basis"]
+    assert rp.ADDENDUM_ENTRIES_PROJECTION == 200
+    assert rp.addendum_entries_preflight(free_entries=30200)["pass"] is True
+    assert rp.addendum_entries_preflight(free_entries=30050)["pass"] is False
+    assert rp.addendum_entries_preflight(free_entries=29999)["pass"] is False
+    with pytest.raises(SystemExit) as caught:
+        rp.addendum_entries_preflight_or_stop(free_entries=30050)
+    assert caught.value.code == 2
+    assert "not_run (entries)" in capsys.readouterr().err
+    unavailable = rp.addendum_entries_preflight(guard_json="/nonexistent/guard.json")
+    assert unavailable["pass"] is False and "error" in unavailable
+
+
+def test_every_addendum_mode_checks_entries_before_work(tmp_path, monkeypatch):
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "addendum_s1_check_or_stop",
+                        lambda **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+
+    def stop(**kwargs):
+        raise SystemExit(2)
+
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop", stop)
+    calls = (
+        lambda: rp.addendum_selfcheck(config={}, gen={}, geometry=None,
+                                      root=tmp_path, ext_root=tmp_path / "ext"),
+        lambda: rp.addendum_x2(config={}, gen={}, geometry=None, root=tmp_path,
+                               ext_root=tmp_path / "ext"),
+        lambda: rp.addendum_x2e(config={}, gen={}, arms_config={}, geometry=None,
+                                root=tmp_path, ext_root=tmp_path / "ext"),
+        lambda: rp.addendum_x3(config={}, gen={}, arms_config={}, geometry=None,
+                               root=tmp_path, ext_root=tmp_path / "ext"),
+        lambda: rp.addendum_report(root=tmp_path, ext_root=tmp_path / "ext",
+                                   results_dir=tmp_path / "results"),
+        lambda: rp.addendum_init9000(config={}, gen={}, arms_config={},
+                                     geometry=None, root=tmp_path,
+                                     ext_root=tmp_path / "ext"))
+    for call in calls:
+        with pytest.raises(SystemExit) as caught:
+            call()
+        assert caught.value.code == 2
+
+
+def test_dry_run_plan_reports_the_addendum_s1_and_entries_basis(
+        tiny, tmp_path, monkeypatch):
+    monkeypatch.setattr(rp, "addendum_s1_check",
+                        lambda root=None, **kwargs: {"pass": True,
+                                                     "id": "S1 (addendum)"})
+    monkeypatch.setattr(rp, "addendum_entries_preflight",
+                        lambda **kwargs: _dummy_entries())
+    geometry = tiny["geometry"]
+    config = lr.load_run_config(ROOT / rp.CONFIG_REL)
+    arms_config = la.load_config(ROOT / rp.ARMS_REL)
+    probes = {"s005": {"train": tiny["s005"]["dataset"],
+                       "test": tiny["s005"]["dataset"]},
+              "s030": {"train": tiny["s030"]["dataset"],
+                       "test": tiny["s030"]["dataset"]}}
+    setup = rp._mode_setup_objects(
+        "addendum-init9000", root=tmp_path / "repo", config=config, gen=GEN,
+        arms_config=arms_config, geometry=geometry, data_root=tmp_path / "data",
+        ext_root=tmp_path / "ext", inventory=_fake_inventory(), probes=probes,
+        particle_truth={}, log=lambda *a, **k: None)
+    plan = setup["plan"]["addendum"]
+    assert plan["s1"]["pass"] is True
+    assert plan["addendum_entries"]["pass"] is True
+    assert plan["addendum_entries"]["projection"]["addendum"] == 200
+    assert "basis" in plan["addendum_entries"]
+
+
+# ------------------------------------- nonblocking N8 + post-write quarantine
+def test_d4_markdown_carries_the_x2f_singular_values(tmp_path, geometry,
+                                                     monkeypatch):
+    ext, label, x1, x2, x3, fisher = _d4_fixtures(tmp_path, geometry)
+    _write_d4_stage(ext, x1, x2, x3, fisher)
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "PART_B_EXT_ROOT", tmp_path / "ext_shortcut_absent")
+    result = rp.addendum_report(root=tmp_path / "repo", ext_root=ext,
+                                results_dir=tmp_path / "results",
+                                log=lambda *a, **k: None)
+    markdown = (Path(result["path"]) / "READINGS_SUMMARY.md").read_text()
+    assert "singular values of W Â_raw" in markdown
+    summary = rp.read_json(Path(result["summary"]))
+    assert summary["x2"]["mae_within_trigger"]["9000"]["X2-f"][
+        "singular_values"] is not None
+
+
+def test_addendum_cli_writes_then_quarantines_on_a_closure_violation(
+        tmp_path, monkeypatch):
+    path = tmp_path / "payload.json"
+    payload = {"complete": True, "closure": {"pass": True}, "mode": "test"}
+    monkeypatch.setattr(repair_cli.rep, "import_closure",
+                        lambda root=None: {"pass": False,
+                                           "violations": [{"path": "x.py"}]})
+    code = repair_cli._finalise_addendum(payload, path, tmp_path, 0)
+    assert code == 2
+    written = json.loads(path.read_text())
+    assert written["quarantined"] is True
+    assert written["complete"] is False
+    assert written["closure"]["pass"] is False
+    # a clean closure keeps the payload and the mode's own exit code
+    payload_ok = {"complete": True, "closure": {"pass": True}, "mode": "test"}
+    path_ok = tmp_path / "payload_ok.json"
+    monkeypatch.setattr(repair_cli.rep, "import_closure",
+                        lambda root=None: {"pass": True, "violations": []})
+    assert repair_cli._finalise_addendum(payload_ok, path_ok, tmp_path, 0) == 0
+    assert json.loads(path_ok.read_text()).get("quarantined") is None

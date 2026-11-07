@@ -1336,3 +1336,231 @@ def test_addendum_modes_do_not_consult_the_closed_part_b_caps():
     stripped = helper.replace("ADDENDUM_GPU_CAP_H", "").replace(
         "ADDENDUM_CPU_CAP_H", "")
     assert "GPU_CAP_H" not in stripped and "CPU_CAP_H" not in stripped
+
+
+# ============ addendum A2 (review round 7): R-1 hand-off and 7 Nov preservation
+def test_results_r1_handoff_has_the_documented_stable_keys(tmp_path):
+    reading = {"verdict": "mixed", "generative_median": {"rho_lr": -0.42},
+               "frozen_target": {"rho_lr": {"9000": -0.12, "9001": -0.13}}}
+    r1 = {"registered": False, "status": "complete", "results_dir": "/ceph/pilot",
+          "reading": reading, "table": {}}
+    written = xs.write_results_r1(tmp_path, r1, results_dir=tmp_path / "res")
+    target = tmp_path / "res" / xs.R1_RESULTS_FILE
+    assert written["path"] == str(target) and target.is_file()
+    payload = json.loads(target.read_text())
+    assert payload["reading"] == reading
+    assert payload["r1"] == reading and payload["R-1"] == reading
+    assert payload["status"] == "complete"
+    assert payload["addendum"]["sha256"] == xs.ADDENDUM_SHA256
+    assert payload["stable_path"] == str(target)
+    assert xs.results_r1_path(results_dir=tmp_path / "res") == target
+    assert xs.results_r1_path(tmp_path) == (
+        tmp_path / xs.RESULTS_DIR / xs.R1_RESULTS_FILE)
+
+
+def test_addendum_report_preserves_the_7nov_readings_and_orders_the_handoff(
+        tmp_path, monkeypatch):
+    """A2: stable results r1 hand-off; write-once preserved 7 Nov old value."""
+    ext, results = _write_addendum_inputs(tmp_path)
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    monkeypatch.setattr(xs, "ADDENDUM_JOBS", tmp_path / "addendum_jobs.jsonl")
+    preserved = ext / xs.PRESERVED_7NOV_DIR / xs.PRESERVED_7NOV_FILE
+    assert not preserved.exists()
+
+    first = xs.assemble_addendum_report(
+        root=ROOT, data_dir=ext, results_dir=results, ext_root=ext,
+        budget={"pass": True}, log=_noop)
+    assert first["preserved_7nov"]["written"] is True
+    assert preserved.is_file()
+    sidecar = preserved.with_name(preserved.name + ".sha256")
+    assert sidecar.is_file()
+    preserved_sha = lr.sha256_file(preserved)
+    assert sidecar.read_text().split()[0] == preserved_sha
+    preserved_payload = json.loads(preserved.read_text())
+    # the preserved copy carries the OLD 7 Nov R-1 rho_LR
+    assert preserved_payload["r1"]["reading"]["generative_median"]["rho_lr"] == \
+        pytest.approx(-0.67786)
+    # the stable results hand-off carries the corrected reading at both keys
+    handoff = results / xs.R1_RESULTS_FILE
+    assert handoff.is_file()
+    handoff_payload = json.loads(handoff.read_text())
+    for key in ("reading", "r1", "R-1"):
+        assert handoff_payload[key]["generative_median"]["rho_lr"] == pytest.approx(-0.42)
+    # ADDENDUM_2026-11-07.json items.R1_rerun carries the new reading
+    addendum = json.loads((results / xs.ADDENDUM_RESULTS_FILE).read_text())
+    rerun = addendum["items"]["R1_rerun"]
+    assert rerun["reading"]["generative_median"]["rho_lr"] == pytest.approx(-0.42)
+    assert rerun["stable_results_path"] == str(handoff)
+    assert rerun["stable_results_sha256"] == lr.sha256_file(handoff)
+    # the superseded table reports old -> new
+    readings = json.loads((results / "readings.json").read_text())
+    rho = next(row for row in readings["addendum"]["superseded"]
+               if row["quantity"] == "R-1 generative-median ρ_LR")
+    assert rho["superseded_7_nov"] == pytest.approx(-0.67786)
+    assert rho["new_value"] == pytest.approx(-0.42)
+    assert readings["addendum"]["seven_nov_preserved"] is True
+    assert readings["addendum"]["seven_nov_source"] == str(preserved)
+
+    # a second report run must not touch the preserved write-once copy, and the
+    # old value must still be reported after the in-place readings rewrite
+    second = xs.assemble_addendum_report(
+        root=ROOT, data_dir=ext, results_dir=results, ext_root=ext,
+        budget={"pass": True}, log=_noop)
+    assert second["preserved_7nov"]["written"] is False
+    assert lr.sha256_file(preserved) == preserved_sha
+    assert json.loads(preserved.read_text()) == preserved_payload
+    readings2 = json.loads((results / "readings.json").read_text())
+    rho2 = next(row for row in readings2["addendum"]["superseded"]
+                if row["quantity"] == "R-1 generative-median ρ_LR")
+    assert rho2["superseded_7_nov"] == pytest.approx(-0.67786)
+    assert readings2["r1"]["reading"]["generative_median"]["rho_lr"] == pytest.approx(-0.42)
+
+
+def test_preserved_7nov_corruption_is_refused(tmp_path, monkeypatch):
+    ext, results = _write_addendum_inputs(tmp_path)
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    target = ext / xs.PRESERVED_7NOV_DIR / xs.PRESERVED_7NOV_FILE
+    target.parent.mkdir(parents=True)
+    target.write_text(json.dumps({"r1": {"reading": {"x": 1}}}))
+    sidecar = target.with_name(target.name + ".sha256")
+    sidecar.write_text("0" * 64 + "  readings.json\n")
+    with pytest.raises(RuntimeError):
+        xs.preserve_7nov_readings(results, ext_root=ext)
+
+
+# ============== addendum A4 (review round 7): the addendum-only entries basis
+def test_addendum_entries_preflight_pass_and_fail(capsys):
+    ok = xs.addendum_entries_preflight(free_entries=40000)
+    assert ok["pass"] is True
+    assert ok["free_before"] == 40000 and ok["projected_after"] == 39800
+    assert ok["projected_writes"] == xs.ADDENDUM_ENTRIES_PROJECTED == 200
+    assert ok["floor"] == 30000 and ok["part_caps_consulted"] is False
+    assert "no clone/suite" in ok["projected_writes_basis"]
+    # the floor applies AFTER the projected addendum writes
+    assert xs.addendum_entries_preflight(free_entries=30200)["pass"] is True
+    failing = xs.addendum_entries_preflight(free_entries=30199)
+    assert failing["pass"] is False
+    assert failing["projected_after"] == 29999
+    assert xs.addendum_entries_preflight(free_entries=30000)["pass"] is False
+    with pytest.raises(SystemExit) as caught:
+        xs.assert_addendum_entries_preflight(free_entries=30000)
+    assert caught.value.code == 2
+    assert "not_run (entries)" in capsys.readouterr().err
+
+
+def test_addendum_entries_snapshot_prefers_live_ceph_quota_xattrs(tmp_path,
+                                                                  monkeypatch):
+    values = {"ceph.quota.max_files": b"500000",
+              "ceph.dir.rfiles": b"392756",
+              "ceph.dir.rsubdirs": b"71474"}
+    monkeypatch.setattr(xs.os, "getxattr", lambda path, name: values[name])
+    snapshot = xs.addendum_entries_snapshot(root=tmp_path)
+    assert snapshot["available"] is True
+    assert snapshot["basis"] == "live CephFS quota xattrs"
+    assert snapshot["free_entries"] == 500000 - 392756 - 71474
+    preflight = xs.addendum_entries_preflight(root=tmp_path)
+    assert preflight["pass"] is True
+    assert preflight["free_before"] == 35770
+    assert preflight["snapshot"]["live"]["free_entries"] == 35770
+
+
+def test_addendum_entries_snapshot_falls_back_to_the_guard_and_fails_closed(
+        tmp_path, monkeypatch):
+    def _no_xattr(path, name):
+        raise OSError(61, "No data available")
+
+    monkeypatch.setattr(xs.os, "getxattr", _no_xattr)
+    guard = tmp_path / "guard.json"
+    guard.write_text(json.dumps({"caps": {"free_entries": 35770}, "level": "OK"}))
+    snapshot = xs.addendum_entries_snapshot(guard_json=guard)
+    assert snapshot["available"] is True
+    assert "guard snapshot" in snapshot["basis"]
+    assert snapshot["free_entries"] == 35770
+    assert xs.addendum_entries_preflight(guard_json=guard)["pass"] is True
+    # no live xattrs and no guard snapshot -> fail closed
+    missing = xs.addendum_entries_preflight(guard_json=tmp_path / "missing.json")
+    assert missing["pass"] is False
+    assert "unavailable" in missing["error"]
+    with pytest.raises(SystemExit) as caught:
+        xs.assert_addendum_entries_preflight(guard_json=tmp_path / "missing.json")
+    assert caught.value.code == 2
+
+
+def test_addendum_entries_preflight_is_called_by_every_addendum_mode_and_dry_run():
+    cli = (ROOT / "scripts" / "jepa_ext_shortcut.py").read_text()
+    assert "addendum_entries_preflight(" in _function_source(cli, "mode_dry_run")
+    for name in ("mode_addendum_evaluate", "mode_addendum_r1",
+                 "mode_addendum_report"):
+        body = _function_source(cli, name)
+        assert "assert_addendum_entries_preflight()" in body, name
+        assert "entries=entries" in body or '"entries": entries' in body, name
+
+
+# ============================ addendum N1 (review round 7): dead block removed
+def test_addendum_superseded_has_no_dead_duplicated_block():
+    source = _function_source(
+        (ROOT / "src" / "jepa_noise" / "ext_shortcut.py").read_text(),
+        "addendum_superseded")
+    assert source.count('_row("R2-a class"') == 1
+    assert source.count('"R2-c per-seed rows"') == 1
+    assert source.count("return rows") == 1
+
+
+def test_addendum_r1_cli_writes_the_ext_and_stable_results_handoffs(tmp_path,
+                                                                   monkeypatch):
+    """A2: the synthetic addendum-r1 CLI run feeds the results superseded table."""
+    import argparse
+    import time as _time
+
+    ext, fixture_results = _write_addendum_inputs(tmp_path)
+    fake_root = tmp_path / "fake-repo"
+    results = fake_root / "results" / "jepa" / "20261107_shortcut"
+    results.parent.mkdir(parents=True)
+    shutil.copytree(fixture_results, results)      # the old 7 Nov results files
+    (ext / "r1_addendum.json").unlink()            # the CLI must write it
+    x1, x2 = _part_a_payloads(0.9, 0.9)
+    for generative in xs.R1_GENERATIVE_CORE:
+        x2["models"][generative]["rho_lr"] = -0.42
+    for seed in (9000, 9001):
+        x2["models"][f"frozen_target{seed}"]["rho_lr"] = -0.12
+    _write_pilot(fake_root / xs.PILOT_RESULTS_DIR, x1, x2)
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    monkeypatch.setattr(xs, "assert_addendum_entries_preflight",
+                        lambda **k: {"pass": True, "free_before": 40000,
+                                     "projected_after": 39800})
+    monkeypatch.setattr(xs, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    args = argparse.Namespace(root=str(fake_root), ext=str(ext),
+                              out=str(ext / "r1_addendum.json"))
+    code = shortcut_cli.mode_addendum_r1(args, _time.time())
+    assert code == 0
+    ext_payload = json.loads((ext / "r1_addendum.json").read_text())
+    assert ext_payload["status"] == "complete"
+    handoff = results / xs.R1_RESULTS_FILE
+    assert handoff.is_file()
+    payload = json.loads(handoff.read_text())
+    for key in ("reading", "r1", "R-1"):
+        assert payload[key]["generative_median"]["rho_lr"] == pytest.approx(-0.42)
+    rows = [json.loads(line) for line in
+            (tmp_path / "ledger.jsonl").read_text().splitlines()]
+    assert len(rows) == 1
+    assert rows[0]["part"] == "B" and rows[0]["mode"] == "addendum-r1"
+    assert rows[0]["kind"] == "cpu"
+    # the report consumes the hand-off and keeps the preserved old value
+    report = xs.assemble_addendum_report(
+        root=fake_root, data_dir=ext, results_dir=results, ext_root=ext,
+        budget={"pass": True}, log=_noop)
+    assert report["results_r1"]["path"] == str(handoff)
+    addendum = json.loads((results / xs.ADDENDUM_RESULTS_FILE).read_text())
+    assert addendum["items"]["R1_rerun"]["reading"]["generative_median"][
+        "rho_lr"] == pytest.approx(-0.42)
+    readings = json.loads((results / "readings.json").read_text())
+    rho = next(row for row in readings["addendum"]["superseded"]
+               if row["quantity"] == "R-1 generative-median ρ_LR")
+    assert rho["superseded_7_nov"] == pytest.approx(-0.67786)
+    assert rho["new_value"] == pytest.approx(-0.42)
+    preserved = ext / xs.PRESERVED_7NOV_DIR / xs.PRESERVED_7NOV_FILE
+    assert preserved.is_file()
+    assert readings["addendum"]["seven_nov_source"] == str(preserved)

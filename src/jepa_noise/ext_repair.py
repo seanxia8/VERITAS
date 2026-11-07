@@ -101,6 +101,9 @@ __all__ = [
     "random_control_basis", "x3", "x3_readings", "mode_setup", "read_json", "write_json",
     "assemble_report", "raw_map", "addendum_hours", "assert_addendum_budget",
     "record_addendum_job", "addendum_selfcheck", "addendum_x2", "addendum_x2e",
+    "addendum_s1_check", "addendum_s1_check_or_stop",
+    "addendum_entries_preflight", "addendum_entries_preflight_or_stop",
+    "ADDENDUM_ENTRIES_PROJECTION", "PART_B_EXT_ROOT",
     "addendum_x3", "addendum_report", "addendum_init9000",
 ]
 
@@ -137,6 +140,16 @@ ADDENDUM_AUTHOR_LINE = "写进weekly report，然后我选A，你写一个小run
 ADDENDUM_GPU_CAP_H = 0.35
 ADDENDUM_CPU_CAP_H = 3.0
 ADDENDUM_JOBS = Path("/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl")
+#: Addendum §6 entries basis: only the addendum's own projected writes count (the
+#: host clone is reused and TMPDIR is off /ceph, so the combined-runbook
+#: clone/suite terms do not apply).
+ADDENDUM_ENTRIES_PROJECTION = 200
+#: Part B's default extension root: its ``addendum-r1`` writes ``r1_addendum.json``
+#: there (A2).  A reader of the R-1 rerun; never written by Part A.
+PART_B_EXT_ROOT = Path("/ceph/dwong/jepa/returns/ext_shortcut_20261107")
+#: Write-once preservation of the 7 Nov results payloads (A1), so the superseded
+#: table never reads a file that has already been overwritten.
+PRESERVED_7NOV = "addendum/preserved_7nov"
 ACCEPTANCE_REL = "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json"
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
                    "lead", "date", "addendum_path", "addendum_sha256")
@@ -1428,6 +1441,43 @@ def s1_projection(root=None, *, part_b_cap_h=PART_B_GPU_CAP_H) -> dict:
             "rule": "L1 ledger + Part A cap + Part B cap <= 160 (front matter §F3)"}
 
 
+def addendum_s1_check(root=None, *, ledger=None) -> dict:
+    """Addendum §6 S1: L40S ledger + the addendum GPU cap (0.35) <= 160.
+
+    Contrast ``s1_projection``: the closed Part A (4.0 h) and Part B (1.5 h) caps
+    are not consulted.  ``ledger`` may be injected for tests; by default the
+    committed ``docs/jepa/RESOURCE_LEDGER.json`` is read.
+    """
+    root = _resolve_root(root)
+    payload = (ledger if ledger is not None
+               else (read_json(root / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}))
+    entry = ((payload.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2") or {})
+    charged = entry.get("charged_gpu_hours")
+    total = (float(charged) + ADDENDUM_GPU_CAP_H) if charged is not None else None
+    return {"registered": False, "extension": EXTENSION, "id": "S1 (addendum)",
+            "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+            "ledger_job": "E2_lucid_l40s_deepthought2",
+            "ledger_charged_gpu_hours": charged,
+            "addendum_cap_hours": ADDENDUM_GPU_CAP_H,
+            "sum_hours": None if total is None else round(total, 4),
+            "ceiling_hours": S1_CEILING_H,
+            "pass": bool(total is not None and total <= S1_CEILING_H),
+            "rule": "L40S ledger + addendum GPU cap (0.35) <= 160 (addendum §6; the "
+                    "closed Part A and Part B caps are not consulted)"}
+
+
+def addendum_s1_check_or_stop(root=None, *, ledger=None) -> dict:
+    """Addendum S1 is a STOP: no addendum GPU job may launch when it is crossed."""
+    result = addendum_s1_check(root, ledger=ledger)
+    if not result["pass"]:
+        print(f"[repair] addendum S1 STOP: L40S ledger "
+              f"{result['ledger_charged_gpu_hours']} + "
+              f"{result['addendum_cap_hours']} = {result['sum_hours']} > "
+              f"{result['ceiling_hours']} h (addendum §6)", file=sys.stderr)
+        raise SystemExit(2)
+    return result
+
+
 def entries_snapshot(guard_json=GUARD_JSON) -> dict:
     return ef.entries_snapshot(guard_json)
 
@@ -1448,6 +1498,54 @@ def entries_preflight(*, guard_json=GUARD_JSON, log=print) -> dict:
     out["gpu_slot_available"] = bool(snapshot.get("guard_level") != "HOLD")
     out["pass"] = bool(out["projection"]["pass"])
     return out
+
+
+def addendum_entries_preflight(*, guard_json=None, free_entries=None,
+                               log=print) -> dict:
+    """Addendum §6 entries preflight on the addendum's own projected writes.
+
+    The combined-runbook clone/suite terms do not apply: the host clone is reused
+    and TMPDIR is off /ceph, so the projection is ``ADDENDUM_ENTRIES_PROJECTION``
+    (200) only.  Free entries come from the live Ceph quota xattrs recorded in the
+    guard snapshot (or may be injected for tests); pass iff free >= 30,000 and
+    free - projected >= 30,000.
+    """
+    guard = GUARD_JSON if guard_json is None else Path(guard_json)
+    if free_entries is not None:
+        snapshot = {"available": True, "free_entries": int(free_entries),
+                    "source": "injected"}
+    else:
+        snapshot = entries_snapshot(guard)
+    out = {"registered": False, "extension": EXTENSION, "id": "entries (addendum)",
+           "basis": "the addendum's own projected writes only (no clone/suite "
+                    "terms: the host clone is reused and TMPDIR is off /ceph)",
+           "projection": {"addendum": int(ADDENDUM_ENTRIES_PROJECTION),
+                          "floor": int(ENTRIES_FLOOR)},
+           "snapshot": snapshot, "pass": False}
+    if not snapshot.get("available"):
+        out["error"] = snapshot.get("error", "no free_entries in the guard status")
+        return out
+    free = int(snapshot["free_entries"])
+    projected = free - int(ADDENDUM_ENTRIES_PROJECTION)
+    out.update({"free_entries": free, "projected_after": projected,
+                "floor": int(ENTRIES_FLOOR),
+                "pass": bool(free >= int(ENTRIES_FLOOR)
+                             and projected >= int(ENTRIES_FLOOR))})
+    return out
+
+
+def addendum_entries_preflight_or_stop(*, guard_json=None, free_entries=None,
+                                       log=print) -> dict:
+    """A failing addendum entries preflight is a STOP: no addendum job starts."""
+    result = addendum_entries_preflight(guard_json=guard_json,
+                                        free_entries=free_entries, log=log)
+    if not result["pass"]:
+        print(f"[repair] addendum entries preflight STOP: free "
+              f"{result.get('free_entries')} minus projected "
+              f"{ADDENDUM_ENTRIES_PROJECTION} = {result.get('projected_after')} "
+              f"< floor {ENTRIES_FLOOR}; not_run (entries)", file=sys.stderr)
+        raise SystemExit(2)
+    return result
 
 
 # ================================================================ X0-a §4
@@ -4862,7 +4960,11 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
                                         data_root=data_root, device="cpu", log=log)
             setup["plan"]["init_arm"] = {"arm": row.get("arm"),
                                          "d_model": int(getattr(arm, "d_model", 0) or 0)}
-        setup["plan"]["entries"] = entries_preflight(log=log)
+        combined_entries = entries_preflight(log=log)
+        combined_entries["role"] = (
+            "descriptive history: the combined-runbook clone/suite basis; it is "
+            "NOT the addendum STOP basis (see plan.addendum.addendum_entries)")
+        setup["plan"]["entries"] = combined_entries
     if mode in ADDENDUM_MODES or mode == "dry-run":
         setup["plan"]["addendum"] = {
             "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
@@ -4872,6 +4974,9 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
             "gpu_projection": dict(_ADDENDUM_GPU_PROJECTION),
             "cpu_projection": dict(_ADDENDUM_CPU_PROJECTION),
             "ledger": str(ADDENDUM_JOBS), "hours": addendum_hours(),
+            "s1": addendum_s1_check(root),
+            "addendum_entries": addendum_entries_preflight(
+                log=lambda *a, **k: None),
             "cap_rule": "addendum caps only; the closed Part A and Part B caps "
                         "are not consulted"}
     setup["plan"]["projection"] = setup["plan"].get("projection") or gpu_projection()
@@ -5283,6 +5388,80 @@ def _addendum_dir(ext_root) -> Path:
     return Path(ext_root) / "addendum"
 
 
+def _preserved_7nov_dir(ext_root) -> Path:
+    return Path(ext_root) / PRESERVED_7NOV
+
+
+def _preserve_7nov_payloads(ext_root, target, *,
+                            names=("x1", "x2", "x3", "readings")) -> dict:
+    """Preserve the 7 Nov results payloads write-once, with sha256 sidecars (A1).
+
+    Runs before ``addendum_report`` updates the results in place, so the superseded
+    table can always read the replaced values from these copies — never from a
+    file that has already been overwritten, and never lost on a second run.
+    """
+    directory = _preserved_7nov_dir(ext_root)
+    out = {}
+    for name in names:
+        dest = directory / f"{name}.json"
+        sidecar = directory / f"{name}.json.sha256"
+        if dest.is_file():
+            digest = (sidecar.read_text().strip() if sidecar.is_file()
+                      else lr.sha256_file(dest))
+            out[name] = {"path": str(dest), "sha256": digest,
+                         "preserved": "existing"}
+            continue
+        source = Path(target) / f"{name}.json"
+        absent_marker = directory / f"{name}.json.absent"
+        if not source.is_file():
+            if not absent_marker.is_file():
+                directory.mkdir(parents=True, exist_ok=True)
+                absent_marker.write_text("7 Nov results payload absent on the "
+                                         "first addendum-report run\n")
+            out[name] = {"status": _ADDENDUM_NOT_RUN,
+                         "reason": "7 Nov results payload absent"}
+            continue
+        if absent_marker.is_file():
+            out[name] = {"status": _ADDENDUM_NOT_RUN,
+                         "reason": "7 Nov results payload absent at preservation "
+                                   "time (later corrected files are not preserved)"}
+            continue
+        directory.mkdir(parents=True, exist_ok=True)
+        staging = dest.with_name(dest.name + ".tmp")
+        staging.write_bytes(source.read_bytes())
+        digest = lr.sha256_file(staging)
+        staging.replace(dest)
+        sidecar.write_text(digest + "\n")
+        out[name] = {"path": str(dest), "sha256": digest, "preserved": "written"}
+    return out
+
+
+def _preserved_7nov_payload(ext_root, name):
+    """A sha-verified preserved 7 Nov payload, or ``None``."""
+    directory = _preserved_7nov_dir(ext_root)
+    path = directory / f"{name}.json"
+    sidecar = directory / f"{name}.json.sha256"
+    if not path.is_file() or not sidecar.is_file():
+        return None
+    try:
+        if lr.sha256_file(path) != sidecar.read_text().strip():
+            return None
+    except OSError:  # pragma: no cover - unreadable preserved copy
+        return None
+    return read_json(path, None)
+
+
+def _git_show_json(root, relative):
+    """``git show HEAD:<relative>`` parsed as JSON, or ``None``."""
+    code, stdout, _ = _git(root, "show", f"HEAD:{relative}")
+    if code != 0 or not str(stdout).strip():
+        return None
+    try:
+        return json.loads(stdout)
+    except ValueError:
+        return None
+
+
 def addendum_hours() -> dict:
     """Booked addendum hours by kind, summed over every part's ledger lines (§6)."""
     total = {"gpu": 0.0, "cpu": 0.0, "jobs": 0, "path": str(ADDENDUM_JOBS)}
@@ -5358,10 +5537,26 @@ def _addendum_budget_for(mode) -> dict:
                                   part="A")
 
 
+def _addendum_closure(mode, root) -> dict:
+    """Non-raising import closure for an addendum mode result.
+
+    The caller writes the payload first and then exits 2 on a violation, so the
+    output is kept and explicitly marked rather than lost inside the library
+    (the runbook's quarantine wording).
+    """
+    closure = dict(import_closure(root))
+    closure["mode"] = str(mode)
+    closure["quarantined"] = not closure["pass"]
+    return closure
+
+
 def _addendum_finish(mode, payload, *, root, started, kind) -> dict:
     payload["budget"] = record_addendum_job(mode, kind, time.time() - started, part="A")
     payload["hours"] = addendum_hours()
-    payload["closure"] = _assert_closure(mode, root)
+    payload["closure"] = _addendum_closure(mode, root)
+    if payload["closure"]["quarantined"]:
+        payload["quarantined"] = True
+        payload["complete"] = False
     payload["wall_seconds"] = round(time.time() - started, 3)
     return payload
 
@@ -5481,6 +5676,7 @@ def addendum_selfcheck(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-selfcheck", root=root, log=log)
+    entries = addendum_entries_preflight_or_stop(log=log)
     budget = _addendum_budget_for("addendum-selfcheck")
     probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
     probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
@@ -5495,7 +5691,8 @@ def addendum_selfcheck(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
     payload = {"registered": False, "extension": EXTENSION,
                "check": "addendum D1 self-check §2", "addendum": ADDENDUM_REL,
                "addendum_sha256": ADDENDUM_SHA256, "gate": {"status": gate["status"]},
-               "budget": budget, "models": {}, "identity_tolerance": float(tolerance),
+               "entries": entries, "budget": budget, "models": {},
+               "identity_tolerance": float(tolerance),
                "stop": None, "flags": [], "unavailable": [], "wall_seconds": None}
     for label in (list(CORE_MODELS) if labels is None else list(labels)):
         cache = embedding_cache(ext_root, label)
@@ -5604,6 +5801,7 @@ def addendum_x2(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-x2", root=root, log=log)
+    entries = addendum_entries_preflight_or_stop(log=log)
     budget = _addendum_budget_for("addendum-x2")
     probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
     probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
@@ -5622,8 +5820,8 @@ def addendum_x2(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
     payload = {"registered": False, "extension": EXTENSION,
                "check": "addendum D1 rerun: X2-c, X2-d latent, X2-f", "addendum":
                ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
-               "gate": {"status": gate["status"]}, "budget": budget,
-               "A_hat_units": "raw (coefficients / scale)",
+               "gate": {"status": gate["status"]}, "entries": entries,
+               "budget": budget, "A_hat_units": "raw (coefficients / scale)",
                "reused": {"X2-d": {"source": True, "raw": True}},
                "models": {}, "latent_estimates": {}, "unavailable": [],
                "wall_seconds": None}
@@ -5666,6 +5864,8 @@ def addendum_x2e(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFA
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-x2e", root=root, log=log)
+    s1 = addendum_s1_check_or_stop(root=root)
+    entries = addendum_entries_preflight_or_stop(log=log)
     budget = _addendum_budget_for("addendum-x2e")
     base = read_json(Path(ext_root) / "x2" / "x2.json", {}) or {}
     extra = read_json(_addendum_dir(ext_root) / "x2_addendum.json", {}) or {}
@@ -5673,7 +5873,8 @@ def addendum_x2e(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFA
     payload = {"registered": False, "extension": EXTENSION,
                "check": "addendum D1 rerun: X2-e EST(latent)", "addendum": ADDENDUM_REL,
                "addendum_sha256": ADDENDUM_SHA256,
-               "gate": {"status": gate["status"]}, "budget": budget,
+               "gate": {"status": gate["status"]}, "s1": s1,
+               "entries": entries, "budget": budget,
                "reused": {"EST(source)": True, "EST(raw)": True},
                "models": {}, "unavailable": [], "wall_seconds": None}
     if not estimates_all:
@@ -5835,6 +6036,7 @@ def addendum_x3(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFAU
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-x3", root=root, log=log)
+    entries = addendum_entries_preflight_or_stop(log=log)
     budget = _addendum_budget_for("addendum-x3")
     inv = part_a_inventory(root, log=log)
     probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
@@ -5845,7 +6047,8 @@ def addendum_x3(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFAU
     payload = {"registered": False, "extension": EXTENSION,
                "check": "addendum D2 rerun: X3-b readings §7.2", "addendum":
                ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
-               "gate": {"status": gate["status"]}, "budget": budget,
+               "gate": {"status": gate["status"]}, "entries": entries,
+               "budget": budget,
                "statistics": {"vertex": "mean", "log_yield": "rms", "energy": "rms"},
                "families": {}, "unavailable": [], "not_run": [], "wall_seconds": None}
     standard = {}
@@ -6069,18 +6272,71 @@ def _x3_summary_variants(x3_stage, base_x3) -> tuple:
     return variants, readings.get("X3-5"), not_run
 
 
-def _part_b_r1(root) -> tuple:
-    """The 7 Nov R-1 reading (old) and any addendum rerun (new), if present."""
+def _r1_reading_from(payload):
+    """The R-1 reading dict from any Part B payload shape, or ``None``."""
+    if not isinstance(payload, dict):
+        return None
+    reading = payload.get("reading")
+    if isinstance(reading, dict):
+        return reading
+    if any(key in payload for key in ("verdict", "generative_median", "table",
+                                      "comparisons")):
+        return payload
+    for key in ("r1", "R-1", "R1_rerun", "rerun"):
+        value = payload.get(key)
+        if isinstance(value, dict):
+            nested = value.get("reading")
+            if isinstance(nested, dict):
+                return nested
+            return value
+    if (payload.get("status")
+            and not str(payload.get("status")).startswith("not_run")
+            and any(key in payload for key in ("verdict", "generative_median",
+                                               "table", "comparisons"))):
+        return payload
+    return None
+
+
+def _part_b_r1(root, ext_root=EXT_ROOT) -> tuple:
+    """The 7 Nov R-1 reading (old) and the addendum rerun (new), if present.
+
+    A2: the old value is preserved write-once (from the committed 7 Nov readings
+    when the live file was already rewritten), and the new value is read from
+    Part B's default ``<ext_shortcut_root>/r1_addendum.json`` or from
+    ``results/jepa/20261107_shortcut/ADDENDUM_2026-11-07.json -> items.R1_rerun``
+    (and a results ``r1_addendum.json`` if Part B writes one there).
+    """
+    root = _resolve_root(root)
     shortcut = Path(root) / "results/jepa/20261107_shortcut"
-    old = _pick(read_json(shortcut / "readings.json", {}) or {}, "r1", "reading")
+    preserved = _preserved_7nov_dir(ext_root) / "r1_reading.json"
+    old = None
+    if preserved.is_file():
+        old = (read_json(preserved, None) or {}).get("reading")
+    if old is None:
+        committed = _git_show_json(root,
+                                   "results/jepa/20261107_shortcut/readings.json")
+        old = _r1_reading_from((committed or {}).get("r1") or {})
+    if old is None:
+        old = _r1_reading_from((read_json(shortcut / "readings.json", {}) or {})
+                               .get("r1") or {})
+    if old is not None and not preserved.is_file():
+        preserved.parent.mkdir(parents=True, exist_ok=True)
+        write_json(preserved, {"reading": old,
+                               "basis": "write-once 7 Nov R-1 old value"})
     new = None
-    for name in ("r1_addendum.json", "ADDENDUM_2026-11-07.json"):
-        payload = read_json(shortcut / name, None)
-        if payload:
-            new = (payload.get("r1") or payload.get("R-1") or payload.get("reading")
-                   or payload.get("reruns", {}).get("R-1"))
-            if new:
-                break
+    for candidate in (Path(PART_B_EXT_ROOT) / "r1_addendum.json",
+                      shortcut / "ADDENDUM_2026-11-07.json",
+                      shortcut / "r1_addendum.json"):
+        payload = read_json(candidate, None)
+        if not payload:
+            continue
+        if candidate.name == "ADDENDUM_2026-11-07.json":
+            value = (payload.get("items") or {}).get("R1_rerun")
+            new = (_r1_reading_from(value) if isinstance(value, dict) else value)
+        else:
+            new = _r1_reading_from(payload)
+        if new is not None:
+            break
     return old, new
 
 
@@ -6278,14 +6534,15 @@ def _addendum_summary_markdown(summary, *, target) -> str:
                          f"{_fmt(e.get('ceiling_rho_SWmod'))} | "
                          f"{_fmt(e.get('latent_repair_rho_LR'))} |")
     lines += ["", "### X2-f — identification spectrum of W Â_raw and per-module CRLB", "",
-              "| family | seed | max singular value | condition number | "
-              "median per-module CRLB | per-module CRLB |",
-              "|---|---|---|---|---|---|"]
+              "| family | seed | singular values of W Â_raw | max singular value | "
+              "condition number | median per-module CRLB | per-module CRLB |",
+              "|---|---|---|---|---|---|---|"]
     for family, seeds in sorted((summary.get("x2") or {}).items()):
         for seed, row in sorted(seeds.items()):
             f = row.get("X2-f") or {}
             crlb = f.get("crlb_per_module") or []
             lines.append(f"| {family} | {seed} | "
+                         f"{_fmt_list(f.get('singular_values'))} | "
                          f"{_fmt(f.get('max_singular_value'))} | "
                          f"{_fmt(f.get('condition_number'))} | "
                          f"{_fmt(f.get('median_crlb'))} | "
@@ -6384,11 +6641,107 @@ def _fmt_value(value):
     return _fmt(value)
 
 
+def _corrected_x2_models(x2, x2_add=None, x2e_add=None) -> dict:
+    """The 7 Nov x2 model records with the D1/D2 addendum rerun fields merged in."""
+    models = {}
+    for label, model in ((x2 or {}).get("models") or {}).items():
+        model = model or {}
+        copied = dict(model)
+        for key in ("X2-a", "X2-b", "X2-c", "X2-d", "X2-e", "X2-f"):
+            if isinstance(copied.get(key), dict):
+                copied[key] = dict(copied[key])
+        for key in ("X2-b", "X2-d", "X2-e"):
+            copied[key] = {name: (dict(value) if isinstance(value, dict) else value)
+                           for name, value in (copied.get(key) or {}).items()}
+        models[label] = copied
+    for label, extra in ((x2_add or {}).get("models") or {}).items():
+        base = models.setdefault(label, {})
+        if isinstance(extra.get("X2-c"), dict):
+            base["X2-c"] = dict(extra["X2-c"])
+            base["rho_lr"] = extra["X2-c"].get("rho_LR")
+        latent = ((extra.get("X2-d") or {}).get("latent"))
+        if latent:
+            block = dict(base.get("X2-d") or {})
+            block["latent"] = dict(latent)
+            if (extra.get("X2-d") or {}).get("latent_cv"):
+                block["latent_cv"] = extra["X2-d"]["latent_cv"]
+            base["X2-d"] = block
+        if isinstance(extra.get("X2-f"), dict):
+            base["X2-f"] = dict(extra["X2-f"])
+        occupancy = ((base.get("X2-b") or {}).get("occupancy") or {})
+        if "A_hat" in extra and occupancy:
+            occupancy["A_hat"] = extra["A_hat"]
+        if isinstance(base.get("X2-c"), dict):
+            base["rho_lr"] = base["X2-c"].get("rho_LR")
+            base["class"] = base["X2-c"].get("class")
+    for label, rerun in ((x2e_add or {}).get("models") or {}).items():
+        base = models.setdefault(label, {})
+        block = dict(base.get("X2-e") or {})
+        streams = dict(block.get("streams") or {})
+        streams["latent"] = {"rho_EST": rerun.get("rho_EST_latent")}
+        block["streams"] = streams
+        if rerun.get("latent_repair_rho_LR") is not None:
+            block["latent_repair_rho_LR"] = rerun.get("latent_repair_rho_LR")
+        base["X2-e"] = block
+    return models
+
+
+def _corrected_results_payloads(*, x1, x2, x3, x2_add, x2e_add, x3_add,
+                                readings) -> dict:
+    """The in-place results payloads: 7 Nov base + the corrected addendum reruns."""
+    x1_out = x1 or None
+    x2_models = _corrected_x2_models(x2, x2_add, x2e_add)
+    x2_out = None
+    if (x2 or x2_models) and (x2_add or x2e_add):
+        x2_out = dict(x2 or {})
+        x2_out.update({"registered": False, "extension": EXTENSION,
+                       "addendum": ADDENDUM_REL,
+                       "addendum_sha256": ADDENDUM_SHA256,
+                       "corrected_7nov": ["X2-c", "X2-d latent", "X2-f",
+                                          "X2-e latent"],
+                       "models": x2_models})
+        x2_out["readings"] = x2_readings({"models": x2_models})
+    x3_out = None
+    if x3_add:
+        x3_out = dict(x3 or {})
+        if x3_add.get("families"):
+            x3_out["families"] = x3_add["families"]
+        if (x3_add.get("readings") or {}).get("variants"):
+            x3_out["readings"] = x3_add["readings"]
+        x3_out.update({"registered": False, "extension": EXTENSION,
+                       "addendum": ADDENDUM_REL,
+                       "addendum_sha256": ADDENDUM_SHA256,
+                       "corrected_7nov": ["X3-1 … X3-5 (D2 statistics)"]})
+    readings_out = None
+    if readings and (x2_out is not None or x3_out is not None):
+        readings_out = dict(readings or {})
+        readings_out.update({"registered": False, "extension": EXTENSION,
+                             "addendum": ADDENDUM_REL,
+                             "addendum_sha256": ADDENDUM_SHA256})
+        if x1 is not None or readings_out.get("x1") is not None:
+            readings_out["x1"] = {
+                "complete": bool((x1 or {}).get("complete")),
+                "completed": bool((x1 or {}).get("complete")),
+                **((x1 or {}).get("readings") or {})}
+        if x2_out is not None:
+            readings_out["x2"] = {
+                "complete": bool((x2 or {}).get("complete")),
+                "completed": bool((x2 or {}).get("complete")),
+                **(x2_out.get("readings") or {})}
+        if x3_out is not None:
+            readings_out["x3"] = {
+                "complete": bool((x3_add or x3 or {}).get("complete")),
+                "completed": bool((x3_add or x3 or {}).get("complete")),
+                **(x3_out.get("readings") or {})}
+    return {"x1": x1_out, "x2": x2_out, "x3": x3_out, "readings": readings_out}
+
+
 def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print) -> dict:
     """D4 (CPU): write the complete committed summary, addendum JSON and figures."""
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-report", root=root, log=log)
+    entries = addendum_entries_preflight_or_stop(log=log)
     budget = _addendum_budget_for("addendum-report")
     ext_root = Path(ext_root)
     target = Path(results_dir) if results_dir is not None else root / RESULTS_DIR
@@ -6402,8 +6755,21 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
     x2_add = read_json(addendum_dir / "x2_addendum.json", None)
     x2e_add = read_json(addendum_dir / "x2e_addendum.json", None)
     x3_add = read_json(addendum_dir / "x3_addendum.json", None)
-    r1_old, r1_new = _part_b_r1(root)
-    x1_families = _x1_summary_families(x1)
+    # A1: preserve the 7 Nov results payloads write-once BEFORE any in-place update
+    preserved = _preserve_7nov_payloads(ext_root, target)
+    preserved_x1 = _preserved_7nov_payload(ext_root, "x1")
+    preserved_x2 = _preserved_7nov_payload(ext_root, "x2")
+    preserved_x3 = _preserved_7nov_payload(ext_root, "x3")
+    preserved_readings = _preserved_7nov_payload(ext_root, "readings")
+    r1_old, r1_new = _part_b_r1(root, ext_root)
+    corrected = _corrected_results_payloads(
+        x1=(x1 or preserved_x1), x2=(x2 or preserved_x2),
+        x3=(x3 or preserved_x3), x2_add=x2_add, x2e_add=x2e_add,
+        x3_add=x3_add, readings=preserved_readings)
+    results_updated = {name: str(target / f"{name}.json")
+                       for name in ("x1", "x2", "x3", "readings")
+                       if corrected.get(name) is not None}
+    x1_families = _x1_summary_families(x1 or preserved_x1)
     x2_families = _x2_summary_families(x2, x2_add, x2e_add)
     x3_variants, x3_five, x3_not_run = _x3_summary_variants(x3_add, x3)
     new_x2_models = {}
@@ -6418,8 +6784,9 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
             merged["X2-e"] = base_e
         new_x2_models[label] = merged
     superseded = _superseded_rows(
-        old_x2=x2, new_x2={"models": new_x2_models}, old_x3=x3,
-        new_x3=(x3_add or {}), r1_old=r1_old, r1_new=r1_new)
+        old_x2=(preserved_x2 or x2), new_x2={"models": new_x2_models},
+        old_x3=(preserved_x3 or x3), new_x3=(x3_add or {}),
+        r1_old=r1_old, r1_new=r1_new)
     not_run = []
     for mode, payload in (("addendum-selfcheck", d1), ("addendum-x2", x2_add),
                           ("addendum-x2e", x2e_add), ("addendum-x3", x3_add)):
@@ -6442,7 +6809,9 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
         "X2 rerun": str(addendum_dir / "x2_addendum.json"),
         "X2-e rerun": str(addendum_dir / "x2e_addendum.json"),
         "X3 rerun": str(addendum_dir / "x3_addendum.json"),
-        "R-1 (Part B)": "results/jepa/20261107_shortcut/readings.json"}
+        "R-1 (Part B)": "results/jepa/20261107_shortcut/readings.json",
+        "preserved 7 Nov": str(_preserved_7nov_dir(ext_root)),
+        "results updated in place": ", ".join(sorted(results_updated))}
     summary = {"registered": False, "extension": EXTENSION,
                "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
                "generated_utc": _utc_now(), "accounting_note":
@@ -6453,6 +6822,7 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
                "x3_fisher_p0": (x3_fisher or {}).get("p0"),
                "self_check": d1 or {}, "superseded": superseded,
                "not_run": not_run, "sources": sources,
+               "preserved_7nov": preserved, "results_updated": results_updated,
                "figures": _figure_names()}
     # figures: the D4 labels/legends, with the latent stream overlay in place
     x2_for_figures = {"models": {}}
@@ -6501,7 +6871,8 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
                                        "readings.json"})},
                 "superseded": superseded, "not_run": not_run,
                 "budget": addendum_hours(), "figures": figures,
-                "sources": sources}
+                "sources": sources, "preserved_7nov": preserved,
+                "results_updated": results_updated}
     write_json(target / "SUMMARY.json", summary)
     (target / "READINGS_SUMMARY.md").write_text(
         _addendum_summary_markdown(summary, target=target))
@@ -6509,6 +6880,16 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
     write_json(target / "OUTCOME.json", _addendum_outcome(
         summary, addendum, root=root, d1=d1, x2e_add=x2e_add, x3_add=x3_add,
         r1_new=r1_new))
+    # A1: the corrected pilot results payloads are updated IN PLACE after the
+    # 7 Nov originals were preserved; Part B's R-1 then reads the corrected x2.
+    if corrected.get("x1") is not None:
+        write_json(target / "x1.json", corrected["x1"])
+    if corrected.get("x2") is not None:
+        write_json(target / "x2.json", corrected["x2"])
+    if corrected.get("x3") is not None:
+        write_json(target / "x3.json", corrected["x3"])
+    if corrected.get("readings") is not None:
+        write_json(target / "readings.json", corrected["readings"])
     payload = {"registered": False, "extension": EXTENSION,
                "check": "addendum D4 report", "path": str(target),
                "summary": str(target / "SUMMARY.json"),
@@ -6517,7 +6898,9 @@ def addendum_report(*, root=None, ext_root=EXT_ROOT, results_dir=None, log=print
                "outcome": str(target / "OUTCOME.json"),
                "figures": figures, "superseded": len(superseded),
                "not_run": not_run, "gate": {"status": gate["status"]},
-               "budget": budget}
+               "budget": budget, "entries": entries,
+               "preserved_7nov": preserved,
+               "results_updated": sorted(results_updated)}
     return _addendum_finish("addendum-report", payload, root=root, started=started,
                             kind="cpu")
 
@@ -6595,6 +6978,12 @@ def addendum_init9000(*, config, gen, arms_config, geometry,
                "n_keys": len(_INIT9000_TOKEN_KEYS),
                "missing_before": [], "missing_after": [],
                "status": None, "complete": False, "wall_seconds": None}
+    # S1 and the revised addendum entries preflight come BEFORE any work, and are
+    # recorded on every path including already_cached (§9 S1 STOP is reachable).
+    s1 = addendum_s1_check_or_stop(root=root)
+    entries = addendum_entries_preflight_or_stop(log=log)
+    payload["s1"] = s1
+    payload["entries"] = entries
     missing = [key for key in _INIT9000_TOKEN_KEYS
                if not _cache_entry_verified(token_cache, key)]
     if not missing:
@@ -6671,6 +7060,9 @@ def addendum_init9000(*, config, gen, arms_config, geometry,
     payload["complete"] = bool(payload.get("status") == "encoded"
                                and not payload["missing_after"])
     payload["hours"] = addendum_hours()
-    payload["closure"] = _assert_closure("addendum-init9000", root)
+    payload["closure"] = _addendum_closure("addendum-init9000", root)
+    if payload["closure"]["quarantined"]:
+        payload["quarantined"] = True
+        payload["complete"] = False
     payload["wall_seconds"] = round(time.time() - started, 3)
     return payload

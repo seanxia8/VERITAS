@@ -44,13 +44,23 @@ addendum-evaluate
 addendum-r1   Addendum §2: re-reads the pilot's updated ``x1.json``/``x2.json``/
               ``readings.json`` read-only and re-emits R-1 with the D1-corrected
               ``rho_LR``; the Part B §3 rule, families and table are unchanged.
-              Writes ``<ext>/r1_addendum.json``.
+              Writes ``<ext>/r1_addendum.json`` AND the stable results hand-off
+              ``results/jepa/20261107_shortcut/r1_addendum.json`` (reading at
+              top-level ``reading``/``r1``/``R-1``) for Part A's superseded table.
 addendum-report
-              Addendum §5/§10: updates ``results/jepa/20261107_shortcut/`` in place
-              (``README.md``, ``readings.json``, ``report.json``, ``runs.json``,
-              ``OUTCOME.json``) with the R2 readings, the corrected R-1 and the
-              "Superseded 7 Nov values" table, and writes
+              Addendum §5/§10: preserves the 7 Nov ``readings.json`` write-once
+              under ``<ext>/addendum/preserved_7nov/`` (sha256 sidecar) and then
+              updates ``results/jepa/20261107_shortcut/`` in place (``README.md``,
+              ``readings.json``, ``report.json``, ``runs.json``, ``OUTCOME.json``,
+              the stable ``r1_addendum.json``) with the R2 readings, the corrected
+              R-1 and the "Superseded 7 Nov values" table, and writes
               ``ADDENDUM_2026-11-07.json`` with the R-2 evaluation record.
+
+All three addendum modes run the addendum-only entries preflight before work
+(live CephFS quota xattrs or guard snapshot; projected writes = the addendum's
+own 200; pass iff free >= 30 000 and free - projected >= 30 000; a failure is the
+entries-preflight STOP) and record it in their payloads.  The combined-preflight
+entries block is history only and is not the addendum STOP basis.
 
 Every mode re-checks the executed-import closure at its end (§9.2).  Nothing here
 edits a registered module, config, prediction or verdict, and no data is ever
@@ -225,6 +235,17 @@ def mode_dry_run(args) -> int:
             "ext_root": str(ext_root(args)),
             "results_dir": str(root / xs.RESULTS_DIR),
             "readout_items": str(readout_items(args))}
+        # addendum plan (A4: the addendum-only entries preflight is the STOP
+        # basis; the combined-preflight block above is history only)
+        entries = xs.addendum_entries_preflight()
+        payload["setup"]["addendum"] = {
+            "path": xs.ADDENDUM_REL, "sha256": xs.ADDENDUM_SHA256,
+            "gpu_cap_hours": xs.ADDENDUM_GPU_CAP_H,
+            "cpu_cap_hours": xs.ADDENDUM_CPU_CAP_H,
+            "gpu_projections_hours": dict(xs.ADDENDUM_COST_BY_ITEM),
+            "ledger": str(xs.ADDENDUM_JOBS),
+            "s1": xs.addendum_s1_check(root),
+            "entries_preflight": entries}
     except SystemExit as problem:
         payload["errors"].append(f"SystemExit({problem.code})")
     except Exception as problem:
@@ -247,6 +268,13 @@ def mode_dry_run(args) -> int:
                "setup_errors": payload["errors"],
                "manipulation_pass": (payload["setup"].get("manipulation") or {}).get(
                    "pass"),
+               "addendum_entries_pass": (payload["setup"].get(
+                   "addendum") or {}).get("entries_preflight", {}).get("pass"),
+               "addendum_entries_basis": (payload["setup"].get(
+                   "addendum") or {}).get("entries_preflight", {}).get("snapshot",
+                                                                        {}).get("basis"),
+               "addendum_s1_pass": (payload["setup"].get(
+                   "addendum") or {}).get("s1", {}).get("pass"),
                "wall_seconds": payload["wall_seconds"]}
     print(json.dumps(summary, indent=1), flush=True)
     if payload["errors"] or not payload["closure"]["pass"]:
@@ -534,7 +562,10 @@ def mode_r1(args, started) -> int:
                   wall_seconds=payload["wall_seconds"],
                   extra={"out": str(out), "status": payload["status"]})
     code = _closure_end(payload, out, root, mode="r1")
-    print(json.dumps({"out": str(out), "status": payload["status"],
+    print(json.dumps({"out": str(out),
+                      "results_copy": (payload.get("results_copy") or {}).get(
+                          "path"),
+                      "status": payload["status"],
                       "reason": payload.get("reason"),
                       "reading": (payload.get("reading") or {}).get("verdict"),
                       "closure_pass": payload["import_closure"]["pass"]},
@@ -580,6 +611,9 @@ def mode_addendum_evaluate(args, started) -> int:
     root = repo_root(args)
     gate = xs.assert_authorised("addendum-evaluate", root=root)
     s1 = xs.addendum_s1_check_or_stop(root)
+    # A4 (review round 7): the addendum-only entries preflight is the STOP basis,
+    # called before the job; the combined-preflight block is history only.
+    entries = xs.assert_addendum_entries_preflight()
     budget = xs.assert_addendum_budget(
         "gpu", xs.ADDENDUM_COST_BY_ITEM["r2_evaluation"], part="B")
     config, gen, arms_config, geometry, device = load_setup(args)
@@ -602,7 +636,8 @@ def mode_addendum_evaluate(args, started) -> int:
                             "sha256": xs.ADDENDUM_SHA256,
                             "date": xs.ADDENDUM_DATE,
                             "author_line": xs.ADDENDUM_AUTHOR_LINE},
-               "gate": gate, "s1": s1, "budget_before": budget,
+               "gate": gate, "s1": s1, "entries": entries,
+               "budget_before": budget,
                "code_sha": lr.git_head(root), "device": str(device),
                "cell_id": cell.cell_id,
                "run_dirs": [str(path) for path in run_dirs],
@@ -645,6 +680,7 @@ def mode_addendum_r1(args, started) -> int:
     """Addendum §2: the R-1 rerun with the D1-corrected ``rho_LR`` (read-only)."""
     root = repo_root(args)
     gate = xs.assert_authorised("addendum-r1", root=root)
+    entries = xs.assert_addendum_entries_preflight()
     budget = xs.assert_addendum_budget(
         "cpu", xs.ADDENDUM_COST_BY_JOB["addendum-r1"], part="B")
     status = xs.pilot_status(root)
@@ -656,7 +692,8 @@ def mode_addendum_r1(args, started) -> int:
         _book_addendum("B", "addendum-r1", "cpu",
                        round(time.time() - job_started, 3))
         raise
-    payload.update(gate=gate, mode="addendum-r1", budget_before=budget,
+    payload.update(gate=gate, mode="addendum-r1", entries=entries,
+                   budget_before=budget,
                    wall_seconds=round(time.time() - started, 3),
                    code_sha=lr.git_head(root),
                    addendum={"path": xs.ADDENDUM_REL,
@@ -675,8 +712,16 @@ def mode_addendum_r1(args, started) -> int:
     job = _book_addendum("B", "addendum-r1", "cpu", payload["wall_seconds"])
     payload["addendum_job"] = job
     code = _closure_end(payload, out, root, mode="addendum-r1")
+    # A2 (review round 7): the payload is ALSO written to the stable results path
+    # results/jepa/20261107_shortcut/r1_addendum.json, with the reading under the
+    # documented top-level keys read by Part A's superseded table.
+    payload["results_copy"] = xs.write_results_r1(root, payload)
+    xs.write_json(out, payload)
     reading = payload.get("reading") or {}
-    print(json.dumps({"out": str(out), "status": payload["status"],
+    print(json.dumps({"out": str(out),
+                      "results_copy": (payload.get("results_copy") or {}).get(
+                          "path"),
+                      "status": payload["status"],
                       "reason": payload.get("reason"),
                       "verdict": reading.get("verdict"),
                       "generative_median_rho_lr":
@@ -695,6 +740,7 @@ def mode_addendum_report(args, started) -> int:
     """Addendum §5/§10: update the Part B results in place and record D5."""
     root = repo_root(args)
     gate = xs.assert_authorised("addendum-report", root=root)
+    entries = xs.assert_addendum_entries_preflight()
     budget = xs.assert_addendum_budget(
         "cpu", xs.ADDENDUM_COST_BY_JOB["addendum-report"], part="B")
     job_started = time.time()
@@ -707,7 +753,8 @@ def mode_addendum_report(args, started) -> int:
         _book_addendum("B", "addendum-report", "cpu",
                        round(time.time() - job_started, 3))
         raise
-    payload.update(gate=gate, mode="addendum-report", budget_before=budget,
+    payload.update(gate=gate, mode="addendum-report", entries=entries,
+                   budget_before=budget,
                    wall_seconds=round(time.time() - started, 3))
     job = _book_addendum("B", "addendum-report", "cpu", payload["wall_seconds"])
     payload["addendum_job"] = job
@@ -715,6 +762,11 @@ def mode_addendum_report(args, started) -> int:
     path = Path(payload["results_dir"]) / "report.json"
     code = _closure_end(payload, path, root, mode="addendum-report")
     print(json.dumps({"results_dir": payload["results_dir"],
+                      "entries_pass": (payload.get("entries") or {}).get("pass"),
+                      "results_r1": (payload.get("results_r1") or {}).get("path"),
+                      "preserved_7nov": (payload.get("preserved_7nov") or {}).get(
+                          "path"),
+                      "seven_nov_source": payload.get("seven_nov_source"),
                       "r2_status": payload.get("r2_status"),
                       "r1_status": payload.get("r1_status"),
                       "complete": payload.get("complete"),

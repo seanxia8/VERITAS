@@ -351,6 +351,27 @@ def _addendum_path(args, name) -> Path:
     return ext_root(args) / "addendum" / name
 
 
+def _finalise_addendum(payload, path, root, code) -> int:
+    """Write the payload, THEN re-check the import closure (N5, post-write).
+
+    A closure violation keeps the output and marks it quarantined instead of
+    losing it inside the library; the exit code is 2.
+    """
+    write_json(path, payload)
+    closure = rep.import_closure(root)
+    if not closure["pass"] or payload.get("quarantined"):
+        payload["closure"] = dict(closure, quarantined=True)
+        payload["quarantined"] = True
+        payload["complete"] = False
+        write_json(path, payload)
+        print(f"[repair] import-closure STOP: "
+              f"{len(closure.get('violations') or [])} module(s) outside <P>; "
+              f"output kept and marked quarantined: {path}",
+              file=sys.stderr, flush=True)
+        return 2
+    return code
+
+
 def mode_addendum_selfcheck(args) -> int:
     """Addendum D1/C1 self-check (CPU): identity on probe-test, then the S9 STOP."""
     root = repo_root(args)
@@ -360,14 +381,14 @@ def mode_addendum_selfcheck(args) -> int:
         config=config, gen=gen, geometry=geometry, data_root=data_root(args),
         ext_root=ext_root(args), root=root, log=print)
     path = _addendum_path(args, "d1_selfcheck.json")
-    write_json(path, payload)
     print(json.dumps({"out": str(path), "identity_pass": payload["identity_pass"],
                       "stop": payload["stop"], "flags": payload["flags"],
                       "models": sorted(payload["models"]),
                       "n_models": payload["n_models"],
                       "closure_pass": payload["closure"]["pass"]},
                      default=float), flush=True)
-    return 0 if payload["identity_pass"] else 2
+    return _finalise_addendum(payload, path, root,
+                              0 if payload["identity_pass"] else 2)
 
 
 def mode_addendum_x2(args) -> int:
@@ -379,14 +400,14 @@ def mode_addendum_x2(args) -> int:
         config=config, gen=gen, geometry=geometry, data_root=data_root(args),
         ext_root=ext_root(args), root=root, log=print)
     path = _addendum_path(args, "x2_addendum.json")
-    write_json(path, payload)
     print(json.dumps({"out": str(path), "complete": payload["complete"],
                       "models": sorted(payload["models"]),
                       "unavailable": payload["unavailable"],
                       "A_hat_units": payload["A_hat_units"],
                       "closure_pass": payload["closure"]["pass"]},
                      default=float), flush=True)
-    return 0 if payload["complete"] else 2
+    return _finalise_addendum(payload, path, root,
+                              0 if payload["complete"] else 2)
 
 
 def mode_addendum_init9000(args) -> int:
@@ -398,7 +419,6 @@ def mode_addendum_init9000(args) -> int:
         data_root=data_root(args), device=device, ext_root=ext_root(args),
         root=root, limit=args.limit, log=print)
     path = _addendum_path(args, "init9000_encode.json")
-    write_json(path, payload)
     print(json.dumps({"out": str(path), "status": payload["status"],
                       "complete": payload["complete"],
                       "cache": payload["cache"],
@@ -408,7 +428,9 @@ def mode_addendum_init9000(args) -> int:
                       "wall_seconds": payload["wall_seconds"],
                       "closure_pass": payload["closure"]["pass"]},
                      default=float), flush=True)
-    return 0 if payload["status"] in ("already_cached", "encoded") else 2
+    return _finalise_addendum(
+        payload, path, root,
+        0 if payload["status"] in ("already_cached", "encoded") else 2)
 
 
 def mode_addendum_x2e(args) -> int:
@@ -420,14 +442,14 @@ def mode_addendum_x2e(args) -> int:
         data_root=data_root(args), device=device, ext_root=ext_root(args),
         root=root, limit=args.limit, log=print)
     path = _addendum_path(args, "x2e_addendum.json")
-    write_json(path, payload)
     print(json.dumps({"out": str(path), "complete": payload["complete"],
                       "status": payload.get("status"),
                       "models": sorted(payload["models"]),
                       "unavailable": payload["unavailable"],
                       "closure_pass": payload["closure"]["pass"]},
                      default=float), flush=True)
-    return 0 if payload["complete"] else 2
+    return _finalise_addendum(payload, path, root,
+                              0 if payload["complete"] else 2)
 
 
 def mode_addendum_x3(args) -> int:
@@ -440,7 +462,6 @@ def mode_addendum_x3(args) -> int:
         data_root=data_root(args), ext_root=ext_root(args), root=root,
         limit=args.limit, log=print)
     path = _addendum_path(args, "x3_addendum.json")
-    write_json(path, payload)
     print(json.dumps({"out": str(path), "complete": payload["complete"],
                       "variants": sorted((payload["readings"] or {}).get(
                           "variants") or {}),
@@ -448,7 +469,8 @@ def mode_addendum_x3(args) -> int:
                       "statistics": payload["statistics"],
                       "closure_pass": payload["closure"]["pass"]},
                      default=float), flush=True)
-    return 0 if payload["complete"] else 2
+    return _finalise_addendum(payload, path, root,
+                              0 if payload["complete"] else 2)
 
 
 def mode_addendum_report(args) -> int:
@@ -466,7 +488,8 @@ def mode_addendum_report(args) -> int:
                       "not_run": payload.get("not_run"),
                       "closure_pass": payload["closure"]["pass"]},
                      default=float), flush=True)
-    return 0
+    return _finalise_addendum(payload, _addendum_path(args, "report.json"),
+                              root, 0)
 
 
 # ---------------------------------------------------------------------- parser

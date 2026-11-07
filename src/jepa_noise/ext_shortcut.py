@@ -43,6 +43,20 @@ The addendum closes the 7 Nov gaps without training or data generation:
   additionally requires the committed addendum's sha256, its §0 author line and
   the record's ``addendum_path``/``addendum_sha256`` (a record missing them is
   DENIED, not pending).
+* **A2 (review round 7)** -- the corrected R-1 hand-off: ``addendum-r1`` writes
+  its payload both to ``<ext>/r1_addendum.json`` and to the stable results path
+  ``results/jepa/20261107_shortcut/r1_addendum.json`` with the reading under
+  top-level ``reading``/``r1``/``R-1``; ``addendum-report`` preserves the 7 Nov
+  ``readings.json`` write-once under ``<ext>/addendum/preserved_7nov/`` (sha256
+  sidecar) before rewriting in place, and reads the superseded table's old value
+  from that preserved copy so report ordering cannot lose it.
+* **A4 (review round 7)** -- the addendum-only entries preflight: free entries
+  from the live CephFS quota xattrs (``ceph.quota.max_files`` -
+  ``ceph.dir.rfiles`` - ``ceph.dir.rsubdirs``) or the guard snapshot, projected
+  writes = the addendum's own few-dozen writes only (200; no clone/suite/Part
+  A/B terms or caps), pass iff ``free >= 30_000`` and ``free - projected >=
+  30_000``.  Every addendum mode runs it before work and records it; it is the
+  entries-preflight STOP basis (the combined-preflight block stays as history).
 
 The variant is installed by rebinding ``arm._encode_views`` through a
 process-level ``lucid_run.build_arm`` wrapper
@@ -141,6 +155,14 @@ __all__ = [
     "addendum_hours", "assert_addendum_budget", "record_addendum_job",
     "addendum_s1_check", "addendum_s1_check_or_stop", "statistic_audit",
     "COMPARISON_STATISTICS", "r2_evaluation_record", "assemble_addendum_report",
+    # addendum A2/A4 (review round 7): R-1 hand-off, 7 Nov preservation, entries
+    "R1_RESULTS_FILE", "PRESERVED_7NOV_DIR", "PRESERVED_7NOV_FILE",
+    "ADDENDUM_ENTRIES_ROOT", "ADDENDUM_ENTRIES_FLOOR",
+    "ADDENDUM_ENTRIES_PROJECTED", "ADDENDUM_ENTRY_XATTRS",
+    "results_r1_payload", "write_results_r1", "results_r1_path",
+    "preserved_7nov_path", "preserve_7nov_readings", "seven_nov_readings",
+    "addendum_entries_snapshot", "addendum_entries_preflight",
+    "assert_addendum_entries_preflight",
 ]
 
 # ---------------------------------------------------------------- extension
@@ -196,6 +218,26 @@ ADDENDUM_COST_BY_ITEM = {"r2_evaluation": 0.14, "est_latent": 0.06,
 ADDENDUM_COST_BY_JOB = {"addendum-evaluate": ADDENDUM_COST_BY_ITEM["r2_evaluation"],
                         "addendum-r1": 0.02, "addendum-report": 0.02}
 ADDENDUM_RESULTS_FILE = "ADDENDUM_2026-11-07.json"
+#: Addendum A2 (review round 7): the corrected R-1 hand-off.
+#: ``addendum-r1`` writes its payload both to ``<ext>/r1_addendum.json`` and to
+#: the stable results path ``results/jepa/20261107_shortcut/r1_addendum.json``,
+#: with the reading at top-level ``reading`` (also ``r1``/``R-1`` for Part A's
+#: superseded-table picker).  The 7 Nov ``readings.json`` is preserved
+#: write-once (with a sha256 sidecar) before any in-place rewrite, and the old
+#: value is always read from that preserved copy when it exists.
+R1_RESULTS_FILE = "r1_addendum.json"
+PRESERVED_7NOV_DIR = "addendum/preserved_7nov"
+PRESERVED_7NOV_FILE = "readings.json"
+#: Addendum A4 (review round 7): the addendum-only entries preflight.  The
+#: runbook §F3 clone/suite/Part A/B terms do not apply to the addendum's own
+#: few-dozen writes; the combined-preflight block is history only and is not the
+#: addendum STOP basis.
+ADDENDUM_ENTRIES_ROOT = Path("/ceph/dwong")
+ADDENDUM_ENTRIES_FLOOR = 30000
+ADDENDUM_ENTRIES_PROJECTED = 200
+ADDENDUM_ENTRY_XATTRS = (("quota_max_files", "ceph.quota.max_files"),
+                         ("quota_rfiles", "ceph.dir.rfiles"),
+                         ("quota_rsubdirs", "ceph.dir.rsubdirs"))
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
                    "lead", "date", "addendum_path", "addendum_sha256")
 DECISIONS_REL = "docs/jepa/DECISIONS.md"
@@ -729,6 +771,211 @@ def addendum_s1_check_or_stop(root=None) -> dict:
               f"{result['ledger_charged_gpu_hours']} + "
               f"{result['addendum_cap_hours']} = {result['sum_hours']} > "
               f"{result['ceiling_hours']} h (addendum §6)", file=sys.stderr)
+        raise SystemExit(2)
+    return result
+
+
+# ===================================== addendum A2 (review round 7): R-1 hand-off
+#: The results-dir R-1 hand-off (Part A's superseded-table picker reads the
+#: stable file and a top-level ``reading`` / ``r1`` / ``R-1`` key).
+def results_r1_path(root=None, *, results_dir=None) -> Path:
+    """The stable results-dir R-1 hand-off path (``.../r1_addendum.json``)."""
+    directory = (Path(results_dir) if results_dir is not None
+                 else _resolve_root(root) / RESULTS_DIR)
+    return directory / R1_RESULTS_FILE
+
+
+def results_r1_payload(r1, *, results_dir=None) -> dict:
+    """The stable results-dir R-1 payload with the reading under the fixed keys.
+
+    Part A's superseded table reads a top-level ``r1``, ``R-1`` or ``reading``;
+    all three are written so the D1-corrected value is found regardless of which
+    picker key it tries.  The full R-1 payload (status, table, reading) is kept.
+    """
+    payload = dict(r1) if isinstance(r1, dict) else {}
+    reading = payload.get("reading")
+    payload.setdefault("registered", False)
+    payload.setdefault("extension", EXTENSION)
+    payload["reading"] = reading
+    payload["r1"] = reading
+    payload["R-1"] = reading
+    payload["stable_path"] = str(results_r1_path(results_dir=results_dir))
+    payload["addendum"] = {"path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256,
+                           "date": ADDENDUM_DATE,
+                           "hand_off": "stable results-dir R-1 for the Part A "
+                                       "superseded table (addendum A2)"}
+    return payload
+
+
+def write_results_r1(root=None, payload=None, *, results_dir=None) -> dict:
+    """Write the stable results-dir R-1 hand-off (addendum A2, review round 7)."""
+    target = results_r1_path(root, results_dir=results_dir)
+    full = results_r1_payload(payload, results_dir=target.parent)
+    write_json(target, full)
+    return {"path": str(target), "sha256": lr.sha256_file(target),
+            "status": full.get("status"),
+            "reading": full.get("reading")}
+
+
+#: Addendum A2: the write-once preserved 7 Nov readings.
+def preserved_7nov_path(ext_root=EXT_ROOT) -> Path:
+    """``<ext>/addendum/preserved_7nov/readings.json`` (write-once)."""
+    return Path(ext_root) / PRESERVED_7NOV_DIR / PRESERVED_7NOV_FILE
+
+
+def preserve_7nov_readings(results_dir=None, *, ext_root=EXT_ROOT) -> dict:
+    """Preserve the 7 Nov ``readings.json`` write-once before it is rewritten.
+
+    The superseded table's old value (in particular the 7 Nov R-1 ``rho_LR``)
+    must not depend on the order of the Part A/Part B reports: the first
+    ``addendum-report`` copies the current results ``readings.json`` to
+    ``<ext>/addendum/preserved_7nov/readings.json`` and writes a sha256 sidecar;
+    every later run keeps that copy exactly as it is.
+    """
+    ext_root = Path(ext_root)
+    results = (Path(results_dir) if results_dir is not None
+               else _resolve_root(None) / RESULTS_DIR)
+    source = results / "readings.json"
+    target = preserved_7nov_path(ext_root)
+    sidecar = target.with_name(target.name + ".sha256")
+    if target.is_file():
+        computed = lr.sha256_file(target)
+        expected = (sidecar.read_text().split()[0].strip()
+                    if sidecar.is_file() else None)
+        if expected is None:  # sidecar lost: repair it, never the preserved file
+            sidecar.parent.mkdir(parents=True, exist_ok=True)
+            sidecar.write_text(f"{computed}  {target.name}\n")
+            expected = computed
+        if str(expected) != str(computed):
+            raise RuntimeError(
+                f"preserved 7 Nov readings {target}: sha256 mismatch ({computed} != "
+                f"{expected}); the preserved copy is write-once and corrupt")
+        return {"path": str(target), "sha256": computed, "written": False,
+                "write_once": True, "source": str(source),
+                "sidecar": str(sidecar)}
+    if not source.is_file():
+        return {"path": str(target), "sha256": None, "written": False,
+                "write_once": True, "source": str(source),
+                "reason": "no results readings.json exists yet"}
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(source.read_bytes())
+    computed = lr.sha256_file(target)
+    sidecar.write_text(f"{computed}  {target.name}\n")
+    return {"path": str(target), "sha256": computed, "written": True,
+            "write_once": True, "source": str(source),
+            "source_sha256": computed, "sidecar": str(sidecar)}
+
+
+def seven_nov_readings(results_dir=None, *, ext_root=EXT_ROOT) -> dict:
+    """The 7 Nov readings; the preserved write-once copy wins when it exists."""
+    target = preserved_7nov_path(ext_root)
+    preserved = read_json(target, None)
+    if isinstance(preserved, dict) and preserved:
+        return {"readings": preserved, "source": str(target), "preserved": True}
+    results = (Path(results_dir) if results_dir is not None
+               else _resolve_root(None) / RESULTS_DIR)
+    current = results / "readings.json"
+    return {"readings": read_json(current, {}) or {}, "source": str(current),
+            "preserved": False}
+
+
+# ============================ addendum A4 (review round 7): entries preflight
+def _entry_xattr_reading(root=None) -> dict:
+    """Live CephFS quota xattrs of the quota root (guard's own rule)."""
+    path = Path(root) if root is not None else ADDENDUM_ENTRIES_ROOT
+    values = {}
+    try:
+        for key, attribute in ADDENDUM_ENTRY_XATTRS:
+            values[key] = os.getxattr(str(path), attribute)
+    except OSError as problem:
+        return {"available": False, "path": str(path),
+                "error": f"{type(problem).__name__}: {problem}"}
+    parsed = {}
+    for key, raw in values.items():
+        try:
+            parsed[key] = int(bytes(raw).decode().strip())
+        except (TypeError, ValueError, UnicodeDecodeError):
+            return {"available": False, "path": str(path),
+                    "error": f"{key} is not an integer: {raw!r}"}
+    maximum = parsed["quota_max_files"]
+    used = max(0, parsed["quota_rfiles"]) + max(0, parsed["quota_rsubdirs"])
+    free = maximum - used
+    return {"available": True, "basis": "live CephFS quota xattrs",
+            "path": str(path), "quota_max_files": maximum,
+            "quota_rfiles": parsed["quota_rfiles"],
+            "quota_rsubdirs": parsed["quota_rsubdirs"],
+            "free_entries": max(0, free), "free_entries_clamped": free < 0,
+            "rule": "free_entries = ceph.quota.max_files - ceph.dir.rfiles - "
+                    "ceph.dir.rsubdirs (the guard's own rule)"}
+
+
+def addendum_entries_snapshot(*, root=None, guard_json=GUARD_JSON) -> dict:
+    """Free entries: live Ceph quota xattrs first, the guard snapshot second."""
+    live = _entry_xattr_reading(root)
+    if live.get("available"):
+        return {"available": True, "basis": live["basis"],
+                "free_entries": int(live["free_entries"]),
+                "path": live.get("path"), "live": live,
+                "guard_snapshot": None}
+    snapshot = entries_snapshot(guard_json)
+    return {"available": bool(snapshot.get("available")),
+            "basis": ("guard snapshot (live Ceph quota xattrs unavailable: "
+                      f"{live.get('error')})"),
+            "free_entries": snapshot.get("free_entries"),
+            "path": snapshot.get("guard_json"), "live": live,
+            "guard_snapshot": snapshot,
+            "level": snapshot.get("guard_level")}
+
+
+def addendum_entries_preflight(*, root=None, guard_json=GUARD_JSON,
+                               free_entries=None, projected=None) -> dict:
+    """Addendum A4: the addendum's own entries preflight (revised basis).
+
+    The projection is the addendum's own writes only (a small constant; no
+    clone/suite/Part A/B terms and no Part A/B caps).  The rule is
+    ``free >= 30_000`` **and** ``free - projected >= 30_000``; a failure is the
+    addendum §9 entries-preflight STOP.  This replaces the combined-preflight
+    block as the addendum STOP basis (that block stays as history only).
+    """
+    projected = (ADDENDUM_ENTRIES_PROJECTED if projected is None
+                 else int(projected))
+    floor = ADDENDUM_ENTRIES_FLOOR
+    if free_entries is not None:
+        snapshot = {"available": True, "basis": "caller-provided free entries",
+                    "free_entries": int(free_entries), "path": None,
+                    "live": None, "guard_snapshot": None}
+    else:
+        snapshot = addendum_entries_snapshot(root=root, guard_json=guard_json)
+    out = {"registered": False, "extension": EXTENSION,
+           "id": "entries-preflight (addendum)", "snapshot": snapshot,
+           "floor": floor, "projected_writes": projected,
+           "projected_writes_basis": "the addendum's own writes only (no "
+                                     "clone/suite/Part A/B terms; a small "
+                                     "constant)",
+           "rule": "free entries >= 30000 AND free - projected addendum writes "
+                   "(200) >= 30000",
+           "part_caps_consulted": False}
+    if not snapshot.get("available") or snapshot.get("free_entries") is None:
+        out["pass"] = False
+        out["error"] = ("free entries unavailable (no live Ceph quota xattrs and "
+                        "no guard snapshot free_entries)")
+        return out
+    free = int(snapshot["free_entries"])
+    after = free - projected
+    out.update(free_before=free, projected_after=after)
+    out["pass"] = bool(free >= floor and after >= floor)
+    return out
+
+
+def assert_addendum_entries_preflight(**kwargs) -> dict:
+    """The addendum entries-preflight STOP (addendum §9; SystemExit(2) on failure)."""
+    result = addendum_entries_preflight(**kwargs)
+    if not result["pass"]:
+        print(f"[shortcut] addendum entries-preflight STOP: free "
+              f"{result.get('free_before')} - projected "
+              f"{result.get('projected_writes')} = {result.get('projected_after')}"
+              f" vs floor {result.get('floor')} ({result.get('basis')}); the "
+              f"addendum item is not_run (entries)", file=sys.stderr)
         raise SystemExit(2)
     return result
 
@@ -2742,26 +2989,11 @@ def addendum_superseded(old_readings, old_outcome, readings, r1) -> list:
         _row("R2-c per-seed rows", "empty", sorted(new_r2c), "D5",
              "the addendum R-2 evaluation")
     return rows
-    new_r2a = (readings.get("r2_a") or {}).get("class")
-    old_r2a = (old_readings.get("r2_a") or {}).get("class")
-    if new_r2a and new_r2a != old_r2a:
-        _row("R2-a class", old_r2a, new_r2a, "D5",
-             "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)")
-    new_r2b = (readings.get("r2_b") or {}).get("verdict")
-    old_r2b = (old_readings.get("r2_b") or {}).get("verdict")
-    if new_r2b and new_r2b != old_r2b:
-        _row("R2-b verdict", old_r2b, new_r2b, "D5",
-             "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)")
-    old_r2c = (old_readings.get("r2_c") or {}).get("seeds") or {}
-    new_r2c = (readings.get("r2_c") or {}).get("seeds") or {}
-    if new_r2c and not old_r2c:
-        _row("R2-c per-seed rows", "empty", sorted(new_r2c), "D5",
-             "the addendum R-2 evaluation")
-    return rows
 
 
 def _addendum_readme_section(*, record, superseded, r1, readings, hours,
-                             completeness, audit, gate=None) -> str:
+                             completeness, audit, gate=None, preservation=None,
+                             results_r1=None) -> str:
     """The README's addendum section (D4/§10: completeness, superseded, figures)."""
     lines = ["", "## Addendum (7 Nov 2026, v1) — D5 R-2 evaluation and corrected R-1",
              "",
@@ -2810,7 +3042,22 @@ def _addendum_readme_section(*, record, superseded, r1, readings, hours,
         lines.append(f"| {name} | {row.get('status')} | {_fmt(value)} |")
     lines += ["", "`complete` is true only when R2-a/R2-b/R2-c and R-1 are all "
               "present (addendum §5 D4 readings completeness for Part B).", ""]
-    lines += ["### Superseded 7 Nov values (Part B)", ""]
+    lines += ["### R-1 hand-off (addendum A2, review round 7)", ""]
+    if results_r1:
+        lines += [f"- stable results-dir hand-off: `{results_r1.get('path')}` "
+                  f"(sha256 `{_fmt(results_r1.get('sha256'), 16)}`), with the "
+                  f"reading at top-level `reading`/`r1`/`R-1` for Part A's "
+                  f"superseded-table picker.",
+                  f"- `ADDENDUM_2026-11-07.json` carries the rerun under "
+                  f"`items.R1_rerun` (status `{r1.get('status')}`)."]
+    if preservation:
+        lines += [f"- 7 Nov readings preserved write-once: "
+                  f"`{preservation.get('path')}` (sha256 "
+                  f"`{_fmt(preservation.get('sha256'), 16)}`, "
+                  f"written now: {_fmt(bool(preservation.get('written')))}) "
+                  f"before the in-place rewrite; the superseded old values are "
+                  f"read from that copy."]
+    lines += ["", "### Superseded 7 Nov values (Part B)", ""]
     if superseded:
         lines += ["| quantity | superseded 7 Nov value | new value | defect | evidence |",
                   "|---|---|---|---|---|"]
@@ -2879,7 +3126,16 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
     manipulation = read_json(read_dir / "manipulation.json", {}) or {}
     reproduction = read_json(read_dir / "reproduction.json", {}) or {}
 
-    old_readings = read_json(results / "readings.json", {}) or {}
+    # A2 (review round 7): the stable results-dir R-1 hand-off for Part A's
+    # superseded table; recomputed read-only if addendum-r1 did not write it.
+    results_r1 = write_results_r1(root, r1, results_dir=results)
+
+    # A2 (review round 7): preserve the 7 Nov readings write-once BEFORE any
+    # in-place rewrite, and read the old values from that preserved copy so the
+    # superseded table cannot lose the old R-1 rho_LR to report ordering.
+    preservation = preserve_7nov_readings(results, ext_root=ext_root)
+    seven_nov = seven_nov_readings(results, ext_root=ext_root)
+    old_readings = seven_nov["readings"]
     old_outcome = read_json(results / "OUTCOME.json", {}) or {}
     old_runs = read_json(results / "runs.json", {}) or {}
 
@@ -2915,6 +3171,10 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
         "complete": complete, "completeness": completeness,
         "superseded": superseded, "statistic_audit_pass": audit.get("pass"),
         "budget": budget,
+        "seven_nov_source": seven_nov["source"],
+        "seven_nov_preserved": seven_nov["preserved"],
+        "preserved_7nov": preservation,
+        "results_r1": results_r1,
     }
 
     # ---- runs.json ---------------------------------------------------------
@@ -2975,6 +3235,8 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
                               "status": r2.get("status")}
     outcome["superseded"] = superseded
     outcome["readings_completeness"] = completeness
+    outcome["preserved_7nov"] = preservation
+    outcome["results_r1"] = results_r1
     resources = dict(outcome.get("resources") or {})
     resources["addendum"] = addendum_hours()
     resources["addendum_gpu_cap_hours"] = ADDENDUM_GPU_CAP_H
@@ -2990,13 +3252,17 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
         "addendum": {"path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256,
                      "date": ADDENDUM_DATE, "author_line": ADDENDUM_AUTHOR_LINE,
                      "impl_commit": lr.git_head(root),
-                     "acceptance_record": ACCEPTANCE_REL},
+                     "acceptance_record": ACCEPTANCE_REL,
+                     "preserved_7nov_readings": preservation},
         "items": {
             "D5_r2_evaluation": record,
             "R1_rerun": {"status": r1.get("status"),
                          "reading": r1.get("reading"),
+                         "r1": r1.get("reading"),
                          "source": (str(r1_path) if r1_path is not None
                                     else "recomputed read-only from the pilot"),
+                         "stable_results_path": results_r1["path"],
+                         "stable_results_sha256": results_r1["sha256"],
                          "pilot_results_dir": r1.get("results_dir"),
                          "superseded": superseded},
             "D2_statistic_audit": audit,
@@ -3019,7 +3285,8 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
                      runs=runs_table, readings=readings, r1=r1, hours=hours)
     readme += _addendum_readme_section(
         record=record, superseded=superseded, r1=r1, readings=readings,
-        hours=addendum_hours(), completeness=completeness, audit=audit, gate=gate)
+        hours=addendum_hours(), completeness=completeness, audit=audit, gate=gate,
+        preservation=preservation, results_r1=results_r1)
 
     # ---- write in place ----------------------------------------------------
     write_json(results / "readings.json", readings)
@@ -3051,4 +3318,6 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
             "complete": complete, "superseded": superseded,
             "addendum_file": str(results / ADDENDUM_RESULTS_FILE),
             "statistic_audit_pass": audit.get("pass"), "sizes": sizes,
-            "too_big": too_big, "report_path": str(results / "report.json")}
+            "too_big": too_big, "report_path": str(results / "report.json"),
+            "preserved_7nov": preservation, "results_r1": results_r1,
+            "seven_nov_source": seven_nov["source"]}
