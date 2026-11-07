@@ -1,12 +1,12 @@
 **Verdict: PASS**
 
-**Final status (frozen SHA `7b9352c0760358375a0ec8ef4604a45115510e06`, round 4): PASS.** All 16
+**Final status (frozen SHA `51999d20315bf097a7846a61b8bde25e708a76a7`, round 5): PASS.** All 16
 checklist items (Part A (i)–(viii), Part B (i)–(vi), front matter (F-i)/(F-ii)) PASS. The round-1
-blockers B1–B9, the round-2 blocker B10, and the four round-4 execution-defect fixes are all fixed
-and independently re-verified on this SHA. The round-1/2/3 sections below are preserved as the
-historical record; the round-4 re-review of the execution-defect fixes, the new validation evidence
-and the final reviewed object are in “Re-review (round 4) — execution-defect fixes” at the end of
-this file.
+blockers B1–B9, the round-2 blocker B10, the four round-4 execution-defect fixes, and the round-5
+X3-b raw-family particle-truth fix are all fixed and independently re-verified on this SHA. The
+round-1/2/3/4 sections below are preserved as the historical record; the round-5 re-review of the
+X3-b truth fix, the new validation evidence and the final reviewed object are in “Re-review
+(round 5) — X3-b raw-family truth fix” at the end of this file.
 
 The implementation is reviewed at `184cd2f` against the binding runbook
 `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` (sha256 `45e5ff98…119b`, verified equal to the
@@ -925,6 +925,129 @@ will regenerate them with the fixed code and the new record.
   and `d9f71a1..7b9352c` `de8b148fe36723f0aa758dd90c8789f102a370cbd3d93f10f06a281f19d8715e`.
 - Worktree `/private/tmp/veritas-jepa-20261107` at `7b9352c`; host clone
   `/ceph/dwong/jepa/code/jepa_work_20261107` clean at `7b9352c`. All round-4 checks were read-only on
+  that clone (`TMPDIR` under `/work/dwong/jepa_tmp_20261107/review`, `PYTHONPATH=src`,
+  `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the reviewer scratch
+  was removed afterwards.
+
+---
+
+# Re-review (round 5) — X3-b raw-family truth fix
+
+**Round-5 verdict: PASS.** Frozen reviewed object
+`51999d20315bf097a7846a61b8bde25e708a76a7` (parent `1b30ad6` = the round-4 PASS acceptance/docs
+commit; base runbook `062a8d1`). The X3-b raw-family defect (a `KeyError: 'drift'` when X3-b first
+ran on GPU) is fixed, the delta contains nothing else, and no B1–B10 or round-4 item regressed. All
+16 checklist items remain **PASS**.
+
+## Delta and scope
+
+- `git diff --stat 1b30ad6..51999d2` is exactly 2 files, +63/−7
+  (`src/jepa_noise/ext_repair.py` 16 lines, `src/jepa_noise/tests/test_ext_repair.py` 54 lines);
+  `git diff --stat 7b9352c..1b30ad6 -- src scripts` is empty (the round-4 PASS acceptance/docs commit
+  changed no implementation file). The two CLIs are byte-identical (`dd9906e3…`/`616797f3…`),
+  `ext_shortcut.py` and its tests are unchanged (`537f6f1f…`/`1bd0da27…`), the runbook sha256 is
+  unchanged, and relative to the base only the same six source files were added (no existing source
+  file modified).
+- The `ext_repair.py` delta is one hunk in `x3()` (`:3995-4004`); the test delta is one appended
+  regression test (`test_ext_repair.py:1589-1638`).
+
+## The fix (file:line + demos on the frozen clone)
+
+- **Defect.** `x3()` loads the particle truth per probe split only:
+  `truth = {role: ef.load_particle_truth(data_root, PROBE_KEYS_S005[role]) for role in
+  ("train", "test")}` (`ext_repair.py:3986-3987`), while the pre-fix standard raw-family loop did
+  `truth[role]` for roles `train`, `test`, **`drift`** → `KeyError: 'drift'`. Demonstrated: with
+  `truth = {"train": …, "test": …}`, the pre-fix call shape `truth["drift"]` raises exactly
+  `KeyError('drift')`.
+- **Fix.** The standard raw-family loop (`:3995-4004`) now maps
+  `("train", probes005["train"], "train"), ("test", probes005["test"], "test"),
+   ("drift", probes030["test"], "test")` and calls
+  `raw_std_features(..., truth=truth[truth_role])` — the drift (s = 0.30) probe-test set reuses the
+  s = 0.05 probe-test particle truth. This is the convention already used by the calibrated raw
+  variant (`:4008-4009`) and by `_x3_init9000` (`truth_key = "test" if role == "drift" else role`).
+  No feature, reading, threshold or item changed; the datasets and conditions are identical.
+- **Validity of the convention (checked on the real probe data, read-only).** The S005 and S030
+  probe-test sets share their run-id grid (200/200 run ids equal) and the first-run event ids are
+  equal; the particle-truth fields that `ef.raw_event_features` consumes agree exactly or to float
+  round-off across settings (`event_ids`, `vertex_m`, `particle`, `contained` identical;
+  `yield_photons` max |Δ| = 1.2e-9, `deposited_MeV` 4.5e-13, `direction_m` 2.2e-16 — far below any
+  reading tolerance). So the drift particle labels are correct and look up by run id.
+- **Regression test.** `test_x3_raw_family_uses_the_s005_truth_for_the_drift_role`
+  (`test_ext_repair.py:1589`) stubs `x3()`'s openers/family bodies and asserts the truth used for
+  all three roles (`TRUTH_TRAIN`, `TRUTH_TEST`, `TRUTH_TEST`), the datasets
+  (`TRAIN0.05`, `TEST0.05`, `TEST0.3`), that the standard drift call carries no calibration
+  condition, and that the calibrated call uses the SWunit condition built on the D probe-test set
+  (`COND:SWunit` for `TEST0.3`). It passes (focused Part A now 59 tests).
+
+## Regression check
+
+- Only the raw standard drift truth mapping changed (plus one new test); the raw train/test rows,
+  the invariant and calibrated variants, all other X3-b families, X1/X2, the gate/closure and the
+  round-4 fixes are untouched. No reading/threshold/item/gate/spec change.
+- Fresh frozen-SHA validation: focused Part A **59 passed**, focused Part B **26 passed**, pyflakes
+  clean; Deepthought full suite **1 failed / 753 passed / 2 skipped / 3 deselected** (the single
+  failure is the untouched, data/numerics-dependent N16
+  `test_ext_followup::test_label_collector_reproduces_the_committed_fix9000_rows`, recorded as
+  observed, not rounded into a pass); deepthought2 full suite **754 passed / 2 skipped /
+  3 deselected, exit 0** (green). All round-2/3/4 tests (B1–B10 + execution-defect fixes) still pass.
+- Both dry runs exit 0 with the import closure `pass: true`, `violations: []`, `setup_errors: []`
+  (Part A 48.093 s, Part B 84.175 s). As in round 4 the observed gate statuses with the still-committed
+  round-4 acceptance record (`impl_commit=7b9352c`) are Part A **denied** (its `<P>` contains the
+  changed `ext_repair.py`) and Part B **granted** (its `<P>` is unchanged since `7b9352c`); this is
+  correct §F5 per-part behaviour, and both will grant after the new acceptance record with
+  `impl_commit=51999d2`.
+
+## Evidence (frozen SHA `51999d2`, clean runs)
+
+`/work/dwong/jepa_tmp_20261107/v6/summary.txt` (Deepthought, complete, `DONE`):
+
+```
+SHA=51999d20315bf097a7846a61b8bde25e708a76a7 HOST=deepthought
+pyflakes_exit=0
+focused_a_exit=0
+focused_b_exit=0
+full_suite_exit=1
+dryrun_a_exit=0
+dryrun_b_exit=0
+DONE
+```
+
+- `v6/pyflakes.log`: empty (`pyflakes_exit=0`).
+- `v6/focused_a.log`: `59 passed in 182.58s`; `v6/focused_b.log`: `26 passed in 24.74s`.
+- `v6/full_suite.log`: `1 failed, 753 passed, 2 skipped, 3 deselected in 1143.28s (0:19:03)`, exit 1;
+  only the N16 failure; only the three known `test_guard` launcher tests deselected.
+- `v6/dryrun_a.log` / `v6/repair_dryrun/dry_run.json`: exit 0, gate `denied` (stale record, see
+  above), closure `pass: true`, `violations: []`, `errors: []`, wall 48.093 s.
+- `v6/dryrun_b.log` / `v6/shortcut_dryrun/plan.json`: exit 0, gate `granted` (see above), closure
+  `pass: true`, `violations: []`, `setup_errors: []`, manipulation check `pass: true`, wall 84.175 s.
+- `/work/dwong/jepa_tmp_20261107/v6_dt2/summary.txt` (deepthought2): `full_suite_dt2_exit=0`;
+  `v6_dt2/full_suite_dt2.log`: `754 passed, 2 skipped, 3 deselected in 831.35s (0:13:51)` — green,
+  same three deselections.
+
+Context recorded, not code: the first X3-b attempt exited 1 after 36 s (GPU hours booked, no output
+written) on this defect; the rerun follows the new acceptance. The worktree also carries the resumed
+run's execution outputs under `results/jepa/…` (modified `plan.json`, new
+`reproduction/x1/x2/manipulation` payloads) — none is in `<P>` and no code differs there; the
+`results/` artifacts are deliverables of the resumed execution, not part of this code review object.
+
+## Final reviewed object (frozen SHA)
+
+- Implementation SHA (reviewed object): `51999d20315bf097a7846a61b8bde25e708a76a7` ("jepa: fix the
+  X3-b raw-family particle-truth lookup (drift role)"), parent `1b30ad6`, base (runbook) `062a8d1`;
+  previously PASSed implementation SHA `7b9352c`.
+- File sha256 (`shasum -a 256`, frozen blobs):
+  - `src/jepa_noise/ext_repair.py` `191e96237fe582473bf5b1a5958b4a498a1e007deb7dc46ce203f387ac2be2cf`
+  - `src/jepa_noise/tests/test_ext_repair.py` `78bd65aaa4b04f133a8c519f87cb6e9db395dd3d8d64b11b1f5aff8fccba8043`
+  - `src/jepa_noise/ext_shortcut.py` `537f6f1f2700f318a7f65ae0fbea19eb13e1f6989e577f8fdb2375d14344334c`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `1bd0da27e86ac4779cfd3aed1aa9c5a4aa424cb3f0b394dcde1483c385b7764d`
+  - `scripts/jepa_ext_repair.py` `dd9906e336abb056969fbc8246b8e1ee0fa048563b35aa176a8ae96c800073db`
+  - `scripts/jepa_ext_shortcut.py` `616797f301ac7aa960877085a61eecb581acbd69f05d2e819d79e08d62feeeaf`
+- Runbook sha256 `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b` (unchanged).
+- Diff sha256: `1b30ad6..51999d2` `b59eaef74b1bc50e9b67ce7585d2ced14d25180856f85c1643ae8dfb321dab8c`;
+  full `062a8d1..51999d2` `ed9a015c9f20762a3531239164d26925d0e92ec6024789ab436ba25916456d63`.
+- Worktree `/private/tmp/veritas-jepa-20261107` at `51999d2` (its review file is the only
+  reviewer-written change; the resumed run's `results/` outputs are as noted above); host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` clean at `51999d2`. All round-5 checks were read-only on
   that clone (`TMPDIR` under `/work/dwong/jepa_tmp_20261107/review`, `PYTHONPATH=src`,
   `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the reviewer scratch
   was removed afterwards.
