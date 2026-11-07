@@ -883,8 +883,9 @@ class EmbeddingCache:
         path.parent.mkdir(parents=True, exist_ok=True)
         payload = {name: np.asarray(out[name])
                    for name in self.ARRAY_NAMES if name in out}
-        if "run_ids" in payload:
-            payload["run_ids"] = np.asarray(payload["run_ids"]).astype(str)
+        for text_name in ("run_ids", "particle", "domain"):
+            if text_name in payload:
+                payload[text_name] = np.asarray(payload[text_name]).astype(str)
         payload["embeddings"] = np.asarray(out["events"])
         np.savez_compressed(path, **payload)
         digest = lr.sha256_file(path)

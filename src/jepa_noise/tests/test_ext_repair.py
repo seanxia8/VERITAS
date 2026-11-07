@@ -1387,3 +1387,54 @@ def test_fisher_accounting_executes_with_per_parameter_inf_counts(geometry,
     counts = payload["models"]["C-mean"]["n_infinite"]["per_case_parameter"]
     assert set(counts["inv"]) == set(rp.THETA_NAMES)
     assert counts["inv"]["lnY"] == 2
+
+
+def test_x3_init9000_executes_photon_particle_and_calibrated(tmp_path, tiny, geometry,
+                                                            monkeypatch):
+    sets = _tiny_many(tmp_path, geometry)
+    s005, s030 = sets["s005"]["dataset"], sets["s030"]["dataset"]
+    probes005 = {"train": s005, "test": s005}
+    probes030 = {"train": s030, "test": s030}
+    model = _tiny_model(geometry)
+    monkeypatch.setattr(ef, "build_item_arm", lambda row, **kwargs: model)
+
+    def fake_photon(model_, dataset, geometry_, condition, *, split, config, device,
+                    cache=None, max_events=None, max_runs=None, log=print,
+                    **kwargs):
+        return _synthetic_rows(dataset, geometry_, dim=4, seed=3)
+
+    def fake_particle(model_, dataset, truth, geometry_, condition, *, device="cpu",
+                      cache=None, cache_key=None, max_events=None, max_runs=None,
+                      log=print):
+        rows = _synthetic_rows(dataset, geometry_, dim=4, seed=4)
+        count = rows["events"].shape[0]
+        rows.update({"particle": np.array(["electron"] * count, dtype=object),
+                     "contained": np.ones(count, bool),
+                     "deposited_MeV": np.linspace(100.0, 900.0, count),
+                     "direction": np.zeros((count, 3))})
+        return rows
+
+    monkeypatch.setattr(rp, "stream_condition_embeddings", fake_photon)
+    monkeypatch.setattr(rp, "stream_condition_particles", fake_particle)
+    cache = rp.embedding_cache(tmp_path / "ext", "init9000")
+    for key, source in (("train__N", s005), ("test__N", s005),
+                        ("test__SWunit", s030)):
+        rows = _synthetic_rows(source, geometry, dim=4, seed=5)
+        cache.fetch(key, lambda rows=rows: rows)
+    for key, source in (("particle__train__N", s005),
+                        ("particle__test__SWunit", s030)):
+        rows = fake_particle(None, source, None, geometry, None)
+        cache.fetch(key, lambda rows=rows: rows)
+    inventory = {"rows": {"init9000": {"label": "init9000", "split": "across"}}}
+    config = lr.load_run_config(ROOT / rp.CONFIG_REL)
+    out = rp._x3_init9000(
+        inventory, probes005, probes030, geometry, config,
+        la.load_config(ROOT / rp.ARMS_REL), GEN, tmp_path, "cpu",
+        {"train": None, "test": None}, tmp_path / "ext",
+        log=lambda *a, **k: None)
+    assert out["status"] == "evaluated"
+    assert out["split"] == "across"
+    assert "vertex" in out["standard"] and "log_yield" in out["invariant"]
+    assert out["standard"].get("energy") is not None
+    assert out["calibrated"].get("vertex", {}).get("D") is not None
+    assert out["calibrated"].get("energy", {}).get("D") is not None
