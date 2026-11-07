@@ -1584,3 +1584,57 @@ def test_raw_feature_family_x3_4_has_a_real_verdict(monkeypatch):
     dominance = readings["variants"]["raw"]["X3-4"]
     assert dominance["status"] == "evaluated"
     assert dominance["verdict"] == "calibration dominates"
+
+
+def test_x3_raw_family_uses_the_s005_truth_for_the_drift_role(monkeypatch, tmp_path):
+    """X3-b raw family: the drift (s=0.30) role reuses the s=0.05 test truth.
+
+    The probe sets share events and run ids across settings (§2.2) and
+    _x3_init9000 already maps its drift role to truth["test"]; the raw family
+    must use the same convention (it previously indexed truth["drift"] -> KeyError).
+    """
+    seen = []
+    monkeypatch.setattr(rp, "assert_authorised", lambda mode, **kw: {"status": "granted"})
+    monkeypatch.setattr(rp, "part_a_inventory", lambda root=None, **kw: {"rows": {}})
+    monkeypatch.setattr(
+        rp, "open_probe_sets",
+        lambda config, gen, geometry, data_root, *, setting, log=print:
+        {"train": f"TRAIN{setting}", "test": f"TEST{setting}"})
+    built = []
+
+    def fake_condition(name, dataset, geometry, **kw):
+        built.append((name, dataset))
+        return f"COND:{name}"
+
+    monkeypatch.setattr(rp, "build_condition", fake_condition)
+    monkeypatch.setattr(
+        rp.ef, "load_particle_truth",
+        lambda data_root, key: ("TRUTH_TRAIN" if "train" in str(key)
+                                else "TRUTH_TEST"))
+
+    def fake_raw(dataset, geometry, truth=None, condition=None):
+        seen.append((dataset, truth, condition))
+        return {"merged": {"features": [[0.0]] * 3}}
+
+    monkeypatch.setattr(rp, "raw_std_features", fake_raw)
+    monkeypatch.setattr(rp, "raw_inv_features",
+                        lambda dataset, geometry: {"features": [[0.0]] * 3})
+    monkeypatch.setattr(rp, "_variant_metric_rows", lambda rows: rows)
+    monkeypatch.setattr(rp, "_feature_variant",
+                        lambda name, standard, invariant, calibrated_rows=None: {})
+    monkeypatch.setattr(rp, "_x3_init9000", lambda *a, **k: {})
+    monkeypatch.setattr(rp, "_x3_leace", lambda *a, **k: {})
+    monkeypatch.setattr(rp, "x3_readings", lambda payload, fisher=None: {"variants": []})
+    monkeypatch.setattr(rp, "_strip_internal", lambda payload: payload)
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    rp.x3(root=tmp_path, config={}, gen=None, arms_config=None, geometry=None,
+          data_root="/data", ext_root=tmp_path, device="cpu",
+          log=lambda *a, **k: None)
+    # calls: standard train, standard test, standard drift, calibrated drift
+    assert [row[1] for row in seen] == ["TRUTH_TRAIN", "TRUTH_TEST",
+                                        "TRUTH_TEST", "TRUTH_TEST"]
+    assert [row[0] for row in seen] == ["TRAIN0.05", "TEST0.05",
+                                        "TEST0.3", "TEST0.3"]
+    assert seen[2][2] is None          # standard: no calibration condition
+    assert seen[3][2] == "COND:SWunit"  # calibrated: condition on the D probe-test
+    assert built == [("SWunit", "TEST0.3")]

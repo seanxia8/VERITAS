@@ -3990,13 +3990,15 @@ def x3(root=None, *, config, gen, arms_config, geometry, inventory=None,
                "runbook": RUNBOOK_REL, "families": {}, "unavailable": [],
                "gate": {"status": gate["status"]}, "wall_checks": {},
                "wall_seconds": None}
-    # raw features (no encoder)
-    standard = {
-        role: _variant_metric_rows(
-            raw_std_features(dataset, geometry, truth=truth[role])["merged"])
-        for role, dataset in (("train", probes005["train"]),
-                              ("test", probes005["test"]),
-                              ("drift", probes030["test"]))}
+    # raw features (no encoder); the drift (s = 0.30) probe-test set reuses the
+    # s = 0.05 probe-test particle truth, the same convention as _x3_init9000
+    # (the probe sets share their events and run ids across settings; §2.2)
+    standard = {}
+    for role, dataset, truth_role in (("train", probes005["train"], "train"),
+                                      ("test", probes005["test"], "test"),
+                                      ("drift", probes030["test"], "test")):
+        standard[role] = _variant_metric_rows(
+            raw_std_features(dataset, geometry, truth=truth[truth_role])["merged"])
     invariant = {"train": _variant_metric_rows(raw_inv_features(probes005["train"],
                                                                 geometry)),
                  "test": _variant_metric_rows(raw_inv_features(probes005["test"],
