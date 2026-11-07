@@ -1,0 +1,8 @@
+{
+ "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+ "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+ "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+ "review_verdict": "PASS",
+ "lead": "Dowling Wong (author, lead)",
+ "date": "2026-11-07"
+}
