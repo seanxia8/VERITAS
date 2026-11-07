@@ -1,12 +1,13 @@
 **Verdict: PASS**
 
-**Final status (frozen SHA `51999d20315bf097a7846a61b8bde25e708a76a7`, round 5): PASS.** All 16
+**Final status (frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c`, round 6): PASS.** All 16
 checklist items (Part A (i)–(viii), Part B (i)–(vi), front matter (F-i)/(F-ii)) PASS. The round-1
-blockers B1–B9, the round-2 blocker B10, the four round-4 execution-defect fixes, and the round-5
-X3-b raw-family particle-truth fix are all fixed and independently re-verified on this SHA. The
-round-1/2/3/4 sections below are preserved as the historical record; the round-5 re-review of the
-X3-b truth fix, the new validation evidence and the final reviewed object are in “Re-review
-(round 5) — X3-b raw-family truth fix” at the end of this file.
+blockers B1–B9, the round-2 blocker B10, the round-4 execution-defect fixes, the round-5 X3-b
+raw-family particle-truth fix, and the round-6 X3-b raw-std merged-table alignment fix are all fixed
+and independently re-verified on this SHA. The round-1/2/3/4/5 sections below are preserved as the
+historical record; the round-6 re-review of the merged-table fix, the new validation evidence and the
+final reviewed object are in “Re-review (round 6) — X3-b raw-std merged-table alignment” at the end
+of this file.
 
 The implementation is reviewed at `184cd2f` against the binding runbook
 `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` (sha256 `45e5ff98…119b`, verified equal to the
@@ -1048,6 +1049,137 @@ run's execution outputs under `results/jepa/…` (modified `plan.json`, new
 - Worktree `/private/tmp/veritas-jepa-20261107` at `51999d2` (its review file is the only
   reviewer-written change; the resumed run's `results/` outputs are as noted above); host clone
   `/ceph/dwong/jepa/code/jepa_work_20261107` clean at `51999d2`. All round-5 checks were read-only on
+  that clone (`TMPDIR` under `/work/dwong/jepa_tmp_20261107/review`, `PYTHONPATH=src`,
+  `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the reviewer scratch
+  was removed afterwards.
+
+---
+
+# Re-review (round 6) — X3-b raw-std merged-table alignment
+
+**Round-6 verdict: PASS.** Frozen reviewed object
+`0cf61ff476bc8f3463b4595816ba40508cba239c` (parent `7f1221d` = the round-5 PASS acceptance/docs
+commit; base runbook `062a8d1`). The second X3-b execution defect (the raw-std particle/photon merged
+table was ragged, so the per-domain metric masks could not broadcast) is fixed; the delta contains
+nothing else; no B1–B10 or rounds-4/5 item regressed. All 16 checklist items remain **PASS**.
+
+## Delta and scope
+
+- `git diff --stat 7f1221d..0cf61ff` is exactly 2 files, +55/−6
+  (`src/jepa_noise/ext_repair.py` 30 lines, `src/jepa_noise/tests/test_ext_repair.py` 31 lines);
+  `git diff --stat 51999d2..7f1221d -- src scripts` is empty (the round-5 PASS acceptance/docs commit
+  changed no implementation file). The two CLIs are byte-identical (`dd9906e3…`/`616797f3…`),
+  `ext_shortcut.py` and its tests are unchanged (`537f6f1f…`/`1bd0da27…`), the runbook sha256 is
+  unchanged, and relative to the base only the same six source files were added (no existing source
+  file modified).
+- The `ext_repair.py` delta is confined to `_neutral_row_array` (`:3539-3554`) and
+  `merge_standard_rows` (`:3556-3583`); the test delta is one appended regression test
+  (`test_ext_repair.py:1643-1673`).
+
+## The fix (file:line + demos on the frozen clone)
+
+- **Defect.** `merge_standard_rows` concatenated field by field, and for a field present on only one
+  side it kept that side's shorter array. `ef.raw_event_features` (muon/electron rows) has no
+  `log_yield`, while the photon raw-std table has one, so the merged table had `features` of length
+  10 000 but `log_yield` of length 3 400; `feature_probe_metrics(kind="log_yield")` then evaluated
+  `np.isfinite(y) & (domain == "photon")` on mismatched lengths and raised
+  `ValueError: operands could not be broadcast together with shapes (3400,) (10000,)`.
+- **Fix.** `merge_standard_rows` (`:3556-3583`) now computes `particle_len`/`photon_len` from the two
+  tables' `run_ids` (`:3563-3564`) and, for a field missing on one side, inserts a neutral column of
+  the right shape/dtype via `_neutral_row_array` (`:3539-3554`: `False` for bool, `"none"` object for
+  string/object, `NaN` float otherwise) before concatenating (`:3575`). Every merged field therefore
+  has length = particle rows + photon rows; the photon `log_yield`/`domain` masks then select exactly
+  the photon rows, and particle rows get a neutral `log_yield = NaN`. This affects only the
+  raw-feature family's table construction; no feature formula, reading, threshold or item changed.
+- **Demonstrated.** Pre-fix ragged merge of a 2-row particle table (no `log_yield`) and a 5-row
+  photon table gives lengths `features 7, log_yield 5, domain 7`, and the real
+  `feature_probe_metrics(kind="log_yield")` on it raises
+  `ValueError: operands could not be broadcast together with shapes (5,) (7,)` — the same failure
+  pattern as the GPU run. Post-fix, `merge_standard_rows` returns all fields of length 7, the two
+  particle rows' `log_yield` are `NaN`, the photon `log_yield` values are intact, `domain` is
+  `["muon","electron","photon","photon","photon","photon","photon"]`, the photon log-yield mask
+  selects exactly 5 rows, and `feature_probe_metrics(kind="log_yield")` returns `status="evaluated"`
+  (no broadcast error).
+- **Regression test.** `test_merge_standard_rows_aligns_every_column_for_domain_masks`
+  (`test_ext_repair.py:1643`) builds a 2-particle + 3-photon table, asserts all eleven merged fields
+  have length 5, that `log_yield` is NaN for the particle rows and `[7,8,9]` for the photon rows,
+  that `domain` is `["muon","electron","photon","photon","photon"]`, and that the photon mask selects
+  3 rows; it passes (focused Part A now 60 tests).
+
+## Regression check
+
+- Only the raw-std table construction changed (plus one test); `merge_standard_rows` has a single
+  production call site (`raw_std_features` → the raw-feature family), and the change is limited to
+  filling missing columns — the per-source tables and their orders are unchanged, so the merged
+  row order and the existing pairwise keys are preserved.
+- Recorded honestly: the earlier rounds did not execute this path end to end — round-5's test stubs
+  `raw_std_features`/`_variant_metric_rows`/`_feature_variant`, and round-3's raw-family test
+  monkeypatches `feature_probe_metrics` — so the ragged merge only appeared on the real GPU run.
+  The new test now covers the construction directly.
+- Fresh frozen-SHA validation: focused Part A **60 passed**, focused Part B **26 passed**, pyflakes
+  clean; Deepthought full suite **1 failed / 754 passed / 2 skipped / 3 deselected** (the single
+  failure is the untouched, data/numerics-dependent N16
+  `test_ext_followup::test_label_collector_reproduces_the_committed_fix9000_rows`, recorded as
+  observed, not rounded into a pass); deepthought2 full suite **755 passed / 2 skipped /
+  3 deselected, exit 0** (green). All round-2..5 tests still pass.
+- Both dry runs exit 0 with the import closure `pass: true`, `violations: []`,
+  `setup_errors: []` (Part A 25.753 s, Part B 83.978 s). As in rounds 4–5 the observed gate statuses
+  with the still-committed round-5 acceptance record (`impl_commit=51999d2`) are Part A **denied**
+  (its `<P>` contains the changed `ext_repair.py`) and Part B **granted** (its `<P>` is unchanged
+  since `51999d2`); this is correct §F5 per-part behaviour, and both will grant after the new
+  acceptance record with `impl_commit=0cf61ff`.
+
+## Evidence (frozen SHA `0cf61ff`, clean runs)
+
+`/work/dwong/jepa_tmp_20261107/v7/summary.txt` (Deepthought, complete, `DONE`):
+
+```
+SHA=0cf61ff476bc8f3463b4595816ba40508cba239c HOST=deepthought
+pyflakes_exit=0
+focused_a_exit=0
+focused_b_exit=0
+full_suite_exit=1
+dryrun_a_exit=0
+dryrun_b_exit=0
+DONE
+```
+
+- `v7/pyflakes.log`: empty (`pyflakes_exit=0`).
+- `v7/focused_a.log`: `60 passed in 148.17s`; `v7/focused_b.log`: `26 passed in 17.35s`.
+- `v7/full_suite.log`: `1 failed, 754 passed, 2 skipped, 3 deselected in 1119.29s (0:18:39)`, exit 1;
+  only the N16 failure; only the three known `test_guard` launcher tests deselected.
+- `v7/dryrun_a.log` / `v7/repair_dryrun/dry_run.json`: exit 0, gate `denied` (stale record, see
+  above), closure `pass: true`, `violations: []`, `errors: []`, wall 25.753 s.
+- `v7/dryrun_b.log` / `v7/shortcut_dryrun/plan.json`: exit 0, gate `granted` (see above), closure
+  `pass: true`, `violations: []`, `setup_errors: []`, manipulation check `pass: true`, wall 83.978 s.
+- `/work/dwong/jepa_tmp_20261107/v7_dt2/summary.txt` (deepthought2): `full_suite_dt2_exit=0`;
+  `v7_dt2/full_suite_dt2.log`: `755 passed, 2 skipped, 3 deselected in 637.46s (0:10:37)` — green,
+  same three deselections.
+
+Context recorded, not code: the first X3-b attempt (round-5 drift-truth defect) exited 1 after 36 s
+and this second attempt (this defect) after 46 s, both booked with no output; the X3-b rerun follows
+the new acceptance. The worktree also carries the resumed run's execution outputs under
+`results/jepa/…` (modified `plan.json`, new reproduction/x1/x2/manipulation payloads) — none is in
+`<P>` and no code differs there.
+
+## Final reviewed object (frozen SHA)
+
+- Implementation SHA (reviewed object): `0cf61ff476bc8f3463b4595816ba40508cba239c` ("jepa: align the
+  X3-b raw-std merged table across particle/photon rows"), parent `7f1221d`, base (runbook) `062a8d1`;
+  previously PASSed implementation SHA `51999d2`.
+- File sha256 (`shasum -a 256`, frozen blobs):
+  - `src/jepa_noise/ext_repair.py` `6845c3019f6eb67a53fd3bb16339a46e15131a90e3753f4217520720de622fd3`
+  - `src/jepa_noise/tests/test_ext_repair.py` `67b2d50f5581954902ca89c9574b12cd32cd69126c8596b248ca3c3b71e8b62b`
+  - `src/jepa_noise/ext_shortcut.py` `537f6f1f2700f318a7f65ae0fbea19eb13e1f6989e577f8fdb2375d14344334c`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `1bd0da27e86ac4779cfd3aed1aa9c5a4aa424cb3f0b394dcde1483c385b7764d`
+  - `scripts/jepa_ext_repair.py` `dd9906e336abb056969fbc8246b8e1ee0fa048563b35aa176a8ae96c800073db`
+  - `scripts/jepa_ext_shortcut.py` `616797f301ac7aa960877085a61eecb581acbd69f05d2e819d79e08d62feeeaf`
+- Runbook sha256 `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b` (unchanged).
+- Diff sha256: `7f1221d..0cf61ff` `77c5f897ea321c24ae5aaf5e30e9a8daf095e38cc926f369e082c492ebfc16e7`;
+  full `062a8d1..0cf61ff` `b14f0b1e0f174544e651484454b99c02e1263b8c10477523a1aea58885a3171a`.
+- Worktree `/private/tmp/veritas-jepa-20261107` at `0cf61ff` (its review file is the only
+  reviewer-written change; the resumed run's `results/` outputs are as noted above); host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` clean at `0cf61ff`. All round-6 checks were read-only on
   that clone (`TMPDIR` under `/work/dwong/jepa_tmp_20261107/review`, `PYTHONPATH=src`,
   `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the reviewer scratch
   was removed afterwards.
