@@ -159,6 +159,11 @@ __all__ = [
     "R1_RESULTS_FILE", "PRESERVED_7NOV_DIR", "PRESERVED_7NOV_FILE",
     "ADDENDUM_ENTRIES_ROOT", "ADDENDUM_ENTRIES_FLOOR",
     "ADDENDUM_ENTRIES_PROJECTED", "ADDENDUM_ENTRY_XATTRS",
+    # addendum A5 (review round 8): order-independent R-1 sources
+    "X2_OVERLAY_REL", "CORRECTED_7NOV_KEY", "CORRECTED_X2C_TOKEN",
+    "R1_BASIS_OVERLAY", "R1_BASIS_CORRECTED", "R1_BASIS_7NOV",
+    "x2_overlay_path", "corrected_results_marker", "overlay_corrections",
+    "resolve_r1_x2_sources", "sanitise_r1_handoff",
     "results_r1_payload", "write_results_r1", "results_r1_path",
     "preserved_7nov_path", "preserve_7nov_readings", "seven_nov_readings",
     "addendum_entries_snapshot", "addendum_entries_preflight",
@@ -238,6 +243,18 @@ ADDENDUM_ENTRIES_PROJECTED = 200
 ADDENDUM_ENTRY_XATTRS = (("quota_max_files", "ceph.quota.max_files"),
                          ("quota_rfiles", "ceph.dir.rfiles"),
                          ("quota_rsubdirs", "ceph.dir.rsubdirs"))
+#: Addendum A5 (review round 8): R-1 must be execution-order-independent.  The
+#: D1-corrected X2-c rho_LR is read from the Part A ``addendum-x2`` overlay
+#: ``<pilot ext>/addendum/x2_addendum.json`` first; the pilot
+#: ``results/jepa/20261106_repair/x2.json`` is trusted only when it carries the
+#: ``corrected_7nov`` + ``addendum_sha256`` markers written by Part A's
+#: ``addendum_report``; otherwise the 7 Nov payload is the stated basis.
+X2_OVERLAY_REL = "addendum/x2_addendum.json"
+CORRECTED_7NOV_KEY = "corrected_7nov"
+CORRECTED_X2C_TOKEN = "X2-c"
+R1_BASIS_OVERLAY = "d1_overlay"
+R1_BASIS_CORRECTED = "corrected_results"
+R1_BASIS_7NOV = "7nov_results"
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
                    "lead", "date", "addendum_path", "addendum_sha256")
 DECISIONS_REL = "docs/jepa/DECISIONS.md"
@@ -792,13 +809,9 @@ def results_r1_payload(r1, *, results_dir=None) -> dict:
     all three are written so the D1-corrected value is found regardless of which
     picker key it tries.  The full R-1 payload (status, table, reading) is kept.
     """
-    payload = dict(r1) if isinstance(r1, dict) else {}
-    reading = payload.get("reading")
+    payload = sanitise_r1_handoff(r1 if isinstance(r1, dict) else {})
     payload.setdefault("registered", False)
     payload.setdefault("extension", EXTENSION)
-    payload["reading"] = reading
-    payload["r1"] = reading
-    payload["R-1"] = reading
     payload["stable_path"] = str(results_r1_path(results_dir=results_dir))
     payload["addendum"] = {"path": ADDENDUM_REL, "sha256": ADDENDUM_SHA256,
                            "date": ADDENDUM_DATE,
@@ -2322,7 +2335,173 @@ def cache_files(ext_root, label, *, large_arrays=None) -> dict:
     return out
 
 
-def pilot_status(root=None, *, results_dir=None) -> dict:
+# ==================== addendum A5 (review round 8): order-independent R-1 sources
+def x2_overlay_path(ext_root=None) -> Path:
+    """The Part A ``addendum-x2`` D1 overlay (``<pilot ext>/addendum/x2_addendum.json``)."""
+    root = Path(ext_root) if ext_root is not None else Path(PILOT_EXT_ROOT)
+    return root / X2_OVERLAY_REL
+
+
+def corrected_results_marker(payload) -> dict:
+    """Whether a pilot ``x2.json`` carries Part A's ``corrected_7nov`` marker.
+
+    Part A's ``addendum_report`` writes ``corrected_7nov`` (a list naming the
+    corrected X2 fields) plus ``addendum_sha256`` into the in-place results
+    payload.  A payload without both markers is the stale 7 Nov payload.
+    """
+    if not isinstance(payload, dict):
+        return {"corrected": False, "reason": "not a JSON object",
+                "marker": None, "addendum_sha256": None,
+                "marker_present": False, "addendum_sha256_ok": False}
+    marker = payload.get(CORRECTED_7NOV_KEY)
+    if isinstance(marker, str):
+        marked = CORRECTED_X2C_TOKEN in marker
+    elif isinstance(marker, (list, tuple, set)):
+        marked = any(str(row).startswith(CORRECTED_X2C_TOKEN) for row in marker)
+    elif isinstance(marker, dict):
+        marked = bool(marker)
+    else:
+        marked = False
+    sha_ok = payload.get("addendum_sha256") == ADDENDUM_SHA256
+    return {"corrected": bool(marked and sha_ok), "marker": marker,
+            "addendum_sha256": payload.get("addendum_sha256"),
+            "marker_present": bool(marked), "addendum_sha256_ok": bool(sha_ok),
+            "basis": R1_BASIS_CORRECTED if (marked and sha_ok) else R1_BASIS_7NOV}
+
+
+def overlay_corrections(block) -> dict:
+    """The corrected X2-c ``rho_LR``/class of one overlay model block (or ``{}``).
+
+    The overlay model shape is ``{"status", "r2_eq", "X2-c": {"rho_LR", "class"},
+    ...}`` from ``ext_repair._addendum_x2_model``; flat ``rho_lr``/``rho_LR`` is
+    accepted as well.  Nothing is invented: a missing value stays ``None``.
+    """
+    if not isinstance(block, dict):
+        return {"available": False, "rho_lr": None, "x2_class": None,
+                "r2_eq": None, "status": None}
+    x2c = block.get("X2-c") if isinstance(block.get("X2-c"), dict) else {}
+    rho = x2c.get("rho_LR", x2c.get("rho_lr"))
+    if rho is None:
+        rho = block.get("rho_lr", block.get("rho_LR"))
+    out = {"rho_lr": rho, "x2_class": x2c.get("class"),
+           "r2_eq": block.get("r2_eq"), "status": block.get("status")}
+    out["available"] = any(value is not None for value in
+                           (out["rho_lr"], out["r2_eq"], out["x2_class"]))
+    return out
+
+
+def _lookup_model_block(payload, label):
+    """The per-model block of ``label`` in a pilot/overlay payload (tolerant)."""
+    if not isinstance(payload, dict):
+        return None
+    block = find_model_block(payload, label)
+    return None if block is None else _model_block(block, label)
+
+
+def resolve_r1_x2_sources(x2, *, ext_root=None) -> dict:
+    """The effective ``x2`` payload for R-1 and the stated readings basis (A5).
+
+    Source order (addendum A5):
+    1. the D1 overlay ``<pilot ext>/addendum/x2_addendum.json`` (Part A
+       ``addendum-x2`` output) -- per model, the corrected ``X2-c.rho_LR``;
+    2. the pilot ``x2.json`` only when it carries the ``corrected_7nov`` +
+       ``addendum_sha256`` markers (Part A ``addendum_report`` has rewritten it);
+    3. otherwise the 7 Nov ``x2.json``.
+
+    A model missing from a present overlay falls back per model to (2)/(3) and
+    is recorded in ``model_sources``/``fallbacks``; no value is invented.  The
+    input payload is never mutated.
+    """
+    x2 = x2 if isinstance(x2, dict) else {}
+    models_in = x2.get("models") if isinstance(x2.get("models"), dict) else {}
+    overlay_path = x2_overlay_path(ext_root)
+    overlay = read_json(overlay_path, None)
+    overlay = overlay if isinstance(overlay, dict) else None
+    overlay_labels = []
+    if overlay is not None:
+        overlay_models = overlay.get("models")
+        if isinstance(overlay_models, dict):
+            overlay_labels = sorted(overlay_models)
+        else:  # tolerant: any label-like block found recursively
+            overlay_labels = sorted({label for label in R1_ALL_LABELS
+                                     if find_model_block(overlay, label) is not None})
+    marker = corrected_results_marker(x2)
+    fallback_basis = (R1_BASIS_CORRECTED if marker["corrected"]
+                      else R1_BASIS_7NOV)
+    effective_models = {label: (dict(block) if isinstance(block, dict) else block)
+                        for label, block in models_in.items()}
+    model_sources, fallbacks = {}, []
+    for label in overlay_labels:
+        corrections = overlay_corrections(_lookup_model_block(overlay, label))
+        if not corrections["available"]:
+            fallbacks.append({"label": label, "reason":
+                              "the D1 overlay has no corrected value for this "
+                              "model; fell back per model"})
+            if label in effective_models:
+                model_sources[label] = fallback_basis
+            continue
+        base = dict(effective_models.get(label) or {})
+        if corrections["rho_lr"] is not None:
+            base["rho_lr"] = corrections["rho_lr"]
+            x2c = dict(base.get("X2-c") or {})
+            x2c["rho_LR"] = corrections["rho_lr"]
+            if corrections["x2_class"] is not None:
+                x2c["class"] = corrections["x2_class"]
+            base["X2-c"] = x2c
+        if corrections["r2_eq"] is not None and base.get("r2_eq") is None:
+            base["r2_eq"] = corrections["r2_eq"]
+        effective_models[label] = base
+        model_sources[label] = R1_BASIS_OVERLAY
+    for label in models_in:
+        if label in model_sources:
+            continue
+        model_sources[label] = fallback_basis
+        if overlay_labels:
+            fallbacks.append({"label": label, "reason":
+                              "the model is absent from the D1 overlay; fell "
+                              "back per model"})
+    if overlay_labels:
+        basis = R1_BASIS_OVERLAY
+    else:
+        basis = fallback_basis
+    effective = dict(x2)
+    effective["models"] = effective_models
+    return {"x2": effective, "basis": basis, "source": basis,
+            "model_sources": model_sources, "fallbacks": fallbacks,
+            "marker": marker,
+            "overlay": {"path": str(overlay_path),
+                        "present": overlay is not None,
+                        "n_models": len(overlay_labels),
+                        "complete": (overlay or {}).get("complete"),
+                        "unavailable": (overlay or {}).get("unavailable")},
+            "source_order": [R1_BASIS_OVERLAY, R1_BASIS_CORRECTED,
+                             R1_BASIS_7NOV]}
+
+
+def sanitise_r1_handoff(payload) -> dict:
+    """A hand-off payload that a ``not_run`` R-1 cannot be mistaken for a reading.
+
+    Part A's picker treats a payload with any of ``verdict``/``generative_median``/
+    ``table``/``comparisons`` as a reading, so a ``not_run`` hand-off must not
+    carry the (empty) table; it is marked ``not_run`` instead.  A complete
+    reading is left untouched.
+    """
+    payload = dict(payload) if isinstance(payload, dict) else {}
+    reading = payload.get("reading")
+    if not isinstance(reading, dict):
+        for key in ("table", "verdict", "generative_median", "comparisons"):
+            payload.pop(key, None)
+        payload["not_run"] = True
+        payload["reading"] = None
+        payload["r1"] = None
+        payload["R-1"] = None
+    else:
+        payload["r1"] = reading
+        payload["R-1"] = reading
+    return payload
+
+
+def pilot_status(root=None, *, results_dir=None, ext_root=None) -> dict:
     """Whether the Part A repair pilot outputs exist with X1/X2 completed (§3)."""
     root = _resolve_root(root)
     directory = Path(results_dir) if results_dir is not None else (root / PILOT_RESULTS_DIR)
@@ -2358,6 +2537,15 @@ def pilot_status(root=None, *, results_dir=None) -> dict:
                             "(readings.json lacks a completed x1/x2 section)")
     status["x1"] = read_json(files["x1.json"], {}) or {}
     status["x2"] = read_json(files["x2.json"], {}) or {}
+    # A5 (review round 8): the same order-independent source decision as
+    # r1_payload, so the status and the reading never disagree.
+    sources = resolve_r1_x2_sources(status["x2"], ext_root=ext_root)
+    status["readings_basis"] = sources["basis"]
+    status["source"] = sources["basis"]
+    status["x2_source"] = {"overlay": sources["overlay"],
+                           "marker": sources["marker"],
+                           "model_sources": sources["model_sources"],
+                           "fallbacks": sources["fallbacks"]}
     return status
 
 
@@ -2372,16 +2560,29 @@ def r1_payload(root=None, *, results_dir=None, ext_root=PILOT_EXT_ROOT,
     """
     root = _resolve_root(root)
     assert_authorised(mode, root=root, dry_run=dry_run)
-    status = pilot_status(root, results_dir=results_dir)
+    status = pilot_status(root, results_dir=results_dir, ext_root=ext_root)
     base = {"registered": False, "extension": EXTENSION, "id": "R-1",
             "results_dir": status["results_dir"],
             "pilot_ext_root": str(ext_root),
             "read_only": "the pilot's <ext> and results directories are never written"}
     if not status["complete"]:
         log(f"[shortcut] R-1 not_run: {status['reason']}")
+        # the library payload keeps its historical shape; the hand-off writers
+        # (results_r1_payload / the addendum-r1 CLI) sanitise it so a not_run is
+        # never mistaken for a reading by the Part A picker (A5(d)).
         return dict(base, status="not_run", reason=status["reason"],
-                    files=status["files"], reading=None, table={})
-    x1, x2 = status["x1"], status["x2"]
+                    files=status["files"], reading=None, table={},
+                    source="not_run", readings_basis="not_run")
+    x1 = status["x1"]
+    x2_sources = resolve_r1_x2_sources(status["x2"], ext_root=ext_root)
+    x2 = x2_sources["x2"]
+    base.update(source=x2_sources["basis"],
+                readings_basis=x2_sources["basis"],
+                x2_source={"overlay": x2_sources["overlay"],
+                           "marker": x2_sources["marker"],
+                           "model_sources": x2_sources["model_sources"],
+                           "fallbacks": x2_sources["fallbacks"]},
+                source_order=x2_sources["source_order"])
     large_arrays = read_json(Path(results_dir or (root / PILOT_RESULTS_DIR))
                              / "LARGE_ARRAYS.json", {}) or {}
     labels = sorted(R1_ALL_LABELS)
@@ -3043,6 +3244,13 @@ def _addendum_readme_section(*, record, superseded, r1, readings, hours,
     lines += ["", "`complete` is true only when R2-a/R2-b/R2-c and R-1 are all "
               "present (addendum §5 D4 readings completeness for Part B).", ""]
     lines += ["### R-1 hand-off (addendum A2, review round 7)", ""]
+    order = " -> ".join(r1.get("source_order") or []) or "n/a (hand-off without source metadata)"
+    lines += [f"- R-1 x2 source / readings basis: **{r1.get('readings_basis', 'n/a')}** "
+              f"(overlay: "
+              f"{_fmt(((r1.get('x2_source') or {}).get('overlay') or {}).get('present'))}; "
+              f"corrected-results marker: "
+              f"{_fmt(((r1.get('x2_source') or {}).get('marker') or {}).get('corrected'))}); "
+              f"the order-independent source order is {order}.", ""]
     if results_r1:
         lines += [f"- stable results-dir hand-off: `{results_r1.get('path')}` "
                   f"(sha256 `{_fmt(results_r1.get('sha256'), 16)}`), with the "
@@ -3120,6 +3328,7 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
     if not isinstance(r1, dict) or not r1:
         r1 = r1_payload(root, mode="addendum-r1", ext_root=PILOT_EXT_ROOT, log=log)
         r1_path = None
+    r1 = sanitise_r1_handoff(r1)
     run_dirs = evaluation.get("run_dirs") or [
         run.get("run_dir") for run in runs.values() if run.get("run_dir")]
     plan = read_json(read_dir / "plan.json", {}) or {}
@@ -3175,6 +3384,8 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
         "seven_nov_preserved": seven_nov["preserved"],
         "preserved_7nov": preservation,
         "results_r1": results_r1,
+        "r1_readings_basis": r1.get("readings_basis"),
+        "r1_source": r1.get("source"),
     }
 
     # ---- runs.json ---------------------------------------------------------
@@ -3259,6 +3470,9 @@ def assemble_addendum_report(*, root=None, data_dir=None, results_dir=None,
             "R1_rerun": {"status": r1.get("status"),
                          "reading": r1.get("reading"),
                          "r1": r1.get("reading"),
+                         "readings_basis": r1.get("readings_basis"),
+                         "r1_source": r1.get("source"),
+                         "x2_source": r1.get("x2_source"),
                          "source": (str(r1_path) if r1_path is not None
                                     else "recomputed read-only from the pilot"),
                          "stable_results_path": results_r1["path"],

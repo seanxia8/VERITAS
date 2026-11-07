@@ -692,6 +692,8 @@ def mode_addendum_r1(args, started) -> int:
         _book_addendum("B", "addendum-r1", "cpu",
                        round(time.time() - job_started, 3))
         raise
+    # A5(d): a not_run hand-off must not carry Part A's reading-trigger keys.
+    payload = xs.sanitise_r1_handoff(payload)
     payload.update(gate=gate, mode="addendum-r1", entries=entries,
                    budget_before=budget,
                    wall_seconds=round(time.time() - started, 3),

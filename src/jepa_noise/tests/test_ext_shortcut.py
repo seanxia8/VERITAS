@@ -1158,15 +1158,20 @@ def test_addendum_r1_rerun_reads_the_corrected_pilot_rho_lr(tmp_path, monkeypatc
     monkeypatch.setattr(xs, "assert_authorised",
                         lambda *a, **k: {"authorised": True, "status": "granted"})
     x1, x2 = _part_a_payloads(0.9, 0.9)
-    # the D1-corrected pilot writes a very different rho_LR for every model
+    # the D1-corrected pilot writes a very different rho_LR for every model and
+    # carries Part A's corrected_7nov + addendum_sha256 markers
     for generative in xs.R1_GENERATIVE_CORE:
         x2["models"][generative]["rho_lr"] = -0.42
     for seed in (9000, 9001):
         x2["models"][f"frozen_target{seed}"]["rho_lr"] = -0.12
+    x2["corrected_7nov"] = ["X2-c", "X2-d latent", "X2-f", "X2-e latent"]
+    x2["addendum_sha256"] = xs.ADDENDUM_SHA256
     pilot = _write_pilot(tmp_path / "pilot-d1", x1, x2)
     payload = xs.r1_payload(ROOT, results_dir=pilot, ext_root=tmp_path / "ext",
                             mode="addendum-r1", log=_noop)
     assert payload["status"] == "complete"
+    assert payload["readings_basis"] == xs.R1_BASIS_CORRECTED
+    assert payload["source"] == xs.R1_BASIS_CORRECTED
     reading = payload["reading"]
     assert reading["generative_median"]["rho_lr"] == pytest.approx(-0.42)
     assert reading["frozen_target"]["rho_lr"]["9000"] == pytest.approx(-0.12)
@@ -1520,12 +1525,25 @@ def test_addendum_r1_cli_writes_the_ext_and_stable_results_handoffs(tmp_path,
     results.parent.mkdir(parents=True)
     shutil.copytree(fixture_results, results)      # the old 7 Nov results files
     (ext / "r1_addendum.json").unlink()            # the CLI must write it
+    # A5: the results x2.json stays the STALE 7 Nov payload (no marker); the
+    # corrected rho_LR exists only in the Part A D1 overlay.  Following §8 the
+    # R-1 rerun runs before Part A's report, so this is the binding case.
     x1, x2 = _part_a_payloads(0.9, 0.9)
-    for generative in xs.R1_GENERATIVE_CORE:
-        x2["models"][generative]["rho_lr"] = -0.42
-    for seed in (9000, 9001):
-        x2["models"][f"frozen_target{seed}"]["rho_lr"] = -0.12
     _write_pilot(fake_root / xs.PILOT_RESULTS_DIR, x1, x2)
+    pilot_ext = tmp_path / "pilot-ext"
+    (pilot_ext / "addendum").mkdir(parents=True)
+    overlay_models = {}
+    for label in xs.R1_GENERATIVE_CORE:
+        overlay_models[label] = {"status": "evaluated", "r2_eq": 0.9,
+                                 "X2-c": {"rho_LR": -0.42, "class": "fails"}}
+    for seed in (9000, 9001):
+        overlay_models[f"frozen_target{seed}"] = {
+            "status": "evaluated", "r2_eq": 0.71,
+            "X2-c": {"rho_LR": -0.12, "class": "fails"}}
+    (pilot_ext / xs.X2_OVERLAY_REL).write_text(json.dumps(
+        {"registered": False, "models": overlay_models, "complete": True,
+         "addendum_sha256": xs.ADDENDUM_SHA256}))
+    monkeypatch.setattr(xs, "PILOT_EXT_ROOT", pilot_ext)
     monkeypatch.setattr(xs, "assert_authorised",
                         lambda *a, **k: {"authorised": True, "status": "granted"})
     monkeypatch.setattr(xs, "assert_addendum_entries_preflight",
@@ -1538,11 +1556,14 @@ def test_addendum_r1_cli_writes_the_ext_and_stable_results_handoffs(tmp_path,
     assert code == 0
     ext_payload = json.loads((ext / "r1_addendum.json").read_text())
     assert ext_payload["status"] == "complete"
+    assert ext_payload["readings_basis"] == xs.R1_BASIS_OVERLAY
+    assert ext_payload["x2_source"]["overlay"]["present"] is True
     handoff = results / xs.R1_RESULTS_FILE
     assert handoff.is_file()
     payload = json.loads(handoff.read_text())
     for key in ("reading", "r1", "R-1"):
         assert payload[key]["generative_median"]["rho_lr"] == pytest.approx(-0.42)
+    assert payload["readings_basis"] == xs.R1_BASIS_OVERLAY
     rows = [json.loads(line) for line in
             (tmp_path / "ledger.jsonl").read_text().splitlines()]
     assert len(rows) == 1
@@ -1556,6 +1577,7 @@ def test_addendum_r1_cli_writes_the_ext_and_stable_results_handoffs(tmp_path,
     addendum = json.loads((results / xs.ADDENDUM_RESULTS_FILE).read_text())
     assert addendum["items"]["R1_rerun"]["reading"]["generative_median"][
         "rho_lr"] == pytest.approx(-0.42)
+    assert addendum["items"]["R1_rerun"]["readings_basis"] == xs.R1_BASIS_OVERLAY
     readings = json.loads((results / "readings.json").read_text())
     rho = next(row for row in readings["addendum"]["superseded"]
                if row["quantity"] == "R-1 generative-median ρ_LR")
@@ -1564,3 +1586,171 @@ def test_addendum_r1_cli_writes_the_ext_and_stable_results_handoffs(tmp_path,
     preserved = ext / xs.PRESERVED_7NOV_DIR / xs.PRESERVED_7NOV_FILE
     assert preserved.is_file()
     assert readings["addendum"]["seven_nov_source"] == str(preserved)
+
+
+# ============ addendum A5 (review round 8): order-independent R-1 source chain
+def _overlay_models(*, generative_rho=-0.42, frozen_rho=-0.12, labels=None):
+    labels = list(labels) if labels is not None else (
+        list(xs.R1_GENERATIVE_CORE)
+        + [f"frozen_target{seed}" for seed in (9000, 9001)])
+    out = {}
+    for label in labels:
+        rho = frozen_rho if str(label).startswith("frozen_target") else generative_rho
+        out[label] = {"status": "evaluated", "r2_eq": 0.9,
+                      "X2-c": {"rho_LR": rho, "class": "fails"}}
+    return out
+
+
+def _r1_pilot(tmp_path, *, overlay_models=None, corrected=False,
+               generative_rho=0.9, frozen_rho=0.5):
+    """A synthetic pilot results dir plus an optional D1 overlay / 7 Nov payload."""
+    x1, x2 = _part_a_payloads(0.9, generative_rho, frozen_r2=0.5,
+                              frozen_rho=frozen_rho)
+    if corrected:
+        x2["corrected_7nov"] = ["X2-c", "X2-d latent", "X2-f", "X2-e latent"]
+        x2["addendum_sha256"] = xs.ADDENDUM_SHA256
+    pilot = _write_pilot(tmp_path / "pilot-results", x1, x2)
+    pilot_ext = tmp_path / "pilot-ext"
+    if overlay_models is not None:
+        (pilot_ext / "addendum").mkdir(parents=True)
+        (pilot_ext / xs.X2_OVERLAY_REL).write_text(json.dumps(
+            {"registered": False, "models": overlay_models, "complete": True,
+             "addendum_sha256": xs.ADDENDUM_SHA256}))
+    return pilot, pilot_ext
+
+
+def test_r1_reads_the_d1_overlay_when_the_results_x2_is_stale(tmp_path,
+                                                              monkeypatch):
+    """A5(a): overlay-only, stale results, under the binding §8 order."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    pilot, pilot_ext = _r1_pilot(tmp_path,
+                                 overlay_models=_overlay_models())
+    label = xs.R1_GENERATIVE_CORE[0]
+    # the results x2.json is the stale 7 Nov payload (rho_lr 0.9, no marker)
+    stale = json.loads((pilot / "x2.json").read_text())
+    assert stale["models"][label]["rho_lr"] == pytest.approx(0.9)
+    assert "corrected_7nov" not in stale
+    payload = xs.r1_payload(ROOT, results_dir=pilot, ext_root=pilot_ext,
+                            mode="addendum-r1", log=_noop)
+    assert payload["status"] == "complete"
+    assert payload["readings_basis"] == xs.R1_BASIS_OVERLAY
+    assert payload["source"] == xs.R1_BASIS_OVERLAY
+    assert payload["x2_source"]["overlay"]["present"] is True
+    assert payload["table"][label]["rho_lr"] == pytest.approx(-0.42)
+    assert payload["table"]["frozen_target9000"]["rho_lr"] == pytest.approx(-0.12)
+    assert payload["reading"]["generative_median"]["rho_lr"] == pytest.approx(-0.42)
+    # pilot_status must make the same source decision as the reading
+    status = xs.pilot_status(ROOT, results_dir=pilot, ext_root=pilot_ext)
+    assert status["readings_basis"] == xs.R1_BASIS_OVERLAY
+    assert status["x2_source"]["overlay"]["present"] is True
+    assert status["x2_source"]["marker"]["corrected"] is False
+
+
+def test_r1_uses_the_7nov_payload_and_records_its_basis(tmp_path, monkeypatch):
+    """A5(b): no overlay and no marker -> the 7 Nov values, basis recorded."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    pilot, pilot_ext = _r1_pilot(tmp_path)
+    payload = xs.r1_payload(ROOT, results_dir=pilot, ext_root=pilot_ext,
+                            mode="addendum-r1", log=_noop)
+    assert payload["readings_basis"] == xs.R1_BASIS_7NOV
+    assert payload["source"] == xs.R1_BASIS_7NOV
+    label = xs.R1_GENERATIVE_CORE[0]
+    assert payload["table"][label]["rho_lr"] == pytest.approx(0.9)
+    assert payload["x2_source"]["overlay"]["present"] is False
+    assert payload["x2_source"]["marker"]["corrected"] is False
+
+
+def test_r1_uses_the_corrected_results_marker(tmp_path, monkeypatch):
+    """A5(c): the in-place results payload carries Part A's corrected marker."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    pilot, pilot_ext = _r1_pilot(tmp_path, corrected=True, generative_rho=-0.42,
+                                 frozen_rho=-0.12)
+    payload = xs.r1_payload(ROOT, results_dir=pilot, ext_root=pilot_ext,
+                            mode="addendum-r1", log=_noop)
+    assert payload["readings_basis"] == xs.R1_BASIS_CORRECTED
+    assert payload["source"] == xs.R1_BASIS_CORRECTED
+    assert payload["x2_source"]["marker"]["corrected"] is True
+    assert payload["table"][xs.R1_GENERATIVE_CORE[0]]["rho_lr"] == pytest.approx(-0.42)
+    # a wrong addendum_sha256 in the marker must NOT be trusted
+    stale = json.loads((pilot / "x2.json").read_text())
+    stale["addendum_sha256"] = "0" * 64
+    (pilot / "x2.json").write_text(json.dumps(stale))
+    fallback = xs.r1_payload(ROOT, results_dir=pilot, ext_root=pilot_ext,
+                             mode="addendum-r1", log=_noop)
+    assert fallback["readings_basis"] == xs.R1_BASIS_7NOV
+    assert fallback["x2_source"]["marker"]["corrected"] is False
+
+
+def test_r1_falls_back_per_model_when_the_overlay_lacks_a_model(tmp_path,
+                                                                monkeypatch):
+    """A5: overlay present but a model missing -> per-model fallback, recorded."""
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    only = [xs.R1_GENERATIVE_CORE[0]]
+    pilot, pilot_ext = _r1_pilot(tmp_path, overlay_models=_overlay_models(
+        labels=only))
+    payload = xs.r1_payload(ROOT, results_dir=pilot, ext_root=pilot_ext,
+                            mode="addendum-r1", log=_noop)
+    assert payload["readings_basis"] == xs.R1_BASIS_OVERLAY
+    rows = payload["table"]
+    assert rows[only[0]]["rho_lr"] == pytest.approx(-0.42)      # from the overlay
+    other = xs.R1_GENERATIVE_CORE[1]
+    assert rows[other]["rho_lr"] == pytest.approx(0.9)          # never invented
+    sources = payload["x2_source"]["model_sources"]
+    assert sources[only[0]] == xs.R1_BASIS_OVERLAY
+    assert sources[other] == xs.R1_BASIS_7NOV
+    reasons = {row["label"] for row in payload["x2_source"]["fallbacks"]}
+    assert other in reasons
+    # a present overlay model without a corrected rho_LR is also a recorded fallback
+    broken = _overlay_models(labels=only)
+    broken[only[0]] = {"status": "evaluated"}
+    pilot2, pilot_ext2 = _r1_pilot(tmp_path / "broken",
+                                   overlay_models=broken)
+    payload2 = xs.r1_payload(ROOT, results_dir=pilot2, ext_root=pilot_ext2,
+                             mode="addendum-r1", log=_noop)
+    assert payload2["table"][only[0]]["rho_lr"] == pytest.approx(0.9)
+    assert only[0] in {row["label"] for row in payload2["x2_source"]["fallbacks"]}
+
+
+def test_not_run_r1_handoff_is_not_treated_as_a_reading(tmp_path, monkeypatch):
+    """A5(d): a not_run hand-off carries no reading-like keys (Part A picker)."""
+    import argparse
+    import time as _time
+
+    from jepa_noise import ext_repair as rp
+
+    fake_root = tmp_path / "fake-repo"          # no pilot results -> not_run
+    ext = tmp_path / "ext"
+    monkeypatch.setattr(xs, "assert_authorised",
+                        lambda *a, **k: {"authorised": True, "status": "granted"})
+    monkeypatch.setattr(xs, "assert_addendum_entries_preflight",
+                        lambda **k: {"pass": True, "free_before": 40000,
+                                     "projected_after": 39800})
+    monkeypatch.setattr(xs, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(xs, "PILOT_EXT_ROOT", tmp_path / "pilot-ext")
+    args = argparse.Namespace(root=str(fake_root), ext=str(ext),
+                              out=str(ext / "r1_addendum.json"))
+    code = shortcut_cli.mode_addendum_r1(args, _time.time())
+    assert code == 0
+    ext_payload = json.loads((ext / "r1_addendum.json").read_text())
+    assert ext_payload["status"] == "not_run"
+    assert ext_payload["not_run"] is True
+    assert ext_payload["readings_basis"] == "not_run"
+    trigger = ("verdict", "generative_median", "table", "comparisons")
+    assert not any(key in ext_payload for key in trigger)
+    assert rp._r1_reading_from(ext_payload) is None
+    handoff = (fake_root / "results" / "jepa" / "20261107_shortcut"
+               / xs.R1_RESULTS_FILE)
+    assert handoff.is_file()
+    handoff_payload = json.loads(handoff.read_text())
+    assert not any(key in handoff_payload for key in trigger)
+    assert rp._r1_reading_from(handoff_payload) is None
+    # the helper itself, and a complete reading is left untouched
+    sanitised = xs.sanitise_r1_handoff({"status": "not_run", "reading": None,
+                                        "table": {}})
+    assert sanitised["not_run"] is True and "table" not in sanitised
+    complete = {"status": "complete", "reading": {"verdict": "mixed"}, "table": {}}
+    assert xs.sanitise_r1_handoff(complete)["reading"] == {"verdict": "mixed"}
