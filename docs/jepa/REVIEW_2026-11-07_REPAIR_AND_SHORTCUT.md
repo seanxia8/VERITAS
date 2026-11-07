@@ -1,11 +1,12 @@
 **Verdict: PASS**
 
-**Final status (frozen SHA `320602ee49eed3339d3611c53d2de35d30dd5af6`, round 3): PASS.** All 16
+**Final status (frozen SHA `7b9352c0760358375a0ec8ef4604a45115510e06`, round 4): PASS.** All 16
 checklist items (Part A (i)–(viii), Part B (i)–(vi), front matter (F-i)/(F-ii)) PASS. The round-1
-blockers B1–B9 and the round-2 blocker B10 are fixed and independently re-verified on the frozen
-SHA. The round-1 and round-2 sections below are preserved as the historical record; the frozen-SHA
-re-review of the B10 fix, its evidence and the final reviewed object are in “Re-review (round 3)” at
-the end of this file.
+blockers B1–B9, the round-2 blocker B10, and the four round-4 execution-defect fixes are all fixed
+and independently re-verified on this SHA. The round-1/2/3 sections below are preserved as the
+historical record; the round-4 re-review of the execution-defect fixes, the new validation evidence
+and the final reviewed object are in “Re-review (round 4) — execution-defect fixes” at the end of
+this file.
 
 The implementation is reviewed at `184cd2f` against the binding runbook
 `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` (sha256 `45e5ff98…119b`, verified equal to the
@@ -784,3 +785,146 @@ DONE
   read-only on that clone (`TMPDIR` under `/ceph/dwong/jepa/tmp/jepa_rb_20261107/review`,
   `PYTHONPATH=src`, `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the
   reviewer scratch was removed afterwards.
+
+---
+
+# Re-review (round 4) — execution-defect fixes
+
+**Round-4 verdict: PASS.** Frozen reviewed object
+`7b9352c0760358375a0ec8ef4604a45115510e06` (parent `d9f71a1`, grandparent `01537c0` = docs/results
+only, base runbook `062a8d1`); the previously PASSed implementation SHA was `320602e`. The three
+execution-time defects in Part A and the post-acceptance test-state defect in Part B are fixed; the
+delta contains nothing else; no round-3 PASS item regressed. All 16 checklist items remain **PASS**.
+
+**Record of the round-3 miss.** The round-3 PASS did not catch these defects because they live in
+code paths that no test executed at `320602e`: the X0-b `_frozen_refit_vertex` body (its only test
+encoded the same wrong call shape as the bug), the JSON writer with the §2.3 inventory's nested
+`Path` rows, and `identity_check`'s encode on a GPU encoder. They were exposed only by the first
+real X0-b run. This round records that, verifies the fixes, and checks the updated/new tests now
+exercise the repaired paths.
+
+## Delta and scope
+
+- Code delta `320602e..7b9352c` = exactly 3 files, +44/−11 (`src/jepa_noise/ext_repair.py`,
+  `src/jepa_noise/tests/test_ext_repair.py`, `src/jepa_noise/tests/test_ext_shortcut.py`). It
+  decomposes as the three Part A fixes in `01537c0..d9f71a1` (2 files, +38/−9) plus the Part B
+  test-state fix in `d9f71a1..7b9352c` (1 file, +6/−2). `320602e..01537c0` changes **no**
+  implementation file (`git diff --stat 320602e..01537c0 -- src scripts` is empty; only the
+  acceptance record, review, decisions, ledger, state and results artifacts). The two CLIs are
+  byte-identical (`dd9906e3…`/`616797f3…`), `ext_shortcut.py` is unchanged (`537f6f1f…`), the
+  runbook sha256 is unchanged, and relative to the base only the same six source files were added
+  (no existing source file modified).
+- The `ext_repair.py` delta is confined to three functions: `_jsonable` (`:787-792`),
+  `_frozen_refit_vertex` (`:1653-1676`) and `identity_check` (`:1806-1811`). The
+  `test_ext_shortcut.py` delta is one test-only change (`:433-441`).
+
+## The four changes (file:line + demos on the frozen clone)
+
+1. **`_jsonable` stringifies `os.PathLike`** (`ext_repair.py:787-792`; `isinstance(value, os.PathLike)
+   → str(value)`). This is the fix for the X0-a/X0-b write crash: `write_json` serialises with
+   `json.dumps(..., default=float)`, and the §2.3 inventory rows carry `Path` `source` values.
+   Demonstrated on the frozen clone: a nested-Path inventory-like payload now round-trips through
+   `_jsonable`/`write_json` (values become strings), while the pre-fix call reproduces exactly
+   `TypeError: float() argument must be a string or a real number, not 'PosixPath'`. New test
+   `test_jsonable_and_write_json_handle_paths` (`test_ext_repair.py:1024`) passes.
+2. **`_frozen_refit_vertex` uses the production call shape and builds the §2.5 condition per role**
+   (`ext_repair.py:1653-1676`): `geometry = probes["geometry"]`; the loop is
+   `("train", probes["train"]), ("test", probes["test"])`; for each role
+   `role_condition = build_condition(condition["name"], dataset, geometry)` (`:1665`) is built on the
+   dataset about to be streamed, so probe-train run directories are inside their own condition's set.
+   For X0-b the factor is 1 (N and D), so the identity semantics and the cached embeddings are
+   unchanged (same cache keys `embedding_cache_key(role, condition["name"])`). Demonstrated:
+   production-shape call streams `[('tr', 'across'), ('te', 'across')]` and builds conditions
+   `[('D', 'tr'), ('D', 'te')]`; the updated `test_row_split_propagates_into_streaming`
+   (`:993-1022`) asserts exactly the production shape and the per-role condition build.
+3. **`identity_check` moves the CPU probe batches to the encoder's device before `encode`**
+   (`ext_repair.py:1806-1811`): `encode_device = torch.device(device)` (or the passed
+   `torch.device`) and `model.encode(plain.features.to(encode_device))` (likewise wrapped). The
+   caller passes the model's device (`reproduction` → `identity_check(..., device=device)`, `:1739`),
+   and the CPU-only path is a no-op move. Verified by code inspection plus the CPU
+   `test_identity_check_runs_on_both_roles`; the CUDA branch cannot be exercised here (no GPU
+   allowed), but the moved tensor's device is exactly the encoder's device by construction.
+4. **Part B forbidden-path test is acceptance-state independent** (test-only,
+   `test_ext_shortcut.py:433-441`): after the acceptance record was committed (`impl_commit=320602e`),
+   the Part B gate legitimately *grants* on its own `<P>` (which contains no file changed since
+   `320602e`), so the block that expected `SystemExit(2)` from the library entry points failed
+   post-acceptance. The test now pins the pending state with
+   `monkeypatch.setattr(xs, "acceptance_record", lambda root=None: None)` (`:438`); the real
+   grant/pending behaviour remains covered by `test_gate_positive_and_pending_acceptance`
+   (`:488-505`, fake repos, verified: granted with a matching record, pending+SystemExit without).
+   This is test-only; the production gate code is byte-identical (`ext_shortcut.py` hash unchanged).
+   On the clean frozen tree the gate states are observed as Part A **denied** (the committed record
+   still names `impl_commit=320602e`, and `ext_repair.py` is in Part A's `<P>` and differs) and
+   Part B **granted** (Part B's `<P>` is unchanged since `320602e`) — both are correct per §F5
+   ("each part checks its own `<P>`"); after the new acceptance record with `impl_commit=7b9352c`
+   both will grant.
+
+## Regression check
+
+- The delta touches only these three `ext_repair.py` functions (X0-b-only plus the strictly additive
+  path serialisation) and two test files; no reading, threshold, item, gate, spec or CLI change.
+- Fresh frozen-SHA validation: focused Part A **58 passed**, focused Part B **26 passed**, pyflakes
+  clean; Deepthought full suite **1 failed / 752 passed / 2 skipped / 3 deselected** (the single
+  failure is the untouched, data/numerics-dependent N16
+  `test_ext_followup::test_label_collector_reproduces_the_committed_fix9000_rows`, recorded as
+  observed, not rounded into a pass); deepthought2 full suite **753 passed / 2 skipped /
+  3 deselected, exit 0** (green). All round-2/round-3 tests (B1–B10 paths) still pass.
+- Both dry runs exit 0 with the import closure `pass: true`, `violations: []`, `setup_errors: []`
+  (Part A gate observed `denied` and Part B `granted` as explained above; Part A 33.0 s, Part B
+  116.795 s).
+
+## Evidence (frozen SHA `7b9352c`, clean runs)
+
+`/work/dwong/jepa_tmp_20261107/v5/summary.txt` (Deepthought, complete, `DONE`):
+
+```
+SHA=7b9352c0760358375a0ec8ef4604a45115510e06 HOST=deepthought
+pyflakes_exit=0
+focused_a_exit=0
+focused_b_exit=0
+full_suite_exit=1
+dryrun_a_exit=0
+dryrun_b_exit=0
+DONE
+```
+
+- `v5/pyflakes.log`: empty (`pyflakes_exit=0`).
+- `v5/focused_a.log`: `58 passed in 166.99s`; `v5/focused_b.log`: `26 passed in 22.45s`.
+- `v5/full_suite.log`: `1 failed, 752 passed, 2 skipped, 3 deselected in 1179.42s (0:19:39)`, exit 1;
+  only the N16 failure; only the three known `test_guard` launcher tests deselected.
+- `v5/dryrun_a.log` / `v5/repair_dryrun/dry_run.json`: exit 0, gate `denied` (stale record, see
+  above), closure `pass: true`, `violations: []`, `errors: []`, wall 33.0 s.
+- `v5/dryrun_b.log` / `v5/shortcut_dryrun/plan.json`: exit 0, gate `granted` (see above), closure
+  `pass: true`, `violations: []`, `setup_errors: []`, manipulation check `pass: true`, wall 116.795 s.
+- `/work/dwong/jepa_tmp_20261107/v5_dt2/summary.txt` (deepthought2): `full_suite_dt2_exit=0`;
+  `v5_dt2/full_suite_dt2.log`: `753 passed, 2 skipped, 3 deselected in 620.58s (0:10:20)` — green,
+  same three deselections.
+
+Note: the acceptance record currently committed (`impl_commit=320602e`) is the previous round's; the
+new record with `impl_commit=7b9352c` is to be written after this PASS, and the committed
+execution-stage artifacts (`results/jepa/20261106_repair/*`, `results/jepa/20261107_shortcut/*`) were
+produced by the earlier adapted run. Neither is part of this code review object; the resumed run
+will regenerate them with the fixed code and the new record.
+
+## Final reviewed object (frozen SHA)
+
+- Implementation SHA (reviewed object): `7b9352c0760358375a0ec8ef4604a45115510e06` ("jepa: make the
+  Part B forbidden-path gate assertion acceptance-state independent"), parent `d9f71a1`, base
+  (runbook) `062a8d1`; previously PASSed implementation SHA `320602e`.
+- File sha256 (`shasum -a 256`, frozen blobs):
+  - `src/jepa_noise/ext_repair.py` `b19face959415f304a6e89344a7b5a592ae3188d9c488f7b9be222552cd320e3`
+  - `src/jepa_noise/tests/test_ext_repair.py` `d6230d768150e4877a959a471c0422eb254b414e40ee59a6e2a4bceacf47be08`
+  - `src/jepa_noise/ext_shortcut.py` `537f6f1f2700f318a7f65ae0fbea19eb13e1f6989e577f8fdb2375d14344334c`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `1bd0da27e86ac4779cfd3aed1aa9c5a4aa424cb3f0b394dcde1483c385b7764d`
+  - `scripts/jepa_ext_repair.py` `dd9906e336abb056969fbc8246b8e1ee0fa048563b35aa176a8ae96c800073db`
+  - `scripts/jepa_ext_shortcut.py` `616797f301ac7aa960877085a61eecb581acbd69f05d2e819d79e08d62feeeaf`
+- Runbook sha256 `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b` (unchanged).
+- Diff sha256: `320602e..7b9352c` `0965a88dcea3ada68ea6ac979b4ad461da334ea030d4ab4df39d554c806bb0d5`;
+  full `062a8d1..7b9352c` `3a9ce4610a5bb1b783d77efa55ab5ccfc9762f8947f9a03c9eae462dc5add57a`. For the
+  decomposition: `01537c0..d9f71a1` `0545791e89198cdb9d811f9b26cc1eab579cdf67fcf29cba38037d32ba046190`
+  and `d9f71a1..7b9352c` `de8b148fe36723f0aa758dd90c8789f102a370cbd3d93f10f06a281f19d8715e`.
+- Worktree `/private/tmp/veritas-jepa-20261107` at `7b9352c`; host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` clean at `7b9352c`. All round-4 checks were read-only on
+  that clone (`TMPDIR` under `/work/dwong/jepa_tmp_20261107/review`, `PYTHONPATH=src`,
+  `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the reviewer scratch
+  was removed afterwards.
