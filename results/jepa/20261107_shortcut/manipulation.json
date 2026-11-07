@@ -1,0 +1,644 @@
+{
+ "registered": false,
+ "extension": "shortcut_followup_2026-11-07",
+ "variant": "target_posfree",
+ "check": "\u00a75.2 manipulation check (implementation guard)",
+ "checks": {
+  "label_position_columns_zero": true,
+  "label_event_columns_equal": true,
+  "original_features_unchanged": true,
+  "context_receives_original": true,
+  "full_pass_receives_original": true
+ },
+ "masks": {
+  "context_mask_is_hidden": true,
+  "full_mask_is_none": true,
+  "label_mask_is_not_target": true
+ },
+ "identity_blindness": {
+  "permutation": [
+   1191,
+   1953,
+   1961,
+   1498,
+   1138,
+   1838,
+   975,
+   1929
+  ],
+  "label_max_abs_delta": 0.0,
+  "context_max_abs_delta": 8.973064422607422,
+  "label_unchanged": true,
+  "context_changed": true,
+  "label_delta_max": 1e-06,
+  "context_delta_min": 0.001
+ },
+ "label_gradient": {
+  "input_proj_grad_absmax": 0.11661364138126373,
+  "label_requires_grad": true,
+  "label_mse": 3.817126989364624,
+  "non_zero": true
+ },
+ "label_fractions": {
+  "f_layout": 0.09132365098612844,
+  "f_event": 0.30543219249388726,
+  "n_dropped": 0,
+  "n_events": 64,
+  "n_tokens": 1995,
+  "f_layout_per_dim": [
+   0.03194377097543242,
+   0.08488309321614773,
+   0.07753665373925767,
+   0.07805643039907881,
+   0.03335658453152802,
+   0.13377031926489874,
+   0.02420555220886824,
+   0.03125836911782944,
+   0.0500206267326716,
+   0.025628485387457167,
+   0.1760393354431459,
+   0.24037366514551525,
+   0.10147024136861252,
+   0.03874467629676792,
+   0.12828468156215334,
+   0.05458382110587727,
+   0.03747717047960128,
+   0.3487631874157641,
+   0.04242616826172722,
+   0.0282472941531592,
+   0.023811923421478656,
+   0.041209524009804266,
+   0.017264614348023514,
+   0.2651304001387407,
+   0.04991699304270867,
+   0.019817863656500442,
+   0.07924076832402972,
+   0.11145073178713186,
+   0.19017909171955724,
+   0.054374025227485585,
+   0.1773110729428573,
+   0.1339448028791788,
+   0.0193437582450606,
+   0.046982480252985084,
+   0.09377727555195454,
+   0.058965972256327874,
+   0.12214174065807762,
+   0.01359663478499655,
+   0.010751932767342555,
+   0.15078476315953562,
+   0.01945248235066234,
+   0.025349369830094667,
+   0.22312808484721255,
+   0.02235971612272326,
+   0.27999498257358074,
+   0.06135806082653246,
+   0.06866778049645751,
+   0.23534739046427286,
+   0.014058799073748513,
+   0.133145220562169,
+   0.14308249164891504,
+   0.02638067979371323,
+   0.14172313244335089,
+   0.026693059270988338,
+   0.007172843830609638,
+   0.06925777221263232,
+   0.020790097536374466,
+   0.024112469887421932,
+   0.1179483332264634,
+   0.030832547792681506,
+   0.5008608113370672,
+   0.01666567089121874,
+   0.018595098015670074,
+   0.18077212723366534,
+   0.08745938775100007,
+   0.03541485691228381,
+   0.03391266492741083,
+   0.04309799525332658,
+   0.04590231845371349,
+   0.26037566939394713,
+   0.02163221296041859,
+   0.018423772325927824,
+   0.15482125087023238,
+   0.12909443861068962,
+   0.16334852279690115,
+   0.012040706683829325,
+   0.2477063830079211,
+   0.11721540604269391,
+   0.011255631448634604,
+   0.018785462156054488,
+   0.057171947987390524,
+   0.02764800668179736,
+   0.05683677515245205,
+   0.04518112507172042,
+   0.09612201273646925,
+   0.0250400486552987,
+   0.09936011363459447,
+   0.022397155305033622,
+   0.10954949398339042,
+   0.01643115892431592,
+   0.0097785157191104,
+   0.01965473626985348,
+   0.07674019673353068,
+   0.026756477568606826,
+   0.07822232373496743,
+   0.14970899432308746,
+   0.03459947766701376,
+   0.07489431715418675,
+   0.01688917353278553,
+   0.05684660187079898,
+   0.4142384437847478,
+   0.01952337638491176,
+   0.09755809142958938,
+   0.014256035268642114,
+   0.29050808636169845,
+   0.08627470257269133,
+   0.11377110794013504,
+   0.049186662554690945,
+   0.12998177086054488,
+   0.026679187358846126,
+   0.3241688454472756,
+   0.06388151349718992,
+   0.013417579169771382,
+   0.024361485684961787,
+   0.0661251185201187,
+   0.15511706449507484,
+   0.01819086463007755,
+   0.06161321184966427,
+   0.040126429962099155,
+   0.08777036618704401,
+   0.03203313499507191,
+   0.03569592810937123,
+   0.07176368429338521,
+   0.3552357708063309,
+   0.4879704308523609,
+   0.1837508840290286,
+   0.05581991494848661,
+   0.015276783681742562
+  ],
+  "f_event_per_dim": [
+   0.6644774395556909,
+   0.33599792262025535,
+   0.5306690641186934,
+   0.32278970679364344,
+   0.2908157036170632,
+   0.18759173797137124,
+   0.20195038203240212,
+   0.24241998815284893,
+   0.33043516165215947,
+   0.5897877679560402,
+   0.06657859290801359,
+   0.08258877289405792,
+   0.22933476337716718,
+   0.20369048498107334,
+   0.362897381331745,
+   0.3970890508828003,
+   0.42577685025530565,
+   0.18534724840469569,
+   0.5298076944000397,
+   0.2173303678857516,
+   0.41289564496161374,
+   0.33714177298082293,
+   0.36283590091270296,
+   0.33614976226904486,
+   0.20871164632483177,
+   0.3561963280595543,
+   0.12577713122737794,
+   0.1964700078923971,
+   0.22759833325736117,
+   0.6136937441665827,
+   0.07983253995327627,
+   0.21499021034070237,
+   0.49713292588148356,
+   0.35850448661204815,
+   0.10979792825014789,
+   0.4713506006188823,
+   0.23334120420279664,
+   0.5479815254508288,
+   0.2885393344893044,
+   0.17703941018226024,
+   0.28587042185941225,
+   0.3704041626803869,
+   0.46871586065784815,
+   0.4057619870105412,
+   0.18836257740768236,
+   0.3924516751402313,
+   0.09488528932044397,
+   0.2049438595409925,
+   0.6004666659227921,
+   0.3401618259802649,
+   0.3448890861345393,
+   0.42752721936106164,
+   0.3230790949472953,
+   0.5106752781964831,
+   0.5369233457310868,
+   0.11371608037482112,
+   0.2789565812416469,
+   0.29020489163445584,
+   0.30577140297856037,
+   0.4981190581574505,
+   0.22747012379896553,
+   0.37738145198677325,
+   0.3518074116358352,
+   0.05257540390895348,
+   0.0655901964846692,
+   0.10467639739351826,
+   0.16434930630552505,
+   0.4927646939406892,
+   0.1844570647317066,
+   0.016676998122146215,
+   0.25175129028339815,
+   0.3815836952187006,
+   0.3535648955965714,
+   0.299838741005972,
+   0.26642050054153527,
+   0.548247523713284,
+   0.2237501018247482,
+   0.26168542294996006,
+   0.6008362220841449,
+   0.34245418375427206,
+   0.1876231149343595,
+   0.47874023942096466,
+   0.4128477819135879,
+   0.2864350689744689,
+   0.4146063556492,
+   0.27814448531296887,
+   0.12541772359755726,
+   0.26785440786310594,
+   0.132046105837111,
+   0.4378254131968605,
+   0.2840835533190846,
+   0.18872893026807408,
+   0.19381093258759968,
+   0.4358286785668598,
+   0.3243915396228677,
+   0.0837386548896753,
+   0.5715921758972415,
+   0.29129536889999247,
+   0.2393086813828301,
+   0.14506663861048347,
+   0.04352102713823452,
+   0.4926040839462801,
+   0.17852544040867216,
+   0.4182634206200636,
+   0.01976923935425422,
+   0.3729960617102672,
+   0.4963623463767207,
+   0.3228159402734456,
+   0.195276488811192,
+   0.44988267851715996,
+   0.2053327691437128,
+   0.06875304542503037,
+   0.42626897240377365,
+   0.30840085447971816,
+   0.22825004596057705,
+   0.08107244818754944,
+   0.28072753383308613,
+   0.4918821059726606,
+   0.5107724533244374,
+   0.18213329868087885,
+   0.447677989179145,
+   0.1505049755709502,
+   0.21677708216066535,
+   0.017784565516667815,
+   0.0621957301341633,
+   0.428982206462809,
+   0.5603672186456702,
+   0.5549102568506873
+  ],
+  "form": "label pass (posfree features, hidden_mask=~target)",
+  "n_events_target": 64,
+  "n_events_short": false
+ },
+ "pass": true,
+ "reasons": [],
+ "note": "columns 0-5 are zeroed in the label pass only; the label is not detached and the encoder stays shared and trainable",
+ "cell_id": "dev_s005_within",
+ "arm": "sigreg_jepa",
+ "seed": 9000,
+ "batch": {
+  "step": 0,
+  "n_events": 32,
+  "batches": 2,
+  "label": "TrainingLoader.batch_at(0..), seed 9000"
+ },
+ "gate": {
+  "authorised": true,
+  "status": "granted",
+  "mode": "manipulation",
+  "extension": "shortcut_followup_2026-11-07",
+  "checks": {
+   "a": {
+    "pass": true,
+    "runbook": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "expected_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "author_line": "\u4e00\u4e8c\u4e09\u6211\u90fd\u6279\uff0c\u5199\u6210\u4e00\u4e2arunbook",
+    "author_line_in_section_zero": true,
+    "pending_acceptance": false
+   },
+   "b": {
+    "pass": true,
+    "status": "PASS",
+    "record": {
+     "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+     "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+     "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "review_verdict": "PASS",
+     "lead": "Dowling Wong (author, lead)",
+     "date": "2026-11-07"
+    },
+    "missing_keys": [],
+    "review_verdict": "PASS"
+   },
+   "c": {
+    "pass": true,
+    "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+    "impl_commit_source": "acceptance_record",
+    "diff_clean": true,
+    "diff_error": null,
+    "untracked": [],
+    "paths": [
+     "src/jepa_noise/__init__.py",
+     "src/jepa_noise/ext_shortcut.py",
+     "src/jepa_noise/ext_h12.py",
+     "src/jepa_noise/ext_readout.py",
+     "src/jepa_noise/ext_followup.py",
+     "src/jepa_noise/lucid_run.py",
+     "src/jepa_noise/lucid_arms.py",
+     "src/jepa_noise/lucid_bombs.py",
+     "src/jepa_noise/lucid_views.py",
+     "src/jepa_noise/point_encoder.py",
+     "src/jepa_noise/bridge_run.py",
+     "src/jepa_noise/train.py",
+     "src/jepa_noise/crlb.py",
+     "src/jepa_noise/jepa.py",
+     "src/jepa_noise/backbone.py",
+     "src/jepa_noise/linear.py",
+     "src/jepa_noise/probes.py",
+     "src/jepa_noise/metrics.py",
+     "src/jepa_noise/sigreg.py",
+     "scripts/__init__.py",
+     "scripts/jepa_ext_shortcut.py",
+     "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "src/noise_module_lucid/",
+     "src/jepa_noise/configs/"
+    ]
+   }
+  },
+  "problems": [],
+  "acceptance": {
+   "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+   "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+   "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+   "review_verdict": "PASS",
+   "lead": "Dowling Wong (author, lead)",
+   "date": "2026-11-07"
+  },
+  "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b"
+ },
+ "mode": "manipulation",
+ "wall_seconds": 83.118,
+ "import_closure": {
+  "checked_modules": 70,
+  "outside_allowlist": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   },
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "part_b_forced_transitive_imports": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}

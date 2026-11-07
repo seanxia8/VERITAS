@@ -139,37 +139,37 @@
    },
    "repair_shortcut_2026-11-07": {
     "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
-    "impl_commit": "320602ee49eed3339d3611c53d2de35d30dd5af6",
+    "impl_commit": "0cf61ff476bc8f3463b4595816ba40508cba239c",
     "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
     "review_verdict": "PASS",
     "part_a": {
-     "gpu_hours": 0.0,
+     "gpu_hours": 2.1974,
      "gpu_cap_hours": 4.0,
-     "cpu_wall_hours": 2.0,
+     "cpu_wall_hours": 2.6,
      "cpu_cap_hours": 6.0,
-     "status": "STOP: entries-preflight failure; X0-a preflight + X3-a fisher executed; X0-b/X1/X2/X3-b/report not_run"
+     "status": "X0-a/X0-b/X1/X2/X3-a/X3-b/report complete; X0-b 9/9 reproduce; X1 19 models; X2 13 models; X3-b raw/init9000/leace"
     },
     "part_b": {
-     "gpu_hours": 0.0,
+     "gpu_hours": 1.5651,
      "gpu_cap_hours": 1.5,
-     "cpu_wall_hours": 1.2,
+     "cpu_wall_hours": 1.4,
      "cpu_cap_hours": 2.0,
-     "status": "STOP: entries-preflight failure; preflight only; R-2 not run; R-1 not_run (pilot outputs missing)"
+     "status": "preflight/manipulation/reproduce/smoke/train 9000/train 9001 complete; evaluation not_run (cap); R-1 complete (contradicts); R-2 readings not_run (cap); 0.0651 h cap overrun booked"
     },
     "l40s_charged_before": 129.7461,
-    "l40s_charged_after": 129.7461,
-    "s1_hours": 135.2461,
+    "l40s_charged_after": 132.0,
+    "s1_hours": 135.5,
     "generation_cap_untouched": true,
     "data_generated": false,
     "entries_preflight": {
-     "free_before": 27260,
-     "projected_after": 19976,
+     "free_before": 44286,
+     "projected_after": 36901,
      "floor": 30000,
-     "pass": false,
-     "guard_level": "HOLD",
-     "guard_timestamp": "2026-11-07T03:58:55Z"
+     "pass": true
     },
-    "evidence": "/ceph/dwong/jepa/returns/ext_repair_20261106/x0 + x3; /ceph/dwong/jepa/returns/ext_shortcut_20261107/plan.json; logs /ceph/dwong/jepa/tmp/jepa_rb_20261107/"
+    "evidence": "results/jepa/20261106_repair/ + results/jepa/20261107_shortcut/; /ceph/dwong/jepa/returns/ext_repair_20261106/ + ext_shortcut_20261107/; logs /work/dwong/jepa_tmp_20261107/",
+    "status": "resumed_after_entries_stop_and_executed (Part A complete; Part B runs complete, evaluation not_run (cap))",
+    "entries_after_archiving": 44286
    }
   }
  },

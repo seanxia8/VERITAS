@@ -1,0 +1,343 @@
+{
+ "registered": false,
+ "extension": "h12_causal_2026-11-01",
+ "check": "\u00a74.2 reproduction",
+ "tolerance_m": 0.001,
+ "items": {
+  "fix9000": {
+   "expected_m": 0.219258,
+   "got_m": 0.21925859104673262,
+   "abs_diff_m": 5.910467326120106e-07,
+   "pass": true
+  },
+  "init9000": {
+   "expected_m": 0.160072,
+   "got_m": 0.16007169092238768,
+   "abs_diff_m": 3.090776123093608e-07,
+   "pass": true
+  }
+ },
+ "reproduction_pass": true,
+ "mode": "reproduce",
+ "gate": {
+  "authorised": true,
+  "status": "granted",
+  "mode": "reproduce",
+  "extension": "shortcut_followup_2026-11-07",
+  "checks": {
+   "a": {
+    "pass": true,
+    "runbook": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "expected_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "author_line": "\u4e00\u4e8c\u4e09\u6211\u90fd\u6279\uff0c\u5199\u6210\u4e00\u4e2arunbook",
+    "author_line_in_section_zero": true,
+    "pending_acceptance": false
+   },
+   "b": {
+    "pass": true,
+    "status": "PASS",
+    "record": {
+     "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+     "impl_commit": "7b9352c0760358375a0ec8ef4604a45115510e06",
+     "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "review_verdict": "PASS",
+     "lead": "Dowling Wong (author, lead)",
+     "date": "2026-11-07"
+    },
+    "missing_keys": [],
+    "review_verdict": "PASS"
+   },
+   "c": {
+    "pass": true,
+    "impl_commit": "7b9352c0760358375a0ec8ef4604a45115510e06",
+    "impl_commit_source": "acceptance_record",
+    "diff_clean": true,
+    "diff_error": null,
+    "untracked": [],
+    "paths": [
+     "src/jepa_noise/__init__.py",
+     "src/jepa_noise/ext_shortcut.py",
+     "src/jepa_noise/ext_h12.py",
+     "src/jepa_noise/ext_readout.py",
+     "src/jepa_noise/ext_followup.py",
+     "src/jepa_noise/lucid_run.py",
+     "src/jepa_noise/lucid_arms.py",
+     "src/jepa_noise/lucid_bombs.py",
+     "src/jepa_noise/lucid_views.py",
+     "src/jepa_noise/point_encoder.py",
+     "src/jepa_noise/bridge_run.py",
+     "src/jepa_noise/train.py",
+     "src/jepa_noise/crlb.py",
+     "src/jepa_noise/jepa.py",
+     "src/jepa_noise/backbone.py",
+     "src/jepa_noise/linear.py",
+     "src/jepa_noise/probes.py",
+     "src/jepa_noise/metrics.py",
+     "src/jepa_noise/sigreg.py",
+     "scripts/__init__.py",
+     "scripts/jepa_ext_shortcut.py",
+     "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "src/noise_module_lucid/",
+     "src/jepa_noise/configs/"
+    ]
+   }
+  },
+  "problems": [],
+  "acceptance": {
+   "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+   "impl_commit": "7b9352c0760358375a0ec8ef4604a45115510e06",
+   "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+   "review_verdict": "PASS",
+   "lead": "Dowling Wong (author, lead)",
+   "date": "2026-11-07"
+  },
+  "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b"
+ },
+ "wall_seconds": 113.145,
+ "code_sha": "1b30ad6f42ea0904615db5773b97e1b7e0d501ea",
+ "readout_items": "/ceph/dwong/jepa/returns/ext_readout_20261101/items.json",
+ "import_closure": {
+  "checked_modules": 68,
+  "outside_allowlist": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   },
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "part_b_forced_transitive_imports": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}

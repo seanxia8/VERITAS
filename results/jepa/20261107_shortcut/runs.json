@@ -1,0 +1,30 @@
+{
+ "registered": false,
+ "extension": "shortcut_followup_2026-11-07",
+ "variant": "target_posfree",
+ "manipulation": true,
+ "runs": {},
+ "readings": {
+  "r2_a": {
+   "class": "single-seed (not classified)",
+   "f_event": {},
+   "seeds": [],
+   "id": "R2-a",
+   "question": "the \u00a74 class of target_posfree on full-input f_event"
+  },
+  "r2_b": {
+   "registered": false,
+   "extension": "shortcut_followup_2026-11-07",
+   "id": "R2-b",
+   "question": "does the position-free trainable target recover the event-invariant collapse?",
+   "criteria": "recovered: both seeds full vertex < 0.160072, full token R2 >= 0.5, half vertex < 0.174821, half token R2 >= 0.5; not recovered: both seeds full vertex >= 0.160072 or full token R2 < 0.5",
+   "verdict": "unclear",
+   "seeds": {},
+   "floors": {
+    "full_input_m": 0.160072,
+    "half_pass_m": 0.174821,
+    "charge_r2_min": 0.5
+   }
+  }
+ }
+}

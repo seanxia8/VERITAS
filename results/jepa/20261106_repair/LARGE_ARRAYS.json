@@ -1,0 +1,210 @@
+{
+ "threshold_bytes": 5242880,
+ "files": {
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/fix9000/particle__train__N.npz": {
+   "sha256": "655aaddf048a68221034f8412a1fd98bc11953568224dcf41b07a2c265064786",
+   "bytes": 6661372,
+   "label": "fix9000",
+   "key": "particle__train__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/fix9000/particle__test__N.npz": {
+   "sha256": "f7dc5576f95b99c08110daa156620b83c17ef7c8628ca582f356a4871a4101f0",
+   "bytes": 6661967,
+   "label": "fix9000",
+   "key": "particle__test__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/fix9000/particle__test__D.npz": {
+   "sha256": "2ce0d1f25b6aec7d22c0363e08b3426adc88f3eb0408dac8ff88bf3babbba2c1",
+   "bytes": 6661419,
+   "label": "fix9000",
+   "key": "particle__test__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/fix9000/particle__test__SWunit.npz": {
+   "sha256": "2e8e1d46cc865666c276f660557379739b7280cbce1bc5a5137c633f6278e594",
+   "bytes": 6661667,
+   "label": "fix9000",
+   "key": "particle__test__SWunit"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/fix9000/particle__test__HW.npz": {
+   "sha256": "007f8d7dd59472bd3ab066c99f68b77be6c680e9690dd492d9cc6c4912d82ead",
+   "bytes": 6661515,
+   "label": "fix9000",
+   "key": "particle__test__HW"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/init9000/particle__train__N.npz": {
+   "sha256": "18207d10496068816e627a1f58e5b7d1e7413a96cbc0ae6d825eb8b0645ef1b4",
+   "bytes": 6649598,
+   "label": "init9000",
+   "key": "particle__train__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/init9000/particle__test__N.npz": {
+   "sha256": "4b488cfdec76eaebaf10699e18b1837246b42db41b8c4189283f007c4a464964",
+   "bytes": 6650305,
+   "label": "init9000",
+   "key": "particle__test__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/init9000/particle__test__D.npz": {
+   "sha256": "6443675be899d19514faf925bcdedd6429a3e1d51eba51d78cfcbe57b536bd06",
+   "bytes": 6650423,
+   "label": "init9000",
+   "key": "particle__test__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/init9000/particle__test__SWunit.npz": {
+   "sha256": "067c1aab593976ff640f1e654518b746b33d41b90b81f03fe8e90cc53561dfe0",
+   "bytes": 6650107,
+   "label": "init9000",
+   "key": "particle__test__SWunit"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/init9000/particle__test__HW.npz": {
+   "sha256": "9c3d0a71e66e5086926ac9c6ca9c1b1c0fb64c4ce8e0573746a483408fd27daa",
+   "bytes": 6650275,
+   "label": "init9000",
+   "key": "particle__test__HW"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9000/particle__train__N.npz": {
+   "sha256": "710aadbc700af30fb3a9a0ee4e7697b65a32fcfcfbf0f0690ebb25832a78a4d8",
+   "bytes": 6668404,
+   "label": "mae_across_trigger9000",
+   "key": "particle__train__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9000/particle__train__D.npz": {
+   "sha256": "a8ec3cb9ff633c494774b2781ff2313fed4b43e2042740bd88be1a27618ec3c7",
+   "bytes": 6668368,
+   "label": "mae_across_trigger9000",
+   "key": "particle__train__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9000/particle__test__N.npz": {
+   "sha256": "4a4405d08d72a29178bfe6dcc0e2ea2527db4664a303dfcce814df7a08085de2",
+   "bytes": 6668631,
+   "label": "mae_across_trigger9000",
+   "key": "particle__test__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9000/particle__test__D.npz": {
+   "sha256": "819cd290f314056091149bbb16a1c9b7a3d7ded77b94d75a2da10014362531df",
+   "bytes": 6668435,
+   "label": "mae_across_trigger9000",
+   "key": "particle__test__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9000/particle__test__SWunit.npz": {
+   "sha256": "6661f332c6443933d24ea44a6e0012a1d9d0f5a7ef3dcddecda4fa5d24fdfff9",
+   "bytes": 6668251,
+   "label": "mae_across_trigger9000",
+   "key": "particle__test__SWunit"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9000/particle__test__HW.npz": {
+   "sha256": "ac7dbbb22a30f633fed6efbbf63e5060ba10ad720f6e28a53e90cb1a7b3c28e1",
+   "bytes": 6668401,
+   "label": "mae_across_trigger9000",
+   "key": "particle__test__HW"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9001/particle__train__N.npz": {
+   "sha256": "83ed3f00afdc3e0fe90ebce52914f9bd998d58caebfba61312e4b8e572809548",
+   "bytes": 6657022,
+   "label": "mae_across_trigger9001",
+   "key": "particle__train__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9001/particle__train__D.npz": {
+   "sha256": "7fe387593f0eb847ce1f4c860e37fed74a42f4a3747a5deae4489e0a8dac069b",
+   "bytes": 6657372,
+   "label": "mae_across_trigger9001",
+   "key": "particle__train__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9001/particle__test__N.npz": {
+   "sha256": "40518bc3ec00ba828682661340890de31173707b3911b494863f0e3441d72ae5",
+   "bytes": 6657399,
+   "label": "mae_across_trigger9001",
+   "key": "particle__test__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9001/particle__test__D.npz": {
+   "sha256": "1b05bca315a8229055d70e5f64374359d0e1c12e05922a467f7f04bab7072541",
+   "bytes": 6657909,
+   "label": "mae_across_trigger9001",
+   "key": "particle__test__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9001/particle__test__SWunit.npz": {
+   "sha256": "ad6d391f2629d3faabbfeda3abe42e94a9b9afd6567100bd128a97cfcfe67c9c",
+   "bytes": 6656869,
+   "label": "mae_across_trigger9001",
+   "key": "particle__test__SWunit"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_across_trigger9001/particle__test__HW.npz": {
+   "sha256": "79d9aec1f6a2fc1f47eefb1e0f0d21faeb9f27f103575d309c4a443ec1546d05",
+   "bytes": 6656807,
+   "label": "mae_across_trigger9001",
+   "key": "particle__test__HW"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9000/particle__train__N.npz": {
+   "sha256": "f6bb415419749f184f28d6fc61f21e4e3a31864f2e1cdb0a1b758ef759c99b31",
+   "bytes": 6631398,
+   "label": "mae_within_trigger9000",
+   "key": "particle__train__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9000/particle__train__D.npz": {
+   "sha256": "875263b90abe15578fd055d15a6c67156d8899dfdf5fbac159526129deae5ca2",
+   "bytes": 6630632,
+   "label": "mae_within_trigger9000",
+   "key": "particle__train__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9000/particle__test__N.npz": {
+   "sha256": "4e4eba73ffe4939827b9ccd7fd65550c2e5c0babb36bc23cff8003d12018f01a",
+   "bytes": 6631359,
+   "label": "mae_within_trigger9000",
+   "key": "particle__test__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9000/particle__test__D.npz": {
+   "sha256": "9d8883aec088841c763fbfc1e3eeef47a1e40580b456b8a979c0e16ce502f18b",
+   "bytes": 6630855,
+   "label": "mae_within_trigger9000",
+   "key": "particle__test__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9000/particle__test__SWunit.npz": {
+   "sha256": "641eb711bcd897da4a3cfc74c025b4e64f00db99fe561b881175b3336798c3f3",
+   "bytes": 6631255,
+   "label": "mae_within_trigger9000",
+   "key": "particle__test__SWunit"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9000/particle__test__HW.npz": {
+   "sha256": "f008b89ebbdf9af74cc211cf116172e3d44d950ff1f73ff077ef9ff91e95ba1a",
+   "bytes": 6631573,
+   "label": "mae_within_trigger9000",
+   "key": "particle__test__HW"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9001/particle__train__N.npz": {
+   "sha256": "16c347e8902f2858a5ca3430bace9e257768319f7495a3ff7462f35ad08d9d6c",
+   "bytes": 6629322,
+   "label": "mae_within_trigger9001",
+   "key": "particle__train__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9001/particle__train__D.npz": {
+   "sha256": "8791fe7668dc2c3415499489e8ea7a783694334d10e77a2cc26edae0673cd40d",
+   "bytes": 6629022,
+   "label": "mae_within_trigger9001",
+   "key": "particle__train__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9001/particle__test__N.npz": {
+   "sha256": "41101054bb448f60fa2c5196168b422addfbdbaeb51848766bb2349c5a01b935",
+   "bytes": 6629179,
+   "label": "mae_within_trigger9001",
+   "key": "particle__test__N"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9001/particle__test__D.npz": {
+   "sha256": "b37c99e56cbfa0391ef37395e6af0558cda19bf34917ef1637a4a7e327a0dbac",
+   "bytes": 6629093,
+   "label": "mae_within_trigger9001",
+   "key": "particle__test__D"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9001/particle__test__SWunit.npz": {
+   "sha256": "5ad36f5cdf9393d5a635bdb713367a63c22b84558843d7fff97139b5207c7ddb",
+   "bytes": 6629355,
+   "label": "mae_within_trigger9001",
+   "key": "particle__test__SWunit"
+  },
+  "/ceph/dwong/jepa/returns/ext_repair_20261106/x1/mae_within_trigger9001/particle__test__HW.npz": {
+   "sha256": "07266646ab61415b982165f333c7fec5dfd13a4db823a5c134fd769737ce190b",
+   "bytes": 6629323,
+   "label": "mae_within_trigger9001",
+   "key": "particle__test__HW"
+  }
+ },
+ "n_files": 34
+}

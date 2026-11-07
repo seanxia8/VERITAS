@@ -1,0 +1,40 @@
+{
+ "registered": false,
+ "extension": "shortcut_followup_2026-11-07",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+ "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+ "impl_commit": "0cf61ff476bc8f3463b4595816ba40508cba239c",
+ "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
+ "review_verdict": "PASS",
+ "status": "resumed_after_entries_stop_and_executed_to_the_cap",
+ "items": {
+  "preflight": "PASS (data, S1 135.2461, caps, entries 44,286, readout items, closure)",
+  "manipulation": "PASS (columns 0-5 zero in the label pass, 6-8 equal, input not mutated, context/full pass original, label |Delta| 0.0 under PMT permutation vs context 8.973, input-proj gradient 0.117, label f_layout 0.0913 / f_event 0.3054 over 64 events)",
+  "reproduce": "PASS (fix9000 0.2192586 vs 0.219258, init9000 0.1600717 vs 0.160072; tolerance 1e-3 m)",
+  "smoke": "PASS (seed 9000, 20 steps, resumed_from_step 0, metrics finite, wall 0.0196 h, archived never resumed)",
+  "train 9000": "COMPLETE (10000/10000 steps, resumed_from_step 0, metrics finite, final.pt sha256 3bb04c30..., 0.6592 launcher h)",
+  "train 9001": "COMPLETE on the second placement (10000/10000 steps, resumed_from_step 0, metrics finite, final.pt sha256 e36a437d..., 0.6592 launcher h); the first placement on the contended GPU 0 was archived (0.1933 h booked, exit 2) and re-run on the idle GPU 1",
+  "evaluate": "not_run (cap): the extension's own §8.1 guard refused the job - 1.5651 h booked + 0.14 h projected = 1.7051 h > 1.5 h cap; R-2 readings R2-a/R2-b/R2-c are therefore empty (R2-a 'single-seed (not classified)', R2-b 'unclear')",
+  "report": "COMPLETE (results/jepa/20261107_shortcut; R-1 complete; closure pass)"
+ },
+ "r1_reading": {
+  "verdict": "contradicts",
+  "meaning": "the generative (MAE) models are NOT more repairable than the working joint-embedding encoder in this comparison: their median is below both frozen_target seeds on both quantities",
+  "generative_median": {"r2_eq": 0.3278, "rho_lr": -0.6779, "n_models": 8},
+  "frozen_target": {"r2_eq": {"9000": 0.7077, "9001": 0.7278}, "rho_lr": {"9000": -0.5338, "9001": -0.5865}},
+  "caveat": "with 8 against 2 models this is a description, not a test"
+ },
+ "resources": {
+  "gpu_hours": 1.5651,
+  "gpu_cap_hours": 1.5,
+  "gpu_overrun_hours": 0.0651,
+  "gpu_breakdown": {"reproduce": 0.0322, "smoke": 0.0206, "train 9000": 0.6592, "aborted placement (9001)": 0.1933, "train 9001": 0.6592, "evaluate (refused)": 0.0006},
+  "cap_note": "The cap was exceeded before the evaluation because both 10 000-step runs took 0.659 h each (the runbook projected 0.45-0.6 h) on shared GPUs, plus one 0.193 h aborted placement attempt. The extension's own guard then refused the evaluation, so R-2 readings are not_run (cap); the overrun is booked and reported, not rounded.",
+  "cpu_wall_hours_estimate": 1.4,
+  "cpu_cap_hours": 2.0,
+  "l40s_ledger_before": 129.7461,
+  "l40s_ledger_after": 132.0,
+  "generation_cap_untouched": true,
+  "data_generated": false
+ }
+}

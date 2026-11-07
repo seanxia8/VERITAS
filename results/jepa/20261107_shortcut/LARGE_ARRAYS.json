@@ -1,0 +1,50 @@
+{
+ "registered": false,
+ "extension": "shortcut_followup_2026-11-07",
+ "min_bytes": 5242880,
+ "files": [
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/smoke/runs/dev_s005_within__sigreg_jepa__s9000/checkpoint.pt",
+   "relative": "smoke/runs/dev_s005_within__sigreg_jepa__s9000/checkpoint.pt",
+   "size_bytes": 7486126,
+   "sha256": "7a59900f22711d95f5f99761d10d81232de3e36142ef516e8012449b25c2cb6d"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/smoke/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+   "relative": "smoke/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+   "size_bytes": 7484701,
+   "sha256": "5a673c7296590d8620550fe296ae89dd9cefde1333830c172a157c09c15339c9"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9000/checkpoint.pt",
+   "relative": "train/runs/dev_s005_within__sigreg_jepa__s9000/checkpoint.pt",
+   "size_bytes": 7486126,
+   "sha256": "ae98c0df4cf4658e84746a8af316a419f4810ee63e471d6d4c0f54a7c4a3726e"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+   "relative": "train/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+   "size_bytes": 7484701,
+   "sha256": "3bb04c30dd51a90602e632f20f553b635c211a73f3bb048778ef5b2ad45b610c"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9001/checkpoint.pt",
+   "relative": "train/runs/dev_s005_within__sigreg_jepa__s9001/checkpoint.pt",
+   "size_bytes": 7486126,
+   "sha256": "948b8beb6448a613a6ee00165a555a200c711c923419eaf9e8903128c38c5a60"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+   "relative": "train/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+   "size_bytes": 7484701,
+   "sha256": "e36a437d77714985e59009528b6e73ba092e213b7b209c630b970f275ddc71a2"
+  },
+  {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train_archive/partial_9001_20261107_gpu0_contended/checkpoint.pt",
+   "relative": "train_archive/partial_9001_20261107_gpu0_contended/checkpoint.pt",
+   "size_bytes": 7486126,
+   "sha256": "47e429c82ef2ba3216be21cd008cd99d618d96f24c623f7cb026faa9ccea386c"
+  }
+ ],
+ "note": "read-only sha256 inventory of the extension's large files on /ceph"
+}

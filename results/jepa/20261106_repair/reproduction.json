@@ -1,0 +1,556 @@
+{
+ "registered": false,
+ "extension": "paper3_repair_pilot_2026-11-06",
+ "check": "X0-b reproduction gate \u00a74",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+ "tolerance_m": 0.001,
+ "models": {
+  "mae_within_trigger9000": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.10491560199168913,
+   "D_refit_m": 0.11017688516307267,
+   "D_frozen_m": 0.11490805737530024,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "mae_within_trigger9000",
+     "expected": 0.104916,
+     "got": 0.10491560199168913,
+     "difference_m": 3.9800831086456157e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "mae_within_trigger9000",
+     "expected": 0.110177,
+     "got": 0.11017688516307267,
+     "difference_m": 1.1483692732849882e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "mae_within_trigger9000",
+     "expected": 0.114908,
+     "got": 0.11490805737530024,
+     "difference_m": 5.737530024696458e-08,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "mae_within_trigger9001": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.11654176974281558,
+   "D_refit_m": 0.12364514860081934,
+   "D_frozen_m": 0.1331237635423614,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "mae_within_trigger9001",
+     "expected": 0.116542,
+     "got": 0.11654176974281558,
+     "difference_m": 2.3025718443037135e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "mae_within_trigger9001",
+     "expected": 0.123645,
+     "got": 0.12364514860081934,
+     "difference_m": 1.4860081933021352e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "mae_within_trigger9001",
+     "expected": 0.133124,
+     "got": 0.1331237635423614,
+     "difference_m": 2.3645763858048952e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "mae_across_trigger9000": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.1209576974778162,
+   "D_refit_m": 0.12702705366995384,
+   "D_frozen_m": 0.12952532568254566,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "mae_across_trigger9000",
+     "expected": 0.120958,
+     "got": 0.1209576974778162,
+     "difference_m": 3.025221837898995e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "mae_across_trigger9000",
+     "expected": 0.127027,
+     "got": 0.12702705366995384,
+     "difference_m": 5.3669953842261364e-08,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "mae_across_trigger9000",
+     "expected": 0.129525,
+     "got": 0.12952532568254566,
+     "difference_m": 3.2568254565434884e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "mae_across_trigger9001": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.11962631635778553,
+   "D_refit_m": 0.12614886653203472,
+   "D_frozen_m": 0.13681848425122545,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "mae_across_trigger9001",
+     "expected": 0.119626,
+     "got": 0.11962631635778553,
+     "difference_m": 3.1635778553751326e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "mae_across_trigger9001",
+     "expected": 0.126149,
+     "got": 0.12614886653203472,
+     "difference_m": 1.33467965290901e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "mae_across_trigger9001",
+     "expected": 0.136818,
+     "got": 0.13681848425122545,
+     "difference_m": 4.84251225452148e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "t1_s030_within_trigger9000": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.10538824923548876,
+   "D_refit_m": 0.11074982230169605,
+   "D_frozen_m": 0.11629946769597518,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "t1_s030_within_trigger9000",
+     "expected": 0.105388,
+     "got": 0.10538824923548876,
+     "difference_m": 2.492354887612125e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "t1_s030_within_trigger9000",
+     "expected": 0.11075,
+     "got": 0.11074982230169605,
+     "difference_m": 1.776983039464275e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "t1_s030_within_trigger9000",
+     "expected": 0.116299,
+     "got": 0.11629946769597518,
+     "difference_m": 4.676959751842569e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "t1_s030_within_trigger9001": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.10051204032377488,
+   "D_refit_m": 0.10575055676290782,
+   "D_frozen_m": 0.11036278794950755,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "t1_s030_within_trigger9001",
+     "expected": 0.100512,
+     "got": 0.10051204032377488,
+     "difference_m": 4.032377487472871e-08,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "t1_s030_within_trigger9001",
+     "expected": 0.105751,
+     "got": 0.10575055676290782,
+     "difference_m": 4.432370921819695e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "t1_s030_within_trigger9001",
+     "expected": 0.110363,
+     "got": 0.11036278794950755,
+     "difference_m": 2.1205049245687224e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "t1_s030_across_trigger9000": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.12560521330590949,
+   "D_refit_m": 0.13072728712658435,
+   "D_frozen_m": 0.1340388542905824,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "t1_s030_across_trigger9000",
+     "expected": 0.125605,
+     "got": 0.12560521330590949,
+     "difference_m": 2.1330590949109052e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "t1_s030_across_trigger9000",
+     "expected": 0.130727,
+     "got": 0.13072728712658435,
+     "difference_m": 2.871265843418236e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "t1_s030_across_trigger9000",
+     "expected": 0.134039,
+     "got": 0.1340388542905824,
+     "difference_m": 1.4570941758718092e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "t1_s030_across_trigger9001": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.11903083423280808,
+   "D_refit_m": 0.12447015187466698,
+   "D_frozen_m": 0.13089153611950757,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "t1_s030_across_trigger9001",
+     "expected": 0.119031,
+     "got": 0.11903083423280808,
+     "difference_m": 1.6576719191752076e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "t1_s030_across_trigger9001",
+     "expected": 0.12447,
+     "got": 0.12447015187466698,
+     "difference_m": 1.5187466698152186e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "t1_s030_across_trigger9001",
+     "expected": 0.130892,
+     "got": 0.13089153611950757,
+     "difference_m": 4.638804924350648e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  "init9000": {
+   "status": "evaluated",
+   "N_refit_frozen_m": 0.16007169092238768,
+   "D_refit_m": 0.17030114189844825,
+   "D_frozen_m": 0.17664330829787364,
+   "comparisons": {
+    "N_refit_frozen": {
+     "label": "init9000",
+     "expected": 0.160072,
+     "got": 0.16007169092238768,
+     "difference_m": 3.090776123093608e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_refit": {
+     "label": "init9000",
+     "expected": 0.170301,
+     "got": 0.17030114189844825,
+     "difference_m": 1.4189844824152864e-07,
+     "tolerance_m": 0.001,
+     "pass": true
+    },
+    "D_frozen": {
+     "label": "init9000",
+     "expected": null,
+     "got": 0.17664330829787364,
+     "pass": true,
+     "skipped": true
+    }
+   },
+   "pass": true
+  }
+ },
+ "gate": {
+  "status": "granted"
+ },
+ "pass": true,
+ "wall_seconds": null,
+ "identity": {
+  "label": "mae_within_trigger9000",
+  "sets": {
+   "s005": {
+    "n_runs": 400,
+    "max_embedding_difference": 0.0,
+    "features_bit_identical": true,
+    "pass": true
+   },
+   "s030": {
+    "n_runs": 400,
+    "max_embedding_difference": 0.0,
+    "features_bit_identical": true,
+    "pass": true
+   }
+  },
+  "pass": true,
+  "split": "within",
+  "tolerance": 1e-06,
+  "features_bit_identical": true
+ },
+ "closure": {
+  "checked_modules": 69,
+  "outside_allowlist": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}
