@@ -34,6 +34,10 @@ The addendum modes implement its §8 order and are booked to its own 0.35 h GPU 
   failure is the S9 STOP for the D1 reruns only;
 * ``addendum-x2`` (CPU): D1 rerun of X2-c, the X2-d latent stream and X2-f from
   the sha-verified cached embeddings (the source/raw streams are reused);
+* ``addendum-init9000`` (GPU): encode ONLY the init9000 gain-blind tokens
+  (photon N train/test, D test; particle N train/test, D test) into the verified
+  ``<ext>/addendum/init9000`` cache, then stop; an existing verified cache is
+  reported ``already_cached`` without re-encoding;
 * ``addendum-x2e`` (GPU): EST(latent) probe-test sets, rho_EST(latent) and the
   latent repair with the raw-unit Â;
 * ``addendum-x3`` (CPU): D2 rerun of the X3-b readings for every family, with the
@@ -42,8 +46,11 @@ The addendum modes implement its §8 order and are booked to its own 0.35 h GPU 
 * ``addendum-report`` (CPU): D4 ``READINGS_SUMMARY.md``, ``SUMMARY.json``,
   ``ADDENDUM_2026-11-07.json``, ``OUTCOME.json`` and the labelled/legended figures.
 
-Execution order: ``addendum-selfcheck`` -> ``addendum-x2`` -> ``addendum-x3``
-(CPU) -> ``addendum-x2e`` (GPU) -> ``addendum-report`` (CPU).
+Execution order (addendum §8): the GPU jobs ``addendum-init9000`` (only if
+``addendum-x3`` reported the init9000 family ``not_run (gpu needed)``) and
+``addendum-x2e``, at most two addendum jobs at once and each guard-checked,
+before the CPU jobs ``addendum-x3`` (now with the token cache),
+``addendum-x2``, ``addendum-selfcheck`` and ``addendum-report``.
 """
 from __future__ import annotations
 
@@ -94,20 +101,24 @@ __all__ = [
     "random_control_basis", "x3", "x3_readings", "mode_setup", "read_json", "write_json",
     "assemble_report", "raw_map", "addendum_hours", "assert_addendum_budget",
     "record_addendum_job", "addendum_selfcheck", "addendum_x2", "addendum_x2e",
-    "addendum_x3", "addendum_report",
+    "addendum_x3", "addendum_report", "addendum_init9000",
 ]
 
 # ---------------------------------------------------------------- extension
 EXTENSION = "paper3_repair_pilot_2026-11-06"
 MODES = ("dry-run", "preflight", "reproduce", "x1", "x2", "x3-fisher", "x3", "report",
          "addendum-selfcheck", "addendum-x2", "addendum-x2e", "addendum-x3",
-         "addendum-report")
+         "addendum-report", "addendum-init9000")
 #: Addendum §8 modes (7 Nov 2026).  They are booked against the addendum's own
 #: 0.35 L40S h / 3 wall-hours caps; the closed Part A and Part B caps are never
-#: consulted by them.
-ADDENDUM_MODES = ("addendum-selfcheck", "addendum-x2", "addendum-x2e", "addendum-x3",
-                  "addendum-report")
-_ADDENDUM_GPU_MODES = ("addendum-x2e",)
+#: consulted by them.  §8 execution order: the GPU jobs (``addendum-init9000``
+#: only if ``addendum-x3`` reported the init9000 family ``not_run (gpu needed)``,
+#: then ``addendum-x2e``, then Part B's ``addendum-evaluate``) before the CPU
+#: jobs (``addendum-x3`` with the token cache, ``addendum-x2``,
+#: ``addendum-selfcheck``, ``addendum-report``).
+ADDENDUM_MODES = ("addendum-init9000", "addendum-selfcheck", "addendum-x2",
+                  "addendum-x2e", "addendum-x3", "addendum-report")
+_ADDENDUM_GPU_MODES = ("addendum-x2e", "addendum-init9000")
 _ADDENDUM_CPU_MODES = ("addendum-selfcheck", "addendum-x2", "addendum-x3",
                        "addendum-report")
 
@@ -5260,7 +5271,7 @@ def _fmt(value, digits=6):
 # ================================================ addendum (7 Nov 2026) §6/§8
 #: Addendum §6 projections (L40S h).  Only the addendum modes consult these; the
 #: closed Part A (4.0 h) and Part B (1.5 h) caps are never reused (§6).
-_ADDENDUM_GPU_PROJECTION = {"addendum-x2e": 0.06}
+_ADDENDUM_GPU_PROJECTION = {"addendum-x2e": 0.06, "addendum-init9000": 0.07}
 #: CPU wall-hour projections against the addendum's 3.0 h cap.
 _ADDENDUM_CPU_PROJECTION = {"addendum-selfcheck": 0.15, "addendum-x2": 0.75,
                             "addendum-x3": 1.50, "addendum-report": 0.10}
@@ -6538,3 +6549,128 @@ def _addendum_outcome(summary, addendum, *, root, d1, x2e_add, x3_add,
             "budget_hours": addendum_hours(),
             "note": "execution adapters are retired: fixes 7-8 live in <P> "
                     "(_x3_five null = ∞; _strip_internal drops fitted/prediction)"}
+
+
+# ------------------------- §8 GPU: init9000 gain-blind token cache (≤ 0.07 h)
+def _cache_entry_verified(cache, key) -> bool:
+    """True when a cache entry exists, has a sidecar sha and the file still matches."""
+    row = (cache.manifest or {}).get(str(key)) or {}
+    path = cache.path(key)
+    if not row.get("sha256") or not path.is_file():
+        return False
+    try:
+        return lr.sha256_file(path) == row["sha256"]
+    except OSError:  # pragma: no cover - an unreadable cache file
+        return False
+
+
+def addendum_init9000(*, config, gen, arms_config, geometry,
+                      data_root=DATA_ROOT_DEFAULT, device="auto",
+                      ext_root=EXT_ROOT, root=None, limit=None, log=print) -> dict:
+    """Addendum §6/§8 GPU mode: encode ONLY the init9000 gain-blind tokens.
+
+    Photon N (train, test), D (test) and particle N (train, test), D (test) go
+    through the existing ``_x3_init9000`` / invariant-token path and are written
+    write-once with sha256 sidecars to ``init9000_token_cache(ext_root)``; the mode
+    then stops and does not recompute any other X3-b family.  No trained
+    checkpoint is needed: ``init9000`` is the random-init rebuild.
+
+    An already verified cache is reported ``already_cached`` (exit 0, no
+    re-encoding).  The addendum GPU cap is checked with the §6 projection 0.07 h
+    before any work; the job is booked after the work, also on the failure path,
+    and the closed Part A cap is never consulted.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum-init9000", root=root, log=log)
+    token_cache = init9000_token_cache(ext_root)
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum §6/§8 GPU: init9000 gain-blind tokens",
+               "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
+               "gate": {"status": gate["status"]},
+               "cache": str(Path(ext_root) / "addendum" / "init9000"),
+               "dataset": "init9000 (random-init, no trained checkpoint)",
+               "sets": {"photon": ["train N", "test N", "drift D"],
+                        "particle": ["train N", "test N", "drift D"]},
+               "n_keys": len(_INIT9000_TOKEN_KEYS),
+               "missing_before": [], "missing_after": [],
+               "status": None, "complete": False, "wall_seconds": None}
+    missing = [key for key in _INIT9000_TOKEN_KEYS
+               if not _cache_entry_verified(token_cache, key)]
+    if not missing:
+        payload["status"] = "already_cached"
+        payload["complete"] = True
+        payload["cache_verified"] = True
+        return _addendum_finish("addendum-init9000", payload, root=root,
+                                started=started, kind="gpu")
+    payload["missing_before"] = list(missing)
+    budget = _addendum_budget_for("addendum-init9000")
+    payload["budget"] = budget
+    try:
+        inv = part_a_inventory(root, hash_files=False, log=lambda *a, **k: None)
+        row = (inv.get("rows") or {}).get("init9000")
+        if row is None or row.get("status") not in ("available",
+                                                    "unverified (dry-run)"):
+            raise ValueError("init9000 inventory row unavailable")
+        probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005,
+                                    log=log)
+        probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030,
+                                    log=log)
+        datasets = {"train": probes005["train"], "test": probes005["test"],
+                    "drift": probes030["test"]}
+        names = {"train": "N", "test": "N", "drift": "D"}
+        split = row_split(row)
+        with ef.item_eval_context(row):
+            arm = ef.build_item_arm(row, config=config, gen=gen,
+                                    arms_config=arms_config, geometry=geometry,
+                                    data_root=data_root, device=device, log=log)
+        model = getattr(arm, "jepa", arm)
+        for role, dataset in datasets.items():
+            condition = build_condition(names[role], dataset, geometry)
+            name = names[role]
+            stream_condition_embeddings(
+                model, dataset, geometry, condition, split=split, config=config,
+                device=device, cache=token_cache,
+                cache_key=f"photon__standard__{role}__{name}",
+                max_events=limit, log=log)
+            with invariant_token_context(geometry):
+                stream_condition_embeddings(
+                    model, dataset, geometry, condition, split=split,
+                    config=config, device=device, cache=token_cache,
+                    cache_key=f"photon__invariant__{role}__{name}",
+                    max_events=limit, log=log)
+        truth = {role: ef.load_particle_truth(data_root, PROBE_KEYS_S005[role])
+                 for role in ("train", "test")}
+        for role, dataset in datasets.items():
+            condition = build_condition(names[role], dataset, geometry)
+            name = names[role]
+            truth_key = "test" if role == "drift" else role
+            stream_condition_particles(
+                model, dataset, truth[truth_key], geometry, condition,
+                device=device, cache=token_cache,
+                cache_key=f"particle__standard__{role}__{name}",
+                max_events=limit, log=log)
+            with invariant_token_context(geometry):
+                stream_condition_particles(
+                    model, dataset, truth[truth_key], geometry, condition,
+                    device=device, cache=token_cache,
+                    cache_key=f"particle__invariant__{role}__{name}",
+                    max_events=limit, log=log)
+        payload["status"] = "encoded"
+    except SystemExit:
+        raise
+    except Exception as problem:  # pragma: no cover - a missing checkpoint/GPU
+        payload["status"] = "failed"
+        payload["reason"] = f"{type(problem).__name__}: {problem}"
+        log(f"[repair] addendum-init9000 failed: {payload['reason']}")
+    finally:
+        payload["job"] = record_addendum_job(
+            "addendum-init9000", "gpu", time.time() - started, part="A")
+    payload["missing_after"] = [key for key in _INIT9000_TOKEN_KEYS
+                                if not _cache_entry_verified(token_cache, key)]
+    payload["complete"] = bool(payload.get("status") == "encoded"
+                               and not payload["missing_after"])
+    payload["hours"] = addendum_hours()
+    payload["closure"] = _assert_closure("addendum-init9000", root)
+    payload["wall_seconds"] = round(time.time() - started, 3)
+    return payload

@@ -915,11 +915,11 @@ def test_cli_modes_and_defaults():
     assert set(rp.MODES) == {"dry-run", "preflight", "reproduce", "x1", "x2",
                              "x3-fisher", "x3", "report", "addendum-selfcheck",
                              "addendum-x2", "addendum-x2e", "addendum-x3",
-                             "addendum-report"}
+                             "addendum-report", "addendum-init9000"}
     # the addendum §8 modes parse with their devices and the report --out
     for mode, device in (("addendum-selfcheck", "cpu"), ("addendum-x2", "cpu"),
                          ("addendum-x3", "cpu"), ("addendum-report", "cpu"),
-                         ("addendum-x2e", "auto")):
+                         ("addendum-x2e", "auto"), ("addendum-init9000", "auto")):
         parsed = parser.parse_args([mode])
         assert parsed.mode == mode and parsed.device == device
     assert parser.parse_args(["addendum-x2e", "--limit", "3"]).limit == 3
@@ -2116,8 +2116,11 @@ def test_addendum_modes_do_not_consult_the_closed_part_a_or_b_caps():
     # the addendum caps are the only ones the addendum modes read
     assert rp.ADDENDUM_GPU_CAP_H < rp.PART_A_GPU_CAP_H
     assert rp.ADDENDUM_CPU_CAP_H < rp.CPU_CAP_H
-    assert rp.ADDENDUM_MODES == ("addendum-selfcheck", "addendum-x2", "addendum-x2e",
-                                 "addendum-x3", "addendum-report")
+    assert rp.ADDENDUM_MODES == ("addendum-init9000", "addendum-selfcheck",
+                                 "addendum-x2", "addendum-x2e", "addendum-x3",
+                                 "addendum-report")
+    assert set(rp._ADDENDUM_GPU_MODES) == {"addendum-x2e", "addendum-init9000"}
+    assert rp._ADDENDUM_GPU_PROJECTION["addendum-init9000"] == 0.07
     # every addendum mode is a registered gated mode
     assert set(rp.ADDENDUM_MODES) <= set(rp.MODES)
 
@@ -2460,3 +2463,111 @@ def test_addendum_report_uses_the_7_nov_flat_keys_for_backward_compatibility(
     assert {"r2_eq", "class", "rho_lr"} <= set(x2_row)
     x3_row = summary["x3"]["raw"]
     assert {"log_yield_rho", "log_yield_class", "energy_class"} <= set(x3_row)
+
+
+# ------------------------------------- §8 GPU: init9000 gain-blind token cache
+def _token_rows(key):
+    """Minimal cache rows for one init9000 token key (no fitting is done here)."""
+    domain = key.split("__")[0]
+    run_ids = np.repeat([f"r{index}" for index in range(5)], 4).astype(object)
+    rows = {"events": np.random.default_rng(0).standard_normal((20, 4)),
+            "run_ids": run_ids, "event_ids": np.tile(np.arange(4), 5),
+            "vertex": np.zeros((20, 3)), "log_yield": np.zeros(20),
+            "n_hit": np.full(20, 5)}
+    if domain == "particle":
+        rows.update({"particle": np.array(["electron"] * 20, dtype=object),
+                     "contained": np.ones(20, bool),
+                     "deposited_MeV": np.linspace(100.0, 900.0, 20),
+                     "direction": np.zeros((20, 3))})
+    return rows
+
+
+def _populate_init9000_cache(ext_root):
+    cache = rp.init9000_token_cache(ext_root)
+    for key in rp._INIT9000_TOKEN_KEYS:
+        cache.fetch(key, lambda key=key: _token_rows(key))
+    return cache
+
+
+def test_addendum_init9000_mode_registered_and_help(tmp_path):
+    handlers = {"addendum-init9000": "mode_addendum_init9000"}
+    for name in handlers:
+        assert name in rp.MODES and name in rp.ADDENDUM_MODES
+        assert hasattr(repair_cli, handlers[name])
+    assert "addendum-init9000" in repair_cli.parser().format_help()
+    parsed = repair_cli.parser().parse_args(["addendum-init9000"])
+    assert parsed.mode == "addendum-init9000" and parsed.device == "auto"
+
+
+def test_addendum_init9000_budget_refusal_uses_the_addendum_cap(tmp_path, monkeypatch,
+                                                                capsys):
+    ledger = tmp_path / "ledger.jsonl"
+    ledger.write_text(json.dumps({"utc": "2026-11-07T00:00:00Z", "part": "B",
+                                  "mode": "addendum-evaluate", "kind": "gpu",
+                                  "wall_seconds": 1080.0, "hours": 0.30}) + "\n")
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", ledger)
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    assert rp._ADDENDUM_GPU_PROJECTION["addendum-init9000"] == 0.07
+    with pytest.raises(SystemExit) as caught:
+        rp.assert_addendum_budget("gpu", 0.07, part="A")
+    assert caught.value.code == 2
+    assert "not_run (cap)" in capsys.readouterr().err
+    # the mode refuses before any GPU work (empty cache, no geometry needed)
+    with pytest.raises(SystemExit) as caught_mode:
+        rp.addendum_init9000(config={}, gen={}, arms_config={}, geometry=None,
+                             ext_root=tmp_path / "ext", root=tmp_path)
+    assert caught_mode.value.code == 2
+    # the closed Part A cap is never the one consulted
+    assert rp.ADDENDUM_GPU_CAP_H == 0.35 and rp.PART_A_GPU_CAP_H == 4.0
+
+
+def test_addendum_init9000_already_cached_short_circuits(tmp_path, monkeypatch):
+    _populate_init9000_cache(tmp_path / "ext")
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "_assert_closure", lambda mode, root: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+
+    def boom(*args, **kwargs):
+        raise AssertionError("the encode path ran despite a verified cache")
+
+    monkeypatch.setattr(rp, "part_a_inventory", boom)
+    monkeypatch.setattr(rp, "open_probe_sets", boom)
+    monkeypatch.setattr(rp.ef, "build_item_arm", boom)
+    payload = rp.addendum_init9000(config={}, gen={}, arms_config={},
+                                   geometry=None, ext_root=tmp_path / "ext",
+                                   root=tmp_path)
+    assert payload["status"] == "already_cached"
+    assert payload["complete"] is True and payload["cache_verified"] is True
+    assert payload["budget"]["kind"] == "gpu"
+    assert payload["budget"]["recorded"] is True
+    assert payload["budget"]["hours"] == pytest.approx(0.0, abs=1e-4)
+
+
+def test_addendum_init9000_setup_path_records_the_projection_and_does_not_encode(
+        tiny, tmp_path, monkeypatch):
+    geometry = tiny["geometry"]
+    config = lr.load_run_config(ROOT / rp.CONFIG_REL)
+    arms_config = la.load_config(ROOT / rp.ARMS_REL)
+
+    def boom(*args, **kwargs):
+        raise AssertionError("the dry-run setup path ran an encode")
+
+    monkeypatch.setattr(rp, "stream_condition_embeddings", boom)
+    monkeypatch.setattr(rp, "stream_condition_particles", boom)
+    monkeypatch.setattr(rp.ef, "build_item_arm", boom)
+    probes = {"s005": {"train": tiny["s005"]["dataset"],
+                       "test": tiny["s005"]["dataset"]},
+              "s030": {"train": tiny["s030"]["dataset"],
+                       "test": tiny["s030"]["dataset"]}}
+    setup = rp._mode_setup_objects(
+        "addendum-init9000", root=tmp_path / "repo", config=config, gen=GEN,
+        arms_config=arms_config, geometry=geometry, data_root=tmp_path / "data",
+        ext_root=tmp_path / "ext", inventory=_fake_inventory(), probes=probes,
+        particle_truth={}, log=lambda *a, **k: None)
+    plan = setup["plan"]["addendum"]
+    assert plan["gpu_projection"]["addendum-init9000"] == 0.07
+    assert "addendum-init9000" in plan["modes"]
+    assert plan["gpu_cap_hours"] == 0.35 and plan["cpu_cap_hours"] == 3.0
+    assert not (tmp_path / "ext" / "addendum" / "init9000").exists()

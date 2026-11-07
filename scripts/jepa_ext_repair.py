@@ -29,6 +29,11 @@ addendum-x2         CPU: D1 rerun of X2-c, the X2-d latent stream and X2-f from
                     the sha-verified cached embeddings; writes
                     ``<ext>/addendum/x2_addendum.json`` (the 7 Nov ``x2.json`` is
                     kept intact for the superseded table).
+addendum-init9000   GPU: encode ONLY the init9000 gain-blind tokens (photon and
+                    particle N train/test and D test) into the verified
+                    ``<ext>/addendum/init9000`` cache, then stop; writes
+                    ``init9000_encode.json``.  ``already_cached`` (exit 0) when the
+                    verified cache exists; no trained checkpoint is needed.
 addendum-x2e        GPU: re-encode the EST(latent) probe-test sets for the 13 core
                     models and read rho_EST(latent) + latent repair; EST(source)
                     and EST(raw) are reused.  Writes ``x2e_addendum.json``.
@@ -40,10 +45,13 @@ addendum-report     CPU: D4 summary — ``READINGS_SUMMARY.md``, ``SUMMARY.json`
                     ``ADDENDUM_2026-11-07.json``, ``OUTCOME.json`` and the six
                     labelled/legended figures in ``results/jepa/20261106_repair/``.
 
-Addendum §8 order: addendum-selfcheck -> addendum-x2 -> addendum-x3 (CPU) ->
-addendum-x2e (GPU) -> addendum-report (CPU).  The addendum modes are booked to
-the addendum's own 0.35 h GPU / 3.0 h CPU caps; the closed Part A and Part B caps
-are never consulted.
+Addendum §8 order: the GPU jobs addendum-init9000 (only if addendum-x3 reported
+the init9000 family ``not_run (gpu needed)``), addendum-x2e and Part B's
+addendum-evaluate — at most two addendum jobs at once, each guard-checked — then
+the CPU jobs addendum-x3 (now with the token cache), addendum-x2,
+addendum-selfcheck, addendum-report.  The addendum modes are booked to the
+addendum's own 0.35 h GPU / 3.0 h CPU caps; the closed Part A and Part B caps are
+never consulted.
 
 No training mode exists, no data is generated, and no registered module, config,
 prediction or verdict is edited.
@@ -381,6 +389,28 @@ def mode_addendum_x2(args) -> int:
     return 0 if payload["complete"] else 2
 
 
+def mode_addendum_init9000(args) -> int:
+    """Addendum §6/§8 GPU: the init9000 gain-blind-token cache only (<= 0.07 h)."""
+    root = repo_root(args)
+    config, gen, arms_config, geometry, device = load_setup(args)
+    payload = rep.addendum_init9000(
+        config=config, gen=gen, arms_config=arms_config, geometry=geometry,
+        data_root=data_root(args), device=device, ext_root=ext_root(args),
+        root=root, limit=args.limit, log=print)
+    path = _addendum_path(args, "init9000_encode.json")
+    write_json(path, payload)
+    print(json.dumps({"out": str(path), "status": payload["status"],
+                      "complete": payload["complete"],
+                      "cache": payload["cache"],
+                      "n_keys": payload["n_keys"],
+                      "missing_before": payload["missing_before"],
+                      "missing_after": payload["missing_after"],
+                      "wall_seconds": payload["wall_seconds"],
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return 0 if payload["status"] in ("already_cached", "encoded") else 2
+
+
 def mode_addendum_x2e(args) -> int:
     """Addendum D1 rerun (GPU): EST(latent) sets and rho_EST(latent)."""
     root = repo_root(args)
@@ -514,6 +544,10 @@ def parser():
     _limit(ax3)
     _common(ax3)
     ax3.add_argument("--device", default="cpu")
+    ainit = sub.add_parser("addendum-init9000")
+    _limit(ainit)
+    _common(ainit)
+    ainit.add_argument("--device", default="auto")
     areport = sub.add_parser("addendum-report")
     areport.add_argument("--out", default=None,
                          help="results directory (default: <root>/results/jepa/"
@@ -532,7 +566,8 @@ def main(argv=None):
                 "addendum-x2": mode_addendum_x2,
                 "addendum-x2e": mode_addendum_x2e,
                 "addendum-x3": mode_addendum_x3,
-                "addendum-report": mode_addendum_report}
+                "addendum-report": mode_addendum_report,
+                "addendum-init9000": mode_addendum_init9000}
     return handlers[args.mode](args)
 
 
