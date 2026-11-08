@@ -3381,7 +3381,7 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
                              "latent_repair_rho_LR": -0.05}}}},
                 "x3": {},
                 "x3_5": {"empirical_rho_E_log_yield": 3.5588538217086,
-                         "raw_feature_rho_E_log_yield": 3.5588538217086,
+                         "raw_feature_rho_E_log_yield": None,
                          "theory_rows": {"C-mean": {"theory_ratio_lnY": None}},
                          "rule": "committed raw-feature value"},
                 "superseded": [], "not_run": []}
@@ -3468,7 +3468,12 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
     assert set(a2["e3u"]["readings"]["variants"]) == {f"{label}/E3u"}
     assert a2["ledger"]["status"] == "written"
     assert {row["defect"] for row in a2["superseded"]} == {"E1", "E2", "E3"}
+    # A2-2b: ADDENDUM2 JSON records the committed raw-feature value via the
+    # committed fallback (raw_feature is null in the committed SUMMARY) and also
+    # records the empirical key, beside the E3u ratios
     assert a2["x3_5"]["raw_feature_rho_E_log_yield"] == pytest.approx(
+        3.5588538217086)
+    assert a2["x3_5"]["empirical_rho_E_log_yield"] == pytest.approx(
         3.5588538217086)
     assert a2["x3_5"]["e3u_rho_E_log_yield"]
     summary = rp.read_json(target / "SUMMARY.json")
@@ -3476,7 +3481,10 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
     assert summary["x3"][f"{label}/E3u"]["concept"] == "E3u"
     assert summary["addendum2"]["e3u"]["n_models"] == 1
     row = summary["x2"][family][str(seed)]
-    assert summary["x3_5"]["raw_feature_rho_E_log_yield"] == pytest.approx(
+    # the SUMMARY merge keeps the committed raw slot untouched (it is null in the
+    # committed SUMMARY) and preserves the empirical raw-feature value
+    assert summary["x3_5"]["raw_feature_rho_E_log_yield"] is None
+    assert summary["x3_5"]["empirical_rho_E_log_yield"] == pytest.approx(
         3.5588538217086)
     assert summary["x3_5"]["e3u_rho_E_log_yield"]
     assert row["X2-d"]["latent"]["median_run_rms"] == pytest.approx(0.004)

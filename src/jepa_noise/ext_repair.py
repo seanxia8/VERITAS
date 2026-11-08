@@ -7903,6 +7903,18 @@ def addendum2_leace(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
                              started=started, kind="cpu")
 
 
+def _x3_5_raw_value(summary) -> float | None:
+    """The committed X3-5 raw-feature ρ_E, falling back to ``empirical_*``.
+
+    The committed SUMMARY.json stores the raw-feature value in
+    ``empirical_rho_E_log_yield`` and leaves ``raw_feature_rho_E_log_yield`` null
+    on some runs, so the ADDENDUM2 record uses the committed fallback (A2-2b).
+    """
+    block = (summary or {}).get("x3_5") or {}
+    raw = block.get("raw_feature_rho_E_log_yield")
+    return raw if raw is not None else block.get("empirical_rho_E_log_yield")
+
+
 def addendum2_report(*, root=None, ext_root=EXT_ROOT, results_dir=None,
                      log=print) -> dict:
     """Addendum 2 §9 (CPU): ADDENDUM2 JSON + updated summary/outcome/figures.
@@ -8080,12 +8092,13 @@ def addendum2_report(*, root=None, ext_root=EXT_ROOT, results_dir=None,
                                           "controls, CI vs control mean, and "
                                           "CI above the hit-count control",
                          "rows": e2_rows},
-                 "x3_5": {"raw_feature_rho_E_log_yield": (
-                     (summary.get("x3_5") or {}).get(
-                         "raw_feature_rho_E_log_yield")),
-                     "e3u_rho_E_log_yield": (
-                         (summary.get("x3_5") or {}).get(
-                             "e3u_rho_E_log_yield"))},
+                 "x3_5": {"raw_feature_rho_E_log_yield": _x3_5_raw_value(summary),
+                          "empirical_rho_E_log_yield": (
+                              (summary.get("x3_5") or {}).get(
+                                  "empirical_rho_E_log_yield")),
+                          "e3u_rho_E_log_yield": (
+                              (summary.get("x3_5") or {}).get(
+                                  "e3u_rho_E_log_yield"))},
                  "ledger": ledger_fix or {"status": _ADDENDUM_NOT_RUN},
                  "superseded": e1_rows + e2_rows + e3_rows,
                  "not_run": not_run, "sources": {
