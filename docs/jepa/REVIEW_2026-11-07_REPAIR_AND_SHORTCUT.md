@@ -1,15 +1,19 @@
 **Verdict: PASS**
 
-**Final status (frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c`, round 6): PASS.** All 16
-checklist items (Part A (i)–(viii), Part B (i)–(vi), front matter (F-i)/(F-ii)) PASS. The round-1
-blockers B1–B9, the round-2 blocker B10, the round-4 execution-defect fixes, the round-5 X3-b
-raw-family particle-truth fix, and the round-6 X3-b raw-std merged-table alignment fix are all fixed
-and independently re-verified on this SHA. The round-1/2/3/4/5 sections below are preserved as the
-historical record; the round-6 re-review of the merged-table fix, the new validation evidence and the
-final reviewed object are in “Re-review (round 6) — X3-b raw-std merged-table alignment” at the end
-of this file.
-
-The implementation is reviewed at `184cd2f` against the binding runbook
+**Final status (branch `jepa-runbook-20261107`, HEAD `90f190a8090661236383dc5fb9168c307814ac0b` =
+`origin/JEPA`, addendum final round): PASS.** The combined-runbook implementation keeps its round-6
+PASS at the frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c` (rounds 1–6 below are the
+historical record and are unchanged). The 7 Nov addendum's first review (`923276a`) BLOCKed A1–A4
+and the fix round (`ffe3390`) BLOCKed A5/A6; both reports are preserved as history. The final commit
+`90f190a` (delta `ffe3390..90f190a`: the three Part B source files plus `docs/jepa/DECISIONS.md` and
+`docs/jepa/ARCHIVE_2026-11-08_MANIFEST.jsonl`; the binding runbooks are unchanged) fixes A5 with an
+order-independent R-1 source chain (D1 overlay → corrected-results marker → 7 Nov payload, with the
+basis recorded) and resolves A6 operationally (free entries 25,878 → 41.5k+, guard OK; the archive
+manifest verified), as reviewed in the “## Addendum review — final (A5, A6)” section at the end of
+this file. All eight addendum checklist items (i)–(viii) PASS, with no new blocking findings (four
+nonblocking notes N1–N4 plus carried legacy notes). The acceptance record can be re-issued with
+`addendum_path` / `addendum_sha256` and `impl_commit = 90f190a`; the addendum §8 execution may then
+start. The implementation is reviewed at `184cd2f` against the binding runbook
 `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` (sha256 `45e5ff98…119b`, verified equal to the
 base-commit copy). Part A's checklist items (i), (v), (vii) and (viii) are sound, and Part B's variant,
 manipulation check, training guard, gate, evaluation path and cost projection are sound. But large
@@ -1183,3 +1187,666 @@ the new acceptance. The worktree also carries the resumed run's execution output
   that clone (`TMPDIR` under `/work/dwong/jepa_tmp_20261107/review`, `PYTHONPATH=src`,
   `nice -n 10`), no GPU, no commits/checkouts/resets, no implementation edits; the reviewer scratch
   was removed afterwards.
+
+# Addendum review (D1–D5)
+
+**Verdict: BLOCK.** Fresh-context round-7 review of the 7 Nov 2026 repair addendum delta
+`0cf61ff..923276a`. The combined-runbook implementation at `0cf61ff` keeps its round-6 PASS (history
+above unchanged). The D1–D3 core, the D4 report generator body and the D5 R-2 evaluation path are
+sound. But the D1→R-1 hand-off is not wired (A1/A2), the addendum S1 is enforced on only one side
+(A3), and the only entries-preflight measurement in the supplied evidence fails (A4). Items (vi) and
+(viii) are therefore **BLOCK**; items (i)–(v) and (vii) PASS. Findings: 4 blocking (A1–A4) and 9
+nonblocking (N1–N9).
+
+## Reviewed object, SHAs and file sha256s
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `923276afa6c48d79751818019d9a4a6612b8d4f4` = `origin/JEPA`. Host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` at the same SHA; its tracked tree is clean (the only
+  untracked files are the execution's 7 Nov `results/` payloads, none in `<P>`).
+- Binding documents, verified unchanged:
+  - combined runbook `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b`
+    (`git diff 0cf61ff..HEAD -- docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` empty);
+  - addendum `abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a`
+    (`git diff 48d25a1..HEAD -- docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md` empty, and the blob
+    added by `48d25a1` hashes to the same value).
+- Delta: `0cf61ff..923276a` over the six files, +4528/−102; the other commits in the range are
+  bookkeeping (`48d25a1` addendum, `9f5579e` labels, `9d55a82` 7 Nov results, `72a1ba2` round-6
+  review/acceptance). No source file outside the six changed:
+  `git diff --name-only 0cf61ff..HEAD -- 'src/**/*.py' 'scripts/**/*.py'` returns exactly the six.
+- File sha256 (`shasum -a 256`, frozen blobs):
+  - `src/jepa_noise/ext_repair.py` `c4fcdcdae0747185d114020b5625a89ad3e1c99680de4f608d7f2b95d566fb50`
+  - `src/jepa_noise/tests/test_ext_repair.py` `63256db762223c7d32fd5333a959fd4cdc5875ee371e0096c88742335d0a409b`
+  - `src/jepa_noise/ext_shortcut.py` `d67f963ab98660931b72a519c430d4448bfeda0d9e5b8c398bb311ef2d1024c4`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `fcffd36fa8825aaa7fae98e44a2a806a78b5cab38f03e0e6690ac1bd3b879b45`
+  - `scripts/jepa_ext_repair.py` `cc7c4a9f9da53a71e069e7d514d0e744054b0b2dcbcef0227d8080f1565d2aa1`
+  - `scripts/jepa_ext_shortcut.py` `c9f4c58a801f40c7d8895d827e6ef14cb6c19c9f3b7bab198cc408cbb63023b6`
+- Diff sha256 (`git diff 0cf61ff..923276a -- <the six> | shasum -a 256`):
+  `4b4d339725aebf72a138ba843eb4ccf1ca3d3d82a34ba30e7ea250d248583cf3`; the `0cf61ff..HEAD` value is
+  identical (HEAD == `923276a`).
+- Acceptance record at review time (not the re-issued one):
+  `docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json`,
+  sha256 `750a7f6578a6997bad89f1be2a33703ec0f024344b55e94fc9a80dad50ae4ef1`; it carries the six 7 Nov
+  keys only (`impl_commit` `0cf61ff`), so both gates correctly DENY (not pending) and the lead must
+  re-issue it with `addendum_path`/`addendum_sha256` (checked in both gates, below).
+
+## Checklist — addendum §7 (i)–(viii)
+
+| # | Subject | Verdict | Evidence |
+|---|---|---|---|
+| (i) | `raw_map` correct incl. constant columns; only route to Â | **PASS** | `ext_repair.py:2902-2941` (Â_raw = coefficients/scale; only `.coefficients` read at `:2921`); `probes.py:34-54`, constant-column rule at `:44-46` (scale 1 and an exactly-zero standardised column, so the coefficient is 0); tests `test_ext_repair.py:1745-1790` (1e-10 identity incl. constant column, 1e-6 recovery, AST route check asserting the only owner of `.coefficients` is `raw_map` at `:1771-1785`) |
+| (ii) | every Â consumer converted; source/raw streams unchanged | **PASS** | producers `_fit_equivariance_occupancy:2751-2769` (`raw_map` at `:2767`), `_stack_coefficients:2943-2960`; consumers `_x2c:2962-2980`, `latent_estimate:2606-2638`, `latent_cv:2645-2699` (raw map from `:2671`), `latent_stream_estimates:2701-2746` (`:2718`), `_latent_repair_rows:3244-3252`, `identifiability_spectrum:2983-2998`; addendum paths `_addendum_x2_model:5542-5594`, `addendum_x2e:5656-5765`; source/raw take no Â (`source_estimate:2784-2832`, `raw_estimate:2834-2878`) and the summary keeps the 7 Nov values (test `test_ext_repair.py:2129-2160`); repair is still `z_D − u Â_rawᵀ`, no intercept (`:2968-2969`, `:3250-3251`) |
+| (iii) | D1 self-check and S9 rule | **PASS** | `d1_identity_check:5410-5423` (default tolerance 1e-8), `_d1_check_model:5424-5468` (removed share, recovered fraction with P_N, `r2_eq ≥ 0.4 ∩ recovered < 0` flag), `addendum_selfcheck:5470-5539` (13 core models, `identity_pass`, S9 text on failure, exit 2 via `scripts/jepa_ext_repair.py:354-371`); tests `test_ext_repair.py:1842-1921` |
+| (iv) | D2 statistics in every comparison of both modules | **PASS** (note N3) | `metric_statistic:4569-4581`; `_compare_at_d:4582-4620` uses `ef.paired_run_bootstrap` (mean point **and** mean interval) for vertex and `paired_cluster_bootstrap(statistic=rms)` for log-yield/energy on the same aligned pairs (`_align_metric_pair:4450-4466`); `_x1c:2343-2362` mean/mean; `_ratio_and_ci:4483-4500` and `_gain_specific:4668-4712` RMS/RMS; X3-3 is a point-only robustness difference; `ext_shortcut` reports no point/interval pair, and `statistic_audit:1506-1603` checks any interval's declared statistic against its point (tests `test_ext_repair.py:1922-1985`, `test_ext_shortcut.py:1120-1155`). N3: X3-2 has no CI at all — see notes |
+| (v) | D3 folded into `<P>`; adapter retired | **PASS** | `_crlb_from_json:4714-4719` + `_x3_five:4721-4757` (JSON `null` efficient CRLB → ∞); `_INTERNAL_KEYS:917-918` + `_strip_internal:919-930` drop `fitted`/`prediction`/error arrays, and `x3()` strips before writing (`:4190`); tests `test_ext_repair.py:1986-2016`. The runtime adapter is no longer needed; its retirement is recorded in the code docstrings (`:915-918`, `_addendum_outcome` note) and the DECISIONS/OUTCOME line is a §10 post-execution deliverable |
+| (vi) | D4 completeness, superseded table, `ADDENDUM_2026-11-07.json`, figure labels/legends | **BLOCK** | Report body is complete: `addendum_report:6387-6520` writes `SUMMARY.json`, `READINGS_SUMMARY.md`, `ADDENDUM_2026-11-07.json`, `OUTCOME.json` and the figures; the markdown carries X1-c/d/e/f, the labelled X2-d triple (`source (known light)` / `raw` / `latent`), X2-e, X2-f, X3-b per family incl. LEACE rank/sanity-R²/ρ_E/control-q95/gain-specific and X3-2/3/4 (`_addendum_summary_markdown:6165-6350`); `render_figures:4948-5250` gives every figure axis labels and a legend and names the three identification streams (`:5046`); test `test_ext_repair.py:2345-2440`. **Blocked by A1/A2**: the R-1 row of the superseded table cannot obtain the replaced value (the R-1 rerun is not D1-corrected and the picker misses Part B's output), so the §5 list item “R-1 … the new value” is not met. Also N8 (X2-f singular-value spectrum missing from the markdown) |
+| (vii) | R-2 evaluation path and `not_run` label | **PASS** | `r2_readings:1353-1397` filters runs with no evaluation and returns `r2_not_run_readings:1326-1352` (`class/verdict = not_run`, never “single-seed”); `evaluate_run_dirs:1211-1250` does full input + half pass via `eh.evaluate_run`; `mode_addendum_evaluate` (`scripts/jepa_ext_shortcut.py:578-642`) is one job over `_run_dirs:466-481` with `label_batches:988-1008` (§5.2 64-event selection); `r2_evaluation_record:2647-2680`; tests `test_ext_shortcut.py:1057-1118`, `1255-1345`. N7: pass `--run` twice in execution rather than relying on the default directory scan |
+| (viii) | gates, import closure, 0.35 h guard, S1, entries, dry-run coverage | **BLOCK** | Gates PASS: addendum sha/author-line/record fields checked in `ext_repair.py:432-460` and `ext_shortcut.py:459-497`; 8-key schema `ext_repair.py:141-143` / `ext_shortcut.py:200`; pending only when the record is absent; tests `test_ext_repair.py:2052-2090`, `test_ext_shortcut.py:900-940`; dry-run evidence shows Part A `gate_checks {a: true, a2: false, b: false, c: false}`, `pending_acceptance: false`, `expected_addendum_sha256: null` and Part B `addendum_sha256_pass: false` — the required deny-not-pending state. Closure PASS: `_assert_closure:534-543` via `_addendum_finish:5361-5369` and `addendum_init9000:6674`; Part B `_closure_end` (`scripts/jepa_ext_shortcut.py:138-148`) called at `:618`, `:677`, `:716`. Ledger/caps PASS: rows byte-identical and mutually readable (reviewer demo), caps 0.35/3.0 in `ext_repair.py:5274-5277,5307-5358` and `ext_shortcut.py:196-197,660-684`, closed caps not consulted by addendum modes (tests `test_ext_repair.py:2114-2130`, `test_ext_shortcut.py:1320-1345`). Dry-run coverage PASS: Part A's dry run iterates every mode, so `addendum-init9000/report/selfcheck/x2/x2e/x3` appear with the addendum plan (sha, caps, projections, shared ledger) and no setup errors; the only encode is the pre-existing CPU §2.5 sample (8 events, `dry_run.json:setup.sample`), no addendum GPU encode/evaluate. **Blocked by A3 (S1) and A4 (entries)** |
+
+## Blocking findings
+
+### A1 — the D1-corrected ρ_LR never reaches the R-1 rerun (addendum §2, D4 list item “R-1”)
+
+`ext_shortcut.pilot_status:2078-2115` and `r1_payload:2117-2205` build R-1 from the pilot's
+`results/jepa/20261106_repair/{readings.json,x1.json,x2.json}`. The corrected X2-c value is written by
+the D1 rerun only to `<ext>/addendum/x2_addendum.json` (`ext_repair.addendum_x2` at
+`ext_repair.py:5596-5654`; CLI `scripts/jepa_ext_repair.py:373-390`), and Part A's `addendum_report`
+writes only `SUMMARY.json` / `READINGS_SUMMARY.md` / `ADDENDUM_2026-11-07.json` / `OUTCOME.json`
+(`ext_repair.py:6505-6510`) — it never writes `results/jepa/20261106_repair/x2.json`, and the overlay
+is never merged into the pilot payload. Demonstrated on the read-only host clone (TMPDIR under
+`/work/dwong/jepa_tmp_20261107/review_add`, removed afterwards):
+
+```
+pilot x2 7 Nov rho_LR (mae_within_trigger9000) = 0.9
+D1 overlay (corrected) rho_LR                 = -0.42
+r1_payload(..., mode="addendum-r1") row       = 0.9     <-- the 7 Nov defective value
+```
+
+Consequence: the addendum §2 row “Part B R-1, with the corrected ρ_LR” is not delivered; R-1 is
+computed from the D1-defective payload (the same failure mode as the historical B7, but now from a
+stale payload instead of a single payload). The unit test
+`test_ext_shortcut.py:1157-1175` only proves the reader accepts an already-corrected `x2.json`; it
+writes the correction into the fixture by hand and does not exercise the hand-off.
+
+### A2 — the “Superseded 7 Nov values” table cannot show the R-1 new value
+
+`ext_repair._part_b_r1:6072-6084` looks for `r1_addendum.json` / `ADDENDUM_2026-11-07.json` in
+`results/jepa/20261107_shortcut/` and only reads a top-level `r1`, `R-1`, `reading` or
+`reruns.R-1`. Part B's `addendum-r1` writes `<ext>/r1_addendum.json` by default
+(`scripts/jepa_ext_shortcut.py:673`), and `assemble_addendum_report` writes the results file as
+`{"items": {"R1_rerun": ...}}` (`ext_shortcut.py:2996`), which the picker does not read.
+Demonstrated with the real output structure:
+
+```
+results/.../ADDENDUM_2026-11-07.json (Part B output) present -> _part_b_r1 = (old, None)
+R-1 row -> {"item": "R-1 reading", "defect": "D1", "old": {...}, "new": null, "status": "not_run"}
+```
+
+so `_superseded_rows:6137-6138` marks the required R-1 row `not_run`, and `addendum_report:6433`
+adds “R-1 (Part B) not_run” even when the Part B rerun completed. The D4 test
+`test_ext_repair.py:2403` only asserts the row key exists, so it passes with `new=None`. (If Part B's
+`addendum-report` runs before Part A's, `assemble_addendum_report` has already overwritten
+`readings.json`'s `r1` with the new reading — `ext_shortcut.py:2897` — so the “old” value is lost as
+well; the two reports' order is unspecified in §8.)
+
+### A3 — addendum S1 is enforced for Part B only, and not where §8 places the GPU jobs
+
+`ext_repair.s1_projection:1414-1429` still computes the combined front-matter S1 from the closed
+Part A (4.0 h) + Part B (1.5 h) caps; there is no addendum-S1 helper in `ext_repair`, and the two
+Part A GPU modes check only the 0.35 h cap guard: `addendum_x2e:5656-5765` (`gate`, then
+`_addendum_budget_for`) and `addendum_init9000:6567-6675` (same). The Part A dry-run addendum plan
+contains the sha, caps, projections and ledger but no S1 (`va/repair_dryrun/dry_run.json`). Part B
+does implement the exact rule — `addendum_s1_check(_or_stop)` (`ext_shortcut.py:705-735`:
+ledger charged + 0.35 ≤ 160) — and calls it in `addendum-evaluate`
+(`scripts/jepa_ext_shortcut.py:582`). But §8 orders init9000/x2e before the evaluation, so the STOP
+rule of §6/§9 (S1) is checked after the Part A GPU jobs it is meant to gate. Numerically it passes
+today (ledger 129.7461 + 0.35 ≪ 160), so the practical impact is nil, but the requirement is not
+implemented where the spec puts it.
+
+### A4 — the binding entries precondition fails in the supplied evidence, and no addendum mode checks it
+
+The Part B dry-run preflight prints `[shortcut] preflight failed: data=True s1=True caps=True
+entries=False` (`va/dryrun_b.log:1`) and the plan records `free_entries = 35,770`,
+`projected_after = 28,886 < floor 30,000` (`va/shortcut_dryrun/plan.json`,
+`setup.preflight.entries`; projection = clone 3,059 + suite 1,825 + Part A 1,000 + Part B 1,000).
+Free entries (35,770) still exceed 30,000 and the addendum's own writes are a few dozen files, so
+this may be the runbook projection over-counting clone/suite writes that the addendum does not
+perform — but the addendum's §6 figure “44 286 at the last check” is stale, the §9 STOP list names an
+entries-preflight failure, and no addendum mode runs an entries preflight at all
+(`entries_preflight:1441-1450` is called only from `preflight`/setup with `build_model=True`,
+`:1712,4865`). The lead must clear/free entries or record a revised entries basis (with its
+projection) before execution; the supplied evidence cannot support a PASS on “entries ≥ 30 000”.
+
+## Nonblocking notes
+
+- **N1 — dead duplicated block.** `ext_shortcut.addendum_superseded:2744-2761` repeats the
+  R2-a/R2-b/R2-c block *after* `return rows` (`:2744`). The live block (`:2729-2744`) is correct and
+  the tests pass; pyflakes does not diagnose unreachable code, so this is sloppiness, not a behaviour
+  change.
+- **N2 — “helper call-shape parity” is inaccurate.** The ledger JSON is identical and mutually
+  readable (reviewer demo: Part A `record_addendum_job(mode, kind, seconds, part=)` and Part B
+  `record_addendum_job(part, *, mode, kind, seconds)` rows are `{utc, part, mode, kind,
+  wall_seconds, hours}`, and each module's `addendum_hours` reads both; `ext_repair.py:5331-5350`,
+  `ext_shortcut.py:686-704`). The call shapes themselves are not parity, and the S1 contract is
+  single-sided (A3). The “shared ledger + identical caps + parity rows” reading of the 0.35 h guard
+  is legitimate; “call-shape parity” and “S1 on both sides” are not what the code does.
+- **N3 — X3-2 has no CI.** The runbook §7.2 defines X3-2 “v_inv(N) − v_std(N), with its CI”, but
+  `_variant_reading:4543-4545` emits only `difference_m`, the markdown table prints only Δv
+  (`:6307-6320`), and `test_ext_repair.py:1980-1984` explicitly asserts the absence of `ci95`. This
+  is pre-existing at `0cf61ff` (`git show 0cf61ff:src/jepa_noise/ext_repair.py:4368-4370`), so it is
+  not a D2 statistic *mismatch* (there is no interval to mismatch) and it is outside the addendum's
+  D1–D5 defect list; but the D2 audit of X3-2 is then vacuous and a runbook-required CI is still
+  missing. Flag for the next review round, not this addendum.
+- **N4 — `_stack_coefficients` fallback width.** `ext_repair.py:2949-2952` falls back to
+  `fit["train_mean"].size` (embedding dimensions) when no probe fit exists, but the matrix width is
+  `n_modules`; a degenerate all-unfitted model would return a wrong-width zero map instead of failing
+  cleanly. Not exercised by the evidence.
+- **N5 — Part A closure-before-write.** `_addendum_finish:5361-5369` calls `_assert_closure:534-543`,
+  which raises `SystemExit(2)` inside the library before the CLI writes the payload, so a closure
+  violation leaves no quarantined/marked output (Part B's `_closure_end:138-148` writes then returns
+  2). The runbook's quarantine wording (“kept, marked, never used”) is only met on the Part B side.
+- **N6 — `addendum-report` exit code.** `mode_addendum_report` (`scripts/jepa_ext_repair.py:454-469`)
+  always returns 0, unlike the other addendum modes' exit-2-on-incomplete convention; an incomplete
+  D4 report (missing stages) exits 0 and only the payload records `not_run`.
+- **N7 — evaluation run-dir default.** `_run_dirs:466-481` evaluates every directory under
+  `<ext>/train/runs`; the execution should pass `--run` twice to the two authorised run dirs rather
+  than rely on the scan, so a stale/archived run directory cannot be evaluated.
+- **N8 — X2-f in the markdown.** `SUMMARY.json` carries the X2-f singular values
+  (`_x2_seed_summary:5984`), but the `READINGS_SUMMARY.md` X2-f table lists only max singular value,
+  condition number, median CRLB and the per-module CRLB (`:6280-6292`); addendum §5 asks both files
+  to gain “the singular values of W Â_raw and the per-module CRLB”. Minor D4 completeness gap (item
+  (vi) is already BLOCK for A1/A2).
+- **N9 — figures count.** `_figure_names:4922-4925` lists seven figures (adding `rho_by_repair.png`,
+  which the runbook §9.6 requires and the 7 Nov record omitted) while the addendum says “all six
+  figures”; the extra figure is labelled and legended, so this is an improvement, not a defect.
+
+## The 7 Nov payloads, the in-place update and the superseded table
+
+- The D1 reruns write overlays only — `<ext>/addendum/d1_selfcheck.json`, `x2_addendum.json`,
+  `x2e_addendum.json`, `x3_addendum.json`, `init9000/` — and `addendum_x2`'s docstring records that
+  the 7 Nov `x2.json` stays intact for the superseded table (`ext_repair.py:5603-5606`); the 7 Nov
+  `<ext>/x2/x2.json`, `x3/x3.json` are read, not overwritten. This satisfies “saved pre-fix payloads
+  preserved”.
+- `addendum_report` then updates the committed 7 Nov results in place as §10 requires
+  (`SUMMARY.json`, `READINGS_SUMMARY.md`, `OUTCOME.json`, figures, the new
+  `ADDENDUM_2026-11-07.json`; `:6505-6510`) and builds the superseded rows from the untouched 7 Nov
+  payloads (`_superseded_rows:6087-6139`). The design cannot silently overwrite the pre-fix payloads
+  — the design flaw is the opposite: A1/A2 mean the R-1 replacement cannot be propagated/listed.
+- The Part B report updates its own results in place (`assemble_addendum_report:2846-3053`) and
+  rewrites `readings.json["r1"]` with the rerun payload; combined with A1 (rerun not corrected) this
+  would publish an R-1 “superseded” row whose new value equals the old value.
+
+## Evidence (detached runs, `/work/dwong/jepa_tmp_20261107/va/` and `va_dt2/`)
+
+Both hosts at SHA `923276af…`; `python3 -m pyflakes` clean; the three known `test_guard` launcher
+deselections only; no GPU used by the reviewer.
+
+- `va/summary.txt`: `SHA=923276afa6c48d79751818019d9a4a6612b8d4f4 HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`. `va/pyflakes.log` is empty (0 lines).
+- `va/focused_a.log`: `87 passed in 146.63s (0:02:26)`.
+- `va/focused_b.log`: `43 passed in 16.42s`.
+- `va/full_suite.log`: `1 failed, 798 passed, 2 skipped, 3 deselected in 1036.54s (0:17:16)`; the
+  failure is `test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`, the
+  known pre-existing data/numerics-dependent N16 failure (same failure in the round-6 evidence on
+  `0cf61ff`; `ext_followup.py` is not one of the six files), so the delta adds no new suite failure;
+  the 3 deselections are the three known `test_guard` launcher tests.
+- `va_dt2/summary.txt`: `SHA=923276af… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `va_dt2/full_suite_dt2.log`: `799 passed, 2 skipped, 3 deselected in 697.98s (0:11:37)`.
+- `va/dryrun_a.log` + `va/repair_dryrun/dry_run.json` (Part A): exit 0, wall 8.923 s, gate
+  `denied` with `gate_checks {a: true, a2: false, b: false, c: false}` and
+  `addendum_gate {pending_acceptance: false, expected_addendum_sha256: null}`, addendum sha
+  `abe0904a…` matched, all six addendum modes in `setup` with the addendum plan (sha, 0.35/3.0
+  caps, projections, shared ledger), `closure.pass: true`, `violations: []`, `errors: []`; the only
+  encode is `setup.sample` (`init9000` N, 8 events, CPU, `reused: uncached`).
+- `va/dryrun_b.log` + `va/shortcut_dryrun/plan.json` (Part B): exit 0, wall 78.347 s, gate
+  `denied` (`a`/`b`/`c` false, `addendum_sha256_pass: false`), `closure_pass: true`,
+  `setup_errors: []`, `manipulation_pass: true`; preflight `data=True s1=True caps=True
+  entries=False` (A4).
+- Reviewer-only checks were read-only on `/ceph/dwong/jepa/code/jepa_work_20261107` with `TMPDIR`
+  under `/work/dwong/jepa_tmp_20261107/review_add`; no GPU, no `/ceph` writes, no
+  commits/checkouts/resets; the scratch was removed afterwards.
+
+## Process / acceptance notes
+
+- The addendum's §7 requirement of “one fresh-context focused review of the delta from `0cf61ff`” is
+  this section; the D4 deliverables that are written by the report modes are reviewed as code and
+  tests, not as executed results (nothing outcome-generating may run before the re-issued
+  acceptance).
+- Re-issue `docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json` with the new `impl_commit`
+  and the two addendum fields after A1–A4 are dispositioned; both gates then require the committed
+  addendum sha `abe0904a…0621a`, its §0 author line and the record's
+  `addendum_path`/`addendum_sha256` (verified in code and in the pre-reissue dry-run denial above).
+- The shared-contract decision (same ledger file/JSON rows and identical 0.35/3.0 caps; no shared
+  helper module) is a legitimate reading of the “0.35 h guard” requirement, but only once the S1
+  check is enforced on both sides (A3) and the entries precondition is cleared (A4).
+
+## Final reviewed object (addendum round)
+
+- Reviewed SHA `923276afa6c48d79751818019d9a4a6612b8d4f4`; delta `0cf61ff..923276a` over the six
+  files; file sha256s and diff sha256 `4b4d3397…` above.
+- Runbooks unchanged: combined `45e5ff98…d119b`, addendum `abe0904a…0621a`.
+- Verdict: **BLOCK** (items (i)–(v), (vii) PASS; (vi), (viii) BLOCK; 4 blocking findings A1–A4,
+  9 nonblocking notes N1–N9).
+
+# Addendum review — fix round (A1-A4)
+
+**Verdict: BLOCK.** The A1–A4 fixes are real and verified in code and tests, but two new blocking
+findings remain: **A5** — the A1 fix is execution-order-dependent and `r1_payload` still silently
+reads the D1-defective pilot `x2.json` when the binding addendum §8 order is followed; **A6** — the
+live entries precondition fails (free 25,878 < 30,000, guard HOLD), so every addendum mode's
+preflight refuses before work and nothing can be executed until entries are freed. The first BLOCK
+report above (at `923276a`) is kept as history; this section supersedes its verdict for the fix
+round at `ffe3390`.
+
+## Reviewed object (fix delta)
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `ffe3390c249f1094f9aa8abddd4726017438bd9a` = `origin/JEPA`. Host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` at the same SHA (tracked tree clean; only the
+  execution's untracked 7 Nov `results/` payloads, none in `<P>`).
+- Fix delta `923276a..ffe3390` over exactly the six source files, +1350/−71; docs unchanged in the
+  fix commit (`git diff --name-only 923276a..ffe3390 | grep -v '^src/\|^scripts/'` is empty). No
+  source outside the six changed.
+- File sha256 (`shasum -a 256`, frozen blobs at `ffe3390`):
+  - `src/jepa_noise/ext_repair.py` `9453f8c33f302b17d7ccf8b37c47c56226fd3c7c24f85cc8463e85fdd49f222d`
+  - `src/jepa_noise/tests/test_ext_repair.py` `0c06e22d8d75fafbb339ea53736a8c4fa40d09f29f4f1dfb0147ae4a7ccf0a75`
+  - `src/jepa_noise/ext_shortcut.py` `af39f965d4aec6f9acbd917af7d42bfb1a8b7d3674600059d34315026b505ed3`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `6f5f12f941bb7ebc598b3df2993ab267cbb6db01fe80fb2786d144d154abc47a`
+  - `scripts/jepa_ext_repair.py` `f3dbd415e9ec048827342a6810399a9536619ffc5ec6e56b415fa9ae6f787c6d`
+  - `scripts/jepa_ext_shortcut.py` `4c932b404dd0fcdf7eb907cdc8fb70b6c8aa1266bbdc1554f256777271c52e46`
+- Diff sha256: `0cf61ff..ffe3390` over the six files
+  `c982fa408389430d444e6581daa9921ee2beeaaf1eafc17b67e2d2bd01fc2b3d`; `923276a..ffe3390` over the
+  six files `f26e2f4727c7eb9b8d94bf2669af72338e4263ec4f6a0de33251d7cc33a23db9`.
+- Binding documents unchanged: combined runbook `45e5ff98…d119b`, addendum `abe0904a…0621a`.
+- Acceptance record at review time is still the old 6-key record (`impl_commit` `0cf61ff`), so both
+  dry runs correctly show the pre-reissue deny-not-pending gate (below).
+
+## Per-finding disposition (A1–A4)
+
+### A1 — FIXED in code (in-place corrected payloads + write-once preservation); order gap is A5
+
+- `_preserve_7nov_payloads:5395-5436` copies `results/jepa/20261106_repair/{x1,x2,x3,readings}.json`
+  write-once to `<ext_repair>/addendum/preserved_7nov/` with sha256 sidecars before any rewrite;
+  `_preserved_7nov_payload:5439-5452` refuses a mismatched sidecar.
+- `_corrected_x2_models:6644-6687` merges the D1 rerun into the pilot records (X2-c `rho_LR`/
+  `class`, X2-d latent, X2-f, the raw-map `A_hat` into X2-b occupancy, X2-e latent) and
+  `_corrected_results_payloads:6689-6738` rebuilds the x1/x2/x3/readings payloads; `addendum_report`
+  writes them back into `results/jepa/20261106_repair/` in place after the originals are preserved
+  (`:6883-6892`). The superseded table reads old values only from the preserved copies
+  (`:6759-6788`).
+- Demonstration (read-only host clone, TMPDIR under `/work/dwong/jepa_tmp_20261107/review_add2`,
+  removed afterwards): 7 Nov pilot `x2.json` (`rho_lr` 0.9) → `r1_payload` row 0.9;
+  `_corrected_results_payloads` gives `rho_lr = -0.42`; after writing that x2 into the pilot results
+  → `r1_payload` row **−0.42**. So the corrected value does reach R-1 — but only after
+  `addendum_report` has run (A5).
+- Tests: `test_addendum_report_updates_results_in_place_and_preserves_7nov`
+  (`test_ext_repair.py:2630-2683`; includes the second-run preservation check) and
+  `test_superseded_r1_row_is_populated_from_part_b_payloads` (`:2685-2728`).
+
+### A2 — FIXED
+
+- `_r1_reading_from:6275-6298` accepts all documented shapes; `_part_b_r1:6300-6330` now reads
+  `PART_B_EXT_ROOT/r1_addendum.json`, `results/jepa/20261107_shortcut/ADDENDUM_2026-11-07.json ->
+  items.R1_rerun`, and a results `r1_addendum.json`; the old R-1 is preserved write-once
+  (`<ext_repair>/addendum/preserved_7nov/r1_reading.json`, else `git show HEAD` of the committed 7
+  Nov readings). Part B writes both hand-offs (`scripts/jepa_ext_shortcut.py:718`) via
+  `results_r1_payload:788-808` / `write_results_r1:810-819`, and its report preserves the 7 Nov
+  `readings.json` write-once (`ext_shortcut.py:3129-3138`, `preserve_7nov_readings:826-866`,
+  `seven_nov_readings:869-880`).
+- Demonstrations: `_part_b_r1` with the Part B ext hand-off returns old
+  `generative_median.rho_lr = -0.67786`, new `-0.42`; same through the results ADDENDUM
+  `items.R1_rerun`; after the results `readings.json` is rewritten with 999, the preserved old value
+  is still returned; the D4 test now asserts the new value is populated (`new.verdict`), not just
+  the row key (`test_ext_repair.py:2706-2728`). Part B tests:
+  `test_results_r1_handoff_has_the_documented_stable_keys:1342-1359`,
+  `test_addendum_report_preserves_the_7nov_readings_and_orders_the_handoff:1361-1418`,
+  `test_addendum_r1_cli_writes_the_ext_and_stable_results_handoffs:1511-1590`.
+
+### A3 — FIXED
+
+- `addendum_s1_check:1444-1467` and `addendum_s1_check_or_stop:1469-1499` implement the addendum
+  rule exactly (`ledger charged + 0.35 <= 160`; the closed Part A/Part B caps are not consulted).
+  They run before any work in both Part A GPU modes — `addendum_x2e:5867-5868` and
+  `addendum_init9000:6983-6984` — and are recorded on every path including `already_cached`
+  (`:6983-6993`); the dry-run plan records `plan.addendum.s1` (below).
+- Demonstration: ledger 129.7461 → `sum_hours` 130.0961, pass; ledger 159.7 → 160.05, stop. Tests:
+  `test_ext_repair.py:2730-2770`; dry-run plan `s1.pass = true` (below). Part B keeps its own
+  `addendum_s1_check(_or_stop)` (`ext_shortcut.py:747-779`, called before the evaluation
+  `scripts/jepa_ext_shortcut.py:613`).
+
+### A4 — FIXED in code (addendum-only basis); the live precondition fails, see A6
+
+- `ADDENDUM_ENTRIES_PROJECTION = 200` (`ext_repair.py:143-149`), `addendum_entries_preflight:1503-1535`
+  (free ≥ 30,000 and free − 200 ≥ 30,000; guard snapshot as the free-entry source) and
+  `_or_stop:1537-1552`. It is called before work in every Part A addendum mode
+  (`:5679, :5804, :5868, :6039, :6744, :6984`).
+- Part B uses the same rule with a live-source chain: `_entry_xattr_reading:883-910` (live CephFS
+  quota xattrs: `ceph.quota.max_files − ceph.dir.rfiles − ceph.dir.rsubdirs`),
+  `addendum_entries_snapshot:912-928` (live first, guard fallback),
+  `addendum_entries_preflight:930-968`, `assert_addendum_entries_preflight:970-980`; called in all
+  three addendum modes and the dry run (`scripts/jepa_ext_shortcut.py:240, 616, 683, 743`).
+- Demonstrations: free 35,770 → pass (projected 35,570); free 30,050 → fail; free 29,999 → fail.
+  Tests: `test_ext_repair.py:2772-2846`, `test_ext_shortcut.py:1434-1509`. The combined-preflight
+  entries block remains in the plan as descriptive history only (`ext_repair.py:4963-4971`).
+  **The live values now fail: see A6.**
+
+## Checklist re-assessment (addendum §7 (i)–(viii), fix round)
+
+| # | Subject | Verdict | Evidence |
+|---|---|---|---|
+| (i) | `raw_map` correct; only route to Â | **PASS** | unchanged from the first report (`ext_repair.py:2902-2941`, tests `test_ext_repair.py:1745-1790`); the fix delta does not touch it |
+| (ii) | every Â consumer converted; source/raw unchanged | **PASS** | unchanged consumers; the fix exposes the raw-unit `A_hat` into the corrected pilot X2-b (`_corrected_x2_models:6671-6673`) while source/raw remain untouched; test unchanged |
+| (iii) | D1 self-check and S9 rule | **PASS** | unchanged (`ext_repair.py:5410-5539`); the fix adds the entries/S1 preflights around it |
+| (iv) | D2 statistics in both modules | **PASS** | unchanged; the pre-existing X3-2-CI note (first report N3) remains |
+| (v) | D3 folded in; adapter retired | **PASS** | unchanged (`_x3_five`, `_strip_internal`); the new post-write closure also marks quarantined payloads (`_addendum_closure:5540-5553`, `_finalise_addendum` `scripts/jepa_ext_repair.py:354-373`) |
+| (vi) | D4 completeness, superseded table, `ADDENDUM_2026-11-07.json`, figures | **PASS (conditional on A5)** | the X2-f singular-value column is now in `READINGS_SUMMARY.md` (`ext_repair.py:6537-6552`, test `test_ext_repair.py:2848-2867`); the dead duplicated R2 block is gone (one `return rows`); the R-1 row is now populated when Part B's rerun is present (A2 demos/tests). Under the binding §8 order the R-1 *reading* is still stale (A5) |
+| (vii) | R-2 evaluation path and `not_run` label | **PASS** | unchanged (`ext_shortcut.py:1318-1397`; tests `1057-1118`, `1255-1345`) |
+| (viii) | gates, closure, 0.35 h guard, S1, entries, dry-run coverage | **BLOCK** | gates/closure/S1/coverage pass (dry runs below: gate deny-not-pending, closure pass, no setup errors, six addendum modes, plan `s1.pass=true`); **entries fails in the live evidence** (A6), so the §9 entries-preflight STOP is live |
+
+## New blocking findings (fix round)
+
+### A5 — the A1 fix is execution-order-dependent; under addendum §8 the R-1 rerun still silently reads the D1-defective payload
+
+`r1_payload`/`pilot_status` were not changed by the fix (`ext_shortcut.py:2078-2115, 2117-2205`) and
+still read the pilot's `results/jepa/20261106_repair/x2.json`. The corrected payloads are written
+only by **Part A's `addendum_report`** (`ext_repair.py:6883-6892`), i.e. in the “both reports” step.
+The binding addendum §8 order is “X2-e (latent) → Part B R-1 rerun → both reports”, so following
+the spec R-1 runs *before* the file is corrected. Demonstrated on the read-only host clone:
+
+```
+7 Nov pilot x2 -> r1_payload row rho_lr        = 0.9
+(no addendum_report run; `r1_payload` never reads the D1 overlay)  -> R-1 row still 0.9
+after addendum_report in-place rewrite         -> R-1 row -0.42
+```
+
+There is no overlay read and no check that the pilot `x2.json` carries the `corrected_7nov` /
+`addendum_sha256` markers that `_corrected_results_payloads` writes; the stale read is silent.
+Consequently the fixed chain requires running Part A `addendum-report` **before** Part B
+`addendum-r1` (and again after it, so the Part A superseded table's R-1 row is populated), which is
+a deviation from §8 that the fix commit does not document, and a future executor following §8
+reproduces the original A1 defect. Disposition: either make `r1_payload` order-independent (read
+the corrected `X2-c.rho_LR` from `<ext_repair>/addendum/x2_addendum.json`, or STOP when the pilot
+`x2.json` lacks the corrected marker), or commit the reordered/two-run execution to the execution
+record (STATE/DECISIONS) and note the §8 deviation. No reading or threshold changes either way.
+
+### A6 — the live entries precondition fails; the §9 entries-preflight STOP is active
+
+The A4 code is correct and fails closed, but on the live system (both sources agree) the addendum
+cannot start: **free CephFS entries = 25,878 < 30,000**. The guard snapshot is fresh
+(`/ceph/dwong/jepa/jobs/guard_deepthought2.json`, timestamp `2026-11-07T23:38:33Z`, level `HOLD`,
+reason “free entries 25878 < 30000; write no new data”); the Part B live CephFS xattrs give
+`quota_max_files 500000 − rfiles 401305 − rsubdirs 72817 = 25,878`. Both modules' preflights return
+`pass=false`, `projected_after=25,678 < floor 30000`:
+
+- Part A dry-run plan `addendum.addendum_entries`: `pass=false`, free 25,878, projected 25,678,
+  floor 30,000, snapshot guard `HOLD` (`vf/repair_dryrun/dry_run.json`).
+- Part B dry-run summary: `addendum_entries_pass=false`, `addendum_entries_basis="live CephFS quota
+  xattrs"`, `addendum_s1_pass=true` (`vf/dryrun_b.log:48-50`); plan snapshot live free 25,878
+  (`vf/shortcut_dryrun/plan.json`).
+
+Because every addendum mode calls `addendum_entries_preflight_or_stop` / `assert_addendum_entries_preflight`
+before work, every addendum mode would `SystemExit(2)` (“not_run (entries)”) at execution. The
+addendum §6 figure “44 286 at the last check” is long stale; the environment must be freed
+(archive/cleanup on `/ceph`, as done before the 7 Nov execution) until free − 200 ≥ 30,000, and the
+dry-run evidence re-run, before the addendum is executable. No code change is implied by A6.
+
+## Nonblocking notes (fix round)
+
+- **N1 — `_r1_reading_from` treats a `not_run` hand-off as a reading.** A results hand-off with
+  `{"status": "not_run", "reading": null, "table": {}}` is returned as the “new” reading (the
+  `table` key triggers the `any(key in payload ...)` branch at `ext_repair.py:6275-6298`);
+  `_part_b_r1` then reports R-1 “superseded” with a not-run dict instead of `not_run` (reviewer
+  demo: `new keys = ['reading','reason','status','table']`). Only reachable when Part B R-1 is
+  not_run but writes its hand-off; the intended execution has a complete R-1.
+- **N2 — entries-source asymmetry.** Part B prefers live CephFS quota xattrs and falls back to the
+  guard snapshot (`ext_shortcut.py:912-968`); Part A uses the guard snapshot only
+  (`addendum_entries_preflight:1503-1535` via `entries_snapshot`). At the review check both agreed
+  (25,878, guard timestamp fresh), but Part A has no live-xattr fallback; worth aligning for parity.
+- **N3 — results hand-off not declared.** `results/jepa/20261107_shortcut/r1_addendum.json` is now
+  written by both `addendum-r1` and `addendum-report`, but it is not listed in the Part B ADDENDUM
+  `outputs` (`ext_shortcut.py:3275-3276`) nor in addendum §10; declare/commit it so the stable
+  hand-off survives.
+- **N4 — quarantined hand-off.** `mode_addendum_r1` writes the stable results hand-off after
+  `_closure_end` returns (`scripts/jepa_ext_shortcut.py:718`) even when the closure code is 2, so a
+  quarantined R-1 value is still written to results and could be consumed by Part A. Write it only
+  when the closure passes, or mark the hand-off quarantined.
+- **N5 — large corrected payloads in `results/`.** `addendum_report` now writes corrected
+  `x1.json`/`x2.json`/`x3.json`/`readings.json` into `results/jepa/20261106_repair/` (`:6883-6892`)
+  as the Part B R-1 data bus; these are per-event payloads (large) and must not be committed. The
+  committed record remains `SUMMARY.json`, `READINGS_SUMMARY.md`, `OUTCOME.json`, the figures and
+  `ADDENDUM_2026-11-07.json`; keep the corrected payloads untracked (they are written on /ceph).
+- **N6 — two-report-run requirement.** Following A5, the execution must run Part A
+  `addendum-report` twice (before and after the Part B R-1 rerun); the preserved copies are
+  write-once and the second run is covered by `test_addendum_report_updates_results_in_place_and_preserves_7nov`.
+- **N7 — X3-2 CI still absent** (pre-existing at `0cf61ff`; unchanged by the fix; first-report note
+  N3 still stands).
+- **N8 — nonblocking fixes verified.** Dead duplicated R2 block removed (one `return rows`,
+  `ext_shortcut.py:2941-2989`; test `test_ext_shortcut.py:1502-1509`); X2-f singular values in the
+  markdown (`:6537-6552`); Part A closure is now post-write/quarantined (`_finalise_addendum`,
+  `scripts/jepa_ext_repair.py:354-373`, test `test_ext_repair.py:2869-2895`).
+
+## Evidence (vf/ on deepthought, vf_dt2/ on deepthought2; SHA `ffe3390`)
+
+- `vf/summary.txt`: `SHA=ffe3390c249f1094f9aa8abddd4726017438bd9a HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`. `vf/pyflakes.log` empty (0 lines).
+- `vf/focused_a.log`: `96 passed in 142.84s (0:02:22)`; `vf/focused_b.log`:
+  `52 passed in 18.69s` (+18 tests vs the `923276a` round, consistent with the full-suite count).
+- `vf/full_suite.log`: `1 failed, 816 passed, 2 skipped, 3 deselected in 1069.73s (0:17:49)`; the
+  failure is `src/jepa_noise/tests/test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`,
+  the same known pre-existing data/numerics N16 failure recorded for `0cf61ff` and `923276a`
+  (`ext_followup.py` is not one of the six files), not a fix-delta failure; the 3 deselections are
+  the three known `test_guard` launcher tests.
+- `vf_dt2/summary.txt`: `SHA=ffe3390… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `vf_dt2/full_suite_dt2.log`: `817 passed, 2 skipped, 3 deselected in 702.36s (0:11:42)`.
+- `vf/dryrun_a.log` + `vf/repair_dryrun/dry_run.json` (Part A): exit 0, wall 9.172 s, gate
+  `denied` with `gate_checks {a: true, a2: false, b: false, c: false}`, addendum gate
+  `pending_acceptance: false`, `expected_addendum_sha256: null` (correct pre-reissue deny);
+  `addendum_modes`: the six; addendum plan `s1.pass = true` (`sum_hours 130.0961`) and
+  `addendum_entries.pass = false` (free 25,878, projected 25,678, floor 30,000, guard `HOLD`);
+  `closure.pass = true`, `violations []`, `errors []`; the only encode is the pre-existing CPU
+  §2.5 sample (8 events).
+- `vf/dryrun_b.log` + `vf/shortcut_dryrun/plan.json` (Part B): exit 0, wall 76.414 s, gate
+  `denied`, `closure_pass: true`, `setup_errors: []`, `manipulation_pass: true`,
+  `addendum_entries_pass: false`, `addendum_entries_basis: "live CephFS quota xattrs"`,
+  `addendum_s1_pass: true`; plan `addendum.entries_preflight.snapshot.live` gives
+  `quota_max_files 500000`, `rfiles 401305`, `rsubdirs 72817`, free 25,878. (The first log line
+  `preflight failed: … entries=False` is the old combined-preflight block, descriptive history
+  only; the addendum STOP basis is the `addendum_entries` block above.)
+- Reviewer-only checks were read-only on `/ceph/dwong/jepa/code/jepa_work_20261107` with `TMPDIR`
+  under `/work/dwong/jepa_tmp_20261107/review_add2` (removed afterwards); no GPU, no `/ceph` writes,
+  no commits/checkouts/resets. Live re-check at 00:38 UTC: Part A 25,878 (guard) and Part B 25,878
+  (live xattrs) both `pass=false`.
+
+## Final reviewed object (fix round)
+
+- Reviewed SHA `ffe3390c249f1094f9aa8abddd4726017438bd9a` (= `origin/JEPA`); first BLOCK report at
+  `923276a` preserved above. File sha256s and diff sha256s above.
+- Runbooks unchanged: combined `45e5ff98…d119b`, addendum `abe0904a…0621a`.
+- Verdict: **BLOCK** — A1–A4 fixed in code (A4’s live precondition failing is A6); items (i)–(v) and
+  (vii) PASS, (vi) PASS conditional on A5, (viii) BLOCK on A6; 2 new blocking findings A5–A6 and
+  8 nonblocking notes N1–N8.
+
+# Addendum review — final (A5, A6)
+
+**Verdict: PASS.** A5 is fixed by an order-independent R-1 source chain (the D1 overlay is read
+first, so the §8 order “X2-e → Part B R-1 rerun → both reports” now yields the corrected ρ_LR), and
+A6 is resolved operationally (live free entries 41.5k ≥ 30,000, guard OK; the archive manifest is
+verified). All eight addendum checklist items PASS; no new blocking findings, four nonblocking notes
+(N1–N4) plus carried legacy notes. The first two BLOCK reports above (`923276a`, `ffe3390`) are kept
+as history; this section is the final review of the addendum as delivered at `90f190a`.
+
+## Reviewed object (final)
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `90f190a8090661236383dc5fb9168c307814ac0b` = `origin/JEPA`. Host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` at the same SHA (tracked tree clean; only the
+  execution's untracked 7 Nov `results/` payloads).
+- Final delta `ffe3390..90f190a`: three Part B source files (`src/jepa_noise/ext_shortcut.py`,
+  `src/jepa_noise/tests/test_ext_shortcut.py`, `scripts/jepa_ext_shortcut.py`) plus
+  `docs/jepa/DECISIONS.md` and the new `docs/jepa/ARCHIVE_2026-11-08_MANIFEST.jsonl`; no other source
+  changed; the binding runbooks are unchanged (`45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b`,
+  `abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a`).
+- File sha256 (`shasum -a 256`, frozen blobs at `90f190a`):
+  - `src/jepa_noise/ext_repair.py` `9453f8c33f302b17d7ccf8b37c47c56226fd3c7c24f85cc8463e85fdd49f222d`
+  - `src/jepa_noise/tests/test_ext_repair.py` `0c06e22d8d75fafbb339ea53736a8c4fa40d09f29f4f1dfb0147ae4a7ccf0a75`
+  - `src/jepa_noise/ext_shortcut.py` `11fe739a6a14f06ac8bb26431ce3acf11dbf505b46d37421cd6434e6d518f2f2`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `1d6f8ba82f6ef8f861b242c821557d068b61382844e27e015c94ae09b548da9a`
+  - `scripts/jepa_ext_repair.py` `f3dbd415e9ec048827342a6810399a9536619ffc5ec6e56b415fa9ae6f787c6d`
+  - `scripts/jepa_ext_shortcut.py` `294fe153413653437a3cb2d1b94b48036d2d79beb036e2296de3a005c8960ff2`
+  - `docs/jepa/ARCHIVE_2026-11-08_MANIFEST.jsonl` `91cd1e22a6097831d67fa00cef2c3cf8ff2fbb09115dd15475d37ac4903e2eee`
+- Diff sha256: six-source-file diff `0cf61ff..90f190a` `430bacf6bf00daa396904d1897a9157f3922d83cf47eb68c6f7dea91a59d7667`;
+  six-source-file diff `ffe3390..90f190a` `57cfde550ac47754a15bcf4fc7c009317d65e41cc72f510fa68f2d6a5b86eff2`.
+  Whole-tree diffs: `0cf61ff..90f190a` `9c2bd391f92ef771a6d3a294d2fcfee591aec6d5b3ff04afe6eaf8cfdb27be68`;
+  `ffe3390..90f190a` `46403406fdd80d1e92ab8e5d9a8d01c21ce0237f499bc5f8a5a3593f7cf70c8c`.
+
+## A5 disposition — PASS
+
+- The order-independent source chain is `resolve_r1_x2_sources:2401-2479`: (1) the Part A D1 overlay
+  `<PILOT_EXT_ROOT>/addendum/x2_addendum.json` (`x2_overlay_path:2339-2343`) with per-model
+  `X2-c.rho_LR`/class (`overlay_corrections:2372-2391`, tolerant label lookup
+  `_lookup_model_block:2393-2398`); (2) the pilot `results/jepa/20261106_repair/x2.json` only when it
+  carries both Part A markers — `corrected_7nov` naming `X2-c` and `addendum_sha256 ==
+  abe0904a…0621a` (`corrected_results_marker:2345-2370`); (3) otherwise the 7 Nov payload. The basis
+  is recorded in `source`/`readings_basis` ∈ {`d1_overlay`, `corrected_results`, `7nov_results`} plus
+  the `x2_source` detail (overlay presence/completeness, marker status, `model_sources`,
+  `fallbacks`, and the `source_order` in the reading). `pilot_status:2504-2550` makes the same
+  decision as the reading (`r1_payload:2552-2585`), and the Part B report records the basis
+  (`:3247-3255`, `:3387`, `:3473-3476`). The R-1 rule, families and thresholds are unchanged;
+  per-model fallbacks are recorded and no value is invented.
+- Demonstration under the binding §8 order (host clone, read-only; TMPDIR
+  `/work/dwong/jepa_tmp_20261107/review_add3`, removed afterwards). With the pilot results `x2.json`
+  still the stale 7 Nov payload (`rho_lr 0.9`, no markers) and **no Part A `addendum-report` run**,
+  only the D1 overlay present:
+
+```
+1) overlay-only: rho_lr = -0.42 | readings_basis = d1_overlay | source = d1_overlay
+   x2_source overlay present: True | model source: d1_overlay
+2) no overlay:               rho_lr = 0.9   | basis = 7nov_results
+3) corrected-results marker: rho_lr = -0.42 | basis = corrected_results
+4) wrong-sha marker:         basis = 7nov_results | marker.corrected = False
+5) per-model fallback:       overlay model -0.42 | fallback model 0.9 | basis d1_overlay |
+                             fallbacks recorded
+6) not_run hand-off:         table absent | Part A `_r1_reading_from` -> None
+```
+
+  The first line is the §8-order case: R-1 now reads the D1 overlay before the Part A report, so the
+  original A5 defect (0.9 silently used) is gone. The test
+  `test_r1_reads_the_d1_overlay_when_the_results_x2_is_stale:1622-1648` also covers the
+  `frozen_target9000` overlay row (−0.12); the other tests are `:1650-1663` (7 Nov basis),
+  `:1665-1685` (corrected-results marker incl. wrong-sha not trusted), `:1687-1716` (per-model
+  fallback), `:1718-1745` (not_run hand-off sanitised; `sanitise_r1_handoff:2481-2502`, applied in
+  `results_r1_payload:805-819` and `scripts/jepa_ext_shortcut.py:696`).
+
+## A6 disposition — PASS (operational)
+
+- No code change was needed; the addendum entries basis remains the addendum's own projected writes
+  (200 entries; floor 30,000; `ext_shortcut.py:235-240`, `:930-980`; `ext_repair.py:143-149`,
+  `:1503-1552`).
+- Live check at review time: **Part A free 41,556** with guard `OK`, timestamp
+  `2026-11-07T23:56:36Z`, no reasons; **Part B free 41,557 from live CephFS quota xattrs**
+  (`ceph.quota.max_files − ceph.dir.rfiles − ceph.dir.rsubdirs`); projected after the 200-entry
+  addendum writes 41,356 / 41,357 ≥ 30,000, so `pass=true` in both modules; addendum S1
+  `130.0961 ≤ 160` pass.
+- The operational relief is recorded and verifiable: `docs/jepa/ARCHIVE_2026-11-08_MANIFEST.jsonl`
+  has 7 rows (2 verified `tar.gz` result archives and 5 `git bundle` checkouts) under
+  `/work/dwong/jepa_archive_20261108/`. I re-verified all seven sha256 values against the manifest
+  (all OK), the two tars' file/member counts (6 and 7 members), and `git bundle verify` on
+  `checkout_02283a6.bundle` (“The bundle records a complete history”); the five
+  `/ceph/dwong/jepa/code/{02283a6,f5b7434,444cf58,eafbce6,080fb58}` scratch checkouts are absent.
+  `DECISIONS.md:2500-2501` records the entries basis and the cleanup; the runbook-listed data,
+  checkpoints and committed results were not touched (manifest reasons). Free entries
+  25,878 → 41.5k, guard OK.
+- The `vg` dry runs confirm the addendum entries preflight now passes (below), so the §9 entries
+  STOP is clear and the addendum is executable under §8.
+
+## Checklist re-assessment (addendum §7 (i)–(viii), final)
+
+| # | Subject | Verdict | Evidence |
+|---|---|---|---|
+| (i) | `raw_map` correct; only route to Â | **PASS** | unchanged (`ext_repair.py:2902-2941`; tests `test_ext_repair.py:1745-1790`) |
+| (ii) | every Â consumer converted; source/raw unchanged | **PASS** | unchanged consumers (A1/A2 fix exposes the raw-unit `A_hat` into the corrected pilot payloads); source/raw untouched |
+| (iii) | D1 self-check and S9 rule | **PASS** | unchanged (`ext_repair.py:5410-5539`); entries/S1 preflights around it |
+| (iv) | D2 statistics in both modules | **PASS** | unchanged; the pre-existing X3-2-CI note remains (nonblocking, outside the addendum D1–D5 defect list) |
+| (v) | D3 folded in; adapter retired | **PASS** | unchanged; retirement recorded in the fix-round code and now in `DECISIONS.md` |
+| (vi) | D4 completeness, superseded table, `ADDENDUM_2026-11-07.json`, figures | **PASS** | A1/A2 verified in the fix round; the R-1 row is populated under the §8 order (A5); X2-f singular values in the markdown; figures labelled/legended |
+| (vii) | R-2 evaluation path and `not_run` label | **PASS** | unchanged (`ext_shortcut.py:1318-1397`; tests `1057-1118`, `1255-1345`) |
+| (viii) | gates, closure, 0.35 h guard, S1, entries, dry-run coverage | **PASS** | gates deny-not-pending pre-reissue; closure pass; S1 pass in both modules (130.0961); entries pass in both modules (41.5k); the dry runs exercise all six Part A addendum setup paths and do not encode/evaluate (only the pre-existing CPU §2.5 sample) |
+
+## Nonblocking notes (final)
+
+- **N1 — the “7 Nov payload” fallback is a basis label, not a distinct value source.** With no
+  overlay and an invalid marker, `resolve_r1_x2_sources` still uses the pilot `x2.json` values (there
+  is no read of Part A's preserved `<ext_repair>/addendum/preserved_7nov/x2.json`); the demo's
+  wrong-sha case reports basis `7nov_results` while the row still carries the file's value (−0.42).
+  In the real flow the marker is written by `addendum_report` with the correct sha, so this is a
+  corruption-tolerance edge, not an expected state; a future hardening could read the preserved copy
+  or STOP on a mismatched marker.
+- **N2 — the D1 overlay is trusted without an integrity check.** Unlike the embedding caches (sha256
+  sidecars) and the results marker (sha constant), `<PILOT_EXT_ROOT>/addendum/x2_addendum.json` is
+  read as-is; the overlay payload carries `addendum_sha256` but the resolver does not verify it. A
+  stale/corrupt overlay would silently change R-1; consider verifying it against the addendum sha on
+  the next round.
+- **N3 — metadata asymmetry.** `r1_payload` records `source_order` at top level; `pilot_status`'s
+  `x2_source` does not include `source_order` (it has overlay/marker/model_sources/fallbacks). The
+  reported order is available in the R-1 payload and the README, so this is cosmetic.
+- **N4 — present-but-empty overlay basis.** A present overlay with no usable correction yields a
+  `model_sources` fallback for every model but the overall `readings_basis` remains `d1_overlay`
+  (the per-model fallbacks are recorded). Only relevant to a broken overlay; the values are correct
+  (7 Nov) and the fallbacks are explicit.
+- **Carried legacy notes** (unchanged from the fix round): the Part B results hand-off
+  `results/jepa/20261107_shortcut/r1_addendum.json` is not itemised in the ADDENDUM `outputs` /
+  §10 deliverables (commit it with the results); `addendum-r1` writes the results hand-off after a
+  closure violation could still expose a quarantined value (low risk); the large corrected
+  `x1/x2/x3` payloads written into `results/jepa/20261106_repair/` must stay untracked (the committed
+  record is SUMMARY/READINGS/OUTCOME/ADDENDUM/figures); Part A's entries preflight uses the guard
+  snapshot only while Part B prefers live xattrs (both agreed at 41.5k); X3-2's CI remains absent
+  (pre-existing at `0cf61ff`, outside the addendum D1–D5 defects). The shared-contract arbitration
+  (call-shape parity only; identical ledger JSON rows and 0.35/3.0 caps) is recorded in
+  `DECISIONS.md:2500` and remains a legitimate reading once S1/entries are enforced on both sides,
+  which they are.
+
+## Evidence (vg/ on deepthought, vg_dt2/ on deepthought2; SHA `90f190a`)
+
+- `vg/summary.txt`: `SHA=90f190a8090661236383dc5fb9168c307814ac0b HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`. `vg/pyflakes.log` empty (0 lines).
+- `vg/focused_a.log`: `96 passed in 156.51s (0:02:36)`; `vg/focused_b.log`:
+  `57 passed in 18.13s` (+5 A5 tests; both expected counts match the lead).
+- `vg/full_suite.log`: `1 failed, 821 passed, 2 skipped, 3 deselected in 1023.54s (0:17:03)`; the
+  failure is `src/jepa_noise/tests/test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`,
+  the same known pre-existing data/numerics N16 failure recorded at `0cf61ff`, `923276a` and
+  `ffe3390` (`ext_followup.py` is untouched by the addendum), not a fix-delta failure; the three
+  deselections are the known `test_guard` launcher tests.
+- `vg_dt2/summary.txt`: `SHA=90f190a… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `vg_dt2/full_suite_dt2.log`: `822 passed, 2 skipped, 3 deselected in 706.88s (0:11:46)`.
+- `vg/dryrun_a.log` + `vg/repair_dryrun/dry_run.json` (Part A): exit 0, gate `denied` with
+  `gate_checks {a: true, a2: false, b: false, c: false}`, `addendum_gate.pending_acceptance: false`,
+  `expected_addendum_sha256: null` (correct pre-reissue deny); all six addendum modes in `setup`;
+  addendum plan `s1.pass = true` (`sum_hours 130.0961`), `addendum_entries.pass = true`
+  (`free_entries 41,522`, `projected_after 41,322`, floor 30,000); `closure.pass = true`,
+  `violations []`, `errors []`; the only encode is the pre-existing CPU §2.5 sample (8 events).
+- `vg/dryrun_b.log` + `vg/shortcut_dryrun/plan.json` (Part B): exit 0, wall 78.657 s, gate
+  `denied`, `closure_pass: true`, `setup_errors: []`, `manipulation_pass: true`,
+  `addendum_entries_pass: true` (`free_before 41,517`, `projected_after 41,317`,
+  `projected_writes 200`, basis “live CephFS quota xattrs”), `addendum_s1_pass: true` (130.0961).
+  (The first log line `preflight failed: … entries=False` is the old combined-preflight block,
+  history only; the addendum STOP basis is the entries block above, which passes.)
+- Reviewer checks were read-only on `/ceph/dwong/jepa/code/jepa_work_20261107` with `TMPDIR` under
+  `/work/dwong/jepa_tmp_20261107/review_add3` (removed afterwards); no GPU, no `/ceph` writes, no
+  commits/checkouts/resets. Live re-check at 01:0x UTC: Part A 41,556 (guard OK) and Part B 41,557
+  (live xattrs), both `pass=true`; archive manifest 7/7 sha256 verified and the scratch checkouts
+  removed.
+
+## Final reviewed object (final)
+
+- Reviewed SHA `90f190a8090661236383dc5fb9168c307814ac0b` (= `origin/JEPA`); previous BLOCK reports at
+  `923276a` and `ffe3390` preserved above. File sha256s and diff sha256s above.
+- Binding runbooks unchanged; final delta is Part B source/tests/script plus the DECISIONS/archive
+  manifest docs.
+- Verdict: **PASS** — A1–A5 fixed and A6 resolved operationally; all addendum checklist items
+  (i)–(viii) PASS; 0 blocking findings, 4 nonblocking notes N1–N4 plus the carried legacy notes. The
+  acceptance record can be re-issued with `impl_commit = 90f190a`, `addendum_path =
+  docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md` and `addendum_sha256 = abe0904a…0621a`; the
+  addendum §8 execution may then start.
