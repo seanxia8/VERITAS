@@ -1,22 +1,25 @@
 **Verdict: PASS**
 
-**Final status (branch `jepa-runbook-20261107`, HEAD `08e9569a443cc04e3e21231c0b4ec05e2495aecc` =
-`origin/JEPA`, execution follow-ups fix 10 + fix 11): PASS.** The combined-runbook implementation
-keeps its round-6 PASS at the frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c` (rounds 1–6
-below are the historical record and are unchanged). The 7 Nov addendum's reviews BLOCKed A1–A4
-(`923276a`) and A5/A6 (`ffe3390`) and PASSed at `90f190a`; all are preserved as history. After the
-addendum §8 execution started, the first real `addendum-x2e` GPU run failed with `KeyError: 'N'` for
-all 13 models (a `not_run` payload, kept as history). Fix 10 (`b544229`, +4 production lines)
-flattens the role-nested cache rows in `addendum_x2e`; fix 11 (`08e9569`, test-only +4/−2) pins two
-B7 R-1 tests to a fixture ext root because the now-present live D1 overlay leaked into them. The
-implementation/test delta `90f190a..08e9569` is exactly the three files reviewed in the
-“# Addendum review — execution follow-up (fix 10, fix 11)” section at the end of this file (the
-range’s only other changes are the expected bookkeeping commit `769abba`: the review PASS file, the
-re-issued 8-key acceptance with `impl_commit = 90f190a`, and two DECISIONS lines); the binding
-runbooks are unchanged. All eight addendum checklist items (i)–(viii) remain PASS; no blocking
-findings (four nonblocking notes). The acceptance record can be re-issued with `impl_commit =
-08e9569`, `addendum_path` and `addendum_sha256`, and the §8 execution continues (x2e retry, R-2
-evaluation, x3 re-readings after x2e, reports). The implementation is reviewed at `184cd2f` against the binding runbook
+**Final status (branch `jepa-runbook-20261107`, HEAD `5c11fe5f815bf188301199b93e00ee09cafe77e5` =
+`origin/JEPA`, addendum 2 final fix A2-1/A2-2b): PASS.** The combined-runbook implementation keeps
+its round-6 PASS at the frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c` (rounds 1–6 below are
+the historical record and are unchanged). Addendum 1's reviews BLOCKed A1–A4 (`923276a`) and A5/A6
+(`ffe3390`), then PASSed at `90f190a`, and the execution follow-up fixes 10/11 PASSed at `08e9569`;
+all of that is preserved as history. The 8 Nov addendum 2
+(`docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md`, sha256 `b0cd727c…e76f8`) was implemented at
+`7ab2195` (BLOCKed there for A2-1/A2-2); the fix round `e64eeb6` fixed A2-1 and the SUMMARY-side
+A2-2, and the final fix `5c11fe5` (delta `e64eeb6..5c11fe5` = exactly
+`src/jepa_noise/ext_repair.py` + `tests/test_ext_repair.py`, +29/−8) closes A2-2b by recording the
+committed raw-feature X3-5 value in `ADDENDUM2_2026-11-08.json` via `_x3_5_raw_value` (raw
+3.5588538217086, empirical 3.5588538217086, E3u ratios) while leaving the SUMMARY raw slot
+untouched and its empirical value preserved. All checklist items (i)–(iv) PASS; the fresh
+`v2g`/`v2g_dt2` validation is green (pyflakes 0; focused 117/62; deepthought full suite 847 passed
+with only the known pre-existing N16 failure; dt2 848 passed; both dry runs exit 0 with the expected
+pre-reissue gate deny, addendum-2 S1 fail-closed on the uncorrected ledger, entries pass, closure
+pass, and all addendum-2 setup modes). The 10-key acceptance can be re-issued with `impl_commit =
+5c11fe5`, `addendum2_path` and `addendum2_sha256`, and §7 starts (addendum2-ledger → addendum-x2 →
+addendum2-leace → addendum-x2e → addendum2-report). The implementation is reviewed at `184cd2f`
+against the binding runbook
 `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` (sha256 `45e5ff98…119b`, verified equal to the
 base-commit copy). Part A's checklist items (i), (v), (vii) and (viii) are sound, and Part B's variant,
 manipulation check, training guard, gate, evaluation path and cost projection are sound. But large
@@ -2009,3 +2012,518 @@ No blocking findings; four nonblocking notes.
   `addendum_path = docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md` and
   `addendum_sha256 = abe0904a…0621a`; the §8 execution continues with the x2e retry, R-2
   evaluation, x3 re-readings after x2e and the reports.
+
+# Addendum 2 review (E1–E3)
+
+**Verdict: BLOCK.** E1 and E3 are implemented correctly and the gates/closure/budget/entries item
+passes its checks, but the E2 item is not delivered: (A2-1) the E3u gain-specific rule cannot be
+computed for the electron-energy reading of the four MAE models because the particle hit-count
+control’s energy is never attached to the variant the flag reads, and (A2-2) X3-5’s raw-feature
+ρ_E is replaced by an E3u ratio instead of being reported beside the E3u ratios. Both have cheap
+synthetic demonstrations and both are masked by the supplied tests. No outcome-generating step
+should run against this SHA; the 10-key acceptance record must wait for a fix. The earlier reviews
+are preserved above; this section is the addendum-2 review of `08e9569..7ab2195`.
+
+## Reviewed object (addendum 2)
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `7ab21955151b7afef05cb351c77675813bc361fb` = `origin/JEPA`. Host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` at the same SHA.
+- Delta `08e9569..7ab2195` over the six source files: +2209/−158 (`ext_repair.py` +1253,
+  `scripts/jepa_ext_repair.py` +99, `test_ext_repair.py` +568, `ext_shortcut.py` +207,
+  `scripts/jepa_ext_shortcut.py` +3, `test_ext_shortcut.py` +237). `git diff --name-only
+  08e9569..7ab2195 -- 'src/**/*.py' 'scripts/**/*.py'` is exactly those six; the other changes in
+  the range are docs/results bookkeeping (the executed addendum-1 results, the 8-key acceptance with
+  `impl_commit = 08e9569`, `DECISIONS.md`/`STATE.md`, and the `RESOURCE_LEDGER.json` recent entries —
+  its `charged_gpu_hours` is still 129.7461, which is the E3 defect this addendum fixes).
+- Binding documents: addendum 2 `docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md`, 175 lines,
+  sha256 `b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8` (checked against the
+  frozen value; unchanged after its commit `34457f0`); the combined runbook `45e5ff98…d119b` and
+  addendum 1 `abe0904a…0621a` are unchanged. The addendum-2 doc was read in full.
+- File sha256 (`shasum -a 256`, frozen blobs at `7ab2195`):
+  - `src/jepa_noise/ext_repair.py` `aaa4fb2212c903b3bb5c85e84e6e5ff92786e7841eacce0f0ae08ef12552d05f`
+  - `src/jepa_noise/tests/test_ext_repair.py` `9392adbc0310358433c5e39c22bd5d2799934ca1fe858e0799d4b6195952daff`
+  - `src/jepa_noise/ext_shortcut.py` `8ce39851f6d2098e312481db5a06f531c04d3f4dfc884efb181e227d5ea7c8f2`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `d7ee2ea7a2d2bf92c092bae55975508f8c7ade5d186712c831cfc023881128bf`
+  - `scripts/jepa_ext_repair.py` `8d72a0418c96b657b4c45d93a6831ebce7e00ec1d982b77b0c298fdfefb712d2`
+  - `scripts/jepa_ext_shortcut.py` `c5a6215061dc19184540391a1c6cd699be682d56a043e6694cd89960dee175f0`
+- Diff sha256: six-source-file `08e9569..7ab2195`
+  `53ed2152198383a6909f537f52c377a295087c4b2604cdf6ee02f086d86b5999`; whole-tree
+  `d454d7ea367f5becfe6c3f91885f4176dd7dc04752f2ee2a46d493a7ac9f00fd`.
+- Acceptance record at review time is the 8-key record (`impl_commit = 08e9569`, sha256
+  `cfc4ce36d0eb08e6d7b3c718a0b59333cebf0c9c08d197f1324ae38806052af0`), so the dry runs correctly
+  deny (`a3` false, `b` false, not pending); it must be re-issued with the ten keys only after a
+  PASS.
+
+## Checklist — addendum 2 §6 (i)–(iv)
+
+| # | Subject | Verdict | Evidence |
+|---|---|---|---|
+| (i) | E1: scale-only standardisation and the back-transform on every path; unaffected items untouched | **PASS** | `latent_estimate:2994-3045` (no centring; `s` scale, ridge on the scaled design, `delta = delta_scaled / safe`); `_design_scales:3028-3045` (per-column pooled RMS, no centring, 0 → 1); `latent_cv:3046-3101` and `latent_stream_estimates:3103-3160` (W, Â, z̄ᴺ and s refit per fold / on all probe-train; both call `_design_scales` and `latent_estimate(scale=…)`); X2-e/latent repair consume the raw payload (`_latent_repair_rows`, `addendum_x2e`), no re-scaling. Tests `test_ext_repair.py:2960-3072` (1e-8 recovery over 10⁻³–10³ column scales at λ=0; λ>0 column-rescaling invariance in raw units; AST shared-path/back-transform assertions; AST unaffected-items assertions). Diff has no hunks in `source_estimate`/`raw_estimate`/`_x2c`/`identifiability_spectrum`/`x2`/`x2_readings` (the Part B R-1 path is untouched too) |
+| (ii) | E2: c_e and n_e concepts, rank rule, keys, controls, gain-specific rule; models/data; readings | **BLOCK** | The concept/rank/control/application/model scaffolding is right (`e3u_hit_counts:4389-4400`, `e3u_concepts:4401-4418` c = ln G^env·n_e; `_concept_matrix:4420`; `reduction_rank:4334-4357` key `{label}/{domain}/E3u`; `_leace_variant:4501-4595` sanity, 20 keyed random controls, hit-count control at the same rank; `_x3_leace:4766-4861` planned 10 models, MAE particle energy; tests `:3074-3200`). **But A2-1 (energy gain-specific control not wired) and A2-2 (X3-5 raw-feature value lost) make the E2 readings incomplete/wrong** |
+| (iii) | E3: booked sum = 133.6492, ledger write-once, all three S1 checks fail closed, addendum 2 S1 = charged + 0.08 | **PASS** | `booked_gpu_hours:1503-1556` (base 129.7461 + `repair_shortcut` 3.7625 + `repair_addendum` 0.1406 = 133.6492); `s1_projection:1558-1593`, `addendum_s1_check:1595-1627` and `addendum2_s1_check:1791-1815` fail closed on `|charged − booked| > 1e-3` (`_ledger_consistency`, tolerance constant); addendum-2 S1 = booked + 0.08 ≤ 160; `addendum2_ledger:7784-7852` writes `charged_gpu_hours` once (idempotent, second run `already_consistent`); Part B `booked_gpu_hours:849-888`, `addendum_s1_check:890-954` (the reused Part B check now enforces the addendum-2 cap — see N1). Tests `test_ext_repair.py:3229-3294`, `test_ext_shortcut.py:1068-1145`; demo below: current ledger fails all three S1, corrected ledger passes 133.7292 |
+| (iv) | gates (10-key schema, a3 both parts), import closure, 0.08 h guard, CPU, entries | **PASS** (judgments N1/N2) | 10-key schema `ext_repair.py:199-203` / `ext_shortcut.py:288-291`; Part A a3 `ext_repair.py:520-555`, Part B a3 `ext_shortcut.py:586-624` (committed addendum-2 sha == b0cd727c…, §0 author line “按A做，并更新周报”, record `addendum2_path`/`addendum2_sha256`; missing/mismatch → DENIED, pending only when the record is absent); tests `test_ext_repair.py:3295-3326`, `test_ext_shortcut.py:1882-1945`; demo below. Import closure: `_addendum2_finish:1833-1845` and the CLI post-write `_finalise_addendum` (`scripts/jepa_ext_repair.py:366-390`); every addendum-2 mode goes through it. 0.08/3.0 caps and projections `ext_repair.py:185-199`, `assert_addendum2_budget:1734-1755` called from every addendum-2 mode and the reused addendum-x2/x2e (`:6355,:6421,:7796,:7865,:7906`); CPU projections sum to 1.40 ≤ 3; entries 200/30,000 (`:1757-1790`). Dry runs below: gate deny-not-pending, `addendum2` S1 fail-closed on the uncorrected ledger (the known E3 defect), entries pass (40,202 → 40,002), closure pass, no setup errors, all addendum-2 setup modes present. Judgments on N1/N2 below |
+
+## Blocking findings
+
+### A2-1 — the E3u gain-specific rule cannot be computed for the electron-energy reading of the MAE models
+
+The rule `_gain_specific_e3u:5240-5325` is correct in isolation (all three §3 conditions, including
+the hit-count condition and its run-cluster CI). But the hit-count control it reads is the **photon**
+variant’s control: `_variant_reading:5057-5065` passes `leace.get("hitcount_control")` to the rule,
+and `_attach_particle_energy:4884-4938` builds a separate particle E3u variant (with its own
+`hitcount_control`, whose energy block exists) but copies only `variant["variant"]["energy"]`,
+`variant["standard"]["energy"]` and the random controls’ energy into the main variant — it never
+copies `particle_variant["hitcount_control"]["energy"]` into the main `hitcount_control`. The main
+`hitcount_control` is the photon `_embedding_variant(erased_hit)` (`_leace_variant:4552-4562`), which
+has no energy block, so `_gain_specific_e3u:5254` gets `hit = _metric_rows(hitcount_control,
+"energy", "N") is None` and returns `status: "not available"`, `gain_specific: None`,
+`rho_hitcount: None`, `hitcount_ci95: None`. Demonstration on the host clone (read-only; TMPDIR
+under `/work/dwong/jepa_tmp_20261107/review_add5`, removed afterwards), with a synthetic
+production-like entry whose main hit-count control carries log-yield/vertex but not energy:
+
+```
+E2 demo: E3u X3-1 log_yield gain_specific = True | energy gain_specific = None
+         | energy rho_hitcount = None | energy status = not available
+```
+
+Consequence: for the four MAE models the E3u X3-1 energy gain-specific flag required by §3
+(“replaces the X3-1 flag for E3u only”) is absent from the readings and from
+`ADDENDUM2_2026-11-08.json`. The tests mask it: `test_e3u_variant_carries_the_hitcount_control_at_the_same_rank`
+(`test_ext_repair.py:3134-3148`) asserts the control for `("log_yield","vertex")` only, and
+`test_e3u_gain_specific_requires_all_three_conditions` (`:3171-3199`) supplies a synthetic hit-count
+control that *does* carry energy, so the production wiring is never exercised.
+
+### A2-2 — X3-5’s raw-feature ρ_E is overwritten by an E3u ratio
+
+`_x3_five:5328-5367` defines `empirical_rho_E_log_yield` and `raw_feature_rho_E_log_yield` as the
+first variant in `variants` that has a ρ_E. `addendum2_leace` (`:7854-7890`) calls
+`x3_readings({"families": {"leace": …}})` with only the E3u family, so the “first variant” is an
+E3u variant and both fields become the **E3u** ratio, not the raw-feature value. `addendum2_report`
+then merges the E3u payload into the existing summary with `x35.update(e3u_readings.get("X3-5"))`
+(`:7977-7980`), overwriting the committed summary’s raw-feature empirical value. Demonstration
+(read-only host clone):
+
+```
+E2 demo: _x3_five with only the E3u family: empirical = 1.5 | raw_feature = 1.5
+         (the committed SUMMARY.json currently has empirical raw-feature 3.5588538217086)
+E2 demo: report merge: old raw empirical 3.55885 -> 1.5 | raw_feature -> 1.5
+```
+
+Consequence: X3-5 does not “add the E3u ratios beside the raw-feature value” (§3); the committed
+`READINGS_SUMMARY.md`/`SUMMARY.json` and the ADDENDUM2 JSON report an E3u ratio in the raw-feature
+slot (and the true raw-feature empirical value is lost). The report test masks it:
+`test_addendum2_report_writes_the_json_and_updates_the_summary_in_place` (`:3364-3470`) writes an
+`x3_e3u.json` X3-5 payload with `raw_feature_rho_E_log_yield: 3.5` by hand instead of deriving it
+from `_x3_five`, so the production computation is not exercised.
+
+## Nonblocking notes
+
+- **N1 — `ext_shortcut.addendum_s1_check` now enforces the addendum-2 cap (0.08), not the
+  addendum-1 (0.35).** The addendum-2 §4 lists this check among the three S1 checks that must fail
+  closed, and §5 says earlier caps are closed/not reused; the code/test names (`test_ext_shortcut.py:1068,1131`)
+  make the new cap explicit. It is acceptable if the Part B `addendum-evaluate` path is no longer
+  part of the addendum-1 execution (which is closed); if that path is ever re-run under addendum 1,
+  its S1 threshold has silently changed. Record the interpretation with the acceptance re-issue.
+- **N2 — reused `addendum-x2`/`addendum-x2e` book addendum 2’s budget.** They are the §7 CPU/GPU
+  steps for E1; `addendum_x2` (`:6353-6356`) and `addendum_x2e` (`:6418-6422`) now call
+  `addendum2_entries_preflight_or_stop` / `addendum2_s1_check_or_stop` and
+  `assert_addendum2_budget` with the A2 projections (0.50 CPU / 0.06 GPU) and record part `A2`. This
+  is a legitimate reading of “the earlier caps are closed and not reused”: the jobs are part of
+  addendum 2’s ≤ 3 CPU / ≤ 0.08 GPU budgets and never consult the closed caps. The only oddity is
+  that the mode names/gates are addendum 1’s.
+- **N3 — `x3()` now computes E3u by default.** `_x3_leace`’s default `concepts` now includes “E3u”
+  (`:4767`), so a future rerun of the addendum-1 `x3` mode would also produce E3u variants in
+  `x3.json`; this is an additive change (the addendum-2 §3 authorises the concept) but the
+  addendum-2 execution uses the dedicated `addendum2-leace` mode.
+- **N4 — Part A’s a3 author-line check is a substring test** (`ADDENDUM2_AUTHOR_LINE in
+  addendum2_text`, `ext_repair.py:528`) while Part B checks the §0 block (`author_section`); both
+  pass today and the line is in §0; minor asymmetry.
+- **N5 — the ledger fix cannot add an absent block.** `addendum2_ledger:7818-7840` uses
+  `entry = (… .get("E2_lucid_l40s_deepthought2") or {})`; if the block were absent, `entry` is a
+  detached dict and the write would change nothing while reporting `written_once`; the current
+  ledger has the block, so this is an edge-case note.
+- **N6 — report `complete` is permissive.** `addendum2_report:8081-8085` sets `complete` true when
+  any one of the E1/E2/E3 payloads exists; a partial report still exits 0 (`not_run` is recorded).
+  Consider requiring all three for a complete report.
+- **N7 — E1’s “unaffected items” AST test covers source/raw/X2-c/X2-f/X2-b helpers but not the Part B
+  R-1 path** (`test_e1_unaffected_x2_items_do_not_use_the_latent_path:3048-3072`); the Part B R-1
+  code is unchanged in the diff, so this is a coverage note only.
+- **N8 — `booked_gpu_hours` Part A picks the first `recent` entry that has `l40s_charged_after`
+  rather than the named base key** (`ext_repair.py:1515-1525`). The current ledger order puts the
+  base first and the test asserts `base_key == "mae_jepa_followup_2026-11-03"`; future ledger
+  ordering could change the base, so consider matching the constant key explicitly.
+- **N9 — the E3u energy hit-count control is also absent from `_e3u_variants_summary:7684-7705`**
+  (it records only rank/concept/reason); this is the summary-side face of A2-1.
+
+## Other required checks
+
+- **No source outside the six changed:** `git diff --name-only 08e9569..7ab2195 -- 'src/**/*.py'
+  'scripts/**/*.py'` returns exactly the six files listed above; the remaining changes are
+  `docs/` and `results/` bookkeeping (the executed addendum-1 results, the 8-key acceptance with
+  `impl_commit = 08e9569`, `DECISIONS.md`/`STATE.md`, the ledger’s recent entries).
+- **Runbooks unchanged:** combined `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b`,
+  addendum 1 `abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a`; addendum 2
+  `b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8` (unchanged after `34457f0`).
+- **E3u is the only new concept and the S3 authorisation is in §0:** the addendum-2 §0 line 1 is
+  `按A做，并更新周报` and authorises the E3u concept (lines 21-27); the diff adds only E3u beside
+  E1/E2r (`_x3_leace:4766-4861`), no other concept, model or factor.
+- **ADDENDUM2 deliverable/report code:** `addendum2_report:7891-8088` writes
+  `results/jepa/20261106_repair/ADDENDUM2_2026-11-08.json` (`:8072`) with the E1 rerun statuses/rows
+  (`e1.reruns`/`e1.rows`), the E3u family + controls + readings (`e3u.family/readings/variants/rows`),
+  the ledger-fix payload (`ledger`), and the superseded rows from `_e1_superseded_rows:7652-7682` +
+  E2/E3 rows (`superseded = e1 + e2 + e3`); it updates `READINGS_SUMMARY.md`, `SUMMARY.json`,
+  `OUTCOME.json` and the figures in place (`:8076-8085`), and preserves the pre-addendum-2 payloads
+  write-once via `_preserve_addendum2_payloads:7642-7646` → `_preserve_payloads:5928-5966` (write-once
+  with sha256 sidecars; second run keeps them — tested at `test_ext_repair.py:3460-3470`).
+
+## Evidence (v2/ on deepthought, v2_dt2/ on deepthought2; SHA `7ab2195`)
+
+- `v2/summary.txt`: `SHA=7ab21955151b7afef05cb351c77675813bc361fb HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`; `v2/pyflakes.log` empty (0 lines).
+- `v2/focused_a.log`: `115 passed in 148.98s (0:02:28)`; `v2/focused_b.log`:
+  `62 passed in 15.70s` (the expected counts).
+- `v2/full_suite.log`: `1 failed, 845 passed, 2 skipped, 3 deselected in 1054.52s (0:17:34)`; the
+  failure is the known pre-existing data/numerics N16
+  `src/jepa_noise/tests/test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`
+  (same at every earlier SHA; `ext_followup.py` untouched), not an addendum-2 failure; the three
+  deselections are the known `test_guard` launcher tests.
+- `v2_dt2/summary.txt`: `SHA=7ab2195… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `v2_dt2/full_suite_dt2.log`: `846 passed, 2 skipped, 3 deselected in 814.23s (0:13:34)`.
+- `v2/dryrun_a.log` + `v2/repair_dryrun/dry_run.json` (Part A): exit 0; gate `denied` with
+  `gate_checks {a: true, a2: true, a3: false, b: false, c: false}` (a3 false because the record is
+  the 8-key `08e9569` one without addendum-2 fields; b false for the missing keys; c false because
+  the source differs from the recorded `impl_commit` — the expected pre-reissue state);
+  addendum-2 plan: caps 0.08 GPU / 3.0 CPU, gpu projection `{addendum-x2e: 0.06}`, cpu projection
+  `{addendum2-ledger: 0.05, addendum2-leace: 0.75, addendum2-report: 0.10, addendum-x2: 0.50}`,
+  `s1.pass = false` (fail closed: booked 133.6492 vs charged 129.7461, “differs from the booked
+  L40S sum by more than 1e-3 h”), `addendum2_entries.pass = true` (free 40,202 → 40,002, floor
+  30,000); all three addendum-2 modes appear in `setup`; `closure.pass = true`, `violations []`,
+  `errors []`; the only encode is the pre-existing CPU §2.5 sample (8 events).
+- `v2/dryrun_b.log` + `v2/shortcut_dryrun/plan.json` (Part B): exit 0, wall 80.829 s, gate `denied`
+  (`a`/`a3`/`b`/`c` false; closure true), `closure_pass: true`, `setup_errors: []`,
+  `manipulation_pass: true`, `addendum_entries_pass: true`, `addendum_s1_pass: false` (the Part B
+  S1 fails closed on the same uncorrected ledger — expected until the addendum2-ledger step).
+- Reviewer-only checks were read-only on `/ceph/dwong/jepa/code/jepa_work_20261107` with `TMPDIR`
+  under `/work/dwong/jepa_tmp_20261107/review_add5` (removed afterwards); no GPU, no `/ceph` writes,
+  no commits/checkouts/resets. Demo outputs (E3 current ledger all three S1 fail, corrected ledger
+  addendum-2 S1 pass 133.7292; gate a3 false/denied with `missing_keys =
+  ["addendum2_path","addendum2_sha256"]`; A2-1 and A2-2 synthetic demos) are quoted in the findings.
+
+## Final reviewed object (addendum 2)
+
+- Reviewed SHA `7ab21955151b7afef05cb351c77675813bc361fb` (= `origin/JEPA`); earlier PASS/BLOCK
+  reports are preserved above. File sha256s and diff sha256s above.
+- Binding documents unchanged (combined `45e5ff98…`, addendum 1 `abe0904a…`, addendum 2
+  `b0cd727c…`); no source outside the six changed.
+- Verdict: **BLOCK** — item (i) E1 PASS, item (ii) E2 BLOCK (A2-1, A2-2), item (iii) E3 PASS, item
+  (iv) gates/closure/budget/entries PASS with judgments N1/N2; 2 blocking findings and 9 nonblocking
+  notes. The 10-key acceptance record (with `impl_commit = 7ab2195`, `addendum2_path` and
+  `addendum2_sha256`) must wait for the E2 fixes; the §7 execution then starts with the
+  addendum2-ledger → addendum-x2 → addendum2-leace → addendum-x2e → addendum2-report order.
+
+## Addendum 2 review — fix round (A2-1, A2-2)
+
+**Verdict: BLOCK.** A2-1 is fixed correctly. A2-2’s substantive overwrite is fixed in the SUMMARY,
+but the fix’s own ADDENDUM2-JSON claim fails on the committed SUMMARY: the committed X3-5 raw value
+lives in `empirical_rho_E_log_yield` (3.5588538217086) while `raw_feature_rho_E_log_yield` is
+`null`; `addendum2_report` records only `raw_feature_rho_E_log_yield` in
+`ADDENDUM2_2026-11-08.json`, so the production report records `null` (demo below), and the new report
+test masks it with a synthetic `SUMMARY.json` whose `raw_feature_rho_E_log_yield` is
+3.5588538217086. One residual blocking finding A2-2b; the 10-key acceptance must wait for the
+one-line fallback fix. The fix round changes no other behaviour (the delta is exactly the two files
+below).
+
+### Reviewed object (fix round)
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `e64eeb671fd2dabfd1422770cfff6fa3ab9c9bd9` = `origin/JEPA`. Delta `7ab2195..e64eeb6` is exactly
+  `src/jepa_noise/ext_repair.py` (+38/−8) and `src/jepa_noise/tests/test_ext_repair.py`
+  (+136/−14; total +174/−22). `scripts/jepa_ext_repair.py`, `scripts/jepa_ext_shortcut.py`,
+  `ext_shortcut.py`, `test_ext_shortcut.py` and all runbooks are unchanged; no other source file is
+  touched. Prior history (combined PASS at `0cf61ff…`, addendum-1 A1–A4 BLOCK at `923276a`, A5/A6
+  BLOCK at `ffe3390`, PASS at `90f190a`, execution follow-up fixes 10/11 PASS at `08e9569`,
+  addendum-2 BLOCK at `7ab2195`) is preserved above.
+- File sha256 (`e64eeb6`): `ext_repair.py`
+  `7410cfd71a6b82fb6d57a149cae0d5d5c1e6ad8cc54067e220b618f5e020e28e`, `test_ext_repair.py`
+  `a062205b0a9549e80ad2cfeea78c4769261b5c79291c8d7ab11f4918a1a2330a`; the four unchanged files
+  keep `8d72a041…`, `8ce39851…`, `c5a62150…`, `d7ee2ea7…`.
+- Diff sha256: `7ab2195..e64eeb6` whole-tree
+  `cfd843f91325110cc6c43988ad6cdb04040bce93866285f6353b61531293f793`; `08e9569..e64eeb6`
+  whole-tree `5ef60b73d9f78b5d5c9e42e2dc77c391b15626a281302b2ab0ee675a498457d6`, six-source-file
+  `34aeb64017132364de72b3a64d8fc29fbfc16e7262a856433cd466de73a6c154`.
+- Runbooks unchanged: combined `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b`,
+  addendum 1 `abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a`, addendum 2
+  `b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8`. The acceptance record is
+  still the 8-key `impl_commit = 08e9569` record (sha256 `cfc4ce36d0eb08e6d7b3c718a0b59333cebf0c9c08d197f1324ae38806052af0`),
+  so the dry runs correctly deny (`a3` false, `b` false, not pending).
+
+### A2-1 — PASS (fixed)
+
+- `_attach_particle_energy:4936-4945` now, after copying the particle variant’s
+  variant/standard/random-control energy, takes `particle_variant["hitcount_control"]["energy"]`
+  and attaches it to the MAIN `hitcount_control` (which `_variant_reading` and
+  `_gain_specific_e3u` read), with the `energy_domain = "particle"` marker:
+  `particle_hit = particle_variant.get("hitcount_control") or {}` / `main_hit =
+  variant.get("hitcount_control")` / `main_hit["energy"] = particle_hit["energy"]` /
+  `main_hit["energy_domain"] = "particle"`. `_e3u_variants_summary:7707-7714` now records the
+  control’s `metrics` (vertex/log_yield/energy) and `energy_domain` in the summary.
+- `_variant_reading:5035-5095` is unchanged and passes the main `hitcount_control` to
+  `_gain_specific_e3u:5240-5325`; with the attached energy the three-condition rule is now
+  computable for the four MAE models (a real bool with non-null `rho_hitcount`/`hitcount_ci95`
+  instead of the old `not available`).
+- New regression `test_a21_particle_energy_hitcount_control_reaches_the_main_variant:3501-3569`
+  builds the production-like photon+particle structure (monkeypatches `_particle_rows`,
+  `_leace_variant`, `reduction_rank`), calls the real `_attach_particle_energy`, asserts the main
+  control carries the energy block + `energy_domain = "particle"`, and asserts
+  `X3-1["energy"]["gain_specific"]` is a bool with non-null `rho_hitcount`/`hitcount_ci95`
+  (log-yield remains True). The five new A2 tests pass (`5 passed, 112 deselected in 8.72s`); the
+  old three-condition test remains. No residual.
+
+### A2-2 — BLOCK (residual A2-2b)
+
+The overwrite itself is fixed in the SUMMARY. `_x3_five(fisher, variants, *, raw_rho=None)`
+(`:5335-5382`) now takes the raw-feature value only from a non-E3u variant or `raw_rho`
+(`empirical = None if raw_rho is None else float(raw_rho)`; `if str(key).endswith("/E3u"):
+e3u_ratios[...]` / `elif empirical is None: empirical = entry["rho_E"]`), so an E3u-only call (the
+`addendum2-leace` production path) leaves `empirical_rho_E_log_yield`/`raw_feature_rho_E_log_yield`
+`None` and populates only `e3u_rho_E_log_yield`; `x3_readings:5018-5041` passes `raw_rho`; the
+`addendum2_report` merge `:7993-8002` adds the E3u ratios and only fills the raw/empirical fields
+when the existing value is `None`. On the committed SUMMARY the empirical raw value 3.5588538217086
+is preserved and the e3u ratios are added (demo below), so the original “E3u ratio relabelled as
+raw” defect is gone.
+
+The residual: the committed `results/jepa/20261106_repair/SUMMARY.json` `x3_5` block is
+`empirical_rho_E_log_yield = 3.5588538217086`, `raw_feature_rho_E_log_yield = null`,
+`e3u_rho_E_log_yield = null`. The report’s ADDENDUM2 JSON block records only
+`summary["x3_5"]["raw_feature_rho_E_log_yield"]` and `e3u_rho_E_log_yield` (`:8083-8086`); because
+the committed raw_feature is null, the production ADDENDUM2 JSON records `raw_feature_rho_E_log_yield
+= null` and does not record the empirical raw value. Actual `addendum2_report` demo (host clone,
+read-only, with a copy of the committed SUMMARY and an E3u payload derived through the production
+`x3_readings`):
+
+```
+ADDENDUM2 x3_5: {'raw_feature_rho_E_log_yield': None,
+                 'e3u_rho_E_log_yield': {'mae_within_trigger9000/E3u': 1.5999999999999999}}
+SUMMARY x3_5:  {'empirical_rho_E_log_yield': 3.5588538217086,
+                 'raw_feature_rho_E_log_yield': None,
+                 'e3u_rho_E_log_yield': {'mae_within_trigger9000/E3u': 1.5999999999999999}}
+a2 e3u readings X3-5: {'empirical_rho_E_log_yield': None,
+                       'raw_feature_rho_E_log_yield': None,
+                       'e3u_rho_E_log_yield': {...}, 'theory_rows': {...}, 'rule': ...}
+```
+
+So the raw value is preserved in the SUMMARY but is not recorded in ADDENDUM2 JSON, contrary to the
+fix description (“the committed raw-feature X3-5 value (3.5588538217086) is preserved and recorded
+in ADDENDUM2 JSON”). The report test masks it: its synthetic `summary0`
+(`test_ext_repair.py:3383-3387`) sets **both** `empirical_rho_E_log_yield` and
+`raw_feature_rho_E_log_yield` to 3.5588538217086 (unlike the committed SUMMARY, whose raw_feature is
+null), and `:3471-3481` asserts `a2["x3_5"]["raw_feature_rho_E_log_yield"] == 3.5588538217086` /
+`summary["x3_5"]["raw_feature_rho_E_log_yield"] == 3.5588538217086`. The new
+`test_a22_x3_five_does_not_relabel_an_e3u_ratio_as_the_raw_feature:3571-3591` only tests
+`_x3_five`, not the ADDENDUM2 recording.
+
+Minimal fix: in `addendum2_report`’s `"x3_5"` block, record the raw value as
+`summary["x3_5"].get("raw_feature_rho_E_log_yield")` if not null else
+`summary["x3_5"].get("empirical_rho_E_log_yield")` (or record both fields explicitly), and update the
+report test’s `summary0` to the committed shape (`raw_feature_rho_E_log_yield: None`,
+`empirical_rho_E_log_yield: 3.5588538217086`) so the assertion exercises the production path. This
+is a one-line production change plus the fixture; after it the ADDENDUM2 JSON records 3.5588538217086
+beside the E3u ratios.
+
+### Checklist impact
+
+- (i) E1: **PASS**, unchanged — the fix round touches no latent-estimator code; the scale-only
+  implementation/tests of the `7ab2195` review stand (focused suite 117/62 is green).
+- (ii) E2: **BLOCK** — A2-1 is fixed; A2-2 remains blocked by A2-2b (the ADDENDUM2 JSON records the
+  raw X3-5 value as null for the committed SUMMARY shape; the report-test fixture masks it). The
+  rest of the E2 scaffolding (concept/rank/controls/applicability/models) is unchanged and remains
+  as reviewed.
+- (iii) E3: **PASS**, unchanged — no ledger/S1 code in the delta; the fresh dry runs still show the
+  addendum-2 S1 fail-closed on the uncorrected ledger (booked 133.6492, expected until the
+  addendum2-ledger step) and the three S1 checks unchanged.
+- (iv) gates/closure/budget/entries: **PASS**, unchanged — the delta is two files with no gate/S1/
+  cap/entries changes; the fresh dry runs reproduce the expected pre-reissue state.
+
+### Evidence (v2f/ on deepthought, v2f_dt2/ on deepthought2; SHA `e64eeb6`)
+
+- `v2f/summary.txt`: `SHA=e64eeb671fd2dabfd1422770cfff6fa3ab9c9bd9 HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`; `v2f/pyflakes.log` empty (0 lines).
+- `v2f/focused_a.log`: `117 passed in 157.26s (0:02:37)`; `v2f/focused_b.log`:
+  `62 passed in 15.94s` (the expected counts; the two new A2 tests account for 115 → 117).
+- `v2f/full_suite.log`: `1 failed, 847 passed, 2 skipped, 3 deselected in 1035.69s (0:17:15)`; the
+  failure is the same known pre-existing N16
+  `src/jepa_noise/tests/test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`
+  (untouched `ext_followup.py`; same at every prior SHA), not an A2 regression; the three
+  deselections are the known `test_guard` launcher tests.
+- `v2f_dt2/summary.txt`: `SHA=e64eeb67… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `v2f_dt2/full_suite_dt2.log`: `848 passed, 2 skipped, 3 deselected in 771.41s (0:12:51)`.
+- `v2f/dryrun_a.log` + `v2f/repair_dryrun/dry_run.json` (Part A): exit 0; gate `denied` with
+  `gate_checks {a: true, a2: true, a3: false, b: false, c: false}` (8-key record without
+  addendum-2 fields; c false vs the recorded `impl_commit` — expected pre-reissue); addendum-2
+  caps 0.08 GPU / 3.0 CPU; gpu projection `{addendum-x2e: 0.06}`; cpu projection
+  `{addendum2-ledger: 0.05, addendum2-leace: 0.75, addendum2-report: 0.10, addendum-x2: 0.50}`;
+  `s1.pass = false` (fail closed: booked 133.6492 vs charged 129.7461); `addendum2_entries.pass =
+  true` (free 40,192 → 39,992, floor 30,000); all three addendum-2 modes present; `closure.pass =
+  true`, `errors []`.
+- `v2f/dryrun_b.log` + `v2f/shortcut_dryrun/plan.json` (Part B): exit 0, wall 78.1 s, gate
+  `denied` (a/a3/b/c false; closure true), `closure_pass: true`, `setup_errors: []`,
+  `manipulation_pass: true`, `addendum_entries_pass: true`, `addendum_s1_pass: false` (the Part B
+  S1 fails closed on the same uncorrected ledger — expected before the addendum2-ledger step).
+- Reviewer synthetic demo: five selected A2/E3u tests pass (`5 passed, 112 deselected in 8.72s`);
+  the actual `addendum2_report` production-shape demo above (read-only host clone, `TMPDIR` under
+  `/work/dwong/jepa_tmp_20261107/review_add6`, removed afterwards; no GPU, no `/ceph` writes, no
+  commits/checkouts/resets).
+
+### Final reviewed object (fix round)
+
+- Reviewed SHA `e64eeb671fd2dabfd1422770cfff6fa3ab9c9bd9` (= `origin/JEPA`); delta
+  `7ab2195..e64eeb6` = exactly the two files above (+174/−22); scripts and all three runbooks
+  unchanged; no source outside the two files.
+- File sha256s and diff sha256s above. Binding documents unchanged.
+- Verdict: **BLOCK** — A2-1 PASS (energy gain-specific control wired, regression test green); A2-2
+  core overwrite fixed in SUMMARY, but residual A2-2b: the ADDENDUM2 JSON records
+  `raw_feature_rho_E_log_yield = null` for the committed SUMMARY shape (the raw value is
+  `empirical_rho_E_log_yield = 3.5588538217086`), and the report test fixture masks it. Checklist
+  (i)/(iii)/(iv) PASS; (ii) BLOCK. The 10-key acceptance must wait for the fallback fix; the §7
+  execution then starts with addendum2-ledger → addendum-x2 → addendum2-leace → addendum-x2e →
+  addendum2-report.
+
+## Addendum 2 review — final (A2-2b)
+
+**Verdict: PASS.** The A2-2b residual is closed: the ADDENDUM2 JSON now records the committed
+raw-feature X3-5 value via the committed fallback (and also records the empirical key) beside the
+E3u ratios, while the SUMMARY merge keeps the committed raw slot untouched and its empirical value
+preserved. All four checklist items are PASS; the final SHA is ready for the 10-key acceptance and
+the §7 execution.
+
+### Reviewed object (final fix)
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `5c11fe5f815bf188301199b93e00ee09cafe77e5` = `origin/JEPA`. Delta `e64eeb6..5c11fe5` is exactly
+  `src/jepa_noise/ext_repair.py` (+19/−6) and `src/jepa_noise/tests/test_ext_repair.py` (+10/−2;
+  total +29/−8). `scripts/jepa_ext_repair.py`, `scripts/jepa_ext_shortcut.py`,
+  `src/jepa_noise/ext_shortcut.py`, `tests/test_ext_shortcut.py` and all three runbooks are
+  unchanged; no source file outside the two is touched. Prior history (combined PASS at `0cf61ff…`,
+  addendum-1 A1–A4 BLOCK `923276a`, A5/A6 BLOCK `ffe3390`, PASS `90f190a`, execution follow-up
+  fixes 10/11 PASS `08e9569`, addendum-2 implementation BLOCK `7ab2195`, fix-round BLOCK `e64eeb6`)
+  is preserved above.
+- File sha256 (`5c11fe5`): `ext_repair.py`
+  `5a118ac2f93dc538ebf21a658e417f7d1c1ba12920e8affb880eca1b880fa5b8`, `test_ext_repair.py`
+  `29ba2507e6c28937f1f22c58c1c6a49b24767291a9cb6a3cdd265c76481edb70`; the four unchanged files
+  keep `8d72a041…`, `8ce39851…`, `c5a62150…`, `d7ee2ea7…`.
+- Diff sha256: `e64eeb6..5c11fe5` whole-tree
+  `c75228b5df99e800f4f6c3f6f8bdbe1945f2efb87a1a506662d68ada2f169513`; `08e9569..5c11fe5`
+  whole-tree `fdd0c56895b829bc5630f0bdc239b83bd295969f774463ba679b9905f87366cd`, six-source-file
+  `82dfb46afaf0d7c5866b77d99e9ceebfca91979c43352e6bd76ce5a09be1424a`.
+- Binding documents unchanged: combined
+  `45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b`, addendum 1
+  `abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a`, addendum 2
+  `b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8`. The acceptance record is
+  still the 8-key `impl_commit = 08e9569` record (sha256
+  `cfc4ce36d0eb08e6d7b3c718a0b59333cebf0c9c08d197f1324ae38806052af0`); the dry runs correctly
+  deny (`a3`/`b` false, not pending) until it is re-issued.
+
+### A2-2b — PASS (closed)
+
+- `_x3_5_raw_value:7906-7915` returns the committed
+  `summary["x3_5"]["raw_feature_rho_E_log_yield"]` when it is non-null and otherwise falls back to
+  `summary["x3_5"]["empirical_rho_E_log_yield"]`, with the docstring stating the committed shape.
+- The ADDENDUM2 `"x3_5"` block (`:8095-8103`) now records **both** keys —
+  `raw_feature_rho_E_log_yield = _x3_5_raw_value(summary)` (the committed fallback) and
+  `empirical_rho_E_log_yield = summary["x3_5"]["empirical_rho_E_log_yield"]` — beside
+  `e3u_rho_E_log_yield`. The SUMMARY merge is unchanged (`:8005-8014`): the raw slot is untouched,
+  the empirical value is preserved, and the E3u ratios are added; `_x3_five`/`x3_readings` are
+  unchanged (E3u-only calls still leave the raw/empirical fields `None`).
+- Production-shape demo (host clone, read-only; a copy of the committed `SUMMARY.json` plus an E3u
+  payload derived through the production `x3_readings`, then the actual `addendum2_report` with
+  gate/entries/budget/figure/closure side effects stubbed):
+
+```
+ADDENDUM2 x3_5: {'raw_feature_rho_E_log_yield': 3.5588538217086,
+                 'empirical_rho_E_log_yield': 3.5588538217086,
+                 'e3u_rho_E_log_yield': {'mae_within_trigger9000/E3u': 1.5999999999999999}}
+SUMMARY x3_5:  {'empirical_rho_E_log_yield': 3.5588538217086,
+                 'raw_feature_rho_E_log_yield': None,
+                 'e3u_rho_E_log_yield': {'mae_within_trigger9000/E3u': 1.5999999999999999}}
+expected raw value 3.5588538217086; a2 raw == empirical == 3.55885: True
+```
+
+So the ADDENDUM2 JSON records the raw value (fallback) and the empirical value beside the E3u
+ratios, exactly as the fix description claims; the SUMMARY keeps its committed raw slot `None` and
+the empirical raw-feature value.
+- The report test now matches the committed shape: `summary0` (`test_ext_repair.py:3383-3387`) has
+  `raw_feature_rho_E_log_yield: None` and `empirical_rho_E_log_yield: 3.5588538217086`; the test
+  still derives the E3u X3-5 through `rp.x3_readings` (production path) and asserts
+  `a2["x3_5"]["raw_feature_rho_E_log_yield"] == 3.5588538217086`,
+  `a2["x3_5"]["empirical_rho_E_log_yield"] == 3.5588538217086`, and the e3u ratios
+  (`:3471-3481`), plus `summary["x3_5"]["raw_feature_rho_E_log_yield"] is None` and
+  `summary["x3_5"]["empirical_rho_E_log_yield"] == 3.5588538217086` (`:3484-3490`).
+- Selected tests at `5c11fe5`: `3 passed, 114 deselected in 7.46s` (A2-1 regression, A2-2
+  `_x3_five`, and the updated report test). A2-1 remains as reviewed at `e64eeb6` (the fix round
+  changed only the ADDENDUM2 recording and its test; `_attach_particle_energy` and the energy flag
+  wiring are untouched).
+
+### Checklist impact
+
+- (i) E1: **PASS** — unchanged; the final fix touches the addendum-2 report recording only, no
+  latent-estimator code.
+- (ii) E2: **PASS** — A2-1 was fixed at `e64eeb6` (energy gain-specific control propagated; regression
+  test green), and A2-2b is closed here (ADDENDUM2 JSON records the committed raw value by fallback,
+  plus the empirical key, beside the E3u ratios; SUMMARY merge unchanged and correct; the report
+  test now mirrors the committed SUMMARY shape). No residual E2 finding.
+- (iii) E3: **PASS** — unchanged; no ledger/S1 code in the delta; the fresh dry runs still show the
+  addendum-2 S1 fail-closed on the uncorrected ledger (booked 133.6492, expected until the
+  addendum2-ledger step), entries pass, and the three S1 checks are unchanged.
+- (iv) gates/closure/budget/entries: **PASS** — unchanged; the delta is two files with no gate/S1/
+  cap/entries changes; the fresh dry runs reproduce the expected pre-reissue state with the gate
+  denying (a/a2 true, a3/b/c false), entries pass (40,183 → 39,983), closure pass, no setup errors,
+  and all addendum-2 setup modes present; Part B dry run closure/entries/manipulation pass and its
+  S1 fail-closed (expected).
+
+### Evidence (v2g/ on deepthought, v2g_dt2/ on deepthought2; SHA `5c11fe5`)
+
+- `v2g/summary.txt`: `SHA=5c11fe5f815bf188301199b93e00ee09cafe77e5 HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`; `v2g/pyflakes.log` empty (0 lines).
+- `v2g/focused_a.log`: `117 passed in 158.39s (0:02:38)`; `v2g/focused_b.log`:
+  `62 passed in 15.08s` (the expected counts).
+- `v2g/full_suite.log`: `1 failed, 847 passed, 2 skipped, 3 deselected in 1039.75s (0:17:19)`; the
+  failure is the same known pre-existing N16
+  `src/jepa_noise/tests/test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`
+  (untouched `ext_followup.py`; same at every prior SHA), not an addendum-2 regression; the three
+  deselections are the known `test_guard` launcher tests.
+- `v2g_dt2/summary.txt`: `SHA=5c11fe5… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `v2g_dt2/full_suite_dt2.log`: `848 passed, 2 skipped, 3 deselected in 990.98s (0:16:30)`.
+- `v2g/dryrun_a.log` + `v2g/repair_dryrun/dry_run.json` (Part A): exit 0; gate `denied` with
+  `gate_checks {a: true, a2: true, a3: false, b: false, c: false}` (8-key record without
+  addendum-2 fields; c false vs the recorded `impl_commit` — expected pre-reissue); addendum-2
+  caps 0.08 GPU / 3.0 CPU; gpu projection `{addendum-x2e: 0.06}`; cpu projection
+  `{addendum2-ledger: 0.05, addendum2-leace: 0.75, addendum2-report: 0.10, addendum-x2: 0.50}`;
+  `s1.pass = false` (fail closed: booked 133.6492 vs charged 129.7461); `addendum2_entries.pass =
+  true` (free 40,183 → 39,983, floor 30,000); all three addendum-2 modes present; `closure.pass =
+  true`, `errors []`.
+- `v2g/dryrun_b.log` + `v2g/shortcut_dryrun/plan.json` (Part B): exit 0, wall 79.403 s, gate
+  `denied` (a/a3/b/c false; closure true), `closure_pass: true`, `setup_errors: []`,
+  `manipulation_pass: true`, `addendum_entries_pass: true`, `addendum_s1_pass: false` (the Part B
+  S1 fails closed on the same uncorrected ledger — expected before the addendum2-ledger step).
+- Reviewer checks were read-only on `/ceph/dwong/jepa/code/jepa_work_20261107` with `TMPDIR` under
+  `/work/dwong/jepa_tmp_20261107/review_add7*` (removed afterwards); no GPU, no `/ceph` writes, no
+  commits/checkouts/resets. The production-shape demo output is above; the review file is the only
+  working-tree change.
+
+### Final reviewed object (final)
+
+- Reviewed SHA `5c11fe5f815bf188301199b93e00ee09cafe77e5` (= `origin/JEPA`); delta `e64eeb6..5c11fe5`
+  = exactly the two files above (+29/−8); scripts and all three runbooks unchanged; no source
+  outside the two. File sha256s and diff sha256s above.
+- Binding documents unchanged (combined `45e5ff98…`, addendum 1 `abe0904a…`, addendum 2
+  `b0cd727c…`).
+- Verdict: **PASS** — checklist (i) E1 PASS, (ii) E2 PASS (A2-1 and A2-2b closed), (iii) E3 PASS,
+  (iv) gates/closure/budget/entries PASS; 0 blocking findings, no residual E2 finding. The 10-key
+  acceptance can be re-issued with `impl_commit = 5c11fe5`, `addendum2_path =
+  docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md` and `addendum2_sha256 = b0cd727c…` (the
+  frozen value), and the §7 execution starts with addendum2-ledger → addendum-x2 → addendum2-leace
+  → addendum-x2e → addendum2-report.
