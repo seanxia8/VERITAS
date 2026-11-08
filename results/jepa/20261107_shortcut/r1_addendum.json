@@ -1,0 +1,1018 @@
+{
+ "registered": false,
+ "extension": "shortcut_followup_2026-11-07",
+ "id": "R-1",
+ "results_dir": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair",
+ "pilot_ext_root": "/ceph/dwong/jepa/returns/ext_repair_20261106",
+ "read_only": "the pilot's <ext> and results directories are never written",
+ "source": "d1_overlay",
+ "readings_basis": "d1_overlay",
+ "x2_source": {
+  "overlay": {
+   "path": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum/x2_addendum.json",
+   "present": true,
+   "n_models": 13,
+   "complete": true,
+   "unavailable": []
+  },
+  "marker": {
+   "corrected": true,
+   "marker": [
+    "X2-c",
+    "X2-d latent",
+    "X2-f",
+    "X2-e latent"
+   ],
+   "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+   "marker_present": true,
+   "addendum_sha256_ok": true,
+   "basis": "corrected_results"
+  },
+  "model_sources": {
+   "fix9000": "d1_overlay",
+   "fix9001": "d1_overlay",
+   "frozen_target9000": "d1_overlay",
+   "frozen_target9001": "d1_overlay",
+   "init9000": "d1_overlay",
+   "mae_across_trigger9000": "d1_overlay",
+   "mae_across_trigger9001": "d1_overlay",
+   "mae_within_trigger9000": "d1_overlay",
+   "mae_within_trigger9001": "d1_overlay",
+   "t1_s030_across_trigger9000": "d1_overlay",
+   "t1_s030_across_trigger9001": "d1_overlay",
+   "t1_s030_within_trigger9000": "d1_overlay",
+   "t1_s030_within_trigger9001": "d1_overlay"
+  },
+  "fallbacks": []
+ },
+ "source_order": [
+  "d1_overlay",
+  "corrected_results",
+  "7nov_results"
+ ],
+ "status": "complete",
+ "files": {
+  "readings.json": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/readings.json",
+   "exists": true
+  },
+  "x1.json": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x1.json",
+   "exists": true
+  },
+  "x2.json": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json",
+   "exists": true
+  }
+ },
+ "reading": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "id": "R-1 reading",
+  "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+  "caveat": "with 8 against 2 models this is a description, not a test",
+  "generative_median": {
+   "r2_eq": 0.32782040919346517,
+   "rho_lr": 0.35368085133225396,
+   "n_models": 8,
+   "n_core_models": 8,
+   "labels": [
+    "mae_within_trigger9000",
+    "mae_within_trigger9001",
+    "mae_across_trigger9000",
+    "mae_across_trigger9001",
+    "t1_s030_within_trigger9000",
+    "t1_s030_within_trigger9001",
+    "t1_s030_across_trigger9000",
+    "t1_s030_across_trigger9001"
+   ]
+  },
+  "frozen_target": {
+   "r2_eq": {
+    "9000": 0.7077025052837376,
+    "9001": 0.727779335545238
+   },
+   "rho_lr": {
+    "9000": 0.5577105207232913,
+    "9001": 0.5685811334651208
+   }
+  },
+  "verdict": "contradicts",
+  "note": "the generative median is below both frozen_target seeds on both quantities",
+  "comparisons": [
+   "below",
+   "below"
+  ],
+  "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+ },
+ "table": {
+  "fix9000": {
+   "family": "joint_embedding_collapsed",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.008041025945275554,
+   "r2_eq": 0.2514129671783629,
+   "x2_class": "partial",
+   "rho_lr": 0.20265506462947488,
+   "rho_swtw": 1.0028801074287108,
+   "rho_swunit": 1.0429887557432376,
+   "share_cs": 0.9893564988616376,
+   "delta_d": 0.01520501791673623,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.008041025945275554,
+    "numerator": 3.738494349383536e-05,
+    "denominator": 0.004649275322361149,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "fix9001": {
+   "family": "joint_embedding_collapsed",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.007240956848284572,
+   "r2_eq": 0.2880371343196978,
+   "x2_class": "partial",
+   "rho_lr": 0.24409833268787143,
+   "rho_swtw": 1.0114164761011544,
+   "rho_swunit": 1.0529066669902107,
+   "share_cs": 0.9924389264110064,
+   "delta_d": 0.016586361425603602,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.007240956848284572,
+    "numerator": 6.52980933075401e-05,
+    "denominator": 0.009017881845685855,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "frozen_target9000": {
+   "family": "joint_embedding_working",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.004834791219721498,
+   "r2_eq": 0.7077025052837376,
+   "x2_class": "latent repair works",
+   "rho_lr": 0.5577105207232913,
+   "rho_swtw": 1.003287712761013,
+   "rho_swunit": 1.0409601512032676,
+   "share_cs": 1.0022306694579364,
+   "delta_d": 0.021810905409914788,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "latent repair works",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.004834791219721498,
+    "numerator": 0.2708384714595799,
+    "denominator": 56.018648820823586,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "frozen_target9001": {
+   "family": "joint_embedding_working",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.003979084251575632,
+   "r2_eq": 0.727779335545238,
+   "x2_class": "latent repair works",
+   "rho_lr": 0.5685811334651208,
+   "rho_swtw": 0.9978333079740663,
+   "rho_swunit": 1.045243309848043,
+   "share_cs": 0.9957832489936345,
+   "delta_d": 0.01791625680355427,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "latent repair works",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.003979084251575632,
+    "numerator": 0.24416690989265383,
+    "denominator": 61.3625885895653,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "ijepa9000": {
+   "family": "joint_embedding_working",
+   "status": "available",
+   "payloads": [
+    "x1"
+   ],
+   "response_size": 0.0021022286853711195,
+   "r2_eq": null,
+   "x2_class": null,
+   "rho_lr": null,
+   "rho_swtw": 1.018468345107505,
+   "rho_swunit": 1.061813530509904,
+   "share_cs": 1.0219646070675326,
+   "delta_d": 0.018329741713045633,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "not classified",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0021022286853711195,
+    "numerator": 0.0005330839564994064,
+    "denominator": 0.2535803836228682,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "ijepa9001": {
+   "family": "joint_embedding_working",
+   "status": "available",
+   "payloads": [
+    "x1"
+   ],
+   "response_size": 0.0030318397742824747,
+   "r2_eq": null,
+   "x2_class": null,
+   "rho_lr": null,
+   "rho_swtw": 1.0064984896166693,
+   "rho_swunit": 1.0479717899739591,
+   "share_cs": 0.9924721430909993,
+   "delta_d": 0.02165434087514098,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "not classified",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0030318397742824747,
+    "numerator": 0.004636980263970131,
+    "denominator": 1.5294278752139976,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "init9000": {
+   "family": "untrained_reference",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.0027890383084515917,
+   "r2_eq": 0.7711081469884691,
+   "x2_class": "partial",
+   "rho_lr": 0.4109995713893464,
+   "rho_swtw": 0.9944793343149229,
+   "rho_swunit": 1.0376868417687692,
+   "share_cs": 0.9899615679795581,
+   "delta_d": 0.01657161737548593,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0027890383084515917,
+    "numerator": 0.06979917275787184,
+    "denominator": 25.02625100069805,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "mae_across_trigger9000": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.004160131043665091,
+   "r2_eq": 0.1901406644641499,
+   "x2_class": "partial",
+   "rho_lr": 0.30188880756966724,
+   "rho_swtw": 0.994802357054155,
+   "rho_swunit": 1.050459046633313,
+   "share_cs": 1.0020802975842615,
+   "delta_d": 0.008567628204729436,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.004160131043665091,
+    "numerator": 0.6229458865040689,
+    "denominator": 149.74189033123614,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "mae_across_trigger9001": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.006257023186817203,
+   "r2_eq": 0.22328999694044527,
+   "x2_class": "partial",
+   "rho_lr": 0.3342983489161232,
+   "rho_swtw": 0.998604994464385,
+   "rho_swunit": 1.0234884127037513,
+   "share_cs": 1.0184234714597573,
+   "delta_d": 0.017192167893439914,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.006257023186817203,
+    "numerator": 0.7958116996253726,
+    "denominator": 127.1869507055771,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "mae_within_median9000": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1"
+   ],
+   "response_size": 0.0019510078261059758,
+   "r2_eq": null,
+   "x2_class": null,
+   "rho_lr": null,
+   "rho_swtw": 1.001883441034805,
+   "rho_swunit": 1.05777704717017,
+   "share_cs": 1.011899161471919,
+   "delta_d": 0.01029495122540433,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "not classified",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0019510078261059758,
+    "numerator": 0.09043993658149858,
+    "denominator": 46.3554965650794,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "mae_within_median9001": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1"
+   ],
+   "response_size": 0.0022745497715704623,
+   "r2_eq": null,
+   "x2_class": null,
+   "rho_lr": null,
+   "rho_swtw": 0.9905227521812597,
+   "rho_swunit": 1.0577317627904668,
+   "share_cs": 0.9820518669671636,
+   "delta_d": 0.012227480906945892,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "not classified",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0022745497715704623,
+    "numerator": 0.10796790453029503,
+    "denominator": 47.46781357778274,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "mae_within_trigger9000": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.0021715969933637272,
+   "r2_eq": 0.6633901129102977,
+   "x2_class": "latent repair works",
+   "rho_lr": 0.5418381228684451,
+   "rho_swtw": 0.9874654998601331,
+   "rho_swunit": 1.0213227233664732,
+   "share_cs": 0.9655219635770047,
+   "delta_d": 0.009992455383611126,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "latent repair works",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0021715969933637272,
+    "numerator": 0.05361015053892884,
+    "denominator": 24.686970327716566,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "mae_within_trigger9001": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.0024921694305094604,
+   "r2_eq": 0.43284828854879354,
+   "x2_class": "partial",
+   "rho_lr": 0.310532948353783,
+   "rho_swtw": 0.996049578965043,
+   "rho_swunit": 1.0328200795571665,
+   "share_cs": 0.9887533404812484,
+   "delta_d": 0.01658199379954582,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0024921694305094604,
+    "numerator": 0.0796312727352586,
+    "denominator": 31.952591890584266,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "static_target9000": {
+   "family": "joint_embedding_collapsed",
+   "status": "available",
+   "payloads": [
+    "x1"
+   ],
+   "response_size": 0.0063222662746387345,
+   "r2_eq": null,
+   "x2_class": null,
+   "rho_lr": null,
+   "rho_swtw": 0.9993866577894799,
+   "rho_swunit": 1.0323432769718632,
+   "share_cs": 0.9898998304925308,
+   "delta_d": 0.02525942544267762,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "not classified",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.0063222662746387345,
+    "numerator": 0.25420228290690416,
+    "denominator": 40.207462302974534,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "static_target9001": {
+   "family": "joint_embedding_collapsed",
+   "status": "available",
+   "payloads": [
+    "x1"
+   ],
+   "response_size": 0.008168289114645602,
+   "r2_eq": null,
+   "x2_class": null,
+   "rho_lr": null,
+   "rho_swtw": 1.0041322381609692,
+   "rho_swunit": 1.0755124732204477,
+   "share_cs": 1.0011457408911153,
+   "delta_d": 0.017293190351014176,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "not classified",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.008168289114645602,
+    "numerator": 0.2930866149352572,
+    "denominator": 35.8810285509799,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "t1_s030_across_trigger9000": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.003169689573008583,
+   "r2_eq": 0.19230379889089821,
+   "x2_class": "fails",
+   "rho_lr": 0.15711286386053375,
+   "rho_swtw": 0.9956197637651626,
+   "rho_swunit": 1.031891258944269,
+   "share_cs": 0.9895513318801225,
+   "delta_d": 0.008433640984672919,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "fails",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.003169689573008583,
+    "numerator": 0.5081162828814109,
+    "denominator": 160.304746309627,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "t1_s030_across_trigger9001": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.00488135301101286,
+   "r2_eq": 0.20491442510576785,
+   "x2_class": "partial",
+   "rho_lr": 0.37306335374838473,
+   "rho_swtw": 1.0018275442790123,
+   "rho_swunit": 1.0540052135972968,
+   "share_cs": 1.0094562235253006,
+   "delta_d": 0.011860701886699465,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.00488135301101286,
+    "numerator": 0.672812654818945,
+    "denominator": 137.83323052051492,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "t1_s030_within_trigger9000": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.003192403472218899,
+   "r2_eq": 0.46685642084042944,
+   "x2_class": "partial",
+   "rho_lr": 0.4216214994809117,
+   "rho_swtw": 0.9872548986898794,
+   "rho_swunit": 1.0268572604523896,
+   "share_cs": 0.9654578177262231,
+   "delta_d": 0.010911218460486441,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.003192403472218899,
+    "numerator": 0.07192156659202296,
+    "denominator": 22.528971421658508,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  },
+  "t1_s030_within_trigger9001": {
+   "family": "generative",
+   "status": "available",
+   "payloads": [
+    "x1",
+    "x2"
+   ],
+   "response_size": 0.003533336858474822,
+   "r2_eq": 0.43235082144648507,
+   "x2_class": "partial",
+   "rho_lr": 0.3806028580592487,
+   "rho_swtw": 1.0004712544379688,
+   "rho_swunit": 1.0485664780238004,
+   "share_cs": 1.0114691021373188,
+   "delta_d": 0.009850747625732667,
+   "delta_d_eligible": true,
+   "f_layout": null,
+   "f_event": null,
+   "class": "partial",
+   "information_losing_candidate": false,
+   "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
+   "response_size_detail": {
+    "response_size": 0.003533336858474822,
+    "numerator": 0.13101042032165397,
+    "denominator": 37.07838385333152,
+    "n_paired": 3400,
+    "dim": 128,
+    "definition": "E||z_D - z_N||^2 / E||z_N - mean(z_N)||^2, paired on (run_id, event_id)"
+   }
+  }
+ },
+ "unknown_labels": [
+  "9000",
+  "9001"
+ ],
+ "n_models": 19,
+ "response_size_available": true,
+ "r1": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "id": "R-1 reading",
+  "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+  "caveat": "with 8 against 2 models this is a description, not a test",
+  "generative_median": {
+   "r2_eq": 0.32782040919346517,
+   "rho_lr": 0.35368085133225396,
+   "n_models": 8,
+   "n_core_models": 8,
+   "labels": [
+    "mae_within_trigger9000",
+    "mae_within_trigger9001",
+    "mae_across_trigger9000",
+    "mae_across_trigger9001",
+    "t1_s030_within_trigger9000",
+    "t1_s030_within_trigger9001",
+    "t1_s030_across_trigger9000",
+    "t1_s030_across_trigger9001"
+   ]
+  },
+  "frozen_target": {
+   "r2_eq": {
+    "9000": 0.7077025052837376,
+    "9001": 0.727779335545238
+   },
+   "rho_lr": {
+    "9000": 0.5577105207232913,
+    "9001": 0.5685811334651208
+   }
+  },
+  "verdict": "contradicts",
+  "note": "the generative median is below both frozen_target seeds on both quantities",
+  "comparisons": [
+   "below",
+   "below"
+  ],
+  "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+ },
+ "R-1": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "id": "R-1 reading",
+  "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+  "caveat": "with 8 against 2 models this is a description, not a test",
+  "generative_median": {
+   "r2_eq": 0.32782040919346517,
+   "rho_lr": 0.35368085133225396,
+   "n_models": 8,
+   "n_core_models": 8,
+   "labels": [
+    "mae_within_trigger9000",
+    "mae_within_trigger9001",
+    "mae_across_trigger9000",
+    "mae_across_trigger9001",
+    "t1_s030_within_trigger9000",
+    "t1_s030_within_trigger9001",
+    "t1_s030_across_trigger9000",
+    "t1_s030_across_trigger9001"
+   ]
+  },
+  "frozen_target": {
+   "r2_eq": {
+    "9000": 0.7077025052837376,
+    "9001": 0.727779335545238
+   },
+   "rho_lr": {
+    "9000": 0.5577105207232913,
+    "9001": 0.5685811334651208
+   }
+  },
+  "verdict": "contradicts",
+  "note": "the generative median is below both frozen_target seeds on both quantities",
+  "comparisons": [
+   "below",
+   "below"
+  ],
+  "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+ },
+ "gate": {
+  "authorised": true,
+  "status": "granted",
+  "mode": "addendum-r1",
+  "extension": "shortcut_followup_2026-11-07",
+  "checks": {
+   "a": {
+    "pass": true,
+    "runbook": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "expected_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "author_line": "\u4e00\u4e8c\u4e09\u6211\u90fd\u6279\uff0c\u5199\u6210\u4e00\u4e2arunbook",
+    "author_line_in_section_zero": true,
+    "addendum": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+    "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+    "addendum_sha256_committed": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+    "expected_addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+    "addendum_sha256_pass": true,
+    "addendum_author_line": "\u5199\u8fdbweekly report\uff0c\u7136\u540e\u6211\u9009A\uff0c\u4f60\u5199\u4e00\u4e2a\u5c0frunbook",
+    "addendum_author_line_in_section_zero": true,
+    "addendum_path_in_record": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+    "addendum_path_match": true,
+    "pending_acceptance": false
+   },
+   "b": {
+    "pass": true,
+    "status": "PASS",
+    "record": {
+     "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+     "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+     "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "review_verdict": "PASS",
+     "lead": "Dowling Wong (author, lead)",
+     "date": "2026-11-08",
+     "addendum_path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+     "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a"
+    },
+    "missing_keys": [],
+    "review_verdict": "PASS"
+   },
+   "c": {
+    "pass": true,
+    "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+    "impl_commit_source": "acceptance_record",
+    "diff_clean": true,
+    "diff_error": null,
+    "untracked": [],
+    "paths": [
+     "src/jepa_noise/__init__.py",
+     "src/jepa_noise/ext_shortcut.py",
+     "src/jepa_noise/ext_h12.py",
+     "src/jepa_noise/ext_readout.py",
+     "src/jepa_noise/ext_followup.py",
+     "src/jepa_noise/lucid_run.py",
+     "src/jepa_noise/lucid_arms.py",
+     "src/jepa_noise/lucid_bombs.py",
+     "src/jepa_noise/lucid_views.py",
+     "src/jepa_noise/point_encoder.py",
+     "src/jepa_noise/bridge_run.py",
+     "src/jepa_noise/train.py",
+     "src/jepa_noise/crlb.py",
+     "src/jepa_noise/jepa.py",
+     "src/jepa_noise/backbone.py",
+     "src/jepa_noise/linear.py",
+     "src/jepa_noise/probes.py",
+     "src/jepa_noise/metrics.py",
+     "src/jepa_noise/sigreg.py",
+     "scripts/__init__.py",
+     "scripts/jepa_ext_shortcut.py",
+     "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+     "src/noise_module_lucid/",
+     "src/jepa_noise/configs/"
+    ]
+   }
+  },
+  "problems": [],
+  "acceptance": {
+   "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+   "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+   "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+   "review_verdict": "PASS",
+   "lead": "Dowling Wong (author, lead)",
+   "date": "2026-11-08",
+   "addendum_path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+   "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a"
+  },
+  "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b"
+ },
+ "mode": "addendum-r1",
+ "entries": {
+  "registered": false,
+  "extension": "shortcut_followup_2026-11-07",
+  "id": "entries-preflight (addendum)",
+  "snapshot": {
+   "available": true,
+   "basis": "live CephFS quota xattrs",
+   "free_entries": 40906,
+   "path": "/ceph/dwong",
+   "live": {
+    "available": true,
+    "basis": "live CephFS quota xattrs",
+    "path": "/ceph/dwong",
+    "quota_max_files": 500000,
+    "quota_rfiles": 388527,
+    "quota_rsubdirs": 70567,
+    "free_entries": 40906,
+    "free_entries_clamped": false,
+    "rule": "free_entries = ceph.quota.max_files - ceph.dir.rfiles - ceph.dir.rsubdirs (the guard's own rule)"
+   },
+   "guard_snapshot": null
+  },
+  "floor": 30000,
+  "projected_writes": 200,
+  "projected_writes_basis": "the addendum's own writes only (no clone/suite/Part A/B terms; a small constant)",
+  "rule": "free entries >= 30000 AND free - projected addendum writes (200) >= 30000",
+  "part_caps_consulted": false,
+  "free_before": 40906,
+  "projected_after": 40706,
+  "pass": true
+ },
+ "budget_before": {
+  "kind": "cpu",
+  "part": "B",
+  "spent_hours": 0.7432,
+  "estimate_hours": 0.02,
+  "projected_total_hours": 0.7632,
+  "cap_hours": 3.0,
+  "pass": true,
+  "ledger": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+ },
+ "wall_seconds": 8.787,
+ "code_sha": "d84d0578d008ca9be97eeabf7dc7b3cff89e0648",
+ "addendum": {
+  "path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+  "sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+  "date": "2026-11-07",
+  "hand_off": "stable results-dir R-1 for the Part A superseded table (addendum A2)"
+ },
+ "pilot_files": {
+  "readings.json": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/readings.json",
+   "sha256": "57bd908b520b8346d52fd8b74543424bde8470128531322bf103a21d303cc118"
+  },
+  "x1.json": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x1.json",
+   "sha256": "35fd7b06df97b516664b021c473f508946f4c201c61eb7f11ce62c8c9c429317"
+  },
+  "x2.json": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json",
+   "sha256": "9f479f74dd473e36ad0df61674c35c07624e2539204479f5fd9fd6417a0dccb6"
+  }
+ },
+ "addendum_job": {
+  "utc": "2026-11-08T01:48:02Z",
+  "part": "B",
+  "mode": "addendum-r1",
+  "kind": "cpu",
+  "wall_seconds": 8.787,
+  "hours": 0.002441
+ },
+ "import_closure": {
+  "checked_modules": 25,
+  "outside_allowlist": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "part_b_forced_transitive_imports": [
+   {
+    "module": "jepa_noise.ext_arch",
+    "path": "src/jepa_noise/ext_arch.py"
+   },
+   {
+    "module": "jepa_noise.ext_dejitter",
+    "path": "src/jepa_noise/ext_dejitter.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ },
+ "results_copy": {
+  "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/r1_addendum.json",
+  "sha256": "7a345701a8ff2c89286cc47ba06f180a401807a1641029020c09eb174f8bbf36",
+  "status": "complete",
+  "reading": {
+   "registered": false,
+   "extension": "shortcut_followup_2026-11-07",
+   "id": "R-1 reading",
+   "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+   "caveat": "with 8 against 2 models this is a description, not a test",
+   "generative_median": {
+    "r2_eq": 0.32782040919346517,
+    "rho_lr": 0.35368085133225396,
+    "n_models": 8,
+    "n_core_models": 8,
+    "labels": [
+     "mae_within_trigger9000",
+     "mae_within_trigger9001",
+     "mae_across_trigger9000",
+     "mae_across_trigger9001",
+     "t1_s030_within_trigger9000",
+     "t1_s030_within_trigger9001",
+     "t1_s030_across_trigger9000",
+     "t1_s030_across_trigger9001"
+    ]
+   },
+   "frozen_target": {
+    "r2_eq": {
+     "9000": 0.7077025052837376,
+     "9001": 0.727779335545238
+    },
+    "rho_lr": {
+     "9000": 0.5577105207232913,
+     "9001": 0.5685811334651208
+    }
+   },
+   "verdict": "contradicts",
+   "note": "the generative median is below both frozen_target seeds on both quantities",
+   "comparisons": [
+    "below",
+    "below"
+   ],
+   "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+  }
+ },
+ "stable_path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/r1_addendum.json"
+}

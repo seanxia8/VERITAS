@@ -3,9 +3,15 @@
  "extension": "shortcut_followup_2026-11-07",
  "variant": "target_posfree",
  "r2_a": {
-  "class": "single-seed (not classified)",
-  "f_event": {},
-  "seeds": [],
+  "class": "event-dependent",
+  "f_event": {
+   "9000": 0.06589960550569159,
+   "9001": 0.036672098749907664
+  },
+  "seeds": [
+   9000,
+   9001
+  ],
   "id": "R2-a",
   "question": "the \u00a74 class of target_posfree on full-input f_event"
  },
@@ -15,8 +21,25 @@
   "id": "R2-b",
   "question": "does the position-free trainable target recover the event-invariant collapse?",
   "criteria": "recovered: both seeds full vertex < 0.160072, full token R2 >= 0.5, half vertex < 0.174821, half token R2 >= 0.5; not recovered: both seeds full vertex >= 0.160072 or full token R2 < 0.5",
-  "verdict": "unclear",
-  "seeds": {},
+  "verdict": "recovered",
+  "seeds": {
+   "9000": {
+    "full_input_vertex_m": 0.12600451326211795,
+    "full_input_token_r2": 0.8841845168723949,
+    "half_pass_vertex_m": 0.12460135390386222,
+    "half_pass_token_r2": 0.6597461537997569,
+    "recovers": true,
+    "fails": false
+   },
+   "9001": {
+    "full_input_vertex_m": 0.14054395507374678,
+    "full_input_token_r2": 0.920046283987909,
+    "half_pass_vertex_m": 0.1238527168376513,
+    "half_pass_token_r2": 0.7048439799114032,
+    "recovers": true,
+    "fails": false
+   }
+  },
   "floors": {
    "full_input_m": 0.160072,
    "half_pass_m": 0.174821,
@@ -26,7 +49,33 @@
  "r2_c": {
   "id": "R2-c",
   "descriptive": true,
-  "seeds": {},
+  "status": "complete",
+  "seeds": {
+   "9000": {
+    "full_input_vertex_m": 0.12600451326211795,
+    "full_input_token_r2": 0.8841845168723949,
+    "half_pass_vertex_m": 0.12460135390386222,
+    "half_pass_token_r2": 0.6597461537997569,
+    "effective_rank": 1.544040380186372,
+    "module_gain_r2": 0.05600730245408525,
+    "f_layout": 0.8110587753836266,
+    "label_pass_f_event": 0.010407928039023974,
+    "label_pass_f_layout": 0.6597301316186476,
+    "label_pass_n_events": 64
+   },
+   "9001": {
+    "full_input_vertex_m": 0.14054395507374678,
+    "full_input_token_r2": 0.920046283987909,
+    "half_pass_vertex_m": 0.1238527168376513,
+    "half_pass_token_r2": 0.7048439799114032,
+    "effective_rank": 1.5552392156754251,
+    "module_gain_r2": 0.06080460057343873,
+    "f_layout": 0.8795724539021977,
+    "label_pass_f_event": 0.020311044132744687,
+    "label_pass_f_layout": 0.6679501178383322,
+    "label_pass_n_events": 64
+   }
+  },
   "references": {
    "fix_full_vertex_m": [
     0.219259,
@@ -53,6 +102,51 @@
   "results_dir": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair",
   "pilot_ext_root": "/ceph/dwong/jepa/returns/ext_repair_20261106",
   "read_only": "the pilot's <ext> and results directories are never written",
+  "source": "d1_overlay",
+  "readings_basis": "d1_overlay",
+  "x2_source": {
+   "overlay": {
+    "path": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum/x2_addendum.json",
+    "present": true,
+    "n_models": 13,
+    "complete": true,
+    "unavailable": []
+   },
+   "marker": {
+    "corrected": true,
+    "marker": [
+     "X2-c",
+     "X2-d latent",
+     "X2-f",
+     "X2-e latent"
+    ],
+    "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+    "marker_present": true,
+    "addendum_sha256_ok": true,
+    "basis": "corrected_results"
+   },
+   "model_sources": {
+    "fix9000": "d1_overlay",
+    "fix9001": "d1_overlay",
+    "frozen_target9000": "d1_overlay",
+    "frozen_target9001": "d1_overlay",
+    "init9000": "d1_overlay",
+    "mae_across_trigger9000": "d1_overlay",
+    "mae_across_trigger9001": "d1_overlay",
+    "mae_within_trigger9000": "d1_overlay",
+    "mae_within_trigger9001": "d1_overlay",
+    "t1_s030_across_trigger9000": "d1_overlay",
+    "t1_s030_across_trigger9001": "d1_overlay",
+    "t1_s030_within_trigger9000": "d1_overlay",
+    "t1_s030_within_trigger9001": "d1_overlay"
+   },
+   "fallbacks": []
+  },
+  "source_order": [
+   "d1_overlay",
+   "corrected_results",
+   "7nov_results"
+  ],
   "status": "complete",
   "files": {
    "readings.json": {
@@ -76,7 +170,7 @@
    "caveat": "with 8 against 2 models this is a description, not a test",
    "generative_median": {
     "r2_eq": 0.32782040919346517,
-    "rho_lr": -0.6778596241548251,
+    "rho_lr": 0.35368085133225396,
     "n_models": 8,
     "n_core_models": 8,
     "labels": [
@@ -96,8 +190,8 @@
      "9001": 0.727779335545238
     },
     "rho_lr": {
-     "9000": -0.533840048787172,
-     "9001": -0.5864968707636384
+     "9000": 0.5577105207232913,
+     "9001": 0.5685811334651208
     }
    },
    "verdict": "contradicts",
@@ -118,8 +212,8 @@
     ],
     "response_size": 0.008041025945275554,
     "r2_eq": 0.2514129671783629,
-    "x2_class": "non-equivariant",
-    "rho_lr": -0.8887818262789069,
+    "x2_class": "partial",
+    "rho_lr": 0.20265506462947488,
     "rho_swtw": 1.0028801074287108,
     "rho_swunit": 1.0429887557432376,
     "share_cs": 0.9893564988616376,
@@ -127,7 +221,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "non-equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -148,8 +242,8 @@
     ],
     "response_size": 0.007240956848284572,
     "r2_eq": 0.2880371343196978,
-    "x2_class": "non-equivariant",
-    "rho_lr": -0.8354556194642937,
+    "x2_class": "partial",
+    "rho_lr": 0.24409833268787143,
     "rho_swtw": 1.0114164761011544,
     "rho_swunit": 1.0529066669902107,
     "share_cs": 0.9924389264110064,
@@ -157,7 +251,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "non-equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -178,8 +272,8 @@
     ],
     "response_size": 0.004834791219721498,
     "r2_eq": 0.7077025052837376,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.533840048787172,
+    "x2_class": "latent repair works",
+    "rho_lr": 0.5577105207232913,
     "rho_swtw": 1.003287712761013,
     "rho_swunit": 1.0409601512032676,
     "share_cs": 1.0022306694579364,
@@ -187,7 +281,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "latent repair works",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -208,8 +302,8 @@
     ],
     "response_size": 0.003979084251575632,
     "r2_eq": 0.727779335545238,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.5864968707636384,
+    "x2_class": "latent repair works",
+    "rho_lr": 0.5685811334651208,
     "rho_swtw": 0.9978333079740663,
     "rho_swunit": 1.045243309848043,
     "share_cs": 0.9957832489936345,
@@ -217,7 +311,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "latent repair works",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -296,8 +390,8 @@
     ],
     "response_size": 0.0027890383084515917,
     "r2_eq": 0.7711081469884691,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.7046875991796347,
+    "x2_class": "partial",
+    "rho_lr": 0.4109995713893464,
     "rho_swtw": 0.9944793343149229,
     "rho_swunit": 1.0376868417687692,
     "share_cs": 0.9899615679795581,
@@ -305,7 +399,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -326,8 +420,8 @@
     ],
     "response_size": 0.004160131043665091,
     "r2_eq": 0.1901406644641499,
-    "x2_class": "non-equivariant",
-    "rho_lr": -0.7192959824175895,
+    "x2_class": "partial",
+    "rho_lr": 0.30188880756966724,
     "rho_swtw": 0.994802357054155,
     "rho_swunit": 1.050459046633313,
     "share_cs": 1.0020802975842615,
@@ -335,7 +429,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "non-equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -356,8 +450,8 @@
     ],
     "response_size": 0.006257023186817203,
     "r2_eq": 0.22328999694044527,
-    "x2_class": "non-equivariant",
-    "rho_lr": -1.0228357203803662,
+    "x2_class": "partial",
+    "rho_lr": 0.3342983489161232,
     "rho_swtw": 0.998604994464385,
     "rho_swunit": 1.0234884127037513,
     "share_cs": 1.0184234714597573,
@@ -365,7 +459,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "non-equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -444,8 +538,8 @@
     ],
     "response_size": 0.0021715969933637272,
     "r2_eq": 0.6633901129102977,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.6364232658920607,
+    "x2_class": "latent repair works",
+    "rho_lr": 0.5418381228684451,
     "rho_swtw": 0.9874654998601331,
     "rho_swunit": 1.0213227233664732,
     "share_cs": 0.9655219635770047,
@@ -453,7 +547,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "latent repair works",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -474,8 +568,8 @@
     ],
     "response_size": 0.0024921694305094604,
     "r2_eq": 0.43284828854879354,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.6304387006267047,
+    "x2_class": "partial",
+    "rho_lr": 0.310532948353783,
     "rho_swtw": 0.996049578965043,
     "rho_swunit": 1.0328200795571665,
     "share_cs": 0.9887533404812484,
@@ -483,7 +577,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -562,8 +656,8 @@
     ],
     "response_size": 0.003169689573008583,
     "r2_eq": 0.19230379889089821,
-    "x2_class": "non-equivariant",
-    "rho_lr": -1.2290302549342118,
+    "x2_class": "fails",
+    "rho_lr": 0.15711286386053375,
     "rho_swtw": 0.9956197637651626,
     "rho_swunit": 1.031891258944269,
     "share_cs": 0.9895513318801225,
@@ -571,7 +665,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "non-equivariant",
+    "class": "fails",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -592,8 +686,8 @@
     ],
     "response_size": 0.00488135301101286,
     "r2_eq": 0.20491442510576785,
-    "x2_class": "non-equivariant",
-    "rho_lr": -0.5486774170471186,
+    "x2_class": "partial",
+    "rho_lr": 0.37306335374838473,
     "rho_swtw": 1.0018275442790123,
     "rho_swunit": 1.0540052135972968,
     "share_cs": 1.0094562235253006,
@@ -601,7 +695,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "non-equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -622,8 +716,8 @@
     ],
     "response_size": 0.003192403472218899,
     "r2_eq": 0.46685642084042944,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.500949910210284,
+    "x2_class": "partial",
+    "rho_lr": 0.4216214994809117,
     "rho_swtw": 0.9872548986898794,
     "rho_swunit": 1.0268572604523896,
     "share_cs": 0.9654578177262231,
@@ -631,7 +725,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -652,8 +746,8 @@
     ],
     "response_size": 0.003533336858474822,
     "r2_eq": 0.43235082144648507,
-    "x2_class": "partly equivariant",
-    "rho_lr": -0.7885105605081398,
+    "x2_class": "partial",
+    "rho_lr": 0.3806028580592487,
     "rho_swtw": 1.0004712544379688,
     "rho_swunit": 1.0485664780238004,
     "share_cs": 1.0114691021373188,
@@ -661,7 +755,7 @@
     "delta_d_eligible": true,
     "f_layout": null,
     "f_event": null,
-    "class": "partly equivariant",
+    "class": "partial",
     "information_losing_candidate": false,
     "criteria": "invariant: S < 0.01 and \u0394_D not eligible; otherwise the X2-b class; flagged information-losing (candidate) when \u0394_D is eligible and every repair \u03c1 <= 0.2",
     "response_size_detail": {
@@ -679,6 +773,499 @@
    "9001"
   ],
   "n_models": 19,
-  "response_size_available": true
+  "response_size_available": true,
+  "r1": {
+   "registered": false,
+   "extension": "shortcut_followup_2026-11-07",
+   "id": "R-1 reading",
+   "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+   "caveat": "with 8 against 2 models this is a description, not a test",
+   "generative_median": {
+    "r2_eq": 0.32782040919346517,
+    "rho_lr": 0.35368085133225396,
+    "n_models": 8,
+    "n_core_models": 8,
+    "labels": [
+     "mae_within_trigger9000",
+     "mae_within_trigger9001",
+     "mae_across_trigger9000",
+     "mae_across_trigger9001",
+     "t1_s030_within_trigger9000",
+     "t1_s030_within_trigger9001",
+     "t1_s030_across_trigger9000",
+     "t1_s030_across_trigger9001"
+    ]
+   },
+   "frozen_target": {
+    "r2_eq": {
+     "9000": 0.7077025052837376,
+     "9001": 0.727779335545238
+    },
+    "rho_lr": {
+     "9000": 0.5577105207232913,
+     "9001": 0.5685811334651208
+    }
+   },
+   "verdict": "contradicts",
+   "note": "the generative median is below both frozen_target seeds on both quantities",
+   "comparisons": [
+    "below",
+    "below"
+   ],
+   "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+  },
+  "R-1": {
+   "registered": false,
+   "extension": "shortcut_followup_2026-11-07",
+   "id": "R-1 reading",
+   "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+   "caveat": "with 8 against 2 models this is a description, not a test",
+   "generative_median": {
+    "r2_eq": 0.32782040919346517,
+    "rho_lr": 0.35368085133225396,
+    "n_models": 8,
+    "n_core_models": 8,
+    "labels": [
+     "mae_within_trigger9000",
+     "mae_within_trigger9001",
+     "mae_across_trigger9000",
+     "mae_across_trigger9001",
+     "t1_s030_within_trigger9000",
+     "t1_s030_within_trigger9001",
+     "t1_s030_across_trigger9000",
+     "t1_s030_across_trigger9001"
+    ]
+   },
+   "frozen_target": {
+    "r2_eq": {
+     "9000": 0.7077025052837376,
+     "9001": 0.727779335545238
+    },
+    "rho_lr": {
+     "9000": 0.5577105207232913,
+     "9001": 0.5685811334651208
+    }
+   },
+   "verdict": "contradicts",
+   "note": "the generative median is below both frozen_target seeds on both quantities",
+   "comparisons": [
+    "below",
+    "below"
+   ],
+   "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+  },
+  "gate": {
+   "authorised": true,
+   "status": "granted",
+   "mode": "addendum-r1",
+   "extension": "shortcut_followup_2026-11-07",
+   "checks": {
+    "a": {
+     "pass": true,
+     "runbook": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+     "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+     "expected_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+     "author_line": "\u4e00\u4e8c\u4e09\u6211\u90fd\u6279\uff0c\u5199\u6210\u4e00\u4e2arunbook",
+     "author_line_in_section_zero": true,
+     "addendum": "/ceph/dwong/jepa/code/followup_20261103/docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+     "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+     "addendum_sha256_committed": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+     "expected_addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+     "addendum_sha256_pass": true,
+     "addendum_author_line": "\u5199\u8fdbweekly report\uff0c\u7136\u540e\u6211\u9009A\uff0c\u4f60\u5199\u4e00\u4e2a\u5c0frunbook",
+     "addendum_author_line_in_section_zero": true,
+     "addendum_path_in_record": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+     "addendum_path_match": true,
+     "pending_acceptance": false
+    },
+    "b": {
+     "pass": true,
+     "status": "PASS",
+     "record": {
+      "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+      "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+      "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+      "review_verdict": "PASS",
+      "lead": "Dowling Wong (author, lead)",
+      "date": "2026-11-08",
+      "addendum_path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+      "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a"
+     },
+     "missing_keys": [],
+     "review_verdict": "PASS"
+    },
+    "c": {
+     "pass": true,
+     "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+     "impl_commit_source": "acceptance_record",
+     "diff_clean": true,
+     "diff_error": null,
+     "untracked": [],
+     "paths": [
+      "src/jepa_noise/__init__.py",
+      "src/jepa_noise/ext_shortcut.py",
+      "src/jepa_noise/ext_h12.py",
+      "src/jepa_noise/ext_readout.py",
+      "src/jepa_noise/ext_followup.py",
+      "src/jepa_noise/lucid_run.py",
+      "src/jepa_noise/lucid_arms.py",
+      "src/jepa_noise/lucid_bombs.py",
+      "src/jepa_noise/lucid_views.py",
+      "src/jepa_noise/point_encoder.py",
+      "src/jepa_noise/bridge_run.py",
+      "src/jepa_noise/train.py",
+      "src/jepa_noise/crlb.py",
+      "src/jepa_noise/jepa.py",
+      "src/jepa_noise/backbone.py",
+      "src/jepa_noise/linear.py",
+      "src/jepa_noise/probes.py",
+      "src/jepa_noise/metrics.py",
+      "src/jepa_noise/sigreg.py",
+      "scripts/__init__.py",
+      "scripts/jepa_ext_shortcut.py",
+      "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
+      "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+      "src/noise_module_lucid/",
+      "src/jepa_noise/configs/"
+     ]
+    }
+   },
+   "problems": [],
+   "acceptance": {
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+    "review_path": "docs/jepa/REVIEW_2026-11-07_REPAIR_AND_SHORTCUT.md",
+    "review_verdict": "PASS",
+    "lead": "Dowling Wong (author, lead)",
+    "date": "2026-11-08",
+    "addendum_path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+    "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a"
+   },
+   "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b"
+  },
+  "mode": "addendum-r1",
+  "entries": {
+   "registered": false,
+   "extension": "shortcut_followup_2026-11-07",
+   "id": "entries-preflight (addendum)",
+   "snapshot": {
+    "available": true,
+    "basis": "live CephFS quota xattrs",
+    "free_entries": 40906,
+    "path": "/ceph/dwong",
+    "live": {
+     "available": true,
+     "basis": "live CephFS quota xattrs",
+     "path": "/ceph/dwong",
+     "quota_max_files": 500000,
+     "quota_rfiles": 388527,
+     "quota_rsubdirs": 70567,
+     "free_entries": 40906,
+     "free_entries_clamped": false,
+     "rule": "free_entries = ceph.quota.max_files - ceph.dir.rfiles - ceph.dir.rsubdirs (the guard's own rule)"
+    },
+    "guard_snapshot": null
+   },
+   "floor": 30000,
+   "projected_writes": 200,
+   "projected_writes_basis": "the addendum's own writes only (no clone/suite/Part A/B terms; a small constant)",
+   "rule": "free entries >= 30000 AND free - projected addendum writes (200) >= 30000",
+   "part_caps_consulted": false,
+   "free_before": 40906,
+   "projected_after": 40706,
+   "pass": true
+  },
+  "budget_before": {
+   "kind": "cpu",
+   "part": "B",
+   "spent_hours": 0.7432,
+   "estimate_hours": 0.02,
+   "projected_total_hours": 0.7632,
+   "cap_hours": 3.0,
+   "pass": true,
+   "ledger": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+  },
+  "wall_seconds": 8.787,
+  "code_sha": "d84d0578d008ca9be97eeabf7dc7b3cff89e0648",
+  "addendum": {
+   "path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+   "sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+   "date": "2026-11-07",
+   "author_line": "\u5199\u8fdbweekly report\uff0c\u7136\u540e\u6211\u9009A\uff0c\u4f60\u5199\u4e00\u4e2a\u5c0frunbook",
+   "read_only": "the pilot's x1.json/x2.json/readings.json are never written"
+  },
+  "pilot_files": {
+   "readings.json": {
+    "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/readings.json",
+    "sha256": "57bd908b520b8346d52fd8b74543424bde8470128531322bf103a21d303cc118"
+   },
+   "x1.json": {
+    "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x1.json",
+    "sha256": "35fd7b06df97b516664b021c473f508946f4c201c61eb7f11ce62c8c9c429317"
+   },
+   "x2.json": {
+    "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json",
+    "sha256": "9f479f74dd473e36ad0df61674c35c07624e2539204479f5fd9fd6417a0dccb6"
+   }
+  },
+  "addendum_job": {
+   "utc": "2026-11-08T01:48:02Z",
+   "part": "B",
+   "mode": "addendum-r1",
+   "kind": "cpu",
+   "wall_seconds": 8.787,
+   "hours": 0.002441
+  },
+  "import_closure": {
+   "checked_modules": 25,
+   "outside_allowlist": [
+    {
+     "module": "jepa_noise.ext_arch",
+     "path": "src/jepa_noise/ext_arch.py"
+    },
+    {
+     "module": "jepa_noise.ext_dejitter",
+     "path": "src/jepa_noise/ext_dejitter.py"
+    },
+    {
+     "module": "reconstruction_model",
+     "path": "src/reconstruction_model/__init__.py"
+    },
+    {
+     "module": "reconstruction_model.model",
+     "path": "src/reconstruction_model/model.py"
+    },
+    {
+     "module": "reconstruction_model.muon",
+     "path": "src/reconstruction_model/muon.py"
+    }
+   ],
+   "forced_import_exceptions": [
+    {
+     "module": "reconstruction_model",
+     "path": "src/reconstruction_model/__init__.py"
+    },
+    {
+     "module": "reconstruction_model.model",
+     "path": "src/reconstruction_model/model.py"
+    },
+    {
+     "module": "reconstruction_model.muon",
+     "path": "src/reconstruction_model/muon.py"
+    }
+   ],
+   "part_b_forced_transitive_imports": [
+    {
+     "module": "jepa_noise.ext_arch",
+     "path": "src/jepa_noise/ext_arch.py"
+    },
+    {
+     "module": "jepa_noise.ext_dejitter",
+     "path": "src/jepa_noise/ext_dejitter.py"
+    }
+   ],
+   "violations": [],
+   "pass": true
+  },
+  "results_copy": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/r1_addendum.json",
+   "sha256": "7a345701a8ff2c89286cc47ba06f180a401807a1641029020c09eb174f8bbf36",
+   "status": "complete",
+   "reading": {
+    "registered": false,
+    "extension": "shortcut_followup_2026-11-07",
+    "id": "R-1 reading",
+    "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+    "caveat": "with 8 against 2 models this is a description, not a test",
+    "generative_median": {
+     "r2_eq": 0.32782040919346517,
+     "rho_lr": 0.35368085133225396,
+     "n_models": 8,
+     "n_core_models": 8,
+     "labels": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001"
+     ]
+    },
+    "frozen_target": {
+     "r2_eq": {
+      "9000": 0.7077025052837376,
+      "9001": 0.727779335545238
+     },
+     "rho_lr": {
+      "9000": 0.5577105207232913,
+      "9001": 0.5685811334651208
+     }
+    },
+    "verdict": "contradicts",
+    "note": "the generative median is below both frozen_target seeds on both quantities",
+    "comparisons": [
+     "below",
+     "below"
+    ],
+    "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+   }
+  }
+ },
+ "status": "complete",
+ "addendum": {
+  "path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+  "sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+  "date": "2026-11-07",
+  "author_line": "\u5199\u8fdbweekly report\uff0c\u7136\u540e\u6211\u9009A\uff0c\u4f60\u5199\u4e00\u4e2a\u5c0frunbook",
+  "status": "updated",
+  "evaluation": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/eval/addendum_eval.json",
+  "r2_status": "complete",
+  "r1_status": "complete",
+  "complete": true,
+  "completeness": {
+   "R2-a": {
+    "status": "complete",
+    "value": "event-dependent"
+   },
+   "R2-b": {
+    "status": "complete",
+    "value": "recovered"
+   },
+   "R2-c": {
+    "status": "complete",
+    "seeds": [
+     "9000",
+     "9001"
+    ]
+   },
+   "R-1": {
+    "status": "complete",
+    "value": "contradicts"
+   }
+  },
+  "superseded": [
+   {
+    "quantity": "R-1 generative-median \u03c1_LR",
+    "superseded_7_nov": -0.6778596241548251,
+    "new_value": 0.35368085133225396,
+    "changed": true,
+    "defect": "D1",
+    "evidence": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json (corrected \u03c1_LR, read-only)"
+   },
+   {
+    "quantity": "R-1 frozen_target9000 \u03c1_LR",
+    "superseded_7_nov": -0.533840048787172,
+    "new_value": 0.5577105207232913,
+    "changed": true,
+    "defect": "D1",
+    "evidence": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json (corrected \u03c1_LR, read-only)"
+   },
+   {
+    "quantity": "R-1 frozen_target9001 \u03c1_LR",
+    "superseded_7_nov": -0.5864968707636384,
+    "new_value": 0.5685811334651208,
+    "changed": true,
+    "defect": "D1",
+    "evidence": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json (corrected \u03c1_LR, read-only)"
+   },
+   {
+    "quantity": "R2-a class",
+    "superseded_7_nov": "single-seed (not classified)",
+    "new_value": "event-dependent",
+    "changed": true,
+    "defect": "D5",
+    "evidence": "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)"
+   },
+   {
+    "quantity": "R2-b verdict",
+    "superseded_7_nov": "unclear",
+    "new_value": "recovered",
+    "changed": true,
+    "defect": "D5",
+    "evidence": "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)"
+   },
+   {
+    "quantity": "R2-c per-seed rows",
+    "superseded_7_nov": "empty",
+    "new_value": [
+     "9000",
+     "9001"
+    ],
+    "changed": true,
+    "defect": "D5",
+    "evidence": "the addendum R-2 evaluation"
+   }
+  ],
+  "statistic_audit_pass": true,
+  "budget": {
+   "kind": "cpu",
+   "part": "B",
+   "spent_hours": 0.7456,
+   "estimate_hours": 0.02,
+   "projected_total_hours": 0.7656,
+   "cap_hours": 3.0,
+   "pass": true,
+   "ledger": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+  },
+  "seven_nov_source": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/addendum/preserved_7nov/readings.json",
+  "seven_nov_preserved": true,
+  "preserved_7nov": {
+   "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/addendum/preserved_7nov/readings.json",
+   "sha256": "b675d20fe0b2fb1b2dc5477acf2aae7c958b7f0df004fa4ade7d2659186b4d2a",
+   "written": true,
+   "write_once": true,
+   "source": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/readings.json",
+   "source_sha256": "b675d20fe0b2fb1b2dc5477acf2aae7c958b7f0df004fa4ade7d2659186b4d2a",
+   "sidecar": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/addendum/preserved_7nov/readings.json.sha256"
+  },
+  "results_r1": {
+   "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/r1_addendum.json",
+   "sha256": "d9cc559de4552060c95dcad4390e0bef98fb141f8659a707b1dc75c7e3169ec5",
+   "status": "complete",
+   "reading": {
+    "registered": false,
+    "extension": "shortcut_followup_2026-11-07",
+    "id": "R-1 reading",
+    "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+    "caveat": "with 8 against 2 models this is a description, not a test",
+    "generative_median": {
+     "r2_eq": 0.32782040919346517,
+     "rho_lr": 0.35368085133225396,
+     "n_models": 8,
+     "n_core_models": 8,
+     "labels": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001"
+     ]
+    },
+    "frozen_target": {
+     "r2_eq": {
+      "9000": 0.7077025052837376,
+      "9001": 0.727779335545238
+     },
+     "rho_lr": {
+      "9000": 0.5577105207232913,
+      "9001": 0.5685811334651208
+     }
+    },
+    "verdict": "contradicts",
+    "note": "the generative median is below both frozen_target seeds on both quantities",
+    "comparisons": [
+     "below",
+     "below"
+    ],
+    "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+   }
+  },
+  "r1_readings_basis": "d1_overlay",
+  "r1_source": "d1_overlay"
  }
 }

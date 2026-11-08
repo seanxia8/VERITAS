@@ -1,41 +1,128 @@
 {
  "registered": false,
  "extension": "paper3_repair_pilot_2026-11-06",
- "runbook": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md",
- "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
- "impl_commit": "0cf61ff476bc8f3463b4595816ba40508cba239c",
- "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
- "review_verdict": "PASS",
- "status": "resumed_after_entries_stop_and_executed",
- "history": "The first execution stopped at the entries preflight (see STOP.json, 27,205 free entries). After the author's 7 Nov archiving authorisation free entries reached 44,286; both preflights then passed and the runbook was executed to completion (with the bounded X3-b retries and the documented execution-time adapters).",
+ "addendum": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+ "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+ "generated_utc": "2026-11-08T01:50:14Z",
+ "impl_commit": "d84d0578d008ca9be97eeabf7dc7b3cff89e0648",
  "items": {
-  "X0-a preflight": "PASS (plan.json; data hashes, run states/twins/events, twin+SWtw content, mu_p reconstruction, 19/19 inventory, GPU projection 2.8409 h, CPU 5.70 h, S1 135.2461, entries 44,286 -> projected 36,901 >= 30,000, closure)",
-  "X0-b reproduction": "PASS (9/9 models: N refit/frozen, D refit, D frozen within 1e-3 m; max |diff| 4.8e-7 m; identity check pass; 54 s with cached embeddings)",
-  "X1": "COMPLETE (19 models: 13 core + 6 optional; unavailable []; x1.json; 1.0622 GPU-h)",
-  "X2": "COMPLETE (13 core models; unavailable []; x2.json; 0.4972 GPU-h)",
-  "X3-a fisher": "COMPLETE (P0 pass, max efficient/known ln Y information ratio 1.21e-15; 5 model rows; x3_fisher.json)",
-  "X3-b": "COMPLETE after three execution-defect fix rounds and two documented runtime adapters (execution fixes 7-8, see DECISIONS); families raw, init9000, leace; unavailable []; x3.json; 0.1483 GPU-h; three failed attempts booked (0.0100 + 0.0128 + 0.1325 GPU-h)",
-  "report": "COMPLETE (results/jepa/20261106_repair; readings complete; reproduction pass; 6 figures; closure pass)"
+  "D1 self-check": "complete",
+  "X2-c rerun": "complete",
+  "X2-d latent rerun": "complete",
+  "X2-f rerun": "complete",
+  "X2-e EST(latent)": "complete",
+  "X3-b readings rerun": "complete",
+  "R-1 rerun": "complete",
+  "report": "complete"
  },
- "readings": {
-  "summary": "READINGS_SUMMARY.md",
-  "machine": "SUMMARY.json",
-  "note": "X1/X2/X3 reading classes and the X3-5 theory rows are in READINGS_SUMMARY.md / SUMMARY.json. Full per-event payloads (x1.json 101 MB, x2.json 34 MB, x3.json 84 MB, readings.json 15 MB, auto README.md 10.6 MB) remain on /ceph/dwong/jepa/returns/ext_repair_20261106/{x0,x1,x2,x3} and are listed with sha256 in LARGE_ARRAYS.json."
- },
- "resources": {
-  "gpu_hours": 2.1974,
-  "gpu_cap_hours": 4.0,
-  "gpu_breakdown": {"X0-b": 0.1849, "X1": 1.0622, "X2": 0.4972, "X3-b": 0.3729, "X3-a (CPU)": 0.0},
-  "cpu_wall_hours_estimate": 2.6,
-  "cpu_cap_hours": 6.0,
-  "l40s_ledger_before": 129.7461,
-  "l40s_ledger_after": 132.0,
-  "generation_cap_untouched": true,
-  "data_generated": false
- },
- "execution_time_adapters": [
-  {"fix": 7, "function": "ext_repair._x3_five", "reason": "x3_fisher.json cannot represent infinity (JSON null), so the accepted _x3_five raised TypeError on the null efficient CRLB; adapter treats null as infinity (CRLB = inf convention).", "path": "/work/dwong/jepa_tmp_20261107/adapter2/jepa_repair_adapter2.py"},
-  {"fix": 8, "function": "ext_repair._strip_internal", "reason": "the X3 payload carries probe-fit objects (RidgeFit) and predictions that are not JSON-serialisable and not readings; adapter drops 'fitted'/'prediction' as well as the error arrays so x3.json can be written.", "path": "/work/dwong/jepa_tmp_20261107/adapter2/jepa_repair_adapter2.py"}
+ "superseded_values": 61,
+ "not_run": [
+  {
+   "variant": "frozen_target9000/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "frozen_target9000/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "frozen_target9001/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "frozen_target9001/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_across_trigger9000/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_across_trigger9000/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_across_trigger9001/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_across_trigger9001/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_within_trigger9000/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_within_trigger9000/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_within_trigger9001/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "mae_within_trigger9001/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_across_trigger9000/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_across_trigger9000/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_across_trigger9001/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_across_trigger9001/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_within_trigger9000/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_within_trigger9000/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_within_trigger9001/E1",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  },
+  {
+   "variant": "t1_s030_within_trigger9001/E2r",
+   "status": "not_applicable",
+   "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+  }
  ],
- "pending_in_P_consolidation": "Execution fixes 7-8 are runtime adapters outside <P>; folding them into ext_repair.py requires a re-review and a new acceptance record (the same process as fixes 1-6)."
+ "budget_hours": {
+  "gpu": 0.140648,
+  "cpu": 0.7457870000000001,
+  "jobs": 11,
+  "path": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+ },
+ "note": "execution adapters are retired: fixes 7-8 live in <P> (_x3_five null = \u221e; _strip_internal drops fitted/prediction)"
 }

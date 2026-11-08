@@ -6,7 +6,7 @@
  "impl_commit": "0cf61ff476bc8f3463b4595816ba40508cba239c",
  "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
  "review_verdict": "PASS",
- "status": "resumed_after_entries_stop_and_executed_to_the_cap",
+ "status": "addendum_updated",
  "items": {
   "preflight": "PASS (data, S1 135.2461, caps, entries 44,286, readout items, closure)",
   "manipulation": "PASS (columns 0-5 zero in the label pass, 6-8 equal, input not mutated, context/full pass original, label |Delta| 0.0 under PMT permutation vs context 8.973, input-proj gradient 0.117, label f_layout 0.0913 / f_event 0.3054 over 64 events)",
@@ -14,27 +14,304 @@
   "smoke": "PASS (seed 9000, 20 steps, resumed_from_step 0, metrics finite, wall 0.0196 h, archived never resumed)",
   "train 9000": "COMPLETE (10000/10000 steps, resumed_from_step 0, metrics finite, final.pt sha256 3bb04c30..., 0.6592 launcher h)",
   "train 9001": "COMPLETE on the second placement (10000/10000 steps, resumed_from_step 0, metrics finite, final.pt sha256 e36a437d..., 0.6592 launcher h); the first placement on the contended GPU 0 was archived (0.1933 h booked, exit 2) and re-run on the idle GPU 1",
-  "evaluate": "not_run (cap): the extension's own §8.1 guard refused the job - 1.5651 h booked + 0.14 h projected = 1.7051 h > 1.5 h cap; R-2 readings R2-a/R2-b/R2-c are therefore empty (R2-a 'single-seed (not classified)', R2-b 'unclear')",
-  "report": "COMPLETE (results/jepa/20261107_shortcut; R-1 complete; closure pass)"
+  "evaluate": "not_run (cap): the extension's own \u00a78.1 guard refused the job - 1.5651 h booked + 0.14 h projected = 1.7051 h > 1.5 h cap; R-2 readings R2-a/R2-b/R2-c are therefore empty (R2-a 'single-seed (not classified)', R2-b 'unclear')",
+  "report": "COMPLETE (results/jepa/20261107_shortcut; R-1 complete; closure pass)",
+  "evaluate (addendum D5)": "PASS (D5: one evaluation job for the two run directories under the addendum 0.35 h cap; R2-a 'event-dependent', R2-b 'recovered'; 2 run(s) evaluated)",
+  "R-1 (addendum rerun)": "complete (D1-corrected \u03c1_LR re-read read-only from /ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair; the \u00a73 rule, families and table are unchanged)"
  },
  "r1_reading": {
   "verdict": "contradicts",
-  "meaning": "the generative (MAE) models are NOT more repairable than the working joint-embedding encoder in this comparison: their median is below both frozen_target seeds on both quantities",
-  "generative_median": {"r2_eq": 0.3278, "rho_lr": -0.6779, "n_models": 8},
-  "frozen_target": {"r2_eq": {"9000": 0.7077, "9001": 0.7278}, "rho_lr": {"9000": -0.5338, "9001": -0.5865}},
-  "caveat": "with 8 against 2 models this is a description, not a test"
+  "meaning": "the generative median is below both frozen_target seeds on both quantities",
+  "generative_median": {
+   "r2_eq": 0.32782040919346517,
+   "rho_lr": 0.35368085133225396,
+   "n_models": 8,
+   "n_core_models": 8,
+   "labels": [
+    "mae_within_trigger9000",
+    "mae_within_trigger9001",
+    "mae_across_trigger9000",
+    "mae_across_trigger9001",
+    "t1_s030_within_trigger9000",
+    "t1_s030_within_trigger9001",
+    "t1_s030_across_trigger9000",
+    "t1_s030_across_trigger9001"
+   ]
+  },
+  "frozen_target": {
+   "r2_eq": {
+    "9000": 0.7077025052837376,
+    "9001": 0.727779335545238
+   },
+   "rho_lr": {
+    "9000": 0.5577105207232913,
+    "9001": 0.5685811334651208
+   }
+  },
+  "caveat": "with 8 against 2 models this is a description, not a test",
+  "supersedes_7_nov": true,
+  "defect": "D1"
  },
  "resources": {
   "gpu_hours": 1.5651,
   "gpu_cap_hours": 1.5,
   "gpu_overrun_hours": 0.0651,
-  "gpu_breakdown": {"reproduce": 0.0322, "smoke": 0.0206, "train 9000": 0.6592, "aborted placement (9001)": 0.1933, "train 9001": 0.6592, "evaluate (refused)": 0.0006},
+  "gpu_breakdown": {
+   "reproduce": 0.0322,
+   "smoke": 0.0206,
+   "train 9000": 0.6592,
+   "aborted placement (9001)": 0.1933,
+   "train 9001": 0.6592,
+   "evaluate (refused)": 0.0006
+  },
   "cap_note": "The cap was exceeded before the evaluation because both 10 000-step runs took 0.659 h each (the runbook projected 0.45-0.6 h) on shared GPUs, plus one 0.193 h aborted placement attempt. The extension's own guard then refused the evaluation, so R-2 readings are not_run (cap); the overrun is booked and reported, not rounded.",
   "cpu_wall_hours_estimate": 1.4,
   "cpu_cap_hours": 2.0,
   "l40s_ledger_before": 129.7461,
   "l40s_ledger_after": 132.0,
   "generation_cap_untouched": true,
-  "data_generated": false
+  "data_generated": false,
+  "addendum": {
+   "path": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl",
+   "rows": [
+    {
+     "utc": "2026-11-08T00:25:24Z",
+     "part": "A",
+     "mode": "addendum-selfcheck",
+     "kind": "cpu",
+     "wall_seconds": 225.097,
+     "hours": 0.062527
+    },
+    {
+     "utc": "2026-11-08T00:44:47Z",
+     "part": "A",
+     "mode": "addendum-init9000",
+     "kind": "gpu",
+     "wall_seconds": 205.573,
+     "hours": 0.057104
+    },
+    {
+     "utc": "2026-11-08T00:47:12Z",
+     "part": "A",
+     "mode": "addendum-x2e",
+     "kind": "gpu",
+     "wall_seconds": 0.22,
+     "hours": 6.1e-05
+    },
+    {
+     "utc": "2026-11-08T00:49:12Z",
+     "part": "A",
+     "mode": "addendum-x2",
+     "kind": "cpu",
+     "wall_seconds": 1422.902,
+     "hours": 0.395251
+    },
+    {
+     "utc": "2026-11-08T00:52:34Z",
+     "part": "A",
+     "mode": "addendum-x2e",
+     "kind": "gpu",
+     "wall_seconds": 2.816,
+     "hours": 0.000782
+    },
+    {
+     "utc": "2026-11-08T01:06:02Z",
+     "part": "A",
+     "mode": "addendum-x3",
+     "kind": "cpu",
+     "wall_seconds": 1004.079,
+     "hours": 0.278911
+    },
+    {
+     "utc": "2026-11-08T01:36:38Z",
+     "part": "A",
+     "mode": "addendum-x2e",
+     "kind": "gpu",
+     "wall_seconds": 70.568,
+     "hours": 0.019602
+    },
+    {
+     "utc": "2026-11-08T01:41:17Z",
+     "part": "A",
+     "mode": "addendum-report",
+     "kind": "cpu",
+     "wall_seconds": 23.377,
+     "hours": 0.006494
+    },
+    {
+     "utc": "2026-11-08T01:44:29Z",
+     "part": "B",
+     "mode": "addendum-evaluate",
+     "kind": "gpu",
+     "wall_seconds": 227.158,
+     "hours": 0.063099
+    },
+    {
+     "utc": "2026-11-08T01:48:02Z",
+     "part": "B",
+     "mode": "addendum-r1",
+     "kind": "cpu",
+     "wall_seconds": 8.787,
+     "hours": 0.002441
+    }
+   ],
+   "n_rows": 10,
+   "gpu_hours": 0.1406,
+   "cpu_hours": 0.7456,
+   "gpu_cap_hours": 0.35,
+   "cpu_cap_hours": 3.0,
+   "parts": [
+    "A",
+    "B"
+   ]
+  },
+  "addendum_gpu_cap_hours": 0.35,
+  "addendum_cpu_cap_hours": 3.0,
+  "addendum_note": "booked on the shared addendum ledger /ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl; the 7 Nov caps are closed and are not reused"
+ },
+ "addendum": {
+  "path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+  "sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+  "date": "2026-11-07",
+  "author_line": "\u5199\u8fdbweekly report\uff0c\u7136\u540e\u6211\u9009A\uff0c\u4f60\u5199\u4e00\u4e2a\u5c0frunbook",
+  "impl_commit": "d84d0578d008ca9be97eeabf7dc7b3cff89e0648",
+  "results_file": "ADDENDUM_2026-11-07.json"
+ },
+ "r2_readings": {
+  "R2-a": "event-dependent",
+  "R2-b": "recovered",
+  "R2-c": [
+   "9000",
+   "9001"
+  ],
+  "status": "complete"
+ },
+ "superseded": [
+  {
+   "quantity": "R-1 generative-median \u03c1_LR",
+   "superseded_7_nov": -0.6778596241548251,
+   "new_value": 0.35368085133225396,
+   "changed": true,
+   "defect": "D1",
+   "evidence": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json (corrected \u03c1_LR, read-only)"
+  },
+  {
+   "quantity": "R-1 frozen_target9000 \u03c1_LR",
+   "superseded_7_nov": -0.533840048787172,
+   "new_value": 0.5577105207232913,
+   "changed": true,
+   "defect": "D1",
+   "evidence": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json (corrected \u03c1_LR, read-only)"
+  },
+  {
+   "quantity": "R-1 frozen_target9001 \u03c1_LR",
+   "superseded_7_nov": -0.5864968707636384,
+   "new_value": 0.5685811334651208,
+   "changed": true,
+   "defect": "D1",
+   "evidence": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x2.json (corrected \u03c1_LR, read-only)"
+  },
+  {
+   "quantity": "R2-a class",
+   "superseded_7_nov": "single-seed (not classified)",
+   "new_value": "event-dependent",
+   "changed": true,
+   "defect": "D5",
+   "evidence": "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)"
+  },
+  {
+   "quantity": "R2-b verdict",
+   "superseded_7_nov": "unclear",
+   "new_value": "recovered",
+   "changed": true,
+   "defect": "D5",
+   "evidence": "the addendum R-2 evaluation (the 7 Nov reading had no evaluation)"
+  },
+  {
+   "quantity": "R2-c per-seed rows",
+   "superseded_7_nov": "empty",
+   "new_value": [
+    "9000",
+    "9001"
+   ],
+   "changed": true,
+   "defect": "D5",
+   "evidence": "the addendum R-2 evaluation"
+  }
+ ],
+ "readings_completeness": {
+  "R2-a": {
+   "status": "complete",
+   "value": "event-dependent"
+  },
+  "R2-b": {
+   "status": "complete",
+   "value": "recovered"
+  },
+  "R2-c": {
+   "status": "complete",
+   "seeds": [
+    "9000",
+    "9001"
+   ]
+  },
+  "R-1": {
+   "status": "complete",
+   "value": "contradicts"
+  }
+ },
+ "preserved_7nov": {
+  "path": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/addendum/preserved_7nov/readings.json",
+  "sha256": "b675d20fe0b2fb1b2dc5477acf2aae7c958b7f0df004fa4ade7d2659186b4d2a",
+  "written": true,
+  "write_once": true,
+  "source": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/readings.json",
+  "source_sha256": "b675d20fe0b2fb1b2dc5477acf2aae7c958b7f0df004fa4ade7d2659186b4d2a",
+  "sidecar": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/addendum/preserved_7nov/readings.json.sha256"
+ },
+ "results_r1": {
+  "path": "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261107_shortcut/r1_addendum.json",
+  "sha256": "d9cc559de4552060c95dcad4390e0bef98fb141f8659a707b1dc75c7e3169ec5",
+  "status": "complete",
+  "reading": {
+   "registered": false,
+   "extension": "shortcut_followup_2026-11-07",
+   "id": "R-1 reading",
+   "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?",
+   "caveat": "with 8 against 2 models this is a description, not a test",
+   "generative_median": {
+    "r2_eq": 0.32782040919346517,
+    "rho_lr": 0.35368085133225396,
+    "n_models": 8,
+    "n_core_models": 8,
+    "labels": [
+     "mae_within_trigger9000",
+     "mae_within_trigger9001",
+     "mae_across_trigger9000",
+     "mae_across_trigger9001",
+     "t1_s030_within_trigger9000",
+     "t1_s030_within_trigger9001",
+     "t1_s030_across_trigger9000",
+     "t1_s030_across_trigger9001"
+    ]
+   },
+   "frozen_target": {
+    "r2_eq": {
+     "9000": 0.7077025052837376,
+     "9001": 0.727779335545238
+    },
+    "rho_lr": {
+     "9000": 0.5577105207232913,
+     "9001": 0.5685811334651208
+    }
+   },
+   "verdict": "contradicts",
+   "note": "the generative median is below both frozen_target seeds on both quantities",
+   "comparisons": [
+    "below",
+    "below"
+   ],
+   "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed"
+  }
  }
 }

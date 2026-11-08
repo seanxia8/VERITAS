@@ -1,6 +1,6 @@
 {
  "version": 1,
- "status": "arch_complete_scale_complete_static_complete_followup_executed_20261106_repair_shortcut_stopped_entries_20261107",
+ "status": "arch_complete_scale_complete_static_complete_followup_executed_20261106_repair_shortcut_addendum_executed_20261108",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
@@ -157,7 +157,7 @@
      "status": "preflight/manipulation/reproduce/smoke/train 9000/train 9001 complete; evaluation not_run (cap); R-1 complete (contradicts); R-2 readings not_run (cap); 0.0651 h cap overrun booked"
     },
     "l40s_charged_before": 129.7461,
-    "l40s_charged_after": 132.0,
+    "l40s_charged_after": 133.5086,
     "s1_hours": 135.5,
     "generation_cap_untouched": true,
     "data_generated": false,
@@ -169,7 +169,38 @@
     },
     "evidence": "results/jepa/20261106_repair/ + results/jepa/20261107_shortcut/; /ceph/dwong/jepa/returns/ext_repair_20261106/ + ext_shortcut_20261107/; logs /work/dwong/jepa_tmp_20261107/",
     "status": "resumed_after_entries_stop_and_executed (Part A complete; Part B runs complete, evaluation not_run (cap))",
-    "entries_after_archiving": 44286
+    "entries_after_archiving": 44286,
+    "charged_note": "includes both executed parts: Part A 2.1974 + Part B 1.5651 (the earlier 132.0 covered Part A only)"
+   },
+   "repair_addendum_2026-11-08": {
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "addendum_path": "docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md",
+    "addendum_sha256": "abe0904af0ed0b5a6586cee459c507ae0fa2a7c60c65ffb58192c71b7180621a",
+    "impl_commit": "08e9569a443cc04e3e21231c0b4ec05e2495aecc",
+    "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
+    "review_verdict": "PASS",
+    "status": "executed (D1-D5 complete; R2-a event-dependent, R2-b recovered; R-1 contradicts)",
+    "items": {
+     "D1": "raw_map drift-map fix + consumers; self-check identity PASS 13/13, no STOP; X2-c/X2-d latent/X2-e/X2-f rerun",
+     "D2": "_compare_at_d mean/RMS statistic fix + audit; X3-b readings rerun (X3-4 point inside CI)",
+     "D3": "execution fixes 7-8 folded into <P>; runtime adapter retired",
+     "D4": "complete committed summary + 6-row superseded table + 7 labelled/legended figures + ADDENDUM JSON",
+     "D5": "R-2 evaluation complete (R2-a event-dependent, R2-b recovered, R2-c complete); R-1 rerun (contradicts); not_run label fixed"
+    },
+    "gpu_hours": 0.1406,
+    "gpu_cap_hours": 0.35,
+    "cpu_wall_hours": 0.751,
+    "cpu_cap_hours": 3.0,
+    "l40s_charged_before": 133.5086,
+    "l40s_charged_after": 133.6492,
+    "s1_hours": 130.0961,
+    "entries_free_after": 40896,
+    "entries_floor": 30000,
+    "failed_attempts_booked": {
+     "addendum-x2e": 0.0204,
+     "evaluation_preempted": 0.0006
+    },
+    "evidence": "results/jepa/20261106_repair/{ADDENDUM_2026-11-07.json,READINGS_SUMMARY.md,SUMMARY.json,OUTCOME.json,figures}; results/jepa/20261107_shortcut/{ADDENDUM_2026-11-07.json,README.md,readings.json,r1_addendum.json,OUTCOME.json}; /ceph/dwong/jepa/returns/ext_repair_20261106/addendum/; /ceph/dwong/jepa/returns/ext_shortcut_20261107/{eval/addendum_eval.json,r1_addendum.json}; ledger /ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
    }
   }
  },
