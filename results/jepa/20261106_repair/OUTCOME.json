@@ -124,5 +124,70 @@
   "jobs": 11,
   "path": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
  },
- "note": "execution adapters are retired: fixes 7-8 live in <P> (_x3_five null = \u221e; _strip_internal drops fitted/prediction)"
+ "note": "execution adapters are retired: fixes 7-8 live in <P> (_x3_five null = \u221e; _strip_internal drops fitted/prediction)",
+ "addendum2": {
+  "addendum2": "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md",
+  "addendum2_sha256": "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8",
+  "generated_utc": "2026-11-08T19:07:09Z",
+  "items": {
+   "E1 latent gain estimator": "complete",
+   "E2 E3u concept + controls": "not_run",
+   "E3 ledger total": "written",
+   "report": "complete"
+  },
+  "superseded_values": 63,
+  "not_run": [
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "frozen_target9000/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "frozen_target9001/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "mae_across_trigger9000/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "mae_across_trigger9001/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "mae_within_trigger9000/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "mae_within_trigger9001/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "t1_s030_across_trigger9000/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "t1_s030_across_trigger9001/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "t1_s030_within_trigger9000/E3u"
+   },
+   {
+    "mode": "E3u variant",
+    "status": "unavailable",
+    "reason": "t1_s030_within_trigger9001/E3u"
+   }
+  ]
+ },
+ "ledger_correction": "The L40S ledger E2_lucid_l40s_deepthought2.charged_gpu_hours is corrected to the booked job/campaign sum 133.6492 h (was 129.7461); addendum 2 \u00a74, author line \"\u6309A\u505a\uff0c\u5e76\u66f4\u65b0\u5468\u62a5\"."
 }

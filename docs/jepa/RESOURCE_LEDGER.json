@@ -1,12 +1,12 @@
 {
  "version": 1,
- "status": "arch_complete_scale_complete_static_complete_followup_executed_20261106_repair_shortcut_addendum_executed_20261108",
+ "status": "arch_complete_scale_complete_static_complete_followup_executed_20261106_repair_shortcut_addendum_executed_20261108_addendum2_executed_20261108",
  "accounting": "CPU: aggregate worker-hours / fixed allocated workers plus serial time; also active wall-clock cap. GPU: sum device-hours. Independent caps; failed attempts included.",
  "v4_caps": {
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 129.7461,
+   "charged_gpu_hours": 133.6708,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -201,6 +201,31 @@
      "evaluation_preempted": 0.0006
     },
     "evidence": "results/jepa/20261106_repair/{ADDENDUM_2026-11-07.json,READINGS_SUMMARY.md,SUMMARY.json,OUTCOME.json,figures}; results/jepa/20261107_shortcut/{ADDENDUM_2026-11-07.json,README.md,readings.json,r1_addendum.json,OUTCOME.json}; /ceph/dwong/jepa/returns/ext_repair_20261106/addendum/; /ceph/dwong/jepa/returns/ext_shortcut_20261107/{eval/addendum_eval.json,r1_addendum.json}; ledger /ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+   },
+   "repair_addendum2_2026-11-08": {
+    "runbook_sha256": "45e5ff98f8b852569828a172dccfaebce1bf20b48cdb1a78e732f181423d119b",
+    "addendum2_path": "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md",
+    "addendum2_sha256": "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8",
+    "impl_commit": "5c11fe5f815bf188301199b93e00ee09cafe77e5",
+    "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json",
+    "review_verdict": "PASS",
+    "status": "executed (E1 reruns complete; E2 E3u not_applicable for all tested models; E3 ledger corrected)",
+    "part_a": {
+     "gpu_hours": 0.0216,
+     "gpu_cap_hours": 0.08,
+     "cpu_wall_hours": 0.6288,
+     "cpu_cap_hours": 3.0
+    },
+    "items": {
+     "E1": "scale-only latent estimator + back-transform; X2-d latent and X2-e/latent-repair reruns (13 models); 63 superseded values",
+     "E2": "E3u concept + rank/keys/controls/gain-specific rule implemented; all 10 tested models not_applicable (unerased pooled R2 <= 0.02); E1/E2r unchanged",
+     "E3": "ledger E2 charged_gpu_hours 129.7461 -> 133.6492 (written once); all three S1 checks fail closed on >1e-3 mismatch; addendum-2 S1 133.7508 <= 160"
+    },
+    "l40s_charged_before": 133.6492,
+    "l40s_charged_after": 133.6708,
+    "s1_hours": 133.7508,
+    "entries_free_after": 40152,
+    "evidence": "results/jepa/20261106_repair/ADDENDUM2_2026-11-08.json, READINGS_SUMMARY.md, SUMMARY.json, OUTCOME.json; /ceph/dwong/jepa/returns/ext_repair_20261106/addendum2/; ledger /ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
    }
   }
  },

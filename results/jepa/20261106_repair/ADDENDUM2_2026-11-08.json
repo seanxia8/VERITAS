@@ -1,0 +1,1425 @@
+{
+ "registered": false,
+ "extension": "paper3_repair_pilot_2026-11-06",
+ "addendum2": "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md",
+ "addendum2_sha256": "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8",
+ "generated_utc": "2026-11-08T19:07:09Z",
+ "gate": {
+  "status": "granted"
+ },
+ "e1": {
+  "reruns": {
+   "X2-d latent": {
+    "mode": "addendum-x2",
+    "status": "complete",
+    "entries": [
+     "fix9000",
+     "fix9001",
+     "frozen_target9000",
+     "frozen_target9001",
+     "init9000",
+     "mae_across_trigger9000",
+     "mae_across_trigger9001",
+     "mae_within_trigger9000",
+     "mae_within_trigger9001",
+     "t1_s030_across_trigger9000",
+     "t1_s030_across_trigger9001",
+     "t1_s030_within_trigger9000",
+     "t1_s030_within_trigger9001"
+    ],
+    "not_run": []
+   },
+   "X2-e latent": {
+    "mode": "addendum-x2e",
+    "status": "complete",
+    "entries": [
+     "fix9000",
+     "fix9001",
+     "frozen_target9000",
+     "frozen_target9001",
+     "init9000",
+     "mae_across_trigger9000",
+     "mae_across_trigger9001",
+     "mae_within_trigger9000",
+     "mae_within_trigger9001",
+     "t1_s030_across_trigger9000",
+     "t1_s030_across_trigger9001",
+     "t1_s030_within_trigger9000",
+     "t1_s030_within_trigger9001"
+    ],
+    "not_run": []
+   }
+  },
+  "rows": [
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "fix9000",
+    "old": 0.25430809126661585,
+    "new": 0.8500947597251599,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "fix9000",
+    "old": -0.3076431733038615,
+    "new": -0.30319343683386163,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "fix9000",
+    "old": -0.06075626094192311,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "fix9000",
+    "old": -0.012034955397236263,
+    "new": -2.370661582622892,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "fix9001",
+    "old": 0.25450807560116984,
+    "new": 0.8052189634959094,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "fix9001",
+    "old": -0.33141973120225215,
+    "new": -0.3310361827452827,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "fix9001",
+    "old": -0.08930656693532585,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "fix9001",
+    "old": -0.018773596654300142,
+    "new": -2.0499790772094952,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "frozen_target9000",
+    "old": 0.2536690019869321,
+    "new": 0.8098069572215577,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "frozen_target9000",
+    "old": -0.29477579829430645,
+    "new": -0.289895101346263,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "frozen_target9000",
+    "old": -0.040002974802414125,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "frozen_target9000",
+    "old": -0.04742208239728828,
+    "new": -4.736313905192152,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "frozen_target9001",
+    "old": 0.2552654004940248,
+    "new": 0.7981293815853525,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "frozen_target9001",
+    "old": -0.2940586438869404,
+    "new": -0.2878311977216929,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "frozen_target9001",
+    "old": -0.023372044465724454,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "frozen_target9001",
+    "old": -0.022277870856616627,
+    "new": -2.855469476319527,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "init9000",
+    "old": 0.2548170066891534,
+    "new": 0.825677012215593,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "init9000",
+    "old": -0.2815370162640445,
+    "new": -0.28521646064168715,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "init9000",
+    "old": -0.059026555417608643,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "init9000",
+    "old": -0.034069742625872354,
+    "new": -4.610797217323893,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "mae_across_trigger9000",
+    "old": 0.25129505888351006,
+    "new": 0.9001275632694397,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "mae_across_trigger9000",
+    "old": -0.14048530731483352,
+    "new": -0.14064148328243856,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "mae_across_trigger9000",
+    "old": 0.00661973134142062,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "mae_across_trigger9000",
+    "old": -0.010623957584704,
+    "new": -3.346337883315399,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "mae_across_trigger9001",
+    "old": 0.25165775855494477,
+    "new": 0.921722206020978,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "mae_across_trigger9001",
+    "old": -0.14828192528974946,
+    "new": -0.14459282250046077,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "mae_across_trigger9001",
+    "old": 0.003776553790293067,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "mae_across_trigger9001",
+    "old": -0.06653433559143919,
+    "new": -6.264949405318545,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "mae_within_trigger9000",
+    "old": 0.25299668959565935,
+    "new": 0.8648519708574917,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "mae_within_trigger9000",
+    "old": -0.2507992449928033,
+    "new": -0.25446106695911663,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "mae_within_trigger9000",
+    "old": -0.019369034166081718,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "mae_within_trigger9000",
+    "old": -0.021178060597955763,
+    "new": -3.7961809391078534,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "mae_within_trigger9001",
+    "old": 0.25386920766282717,
+    "new": 0.8950879297690555,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "mae_within_trigger9001",
+    "old": -0.2507792477292619,
+    "new": -0.25298346194613736,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "mae_within_trigger9001",
+    "old": -0.05301509123296757,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "mae_within_trigger9001",
+    "old": -0.04123474192318074,
+    "new": -4.197086222342313,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9000",
+    "old": 0.2506478744820888,
+    "new": 0.9301795815206623,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9000",
+    "old": -0.137800595543361,
+    "new": -0.1223037943867284,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9000",
+    "old": -0.010016939526481508,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9000",
+    "old": -0.02390089950924844,
+    "new": -4.9637614579046625,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9001",
+    "old": 0.25158737476361587,
+    "new": 0.9336792461818557,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9001",
+    "old": -0.1589733954074479,
+    "new": -0.16474079410843784,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9001",
+    "old": -0.007939668531430456,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "t1_s030_across_trigger9001",
+    "old": -0.050939508791060184,
+    "new": -5.994737368005453,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9000",
+    "old": 0.25285058293594037,
+    "new": 0.9677389560515236,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9000",
+    "old": -0.19353045741967637,
+    "new": -0.20574927623644473,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9000",
+    "old": -0.06002430276798964,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9000",
+    "old": -0.03448352708405034,
+    "new": -4.790521994165444,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent median_run_rms",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9001",
+    "old": 0.2532273632636648,
+    "new": 0.9461167933720547,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-d latent pearson_r",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9001",
+    "old": -0.21974419284916433,
+    "new": -0.22092970473151358,
+    "status": "superseded"
+   },
+   {
+    "item": "X2-e latent rho_EST",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9001",
+    "old": -0.0350400902095775,
+    "new": null,
+    "status": "not_run"
+   },
+   {
+    "item": "latent repair rho_LR",
+    "defect": "E1",
+    "scope": "t1_s030_within_trigger9001",
+    "old": -0.023573057660471308,
+    "new": -4.0617296357205985,
+    "status": "superseded"
+   }
+  ]
+ },
+ "e3u": {
+  "family": {
+   "status": "evaluated",
+   "models": {
+    "mae_within_trigger9000/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.6499601073614453,
+      "erased_r2": -0.5081770050230221,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 3,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "mae_within_trigger9001/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.6481925639646178,
+      "erased_r2": -0.5547359917257358,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 2,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "mae_across_trigger9000/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.39329871760487245,
+      "erased_r2": -0.3934292472528329,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 1,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "mae_across_trigger9001/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.38597912043859395,
+      "erased_r2": -0.387386735575742,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 1,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "t1_s030_within_trigger9000/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.5247392015980616,
+      "erased_r2": -0.5643378796733279,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 1,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "t1_s030_within_trigger9001/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.47438245525012634,
+      "erased_r2": -0.48758999165700895,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 1,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "t1_s030_across_trigger9000/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.35701033150896144,
+      "erased_r2": -0.35920094169831257,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 1,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "t1_s030_across_trigger9001/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.35322316756253813,
+      "erased_r2": -0.38242453428900913,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 1,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "frozen_target9000/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.9286796356981306,
+      "erased_r2": -0.5213881186055727,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 7,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    },
+    "frozen_target9001/E3u": {
+     "status": "not_applicable",
+     "sanity": {
+      "applicable": false,
+      "unerased_r2": -0.9440824315906757,
+      "erased_r2": -0.5333786300254417,
+      "status": "not_applicable",
+      "complete": true
+     },
+     "concept": "E3u",
+     "rank": 7,
+     "reason": "unerased concept R\u00b2 <= 0.02: concept not linearly present"
+    }
+   },
+   "unavailable": [],
+   "concepts": [
+    "E3u"
+   ]
+  },
+  "readings": {
+   "registered": false,
+   "extension": "paper3_repair_pilot_2026-11-06",
+   "check": "X3-b readings \u00a77.2",
+   "variants": {},
+   "X3-5": {
+    "empirical_rho_E_log_yield": null,
+    "raw_feature_rho_E_log_yield": null,
+    "e3u_rho_E_log_yield": {},
+    "theory_rows": {
+     "C-mean": {
+      "theory_ratio_lnY": null,
+      "efficient_lnY_crlb": null
+     },
+     "C-mean+occupancy": {
+      "theory_ratio_lnY": 2.1238765687471672,
+      "efficient_lnY_crlb": 0.0015914873707890452
+     },
+     "C-var_all": {
+      "theory_ratio_lnY": 3.156166995051316,
+      "efficient_lnY_crlb": 0.002856638802729428
+     },
+     "C-var_ge1": {
+      "theory_ratio_lnY": 3.3732389173806103,
+      "efficient_lnY_crlb": 0.003646026239244043
+     },
+     "C-var_ge3": {
+      "theory_ratio_lnY": 4.133497536007928,
+      "efficient_lnY_crlb": 0.006494740964131718
+     }
+    },
+    "rule": "C-mean alone gives \u221e by P0 and is listed as the charge-only limit, not as a comparison point"
+   }
+  },
+  "variants": {},
+  "gain_specific": "three conditions: q95 random controls, CI vs control mean, and CI above the hit-count control",
+  "rows": [
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "frozen_target9000/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "frozen_target9001/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "mae_across_trigger9000/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "mae_across_trigger9001/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "mae_within_trigger9000/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "mae_within_trigger9001/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "t1_s030_across_trigger9000/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "t1_s030_across_trigger9001/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "t1_s030_within_trigger9000/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   },
+   {
+    "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+    "defect": "E2",
+    "scope": "t1_s030_within_trigger9001/E3u",
+    "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+    "new": "not_applicable",
+    "status": "superseded"
+   }
+  ]
+ },
+ "x3_5": {
+  "raw_feature_rho_E_log_yield": 3.5588538217086,
+  "empirical_rho_E_log_yield": 3.5588538217086,
+  "e3u_rho_E_log_yield": null
+ },
+ "ledger": {
+  "registered": false,
+  "extension": "paper3_repair_pilot_2026-11-06",
+  "check": "addendum 2 E3: booked L40S total and S1",
+  "addendum2": "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md",
+  "addendum2_sha256": "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8",
+  "gate": {
+   "status": "granted"
+  },
+  "entries": {
+   "registered": false,
+   "extension": "paper3_repair_pilot_2026-11-06",
+   "id": "entries (addendum 2)",
+   "basis": "addendum 2's own projected writes only (200; no clone/suite terms: the host clone is reused and TMPDIR is off /ceph)",
+   "projection": {
+    "addendum2": 200,
+    "floor": 30000
+   },
+   "snapshot": {
+    "available": true,
+    "guard_json": "/ceph/dwong/jepa/jobs/guard_deepthought2.json",
+    "free_entries": 40183,
+    "guard_level": "OK",
+    "guard_reasons": [],
+    "guard_timestamp": "2026-11-08T18:21:17Z"
+   },
+   "pass": true,
+   "free_entries": 40183,
+   "projected_after": 39983,
+   "floor": 30000
+  },
+  "budget": {
+   "kind": "cpu",
+   "used_hours": 0.0,
+   "projected_hours": 0.05,
+   "cap_hours": 3.0,
+   "remaining_hours": 3.0,
+   "part": "A2",
+   "pass": true
+  },
+  "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+  "charged_before": 129.7461,
+  "charged_after": 133.6492,
+  "booked_gpu_hours": 133.6492,
+  "written_once": true,
+  "s1_before": {
+   "registered": false,
+   "extension": "paper3_repair_pilot_2026-11-06",
+   "id": "S1 (addendum 2)",
+   "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+   "ledger_job": "E2_lucid_l40s_deepthought2",
+   "ledger_charged_gpu_hours": 129.7461,
+   "booked_gpu_hours": 133.6492,
+   "ledger_consistent": false,
+   "addendum2_cap_hours": 0.08,
+   "sum_hours": null,
+   "ceiling_hours": 160.0,
+   "pass": false,
+   "reason": "charged_gpu_hours differs from the booked L40S sum by more than 1e-3 h: S1 fails closed (addendum 2 \u00a74)",
+   "rule": "booked L40S sum + addendum 2 GPU cap (0.08) <= 160 (addendum 2 \u00a74/\u00a75; fail closed on a ledger inconsistency)"
+  },
+  "s1_after": {
+   "registered": false,
+   "extension": "paper3_repair_pilot_2026-11-06",
+   "id": "S1 (addendum 2)",
+   "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+   "ledger_job": "E2_lucid_l40s_deepthought2",
+   "ledger_charged_gpu_hours": 133.6492,
+   "booked_gpu_hours": 133.6492,
+   "ledger_consistent": true,
+   "addendum2_cap_hours": 0.08,
+   "sum_hours": 133.7292,
+   "ceiling_hours": 160.0,
+   "pass": true,
+   "reason": null,
+   "rule": "booked L40S sum + addendum 2 GPU cap (0.08) <= 160 (addendum 2 \u00a74/\u00a75; fail closed on a ledger inconsistency)"
+  },
+  "status": "written",
+  "wall_seconds": null,
+  "decisions_ready": "The L40S ledger E2_lucid_l40s_deepthought2.charged_gpu_hours is corrected to the booked job/campaign sum 133.6492 h (was 129.7461); addendum 2 \u00a74, author line \"\u6309A\u505a\uff0c\u5e76\u66f4\u65b0\u5468\u62a5\"."
+ },
+ "superseded": [
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "fix9000",
+   "old": 0.25430809126661585,
+   "new": 0.8500947597251599,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "fix9000",
+   "old": -0.3076431733038615,
+   "new": -0.30319343683386163,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "fix9000",
+   "old": -0.06075626094192311,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "fix9000",
+   "old": -0.012034955397236263,
+   "new": -2.370661582622892,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "fix9001",
+   "old": 0.25450807560116984,
+   "new": 0.8052189634959094,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "fix9001",
+   "old": -0.33141973120225215,
+   "new": -0.3310361827452827,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "fix9001",
+   "old": -0.08930656693532585,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "fix9001",
+   "old": -0.018773596654300142,
+   "new": -2.0499790772094952,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "frozen_target9000",
+   "old": 0.2536690019869321,
+   "new": 0.8098069572215577,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "frozen_target9000",
+   "old": -0.29477579829430645,
+   "new": -0.289895101346263,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "frozen_target9000",
+   "old": -0.040002974802414125,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "frozen_target9000",
+   "old": -0.04742208239728828,
+   "new": -4.736313905192152,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "frozen_target9001",
+   "old": 0.2552654004940248,
+   "new": 0.7981293815853525,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "frozen_target9001",
+   "old": -0.2940586438869404,
+   "new": -0.2878311977216929,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "frozen_target9001",
+   "old": -0.023372044465724454,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "frozen_target9001",
+   "old": -0.022277870856616627,
+   "new": -2.855469476319527,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "init9000",
+   "old": 0.2548170066891534,
+   "new": 0.825677012215593,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "init9000",
+   "old": -0.2815370162640445,
+   "new": -0.28521646064168715,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "init9000",
+   "old": -0.059026555417608643,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "init9000",
+   "old": -0.034069742625872354,
+   "new": -4.610797217323893,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "mae_across_trigger9000",
+   "old": 0.25129505888351006,
+   "new": 0.9001275632694397,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "mae_across_trigger9000",
+   "old": -0.14048530731483352,
+   "new": -0.14064148328243856,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "mae_across_trigger9000",
+   "old": 0.00661973134142062,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "mae_across_trigger9000",
+   "old": -0.010623957584704,
+   "new": -3.346337883315399,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "mae_across_trigger9001",
+   "old": 0.25165775855494477,
+   "new": 0.921722206020978,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "mae_across_trigger9001",
+   "old": -0.14828192528974946,
+   "new": -0.14459282250046077,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "mae_across_trigger9001",
+   "old": 0.003776553790293067,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "mae_across_trigger9001",
+   "old": -0.06653433559143919,
+   "new": -6.264949405318545,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "mae_within_trigger9000",
+   "old": 0.25299668959565935,
+   "new": 0.8648519708574917,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "mae_within_trigger9000",
+   "old": -0.2507992449928033,
+   "new": -0.25446106695911663,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "mae_within_trigger9000",
+   "old": -0.019369034166081718,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "mae_within_trigger9000",
+   "old": -0.021178060597955763,
+   "new": -3.7961809391078534,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "mae_within_trigger9001",
+   "old": 0.25386920766282717,
+   "new": 0.8950879297690555,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "mae_within_trigger9001",
+   "old": -0.2507792477292619,
+   "new": -0.25298346194613736,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "mae_within_trigger9001",
+   "old": -0.05301509123296757,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "mae_within_trigger9001",
+   "old": -0.04123474192318074,
+   "new": -4.197086222342313,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9000",
+   "old": 0.2506478744820888,
+   "new": 0.9301795815206623,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9000",
+   "old": -0.137800595543361,
+   "new": -0.1223037943867284,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9000",
+   "old": -0.010016939526481508,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9000",
+   "old": -0.02390089950924844,
+   "new": -4.9637614579046625,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9001",
+   "old": 0.25158737476361587,
+   "new": 0.9336792461818557,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9001",
+   "old": -0.1589733954074479,
+   "new": -0.16474079410843784,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9001",
+   "old": -0.007939668531430456,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "t1_s030_across_trigger9001",
+   "old": -0.050939508791060184,
+   "new": -5.994737368005453,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9000",
+   "old": 0.25285058293594037,
+   "new": 0.9677389560515236,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9000",
+   "old": -0.19353045741967637,
+   "new": -0.20574927623644473,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9000",
+   "old": -0.06002430276798964,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9000",
+   "old": -0.03448352708405034,
+   "new": -4.790521994165444,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent median_run_rms",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9001",
+   "old": 0.2532273632636648,
+   "new": 0.9461167933720547,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-d latent pearson_r",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9001",
+   "old": -0.21974419284916433,
+   "new": -0.22092970473151358,
+   "status": "superseded"
+  },
+  {
+   "item": "X2-e latent rho_EST",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9001",
+   "old": -0.0350400902095775,
+   "new": null,
+   "status": "not_run"
+  },
+  {
+   "item": "latent repair rho_LR",
+   "defect": "E1",
+   "scope": "t1_s030_within_trigger9001",
+   "old": -0.023573057660471308,
+   "new": -4.0617296357205985,
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "frozen_target9000/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "frozen_target9001/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "mae_across_trigger9000/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "mae_across_trigger9001/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "mae_within_trigger9000/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "mae_within_trigger9001/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "t1_s030_across_trigger9000/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "t1_s030_across_trigger9001/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "t1_s030_within_trigger9000/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "LEACE X3-1 (E1/E2r \u2192 E3u)",
+   "defect": "E2",
+   "scope": "t1_s030_within_trigger9001/E3u",
+   "old": "not_applicable (unerased pooled R\u00b2 \u2264 0.02)",
+   "new": "not_applicable",
+   "status": "superseded"
+  },
+  {
+   "item": "L40S charged_gpu_hours",
+   "defect": "E3",
+   "scope": "ledger",
+   "old": 129.7461,
+   "new": 133.6492,
+   "status": "superseded"
+  }
+ ],
+ "not_run": [
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "frozen_target9000/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "frozen_target9001/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "mae_across_trigger9000/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "mae_across_trigger9001/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "mae_within_trigger9000/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "mae_within_trigger9001/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "t1_s030_across_trigger9000/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "t1_s030_across_trigger9001/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "t1_s030_within_trigger9000/E3u"
+  },
+  {
+   "mode": "E3u variant",
+   "status": "unavailable",
+   "reason": "t1_s030_within_trigger9001/E3u"
+  }
+ ],
+ "sources": {
+  "x2 (pre)": "/ceph/dwong/jepa/returns/ext_repair_20261106/x2/x2.json",
+  "E1 overlay": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum/x2_addendum.json",
+  "E1 X2-e overlay": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum/x2e_addendum.json",
+  "E3u family": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum2/x3_e3u.json",
+  "ledger fix": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum2/ledger_fix.json",
+  "pre-addendum-2 copies": "/ceph/dwong/jepa/returns/ext_repair_20261106/addendum2/preserved_before"
+ },
+ "budget": {
+  "gpu": 0.021598,
+  "cpu": 0.626293,
+  "jobs": 4,
+  "path": "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+ },
+ "entries": {
+  "registered": false,
+  "extension": "paper3_repair_pilot_2026-11-06",
+  "id": "entries (addendum 2)",
+  "basis": "addendum 2's own projected writes only (200; no clone/suite terms: the host clone is reused and TMPDIR is off /ceph)",
+  "projection": {
+   "addendum2": 200,
+   "floor": 30000
+  },
+  "snapshot": {
+   "available": true,
+   "guard_json": "/ceph/dwong/jepa/jobs/guard_deepthought2.json",
+   "free_entries": 40165,
+   "guard_level": "OK",
+   "guard_reasons": [],
+   "guard_timestamp": "2026-11-08T19:05:29Z"
+  },
+  "pass": true,
+  "free_entries": 40165,
+  "projected_after": 39965,
+  "floor": 30000
+ },
+ "figures": {
+  "status": "evaluated",
+  "figures": [
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/drift_ladder.png",
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/x1g_residual_split.png",
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/rho_by_repair.png",
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/r2_eq.png",
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/identification_error.png",
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/fisher_crlb_ratio.png",
+   "/ceph/dwong/jepa/code/followup_20261103/results/jepa/20261106_repair/price_of_invariance.png"
+  ],
+  "n_figures": 7,
+  "skipped": []
+ }
+}

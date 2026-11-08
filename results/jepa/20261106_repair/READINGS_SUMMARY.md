@@ -170,61 +170,61 @@ Superseded values are listed in the last table; absent readings are `not_run`, n
 |---|---|---|---|---|---|---|
 | fix | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | fix | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| fix | 9000 | latent (unlabelled, calibrated in simulation) | 0.254308 | -0.307643 | 1 | addendum-x2 |
+| fix | 9000 | None | 0.850095 | -0.303193 | 1 | addendum2 E1 (scale-only) |
 | fix | 9001 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | fix | 9001 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| fix | 9001 | latent (unlabelled, calibrated in simulation) | 0.254508 | -0.33142 | 1 | addendum-x2 |
+| fix | 9001 | None | 0.805219 | -0.331036 | 1 | addendum2 E1 (scale-only) |
 | frozen_target | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | frozen_target | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| frozen_target | 9000 | latent (unlabelled, calibrated in simulation) | 0.253669 | -0.294776 | 1 | addendum-x2 |
+| frozen_target | 9000 | None | 0.809807 | -0.289895 | 1 | addendum2 E1 (scale-only) |
 | frozen_target | 9001 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | frozen_target | 9001 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| frozen_target | 9001 | latent (unlabelled, calibrated in simulation) | 0.255265 | -0.294059 | 1 | addendum-x2 |
+| frozen_target | 9001 | None | 0.798129 | -0.287831 | 1 | addendum2 E1 (scale-only) |
 | init | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | init | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| init | 9000 | latent (unlabelled, calibrated in simulation) | 0.254817 | -0.281537 | 1 | addendum-x2 |
+| init | 9000 | None | 0.825677 | -0.285216 | 1 | addendum2 E1 (scale-only) |
 | mae_across_trigger | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | mae_across_trigger | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| mae_across_trigger | 9000 | latent (unlabelled, calibrated in simulation) | 0.251295 | -0.140485 | 1 | addendum-x2 |
+| mae_across_trigger | 9000 | None | 0.900128 | -0.140641 | 1 | addendum2 E1 (scale-only) |
 | mae_across_trigger | 9001 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | mae_across_trigger | 9001 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| mae_across_trigger | 9001 | latent (unlabelled, calibrated in simulation) | 0.251658 | -0.148282 | 1 | addendum-x2 |
+| mae_across_trigger | 9001 | None | 0.921722 | -0.144593 | 1 | addendum2 E1 (scale-only) |
 | mae_within_trigger | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | mae_within_trigger | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| mae_within_trigger | 9000 | latent (unlabelled, calibrated in simulation) | 0.252997 | -0.250799 | 1 | addendum-x2 |
+| mae_within_trigger | 9000 | None | 0.864852 | -0.254461 | 1 | addendum2 E1 (scale-only) |
 | mae_within_trigger | 9001 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | mae_within_trigger | 9001 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| mae_within_trigger | 9001 | latent (unlabelled, calibrated in simulation) | 0.253869 | -0.250779 | 1 | addendum-x2 |
+| mae_within_trigger | 9001 | None | 0.895088 | -0.252983 | 1 | addendum2 E1 (scale-only) |
 | t1_s030_across_trigger | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | t1_s030_across_trigger | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| t1_s030_across_trigger | 9000 | latent (unlabelled, calibrated in simulation) | 0.250648 | -0.137801 | 1 | addendum-x2 |
+| t1_s030_across_trigger | 9000 | None | 0.93018 | -0.122304 | 1 | addendum2 E1 (scale-only) |
 | t1_s030_across_trigger | 9001 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | t1_s030_across_trigger | 9001 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| t1_s030_across_trigger | 9001 | latent (unlabelled, calibrated in simulation) | 0.251587 | -0.158973 | 1 | addendum-x2 |
+| t1_s030_across_trigger | 9001 | None | 0.933679 | -0.164741 | 1 | addendum2 E1 (scale-only) |
 | t1_s030_within_trigger | 9000 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | t1_s030_within_trigger | 9000 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| t1_s030_within_trigger | 9000 | latent (unlabelled, calibrated in simulation) | 0.252851 | -0.19353 | 1 | addendum-x2 |
+| t1_s030_within_trigger | 9000 | None | 0.967739 | -0.205749 | 1 | addendum2 E1 (scale-only) |
 | t1_s030_within_trigger | 9001 | source (known light) | 0.0786852 | 0.976039 | 0.999905 | 7 Nov |
 | t1_s030_within_trigger | 9001 | raw (unlabelled physics data) | 0.168133 | 0.863692 | 1 | 7 Nov |
-| t1_s030_within_trigger | 9001 | latent (unlabelled, calibrated in simulation) | 0.253227 | -0.219744 | 1 | addendum-x2 |
+| t1_s030_within_trigger | 9001 | None | 0.946117 | -0.22093 | 1 | addendum2 E1 (scale-only) |
 
 ### X2-e — ρ_EST(k) beside the ceiling
 
 | family | seed | ρ_EST(source) | ρ_EST(raw) | ρ_EST(latent) | ρ_SWmod (ceiling) | latent repair ρ_LR |
 |---|---|---|---|---|---|---|
-| fix | 9000 | 1.01541 | 0.0118258 | -0.0607563 | 1.01756 | -0.012035 |
-| fix | 9001 | 1.01388 | -0.0449564 | -0.0893066 | 1.02355 | -0.0187736 |
-| frozen_target | 9000 | 1.02335 | -0.214867 | -0.040003 | 1.03248 | -0.0474221 |
-| frozen_target | 9001 | 1.00987 | -0.539617 | -0.023372 | 1.0289 | -0.0222779 |
-| init | 9000 | 1.0169 | 0.00787258 | -0.0590266 | 1.02593 | -0.0340697 |
-| mae_across_trigger | 9000 | 0.98661 | 0.226069 | 0.00661973 | 1.02275 | -0.010624 |
-| mae_across_trigger | 9001 | 1.00604 | 0.601479 | 0.00377655 | 1.01179 | -0.0665343 |
-| mae_within_trigger | 9000 | 1.00814 | -0.375673 | -0.019369 | 1.01288 | -0.0211781 |
-| mae_within_trigger | 9001 | 1.00811 | 0.238366 | -0.0530151 | 1.01558 | -0.0412347 |
-| t1_s030_across_trigger | 9000 | 0.994199 | 0.353436 | -0.0100169 | 1.02415 | -0.0239009 |
-| t1_s030_across_trigger | 9001 | 1.01253 | 0.63433 | -0.00793967 | 1.02484 | -0.0509395 |
-| t1_s030_within_trigger | 9000 | 1.03727 | 0.129813 | -0.0600243 | 1.01987 | -0.0344835 |
-| t1_s030_within_trigger | 9001 | 1.02966 | -0.0162145 | -0.0350401 | 1.02848 | -0.0235731 |
+| fix | 9000 | 1.01541 | 0.0118258 | -10.398 | 1.01756 | -2.37066 |
+| fix | 9001 | 1.01388 | -0.0449564 | -10.1487 | 1.02355 | -2.04998 |
+| frozen_target | 9000 | 1.02335 | -0.214867 | -7.83282 | 1.03248 | -4.73631 |
+| frozen_target | 9001 | 1.00987 | -0.539617 | -4.67959 | 1.0289 | -2.85547 |
+| init | 9000 | 1.0169 | 0.00787258 | -12.4485 | 1.02593 | -4.6108 |
+| mae_across_trigger | 9000 | 0.98661 | 0.226069 | -8.39238 | 1.02275 | -3.34634 |
+| mae_across_trigger | 9001 | 1.00604 | 0.601479 | -7.94545 | 1.01179 | -6.26495 |
+| mae_within_trigger | 9000 | 1.00814 | -0.375673 | -11.0041 | 1.01288 | -3.79618 |
+| mae_within_trigger | 9001 | 1.00811 | 0.238366 | -12.5842 | 1.01558 | -4.19709 |
+| t1_s030_across_trigger | 9000 | 0.994199 | 0.353436 | -11.4822 | 1.02415 | -4.96376 |
+| t1_s030_across_trigger | 9001 | 1.01253 | 0.63433 | -9.19565 | 1.02484 | -5.99474 |
+| t1_s030_within_trigger | 9000 | 1.03727 | 0.129813 | -21.3618 | 1.01987 | -4.79052 |
+| t1_s030_within_trigger | 9001 | 1.02966 | -0.0162145 | -18.8292 | 1.02848 | -4.06173 |
 
 ### X2-f — identification spectrum of W Â_raw and per-module CRLB
 
@@ -288,7 +288,77 @@ Identity pass: `True`; STOP: `None`.
 | t1_s030_within_trigger9000 | True | 3.61894e-16 | 0.466856 | 0.440385 | 0.411752 | None |
 | t1_s030_within_trigger9001 | True | 3.60743e-16 | 0.432351 | 0.496336 | 0.362288 | None |
 
-## Superseded 7 Nov values
+## Addendum 2 — E1 latent gain estimator (scale only)
+
+| item | model | old | new | status |
+|---|---|---|---|---|
+| X2-d latent median_run_rms | fix9000 | 0.254308 | 0.850095 | superseded |
+| X2-d latent pearson_r | fix9000 | -0.307643 | -0.303193 | superseded |
+| X2-e latent rho_EST | fix9000 | -0.0607563 | `not_run` | not_run |
+| latent repair rho_LR | fix9000 | -0.012035 | -2.37066 | superseded |
+| X2-d latent median_run_rms | fix9001 | 0.254508 | 0.805219 | superseded |
+| X2-d latent pearson_r | fix9001 | -0.33142 | -0.331036 | superseded |
+| X2-e latent rho_EST | fix9001 | -0.0893066 | `not_run` | not_run |
+| latent repair rho_LR | fix9001 | -0.0187736 | -2.04998 | superseded |
+| X2-d latent median_run_rms | frozen_target9000 | 0.253669 | 0.809807 | superseded |
+| X2-d latent pearson_r | frozen_target9000 | -0.294776 | -0.289895 | superseded |
+| X2-e latent rho_EST | frozen_target9000 | -0.040003 | `not_run` | not_run |
+| latent repair rho_LR | frozen_target9000 | -0.0474221 | -4.73631 | superseded |
+| X2-d latent median_run_rms | frozen_target9001 | 0.255265 | 0.798129 | superseded |
+| X2-d latent pearson_r | frozen_target9001 | -0.294059 | -0.287831 | superseded |
+| X2-e latent rho_EST | frozen_target9001 | -0.023372 | `not_run` | not_run |
+| latent repair rho_LR | frozen_target9001 | -0.0222779 | -2.85547 | superseded |
+| X2-d latent median_run_rms | init9000 | 0.254817 | 0.825677 | superseded |
+| X2-d latent pearson_r | init9000 | -0.281537 | -0.285216 | superseded |
+| X2-e latent rho_EST | init9000 | -0.0590266 | `not_run` | not_run |
+| latent repair rho_LR | init9000 | -0.0340697 | -4.6108 | superseded |
+| X2-d latent median_run_rms | mae_across_trigger9000 | 0.251295 | 0.900128 | superseded |
+| X2-d latent pearson_r | mae_across_trigger9000 | -0.140485 | -0.140641 | superseded |
+| X2-e latent rho_EST | mae_across_trigger9000 | 0.00661973 | `not_run` | not_run |
+| latent repair rho_LR | mae_across_trigger9000 | -0.010624 | -3.34634 | superseded |
+| X2-d latent median_run_rms | mae_across_trigger9001 | 0.251658 | 0.921722 | superseded |
+| X2-d latent pearson_r | mae_across_trigger9001 | -0.148282 | -0.144593 | superseded |
+| X2-e latent rho_EST | mae_across_trigger9001 | 0.00377655 | `not_run` | not_run |
+| latent repair rho_LR | mae_across_trigger9001 | -0.0665343 | -6.26495 | superseded |
+| X2-d latent median_run_rms | mae_within_trigger9000 | 0.252997 | 0.864852 | superseded |
+| X2-d latent pearson_r | mae_within_trigger9000 | -0.250799 | -0.254461 | superseded |
+| X2-e latent rho_EST | mae_within_trigger9000 | -0.019369 | `not_run` | not_run |
+| latent repair rho_LR | mae_within_trigger9000 | -0.0211781 | -3.79618 | superseded |
+| X2-d latent median_run_rms | mae_within_trigger9001 | 0.253869 | 0.895088 | superseded |
+| X2-d latent pearson_r | mae_within_trigger9001 | -0.250779 | -0.252983 | superseded |
+| X2-e latent rho_EST | mae_within_trigger9001 | -0.0530151 | `not_run` | not_run |
+| latent repair rho_LR | mae_within_trigger9001 | -0.0412347 | -4.19709 | superseded |
+| X2-d latent median_run_rms | t1_s030_across_trigger9000 | 0.250648 | 0.93018 | superseded |
+| X2-d latent pearson_r | t1_s030_across_trigger9000 | -0.137801 | -0.122304 | superseded |
+| X2-e latent rho_EST | t1_s030_across_trigger9000 | -0.0100169 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_across_trigger9000 | -0.0239009 | -4.96376 | superseded |
+| X2-d latent median_run_rms | t1_s030_across_trigger9001 | 0.251587 | 0.933679 | superseded |
+| X2-d latent pearson_r | t1_s030_across_trigger9001 | -0.158973 | -0.164741 | superseded |
+| X2-e latent rho_EST | t1_s030_across_trigger9001 | -0.00793967 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_across_trigger9001 | -0.0509395 | -5.99474 | superseded |
+| X2-d latent median_run_rms | t1_s030_within_trigger9000 | 0.252851 | 0.967739 | superseded |
+| X2-d latent pearson_r | t1_s030_within_trigger9000 | -0.19353 | -0.205749 | superseded |
+| X2-e latent rho_EST | t1_s030_within_trigger9000 | -0.0600243 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_within_trigger9000 | -0.0344835 | -4.79052 | superseded |
+| X2-d latent median_run_rms | t1_s030_within_trigger9001 | 0.253227 | 0.946117 | superseded |
+| X2-d latent pearson_r | t1_s030_within_trigger9001 | -0.219744 | -0.22093 | superseded |
+| X2-e latent rho_EST | t1_s030_within_trigger9001 | -0.0350401 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_within_trigger9001 | -0.0235731 | -4.06173 | superseded |
+
+### Addendum 2 — E3u: the occupancy-weighted gain concept
+
+| variant | concept | rank r | unerased R² | erased R² | ρ_E (log-yield) | class | control q95 | hit-count ρ | gain-specific | X3-2 Δv | X3-4 verdict |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+
+### Addendum 2 — the ledger total (E3)
+
+| item | old charged (h) | booked sum (h) | new charged (h) | S1 (booked + 0.08) | pass |
+|---|---|---|---|---|---|
+| L40S charged_gpu_hours | 129.746 | 133.649 | 133.649 | 133.729 | True |
+
+Addendum 2 not run: {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'frozen_target9000/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'frozen_target9001/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_across_trigger9000/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_across_trigger9001/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_within_trigger9000/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_within_trigger9001/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_across_trigger9000/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_across_trigger9001/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_within_trigger9000/E3u'}; {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_within_trigger9001/E3u'}
+
+## Superseded 7 Nov values (extended with addendum 2: E1–E3)
 
 | item | scope | defect | old value | new value | status |
 |---|---|---|---|---|---|
@@ -364,6 +434,69 @@ Identity pass: `True`; STOP: `None`.
 | X3-4 energy | raw | D2 | `{"ci95": [0.4614332606410882, 0.5112216793804562], "difference": 0.48642357245730944}` | `{"ci95": [0.461433260641088, 0.5112216793804559], "difference": 0.48642357245730916}` | superseded |
 | X3-4 log_yield | raw | D2 | `{"ci95": [0.09830197099043046, 0.1055157315054033], "difference": 0.10191767440689696}` | `{"ci95": [0.09830197099043025, 0.10551573150540314], "difference": 0.10191767440689681}` | superseded |
 | R-1 reading | Part B | D1 | `{"frozen_target": {"rho_lr": {"9000": -0.53384, "9001": -0.586497}}, "generative_median": {"rho_lr": -0.67786}}` | `{"caveat": "with 8 against 2 models this is a description, not a test", "comparisons": ["below", "below"], "criteria": "supports: generative median > both frozen_target seeds on R\u00b2_eq and \u03c1_LR; contradicts: below both seeds on both; otherwise mixed", "extension": "shortcut_followup_2026-11-07", "frozen_target": {"r2_eq": {"9000": 0.7077025052837376, "9001": 0.727779335545238}, "rho_lr": {"9000": 0.5577105207232913, "9001": 0.5685811334651208}}, "generative_median": {"labels": ["mae_within_trigger9000", "mae_within_trigger9001", "mae_across_trigger9000", "mae_across_trigger9001", "t1_s030_within_trigger9000", "t1_s030_within_trigger9001", "t1_s030_across_trigger9000", "t1_s030_across_trigger9001"], "n_core_models": 8, "n_models": 8, "r2_eq": 0.32782040919346517, "rho_lr": 0.35368085133225396}, "id": "R-1 reading", "note": "the generative median is below both frozen_target seeds on both quantities", "question": "are generative (MAE) encoders more repairable than the working joint-embedding encoder?", "registered": false, "verdict": "contradicts"}` | superseded |
+| X2-d latent median_run_rms | fix9000 | E1 | 0.254308 | 0.850095 | superseded |
+| X2-d latent pearson_r | fix9000 | E1 | -0.307643 | -0.303193 | superseded |
+| X2-e latent rho_EST | fix9000 | E1 | -0.0607563 | `not_run` | not_run |
+| latent repair rho_LR | fix9000 | E1 | -0.012035 | -2.37066 | superseded |
+| X2-d latent median_run_rms | fix9001 | E1 | 0.254508 | 0.805219 | superseded |
+| X2-d latent pearson_r | fix9001 | E1 | -0.33142 | -0.331036 | superseded |
+| X2-e latent rho_EST | fix9001 | E1 | -0.0893066 | `not_run` | not_run |
+| latent repair rho_LR | fix9001 | E1 | -0.0187736 | -2.04998 | superseded |
+| X2-d latent median_run_rms | frozen_target9000 | E1 | 0.253669 | 0.809807 | superseded |
+| X2-d latent pearson_r | frozen_target9000 | E1 | -0.294776 | -0.289895 | superseded |
+| X2-e latent rho_EST | frozen_target9000 | E1 | -0.040003 | `not_run` | not_run |
+| latent repair rho_LR | frozen_target9000 | E1 | -0.0474221 | -4.73631 | superseded |
+| X2-d latent median_run_rms | frozen_target9001 | E1 | 0.255265 | 0.798129 | superseded |
+| X2-d latent pearson_r | frozen_target9001 | E1 | -0.294059 | -0.287831 | superseded |
+| X2-e latent rho_EST | frozen_target9001 | E1 | -0.023372 | `not_run` | not_run |
+| latent repair rho_LR | frozen_target9001 | E1 | -0.0222779 | -2.85547 | superseded |
+| X2-d latent median_run_rms | init9000 | E1 | 0.254817 | 0.825677 | superseded |
+| X2-d latent pearson_r | init9000 | E1 | -0.281537 | -0.285216 | superseded |
+| X2-e latent rho_EST | init9000 | E1 | -0.0590266 | `not_run` | not_run |
+| latent repair rho_LR | init9000 | E1 | -0.0340697 | -4.6108 | superseded |
+| X2-d latent median_run_rms | mae_across_trigger9000 | E1 | 0.251295 | 0.900128 | superseded |
+| X2-d latent pearson_r | mae_across_trigger9000 | E1 | -0.140485 | -0.140641 | superseded |
+| X2-e latent rho_EST | mae_across_trigger9000 | E1 | 0.00661973 | `not_run` | not_run |
+| latent repair rho_LR | mae_across_trigger9000 | E1 | -0.010624 | -3.34634 | superseded |
+| X2-d latent median_run_rms | mae_across_trigger9001 | E1 | 0.251658 | 0.921722 | superseded |
+| X2-d latent pearson_r | mae_across_trigger9001 | E1 | -0.148282 | -0.144593 | superseded |
+| X2-e latent rho_EST | mae_across_trigger9001 | E1 | 0.00377655 | `not_run` | not_run |
+| latent repair rho_LR | mae_across_trigger9001 | E1 | -0.0665343 | -6.26495 | superseded |
+| X2-d latent median_run_rms | mae_within_trigger9000 | E1 | 0.252997 | 0.864852 | superseded |
+| X2-d latent pearson_r | mae_within_trigger9000 | E1 | -0.250799 | -0.254461 | superseded |
+| X2-e latent rho_EST | mae_within_trigger9000 | E1 | -0.019369 | `not_run` | not_run |
+| latent repair rho_LR | mae_within_trigger9000 | E1 | -0.0211781 | -3.79618 | superseded |
+| X2-d latent median_run_rms | mae_within_trigger9001 | E1 | 0.253869 | 0.895088 | superseded |
+| X2-d latent pearson_r | mae_within_trigger9001 | E1 | -0.250779 | -0.252983 | superseded |
+| X2-e latent rho_EST | mae_within_trigger9001 | E1 | -0.0530151 | `not_run` | not_run |
+| latent repair rho_LR | mae_within_trigger9001 | E1 | -0.0412347 | -4.19709 | superseded |
+| X2-d latent median_run_rms | t1_s030_across_trigger9000 | E1 | 0.250648 | 0.93018 | superseded |
+| X2-d latent pearson_r | t1_s030_across_trigger9000 | E1 | -0.137801 | -0.122304 | superseded |
+| X2-e latent rho_EST | t1_s030_across_trigger9000 | E1 | -0.0100169 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_across_trigger9000 | E1 | -0.0239009 | -4.96376 | superseded |
+| X2-d latent median_run_rms | t1_s030_across_trigger9001 | E1 | 0.251587 | 0.933679 | superseded |
+| X2-d latent pearson_r | t1_s030_across_trigger9001 | E1 | -0.158973 | -0.164741 | superseded |
+| X2-e latent rho_EST | t1_s030_across_trigger9001 | E1 | -0.00793967 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_across_trigger9001 | E1 | -0.0509395 | -5.99474 | superseded |
+| X2-d latent median_run_rms | t1_s030_within_trigger9000 | E1 | 0.252851 | 0.967739 | superseded |
+| X2-d latent pearson_r | t1_s030_within_trigger9000 | E1 | -0.19353 | -0.205749 | superseded |
+| X2-e latent rho_EST | t1_s030_within_trigger9000 | E1 | -0.0600243 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_within_trigger9000 | E1 | -0.0344835 | -4.79052 | superseded |
+| X2-d latent median_run_rms | t1_s030_within_trigger9001 | E1 | 0.253227 | 0.946117 | superseded |
+| X2-d latent pearson_r | t1_s030_within_trigger9001 | E1 | -0.219744 | -0.22093 | superseded |
+| X2-e latent rho_EST | t1_s030_within_trigger9001 | E1 | -0.0350401 | `not_run` | not_run |
+| latent repair rho_LR | t1_s030_within_trigger9001 | E1 | -0.0235731 | -4.06173 | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | frozen_target9000/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | frozen_target9001/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | mae_across_trigger9000/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | mae_across_trigger9001/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | mae_within_trigger9000/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | mae_within_trigger9001/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | t1_s030_across_trigger9000/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | t1_s030_across_trigger9001/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | t1_s030_within_trigger9000/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| LEACE X3-1 (E1/E2r → E3u) | t1_s030_within_trigger9001/E3u | E2 | not_applicable (unerased pooled R² ≤ 0.02) | not_applicable | superseded |
+| L40S charged_gpu_hours | ledger | E3 | 129.746 | 133.649 | superseded |
 
 ## Not run / unavailable
 
@@ -387,6 +520,16 @@ Identity pass: `True`; STOP: `None`.
 - {'variant': 't1_s030_within_trigger9000/E2r', 'status': 'not_applicable', 'reason': 'unerased concept R² <= 0.02: concept not linearly present'}
 - {'variant': 't1_s030_within_trigger9001/E1', 'status': 'not_applicable', 'reason': 'unerased concept R² <= 0.02: concept not linearly present'}
 - {'variant': 't1_s030_within_trigger9001/E2r', 'status': 'not_applicable', 'reason': 'unerased concept R² <= 0.02: concept not linearly present'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'frozen_target9000/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'frozen_target9001/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_across_trigger9000/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_across_trigger9001/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_within_trigger9000/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 'mae_within_trigger9001/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_across_trigger9000/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_across_trigger9001/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_within_trigger9000/E3u'}
+- {'mode': 'E3u variant', 'status': 'unavailable', 'reason': 't1_s030_within_trigger9001/E3u'}
 
 ## Sources
 
