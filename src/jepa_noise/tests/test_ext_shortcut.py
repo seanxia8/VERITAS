@@ -708,7 +708,8 @@ def test_r1_merges_both_pilot_payloads_and_produces_the_fixed_reading(tmp_path,
         pilot = tmp_path / verdict
         x1, x2 = _part_a_payloads(generative_r2, generative_rho)
         _write_pilot(pilot, x1, x2)
-        payload = xs.r1_payload(ROOT, results_dir=pilot, log=_noop)
+        payload = xs.r1_payload(ROOT, results_dir=pilot,
+                                ext_root=pilot / "ext", log=_noop)
         assert payload["status"] == "complete"
         row = payload["table"][label]
         # the X2 fields come from x2.json (they are absent from x1.json)
@@ -739,7 +740,8 @@ def test_r1_field_falls_back_to_the_other_pilot_payload(tmp_path, monkeypatch):
     del x1["models"][label]["delta_d_m"]         # absent everywhere
     x1["models"][label]["rho_lr"] = 0.77         # both present: own payload wins
     _write_pilot(pilot, x1, x2)
-    row = xs.r1_payload(ROOT, results_dir=pilot, log=_noop)["table"][label]
+    row = xs.r1_payload(ROOT, results_dir=pilot,
+                        ext_root=pilot / "ext", log=_noop)["table"][label]
     assert row["r2_eq"] == pytest.approx(0.88)   # fell back to x1
     assert row["rho_lr"] == pytest.approx(0.9)   # x2 (its own payload) wins
     assert row["delta_d"] is None
