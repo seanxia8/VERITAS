@@ -465,17 +465,19 @@ RUNBOOK_TEXT = ("# Combined runbook\n\n## 0. Authority\n\n> \"" + xs.AUTHOR_LINE
 
 
 def _fake_repo(tmp_path, *, acceptance=True, review_verdict="PASS",
-               addendum_record=True):
+               addendum_record=True, addendum2_record=True):
     """A pinned fake repo: the gate must not depend on the real repo's state.
 
-    The committed addendum (the real, unchanged addendum file) is copied in so
-    its sha256 equals ``xs.ADDENDUM_SHA256``; the fake acceptance record carries
-    the addendum §7 fields unless ``addendum_record`` is False.
+    The committed addendum 1 and addendum 2 (the real, unchanged files) are
+    copied in so their sha256 values equal ``xs.ADDENDUM_SHA256`` /
+    ``xs.ADDENDUM2_SHA256``; the fake acceptance record carries the addendum §7
+    and addendum 2 §6 fields unless the corresponding ``*_record`` flag is False.
     """
     root = tmp_path / "root"
     (root / "docs/jepa").mkdir(parents=True)
     (root / xs.RUNBOOK_REL).write_text(RUNBOOK_TEXT)
     shutil.copyfile(ROOT / xs.ADDENDUM_REL, root / xs.ADDENDUM_REL)
+    shutil.copyfile(ROOT / xs.ADDENDUM2_REL, root / xs.ADDENDUM2_REL)
     (root / "src/jepa_noise").mkdir(parents=True)
     (root / "src/jepa_noise/ext_h12.py").write_text("# tracked P file\n")
     (root / "src/noise_module_lucid").mkdir(parents=True)
@@ -493,6 +495,9 @@ def _fake_repo(tmp_path, *, acceptance=True, review_verdict="PASS",
         if addendum_record:
             record.update(addendum_path=xs.ADDENDUM_REL,
                           addendum_sha256=xs.ADDENDUM_SHA256)
+        if addendum2_record:
+            record.update(addendum2_path=xs.ADDENDUM2_REL,
+                          addendum2_sha256=xs.ADDENDUM2_SHA256)
         (root / xs.ACCEPTANCE_REL).write_text(json.dumps(record))
     return root, head
 
@@ -884,10 +889,21 @@ def test_addendum_contract_constants_and_committed_addendum():
     assert str(xs.ADDENDUM_JOBS) == (
         "/ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl")
     assert xs.ADDENDUM_AUTHOR_LINE == "写进weekly report，然后我选A，你写一个小runbook"
-    assert len(xs.ACCEPTANCE_KEYS) == 8
-    for key in ("addendum_path", "addendum_sha256"):
+    # addendum 2 (8 Nov 2026): the 10-key acceptance schema and S1 constants
+    assert xs.ADDENDUM2_REL == "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md"
+    assert xs.ADDENDUM2_SHA256 == (
+        "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8")
+    assert lr.sha256_file(ROOT / xs.ADDENDUM2_REL) == xs.ADDENDUM2_SHA256
+    assert xs.ADDENDUM2_AUTHOR_LINE == "按A做，并更新周报"
+    assert xs.ADDENDUM2_GPU_CAP_H == 0.08
+    assert xs.S1_CHARGED_TOLERANCE_H == 1e-3
+    assert xs.S1_BASE_RECENT == "mae_jepa_followup_2026-11-03"
+    assert len(xs.ACCEPTANCE_KEYS) == 10
+    for key in ("addendum_path", "addendum_sha256", "addendum2_path",
+                "addendum2_sha256"):
         assert key in xs.ACCEPTANCE_KEYS
     assert xs.ADDENDUM_REL in xs.P_FILES
+    assert xs.ADDENDUM2_REL in xs.P_FILES
 
 
 def test_addendum_author_line_is_in_its_section_zero():
@@ -912,6 +928,14 @@ def test_gate_addendum_record_fields_missing_denies_not_pending(tmp_path):
     with pytest.raises(SystemExit) as caught:
         xs.assert_authorised("preflight", root=root)
     assert caught.value.code == 2
+    # an addendum 2-only record gap is the same DENY-not-pending state
+    root2, _ = _fake_repo(tmp_path / "a2-missing", addendum2_record=False)
+    result2 = xs.assert_authorised("preflight", root=root2, dry_run=True)
+    assert result2["status"] == "denied"
+    assert result2["authorised"] is False
+    assert set(result2["checks"]["b"]["missing_keys"]) == {"addendum2_path",
+                                                          "addendum2_sha256"}
+    assert result2["checks"]["a3"]["addendum2_sha256_pass"] is False
 
 
 def test_gate_addendum_sha_path_and_unchanged_file(tmp_path):
@@ -1024,13 +1048,109 @@ def test_addendum_budget_guard_refuses_a_job_that_would_cross_the_cap(tmp_path,
         xs.assert_addendum_budget("wall", 0.01)
 
 
-def test_addendum_s1_uses_only_the_addendum_cap():
-    result = xs.addendum_s1_check(ROOT)
-    assert result["pass"] is True
-    assert result["addendum_cap_hours"] == 0.35
-    assert result["sum_hours"] == pytest.approx(
-        float(result["ledger_charged_gpu_hours"]) + 0.35)
+def _ledger_copy():
+    return json.loads((ROOT / "docs/jepa/RESOURCE_LEDGER.json").read_text())
+
+
+def _corrected_ledger():
+    """The committed ledger with ``charged_gpu_hours`` set to the booked sum.
+
+    The committed ledger is the E3 *defect* state (charged still reads 129.7461)
+    until Part A's E3 fix writes the sum, so the S1 tests pin both states
+    explicitly and never depend on the on-disk correction.
+    """
+    ledger = _ledger_copy()
+    booked = xs.booked_gpu_hours(ledger)["booked_gpu_hours"]
+    ledger["v4_caps"]["E2_lucid_l40s_deepthought2"]["charged_gpu_hours"] = booked
+    return ledger, booked
+
+
+def test_addendum_s1_uses_only_the_addendum2_cap_on_a_corrected_ledger():
+    """Addendum 2 §4: charged + 0.08 <= 160, keyed on the booked ledger sum."""
+    ledger, booked = _corrected_ledger()
+    result = xs.addendum_s1_check(ledger=ledger)
+    assert result["pass"] is True and result["stopped"] is False
+    assert result["id"] == "S1 (addendum 2)"
+    assert result["addendum2_cap_hours"] == 0.08
+    assert result["ledger_charged_gpu_hours"] == pytest.approx(booked)
+    assert result["booked_gpu_hours"] == pytest.approx(133.6492)
+    assert result["booked_base_hours"] == pytest.approx(129.7461)
+    assert result["sum_hours"] == pytest.approx(133.6492 + 0.08)
+    assert result["ledger_consistent"] is True
+    assert abs(result["charged_minus_booked_hours"]) <= 1e-3
     assert "closed Part A and Part B caps are not consulted" in result["rule"]
+    assert result["pass"] is True
+
+
+def test_booked_gpu_hours_recomputes_the_v4_caps_recent_sum():
+    """E3: base 129.7461 + later part_a/part_b/gpu_hours = 133.6492."""
+    ledger = json.loads((ROOT / "docs/jepa/RESOURCE_LEDGER.json").read_text())
+    booked = xs.booked_gpu_hours(ledger)
+    assert booked["available"] is True
+    assert booked["base_entry"] == "mae_jepa_followup_2026-11-03"
+    assert booked["base_hours"] == pytest.approx(129.7461)
+    assert booked["booked_gpu_hours"] == pytest.approx(133.6492)
+    names = [row["name"] for row in booked["entries"]]
+    assert names == ["repair_shortcut_2026-11-07", "repair_addendum_2026-11-08"]
+    assert booked["entries"][0]["gpu_hours"] == pytest.approx(2.1974 + 1.5651)
+    assert booked["entries"][1]["gpu_hours"] == pytest.approx(0.1406)
+
+
+def test_addendum_s1_fails_closed_on_an_inconsistent_ledger(tmp_path):
+    """Addendum 2 §4 / E3: |charged - booked| > 1e-3 h must fail closed."""
+    ledger = _ledger_copy()
+    booked = xs.booked_gpu_hours(ledger)["booked_gpu_hours"]
+    assert booked == pytest.approx(133.6492)
+    # the E3 defect value 129.7461 differs from the booked sum by > 1e-3 h
+    stale = json.loads(json.dumps(ledger))
+    stale["v4_caps"]["E2_lucid_l40s_deepthought2"]["charged_gpu_hours"] = 129.7461
+    result = xs.addendum_s1_check(ledger=stale)
+    assert result["pass"] is False and result["stopped"] is True
+    assert result["ledger_consistent"] is False
+    assert abs(result["charged_minus_booked_hours"]) == pytest.approx(
+        booked - 129.7461, abs=1e-3)
+    assert "fail closed" in result["reason"]
+    assert "booked v4_caps.recent sum" in result["reason"]
+    # a small drift inside the 1e-3 h tolerance is accepted
+    near = json.loads(json.dumps(ledger))
+    near["v4_caps"]["E2_lucid_l40s_deepthought2"]["charged_gpu_hours"] = (
+        round(booked + 0.0005, 6))
+    near_result = xs.addendum_s1_check(ledger=near)
+    assert near_result["ledger_consistent"] is True and near_result["pass"] is True
+    # a missing booked base also fails closed
+    broken = json.loads(json.dumps(ledger))
+    del broken["v4_caps"]["recent"][xs.S1_BASE_RECENT]
+    missing = xs.addendum_s1_check(ledger=broken)
+    assert missing["pass"] is False and missing["stopped"] is True
+    assert "fail closed" in missing["reason"]
+    with pytest.raises(SystemExit) as caught:
+        xs.addendum_s1_check_or_stop(ledger=stale)
+    assert caught.value.code == 2
+
+
+def test_addendum_s1_threshold_is_charged_plus_0_08():
+    """Addendum 2 §5/§4: charged + 0.08 <= 160 is the S1 threshold."""
+    ledger = _ledger_copy()
+    booked = xs.booked_gpu_hours(ledger)["booked_gpu_hours"]
+    # consistency-preserving injection: move the whole booked total to 159.92
+    # (159.92 + 0.08 == 160.00) and to 159.95 (160.03 > 160)
+    for charged, should_pass in ((159.92, True), (159.95, False)):
+        injected = json.loads(json.dumps(ledger))
+        injected["v4_caps"]["E2_lucid_l40s_deepthought2"][
+            "charged_gpu_hours"] = charged
+        entry = injected["v4_caps"]["recent"]["repair_addendum_2026-11-08"]
+        delta = charged - booked
+        entry["gpu_hours"] = round(entry["gpu_hours"] + delta, 6)
+        result = xs.addendum_s1_check(ledger=injected)
+        assert result["ledger_consistent"] is True
+        assert result["booked_gpu_hours"] == pytest.approx(charged, abs=1e-3)
+        assert result["pass"] is should_pass
+        if should_pass:
+            assert result["sum_hours"] == pytest.approx(160.0, abs=1e-6)
+        else:
+            assert result["sum_hours"] == pytest.approx(160.03, abs=1e-6)
+            assert result["stopped"] is True
+            assert "160" in result["reason"]
 
 
 # ===================================== D5: the R2 readings and the not_run label
@@ -1756,3 +1876,96 @@ def test_not_run_r1_handoff_is_not_treated_as_a_reading(tmp_path, monkeypatch):
     assert sanitised["not_run"] is True and "table" not in sanitised
     complete = {"status": "complete", "reading": {"verdict": "mixed"}, "table": {}}
     assert xs.sanitise_r1_handoff(complete)["reading"] == {"verdict": "mixed"}
+
+
+# ============ addendum 2 (8 Nov 2026): the 10-key gate and fail-closed S1
+def test_gate_addendum2_positive_case_is_granted(tmp_path):
+    """A 10-key record + the committed addendum 2 -> the gate grants."""
+    root, _head = _fake_repo(tmp_path)
+    granted = xs.assert_authorised("preflight", root=root)
+    assert granted["authorised"] is True and granted["status"] == "granted"
+    a3 = granted["checks"]["a3"]
+    assert a3["pass"] is True
+    assert a3["addendum2"] == str(root / xs.ADDENDUM2_REL)
+    assert a3["addendum2_sha256"] == xs.ADDENDUM2_SHA256
+    assert a3["addendum2_sha256_pass"] is True
+    assert a3["expected_addendum2_sha256"] == xs.ADDENDUM2_SHA256
+    assert a3["addendum2_author_line"] == "按A做，并更新周报"
+    assert a3["addendum2_author_line_in_section_zero"] is True
+    assert a3["addendum2_path_in_record"] == xs.ADDENDUM2_REL
+    assert a3["addendum2_path_match"] is True
+    # the record's ten keys include the two addendum 2 fields
+    record = json.loads((root / xs.ACCEPTANCE_REL).read_text())
+    assert set(xs.ACCEPTANCE_KEYS) <= set(record)
+    assert len(record) == 10
+
+
+def test_gate_addendum2_negative_cases_deny(tmp_path, monkeypatch):
+    """Missing/mismatched addendum 2 fields must DENY (not pending)."""
+    # missing addendum2_path/addendum2_sha256 -> denied (not pending)
+    missing_root, _ = _fake_repo(tmp_path / "missing", addendum2_record=False)
+    missing = xs.assert_authorised("preflight", root=missing_root, dry_run=True)
+    assert missing["status"] == "denied"
+    assert missing["status"] != "gate_pending_acceptance"
+    assert missing["authorised"] is False
+    assert missing["checks"]["a3"]["pass"] is False
+    assert missing["checks"]["a3"]["addendum2_path_match"] is False
+    with pytest.raises(SystemExit) as caught:
+        xs.assert_authorised("preflight", root=missing_root)
+    assert caught.value.code == 2
+
+    root, _head = _fake_repo(tmp_path / "mismatch")
+    record_path = root / xs.ACCEPTANCE_REL
+    record = json.loads(record_path.read_text())
+    # a wrong addendum2_sha256 in the record -> denied
+    record["addendum2_sha256"] = "0" * 64
+    record_path.write_text(json.dumps(record))
+    wrong_sha = xs.assert_authorised("preflight", root=root, dry_run=True)
+    assert wrong_sha["checks"]["a3"]["addendum2_sha256_pass"] is False
+    assert wrong_sha["checks"]["a3"]["pass"] is False
+    assert wrong_sha["authorised"] is False
+    with pytest.raises(SystemExit) as caught:
+        xs.assert_authorised("preflight", root=root)
+    assert caught.value.code == 2
+    # a wrong addendum2_path in the record -> denied
+    record["addendum2_sha256"] = xs.ADDENDUM2_SHA256
+    record["addendum2_path"] = "docs/jepa/SOMETHING_ELSE.md"
+    record_path.write_text(json.dumps(record))
+    wrong_path = xs.assert_authorised("preflight", root=root, dry_run=True)
+    assert wrong_path["checks"]["a3"]["addendum2_path_match"] is False
+    assert wrong_path["authorised"] is False
+    # the committed addendum 2 missing from the tree -> denied
+    record["addendum2_path"] = xs.ADDENDUM2_REL
+    record_path.write_text(json.dumps(record))
+    addendum2 = root / xs.ADDENDUM2_REL
+    saved = addendum2.read_text()
+    addendum2.unlink()
+    absent = xs.assert_authorised("preflight", root=root, dry_run=True)
+    assert absent["checks"]["a3"]["addendum2_sha256"] is None
+    assert absent["checks"]["a3"]["addendum2_sha256_pass"] is False
+    assert absent["authorised"] is False
+    # a changed committed addendum 2 -> sha mismatch and (c) diff failure
+    addendum2.write_text(saved + "\nappendix after acceptance\n")
+    changed = xs.assert_authorised("preflight", root=root, dry_run=True)
+    assert changed["checks"]["a3"]["addendum2_sha256"] != xs.ADDENDUM2_SHA256
+    assert changed["checks"]["a3"]["addendum2_sha256_pass"] is False
+    assert changed["checks"]["c"]["pass"] is False
+    assert changed["checks"]["c"]["diff_clean"] is False
+    with pytest.raises(SystemExit):
+        xs.assert_authorised("preflight", root=root)
+
+    # the author line absent, with the sha pinned so ONLY a3's line check fails
+    absent_line_root, _ = _fake_repo(tmp_path / "no-line")
+    fake_addendum2 = absent_line_root / xs.ADDENDUM2_REL
+    fake_addendum2.write_text(saved.replace(xs.ADDENDUM2_AUTHOR_LINE, ""))
+    fake_sha = lr.sha256_file(fake_addendum2)
+    fake_record = json.loads((absent_line_root / xs.ACCEPTANCE_REL).read_text())
+    fake_record["addendum2_sha256"] = fake_sha
+    (absent_line_root / xs.ACCEPTANCE_REL).write_text(json.dumps(fake_record))
+    monkeypatch.setattr(xs, "ADDENDUM2_SHA256", fake_sha)
+    no_line = xs.assert_authorised("preflight", root=absent_line_root,
+                                   dry_run=True)
+    assert no_line["checks"]["a3"]["addendum2_sha256_pass"] is True
+    assert no_line["checks"]["a3"]["addendum2_author_line_in_section_zero"] is False
+    assert no_line["checks"]["a3"]["pass"] is False
+    assert no_line["authorised"] is False

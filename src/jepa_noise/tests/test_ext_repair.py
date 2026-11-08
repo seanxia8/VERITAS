@@ -140,7 +140,7 @@ def tiny(tmp_path, geometry):
 
 
 def _fake_repo(tmp_path, *, acceptance=True, record_mutator=None, addendum=True,
-               addendum_mutator=None):
+               addendum_mutator=None, addendum2=True, addendum2_mutator=None):
     """A throw-away repository with the committed runbook and an acceptance record.
 
     The committed addendum is copied byte-for-byte from the real worktree, so the
@@ -157,6 +157,12 @@ def _fake_repo(tmp_path, *, acceptance=True, record_mutator=None, addendum=True,
         shutil.copyfile(ROOT / rp.ADDENDUM_REL, target)
         if addendum_mutator is not None:
             addendum_mutator(target)
+    if addendum2:
+        target2 = root / rp.ADDENDUM2_REL
+        target2.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / rp.ADDENDUM2_REL, target2)
+        if addendum2_mutator is not None:
+            addendum2_mutator(target2)
     (root / "src/noise_module_lucid").mkdir(parents=True, exist_ok=True)
     (root / "src/noise_module_lucid/readout.py").write_text("# tracked\n")
     (root / "src/jepa_noise/configs").mkdir(parents=True, exist_ok=True)
@@ -172,7 +178,9 @@ def _fake_repo(tmp_path, *, acceptance=True, record_mutator=None, addendum=True,
               "review_path": "docs/jepa/REVIEW.md", "review_verdict": "PASS",
               "lead": "lead", "date": "2026-11-07",
               "addendum_path": rp.ADDENDUM_REL,
-              "addendum_sha256": rp.ADDENDUM_SHA256}
+              "addendum_sha256": rp.ADDENDUM_SHA256,
+              "addendum2_path": rp.ADDENDUM2_REL,
+              "addendum2_sha256": rp.ADDENDUM2_SHA256}
     if record_mutator is not None:
         record_mutator(record, root)
     if acceptance:
@@ -185,7 +193,8 @@ def test_gate_positive_and_pending_acceptance(tmp_path):
     root = _fake_repo(tmp_path)
     result = rp.assert_authorised("x1", root=root)
     assert result["authorised"] is True and result["status"] == "granted"
-    assert all(result["checks"][key]["pass"] for key in ("a", "a2", "b", "c"))
+    assert all(result["checks"][key]["pass"]
+               for key in ("a", "a2", "a3", "b", "c"))
     pending = _fake_repo(tmp_path / "pending", acceptance=False)
     row = rp.assert_authorised("x1", root=pending, dry_run=True)
     assert row["status"] == "gate_pending_acceptance" and row["authorised"] is False
@@ -915,11 +924,16 @@ def test_cli_modes_and_defaults():
     assert set(rp.MODES) == {"dry-run", "preflight", "reproduce", "x1", "x2",
                              "x3-fisher", "x3", "report", "addendum-selfcheck",
                              "addendum-x2", "addendum-x2e", "addendum-x3",
-                             "addendum-report", "addendum-init9000"}
+                             "addendum-report", "addendum-init9000",
+                             "addendum2-ledger", "addendum2-leace",
+                             "addendum2-report"}
     # the addendum §8 modes parse with their devices and the report --out
     for mode, device in (("addendum-selfcheck", "cpu"), ("addendum-x2", "cpu"),
                          ("addendum-x3", "cpu"), ("addendum-report", "cpu"),
-                         ("addendum-x2e", "auto"), ("addendum-init9000", "auto")):
+                         ("addendum-x2e", "auto"), ("addendum-init9000", "auto"),
+                         ("addendum2-ledger", "cpu"),
+                         ("addendum2-leace", "cpu"),
+                         ("addendum2-report", "cpu")):
         parsed = parser.parse_args([mode])
         assert parsed.mode == mode and parsed.device == device
     assert parser.parse_args(["addendum-x2e", "--limit", "3"]).limit == 3
@@ -2727,17 +2741,24 @@ def test_superseded_r1_row_is_populated_from_part_b_payloads(
 
 
 # ---------------------------------------------------------------------- A3
+def _ledger_payload(charged, *, booked=None):
+    """A synthetic RESOURCE_LEDGER payload whose booked sum is ``booked``."""
+    booked = float(charged if booked is None else booked)
+    recent = {rp.BOOKED_L40S_BASE_KEY: {"l40s_charged_after": booked}}
+    return {"v4_caps": {
+        "E2_lucid_l40s_deepthought2": {"charged_gpu_hours": float(charged)},
+        "recent": recent}}
+
+
 def test_addendum_s1_pass_at_current_ledger_and_stop_at_159_7(tmp_path):
-    passing = {"v4_caps": {"E2_lucid_l40s_deepthought2": {
-        "charged_gpu_hours": 129.7461}}}
+    passing = _ledger_payload(129.7461)
     ok = rp.addendum_s1_check(tmp_path, ledger=passing)
     assert ok["pass"] is True
     assert ok["sum_hours"] == pytest.approx(130.0961)
     assert ok["addendum_cap_hours"] == 0.35
     assert ok["ceiling_hours"] == 160.0
     assert "not consulted" in ok["rule"]
-    failing = {"v4_caps": {"E2_lucid_l40s_deepthought2": {
-        "charged_gpu_hours": 159.7}}}
+    failing = _ledger_payload(159.7)
     assert rp.addendum_s1_check(tmp_path, ledger=failing)["pass"] is False
     with pytest.raises(SystemExit) as caught:
         rp.addendum_s1_check_or_stop(tmp_path, ledger=failing)
@@ -2751,6 +2772,11 @@ def test_addendum_gpu_modes_stop_on_s1_before_work(tmp_path, monkeypatch):
                         lambda root=None, **kwargs: {
                             "pass": False, "ledger_charged_gpu_hours": 159.7,
                             "addendum_cap_hours": 0.35, "sum_hours": 160.05,
+                            "ceiling_hours": 160.0})
+    monkeypatch.setattr(rp, "addendum2_s1_check",
+                        lambda root=None, **kwargs: {
+                            "pass": False, "booked_gpu_hours": 159.7,
+                            "addendum2_cap_hours": 0.08, "sum_hours": 159.78,
                             "ceiling_hours": 160.0})
     boom = lambda *args, **kwargs: (_ for _ in ()).throw(
         AssertionError("work ran before the addendum S1 STOP"))
@@ -2792,12 +2818,17 @@ def test_every_addendum_mode_checks_entries_before_work(tmp_path, monkeypatch):
                         lambda mode, **kwargs: {"status": "granted"})
     monkeypatch.setattr(rp, "addendum_s1_check_or_stop",
                         lambda **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "addendum2_s1_check_or_stop",
+                        lambda **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "assert_addendum2_budget",
+                        lambda *args, **kwargs: {"pass": True})
     monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
 
     def stop(**kwargs):
         raise SystemExit(2)
 
     monkeypatch.setattr(rp, "addendum_entries_preflight_or_stop", stop)
+    monkeypatch.setattr(rp, "addendum2_entries_preflight_or_stop", stop)
     calls = (
         lambda: rp.addendum_selfcheck(config={}, gen={}, geometry=None,
                                       root=tmp_path, ext_root=tmp_path / "ext"),
@@ -2911,3 +2942,522 @@ def test_addendum_cached_condition_rows_are_nested_per_role(tmp_path):
     source = Path(rp.__file__).read_text()
     assert 'rows_test = rows_test["test"]' in source
     assert 'rows_train = rows_train["train"]' in source
+
+
+# ==========================================================================
+# Addendum 2 — E1: scale-only latent gain estimator
+# ==========================================================================
+def _e1_synthetic(seed=21, dims=8, modules=6, runs=5):
+    rng = np.random.default_rng(int(seed))
+    W = rng.standard_normal((dims, dims)) + 3.0 * np.eye(dims)
+    A = rng.standard_normal((dims, modules)) * np.logspace(-3, 3, modules)[None, :]
+    occupancies = [rng.uniform(0.5, 2.0, modules) for _ in range(int(runs))]
+    designs = [(W @ A) * occ[None, :] for occ in occupancies]
+    return {"rng": rng, "W": W, "A": A, "occupancies": occupancies,
+            "designs": designs}
+
+
+def test_e1_scale_only_recovers_delta_at_extreme_column_scales():
+    case = _e1_synthetic()
+    rng, W, A = case["rng"], case["W"], case["A"]
+    modules = A.shape[1]
+    truth = rng.normal(0.0, 0.05, modules)
+    occ = case["occupancies"][0]
+    scale = rp._design_scales(case["designs"])
+    assert scale is not None and scale.shape == (modules,)
+    assert scale.max() / scale.min() > 1e5          # 1e-3 .. 1e3 span
+    # W zbar = W A diag(occ) truth = design_0 truth
+    zbar = A @ (occ * truth)
+    fitted = rp.latent_estimate(zbar, occ, A, W, lam=0.0, scale=scale)
+    relative = float(np.max(np.abs(fitted["delta"] - truth))
+                     / np.max(np.abs(truth)))
+    assert relative <= 1e-8
+    assert fitted["residual_rms"] <= 1e-10
+    # the solve happens in scaled units and is back-transformed
+    assert np.allclose(fitted["delta"] * fitted["scale"],
+                       fitted["delta_scaled"], rtol=1e-12, atol=1e-15)
+
+
+def test_e1_lambda_positive_rescaling_invariance_and_raw_units():
+    case = _e1_synthetic(seed=22)
+    rng, W, A = case["rng"], case["W"], case["A"]
+    modules = A.shape[1]
+    truth = rng.normal(0.0, 0.05, modules)
+    occ = case["occupancies"][0]
+    designs = case["designs"]
+    scale = rp._design_scales(designs)
+    zbar = A @ (occ * truth)
+    base = rp.latent_estimate(zbar, occ, A, W, lam=1e-2, scale=scale)
+    column, factor = 2, 7.5
+    A_scaled = A.copy()
+    A_scaled[:, column] *= factor
+    designs_scaled = [(W @ A_scaled) * run_occ[None, :]
+                      for run_occ in case["occupancies"]]
+    scale_scaled = rp._design_scales(designs_scaled)
+    moved = rp.latent_estimate(zbar, occ, A_scaled, W, lam=1e-2,
+                               scale=scale_scaled)
+    # the standardised design is unchanged, so the fit is invariant: the raw-unit
+    # coefficient of the rescaled column moves by exactly 1/factor
+    assert moved["delta"][column] * factor == pytest.approx(
+        base["delta"][column], rel=1e-10)
+    others = np.arange(modules) != column
+    assert np.allclose(moved["delta"][others], base["delta"][others],
+                       rtol=1e-10, atol=1e-14)
+    design = designs[0]
+    design_scaled = (W @ A_scaled) * occ[None, :]
+    assert np.allclose(design_scaled @ moved["delta"],
+                       design @ base["delta"], rtol=1e-10, atol=1e-14)
+    assert np.allclose(moved["scale"], scale_scaled, rtol=1e-12)
+
+
+def test_e1_scale_only_path_is_shared_and_back_transformed():
+    import ast
+    source = Path(rp.__file__).read_text()
+    tree = ast.parse(source)
+    assert "_standardisation" not in source
+    assert "_design_scales" in source
+    calls = [node for node in ast.walk(tree)
+             if isinstance(node, ast.Call)
+             and isinstance(node.func, ast.Name)
+             and node.func.id == "latent_estimate"]
+    assert calls
+    for call in calls:
+        keywords = {keyword.arg for keyword in call.keywords}
+        assert "scale" in keywords, "a latent_estimate call omits the scale"
+        assert "centre" not in keywords
+    functions = {node.name: node for node in tree.body
+                 if isinstance(node, ast.FunctionDef)}
+    for name in ("latent_cv", "latent_stream_estimates"):
+        used = {call.func.id for call in ast.walk(functions[name])
+                if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)}
+        assert "_design_scales" in used, name
+    # the only readers of a solved "delta" are the two shared callers; the
+    # back-transform happens inside latent_estimate before they see it
+    readers = set()
+    for name, function in functions.items():
+        for node in ast.walk(function):
+            if isinstance(node, ast.Subscript) \
+                    and isinstance(node.slice, ast.Constant) \
+                    and node.slice.value == "delta":
+                readers.add(name)
+    assert readers <= {"latent_cv", "latent_stream_estimates"}
+    body = ast.get_source_segment(source, functions["latent_estimate"]) or ""
+    assert "delta = delta_scaled / safe" in body
+
+
+def test_e1_unaffected_x2_items_do_not_use_the_latent_path():
+    import ast
+    tree = ast.parse(Path(rp.__file__).read_text())
+    functions = {node.name: node for node in tree.body
+                 if isinstance(node, ast.FunctionDef)}
+    latent_names = {"_design_scales", "latent_estimate", "latent_cv",
+                    "latent_stream_estimates"}
+    for name in ("source_estimate", "raw_estimate", "_x2c",
+                 "identifiability_spectrum", "_stack_coefficients",
+                 "_fit_equivariance_occupancy"):
+        used = {call.func.id for call in ast.walk(functions[name])
+                if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)}
+        assert not (used & latent_names), (name, used & latent_names)
+    assert "A_hat" not in inspect.signature(rp.source_estimate).parameters
+    assert "A_hat" not in inspect.signature(rp.raw_estimate).parameters
+    # X2-e / the latent repair consume the payload delta (already raw units) and
+    # never re-scale it
+    for name in ("_latent_repair_rows", "addendum_x2e"):
+        used = {call.func.id for call in ast.walk(functions[name])
+                if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)}
+        assert not (used & latent_names), (name, used & latent_names)
+
+
+# ==========================================================================
+# Addendum 2 — E2 (E3u concept) and E3 (ledger/S1) and the new modes
+# ==========================================================================
+def test_e3u_concepts_match_a_direct_per_pmt_computation(tiny, geometry):
+    dataset = tiny["s005"]["dataset"]
+    concepts = rp.e3u_concepts(dataset, geometry, setting=rp.S005)
+    mod = rp.module_of_pmt(geometry)
+    checked = 0
+    for row in dataset.runs:
+        state = rp.run_state(row, dataset, geometry, rp.S005)
+        log_gain = np.log(np.asarray(state.module_gain, float))
+        store = lb.read_sparse_hits(dataset.directory / "runs" / row["run_dir"]
+                                    / "hits.npz")
+        for position, event_id in enumerate(np.asarray(store.event_ids, np.int64)):
+            span = slice(int(store.offsets[position]),
+                         int(store.offsets[position + 1]))
+            pmt = np.asarray(store.pmt_id[span], np.int64)
+            n_hit = np.bincount(mod[pmt],
+                                minlength=int(geometry.n_modules)).astype(float)
+            key = (str(row["run_id"]), int(event_id))
+            assert np.allclose(concepts[key], log_gain * n_hit, rtol=1e-12,
+                               atol=1e-12)
+            checked += 1
+    assert checked > 0
+    hits = rp.e3u_hit_counts(dataset, geometry, setting=rp.S005)
+    assert all(np.asarray(value).shape == (int(geometry.n_modules),)
+               for value in hits.values())
+
+
+def _e3u_rows(runs=5, events=4, dims=8, modules=6, seed=31):
+    rng = np.random.default_rng(int(seed))
+    run_ids = np.repeat([f"r{index}" for index in range(int(runs))],
+                        int(events)).astype(object)
+    event_ids = np.tile(np.arange(int(events)), int(runs))
+    counts = rng.uniform(1.0, 6.0, (run_ids.size, int(modules)))
+    gains = rng.normal(0.0, 0.2, (int(runs), int(modules)))
+    concept = np.stack([gains[int(run[1:])] * counts[index]
+                        for index, run in enumerate(run_ids)])
+    mixing = rng.standard_normal((int(modules), int(dims)))
+    events_matrix = concept @ mixing + 0.1 * rng.standard_normal(
+        (run_ids.size, int(dims)))
+    hits = counts.copy()
+
+    def rows():
+        return {"events": events_matrix, "run_ids": run_ids,
+                "event_ids": event_ids, "vertex": rng.standard_normal(
+                    (run_ids.size, 3)),
+                "log_yield": rng.standard_normal(run_ids.size),
+                "n_hit": np.full(run_ids.size, 5)}
+
+    def concepts():
+        return {"train": {"N": concept, "D": concept},
+                "test": {"N": concept, "D": concept}}
+
+    def hit_concepts():
+        return {"train": {"N": hits, "D": hits},
+                "test": {"N": hits, "D": hits}}
+
+    table = {"train": {"N": rows(), "D": rows()},
+             "test": {"N": rows(), "D": rows()}}
+    return table, concepts(), hit_concepts()
+
+
+def test_e3u_variant_carries_the_hitcount_control_at_the_same_rank():
+    table, concepts, hits = _e3u_rows()
+    variant = rp._leace_variant(label="t", domain="photon", rows=table,
+                                concepts=concepts, rank=None, concept="E3u",
+                                hitcount_concepts=hits,
+                                random_controls=3)
+    assert variant["status"] == "evaluated"
+    assert variant["concept"] == "E3u"
+    assert len(variant["controls"]) == 3
+    assert variant["hitcount_control"]["rank"] == variant["rank"]
+    assert variant["hitcount_control"]["concept"] == "hitcount"
+    for metric in ("log_yield", "vertex"):
+        assert metric in variant["hitcount_control"]
+
+
+def test_e3u_permutation_keys_include_e3u(monkeypatch):
+    seen = []
+    real = lb.keyed_rng
+
+    def capture(seed, namespace, key):
+        seen.append((namespace, key))
+        return real(seed, namespace, key)
+
+    monkeypatch.setattr(rp.lb, "keyed_rng", capture)
+    rng = np.random.default_rng(0)
+    x = rng.standard_normal((40, 4))
+    z = rng.standard_normal((40, 3))
+    run_ids = np.repeat([f"r{index}" for index in range(8)], 5).astype(object)
+    rp.reduction_rank(x, z, run_ids, key="lab", label="lab", domain="photon",
+                      concept="E3u", n_permutations=2)
+    assert ("paper3/x3/leace_perm", "lab/photon/E3u") in seen
+    seen.clear()
+    rp.reduction_rank(x, z, run_ids, key="lab", label="lab", domain="photon",
+                      n_permutations=2)
+    assert ("paper3/x3/leace_perm", "lab/photon") in seen
+
+
+def test_e3u_gain_specific_requires_all_three_conditions():
+    run_ids = np.repeat([f"r{index}" for index in range(20)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 20)
+    offsets = np.repeat(np.linspace(-0.002, 0.002, 20), 4)
+
+    def block(base):
+        return _metric_block(float(base), np.full(run_ids.size, base) + offsets,
+                             run_ids, event_ids)
+
+    standard = {"log_yield": {"N": block(0.2)}, "energy": {"N": block(0.2)}}
+    invariant = {"log_yield": {"N": block(0.32)}, "energy": {"N": block(0.32)}}
+    controls = [{"log_yield": {"N": block(0.21)},
+                 "energy": {"N": block(0.21)}} for _index in range(20)]
+    hitcount = {"log_yield": {"N": block(0.25)}, "energy": {"N": block(0.25)}}
+    x3_1 = {"log_yield": {"rho_E": 1.6}, "energy": {"rho_E": 1.6}}
+    out = rp._gain_specific_e3u(x3_1, standard, invariant, controls, hitcount)
+    for metric in ("log_yield", "energy"):
+        assert out[metric]["condition_q95"] is True
+        assert out[metric]["condition_hitcount_above"] is True
+        assert out[metric]["condition_hitcount_ci_excludes_zero"] is True
+        assert out[metric]["gain_specific"] is True
+    # a hit-count control with no smaller resolution breaks condition (c)
+    hitcount_higher = {"log_yield": {"N": block(0.34)},
+                       "energy": {"N": block(0.34)}}
+    failed = rp._gain_specific_e3u(x3_1, standard, invariant, controls,
+                                   hitcount_higher)
+    assert failed["log_yield"]["condition_hitcount_above"] is False
+    assert failed["log_yield"]["gain_specific"] is False
+
+
+def test_e3u_reading_replaces_the_x3_1_gain_specific_flag():
+    run_ids = np.repeat([f"r{index}" for index in range(20)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 20)
+    offsets = np.repeat(np.linspace(-0.002, 0.002, 20), 4)
+
+    def block(base):
+        return _metric_block(float(base), np.full(run_ids.size, base) + offsets,
+                             run_ids, event_ids)
+
+    standard = {"log_yield": {"N": block(0.2)}, "energy": {"N": block(0.2)}}
+    invariant = {"log_yield": {"N": block(0.32), "D": block(0.32)},
+                 "energy": {"N": block(0.32), "D": block(0.32)},
+                 "vertex": {"N": block(0.1), "D": block(0.1)}}
+    controls = [{"log_yield": {"N": block(0.21)},
+                 "energy": {"N": block(0.21)}} for _index in range(20)]
+    hitcount = {"log_yield": {"N": block(0.25)}, "energy": {"N": block(0.25)}}
+    entry = {"concept": "E3u", "rank": 3, "controls": controls,
+             "hitcount_control": hitcount,
+             "calibrated": {"vertex": {"D": block(0.09)},
+                            "energy": {"D": block(0.3)},
+                            "log_yield": {"D": block(0.3)}}}
+    reading = rp._variant_reading(entry, standard, invariant, leace=entry)
+    assert reading["X3-1-gain_specific_e3u"]["log_yield"]["gain_specific"] is True
+    assert reading["X3-1"]["log_yield"]["gain_specific"] is True
+    assert reading["X3-1"]["log_yield"]["rho_hitcount"] is not None
+
+
+# ---------------------------------------------------------------------- E3
+def test_booked_gpu_hours_is_the_exact_ledger_sum():
+    ledger = rp.read_json(ROOT / "docs/jepa/RESOURCE_LEDGER.json")
+    booked = rp.booked_gpu_hours(ledger)
+    assert booked["available"] is True
+    assert booked["base_key"] == "mae_jepa_followup_2026-11-03"
+    assert booked["base_hours"] == pytest.approx(129.7461)
+    assert booked["sum_hours"] == pytest.approx(133.6492, abs=1e-6)
+    assert booked["entries"]["repair_shortcut_2026-11-07"] == pytest.approx(3.7625)
+    assert booked["entries"]["repair_addendum_2026-11-08"] == pytest.approx(0.1406)
+
+
+def test_inconsistent_ledger_fails_every_s1_check(tmp_path):
+    ledger = _ledger_payload(130.0, booked=133.6492)
+    (tmp_path / "docs/jepa").mkdir(parents=True)
+    rp.write_json(tmp_path / "docs/jepa/RESOURCE_LEDGER.json", ledger)
+    combined = rp.s1_projection(tmp_path)
+    assert combined["pass"] is False
+    assert combined["ledger_consistent"] is False
+    assert "differs from the booked" in combined["reason"]
+    assert rp.addendum_s1_check(tmp_path)["pass"] is False
+    assert rp.addendum2_s1_check(tmp_path)["pass"] is False
+    with pytest.raises(SystemExit) as caught:
+        rp.addendum2_s1_check_or_stop(tmp_path)
+    assert caught.value.code == 2
+
+
+def test_addendum2_s1_threshold(tmp_path):
+    passing = rp.addendum2_s1_check(tmp_path,
+                                    ledger=_ledger_payload(133.6492))
+    assert passing["pass"] is True
+    assert passing["sum_hours"] == pytest.approx(133.7292)
+    assert passing["addendum2_cap_hours"] == 0.08
+    assert passing["ceiling_hours"] == 160.0
+    failing = rp.addendum2_s1_check(tmp_path,
+                                    ledger=_ledger_payload(159.93))
+    assert failing["pass"] is False
+    assert failing["sum_hours"] == pytest.approx(160.01)
+
+
+def test_addendum2_ledger_mode_writes_the_booked_total_once(tmp_path, monkeypatch):
+    ledger = _ledger_payload(129.7461, booked=133.6492)
+    (tmp_path / "docs/jepa").mkdir(parents=True)
+    rp.write_json(tmp_path / "docs/jepa/RESOURCE_LEDGER.json", ledger)
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "addendum2_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "assert_addendum2_budget",
+                        lambda *args, **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    payload = rp.addendum2_ledger(root=tmp_path, ext_root=tmp_path / "ext")
+    assert payload["status"] == "written"
+    assert payload["written_once"] is True
+    assert payload["charged_before"] == pytest.approx(129.7461)
+    assert payload["charged_after"] == pytest.approx(133.6492)
+    assert payload["s1_after"]["pass"] is True
+    written = rp.read_json(tmp_path / "docs/jepa/RESOURCE_LEDGER.json")
+    assert written["v4_caps"]["E2_lucid_l40s_deepthought2"][
+        "charged_gpu_hours"] == pytest.approx(133.6492)
+    assert (tmp_path / "ext/addendum2/ledger_fix.json").is_file()
+    again = rp.addendum2_ledger(root=tmp_path, ext_root=tmp_path / "ext")
+    assert again["status"] == "already_consistent"
+    assert again["written_once"] is False
+
+
+# ---------------------------------------------------------- gates addendum 2
+def test_gate_a3_missing_addendum2_fields_denies_not_pending(tmp_path):
+    def drop(record, root):
+        record.pop("addendum2_path")
+        record.pop("addendum2_sha256")
+
+    root = _fake_repo(tmp_path, record_mutator=drop)
+    result = rp.assert_authorised("x1", root=root, dry_run=True)
+    assert result["status"] == "denied"
+    assert result["checks"]["a3"]["pass"] is False
+    assert result["checks"]["b"]["missing_keys"] == ["addendum2_path",
+                                                    "addendum2_sha256"]
+    with pytest.raises(SystemExit):
+        rp.assert_authorised("x1", root=root)
+
+
+def test_gate_a3_addendum2_sha_and_path_are_checked(tmp_path):
+    def tamper(path):
+        path.write_text(path.read_text() + "\nlate edit\n")
+
+    root = _fake_repo(tmp_path, addendum2_mutator=tamper)
+    check = rp.assert_authorised("x1", root=root, dry_run=True)["checks"]["a3"]
+    assert check["pass"] is False
+    assert check["addendum2_sha256"] != rp.ADDENDUM2_SHA256
+
+    def wrong_path(record, root):
+        record["addendum2_path"] = "docs/jepa/OTHER_ADDENDUM2.md"
+
+    bad = _fake_repo(tmp_path / "bad", record_mutator=wrong_path)
+    assert rp.assert_authorised("x1", root=bad,
+                                dry_run=True)["checks"]["a3"]["pass"] is False
+
+
+def test_addendum2_modes_registered_and_in_help():
+    for mode in rp.ADDENDUM2_MODES:
+        assert mode in rp.MODES
+        assert hasattr(repair_cli, "mode_" + mode.replace("-", "_"))
+        assert mode in repair_cli.parser().format_help()
+    assert rp.ADDENDUM2_GPU_CAP_H == 0.08
+    assert rp.ADDENDUM2_CPU_CAP_H == 3.0
+    assert set(rp.ADDENDUM2_MODES) == {"addendum2-ledger", "addendum2-leace",
+                                       "addendum2-report"}
+
+
+def test_dry_run_plan_reports_addendum2_s1_and_entries(tiny, tmp_path, monkeypatch):
+    monkeypatch.setattr(rp, "addendum2_s1_check",
+                        lambda root=None, **kwargs: {"pass": True,
+                                                     "id": "S1 (addendum 2)"})
+    monkeypatch.setattr(rp, "addendum2_entries_preflight",
+                        lambda **kwargs: _dummy_entries())
+    geometry = tiny["geometry"]
+    config = lr.load_run_config(ROOT / rp.CONFIG_REL)
+    arms_config = la.load_config(ROOT / rp.ARMS_REL)
+    probes = {"s005": {"train": tiny["s005"]["dataset"],
+                       "test": tiny["s005"]["dataset"]},
+              "s030": {"train": tiny["s030"]["dataset"],
+                       "test": tiny["s030"]["dataset"]}}
+    setup = rp._mode_setup_objects(
+        "addendum2-ledger", root=tmp_path / "repo", config=config, gen=GEN,
+        arms_config=arms_config, geometry=geometry, data_root=tmp_path / "data",
+        ext_root=tmp_path / "ext", inventory=_fake_inventory(), probes=probes,
+        particle_truth={}, log=lambda *a, **k: None)
+    plan = setup["plan"]["addendum2"]
+    assert plan["addendum2_sha256"] == rp.ADDENDUM2_SHA256
+    assert plan["gpu_cap_hours"] == 0.08 and plan["cpu_cap_hours"] == 3.0
+    assert plan["s1"]["pass"] is True
+    assert plan["addendum2_entries"]["pass"] is True
+    assert plan["entries_projection"] == 200
+
+
+def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
+        tmp_path, geometry, monkeypatch):
+    ext = tmp_path / "ext"
+    target = tmp_path / "repo" / rp.RESULTS_DIR
+    target.mkdir(parents=True)
+    label = "mae_within_trigger9000"
+    family, seed = rp._family(label)
+    summary0 = {"registered": False, "extension": rp.EXTENSION,
+                "x1": {family: {seed: {"delta_D_m": 0.01, "rho_swtw": 0.9}}},
+                "x2": {family: {seed: {
+                    "X2-d": {"source": {"median_run_rms": 0.01},
+                             "raw": {"median_run_rms": 0.012},
+                             "latent": {"median_run_rms": -0.002,
+                                        "pearson_r": -0.2, "coverage": 1.0,
+                                        "n_runs": 8}},
+                    "X2-e": {"rho_EST": {"source": 0.6, "raw": 0.5,
+                                         "latent": -0.1},
+                             "latent_repair_rho_LR": -0.05}}}},
+                "x3": {}, "x3_5": {}, "superseded": [], "not_run": []}
+    rp.write_json(target / "SUMMARY.json", summary0)
+    original_summary_bytes = (target / "SUMMARY.json").read_bytes()
+    (target / "READINGS_SUMMARY.md").write_text("# old summary\n")
+    rp.write_json(target / "OUTCOME.json", {"extension": rp.EXTENSION})
+    x2_pre = {"models": {label: {
+        "X2-d": {"latent": {"median_run_rms": -0.002, "pearson_r": -0.2,
+                            "coverage": 1.0, "n_runs": 8}},
+        "X2-e": {"streams": {"latent": {"rho_EST": -0.1}},
+                 "latent_repair_rho_LR": -0.05}}}}
+    for name in ("x1", "x2", "x3", "readings"):
+        rp.write_json(target / f"{name}.json", x2_pre if name == "x2" else {})
+    rp.write_json(ext / "x2/x2.json", x2_pre)
+    rp.write_json(ext / "addendum/x2_addendum.json", {
+        "status": "evaluated",
+        "models": {label: {"X2-d": {"latent": {
+            "median_run_rms": 0.004, "pearson_r": 0.95, "coverage": 1.0,
+            "n_runs": 8}}}}})
+    rp.write_json(ext / "addendum/x2e_addendum.json", {
+        "models": {label: {"rho_EST_latent": 0.7,
+                           "latent_repair_rho_LR": 0.65}}})
+    reading = _d4_x3_reading(1.5, vertex_difference=0.002, gain_specific=True)
+    reading["X3-1"]["log_yield"]["rho_hitcount"] = 1.2
+    reading["X3-1"]["log_yield"]["hitcount_ci95"] = [0.03, 0.05]
+    entry = {"status": "evaluated", "concept": "E3u", "rank": 3,
+             "sanity": {"unerased_r2": 0.5, "erased_r2": 0.001,
+                        "status": "evaluated"},
+             "controls": [{"index": index} for index in range(20)],
+             "hitcount_control": {"rank": 3, "concept": "hitcount"}}
+    rp.write_json(ext / "addendum2/x3_e3u.json", {
+        "families": {"leace": {"status": "evaluated",
+                               "models": {f"{label}/E3u": entry}}},
+        "readings": {
+            "variants": {f"{label}/E3u": reading},
+            "X3-5": {"empirical_rho_E_log_yield": 1.5,
+                     "raw_feature_rho_E_log_yield": 3.5,
+                     "e3u_rho_E_log_yield": {f"{label}/E3u": 1.5},
+                     "theory_rows": {}, "rule": "x"}}})
+    rp.write_json(ext / "addendum2/ledger_fix.json", {
+        "status": "written", "charged_before": 129.7461,
+        "charged_after": 133.6492, "booked_gpu_hours": 133.6492,
+        "written_once": True,
+        "s1_after": {"pass": True, "sum_hours": 133.7292},
+        "decisions_ready": "ledger corrected"})
+    monkeypatch.setattr(rp, "assert_authorised",
+                        lambda mode, **kwargs: {"status": "granted"})
+    monkeypatch.setattr(rp, "addendum2_entries_preflight_or_stop",
+                        lambda **kwargs: _dummy_entries())
+    monkeypatch.setattr(rp, "assert_addendum2_budget",
+                        lambda *args, **kwargs: {"pass": True})
+    monkeypatch.setattr(rp, "ADDENDUM_JOBS", tmp_path / "ledger.jsonl")
+    result = rp.addendum2_report(root=tmp_path / "repo", ext_root=ext,
+                                 results_dir=target, log=lambda *a, **k: None)
+    assert result["complete"] is True
+    a2 = rp.read_json(target / "ADDENDUM2_2026-11-08.json")
+    assert a2["addendum2_sha256"] == rp.ADDENDUM2_SHA256
+    assert set(a2["e1"]["reruns"]) == {"X2-d latent", "X2-e latent"}
+    assert a2["e1"]["rows"] and a2["e3u"]["rows"]
+    assert set(a2["e3u"]["readings"]["variants"]) == {f"{label}/E3u"}
+    assert a2["ledger"]["status"] == "written"
+    assert {row["defect"] for row in a2["superseded"]} == {"E1", "E2", "E3"}
+    summary = rp.read_json(target / "SUMMARY.json")
+    assert f"{label}/E3u" in summary["x3"]
+    assert summary["x3"][f"{label}/E3u"]["concept"] == "E3u"
+    assert summary["addendum2"]["e3u"]["n_models"] == 1
+    row = summary["x2"][family][str(seed)]
+    assert row["X2-d"]["latent"]["median_run_rms"] == pytest.approx(0.004)
+    assert row["X2-e"]["rho_EST"]["latent"] == pytest.approx(0.7)
+    assert row["X2-e"]["latent_repair_rho_LR"] == pytest.approx(0.65)
+    markdown = (target / "READINGS_SUMMARY.md").read_text()
+    assert "Addendum 2 — E1 latent gain estimator" in markdown
+    assert "E3u" in markdown and "ledger total (E3)" in markdown
+    outcome = rp.read_json(target / "OUTCOME.json")
+    assert "addendum2" in outcome
+    # pre-addendum-2 copies are preserved write-once
+    preserved = ext / "addendum2/preserved_before"
+    assert (preserved / "SUMMARY.json").is_file()
+    assert (preserved / "SUMMARY.json").read_bytes() == original_summary_bytes
+    before = (preserved / "SUMMARY.json").read_bytes()
+    rp.addendum2_report(root=tmp_path / "repo", ext_root=ext,
+                        results_dir=target, log=lambda *a, **k: None)
+    assert (preserved / "SUMMARY.json").read_bytes() == before

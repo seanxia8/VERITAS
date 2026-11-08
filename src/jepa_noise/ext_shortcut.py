@@ -58,6 +58,22 @@ The addendum closes the 7 Nov gaps without training or data generation:
   30_000``.  Every addendum mode runs it before work and records it; it is the
   entries-preflight STOP basis (the combined-preflight block stays as history).
 
+Addendum 2 (8 Nov 2026, v1; ``RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md``)
+-----------------------------------------------------------------------
+* **Gate (addendum 2 §6)** -- the acceptance schema gains ``addendum2_path`` and
+  ``addendum2_sha256`` (ten keys).  A new check (a3) requires the committed
+  addendum 2's sha256, its §0 author line and both record fields; a record
+  missing or mismatching them is DENIED (pending only when the record is
+  absent), and ``ADDENDUM2_REL`` is in ``<P>`` so the diff/untracked checks
+  cover the committed file.
+* **E3 S1 fail-closed (addendum 2 §4)** -- :func:`booked_gpu_hours` recomputes
+  the booked L40S sum from ``v4_caps.recent`` (base
+  ``mae_jepa_followup_2026-11-03.l40s_charged_after`` + every later entry's
+  ``part_a.gpu_hours + part_b.gpu_hours + gpu_hours`` = 133.6492) and
+  :func:`addendum_s1_check` fails closed when ``charged_gpu_hours`` differs from
+  it by more than 1e-3 h; otherwise the addendum 2 S1 is
+  ``charged total + 0.08 <= 160``.
+
 The variant is installed by rebinding ``arm._encode_views`` through a
 process-level ``lucid_run.build_arm`` wrapper
 (:func:`build_arm_patch` / :func:`attach_posfree_target`), as in
@@ -255,8 +271,22 @@ CORRECTED_X2C_TOKEN = "X2-c"
 R1_BASIS_OVERLAY = "d1_overlay"
 R1_BASIS_CORRECTED = "corrected_results"
 R1_BASIS_7NOV = "7nov_results"
+#: --- addendum 2 (8 Nov 2026, v1; sha256 b0cd727c…e76f8) --------------------
+#: Addendum 2 §6: the re-issued acceptance record has the ten keys below;
+#: both parts' gates also require the committed addendum 2's sha256 to match.
+ADDENDUM2_REL = "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md"
+ADDENDUM2_SHA256 = "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8"
+ADDENDUM2_AUTHOR_LINE = "按A做，并更新周报"
+ADDENDUM2_DATE = "2026-11-08"
+#: Addendum 2 §4/§5: GPU <= 0.08 L40S h, evaluation only; S1 = charged + 0.08 <= 160.
+ADDENDUM2_GPU_CAP_H = 0.08
+#: E3 (addendum 2 §4): S1 fails closed when the ledger's charged_gpu_hours differs
+#: from the booked v4_caps.recent sum by more than this tolerance.
+S1_BASE_RECENT = "mae_jepa_followup_2026-11-03"
+S1_CHARGED_TOLERANCE_H = 1e-3
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
-                   "lead", "date", "addendum_path", "addendum_sha256")
+                   "lead", "date", "addendum_path", "addendum_sha256",
+                   "addendum2_path", "addendum2_sha256")
 DECISIONS_REL = "docs/jepa/DECISIONS.md"
 #: Part B §0 line 1, verbatim; the date is recorded on the runbook (line 1170).
 AUTHOR_LINE = "一二三我都批，写成一个runbook"
@@ -279,6 +309,8 @@ P_FILES = (
     RUNBOOK_REL,
     #: Addendum §7: the committed addendum must be unchanged as well.
     ADDENDUM_REL,
+    #: Addendum 2 §6: and the committed addendum 2.
+    ADDENDUM2_REL,
 )
 P_DIRS = ("src/noise_module_lucid/", "src/jepa_noise/configs/")
 #: Modules outside <P> that a <P> module *forces* into the executed import
@@ -554,6 +586,42 @@ def _gate_checks(mode, *, root) -> dict:
                         "addendum (sha256, §0 author line, "
                         "addendum_path/addendum_sha256 in the record) does not")
 
+    # (a3, addendum 2 §6) the committed addendum 2: its sha256 is the committed
+    # value (and the acceptance record's), its §0 block carries the §0 author
+    # line, and the record names ``addendum2_path`` and ``addendum2_sha256``.
+    addendum2_file = root / ADDENDUM2_REL
+    computed_addendum2 = (lr.sha256_file(addendum2_file)
+                          if addendum2_file.is_file() else None)
+    expected_addendum2 = ((record or {}).get("addendum2_sha256") if record
+                          else ADDENDUM2_SHA256)
+    addendum2_text = (addendum2_file.read_text()
+                      if addendum2_file.is_file() else "")
+    addendum2_block = author_section(addendum2_text, ADDENDUM2_AUTHOR_LINE)
+    addendum2_sha_pass = bool(computed_addendum2 is not None
+                              and computed_addendum2 == ADDENDUM2_SHA256
+                              and computed_addendum2 == expected_addendum2)
+    addendum2_line_pass = bool(addendum2_block
+                               and ADDENDUM2_AUTHOR_LINE in addendum2_block)
+    addendum2_path_pass = bool(record is None
+                               or str(record.get("addendum2_path")) == ADDENDUM2_REL)
+    a3_pass = bool(addendum2_sha_pass and addendum2_line_pass
+                   and addendum2_path_pass)
+    checks["a3"] = {"pass": a3_pass, "addendum2": str(addendum2_file),
+                    "addendum2_sha256": computed_addendum2,
+                    "addendum2_sha256_committed": ADDENDUM2_SHA256,
+                    "expected_addendum2_sha256": expected_addendum2,
+                    "addendum2_sha256_pass": addendum2_sha_pass,
+                    "addendum2_author_line": ADDENDUM2_AUTHOR_LINE,
+                    "addendum2_author_line_in_section_zero": addendum2_line_pass,
+                    "addendum2_path_in_record": (record or {}).get(
+                        "addendum2_path"),
+                    "addendum2_path_match": addendum2_path_pass,
+                    "pending_acceptance": bool(pending)}
+    if not a3_pass and not pending:
+        problems.append("(a3) the committed addendum 2 (sha256, §0 author line, "
+                        "addendum2_path/addendum2_sha256 in the acceptance record) "
+                        "does not match")
+
     # (b) acceptance record schema and review verdict.
     if record is None:
         checks["b"] = {"pass": False, "status": "gate_pending_acceptance",
@@ -761,33 +829,138 @@ def record_addendum_job(part, *, mode, kind, wall_seconds, path=None) -> dict:
     return row
 
 
-def addendum_s1_check(root=None) -> dict:
-    """Addendum §6 S1: L40S ledger + the addendum GPU cap (0.35) <= 160."""
+def _recent_booked_gpu_hours(entry) -> float:
+    """The booked GPU hours of one ``v4_caps.recent`` entry.
+
+    Addendum 2 §4: an entry books ``part_a.gpu_hours + part_b.gpu_hours +
+    gpu_hours`` (a part missing from the entry contributes zero).
+    """
+    if not isinstance(entry, dict):
+        return 0.0
+    total = 0.0
+    for part in ("part_a", "part_b"):
+        block = entry.get(part)
+        if isinstance(block, dict):
+            total += float(block.get("gpu_hours") or 0.0)
+    total += float(entry.get("gpu_hours") or 0.0)
+    return total
+
+
+def booked_gpu_hours(ledger=None, *, root=None) -> dict:
+    """The booked L40S GPU hours from ``v4_caps.recent`` (addendum 2 §4 / E3).
+
+    Base = ``v4_caps.recent.mae_jepa_followup_2026-11-03.l40s_charged_after``
+    (129.7461); every **later** ``recent`` entry contributes its booked hours
+    (``part_a.gpu_hours + part_b.gpu_hours + gpu_hours``), giving 133.6492 for
+    the committed ledger.  ``available`` is False when the base entry, its
+    ``l40s_charged_after`` or the ``recent`` block cannot be read; this is what
+    the fail-closed S1 check keys on.
+    """
+    if not isinstance(ledger, dict):
+        ledger = read_json(_resolve_root(root) / "docs/jepa/RESOURCE_LEDGER.json",
+                           {}) or {}
+    recent = ((ledger.get("v4_caps") or {}).get("recent") or {})
+    out = {"registered": False, "extension": EXTENSION,
+           "base_entry": S1_BASE_RECENT, "base_hours": None, "entries": [],
+           "booked_gpu_hours": None, "available": False,
+           "rule": "base l40s_charged_after + every later v4_caps.recent entry's "
+                   "part_a.gpu_hours + part_b.gpu_hours + gpu_hours"}
+    if not isinstance(recent, dict) or S1_BASE_RECENT not in recent:
+        out["reason"] = (f"v4_caps.recent.{S1_BASE_RECENT} is missing; the booked "
+                         f"sum cannot be read")
+        return out
+    base = (recent.get(S1_BASE_RECENT) or {}).get("l40s_charged_after")
+    if base is None:
+        out["reason"] = (f"v4_caps.recent.{S1_BASE_RECENT}.l40s_charged_after is "
+                         f"missing; the booked sum cannot be read")
+        return out
+    ordered = list(recent)
+    later = ordered[ordered.index(S1_BASE_RECENT) + 1:]
+    total = float(base)
+    for name in later:
+        hours = _recent_booked_gpu_hours(recent.get(name))
+        out["entries"].append({"name": name, "gpu_hours": round(hours, 6),
+                               "entry": recent.get(name)})
+        total += hours
+    out.update(base_hours=float(base), booked_gpu_hours=round(total, 6),
+               available=True)
+    return out
+
+
+def addendum_s1_check(root=None, *, ledger=None) -> dict:
+    """Addendum 2 §4 S1: charged total + 0.08 <= 160, and fail closed on E3.
+
+    The check fails closed (``pass`` False, ``stopped`` True, a clear ``reason``)
+    when ``v4_caps.E2_lucid_l40s_deepthought2.charged_gpu_hours`` differs from
+    :func:`booked_gpu_hours` by more than :data:`S1_CHARGED_TOLERANCE_H`
+    (1e-3 h).  Otherwise the addendum 2 threshold ``charged + 0.08 <= 160`` is
+    applied.  The closed Part A (4.0 h) and Part B (1.5 h) caps are not
+    consulted.
+    """
     root = _resolve_root(root)
-    ledger = read_json(root / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}
+    if ledger is None:
+        ledger = read_json(root / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}
     entry = (ledger.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2") or {}
     charged = entry.get("charged_gpu_hours")
-    total = (float(charged) + ADDENDUM_GPU_CAP_H if charged is not None else None)
-    return {"registered": False, "extension": EXTENSION, "id": "S1 (addendum)",
+    booked = booked_gpu_hours(ledger)
+    consistent = None
+    difference = None
+    reason = None
+    if charged is None:
+        reason = ("fail closed: v4_caps.E2_lucid_l40s_deepthought2."
+                  "charged_gpu_hours is missing")
+    elif not booked.get("available"):
+        reason = f"fail closed: {booked.get('reason')}"
+    else:
+        difference = round(float(charged) - float(booked["booked_gpu_hours"]), 6)
+        consistent = bool(abs(difference) <= S1_CHARGED_TOLERANCE_H)
+        if not consistent:
+            reason = (f"fail closed (addendum 2 §4 / E3): charged_gpu_hours "
+                      f"{charged} differs from the booked v4_caps.recent sum "
+                      f"{booked['booked_gpu_hours']} by {difference:+.6f} h > "
+                      f"{S1_CHARGED_TOLERANCE_H} h")
+    total = (float(charged) + ADDENDUM2_GPU_CAP_H
+             if charged is not None else None)
+    # 1e-9 h absorbs the binary-float representation of the boundary case
+    # (159.92 + 0.08) without weakening the 1e-3 h ledger consistency tolerance.
+    if reason is None and total is not None and total > S1_CEILING_H + 1e-9:
+        reason = (f"charged total {round(total, 4)} h + "
+                  f"{ADDENDUM2_GPU_CAP_H} h cap > {S1_CEILING_H} h")
+    passed = bool(reason is None and total is not None
+                  and total <= S1_CEILING_H + 1e-9)
+    return {"registered": False, "extension": EXTENSION,
+            "id": "S1 (addendum 2)",
             "ledger": "docs/jepa/RESOURCE_LEDGER.json",
             "ledger_job": "E2_lucid_l40s_deepthought2",
             "ledger_charged_gpu_hours": charged,
-            "addendum_cap_hours": ADDENDUM_GPU_CAP_H,
+            "booked_gpu_hours": booked.get("booked_gpu_hours"),
+            "booked_base_entry": booked.get("base_entry"),
+            "booked_base_hours": booked.get("base_hours"),
+            "booked_later_entries": booked.get("entries"),
+            "booked_available": bool(booked.get("available")),
+            "consistency_tolerance_hours": S1_CHARGED_TOLERANCE_H,
+            "charged_minus_booked_hours": difference,
+            "ledger_consistent": consistent,
+            "addendum2_cap_hours": ADDENDUM2_GPU_CAP_H,
+            # compatibility key for the earlier addendum's readers
+            "addendum_cap_hours": ADDENDUM2_GPU_CAP_H,
             "sum_hours": None if total is None else round(total, 4),
             "ceiling_hours": S1_CEILING_H,
-            "pass": bool(total is not None and total <= S1_CEILING_H),
-            "rule": "L40S ledger + addendum GPU cap (0.35) <= 160 (addendum §6; the "
-                    "closed Part A and Part B caps are not consulted)"}
+            "pass": passed, "stopped": not passed, "reason": reason,
+            "rule": "S1 (addendum 2 §4): charged total + 0.08 <= 160; fail closed "
+                    "when charged_gpu_hours differs from the booked v4_caps.recent "
+                    "sum by more than 1e-3 h; the closed Part A and Part B caps are "
+                    "not consulted"}
 
 
-def addendum_s1_check_or_stop(root=None) -> dict:
-    """Addendum S1 is a STOP: no addendum GPU job may launch when it is crossed."""
-    result = addendum_s1_check(root)
+def addendum_s1_check_or_stop(root=None, *, ledger=None) -> dict:
+    """Addendum 2 S1 is a STOP: no addendum GPU job may launch when it fails."""
+    result = addendum_s1_check(root, ledger=ledger)
     if not result["pass"]:
-        print(f"[shortcut] addendum S1 STOP: L40S ledger "
-              f"{result['ledger_charged_gpu_hours']} + "
-              f"{result['addendum_cap_hours']} = {result['sum_hours']} > "
-              f"{result['ceiling_hours']} h (addendum §6)", file=sys.stderr)
+        print(f"[shortcut] addendum 2 S1 STOP: {result.get('reason') or 'S1 failed'}"
+              f" (charged {result.get('ledger_charged_gpu_hours')} + "
+              f"{result.get('addendum2_cap_hours')} <= {result.get('ceiling_hours')}"
+              f" required)", file=sys.stderr)
         raise SystemExit(2)
     return result
 

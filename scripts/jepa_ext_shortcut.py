@@ -257,7 +257,8 @@ def mode_dry_run(args) -> int:
     summary = {"plan": str(out), "gate_status": gate["status"],
                "authorised": gate["authorised"],
                "checks": {key: gate["checks"][key].get("pass")
-                          for key in ("a", "b", "c")},
+                          for key in ("a", "a3", "b", "c")
+                          if key in gate["checks"]},
                "closure_pass": payload["closure"]["pass"],
                "closure_forced_imports": [
                    row["path"] for row in payload["closure"]["forced_import_exceptions"]],

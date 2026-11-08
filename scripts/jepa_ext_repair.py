@@ -53,6 +53,21 @@ addendum-selfcheck, addendum-report.  The addendum modes are booked to the
 addendum's own 0.35 h GPU / 3.0 h CPU caps; the closed Part A and Part B caps are
 never consulted.
 
+Addendum 2 (``docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md``)
+------------------------------------------------------------------
+* ``addendum2-ledger`` (CPU): verify/write the booked L40S total and the
+  addendum-2 S1 (booked + 0.08 <= 160, fail closed on a ledger inconsistency);
+  writes ``<ext>/addendum2/ledger_fix.json``;
+* ``addendum2-leace`` (CPU): the E3u LEACE family, its 20 Haar-random controls and
+  the hit-count control, with the X3-1..X3-5 readings; writes
+  ``<ext>/addendum2/x3_e3u.json``;
+* ``addendum2-report`` (CPU): writes ``ADDENDUM2_2026-11-08.json`` and updates
+  ``READINGS_SUMMARY.md`` / ``SUMMARY.json`` / ``OUTCOME.json`` / figures in place.
+
+Addendum 2 §7 order: addendum2-ledger -> addendum-x2 -> addendum2-leace (CPU) ->
+addendum-x2e (GPU) -> addendum2-report.  These modes are booked to addendum 2's
+own 0.08 h GPU / 3.0 h CPU caps.
+
 No training mode exists, no data is generated, and no registered module, config,
 prediction or verdict is edited.
 """
@@ -351,6 +366,10 @@ def _addendum_path(args, name) -> Path:
     return ext_root(args) / "addendum" / name
 
 
+def _addendum2_path(args, name) -> Path:
+    return ext_root(args) / "addendum2" / name
+
+
 def _finalise_addendum(payload, path, root, code) -> int:
     """Write the payload, THEN re-check the import closure (N5, post-write).
 
@@ -473,6 +492,68 @@ def mode_addendum_x3(args) -> int:
                               0 if payload["complete"] else 2)
 
 
+def mode_addendum2_ledger(args) -> int:
+    """Addendum 2 E3 (CPU): the booked L40S total and its S1."""
+    root = repo_root(args)
+    payload = rep.addendum2_ledger(root=root, ext_root=ext_root(args), log=print)
+    path = _addendum2_path(args, "addendum2-ledger.json")
+    print(json.dumps({"out": str(path),
+                      "status": payload["status"],
+                      "booked_gpu_hours": payload["booked_gpu_hours"],
+                      "charged_before": payload["charged_before"],
+                      "charged_after": payload["charged_after"],
+                      "written_once": payload["written_once"],
+                      "s1_pass": (payload.get("s1_after") or {}).get("pass"),
+                      "s1_sum_hours": (payload.get("s1_after") or {}).get(
+                          "sum_hours"),
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return _finalise_addendum(
+        payload, path, root,
+        0 if (payload.get("s1_after") or {}).get("pass") else 2)
+
+
+def mode_addendum2_leace(args) -> int:
+    """Addendum 2 E2 (CPU): the E3u LEACE family and its controls."""
+    root = repo_root(args)
+    config, gen, _arms_config, geometry, _device = load_setup(args,
+                                                              device_default="cpu")
+    payload = rep.addendum2_leace(
+        config=config, gen=gen, geometry=geometry, data_root=data_root(args),
+        ext_root=ext_root(args), root=root, limit=args.limit, log=print)
+    path = _addendum2_path(args, "addendum2-leace.json")
+    print(json.dumps({"out": str(path), "complete": payload["complete"],
+                      "variants": sorted((payload["readings"] or {}).get(
+                          "variants") or {}),
+                      "unavailable": payload["unavailable"],
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return _finalise_addendum(payload, path, root,
+                              0 if payload["complete"] else 2)
+
+
+def mode_addendum2_report(args) -> int:
+    """Addendum 2 §9 (CPU): ADDENDUM2 JSON + summary/outcome/figures in place."""
+    root = repo_root(args)
+    payload = rep.addendum2_report(root=root, ext_root=ext_root(args),
+                                   results_dir=args.out, log=print)
+    path = _addendum2_path(args, "addendum2-report.json")
+    print(json.dumps({"path": payload["path"],
+                      "addendum2_json": payload["addendum2_json"],
+                      "summary": payload["summary"],
+                      "readings_summary": payload["readings_summary"],
+                      "outcome": payload["outcome"],
+                      "e1_rows": payload["e1_rows"],
+                      "e2_rows": payload["e2_rows"],
+                      "e3u_variants": payload["e3u_variants"],
+                      "ledger_status": payload["ledger_status"],
+                      "figures": (payload.get("figures") or {}).get("n_figures"),
+                      "closure_pass": payload["closure"]["pass"]},
+                     default=float), flush=True)
+    return _finalise_addendum(payload, path, root,
+                              0 if payload["complete"] else 2)
+
+
 def mode_addendum_report(args) -> int:
     """Addendum D4 (CPU): the complete committed summary, JSON and figures."""
     root = repo_root(args)
@@ -571,6 +652,19 @@ def parser():
     _limit(ainit)
     _common(ainit)
     ainit.add_argument("--device", default="auto")
+    a2l = sub.add_parser("addendum2-ledger")
+    _common(a2l)
+    a2l.add_argument("--device", default="cpu")
+    a2le = sub.add_parser("addendum2-leace")
+    _limit(a2le)
+    _common(a2le)
+    a2le.add_argument("--device", default="cpu")
+    a2r = sub.add_parser("addendum2-report")
+    a2r.add_argument("--out", default=None,
+                     help="results directory (default: <root>/results/jepa/"
+                          "20261106_repair)")
+    _common(a2r)
+    a2r.add_argument("--device", default="cpu")
     areport = sub.add_parser("addendum-report")
     areport.add_argument("--out", default=None,
                          help="results directory (default: <root>/results/jepa/"
@@ -590,7 +684,10 @@ def main(argv=None):
                 "addendum-x2e": mode_addendum_x2e,
                 "addendum-x3": mode_addendum_x3,
                 "addendum-report": mode_addendum_report,
-                "addendum-init9000": mode_addendum_init9000}
+                "addendum-init9000": mode_addendum_init9000,
+                "addendum2-ledger": mode_addendum2_ledger,
+                "addendum2-leace": mode_addendum2_leace,
+                "addendum2-report": mode_addendum2_report}
     return handlers[args.mode](args)
 
 

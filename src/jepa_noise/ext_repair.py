@@ -51,6 +51,22 @@ Execution order (addendum §8): the GPU jobs ``addendum-init9000`` (only if
 ``addendum-x2e``, at most two addendum jobs at once and each guard-checked,
 before the CPU jobs ``addendum-x3`` (now with the token cache),
 ``addendum-x2``, ``addendum-selfcheck`` and ``addendum-report``.
+
+Addendum 2 (``docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md``)
+------------------------------------------------------------------
+Its §7 order is ``addendum2-ledger`` -> ``addendum-x2`` -> ``addendum2-leace``
+(CPU) -> ``addendum-x2e`` (GPU) -> ``addendum2-report``; the modes are booked to
+addendum 2's own 0.08 h GPU / 3.0 h CPU caps (the earlier caps are closed):
+
+* ``addendum2-ledger``: ``booked_gpu_hours`` (base 129.7461 + every later
+  ``recent`` entry's booked hours = 133.6492) is written once to
+  ``charged_gpu_hours``; the addendum-2 S1 is ``booked + 0.08 <= 160`` and every
+  S1 check fails closed when the ledger differs from the booked sum by > 1e-3 h;
+* ``addendum2-leace``: the E3u concept (occupancy-weighted module log gains),
+  its 20 Haar-random controls and the matched hit-count control, with the E3u
+  three-condition gain-specific rule and the X3-1..X3-5 readings;
+* ``addendum2-report``: ``ADDENDUM2_2026-11-08.json`` and the in-place summary,
+  outcome and figure updates, with the superseded table extended with E1–E3.
 """
 from __future__ import annotations
 
@@ -105,13 +121,21 @@ __all__ = [
     "addendum_entries_preflight", "addendum_entries_preflight_or_stop",
     "ADDENDUM_ENTRIES_PROJECTION", "PART_B_EXT_ROOT",
     "addendum_x3", "addendum_report", "addendum_init9000",
+    "ADDENDUM2_REL", "ADDENDUM2_SHA256", "ADDENDUM2_AUTHOR_LINE",
+    "ADDENDUM2_GPU_CAP_H", "ADDENDUM2_CPU_CAP_H", "ADDENDUM2_MODES",
+    "ADDENDUM2_ENTRIES_PROJECTION", "addendum2_hours",
+    "assert_addendum2_budget", "record_addendum2_job", "booked_gpu_hours",
+    "addendum2_s1_check", "addendum2_s1_check_or_stop",
+    "addendum2_entries_preflight", "addendum2_entries_preflight_or_stop",
+    "addendum2_ledger", "addendum2_leace", "addendum2_report",
 ]
 
 # ---------------------------------------------------------------- extension
 EXTENSION = "paper3_repair_pilot_2026-11-06"
 MODES = ("dry-run", "preflight", "reproduce", "x1", "x2", "x3-fisher", "x3", "report",
          "addendum-selfcheck", "addendum-x2", "addendum-x2e", "addendum-x3",
-         "addendum-report", "addendum-init9000")
+         "addendum-report", "addendum-init9000",
+         "addendum2-ledger", "addendum2-leace", "addendum2-report")
 #: Addendum §8 modes (7 Nov 2026).  They are booked against the addendum's own
 #: 0.35 L40S h / 3 wall-hours caps; the closed Part A and Part B caps are never
 #: consulted by them.  §8 execution order: the GPU jobs (``addendum-init9000``
@@ -150,9 +174,31 @@ PART_B_EXT_ROOT = Path("/ceph/dwong/jepa/returns/ext_shortcut_20261107")
 #: Write-once preservation of the 7 Nov results payloads (A1), so the superseded
 #: table never reads a file that has already been overwritten.
 PRESERVED_7NOV = "addendum/preserved_7nov"
+
+# ------------------------------------------------ addendum 2 (8 Nov 2026) §0/§4/§5
+ADDENDUM2_REL = "docs/jepa/RUNBOOK_2026-11-08_REPAIR_ADDENDUM2.md"
+ADDENDUM2_SHA256 = "b0cd727cb30941fb606afcfa1a92c41d15f1011d3bffe4e28c041fabbc3e76f8"
+ADDENDUM2_AUTHOR_LINE = "按A做，并更新周报"
+ADDENDUM2_GPU_CAP_H = 0.08
+ADDENDUM2_CPU_CAP_H = 3.0
+ADDENDUM2_JOBS_PARTS = ("A2", "B2")
+ADDENDUM2_MODES = ("addendum2-ledger", "addendum2-leace", "addendum2-report")
+#: Addendum 2 budget projections (L40S h for the reused x2e GPU mode; the CPU
+#: projections are wall hours).  The earlier caps are closed and never consulted.
+ADDENDUM2_GPU_PROJECTION = {"addendum-x2e": 0.06}
+ADDENDUM2_CPU_PROJECTION = {"addendum2-ledger": 0.05, "addendum2-leace": 0.75,
+                            "addendum2-report": 0.10, "addendum-x2": 0.50}
+#: Addendum 2 entries basis: its own projected writes only (host clone reused,
+#: TMPDIR off /ceph); the floor is the runbook's 30,000.
+ADDENDUM2_ENTRIES_PROJECTION = 200
+#: The booked L40S base entry in ``v4_caps.recent`` (§4) and the S1 consistency
+#: tolerance: the ledger field may differ from the booked sum by at most 1e-3 h.
+BOOKED_L40S_BASE_KEY = "mae_jepa_followup_2026-11-03"
+LEDGER_CONSISTENCY_H = 1e-3
 ACCEPTANCE_REL = "docs/jepa/ACCEPTANCE_2026-11-07_REPAIR_AND_SHORTCUT.json"
 ACCEPTANCE_KEYS = ("runbook_sha256", "impl_commit", "review_path", "review_verdict",
-                   "lead", "date", "addendum_path", "addendum_sha256")
+                   "lead", "date", "addendum_path", "addendum_sha256",
+                   "addendum2_path", "addendum2_sha256")
 DECISIONS_REL = "docs/jepa/DECISIONS.md"
 
 #: §9.2 (c): the reviewed path set ``<P>``.  ``git diff --quiet <impl_commit> -- <P>``
@@ -471,6 +517,36 @@ def _gate_checks(mode, *, root) -> dict:
             "(a2) the committed addendum is absent, its sha256 is not "
             f"{ADDENDUM_SHA256}, the §0 author line is missing, or the acceptance "
             f"record lacks addendum_path={ADDENDUM_REL!r}/addendum_sha256={ADDENDUM_SHA256!r}")
+
+    # (a3) the committed addendum 2 (8 Nov 2026, authoritative for E1-E3): its
+    # sha256 is fixed, the record carries the same value and path, and the §0
+    # author line is present verbatim.  A record missing the two new fields DENIES.
+    addendum2_path = root / ADDENDUM2_REL
+    addendum2_present = addendum2_path.is_file()
+    computed_addendum2 = lr.sha256_file(addendum2_path) if addendum2_present else None
+    addendum2_text = addendum2_path.read_text() if addendum2_present else ""
+    author_line2 = ADDENDUM2_AUTHOR_LINE in addendum2_text
+    expected_addendum2 = (record or {}).get("addendum2_sha256")
+    record_addendum2_path = (record or {}).get("addendum2_path")
+    a3_pass = bool(addendum2_present
+                   and computed_addendum2 == ADDENDUM2_SHA256
+                   and expected_addendum2 == ADDENDUM2_SHA256
+                   and author_line2
+                   and record_addendum2_path == ADDENDUM2_REL)
+    checks["a3"] = {"pass": a3_pass, "addendum2": str(addendum2_path),
+                    "addendum2_present": bool(addendum2_present),
+                    "addendum2_sha256": computed_addendum2,
+                    "expected_addendum2_sha256": expected_addendum2,
+                    "author_line_present": bool(author_line2),
+                    "record_addendum2_path": record_addendum2_path,
+                    "expected_addendum2_path": ADDENDUM2_REL,
+                    "pending_acceptance": bool(pending)}
+    if not a3_pass and not pending:
+        problems.append(
+            "(a3) the committed addendum 2 is absent, its sha256 is not "
+            f"{ADDENDUM2_SHA256}, the §0 author line is missing, or the "
+            f"acceptance record lacks addendum2_path={ADDENDUM2_REL!r}/"
+            f"addendum2_sha256={ADDENDUM2_SHA256!r}")
 
     # (b) acceptance record schema and review verdict
     if record is None:
@@ -1424,16 +1500,91 @@ def cpu_projection(*, cap_hours=CPU_CAP_H) -> dict:
             "cap_hours": float(cap_hours), "pass": bool(hours <= float(cap_hours))}
 
 
+def booked_gpu_hours(ledger=None, *, root=None) -> dict:
+    """Booked L40S hours: the base ``l40s_charged_after`` plus every later entry.
+
+    Addendum 2 §4: the base is
+    ``v4_caps.recent.mae_jepa_followup_2026-11-03.l40s_charged_after`` (129.7461)
+    and every later ``recent`` entry contributes
+    ``part_a.gpu_hours + part_b.gpu_hours + gpu_hours``; the exact expected sum is
+    133.6492 h.
+    """
+    if ledger is None:
+        ledger = read_json(_resolve_root(root) / "docs/jepa/RESOURCE_LEDGER.json",
+                           {}) or {}
+    recent = ((ledger.get("v4_caps") or {}).get("recent") or {})
+    items = list(recent.items())
+    base_key, base = None, None
+    for key, entry in items:
+        if isinstance(entry, dict) and entry.get("l40s_charged_after") is not None:
+            base_key, base = str(key), float(entry["l40s_charged_after"])
+            break
+    if base is None:
+        return {"available": False, "sum_hours": None, "entries": {},
+                "reason": "no v4_caps.recent entry with l40s_charged_after"}
+    total, added, started = base, {}, False
+    for key, entry in items:
+        if str(key) == base_key:
+            started = True
+            continue
+        if not started or not isinstance(entry, dict):
+            continue
+        booked = (float(((entry.get("part_a") or {}).get("gpu_hours")) or 0.0)
+                  + float(((entry.get("part_b") or {}).get("gpu_hours")) or 0.0)
+                  + float(entry.get("gpu_hours") or 0.0))
+        added[str(key)] = booked
+        total += booked
+    return {"available": True, "base_key": base_key, "base_hours": base,
+            "entries": added, "sum_hours": round(total, 4),
+            "rule": "base l40s_charged_after + every later recent entry's "
+                    "part_a.gpu_hours + part_b.gpu_hours + gpu_hours"}
+
+
+def _ledger_consistency(charged, booked) -> dict:
+    """The §4 fail-closed rule: charged_gpu_hours must equal the booked sum."""
+    available = bool(booked.get("available") and booked.get("sum_hours") is not None)
+    consistent = bool(available and charged is not None
+                      and abs(float(charged) - float(booked["sum_hours"]))
+                      <= LEDGER_CONSISTENCY_H)
+    return {"available": available, "consistent": consistent,
+            "charged_gpu_hours": None if charged is None else float(charged),
+            "booked_gpu_hours": booked.get("sum_hours"),
+            "tolerance_hours": LEDGER_CONSISTENCY_H,
+            "reason": (None if consistent else
+                       "charged_gpu_hours differs from the booked L40S sum by more "
+                       "than 1e-3 h: S1 fails closed (addendum 2 §4)")}
+
+
 def s1_projection(root=None, *, part_b_cap_h=PART_B_GPU_CAP_H) -> dict:
-    """Front-matter §F3 combined S1 rule: L40S ledger + both remaining caps <= 160."""
-    ledger = read_json(_resolve_root(root) / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}
+    """Front-matter §F3 combined S1 rule: L40S ledger + both remaining caps <= 160.
+
+    Addendum 2 §4: this check FAILS CLOSED when the committed
+    ``charged_gpu_hours`` differs from the booked sum by more than 1e-3 h.
+    """
+    ledger = read_json(_resolve_root(root) / "docs/jepa/RESOURCE_LEDGER.json",
+                       {}) or {}
     entry = ((ledger.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2") or {})
     charged = entry.get("charged_gpu_hours")
+    booked = booked_gpu_hours(ledger)
+    consistency = _ledger_consistency(charged, booked)
     if charged is None:
-        return {"available": False, "pass": None,
+        return {"available": False, "pass": False,
+                "ledger_consistent": False,
+                "charged_gpu_hours": None,
+                "booked_gpu_hours": booked.get("sum_hours"),
+                "reason": consistency["reason"] or "no charged_gpu_hours",
                 "rule": "L40S ledger + Part A 4.0 + Part B 1.5 <= 160"}
+    if not consistency["consistent"]:
+        return {"available": True, "pass": False, "ledger_consistent": False,
+                "charged_gpu_hours": float(charged),
+                "booked_gpu_hours": booked.get("sum_hours"),
+                "reason": consistency["reason"],
+                "rule": "L1 ledger + Part A cap + Part B cap <= 160 (front matter "
+                        "§F3), fail closed on a ledger inconsistency"}
     total = float(charged) + float(part_b_cap_h) + float(PART_A_GPU_CAP_H)
     return {"available": True, "charged_gpu_hours": float(charged),
+            "booked_gpu_hours": booked.get("sum_hours"),
+            "ledger_consistent": True,
             "part_a_cap_hours": float(PART_A_GPU_CAP_H),
             "part_b_cap_hours": float(part_b_cap_h),
             "sum_hours": round(total, 4), "ceiling_hours": S1_CEILING_H,
@@ -1453,17 +1604,25 @@ def addendum_s1_check(root=None, *, ledger=None) -> dict:
                else (read_json(root / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}))
     entry = ((payload.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2") or {})
     charged = entry.get("charged_gpu_hours")
-    total = (float(charged) + ADDENDUM_GPU_CAP_H) if charged is not None else None
+    booked = booked_gpu_hours(payload)
+    consistency = _ledger_consistency(charged, booked)
+    total = (float(booked["sum_hours"]) + ADDENDUM_GPU_CAP_H
+             if consistency["consistent"] else None)
     return {"registered": False, "extension": EXTENSION, "id": "S1 (addendum)",
             "ledger": "docs/jepa/RESOURCE_LEDGER.json",
             "ledger_job": "E2_lucid_l40s_deepthought2",
             "ledger_charged_gpu_hours": charged,
+            "booked_gpu_hours": booked.get("sum_hours"),
+            "ledger_consistent": bool(consistency["consistent"]),
             "addendum_cap_hours": ADDENDUM_GPU_CAP_H,
             "sum_hours": None if total is None else round(total, 4),
             "ceiling_hours": S1_CEILING_H,
             "pass": bool(total is not None and total <= S1_CEILING_H),
-            "rule": "L40S ledger + addendum GPU cap (0.35) <= 160 (addendum §6; the "
-                    "closed Part A and Part B caps are not consulted)"}
+            "reason": (None if consistency["consistent"] else
+                       consistency["reason"]),
+            "rule": "L40S booked sum + addendum GPU cap (0.35) <= 160 (addendum "
+                    "§6; fail closed on a ledger inconsistency; the closed Part A "
+                    "and Part B caps are not consulted)"}
 
 
 def addendum_s1_check_or_stop(root=None, *, ledger=None) -> dict:
@@ -1546,6 +1705,137 @@ def addendum_entries_preflight_or_stop(*, guard_json=None, free_entries=None,
               f"< floor {ENTRIES_FLOOR}; not_run (entries)", file=sys.stderr)
         raise SystemExit(2)
     return result
+
+
+# ---------------------------------------------- addendum 2 helpers (8 Nov) §4/§5
+def addendum2_hours() -> dict:
+    """Addendum 2 booked hours by kind (ledger rows with part A2/B2)."""
+    total = {"gpu": 0.0, "cpu": 0.0, "jobs": 0, "path": str(ADDENDUM_JOBS)}
+    path = Path(ADDENDUM_JOBS)
+    if not path.is_file():
+        return total
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if str(row.get("part")) not in ADDENDUM2_JOBS_PARTS:
+            continue
+        kind = str(row.get("kind", "")).lower()
+        if kind in ("gpu", "cpu"):
+            total[kind] += float(row.get("hours") or 0.0)
+            total["jobs"] += 1
+    return total
+
+
+def assert_addendum2_budget(kind, projected_hours, *, part="A2") -> dict:
+    """Refuse a job that would cross addendum 2's 0.08 h GPU / 3.0 h CPU caps."""
+    kind = str(kind).lower()
+    if kind not in ("gpu", "cpu"):
+        raise ValueError(f"unknown addendum 2 budget kind {kind!r}")
+    cap = ADDENDUM2_GPU_CAP_H if kind == "gpu" else ADDENDUM2_CPU_CAP_H
+    used = float(addendum2_hours().get(kind, 0.0))
+    projected = float(projected_hours or 0.0)
+    if used + projected > cap:
+        print(f"[repair] addendum 2 budget: {kind} already {used:.3f} h + projected "
+              f"{projected:.3f} h > {cap:.2f} h cap (part {part}); refusing: "
+              f"not_run (cap)", file=sys.stderr)
+        raise SystemExit(2)
+    return {"kind": kind, "used_hours": used, "projected_hours": projected,
+            "cap_hours": cap, "remaining_hours": cap - used, "part": str(part),
+            "pass": True}
+
+
+def record_addendum2_job(mode, kind, wall_seconds, *, part="A2") -> dict:
+    """Book one addendum 2 job on the shared ledger (same row JSON, part A2/B2)."""
+    return record_addendum_job(mode, kind, wall_seconds, part=part)
+
+
+def addendum2_entries_preflight(*, guard_json=None, free_entries=None,
+                                log=print) -> dict:
+    """Addendum 2 §5 entries preflight: its own projected writes only."""
+    result = addendum_entries_preflight(guard_json=guard_json,
+                                        free_entries=free_entries, log=log)
+    result = dict(result)
+    result["id"] = "entries (addendum 2)"
+    result["basis"] = ("addendum 2's own projected writes only "
+                       f"({ADDENDUM2_ENTRIES_PROJECTION}; no clone/suite terms: the "
+                       "host clone is reused and TMPDIR is off /ceph)")
+    result["projection"] = {"addendum2": int(ADDENDUM2_ENTRIES_PROJECTION),
+                            "floor": int(ENTRIES_FLOOR)}
+    free = result.get("free_entries")
+    if free is not None:
+        projected = int(free) - int(ADDENDUM2_ENTRIES_PROJECTION)
+        result["projected_after"] = projected
+        result["pass"] = bool(int(free) >= int(ENTRIES_FLOOR)
+                              and projected >= int(ENTRIES_FLOOR))
+    return result
+
+
+def addendum2_entries_preflight_or_stop(*, guard_json=None, free_entries=None,
+                                        log=print) -> dict:
+    result = addendum2_entries_preflight(guard_json=guard_json,
+                                         free_entries=free_entries, log=log)
+    if not result["pass"]:
+        print(f"[repair] addendum 2 entries preflight STOP: free "
+              f"{result.get('free_entries')} minus projected "
+              f"{ADDENDUM2_ENTRIES_PROJECTION} = {result.get('projected_after')} "
+              f"< floor {ENTRIES_FLOOR}; not_run (entries)", file=sys.stderr)
+        raise SystemExit(2)
+    return result
+
+
+def addendum2_s1_check(root=None, *, ledger=None) -> dict:
+    """Addendum 2 §4 S1: booked L40S sum + 0.08 <= 160, fail closed on mismatch."""
+    root = _resolve_root(root)
+    payload = (ledger if ledger is not None
+               else (read_json(root / "docs/jepa/RESOURCE_LEDGER.json", {}) or {}))
+    entry = ((payload.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2") or {})
+    charged = entry.get("charged_gpu_hours")
+    booked = booked_gpu_hours(payload)
+    consistency = _ledger_consistency(charged, booked)
+    total = (float(booked["sum_hours"]) + ADDENDUM2_GPU_CAP_H
+             if consistency["consistent"] else None)
+    return {"registered": False, "extension": EXTENSION, "id": "S1 (addendum 2)",
+            "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+            "ledger_job": "E2_lucid_l40s_deepthought2",
+            "ledger_charged_gpu_hours": charged,
+            "booked_gpu_hours": booked.get("sum_hours"),
+            "ledger_consistent": bool(consistency["consistent"]),
+            "addendum2_cap_hours": ADDENDUM2_GPU_CAP_H,
+            "sum_hours": None if total is None else round(total, 4),
+            "ceiling_hours": S1_CEILING_H,
+            "pass": bool(total is not None and total <= S1_CEILING_H),
+            "reason": (None if consistency["consistent"] else consistency["reason"]),
+            "rule": "booked L40S sum + addendum 2 GPU cap (0.08) <= 160 "
+                    "(addendum 2 §4/§5; fail closed on a ledger inconsistency)"}
+
+
+def addendum2_s1_check_or_stop(root=None, *, ledger=None) -> dict:
+    result = addendum2_s1_check(root, ledger=ledger)
+    if not result["pass"]:
+        print(f"[repair] addendum 2 S1 STOP: booked "
+              f"{result['booked_gpu_hours']} + {result['addendum2_cap_hours']} = "
+              f"{result['sum_hours']} > {result['ceiling_hours']} h"
+              f"{' (' + str(result['reason']) + ')' if result.get('reason') else ''}",
+              file=sys.stderr)
+        raise SystemExit(2)
+    return result
+
+
+def _addendum2_finish(mode, payload, *, root, started, kind) -> dict:
+    payload["budget"] = record_addendum2_job(mode, kind, time.time() - started,
+                                             part="A2")
+    payload["hours"] = addendum2_hours()
+    payload["closure"] = _addendum_closure(mode, root)
+    if payload["closure"]["quarantined"]:
+        payload["quarantined"] = True
+        payload["complete"] = False
+    payload["wall_seconds"] = round(time.time() - started, 3)
+    return payload
 
 
 # ================================================================ X0-a §4
@@ -2701,43 +2991,56 @@ def whitening_matrix(events, run_ids, *, eps_scale=1e-6) -> dict:
             "covariance": covariance, "epsilon": epsilon}
 
 
-def latent_estimate(zbar_delta, occupancy, A_hat, W, *, lam=0.0, centre=None,
+def latent_estimate(zbar_delta, occupancy, A_hat, W, *, lam=0.0,
                     scale=None) -> dict:
     """Generalised ridge for one run's module gains from the latent stream (§6 X2-d).
 
-    The design of run r is ``W Â diag(ū_r)`` and the target is ``W(z̄ᴰ_r − z̄ᴺ)``;
-    the solve estimates that run's ``δ_r``.  The columns are standardised on the
-    training folds when ``centre``/``scale`` are given (§6, Appendix C).
+    E1 (addendum 2 §2): the design of run r is ``W Â diag(ū_r)`` and its columns
+    are **scaled only, never centred**, by ``s`` (the pooled training-fold RMS of
+    each design column).  The ridge is solved on the scaled design for ``δ'`` and
+    the returned ``delta`` is the raw-unit estimate ``δ_m = δ'_m / s_m``.  No
+    caller ever sees ``δ'``; there is no intercept.
     """
     zbar_delta = np.asarray(zbar_delta, float).ravel()
     occupancy = np.asarray(occupancy, float).ravel()
     A_hat = np.asarray(A_hat, float)
     W = np.asarray(W, float)
     design = (W @ A_hat) * occupancy[None, :]
-    if centre is not None and scale is not None:
-        design = (design - np.asarray(centre, float)) / np.asarray(scale, float)
     target = W @ zbar_delta
-    gram = design.T @ design
-    rhs = design.T @ target
+    scale = (np.ones(design.shape[1], float) if scale is None
+             else np.asarray(scale, float).ravel())
+    safe = np.where(scale == 0.0, 1.0, scale)
+    scaled_design = design / safe[None, :]
     if float(lam) == 0.0:
-        delta, *_ = np.linalg.lstsq(gram, rhs, rcond=None)
+        delta_scaled, *_ = np.linalg.lstsq(scaled_design.T @ scaled_design,
+                                           scaled_design.T @ target, rcond=None)
     else:
-        delta = np.linalg.solve(gram + float(lam) * np.eye(gram.shape[0]), rhs)
-    residual = target - design @ delta
-    return {"delta": delta, "residual_rms": float(np.sqrt(np.mean(residual ** 2))),
-            "lam": float(lam), "design": design, "target": target}
+        gram = scaled_design.T @ scaled_design
+        delta_scaled = np.linalg.solve(
+            gram + float(lam) * np.eye(gram.shape[0]), scaled_design.T @ target)
+    delta = delta_scaled / safe
+    residual = target - scaled_design @ delta_scaled
+    return {"delta": delta, "delta_scaled": delta_scaled, "scale": safe,
+            "residual_rms": float(np.sqrt(np.mean(residual ** 2))),
+            "lam": float(lam), "design": scaled_design, "target": target}
 
 
-def _standardisation(designs, *, eps=0.0) -> tuple:
-    """Column centre/scale pooled from the training folds' designs (§6, Appendix C)."""
-    designs = [np.asarray(design, float) for design in designs if np.asarray(design).size]
+def _design_scales(designs, *, eps=0.0) -> np.ndarray | None:
+    """E1: per-column RMS scale s_m of the training-fold designs (no centring).
+
+    The scale is pooled over training runs and embedding rows; a column with RMS 0
+    gets s_m = 1 so the back-transform stays finite.  The affine centre of the old
+    design has no intercept and is deliberately dropped (addendum 2 §2).
+    """
+    designs = [np.asarray(design, float) for design in designs
+               if np.asarray(design).size]
     if not designs:
-        return None, None
+        return None
     flat = np.concatenate(designs, axis=0)
-    centre = flat.mean(axis=0)
-    scale = flat.std(axis=0)
-    scale = np.where(scale <= float(eps), 1.0, scale)
-    return centre, scale
+    with np.errstate(invalid="ignore"):
+        scale = np.sqrt(np.mean(flat ** 2, axis=0))
+    scale = np.where((scale <= float(eps)) | (scale == 0.0), 1.0, scale)
+    return scale
 
 
 def latent_cv(*, features_n, features_d, run_ids, occupancy_by_run, truth,
@@ -2746,7 +3049,8 @@ def latent_cv(*, features_n, features_d, run_ids, occupancy_by_run, truth,
 
     Simulation truth of the probe-train runs selects λ; no probe-test truth or
     probe-test run enters this routine.  Each validation run is estimated on its
-    own (one δ per run), with W, Â, z̄ᴺ and the standardisation refit per fold.
+    own (one δ per run), with W, Â, z̄ᴺ and the scale-only standardisation refit
+    per fold.
     """
     features_n = np.asarray(features_n, float)
     features_d = np.asarray(features_d, float)
@@ -2772,7 +3076,7 @@ def latent_cv(*, features_n, features_d, run_ids, occupancy_by_run, truth,
         zbar_n = features_n[train_mask].mean(axis=0)
         train_designs = [(whitening["W"] @ A_hat) * occupancy_by_run["occupancy"][
             run_index[run]][None, :] for run in train_runs]
-        centre, scale = _standardisation(train_designs)
+        scale = _design_scales(train_designs)
         for run in validation_runs:
             index = run_index[run]
             events = run_ids == run
@@ -2780,7 +3084,7 @@ def latent_cv(*, features_n, features_d, run_ids, occupancy_by_run, truth,
             for alpha in pr.ALPHAS:
                 fitted = latent_estimate(
                     zbar, occupancy_by_run["occupancy"][index], A_hat,
-                    whitening["W"], lam=float(alpha), centre=centre, scale=scale)
+                    whitening["W"], lam=float(alpha), scale=scale)
                 error = np.asarray(fitted["delta"], float) - np.asarray(truth[run], float)
                 scores[float(alpha)].append(float(np.mean(error ** 2)))
     best = None
@@ -2822,7 +3126,7 @@ def latent_stream_estimates(*, features_n_train, features_d_train, run_ids_train
                   np.unique(np.asarray(run_ids_train).astype(str))]
     designs = [(whitening["W"] @ A_hat) * np.asarray(occupancy_mean_train, float)[index][
         None, :] for index in range(len(train_runs))]
-    centre, scale = _standardisation(designs)
+    scale = _design_scales(designs)
     run_ids_test = np.asarray(run_ids_test).astype(str)
     estimates = {}
     for index, run in enumerate([str(value) for value in np.unique(run_ids_test)]):
@@ -2831,11 +3135,11 @@ def latent_stream_estimates(*, features_n_train, features_d_train, run_ids_train
         fitted = latent_estimate(zbar, np.asarray(occupancy_mean_test, float)[index],
                                  A_hat, whitening["W"],
                                  lam=float(cv["best_lambda"] or 0.0),
-                                 centre=centre, scale=scale)
+                                 scale=scale)
         estimates[run] = np.asarray(fitted["delta"], float)
     return {"estimates": estimates, "cv": cv, "A_hat": A_hat,
-            "W": whitening["W"], "zbar_n": zbar_n, "centre": centre,
-            "scale": scale, "stream": "latent"}
+            "W": whitening["W"], "zbar_n": zbar_n, "scale": scale,
+            "stream": "latent"}
 
 
 def _run_grouped_folds(run_ids, k=5, seed=0) -> np.ndarray:
@@ -4027,15 +4331,20 @@ def permutation_maxima(x, z, run_ids, *, n_permutations=LEACE_PERMUTATIONS,
             "n_permutations": int(n_permutations), "n_runs": int(len(runs))}
 
 
-def reduction_rank(x, z, run_ids, *, key, label, domain, n_permutations=LEACE_PERMUTATIONS,
-                   eps_scale=1e-6) -> dict:
-    """E2r rank rule: r = #{j : s_j > q95(null s₁)} (§7.2, Appendix D)."""
+def reduction_rank(x, z, run_ids, *, key, label, domain, concept=None,
+                   n_permutations=LEACE_PERMUTATIONS, eps_scale=1e-6) -> dict:
+    """Max-statistic rank rule: r = #{j : s_j > q95(null s₁)} (§7.2, Appendix D).
+
+    ``concept="E3u"`` extends the keyed permutation namespace to
+    ``f"{label}/{domain}/E3u"``; the E2r key stays ``f"{label}/{domain}"``.
+    """
     x = np.asarray(x, float)
     z = np.asarray(z, float).reshape(x.shape[0], -1)
     eraser = leace_fit(x, z, eps_scale=eps_scale)
     cross = eraser["cross_covariance"]
     singular = np.linalg.svd(eraser["W"] @ cross, compute_uv=False)
-    rng = lb.keyed_rng(20261106, LEACE_PERM_NAMESPACE, f"{label}/{domain}")
+    namespace_key = f"{label}/{domain}" + (f"/{concept}" if concept else "")
+    rng = lb.keyed_rng(20261106, LEACE_PERM_NAMESPACE, namespace_key)
     null = permutation_maxima(x, z, run_ids, n_permutations=n_permutations, rng=rng)
     rank = int(np.sum(singular > null["q95"]))
     return {"rank": rank, "singular_values": singular.tolist(),
@@ -4072,12 +4381,51 @@ def e2_concepts(dataset, geometry) -> dict:
     return out
 
 
+def _environment_setting(setting) -> float:
+    return float(S005 if (setting is None or float(setting) == float(S005))
+                 else S030)
+
+
+def e3u_hit_counts(dataset, geometry, *, setting) -> dict:
+    """n_e,m: hit PMTs of module m per event, CPU ``bincount`` aligned (run, event).
+
+    The hits are read through the environment's condition (N for s = 0.05, D for
+    s = 0.30); both are identity transforms, so this is the raw hit count of the
+    event (X2-b occupancy counts).
+    """
+    name = "N" if float(setting) == float(S005) else "D"
+    condition = build_condition(name, dataset, geometry)
+    return occupancy_counts(dataset, condition, geometry)
+
+
+def e3u_concepts(dataset, geometry, *, setting) -> dict:
+    """E3u: c_e,m = ln G^env_{r,m} · n_e,m, per event in its own environment.
+
+    ``G^env`` is the run's module gain in that environment (N: s = 0.05,
+    D: s = 0.30) and ``n_e,m`` the module hit count from the CPU bincount.
+    """
+    setting = _environment_setting(setting)
+    counts = e3u_hit_counts(dataset, geometry, setting=setting)
+    gains = {}
+    for row in dataset.runs:
+        state = run_state(row, dataset, geometry, setting)
+        gains[str(row["run_id"])] = np.log(np.asarray(state.module_gain, float))
+    out = {}
+    for (run_id, event_id), n_hit in counts.items():
+        out[(str(run_id), int(event_id))] = gains[str(run_id)] * np.asarray(
+            n_hit, float)
+    return out
+
+
 def _concept_matrix(rows, concepts, *, kind) -> np.ndarray:
     event_ids = np.asarray(rows["event_ids"], np.int64)
     run_ids = np.asarray(rows["run_ids"]).astype(str)
     if kind == "E1":
         return np.asarray([concepts[(run, int(event))]
                            for run, event in zip(run_ids, event_ids)], float)[:, None]
+    if kind in ("E3u", "hitcount"):
+        return np.stack([np.asarray(concepts[(run, int(event))], float)
+                         for run, event in zip(run_ids, event_ids)])
     return np.stack([concepts[run] for run in run_ids])
 
 
@@ -4152,12 +4500,16 @@ def _random_control_bases(label, domain, concept, d, r, n=LEACE_RANDOM_CONTROLS)
 
 def _leace_variant(*, label, domain, rows, concepts, rank=None,
                    permutations=LEACE_PERMUTATIONS,
-                   random_controls=LEACE_RANDOM_CONTROLS) -> dict:
+                   random_controls=LEACE_RANDOM_CONTROLS, concept=None,
+                   hitcount_concepts=None) -> dict:
     """Fit a LEACE eraser on pooled N and D probe-train embeddings and score it.
 
     The §7.2 erasure sanity is enforced: an unerased concept R² <= 0.02 makes the
     variant ``not_applicable``; an erased R² > 0.02 makes it
     ``unavailable (erasure incomplete)``.
+
+    E3u (addendum 2 §3) additionally erases a matched **hit-count control** at the
+    same rank r: LEACE on the concept ``n_e`` (the 105 hit counts alone).
     """
     train_n, train_d = rows["train"]["N"], rows["train"]["D"]
     test_n, test_d = rows["test"]["N"], rows["test"]["D"]
@@ -4172,14 +4524,15 @@ def _leace_variant(*, label, domain, rows, concepts, rank=None,
                           np.asarray(test_n["events"], float),
                           np.asarray(concepts["test"]["N"], float),
                           np.asarray(test_n["run_ids"]).astype(str))
-    concept = "E1" if eraser["rank"] == 1 else "E2r"
+    concept_name = str(concept) if concept else (
+        "E1" if eraser["rank"] == 1 else "E2r")
     if not sanity["applicable"]:
-        return {"status": "not_applicable", "sanity": sanity, "concept": concept,
-                "rank": int(eraser["rank"]),
+        return {"status": "not_applicable", "sanity": sanity,
+                "concept": concept_name, "rank": int(eraser["rank"]),
                 "reason": "unerased concept R² <= 0.02: concept not linearly present"}
     if not sanity["complete"]:
         return {"status": "unavailable (erasure incomplete)", "sanity": sanity,
-                "concept": concept, "rank": int(eraser["rank"]),
+                "concept": concept_name, "rank": int(eraser["rank"]),
                 "reason": "erased concept R² > 0.02: erasure incomplete"}
     erased = {"train": erase_rows(train_n, eraser),
               "test": erase_rows(test_n, eraser),
@@ -4187,14 +4540,28 @@ def _leace_variant(*, label, domain, rows, concepts, rank=None,
     standard = {"train": train_n, "test": test_n, "drift": test_d}
     out = {"status": "evaluated", "standard": _embedding_variant(standard),
            "variant": _embedding_variant(erased), "sanity": sanity,
-           "concept": concept, "rank": int(eraser["rank"]), "controls": []}
-    bases = _random_control_bases(label, domain, concept, eraser["W"].shape[0],
+           "concept": concept_name, "rank": int(eraser["rank"]), "controls": []}
+    bases = _random_control_bases(label, domain, concept_name,
+                                  eraser["W"].shape[0],
                                   eraser["U_r"].shape[1], random_controls)
     for basis in bases:
         erased_random = {"train": erase_rows(train_n, eraser, U_r=basis),
                          "test": erase_rows(test_n, eraser, U_r=basis),
                          "drift": erase_rows(test_d, eraser, U_r=basis)}
         out["controls"].append(_embedding_variant(erased_random))
+    if concept_name == "E3u" and hitcount_concepts is not None:
+        z_hitcount = np.concatenate([
+            np.asarray(hitcount_concepts["train"]["N"], float),
+            np.asarray(hitcount_concepts["train"]["D"], float)]).reshape(
+                x.shape[0], -1)
+        hit_eraser = leace_fit(x, z_hitcount, rank=int(eraser["rank"]))
+        erased_hit = {"train": erase_rows(train_n, hit_eraser),
+                      "test": erase_rows(test_n, hit_eraser),
+                      "drift": erase_rows(test_d, hit_eraser)}
+        out["hitcount_control"] = {
+            **_embedding_variant(erased_hit), "rank": int(hit_eraser["rank"]),
+            "concept": "hitcount",
+            "reason": "LEACE on n_e (the 105 hit counts alone), same rank r"}
     return out
 
 
@@ -4396,20 +4763,39 @@ def _x3_init9000(inv, probes005, probes030, geometry, config, arms_config, gen,
     return out
 
 
-def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=print):
-    """LEACE variants of the X1-cached embeddings (photon; particle for the MAEs)."""
+def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None,
+              concepts=("E1", "E2r", "E3u"), log=print):
+    """LEACE variants of the X1-cached embeddings (photon; particle for the MAEs).
+
+    ``concepts`` selects the concept families.  E3u (addendum 2 §3) is the
+    occupancy-weighted module-log-gain design written per environment; it carries
+    the 20 Haar-random controls and a matched hit-count control.
+    """
     planned = ("mae_within_trigger9000", "mae_within_trigger9001",
                "mae_across_trigger9000", "mae_across_trigger9001",
                "t1_s030_within_trigger9000", "t1_s030_within_trigger9001",
                "t1_s030_across_trigger9000", "t1_s030_across_trigger9001",
                "frozen_target9000", "frozen_target9001")
-    out = {"status": "evaluated", "models": {}, "unavailable": []}
-    e1 = {role: {setting: e1_concepts(probes005[role] if setting == "N"
-                                      else probes030[role], geometry)
-                 for setting in ("N", "D")} for role in ("train", "test")}
-    e2 = {role: {setting: e2_concepts(probes005[role] if setting == "N"
-                                      else probes030[role], geometry)
-                 for setting in ("N", "D")} for role in ("train", "test")}
+    concepts = tuple(concepts)
+    out = {"status": "evaluated", "models": {}, "unavailable": [],
+           "concepts": list(concepts)}
+    settings = {role: {setting: (S005 if setting == "N" else S030)
+                       for setting in ("N", "D")} for role in ("train", "test")}
+    e1 = {role: {setting: e1_concepts(
+        probes005[role] if setting == "N" else probes030[role], geometry)
+        for setting in ("N", "D")} for role in ("train", "test")}
+    e2 = {role: {setting: e2_concepts(
+        probes005[role] if setting == "N" else probes030[role], geometry)
+        for setting in ("N", "D")} for role in ("train", "test")}
+    e3u = {role: {setting: e3u_concepts(
+        probes005[role] if setting == "N" else probes030[role], geometry,
+        setting=settings[role][setting])
+        for setting in ("N", "D")} for role in ("train", "test")}
+    hits = {role: {setting: e3u_hit_counts(
+        probes005[role] if setting == "N" else probes030[role], geometry,
+        setting=settings[role][setting])
+        for setting in ("N", "D")} for role in ("train", "test")}
+    sources = {"E1": e1, "E2r": e2, "E3u": e3u}
     keys = {(role, setting): embedding_cache_key(role, setting)
             for role in ("train", "test") for setting in ("N", "D")}
     for label in planned:
@@ -4420,32 +4806,44 @@ def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=
             continue
         rows = {role: {setting: cache.fetch(keys[(role, setting)], lambda: {})
                        for setting in ("N", "D")} for role in ("train", "test")}
-        for concept, rank in (("E1", 1), ("E2r", None)):
-            source = e1 if concept == "E1" else e2
-            concepts = {role: {setting: _concept_matrix(rows[role][setting],
-                                                       source[role][setting],
-                                                       kind=concept)
-                               for setting in ("N", "D")}
-                        for role in ("train", "test")}
-            if concept == "E2r" and rank is None:
+        hit_matrices = {
+            role: {setting: _concept_matrix(rows[role][setting],
+                                            hits[role][setting], kind="hitcount")
+                   for setting in ("N", "D")} for role in ("train", "test")}
+        for concept in concepts:
+            rank = 1 if concept == "E1" else None
+            source = sources[concept]
+            kind = concept
+            concept_rows = {
+                role: {setting: _concept_matrix(rows[role][setting],
+                                                source[role][setting], kind=kind)
+                       for setting in ("N", "D")}
+                for role in ("train", "test")}
+            if rank is None:
                 x_train = np.concatenate([rows["train"]["N"]["events"],
                                           rows["train"]["D"]["events"]])
-                z_train = np.concatenate([concepts["train"]["N"],
-                                          concepts["train"]["D"]])
+                z_train = np.concatenate([concept_rows["train"]["N"],
+                                          concept_rows["train"]["D"]])
                 run_ids = np.concatenate([
                     np.asarray(rows["train"]["N"]["run_ids"]).astype(str),
                     np.asarray(rows["train"]["D"]["run_ids"]).astype(str)])
                 ranked = reduction_rank(x_train, z_train, run_ids, key=label,
-                                        label=label, domain="photon")
+                                        label=label, domain="photon",
+                                        concept=(concept if concept == "E3u"
+                                                 else None))
                 rank = ranked["rank"]
-            if concept == "E2r" and rank == 0:
-                out["models"][f"{label}/{concept}"] = {
-                    "status": "not_applicable", "rank": 0,
-                    "reason": "r = 0: the reduced-rank concept is not applicable"}
-                continue
+                if rank == 0:
+                    out["models"][f"{label}/{concept}"] = {
+                        "status": "not_applicable", "rank": 0,
+                        "concept": concept,
+                        "reason": "r = 0: the concept is not linearly present"}
+                    continue
             try:
-                variant = _leace_variant(label=label, domain="photon", rows=rows,
-                                         concepts=concepts, rank=rank)
+                variant = _leace_variant(
+                    label=label, domain="photon", rows=rows,
+                    concepts=concept_rows, rank=rank, concept=concept,
+                    hitcount_concepts=(hit_matrices
+                                       if concept == "E3u" else None))
             except Exception as problem:  # pragma: no cover
                 out["models"][f"{label}/{concept}"] = {
                     "status": "unavailable", "reason": str(problem)}
@@ -4464,8 +4862,9 @@ def _x3_leace(inv, probes005, probes030, geometry, ext_root, *, limit=None, log=
                     "log_yield": {"D": log_yield_row(
                         swuni, fitted=fit_log_yield_probe(n_train))}}
             if label in MAE_MODELS:
-                _attach_particle_energy(variant, label, geometry, e1, e2, cache,
-                                        concept=concept, log=log)
+                _attach_particle_energy(
+                    variant, label, geometry, e1, e2, cache, concept=concept,
+                    e3u=e3u, hits=hits, log=log)
             out["models"][f"{label}/{concept}"] = variant
     return out
 
@@ -4475,13 +4874,15 @@ def _particle_rows(cache, role, setting):
     return cache.fetch(key, lambda: {}) if cache.has(key) else None
 
 
-def _particle_concepts(rows, e1, e2, role, setting, concept):
+def _particle_concepts(rows, e1, e2, role, setting, concept, e3u=None):
+    if concept == "E3u":
+        return _concept_matrix(rows, e3u[role][setting], kind="E3u")
     source = e1 if concept == "E1" else e2
     return _concept_matrix(rows, source[role][setting], kind=concept)
 
 
 def _attach_particle_energy(variant, label, geometry, e1, e2, cache, *, concept,
-                            log=print) -> dict:
+                            e3u=None, hits=None, log=print) -> dict:
     """Add the §7.2 electron-energy LEACE reading of the four MAE models.
 
     The eraser is fit on the pooled N and D particle probe-train embeddings, with
@@ -4498,11 +4899,18 @@ def _attach_particle_energy(variant, label, geometry, e1, e2, cache, *, concept,
     rows = {"train": {"N": particle["train"]["N"], "D": particle["train"]["D"]},
             "test": {"N": particle["test"]["N"], "D": particle["test"]["D"]}}
     concepts = {role: {setting: _particle_concepts(rows[role][setting], e1, e2,
-                                                   role, setting, concept)
+                                                   role, setting, concept,
+                                                   e3u=e3u)
                        for setting in ("N", "D")}
                 for role in ("train", "test")}
+    hit_matrices = None
+    if concept == "E3u" and hits is not None:
+        hit_matrices = {
+            role: {setting: _concept_matrix(rows[role][setting],
+                                            hits[role][setting], kind="hitcount")
+                   for setting in ("N", "D")} for role in ("train", "test")}
     rank = None
-    if concept == "E2r":
+    if concept in ("E2r", "E3u"):
         x_train = np.concatenate([rows["train"]["N"]["events"],
                                   rows["train"]["D"]["events"]])
         z_train = np.concatenate([concepts["train"]["N"], concepts["train"]["D"]])
@@ -4510,12 +4918,17 @@ def _attach_particle_energy(variant, label, geometry, e1, e2, cache, *, concept,
             np.asarray(rows["train"]["N"]["run_ids"]).astype(str),
             np.asarray(rows["train"]["D"]["run_ids"]).astype(str)])
         rank = reduction_rank(x_train, z_train, run_ids, key=label,
-                              label=label, domain="particle")["rank"]
+                              label=label, domain="particle",
+                              concept=(concept if concept == "E3u" else None))[
+                                  "rank"]
         if rank == 0:
-            variant["particle_energy"] = {"status": "not_applicable", "rank": 0}
+            variant["particle_energy"] = {"status": "not_applicable", "rank": 0,
+                                          "concept": concept}
             return variant
-    particle_variant = _leace_variant(label=label, domain="particle", rows=rows,
-                                      concepts=concepts, rank=rank)
+    particle_variant = _leace_variant(
+        label=label, domain="particle", rows=rows, concepts=concepts, rank=rank,
+        concept=concept,
+        hitcount_concepts=(hit_matrices if concept == "E3u" else None))
     variant["particle_energy"] = particle_variant
     if particle_variant["variant"].get("energy"):
         variant["variant"]["energy"] = particle_variant["variant"]["energy"]
@@ -4645,9 +5058,16 @@ def _variant_reading(entry, standard, invariant, *, leace=None) -> dict:
     calibrated = (entry or {}).get("calibrated")
     result["X3-4"] = _x3_dominance(calibrated, invariant)
     if leace and leace.get("controls"):
-        gain = _gain_specific(result["X3-1"], standard, invariant,
-                              leace["controls"])
-        result["X3-1-gain_specific"] = gain
+        if leace.get("concept") == "E3u":
+            gain = _gain_specific_e3u(result["X3-1"], standard, invariant,
+                                      leace["controls"],
+                                      leace.get("hitcount_control"))
+            result["X3-1-gain_specific_e3u"] = gain
+            result["X3-1-gain_specific"] = gain
+        else:
+            gain = _gain_specific(result["X3-1"], standard, invariant,
+                                  leace["controls"])
+            result["X3-1-gain_specific"] = gain
         # carry the per-control ratios and the gain-specific flag in X3-1 itself
         for metric in ("log_yield", "energy"):
             entry = result["X3-1"].get(metric) or {}
@@ -4655,9 +5075,17 @@ def _variant_reading(entry, standard, invariant, *, leace=None) -> dict:
             entry["rho_controls"] = block.get("rho_controls")
             entry["rho_control_q95"] = block.get("rho_control_q95")
             entry["gain_specific"] = block.get("gain_specific")
-            entry["gain_specific_conditions"] = {
+            conditions = {
                 "control_q95": block.get("condition_q95"),
                 "ci_excludes_zero": block.get("condition_ci_excludes_zero")}
+            if leace.get("concept") == "E3u":
+                entry["rho_hitcount"] = block.get("rho_hitcount")
+                entry["hitcount_ci95"] = block.get("hitcount_ci95")
+                conditions["hitcount_above"] = block.get(
+                    "condition_hitcount_above")
+                conditions["hitcount_ci_excludes_zero"] = block.get(
+                    "condition_hitcount_ci_excludes_zero")
+            entry["gain_specific_conditions"] = conditions
     result["X3-1"]["classes"] = {
         metric: (result["X3-1"].get(metric) or {}).get("class")
         for metric in ("log_yield", "energy")}
@@ -4809,6 +5237,87 @@ def _gain_specific(x3_1, standard, invariant, controls) -> dict:
     return out
 
 
+def _gain_specific_e3u(x3_1, standard, invariant, controls,
+                       hitcount_control) -> dict:
+    """E3u gain-specific flag: all three §3 conditions must hold.
+
+    (a) ρ_E(E3u) > the 95th percentile of the 20 random-control ratios;
+    (b) the run-cluster CI of res_E3u − mean(res_random) excludes 0;
+    (c) ρ_E(E3u) > ρ_E(hit-count control) with the run-cluster CI of
+        res_E3u − res_hitcount excluding 0.
+    """
+    out = {}
+    for metric in ("log_yield", "energy"):
+        entry = x3_1.get(metric) or {}
+        reference = _metric_rows(standard, metric, "N")
+        leace = _metric_rows(invariant, metric, "N")
+        hit = _metric_rows(hitcount_control, metric, "N")
+        if (entry.get("rho_E") is None or reference is None or leace is None
+                or hit is None):
+            out[metric] = {"status": "not available", "gain_specific": None,
+                           "rho_hitcount": None, "hitcount_ci95": None,
+                           "condition_q95": None,
+                           "condition_ci_excludes_zero": None,
+                           "condition_hitcount_above": None,
+                           "condition_hitcount_ci_excludes_zero": None}
+            continue
+        standard_resolution = float(reference["resolution"])
+        ratios, control_errors = [], []
+        aligned_leace = None
+        for control in controls:
+            rows = _metric_rows(control, metric, "N")
+            if rows is None or standard_resolution <= 0:
+                continue
+            ratios.append(float(rows["resolution"]) / standard_resolution)
+            aligned = _align_metric_pair(leace, rows)
+            if aligned is not None:
+                aligned_leace = (aligned[0], aligned[2])
+                control_errors.append(aligned[1])
+        q95 = float(np.quantile(ratios, 0.95)) if ratios else None
+        condition_q95 = bool(q95 is not None and entry["rho_E"] > q95)
+        rho_hitcount = (float(hit["resolution"]) / standard_resolution
+                        if standard_resolution > 0 else None)
+        condition_hit_above = bool(rho_hitcount is not None
+                                   and entry["rho_E"] > rho_hitcount)
+        if not control_errors or aligned_leace is None:
+            out[metric] = {"status": "not available (CI missing)",
+                           "n_controls": len(ratios),
+                           "rho_control_q95": q95, "rho_controls": ratios,
+                           "ci95": None, "condition_q95": condition_q95,
+                           "condition_ci_excludes_zero": None,
+                           "rho_hitcount": rho_hitcount,
+                           "hitcount_ci95": None,
+                           "condition_hitcount_above": condition_hit_above,
+                           "condition_hitcount_ci_excludes_zero": None,
+                           "gain_specific": None}
+            continue
+        mean_control = np.mean(np.stack(control_errors, axis=0), axis=0)
+        bootstrap = paired_cluster_bootstrap(aligned_leace[0], mean_control,
+                                             aligned_leace[1], statistic=rms)
+        ci95 = bootstrap["ci95"]
+        condition_ci = bool(ci95[0] > 0.0 or ci95[1] < 0.0)
+        hit_aligned = _align_metric_pair(leace, hit)
+        hit_ci95 = None
+        condition_hit_ci = None
+        if hit_aligned is not None:
+            hit_bootstrap = paired_cluster_bootstrap(
+                hit_aligned[0], hit_aligned[1], hit_aligned[2], statistic=rms)
+            hit_ci95 = hit_bootstrap["ci95"]
+            condition_hit_ci = bool(hit_ci95[0] > 0.0 or hit_ci95[1] < 0.0)
+        out[metric] = {
+            "status": "evaluated", "n_controls": len(ratios),
+            "rho_control_q95": q95, "rho_controls": ratios, "ci95": ci95,
+            "condition_q95": condition_q95,
+            "condition_ci_excludes_zero": condition_ci,
+            "rho_hitcount": rho_hitcount, "hitcount_ci95": hit_ci95,
+            "condition_hitcount_above": condition_hit_above,
+            "condition_hitcount_ci_excludes_zero": condition_hit_ci,
+            "gain_specific": bool(condition_q95 and condition_ci
+                                  and condition_hit_above
+                                  and condition_hit_ci)}
+    return out
+
+
 def _crlb_from_json(value) -> float:
     """A null CRLB in ``x3_fisher.json`` is ∞ (Appendix E; JSON cannot store inf)."""
     if value is None:
@@ -4841,12 +5350,18 @@ def _x3_five(fisher, variants) -> dict:
                       "efficient_lnY_crlb": (None if not inv or len(inv) <= 3
                                              else inv[3])}
     empirical = None
+    e3u_ratios = {}
     for key, variant in (variants or {}).items():
         entry = (variant.get("X3-1") or {}).get("log_yield") or {}
-        if entry.get("rho_E") is not None:
+        if entry.get("rho_E") is None:
+            continue
+        if key.endswith("/E3u"):
+            e3u_ratios[key] = entry["rho_E"]
+        if empirical is None:
             empirical = entry["rho_E"]
-            break
-    return {"empirical_rho_E_log_yield": empirical, "theory_rows": rows,
+    return {"empirical_rho_E_log_yield": empirical,
+            "raw_feature_rho_E_log_yield": empirical,
+            "e3u_rho_E_log_yield": e3u_ratios, "theory_rows": rows,
             "rule": "C-mean alone gives ∞ by P0 and is listed as the charge-only "
                     "limit, not as a comparison point"}
 
@@ -4868,7 +5383,8 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
     setup["inventory"] = inventory if inventory is not None else part_a_inventory(
         root, hash_files=False, log=lambda *a, **k: None)
     setup["inventory_counts"] = setup["inventory"]["counts"]
-    if probes is None and mode not in ("report", "addendum-report"):
+    if probes is None and mode not in ("report", "addendum-report",
+                                       "addendum2-ledger", "addendum2-report"):
         probes = {"s005": open_probe_sets(config, gen, geometry, data_root,
                                           setting=S005, log=lambda *a, **k: None),
                   "s030": open_probe_sets(config, gen, geometry, data_root,
@@ -4965,6 +5481,23 @@ def _mode_setup_objects(mode, *, root, config, gen, arms_config, geometry, data_
             "descriptive history: the combined-runbook clone/suite basis; it is "
             "NOT the addendum STOP basis (see plan.addendum.addendum_entries)")
         setup["plan"]["entries"] = combined_entries
+    if mode in ADDENDUM2_MODES or mode == "dry-run":
+        setup["plan"]["addendum2"] = {
+            "addendum2": ADDENDUM2_REL,
+            "addendum2_sha256": ADDENDUM2_SHA256,
+            "modes": list(ADDENDUM2_MODES),
+            "gpu_cap_hours": ADDENDUM2_GPU_CAP_H,
+            "cpu_cap_hours": ADDENDUM2_CPU_CAP_H,
+            "gpu_projection": dict(ADDENDUM2_GPU_PROJECTION),
+            "cpu_projection": dict(ADDENDUM2_CPU_PROJECTION),
+            "entries_projection": int(ADDENDUM2_ENTRIES_PROJECTION),
+            "ledger": str(ADDENDUM_JOBS),
+            "hours": addendum2_hours(),
+            "s1": addendum2_s1_check(root),
+            "addendum2_entries": addendum2_entries_preflight(
+                log=lambda *a, **k: None),
+            "cap_rule": "addendum 2 caps only (0.08 h GPU / 3.0 h CPU); the "
+                        "earlier closed caps are not consulted"}
     if mode in ADDENDUM_MODES or mode == "dry-run":
         setup["plan"]["addendum"] = {
             "addendum": ADDENDUM_REL, "addendum_sha256": ADDENDUM_SHA256,
@@ -5392,15 +5925,9 @@ def _preserved_7nov_dir(ext_root) -> Path:
     return Path(ext_root) / PRESERVED_7NOV
 
 
-def _preserve_7nov_payloads(ext_root, target, *,
-                            names=("x1", "x2", "x3", "readings")) -> dict:
-    """Preserve the 7 Nov results payloads write-once, with sha256 sidecars (A1).
-
-    Runs before ``addendum_report`` updates the results in place, so the superseded
-    table can always read the replaced values from these copies — never from a
-    file that has already been overwritten, and never lost on a second run.
-    """
-    directory = _preserved_7nov_dir(ext_root)
+def _preserve_payloads(ext_root, target, *, subdir, names) -> dict:
+    """Write-once preservation of results payloads under ``<ext>/<subdir>``."""
+    directory = Path(ext_root) / subdir
     out = {}
     for name in names:
         dest = directory / f"{name}.json"
@@ -5416,15 +5943,15 @@ def _preserve_7nov_payloads(ext_root, target, *,
         if not source.is_file():
             if not absent_marker.is_file():
                 directory.mkdir(parents=True, exist_ok=True)
-                absent_marker.write_text("7 Nov results payload absent on the "
-                                         "first addendum-report run\n")
+                absent_marker.write_text("results payload absent at the first "
+                                         "preservation run\n")
             out[name] = {"status": _ADDENDUM_NOT_RUN,
-                         "reason": "7 Nov results payload absent"}
+                         "reason": "results payload absent"}
             continue
         if absent_marker.is_file():
             out[name] = {"status": _ADDENDUM_NOT_RUN,
-                         "reason": "7 Nov results payload absent at preservation "
-                                   "time (later corrected files are not preserved)"}
+                         "reason": "payload absent at preservation time (later "
+                                   "files are not preserved)"}
             continue
         directory.mkdir(parents=True, exist_ok=True)
         staging = dest.with_name(dest.name + ".tmp")
@@ -5434,6 +5961,28 @@ def _preserve_7nov_payloads(ext_root, target, *,
         sidecar.write_text(digest + "\n")
         out[name] = {"path": str(dest), "sha256": digest, "preserved": "written"}
     return out
+
+
+def _preserved_payload(ext_root, subdir, name):
+    """A sha-verified preserved payload under ``<ext>/<subdir>``, or ``None``."""
+    directory = Path(ext_root) / subdir
+    path = directory / f"{name}.json"
+    sidecar = directory / f"{name}.json.sha256"
+    if not path.is_file() or not sidecar.is_file():
+        return None
+    try:
+        if lr.sha256_file(path) != sidecar.read_text().strip():
+            return None
+    except OSError:  # pragma: no cover
+        return None
+    return read_json(path, None)
+
+
+def _preserve_7nov_payloads(ext_root, target, *,
+                            names=("x1", "x2", "x3", "readings")) -> dict:
+    """Addendum 1 A1: preserve the 7 Nov results payloads write-once."""
+    return _preserve_payloads(ext_root, target, subdir=PRESERVED_7NOV,
+                              names=names)
 
 
 def _preserved_7nov_payload(ext_root, name):
@@ -5801,8 +6350,9 @@ def addendum_x2(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-x2", root=root, log=log)
-    entries = addendum_entries_preflight_or_stop(log=log)
-    budget = _addendum_budget_for("addendum-x2")
+    entries = addendum2_entries_preflight_or_stop(log=log)
+    budget = assert_addendum2_budget(
+        "cpu", ADDENDUM2_CPU_PROJECTION.get("addendum-x2", 0.0), part="A2")
     probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
     probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
     names = ("N", "D", "S")
@@ -5846,8 +6396,9 @@ def addendum_x2(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
         payload["latent_estimates"][label] = out["latent_estimates"]
     payload = _strip_internal(payload)
     payload["complete"] = not payload["unavailable"]
-    return _addendum_finish("addendum-x2", payload, root=root, started=started,
-                            kind="cpu")
+    payload["addendum2"] = ADDENDUM2_REL
+    return _addendum2_finish("addendum-x2", payload, root=root, started=started,
+                             kind="cpu")
 
 
 # --------------------------------------- D1 rerun: EST(latent) X2-e (GPU) §2/§6
@@ -5864,9 +6415,10 @@ def addendum_x2e(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFA
     root = _resolve_root(root)
     started = time.time()
     gate = assert_authorised("addendum-x2e", root=root, log=log)
-    s1 = addendum_s1_check_or_stop(root=root)
-    entries = addendum_entries_preflight_or_stop(log=log)
-    budget = _addendum_budget_for("addendum-x2e")
+    s1 = addendum2_s1_check_or_stop(root=root)
+    entries = addendum2_entries_preflight_or_stop(log=log)
+    budget = assert_addendum2_budget(
+        "gpu", ADDENDUM2_GPU_PROJECTION.get("addendum-x2e", 0.0), part="A2")
     base = read_json(Path(ext_root) / "x2" / "x2.json", {}) or {}
     extra = read_json(_addendum_dir(ext_root) / "x2_addendum.json", {}) or {}
     estimates_all = extra.get("latent_estimates") or {}
@@ -5967,8 +6519,9 @@ def addendum_x2e(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFA
                                            "reason": f"{type(problem).__name__}: {problem}"})
             continue
     payload["complete"] = not payload["unavailable"]
-    return _addendum_finish("addendum-x2e", payload, root=root, started=started,
-                            kind="gpu")
+    payload["addendum2"] = ADDENDUM2_REL
+    return _addendum2_finish("addendum-x2e", payload, root=root, started=started,
+                             kind="gpu")
 
 
 # -------------------------------------- D2 rerun: X3-b readings (CPU) §3/§7.2
@@ -6222,6 +6775,9 @@ def _x3_variant_summary(name, reading, family_entry) -> dict:
             "rho_E": item.get("rho_E"), "ci95": item.get("ci95"),
             "class": item.get("class"), "gain_specific": item.get("gain_specific"),
             "rho_control_q95": item.get("rho_control_q95"),
+            "rho_hitcount": item.get("rho_hitcount"),
+            "hitcount_ci95": item.get("hitcount_ci95"),
+            "gain_specific_conditions": item.get("gain_specific_conditions"),
             "n_controls": len(item.get("rho_controls") or []) or None}
     # the 7 Nov flat keys stay for a reader of the old SUMMARY.json
     yield_item = out["X3-1"].get("log_yield") or {}
@@ -6602,8 +7158,11 @@ def _addendum_summary_markdown(summary, *, target) -> str:
                      f"{_fmt(row.get('r2_eq'))} | {_fmt(row.get('removed_share'))} | "
                      f"{_fmt(row.get('recovered_fraction'))} | "
                      f"{row.get('flag_text')} |")
+    # ------------------------------------------------ addendum 2 sections
+    if summary.get("addendum2"):
+        lines += _addendum2_markdown_lines(summary)
     # ------------------------------------------------ superseded table
-    lines += ["", "## Superseded 7 Nov values", "",
+    lines += ["", "## Superseded 7 Nov values (extended with addendum 2: E1–E3)", "",
               "| item | scope | defect | old value | new value | status |",
               "|---|---|---|---|---|---|"]
     for row in summary.get("superseded") or []:
@@ -7070,3 +7629,461 @@ def addendum_init9000(*, config, gen, arms_config, geometry,
         payload["complete"] = False
     payload["wall_seconds"] = round(time.time() - started, 3)
     return payload
+
+
+# ======================================= addendum 2 (8 Nov 2026) E1/E2/E3
+_ADDENDUM2_PRESERVED = "addendum2/preserved_before"
+
+
+def _addendum2_dir(ext_root) -> Path:
+    return Path(ext_root) / "addendum2"
+
+
+def _preserve_addendum2_payloads(ext_root, target) -> dict:
+    """Preserve the pre-addendum-2 results payloads write-once (superseded old)."""
+    return _preserve_payloads(ext_root, target, subdir=_ADDENDUM2_PRESERVED,
+                              names=("x1", "x2", "x3", "readings", "SUMMARY"))
+
+
+def _preserved_addendum2_payload(ext_root, name):
+    return _preserved_payload(ext_root, _ADDENDUM2_PRESERVED, name)
+
+
+def _e1_superseded_rows(preserved_x2, x2_add=None, x2e_add=None) -> list:
+    """Addendum 2 E1: every replaced latent-stream value, old vs corrected."""
+    old_models = (preserved_x2 or {}).get("models") or {}
+    new_models = (x2_add or {}).get("models") or {}
+    newer_models = (x2e_add or {}).get("models") or {}
+    rows = []
+    for label in sorted(set(old_models) | set(new_models) | set(newer_models)):
+        old = old_models.get(label) or {}
+        new = new_models.get(label) or {}
+        newer = newer_models.get(label) or {}
+        old_latent = ((old.get("X2-d") or {}).get("latent") or {})
+        new_latent = ((new.get("X2-d") or {}).get("latent") or {})
+        rows.append(_superseded_row(
+            "X2-d latent median_run_rms", "E1", label,
+            old_latent.get("median_run_rms"), new_latent.get("median_run_rms"),
+            bool(new_latent)))
+        rows.append(_superseded_row(
+            "X2-d latent pearson_r", "E1", label,
+            old_latent.get("pearson_r"), new_latent.get("pearson_r"),
+            bool(new_latent)))
+        old_e = ((((old.get("X2-e") or {}).get("streams")) or {}).get("latent") or {})
+        new_e = ((((newer.get("X2-e") or {}).get("streams")) or {}).get("latent") or {})
+        rows.append(_superseded_row(
+            "X2-e latent rho_EST", "E1", label,
+            old_e.get("rho_EST"), new_e.get("rho_EST"), bool(new_e)))
+        rows.append(_superseded_row(
+            "latent repair rho_LR", "E1", label,
+            old.get("X2-e", {}).get("latent_repair_rho_LR"),
+            newer.get("latent_repair_rho_LR"), bool(newer)))
+    return rows
+
+
+def _e3u_variants_summary(leace_payload) -> dict:
+    """The E3u family per model, with controls and the gain-specific rule."""
+    families = (leace_payload or {}).get("families") or {}
+    models = ((families.get("leace") or {}).get("models") or {})
+    readings = (leace_payload or {}).get("readings") or {}
+    variants = {}
+    for name, reading in sorted((readings.get("variants") or {}).items()):
+        entry = models.get(name)
+        summary = _x3_variant_summary(name, reading, entry)
+        if entry:
+            summary["n_random_controls"] = len(entry.get("controls") or [])
+            hit = entry.get("hitcount_control") or {}
+            summary["hitcount_control"] = {
+                "rank": hit.get("rank"), "concept": hit.get("concept"),
+                "reason": hit.get("reason")}
+        variants[name] = summary
+    return variants
+
+
+def _seed_row(families, family, seed):
+    """A summary family/seed row keyed by int or by its JSON string form."""
+    block = (families or {}).get(family) or {}
+    if seed in block:
+        return block[seed]
+    return block.get(str(seed))
+
+
+def _apply_e1_overlays(summary_x2, x2_add=None, x2e_add=None) -> dict:
+    """Put the E1-corrected latent stream and X2-e readings into the summary."""
+    families = summary_x2 or {}
+    for label, extra in ((x2_add or {}).get("models") or {}).items():
+        family, seed = _family(label)
+        row = _seed_row(families, family, seed)
+        if row is None:
+            continue
+        latent = ((extra.get("X2-d") or {}).get("latent") or {})
+        if latent:
+            row.setdefault("X2-d", {})["latent"] = {
+                **{key: latent.get(key) for key in
+                   ("median_run_rms", "pearson_r", "coverage", "n_runs")},
+                "source": "addendum2 E1 (scale-only)"}
+    for label, rerun in ((x2e_add or {}).get("models") or {}).items():
+        family, seed = _family(label)
+        row = _seed_row(families, family, seed)
+        if row is None:
+            continue
+        block = row.setdefault("X2-e", {})
+        rho = dict(block.get("rho_EST") or {})
+        rho["latent"] = rerun.get("rho_EST_latent")
+        block["rho_EST"] = rho
+        block["latent_repair_rho_LR"] = rerun.get("latent_repair_rho_LR")
+        block["reused_streams"] = ["source", "raw"]
+    return families
+
+
+def _addendum2_markdown_lines(summary) -> list:
+    """The addendum 2 sections of READINGS_SUMMARY.md (E1, E3u, ledger)."""
+    block = summary.get("addendum2") or {}
+    lines = ["", "## Addendum 2 — E1 latent gain estimator (scale only)", ""]
+    rows = block.get("e1", {}).get("rows") or []
+    lines += ["| item | model | old | new | status |", "|---|---|---|---|---|"]
+    for row in rows:
+        lines.append(f"| {row.get('item')} | {row.get('scope')} | "
+                     f"{_fmt_value(row.get('old'))} | "
+                     f"{_fmt_value(row.get('new'))} | {row.get('status')} |")
+    lines += ["", "### Addendum 2 — E3u: the occupancy-weighted gain concept", "",
+              "| variant | concept | rank r | unerased R² | erased R² | "
+              "ρ_E (log-yield) | class | control q95 | hit-count ρ | "
+              "gain-specific | X3-2 Δv | X3-4 verdict |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+    for name, variant in sorted((summary.get("x3") or {}).items()):
+        if "/E3u" not in name:
+            continue
+        y = (variant.get("X3-1") or {}).get("log_yield") or {}
+        x34 = variant.get("X3-4") or {}
+        lines.append(
+            f"| {name} | {_fmt(variant.get('concept'))} | "
+            f"{_fmt(variant.get('rank'), 6)} | "
+            f"{_fmt(variant.get('unerased_concept_r2'))} | "
+            f"{_fmt(variant.get('erased_concept_r2'))} | {_fmt(y.get('rho_E'))} | "
+            f"{y.get('class')} | {_fmt(y.get('rho_control_q95'))} | "
+            f"{_fmt(y.get('rho_hitcount'))} | {y.get('gain_specific')} | "
+            f"{_fmt((variant.get('X3-2') or {}).get('difference_m'))} | "
+            f"{x34.get('verdict')} |")
+    lines += ["", "### Addendum 2 — the ledger total (E3)", "",
+              "| item | old charged (h) | booked sum (h) | new charged (h) | "
+              "S1 (booked + 0.08) | pass |", "|---|---|---|---|---|---|"]
+    ledger = block.get("ledger") or {}
+    lines.append(
+        f"| L40S charged_gpu_hours | {_fmt(ledger.get('charged_before'))} | "
+        f"{_fmt(ledger.get('booked_gpu_hours'))} | "
+        f"{_fmt(ledger.get('charged_after'))} | "
+        f"{_fmt((ledger.get('s1_after') or {}).get('sum_hours'))} | "
+        f"{(ledger.get('s1_after') or {}).get('pass')} |")
+    if block.get("not_run"):
+        lines += ["", "Addendum 2 not run: " + "; ".join(
+            str(row) for row in block["not_run"])]
+    return lines
+
+
+def addendum2_ledger(*, root=None, ext_root=EXT_ROOT, log=print) -> dict:
+    """Addendum 2 E3 (CPU): verify/write the booked L40S total and its S1.
+
+    The ledger field ``charged_gpu_hours`` is written once to the booked sum
+    (133.6492 h) when it differs; a ``DECISIONS.md`` line records the correction
+    (the Lead writes it).  Writes ``<ext>/addendum2/ledger_fix.json``.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum2-ledger", root=root, log=log)
+    entries = addendum2_entries_preflight_or_stop(log=log)
+    budget = assert_addendum2_budget(
+        "cpu", ADDENDUM2_CPU_PROJECTION.get("addendum2-ledger", 0.0), part="A2")
+    ledger_rel = "docs/jepa/RESOURCE_LEDGER.json"
+    ledger_path = root / ledger_rel
+    ledger = read_json(ledger_path, None)
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum 2 E3: booked L40S total and S1",
+               "addendum2": ADDENDUM2_REL,
+               "addendum2_sha256": ADDENDUM2_SHA256,
+               "gate": {"status": gate["status"]}, "entries": entries,
+               "budget": budget, "ledger": ledger_rel,
+               "charged_before": None, "charged_after": None,
+               "booked_gpu_hours": None, "written_once": False,
+               "s1_before": None, "s1_after": None, "status": None,
+               "wall_seconds": None}
+    if not isinstance(ledger, dict):
+        payload["status"] = "failed"
+        payload["reason"] = "RESOURCE_LEDGER.json is absent or invalid"
+        return _addendum2_finish("addendum2-ledger", payload, root=root,
+                                 started=started, kind="cpu")
+    entry = ((ledger.get("v4_caps") or {}).get("E2_lucid_l40s_deepthought2")
+             or {})
+    ledger_before = json.loads(json.dumps(ledger))
+    charged_before = entry.get("charged_gpu_hours")
+    booked = booked_gpu_hours(ledger_before)
+    payload["charged_before"] = charged_before
+    payload["booked_gpu_hours"] = booked.get("sum_hours")
+    payload["s1_before"] = addendum2_s1_check(root, ledger=ledger_before)
+    if not booked.get("available"):
+        payload["status"] = "failed"
+        payload["reason"] = booked.get("reason")
+        return _addendum2_finish("addendum2-ledger", payload, root=root,
+                                 started=started, kind="cpu")
+    expected = float(booked["sum_hours"])
+    consistent = (charged_before is not None
+                  and abs(float(charged_before) - expected) <= LEDGER_CONSISTENCY_H)
+    if not consistent:
+        if not isinstance(entry, dict):
+            payload["status"] = "failed"
+            payload["reason"] = "E2_lucid_l40s_deepthought2 block is absent"
+            return _addendum2_finish("addendum2-ledger", payload, root=root,
+                                     started=started, kind="cpu")
+        entry["charged_gpu_hours"] = expected
+        write_json(ledger_path, ledger)
+        payload["written_once"] = True
+    payload["charged_after"] = expected
+    payload["s1_after"] = addendum2_s1_check(root)
+    payload["status"] = "written" if payload["written_once"] else "already_consistent"
+    payload["decisions_ready"] = (
+        "The L40S ledger E2_lucid_l40s_deepthought2.charged_gpu_hours is corrected "
+        f"to the booked job/campaign sum {expected:.4f} h "
+        f"(was {charged_before}); addendum 2 §4, author line \"按A做，并更新周报\".")
+    out = _addendum2_dir(ext_root) / "ledger_fix.json"
+    write_json(out, payload)
+    payload["out"] = str(out)
+    return _addendum2_finish("addendum2-ledger", payload, root=root,
+                             started=started, kind="cpu")
+
+
+def addendum2_leace(*, config, gen, geometry, data_root=DATA_ROOT_DEFAULT,
+                    ext_root=EXT_ROOT, root=None, limit=None, log=print) -> dict:
+    """Addendum 2 E2 (CPU): the E3u LEACE family, its controls and readings.
+
+    Cached X1 embeddings only (no GPU).  Writes ``<ext>/addendum2/x3_e3u.json``.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum2-leace", root=root, log=log)
+    entries = addendum2_entries_preflight_or_stop(log=log)
+    budget = assert_addendum2_budget(
+        "cpu", ADDENDUM2_CPU_PROJECTION.get("addendum2-leace", 0.0), part="A2")
+    inv = part_a_inventory(root, hash_files=False, log=lambda *a, **k: None)
+    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    leace = _x3_leace(inv, probes005, probes030, geometry, ext_root, limit=limit,
+                      concepts=("E3u",), log=log)
+    fisher = read_json(Path(ext_root) / "x3" / "x3_fisher.json", None)
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum 2 E2: the E3u LEACE family and controls",
+               "addendum2": ADDENDUM2_REL,
+               "addendum2_sha256": ADDENDUM2_SHA256,
+               "gate": {"status": gate["status"]}, "entries": entries,
+               "budget": budget, "families": {"leace": leace},
+               "readings": x3_readings({"families": {"leace": leace}},
+                                       fisher=fisher),
+               "unavailable": list(leace.get("unavailable") or []),
+               "wall_seconds": None}
+    payload = _strip_internal(payload)
+    payload["complete"] = bool((payload["readings"].get("variants") or {}))
+    out = _addendum2_dir(ext_root) / "x3_e3u.json"
+    write_json(out, payload)
+    payload["out"] = str(out)
+    return _addendum2_finish("addendum2-leace", payload, root=root,
+                             started=started, kind="cpu")
+
+
+def addendum2_report(*, root=None, ext_root=EXT_ROOT, results_dir=None,
+                     log=print) -> dict:
+    """Addendum 2 §9 (CPU): ADDENDUM2 JSON + updated summary/outcome/figures.
+
+    Writes ``results/jepa/20261106_repair/ADDENDUM2_2026-11-08.json`` with the E1
+    reruns, the E3u family + controls + gain-specific rule, the ledger fix and the
+    superseded table extended with E1–E3; updates ``READINGS_SUMMARY.md``,
+    ``SUMMARY.json``, ``OUTCOME.json`` and the figures in place.  The pre-addendum-2
+    payloads are preserved write-once first.
+    """
+    root = _resolve_root(root)
+    started = time.time()
+    gate = assert_authorised("addendum2-report", root=root, log=log)
+    entries = addendum2_entries_preflight_or_stop(log=log)
+    budget = assert_addendum2_budget(
+        "cpu", ADDENDUM2_CPU_PROJECTION.get("addendum2-report", 0.0), part="A2")
+    ext_root = Path(ext_root)
+    target = Path(results_dir) if results_dir is not None else root / RESULTS_DIR
+    target.mkdir(parents=True, exist_ok=True)
+    preserved = _preserve_addendum2_payloads(ext_root, target)
+    preserved_x2 = _preserved_addendum2_payload(ext_root, "x2")
+    preserved_summary = _preserved_addendum2_payload(ext_root, "SUMMARY")
+    x1 = _read_stage(ext_root, "x1/x1.json") or {}
+    x2 = _read_stage(ext_root, "x2/x2.json") or preserved_x2 or {}
+    x3_fisher = _read_stage(ext_root, "x3/x3_fisher.json")
+    addendum_dir = _addendum_dir(ext_root)
+    a2_dir = _addendum2_dir(ext_root)
+    x2_add = read_json(addendum_dir / "x2_addendum.json", None)
+    x2e_add = read_json(addendum_dir / "x2e_addendum.json", None)
+    x3_e3u = read_json(a2_dir / "x3_e3u.json", None)
+    ledger_fix = read_json(a2_dir / "ledger_fix.json", None)
+    e1_rows = _e1_superseded_rows(preserved_x2 or x2, x2_add, x2e_add)
+    e3u_variants = _e3u_variants_summary(x3_e3u or {})
+    e3u_readings = (x3_e3u or {}).get("readings") or {}
+    leace_family = (((x3_e3u or {}).get("families") or {}).get("leace") or {})
+    leace_models = leace_family.get("models") or {}
+    # E2 superseded rows: the E1/E2r readings were not applicable; E3u replaces them
+    e2_rows = []
+    for name, variant in sorted(e3u_variants.items()):
+        y = (variant.get("X3-1") or {}).get("log_yield") or {}
+        e2_rows.append(_superseded_row(
+            "LEACE X3-1 (E1/E2r → E3u)", "E2", name,
+            "not_applicable (unerased pooled R² ≤ 0.02)",
+            {"concept": "E3u", "rank": variant.get("rank"),
+             "rho_E_log_yield": y.get("rho_E"),
+             "gain_specific": y.get("gain_specific")}, True))
+    unavailable = [name for name, entry in leace_models.items()
+                   if entry.get("status") != "evaluated"]
+    for name in sorted(unavailable):
+        e2_rows.append(_superseded_row(
+            "LEACE X3-1 (E1/E2r → E3u)", "E2", name,
+            "not_applicable (unerased pooled R² ≤ 0.02)",
+            (leace_models.get(name) or {}).get("status"), True))
+    e3_rows = []
+    if ledger_fix:
+        e3_rows.append(_superseded_row(
+            "L40S charged_gpu_hours", "E3", "ledger",
+            ledger_fix.get("charged_before"), ledger_fix.get("charged_after"),
+            bool(ledger_fix.get("charged_after") is not None)))
+    else:
+        e3_rows.append(_superseded_row("L40S charged_gpu_hours", "E3", "ledger",
+                                       None, None, False))
+    not_run = []
+    for mode, payload in (("addendum-x2 (E1 X2-d)", x2_add),
+                          ("addendum-x2e (E1 X2-e)", x2e_add),
+                          ("addendum2-leace (E3u)", x3_e3u),
+                          ("addendum2-ledger", ledger_fix)):
+        if not payload:
+            not_run.append({"mode": mode, "status": _ADDENDUM_NOT_RUN,
+                            "reason": "payload absent"})
+        elif payload.get("status", "").startswith("not_run"):
+            not_run.append({"mode": mode, "status": payload.get("status"),
+                            "reason": payload.get("reason")})
+    not_run += [{"mode": "E3u variant", "status": "unavailable",
+                 "reason": str(name)} for name in sorted(unavailable)]
+    # ---- update the committed summary in place
+    summary = read_json(target / "SUMMARY.json", None) or preserved_summary
+    if not isinstance(summary, dict) or not summary:
+        summary = {"registered": False, "extension": EXTENSION,
+                   "x1": _x1_summary_families(x1),
+                   "x2": _x2_summary_families(x2, x2_add, x2e_add),
+                   "x3": {}, "x3_5": {}, "superseded": [], "not_run": []}
+    summary["x2"] = _apply_e1_overlays(summary.get("x2") or {}, x2_add, x2e_add)
+    variants = dict(summary.get("x3") or {})
+    variants.update(e3u_variants)
+    summary["x3"] = variants
+    x35 = dict(summary.get("x3_5") or {})
+    x35.update(e3u_readings.get("X3-5") or {})
+    if x35:
+        summary["x3_5"] = x35
+    summary["superseded"] = list(summary.get("superseded") or []) + (
+        e1_rows + e2_rows + e3_rows)
+    summary["addendum2"] = {
+        "addendum2": ADDENDUM2_REL, "addendum2_sha256": ADDENDUM2_SHA256,
+        "generated_utc": _utc_now(),
+        "e1": {"rows": e1_rows,
+               "x2_addendum": bool(x2_add), "x2e_addendum": bool(x2e_add)},
+        "e3u": {"variants": e3u_variants, "rows": e2_rows,
+                "n_models": len(e3u_variants),
+                "concepts": ["E3u"]},
+        "ledger": ledger_fix or {},
+        "not_run": not_run}
+    summary["not_run"] = list(summary.get("not_run") or []) + [
+        item for item in not_run if item not in (summary.get("not_run") or [])]
+    # ---- figures with the E3u / E1 overlays in place
+    x2_for_figures = {"models": {}}
+    for label, model in ((x2 or {}).get("models") or {}).items():
+        merged = dict(model)
+        extra = ((x2_add or {}).get("models") or {}).get(label) or {}
+        latent = ((extra.get("X2-d") or {}).get("latent") or {})
+        if latent:
+            merged["X2-d"] = {**((model or {}).get("X2-d") or {}),
+                              "latent": latent}
+        x2_for_figures["models"][label] = merged
+    readings_for_figures = {
+        "registered": False,
+        "x1": {"families": ((x1 or {}).get("readings") or {}).get("families") or {}},
+        "x2": {},
+        "x3": {"variants": variants}}
+    figures = render_figures(readings_for_figures, target, x1_payload=x1,
+                             x2_payload=x2_for_figures,
+                             x3_payload={"readings": {"variants": variants}},
+                             fisher_payload=x3_fisher, log=log)
+    summary["figures"] = figures
+    write_json(target / "SUMMARY.json", summary)
+    (target / "READINGS_SUMMARY.md").write_text(
+        _addendum_summary_markdown(summary, target=target))
+    # ---- OUTCOME.json extended (in place)
+    outcome = read_json(target / "OUTCOME.json", None)
+    outcome = dict(outcome or {})
+    outcome["registered"] = False
+    outcome["extension"] = EXTENSION
+    outcome["addendum2"] = {
+        "addendum2": ADDENDUM2_REL, "addendum2_sha256": ADDENDUM2_SHA256,
+        "generated_utc": _utc_now(),
+        "items": {
+            "E1 latent gain estimator": (
+                "complete" if (x2_add or x2e_add) else _ADDENDUM_NOT_RUN),
+            "E2 E3u concept + controls": (
+                "complete" if e3u_variants else _ADDENDUM_NOT_RUN),
+            "E3 ledger total": (ledger_fix or {}).get("status", _ADDENDUM_NOT_RUN),
+            "report": "complete"},
+        "superseded_values": len(e1_rows + e2_rows + e3_rows),
+        "not_run": not_run}
+    if ledger_fix:
+        outcome["ledger_correction"] = ledger_fix.get("decisions_ready")
+    write_json(target / "OUTCOME.json", outcome)
+    # ---- ADDENDUM2 JSON
+    addendum2 = {"registered": False, "extension": EXTENSION,
+                 "addendum2": ADDENDUM2_REL,
+                 "addendum2_sha256": ADDENDUM2_SHA256,
+                 "generated_utc": _utc_now(),
+                 "gate": {"status": gate["status"]},
+                 "e1": {"reruns": {
+                     "X2-d latent": _addendum_run_status(
+                         x2_add, sorted(((x2_add or {}).get("models") or {})),
+                         "addendum-x2"),
+                     "X2-e latent": _addendum_run_status(
+                         x2e_add, sorted(((x2e_add or {}).get("models") or {})),
+                         "addendum-x2e")},
+                     "rows": e1_rows},
+                 "e3u": {"family": leace_family,
+                         "readings": e3u_readings,
+                         "variants": e3u_variants,
+                         "gain_specific": "three conditions: q95 random "
+                                          "controls, CI vs control mean, and "
+                                          "CI above the hit-count control",
+                         "rows": e2_rows},
+                 "ledger": ledger_fix or {"status": _ADDENDUM_NOT_RUN},
+                 "superseded": e1_rows + e2_rows + e3_rows,
+                 "not_run": not_run, "sources": {
+                     "x2 (pre)": f"{ext_root}/x2/x2.json",
+                     "E1 overlay": str(addendum_dir / "x2_addendum.json"),
+                     "E1 X2-e overlay": str(addendum_dir / "x2e_addendum.json"),
+                     "E3u family": str(a2_dir / "x3_e3u.json"),
+                     "ledger fix": str(a2_dir / "ledger_fix.json"),
+                     "pre-addendum-2 copies": str(Path(ext_root)
+                                                  / _ADDENDUM2_PRESERVED)},
+                 "budget": addendum2_hours(),
+                 "entries": entries,
+                 "figures": figures}
+    write_json(target / "ADDENDUM2_2026-11-08.json", addendum2)
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "addendum 2 report", "path": str(target),
+               "addendum2_json": str(target / "ADDENDUM2_2026-11-08.json"),
+               "summary": str(target / "SUMMARY.json"),
+               "readings_summary": str(target / "READINGS_SUMMARY.md"),
+               "outcome": str(target / "OUTCOME.json"),
+               "e1_rows": len(e1_rows), "e2_rows": len(e2_rows),
+               "e3u_variants": len(e3u_variants),
+               "ledger_status": (ledger_fix or {}).get("status"),
+               "figures": figures, "superseded": len(e1_rows + e2_rows + e3_rows),
+               "not_run": not_run, "gate": {"status": gate["status"]},
+               "entries": entries, "budget": budget,
+               "preserved": preserved,
+               "complete": bool(x2_add or x2e_add or e3u_variants or ledger_fix)}
+    payload["addendum2"] = ADDENDUM2_REL
+    return _addendum2_finish("addendum2-report", payload, root=root,
+                             started=started, kind="cpu")
