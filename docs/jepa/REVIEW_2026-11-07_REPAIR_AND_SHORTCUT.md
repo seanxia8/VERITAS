@@ -1,19 +1,22 @@
 **Verdict: PASS**
 
-**Final status (branch `jepa-runbook-20261107`, HEAD `90f190a8090661236383dc5fb9168c307814ac0b` =
-`origin/JEPA`, addendum final round): PASS.** The combined-runbook implementation keeps its round-6
-PASS at the frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c` (rounds 1–6 below are the
-historical record and are unchanged). The 7 Nov addendum's first review (`923276a`) BLOCKed A1–A4
-and the fix round (`ffe3390`) BLOCKed A5/A6; both reports are preserved as history. The final commit
-`90f190a` (delta `ffe3390..90f190a`: the three Part B source files plus `docs/jepa/DECISIONS.md` and
-`docs/jepa/ARCHIVE_2026-11-08_MANIFEST.jsonl`; the binding runbooks are unchanged) fixes A5 with an
-order-independent R-1 source chain (D1 overlay → corrected-results marker → 7 Nov payload, with the
-basis recorded) and resolves A6 operationally (free entries 25,878 → 41.5k+, guard OK; the archive
-manifest verified), as reviewed in the “## Addendum review — final (A5, A6)” section at the end of
-this file. All eight addendum checklist items (i)–(viii) PASS, with no new blocking findings (four
-nonblocking notes N1–N4 plus carried legacy notes). The acceptance record can be re-issued with
-`addendum_path` / `addendum_sha256` and `impl_commit = 90f190a`; the addendum §8 execution may then
-start. The implementation is reviewed at `184cd2f` against the binding runbook
+**Final status (branch `jepa-runbook-20261107`, HEAD `08e9569a443cc04e3e21231c0b4ec05e2495aecc` =
+`origin/JEPA`, execution follow-ups fix 10 + fix 11): PASS.** The combined-runbook implementation
+keeps its round-6 PASS at the frozen SHA `0cf61ff476bc8f3463b4595816ba40508cba239c` (rounds 1–6
+below are the historical record and are unchanged). The 7 Nov addendum's reviews BLOCKed A1–A4
+(`923276a`) and A5/A6 (`ffe3390`) and PASSed at `90f190a`; all are preserved as history. After the
+addendum §8 execution started, the first real `addendum-x2e` GPU run failed with `KeyError: 'N'` for
+all 13 models (a `not_run` payload, kept as history). Fix 10 (`b544229`, +4 production lines)
+flattens the role-nested cache rows in `addendum_x2e`; fix 11 (`08e9569`, test-only +4/−2) pins two
+B7 R-1 tests to a fixture ext root because the now-present live D1 overlay leaked into them. The
+implementation/test delta `90f190a..08e9569` is exactly the three files reviewed in the
+“# Addendum review — execution follow-up (fix 10, fix 11)” section at the end of this file (the
+range’s only other changes are the expected bookkeeping commit `769abba`: the review PASS file, the
+re-issued 8-key acceptance with `impl_commit = 90f190a`, and two DECISIONS lines); the binding
+runbooks are unchanged. All eight addendum checklist items (i)–(viii) remain PASS; no blocking
+findings (four nonblocking notes). The acceptance record can be re-issued with `impl_commit =
+08e9569`, `addendum_path` and `addendum_sha256`, and the §8 execution continues (x2e retry, R-2
+evaluation, x3 re-readings after x2e, reports). The implementation is reviewed at `184cd2f` against the binding runbook
 `docs/jepa/RUNBOOK_2026-11-07_REPAIR_AND_SHORTCUT.md` (sha256 `45e5ff98…119b`, verified equal to the
 base-commit copy). Part A's checklist items (i), (v), (vii) and (viii) are sound, and Part B's variant,
 manipulation check, training guard, gate, evaluation path and cost projection are sound. But large
@@ -1850,3 +1853,159 @@ as history; this section is the final review of the addendum as delivered at `90
   acceptance record can be re-issued with `impl_commit = 90f190a`, `addendum_path =
   docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md` and `addendum_sha256 = abe0904a…0621a`; the
   addendum §8 execution may then start.
+
+# Addendum review — execution follow-up (fix 10, fix 11)
+
+**Verdict: PASS.** Two small execution-time fixes after the `90f190a` PASS: fix 10 (+4 production
+lines) flattens the role-nested cached rows in `addendum_x2e`, which had made the first real x2e GPU
+run fail with `KeyError: 'N'` for all 13 models; fix 11 is test-only (+4/−2) and pins two B7 R-1 tests
+to a fixture ext root because the now-present live D1 overlay had leaked into them. The
+implementation/test delta `90f190a..08e9569` is exactly the three files below; nothing else in the
+implementation changed; the binding runbooks are unchanged. The addendum checklist (i)–(viii) is
+unaffected and remains PASS; the failed x2e payload was a `not_run` outcome (no reading produced).
+No blocking findings; four nonblocking notes.
+
+## Reviewed object (execution follow-up)
+
+- Worktree `/private/tmp/veritas-jepa-20261107`, branch `jepa-runbook-20261107`, HEAD
+  `08e9569a443cc04e3e21231c0b4ec05e2495aecc` = `origin/JEPA`. Host clone
+  `/ceph/dwong/jepa/code/jepa_work_20261107` at the same SHA.
+- Commits in `90f190a..08e9569`: `769abba` bookkeeping (my PASS review file, the re-issued 8-key
+  acceptance with `impl_commit = 90f190a`, two `DECISIONS.md` lines), `b544229` fix 10, `08e9569`
+  fix 11. The implementation/test delta is exactly:
+  - `src/jepa_noise/ext_repair.py` +4 lines (the `addendum_x2e` flattening);
+  - `src/jepa_noise/tests/test_ext_repair.py` +25 lines (the regression test);
+  - `src/jepa_noise/tests/test_ext_shortcut.py` +4/−2 (the two pinned `ext_root=` calls).
+  `git diff 90f190a..08e9569 -- 'src/**/*.py' 'scripts/**/*.py'` returns exactly these three files
+  (`scripts/` unchanged); `git show --numstat b544229` = the first two, `git show --numstat
+  08e9569` = the third. No other source/script changed; the runbooks are unchanged
+  (`45e5ff98…d119b`, `abe0904a…0621a`).
+- File sha256 (`shasum -a 256`, frozen blobs at `08e9569`):
+  - `src/jepa_noise/ext_repair.py` `90f90e1759172fcc3fbf7ace3a91d3a23f613e4d273ecf195f1471e65357cc84`
+  - `src/jepa_noise/tests/test_ext_repair.py` `0a2d71790135a9f3b771b116e46d408866a51317eaf11254e479da2f8f8a4ec4`
+  - `src/jepa_noise/tests/test_ext_shortcut.py` `350ec38f20721291a5581c7d6e8dc0dd576abc449905721dea844d1f8c3456b7`
+  - unchanged: `src/jepa_noise/ext_shortcut.py` `11fe739a…`, `scripts/jepa_ext_repair.py`
+    `f3dbd415…`, `scripts/jepa_ext_shortcut.py` `294fe153…`
+- Diff sha256: three-file `90f190a..08e9569` `faa773ee4f0296288a597beb3fe0319ac585c2b0471422051b6bbc45b272e774`
+  (identical to `769abba..08e9569`, i.e. the implementation-only delta); whole-tree
+  `90f190a..08e9569` `a5ccbb02c1d5cf1b426ebffa4dc1f2cae8751801a28a7d91c696e89d9b63bb4f`;
+  `b544229..08e9569` `f780419569cb18cf3fc92c9f9596127fb220ed3df07ac0a853ab17aec7504336`.
+- Acceptance record at review time is the re-issued 8-key record with `impl_commit = 90f190a`
+  (sha256 `4178bdcc1ef2cd64395ee308727d75028730cb3cec1aa9b977795b6911a965b6`); after this PASS it is
+  re-issued with `impl_commit = 08e9569` and the same addendum path/sha.
+
+## The failed x2e run and the fix-10 verification
+
+- **Failure evidence** (read-only): `/ceph/dwong/jepa/returns/ext_repair_20261106/addendum/x2e_addendum.json`
+  (sha256 `f30d9535c6abff64a1dc3100f483efdf9585c51839ef0eb1642bdef39aad8e18`, 9,074 bytes) records
+  `n_models: 0`, `complete: false`, `wall_seconds 2.939`, `gate granted`, `entries.pass true`,
+  `s1.pass true`, `closure.pass true`, and **13** `unavailable` entries — one per core model, all
+  `status: not_run`, all `reason: "KeyError: 'N'"` (e.g. `mae_within_trigger9000` … `frozen_target9001`).
+  The payload is kept at the retry's output path; see N1.
+- **Root cause**: `_cached_condition_rows:5568-5579` returns `{role: {name: rows}}` (it builds one
+  dict per requested role), but `addendum_x2e` then addressed the names directly
+  (`rows_train["N"]`, `rows_test["N"]`/`["D"]`/`["SWmod"]`), so the first lookup raised
+  `KeyError: 'N'` for every model.
+- **Fix** (`ext_repair.py:5912-5915`, after the existing `None` check): `rows_test =
+  rows_test["test"]; rows_train = rows_train["train"]` flatten the single requested role, so the
+  downstream accesses at `:5916+` are addressed by name. No reading, threshold or item changed.
+- **Demonstration** (host clone, read-only; TMPDIR under
+  `/work/dwong/jepa_tmp_20261107/review_add4`, removed afterwards): the helper returns nested roles
+  (`test keys = ['test']`, `train keys = ['train']`; `rows_test['test']['N'].shape = (2, 4)`); the
+  pre-fix access `rows_train['N']` raises `KeyError: 'N'` (exactly the failed-run reason); after the
+  fix-10 flattening, `rows_test['N']` and `rows_train['N']` both give `(2, 4)`. The regression test
+  `test_addendum_cached_condition_rows_are_nested_per_role:2891-2916` checks the helper's nested
+  contract (including a missing key) and the two flattening lines; it passes (`1 passed in 4.09 s`)
+  and pyflakes is clean on both files. The end-to-end verification is the x2e retry (execution).
+
+## The fix-11 verification (test-only)
+
+- `git diff b544229..08e9569` changes only `src/jepa_noise/tests/test_ext_shortcut.py`, +4/−2:
+  `test_r1_merges_both_pilot_payloads_and_produces_the_fixed_reading` (`:711-712`) and
+  `test_r1_field_falls_back_to_the_other_pilot_payload` (`:743-744`) now pass
+  `ext_root=pilot / "ext"` to `xs.r1_payload`. No assertion or production code changed.
+- **Why it was needed**: the live `<ext_repair>/addendum/x2_addendum.json` now exists
+  (17,808,114 bytes), and the A5 resolver's default ext root is `PILOT_EXT_ROOT`; the two un-pinned
+  tests therefore read the live overlay instead of their fixtures. Demonstration (read-only):
+  unpinned `r1_payload` gives `rho_lr 0.5418381228684451`, basis `d1_overlay`; pinned
+  (`ext_root=pilot/"ext"`) gives `rho_lr 0.9`, basis `7nov_results`. The superseded `vh` evidence on
+  `b544229` shows exactly these two tests failing (`2 failed, 55 passed` in
+  `focused_b.log`) — the state-dependence the fix removes; at `08e9569` they pass (`2 passed in
+  3.97 s`), and the `vh2` focused Part B is `57 passed`.
+- Test-only: the production resolver still prefers the live D1 overlay by design (A5); the tests are
+  now independent of live `/ceph` state.
+
+## Checklist impact — none
+
+- Addendum §7 items (i)–(viii) are unaffected and remain PASS: fix 10 changes only the x2e mode's
+  data-access after the sha-verified cache load, and fix 11 changes only test scaffolding. No
+  reading, threshold, item, family or source-order decision changed; the failed run produced no
+  reading (`not_run` for all 13 models). The x2e retry, the R-2 evaluation and the x3 re-readings
+  after x2e are the remaining execution items.
+
+## Nonblocking notes (execution follow-up)
+
+- **N1 — the failed x2e payload is at the retry's output path.** `addendum-x2e` writes
+  `<ext>/addendum/x2e_addendum.json` with overwrite (the same path); a retry will replace the
+  13×`KeyError 'N'` history payload unless it is copied/renamed first. The review records its sha256
+  (`f30d9535…`) and contents; copy it (e.g. to a date-stamped name) before the retry so “kept as
+  history” is literal.
+- **N2 — fix-10 test is partly a source-text assertion.** The regression test checks the helper's
+  nested contract synthetically and asserts the two flattening lines exist in source; it does not
+  exercise `addendum_x2e` end-to-end (needs the GPU/checkpoints). The retry is the end-to-end check.
+- **N3 — fix 11 is correctly test-only**, but the production resolver's live-overlay default remains
+  (by design); any future test that calls `r1_payload` without `ext_root=` can read live `/ceph`
+  state, so pinning is the test convention.
+- **N4 — execution-fix bookkeeping.** The failed run/fix 10/fix 11 should get the execution record
+  lines (DECISIONS/OUTCOME and the failed payload reference) with the retry/report; the current
+  `DECISIONS.md` lines cover the `90f190a` PASS only.
+- Carried legacy notes from the final round are unchanged (X3-2 CI pre-existing; results hand-off
+  declaration; large corrected payloads untracked; entries-source asymmetry; closure hand-off
+  ordering).
+
+## Evidence (vh2/ on deepthought, vh2_dt2/ on deepthought2; SHA `08e9569`)
+
+- `vh2/summary.txt`: `SHA=08e9569a443cc04e3e21231c0b4ec05e2495aecc HOST=deepthought`,
+  `pyflakes_exit=0`, `focused_a_exit=0`, `focused_b_exit=0`, `full_suite_exit=1`,
+  `dryrun_a_exit=0`, `dryrun_b_exit=0`, `DONE`. `vh2/pyflakes.log` empty (0 lines).
+- `vh2/focused_a.log`: `97 passed in 165.57s (0:02:45)` (`96 + 1` new fix-10 test);
+  `vh2/focused_b.log`: `57 passed in 12.20s` (the two fix-11 tests now pass). The superseded `vh/`
+  evidence on `b544229` had `focused_b: 2 failed, 55 passed` — exactly the two now-pinned tests.
+- `vh2/full_suite.log`: `1 failed, 822 passed, 2 skipped, 3 deselected in 1027.98s (0:17:07)`; the
+  failure is the known pre-existing data/numerics N16
+  `src/jepa_noise/tests/test_ext_followup.py::test_label_collector_reproduces_the_committed_fix9000_rows`
+  (same at `0cf61ff`, `923276a`, `ffe3390`, `90f190a`; `ext_followup.py` untouched), not a delta
+  failure; the 3 deselections are the known `test_guard` launcher tests.
+- `vh2_dt2/summary.txt`: `SHA=08e9569… HOST=deepthought2`, `full_suite_dt2_exit=0`, `DONE`;
+  `vh2_dt2/full_suite_dt2.log`: `823 passed, 2 skipped, 3 deselected in 773.36s (0:12:53)`.
+- `vh2/dryrun_a.log` + `vh2/repair_dryrun/dry_run.json` (Part A): exit 0; gate `denied` with
+  `gate_checks {a: true, a2: true, b: true, c: false}` — the record is the re-issued `90f190a` one
+  (a2/b now true) and `c` is false because `ext_repair.py` changed vs the recorded `impl_commit`
+  (the expected pre-reissue state until `08e9569` is recorded); addendum gate pass true, all six
+  addendum modes in `setup`; plan `s1.pass = true` (`sum_hours 130.0961`), `addendum_entries.pass =
+  true` (`free_entries 40,989`, `projected_after 40,789`, floor 30,000); `closure.pass = true`,
+  `violations []`, `errors []`; only the pre-existing CPU §2.5 sample (8 events).
+- `vh2/dryrun_b.log` + `vh2/shortcut_dryrun/plan.json` (Part B): exit 0, wall 79.257 s, gate
+  `granted` (the Part B `<P>` subset is unchanged from the recorded `impl_commit = 90f190a`; the
+  changed test file is outside `<P>`), `closure_pass: true`, `setup_errors: []`,
+  `manipulation_pass: true`, `addendum_entries_pass: true` (`free_before 40,989`, `projected_after
+  40,789`, `projected_writes 200`, basis “live CephFS quota xattrs”), `addendum_s1_pass: true`
+  (130.0961). After the acceptance re-issue with `08e9569`, the Part A `c` check clears too (the P
+  source matches).
+- Reviewer checks were read-only on `/ceph/dwong/jepa/code/jepa_work_20261107` with `TMPDIR` under
+  `/work/dwong/jepa_tmp_20261107/review_add4` (removed afterwards); no GPU, no `/ceph` writes, no
+  commits/checkouts/resets.
+
+## Final reviewed object (execution follow-up)
+
+- Reviewed SHA `08e9569a443cc04e3e21231c0b4ec05e2495aecc` (= `origin/JEPA`); previous PASS at
+  `90f190a` and the BLOCK reports at `923276a`/`ffe3390` are preserved as history.
+- Implementation/test delta `90f190a..08e9569` = exactly the three files above; runbooks unchanged;
+  the range’s other changes are the expected review/acceptance/DECISIONS bookkeeping.
+- Verdict: **PASS** — fix 10 verified (code, demo, regression test), fix 11 verified test-only
+  (diff, live-overlay demonstration, superseded/fixed focused evidence), all addendum checklist items
+  (i)–(viii) unaffected and PASS; 0 blocking findings, 4 nonblocking notes N1–N4 plus carried legacy
+  notes. The acceptance record can be re-issued with `impl_commit = 08e9569`,
+  `addendum_path = docs/jepa/RUNBOOK_2026-11-07_REPAIR_ADDENDUM.md` and
+  `addendum_sha256 = abe0904a…0621a`; the §8 execution continues with the x2e retry, R-2
+  evaluation, x3 re-readings after x2e and the reports.
