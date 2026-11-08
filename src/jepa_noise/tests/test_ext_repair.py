@@ -3379,7 +3379,12 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
                     "X2-e": {"rho_EST": {"source": 0.6, "raw": 0.5,
                                          "latent": -0.1},
                              "latent_repair_rho_LR": -0.05}}}},
-                "x3": {}, "x3_5": {}, "superseded": [], "not_run": []}
+                "x3": {},
+                "x3_5": {"empirical_rho_E_log_yield": 3.5588538217086,
+                         "raw_feature_rho_E_log_yield": 3.5588538217086,
+                         "theory_rows": {"C-mean": {"theory_ratio_lnY": None}},
+                         "rule": "committed raw-feature value"},
+                "superseded": [], "not_run": []}
     rp.write_json(target / "SUMMARY.json", summary0)
     original_summary_bytes = (target / "SUMMARY.json").read_bytes()
     (target / "READINGS_SUMMARY.md").write_text("# old summary\n")
@@ -3400,23 +3405,46 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
     rp.write_json(ext / "addendum/x2e_addendum.json", {
         "models": {label: {"rho_EST_latent": 0.7,
                            "latent_repair_rho_LR": 0.65}}})
-    reading = _d4_x3_reading(1.5, vertex_difference=0.002, gain_specific=True)
-    reading["X3-1"]["log_yield"]["rho_hitcount"] = 1.2
-    reading["X3-1"]["log_yield"]["hitcount_ci95"] = [0.03, 0.05]
+    run_ids = np.repeat([f"r{index}" for index in range(20)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 20)
+    offsets = np.repeat(np.linspace(-0.002, 0.002, 20), 4)
+
+    def mb(base):
+        return _metric_block(float(base), np.full(run_ids.size, base) + offsets,
+                             run_ids, event_ids)
+
+    standard = {"log_yield": {"N": mb(0.2), "D": mb(0.2)},
+                "energy": {"N": mb(0.2), "D": mb(0.2)},
+                "vertex": {"N": mb(0.1), "D": mb(0.1)}}
+    invariant = {"log_yield": {"N": mb(0.32), "D": mb(0.32)},
+                 "energy": {"N": mb(0.32), "D": mb(0.32)},
+                 "vertex": {"N": mb(0.12), "D": mb(0.12)}}
+    controls = [{"log_yield": {"N": mb(0.21)}, "energy": {"N": mb(0.21)},
+                 "vertex": {"N": mb(0.11)}} for _ in range(20)]
+    hitcount = {"log_yield": {"N": mb(0.25)}, "energy": {"N": mb(0.25)},
+                "vertex": {"N": mb(0.1)}}
     entry = {"status": "evaluated", "concept": "E3u", "rank": 3,
              "sanity": {"unerased_r2": 0.5, "erased_r2": 0.001,
                         "status": "evaluated"},
-             "controls": [{"index": index} for index in range(20)],
-             "hitcount_control": {"rank": 3, "concept": "hitcount"}}
+             "standard": standard, "variant": invariant,
+             "controls": controls, "hitcount_control": hitcount,
+             "calibrated": {"vertex": {"D": mb(0.1)},
+                            "energy": {"D": mb(0.1)},
+                            "log_yield": {"D": mb(0.1)}}}
+    e3u_families = {"leace": {"status": "evaluated",
+                              "models": {f"{label}/E3u": entry}}}
+    # derive X3-5 through the production computation (E3u-only call): the
+    # raw-feature slot must stay None rather than being relabelled
+    e3u_readings = rp.x3_readings({"families": e3u_families},
+                                  fisher={"models": {}})
+    e3u_rho = e3u_readings["variants"][f"{label}/E3u"]["X3-1"]["log_yield"][
+        "rho_E"]
+    assert e3u_rho == pytest.approx(1.6)
+    assert e3u_readings["X3-5"]["raw_feature_rho_E_log_yield"] is None
+    assert e3u_readings["X3-5"]["e3u_rho_E_log_yield"] == {
+        f"{label}/E3u": e3u_rho}
     rp.write_json(ext / "addendum2/x3_e3u.json", {
-        "families": {"leace": {"status": "evaluated",
-                               "models": {f"{label}/E3u": entry}}},
-        "readings": {
-            "variants": {f"{label}/E3u": reading},
-            "X3-5": {"empirical_rho_E_log_yield": 1.5,
-                     "raw_feature_rho_E_log_yield": 3.5,
-                     "e3u_rho_E_log_yield": {f"{label}/E3u": 1.5},
-                     "theory_rows": {}, "rule": "x"}}})
+        "families": e3u_families, "readings": e3u_readings})
     rp.write_json(ext / "addendum2/ledger_fix.json", {
         "status": "written", "charged_before": 129.7461,
         "charged_after": 133.6492, "booked_gpu_hours": 133.6492,
@@ -3440,11 +3468,17 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
     assert set(a2["e3u"]["readings"]["variants"]) == {f"{label}/E3u"}
     assert a2["ledger"]["status"] == "written"
     assert {row["defect"] for row in a2["superseded"]} == {"E1", "E2", "E3"}
+    assert a2["x3_5"]["raw_feature_rho_E_log_yield"] == pytest.approx(
+        3.5588538217086)
+    assert a2["x3_5"]["e3u_rho_E_log_yield"]
     summary = rp.read_json(target / "SUMMARY.json")
     assert f"{label}/E3u" in summary["x3"]
     assert summary["x3"][f"{label}/E3u"]["concept"] == "E3u"
     assert summary["addendum2"]["e3u"]["n_models"] == 1
     row = summary["x2"][family][str(seed)]
+    assert summary["x3_5"]["raw_feature_rho_E_log_yield"] == pytest.approx(
+        3.5588538217086)
+    assert summary["x3_5"]["e3u_rho_E_log_yield"]
     assert row["X2-d"]["latent"]["median_run_rms"] == pytest.approx(0.004)
     assert row["X2-e"]["rho_EST"]["latent"] == pytest.approx(0.7)
     assert row["X2-e"]["latent_repair_rho_LR"] == pytest.approx(0.65)
@@ -3461,3 +3495,91 @@ def test_addendum2_report_writes_the_json_and_updates_the_summary_in_place(
     rp.addendum2_report(root=tmp_path / "repo", ext_root=ext,
                         results_dir=target, log=lambda *a, **k: None)
     assert (preserved / "SUMMARY.json").read_bytes() == before
+
+
+# ------------------------------------------- addendum 2 review A2-1 / A2-2
+def test_a21_particle_energy_hitcount_control_reaches_the_main_variant(
+        geometry, monkeypatch):
+    run_ids = np.repeat([f"r{index}" for index in range(5)], 4).astype(object)
+    event_ids = np.tile(np.arange(4), 5)
+
+    def block(base):
+        return _metric_block(float(base), np.full(run_ids.size, base),
+                             run_ids, event_ids)
+
+    energy_hit = block(0.065)
+    particle_variant = {
+        "status": "evaluated", "concept": "E3u", "rank": 2,
+        "standard": {"energy": {"N": block(0.05)}},
+        "variant": {"energy": {"N": block(0.07)}},
+        "controls": [{"energy": {"N": block(0.06)}} for _ in range(20)],
+        "hitcount_control": {"rank": 2, "concept": "hitcount",
+                             "energy": {"N": energy_hit}}}
+    particle_rows = {
+        "events": np.zeros((run_ids.size, 4)), "run_ids": run_ids,
+        "event_ids": event_ids, "particle": np.array(["electron"] * run_ids.size,
+                                                     dtype=object),
+        "contained": np.ones(run_ids.size, bool),
+        "deposited_MeV": np.linspace(100.0, 900.0, run_ids.size),
+        "direction": np.zeros((run_ids.size, 3)),
+        "vertex": np.zeros((run_ids.size, 3)),
+        "log_yield": np.zeros(run_ids.size), "n_hit": np.full(run_ids.size, 5)}
+    concept = {role: {setting: {} for setting in ("N", "D")}
+               for role in ("train", "test")}
+    for role in ("train", "test"):
+        for setting in ("N", "D"):
+            concept[role][setting] = {
+                (str(run), int(event)): np.arange(6, dtype=float)
+                for run, event in zip(run_ids, event_ids)}
+    monkeypatch.setattr(rp, "_particle_rows",
+                        lambda cache, role, setting: particle_rows)
+    monkeypatch.setattr(rp, "_leace_variant", lambda **kwargs: particle_variant)
+    monkeypatch.setattr(rp, "reduction_rank", lambda *args, **kwargs: {"rank": 2})
+    main = {
+        "status": "evaluated", "concept": "E3u", "rank": 2,
+        "standard": {"log_yield": {"N": block(0.2)},
+                     "vertex": {"N": block(0.1)}},
+        "variant": {"log_yield": {"N": block(0.32)},
+                    "vertex": {"N": block(0.12)}},
+        "controls": [{"log_yield": {"N": block(0.21)},
+                      "vertex": {"N": block(0.11)}} for _ in range(20)],
+        "hitcount_control": {"rank": 2, "concept": "hitcount",
+                             "log_yield": {"N": block(0.25)},
+                             "vertex": {"N": block(0.1)}}}
+    out = rp._attach_particle_energy(
+        main, "mae_within_trigger9000", geometry, {}, {}, None, concept="E3u",
+        e3u=concept, hits=concept, log=lambda *a, **k: None)
+    # A2-1: the main hit-count control now carries the particle energy reading
+    assert "energy" in out["hitcount_control"]
+    assert out["hitcount_control"]["energy"]["N"]["resolution"] == pytest.approx(
+        energy_hit["resolution"])
+    assert out["hitcount_control"]["energy_domain"] == "particle"
+    # regression: the energy E3u gain-specific flag is now computable and a bool
+    reading = rp._variant_reading(
+        out, out["standard"], out["variant"],
+        leace={"concept": "E3u", "controls": out["controls"],
+               "hitcount_control": out["hitcount_control"]})
+    metric = reading["X3-1"]["energy"]
+    assert metric["status"] if "status" in metric else True
+    assert metric["gain_specific"] is not None
+    assert isinstance(metric["gain_specific"], bool)
+    assert metric["rho_hitcount"] is not None
+    assert metric["hitcount_ci95"] is not None
+    assert reading["X3-1"]["log_yield"]["gain_specific"] is True
+
+
+def test_a22_x3_five_does_not_relabel_an_e3u_ratio_as_the_raw_feature():
+    e3u = {"mae/E3u": {"X3-1": {"log_yield": {"rho_E": 1.5}}}}
+    only_e3u = rp._x3_five({"models": {}}, e3u)
+    assert only_e3u["e3u_rho_E_log_yield"] == {"mae/E3u": 1.5}
+    assert only_e3u["empirical_rho_E_log_yield"] is None
+    assert only_e3u["raw_feature_rho_E_log_yield"] is None
+    raw = {"raw": {"X3-1": {"log_yield": {"rho_E": 3.6}}}}
+    both = rp._x3_five({"models": {}}, {**raw, **e3u})
+    assert both["raw_feature_rho_E_log_yield"] == pytest.approx(3.6)
+    assert both["empirical_rho_E_log_yield"] == pytest.approx(3.6)
+    assert both["e3u_rho_E_log_yield"] == {"mae/E3u": 1.5}
+    explicit = rp._x3_five({"models": {}}, e3u, raw_rho=3.5588538217086)
+    assert explicit["raw_feature_rho_E_log_yield"] == pytest.approx(
+        3.5588538217086)
+    assert explicit["e3u_rho_E_log_yield"] == {"mae/E3u": 1.5}

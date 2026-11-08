@@ -4936,6 +4936,13 @@ def _attach_particle_energy(variant, label, geometry, e1, e2, cache, *, concept,
         for index, control in enumerate(particle_variant.get("controls") or []):
             if index < len(variant.get("controls") or []) and control.get("energy"):
                 variant["controls"][index]["energy"] = control["energy"]
+        # A2-1: the electron-energy gain-specific rule reads the MAIN hit-count
+        # control, so the particle control's energy block must be attached too.
+        particle_hit = particle_variant.get("hitcount_control") or {}
+        main_hit = variant.get("hitcount_control")
+        if isinstance(main_hit, dict) and particle_hit.get("energy"):
+            main_hit["energy"] = particle_hit["energy"]
+            main_hit["energy_domain"] = "particle"
     return variant
 
 
@@ -5008,7 +5015,7 @@ def _ratio_and_ci(left, right) -> dict:
     return out
 
 
-def x3_readings(payload, *, fisher=None) -> dict:
+def x3_readings(payload, *, fisher=None, raw_rho=None) -> dict:
     """X3-1 … X3-5 readings (§7.2)."""
     out = {"registered": False, "extension": EXTENSION,
            "check": "X3-b readings §7.2", "variants": {}, "X3-5": None}
@@ -5028,7 +5035,7 @@ def x3_readings(payload, *, fisher=None) -> dict:
         out["variants"][key] = _variant_reading(entry, entry.get("standard"),
                                                 entry.get("variant"), leace=entry)
     if fisher:
-        out["X3-5"] = _x3_five(fisher, out["variants"])
+        out["X3-5"] = _x3_five(fisher, out["variants"], raw_rho=raw_rho)
     return out
 
 
@@ -5325,12 +5332,17 @@ def _crlb_from_json(value) -> float:
     return float(value)
 
 
-def _x3_five(fisher, variants) -> dict:
+def _x3_five(fisher, variants, *, raw_rho=None) -> dict:
     """X3-5: empirical ρ_E(log-yield) next to √(CRLB_inv/CRLB_known) for ln Y.
 
     D3 (execution fix 7): ``x3_fisher.json`` cannot represent an infinite CRLB, so
     a JSON ``null`` on the efficient (``inv``) read is read as ∞ — the runbook's
     Appendix E convention — instead of failing on it.
+
+    A2-2: the raw-feature value comes ONLY from a non-E3u variant (the raw family)
+    or from an explicit ``raw_rho``; an E3u-only call adds
+    ``e3u_rho_E_log_yield`` and leaves the raw-feature slot ``None`` rather than
+    relabelling an E3u ratio.
     """
     rows = {}
     models = (fisher.get("models") or {})
@@ -5349,15 +5361,15 @@ def _x3_five(fisher, variants) -> dict:
         rows[name] = {"theory_ratio_lnY": ratio,
                       "efficient_lnY_crlb": (None if not inv or len(inv) <= 3
                                              else inv[3])}
-    empirical = None
+    empirical = None if raw_rho is None else float(raw_rho)
     e3u_ratios = {}
     for key, variant in (variants or {}).items():
         entry = (variant.get("X3-1") or {}).get("log_yield") or {}
         if entry.get("rho_E") is None:
             continue
-        if key.endswith("/E3u"):
+        if str(key).endswith("/E3u"):
             e3u_ratios[key] = entry["rho_E"]
-        if empirical is None:
+        elif empirical is None:
             empirical = entry["rho_E"]
     return {"empirical_rho_E_log_yield": empirical,
             "raw_feature_rho_E_log_yield": empirical,
@@ -7695,7 +7707,10 @@ def _e3u_variants_summary(leace_payload) -> dict:
             hit = entry.get("hitcount_control") or {}
             summary["hitcount_control"] = {
                 "rank": hit.get("rank"), "concept": hit.get("concept"),
-                "reason": hit.get("reason")}
+                "reason": hit.get("reason"),
+                "metrics": sorted(key for key in ("vertex", "log_yield", "energy")
+                                  if isinstance(hit.get(key), dict)),
+                "energy_domain": hit.get("energy_domain")}
         variants[name] = summary
     return variants
 
@@ -7975,7 +7990,16 @@ def addendum2_report(*, root=None, ext_root=EXT_ROOT, results_dir=None,
     variants.update(e3u_variants)
     summary["x3"] = variants
     x35 = dict(summary.get("x3_5") or {})
-    x35.update(e3u_readings.get("X3-5") or {})
+    new_x35 = e3u_readings.get("X3-5") or {}
+    if new_x35.get("e3u_rho_E_log_yield"):
+        x35["e3u_rho_E_log_yield"] = dict(new_x35["e3u_rho_E_log_yield"])
+    for key in ("raw_feature_rho_E_log_yield", "empirical_rho_E_log_yield"):
+        if x35.get(key) is None and new_x35.get(key) is not None:
+            x35[key] = new_x35[key]
+    if not x35.get("theory_rows") and new_x35.get("theory_rows"):
+        x35["theory_rows"] = new_x35["theory_rows"]
+    if not x35.get("rule") and new_x35.get("rule"):
+        x35["rule"] = new_x35["rule"]
     if x35:
         summary["x3_5"] = x35
     summary["superseded"] = list(summary.get("superseded") or []) + (
@@ -8056,6 +8080,12 @@ def addendum2_report(*, root=None, ext_root=EXT_ROOT, results_dir=None,
                                           "controls, CI vs control mean, and "
                                           "CI above the hit-count control",
                          "rows": e2_rows},
+                 "x3_5": {"raw_feature_rho_E_log_yield": (
+                     (summary.get("x3_5") or {}).get(
+                         "raw_feature_rho_E_log_yield")),
+                     "e3u_rho_E_log_yield": (
+                         (summary.get("x3_5") or {}).get(
+                             "e3u_rho_E_log_yield"))},
                  "ledger": ledger_fix or {"status": _ADDENDUM_NOT_RUN},
                  "superseded": e1_rows + e2_rows + e3_rows,
                  "not_run": not_run, "sources": {
