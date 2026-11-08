@@ -5909,6 +5909,10 @@ def addendum_x2e(*, config, gen, arms_config, geometry, data_root=DATA_ROOT_DEFA
                 "reason": "sha-verified X1 embeddings absent",
                 "missing": list(missing or []) + list(missing_train or [])})
             continue
+        # _cached_condition_rows returns {role: {name: rows}}; flatten the single
+        # requested role so the readout/repair rows are addressed by name.
+        rows_test = rows_test["test"]
+        rows_train = rows_train["train"]
         try:
             with ef.item_eval_context(row):
                 arm = ef.build_item_arm(row, config=config, gen=gen,

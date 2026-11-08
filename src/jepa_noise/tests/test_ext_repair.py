@@ -2886,3 +2886,28 @@ def test_addendum_cli_writes_then_quarantines_on_a_closure_violation(
                         lambda root=None: {"pass": True, "violations": []})
     assert repair_cli._finalise_addendum(payload_ok, path_ok, tmp_path, 0) == 0
     assert json.loads(path_ok.read_text()).get("quarantined") is None
+
+
+def test_addendum_cached_condition_rows_are_nested_per_role(tmp_path):
+    """The cache helper returns {role: {name: rows}}; x2e flattens one role.
+
+    Regression for the addendum-x2e run that raised ``KeyError: 'N'`` on the real
+    probe-test caches: the helper's result is nested per role, so the mode must
+    flatten ``rows["test"]``/``rows["train"]`` before addressing the names.
+    """
+    cache = rp.EmbeddingCache(tmp_path)
+    for role, name in (("test", "N"), ("test", "D"), ("train", "N")):
+        key = rp.embedding_cache_key(role, name)
+        cache.fetch(key, lambda: {"events": np.zeros((2, 4)),
+                                  "run_ids": np.array(["r0", "r1"], dtype=object)})
+    rows, missing = rp._cached_condition_rows(cache, ("test",),
+                                               ("N", "D", "SWmod"))
+    assert missing == ["test__SWmod"]
+    assert rows is None
+    rows, missing = rp._cached_condition_rows(cache, ("test",), ("N", "D"))
+    assert missing == []
+    assert rows["test"]["N"]["events"].shape == (2, 4)
+    assert rows["test"]["D"]["events"].shape == (2, 4)
+    source = Path(rp.__file__).read_text()
+    assert 'rows_test = rows_test["test"]' in source
+    assert 'rows_train = rows_train["train"]' in source
