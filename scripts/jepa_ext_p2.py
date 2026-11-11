@@ -180,7 +180,8 @@ def mode_dry_run(args) -> int:
         payload["samples"]["spearman"] = p2x.permutation_spearman(toy_x, toy_y, level="dry",
                                                                   permutations=200)
         payload["samples"]["p2e_class"] = p2x.p2e_class({
-            level: {"rho_s": 0.6, "p": 0.01} for level in ("K5", "K15", "K30")})
+            level: {"rho_s": 0.6, "p": 0.01, "n": 10}
+            for level in ("K5", "K15", "K30")})
         # plan presence: a report cannot run without the stage payloads
         payload["setup"]["preflight_plan_present"] = (
             Path(p2x.EXT_ROOT) / "x0" / "plan.json").is_file()

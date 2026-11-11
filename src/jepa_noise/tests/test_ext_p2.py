@@ -283,16 +283,20 @@ def test_p2e_statistic_and_class_rule():
     block = p2x.permutation_spearman(x, y, level="test", permutations=199)
     assert block["rho_s"] == pytest.approx(1.0)
     assert block["p"] <= 0.02
-    supported = p2x.p2e_class({level: {"rho_s": 0.7, "p": 0.01}
+    supported = p2x.p2e_class({level: {"rho_s": 0.7, "p": 0.01, "n": 10}
                                for level in ("K5", "K15", "K30")})
     assert supported["verdict"] == "supported"
-    refuted = p2x.p2e_class({level: {"rho_s": 0.05, "p": 0.4}
+    refuted = p2x.p2e_class({level: {"rho_s": 0.05, "p": 0.4, "n": 10}
                              for level in ("K5", "K15", "K30")})
     assert refuted["verdict"] == "refuted"
-    mixed = p2x.p2e_class({"K5": {"rho_s": 0.7, "p": 0.01},
-                           "K15": {"rho_s": 0.2, "p": 0.4},
-                           "K30": {"rho_s": 0.3, "p": 0.2}})
+    mixed = p2x.p2e_class({"K5": {"rho_s": 0.7, "p": 0.01, "n": 10},
+                           "K15": {"rho_s": 0.2, "p": 0.4, "n": 10},
+                           "K30": {"rho_s": 0.3, "p": 0.2, "n": 10}})
     assert mixed["verdict"] == "mixed"
+    tiny = p2x.p2e_class({"K5": {"rho_s": 0.7, "p": 0.01, "n": 2},
+                          "K15": {"rho_s": 0.2, "p": 0.4, "n": 10},
+                          "K30": {"rho_s": 0.3, "p": 0.2, "n": 10}})
+    assert tiny["verdict"] == "not evaluable"
 
 
 # --------------------------------------------------------------------- X3-P
@@ -546,12 +550,19 @@ def test_mirror_dataset_round_trip(tmp_path, monkeypatch):
                                              "event_id_start": 0,
                                              "n_events": len(EVENTS)}]),
         manifest={})
-    mirrored = p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
+    with pytest.raises(RuntimeError):
+        p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
+    mirrored = p2x.mirror_dataset(dataset, base=str(tmp_path / "mirror" / "p2_data_mirror"),
+                                  stage=True, log=lambda *a, **k: None)
     assert str(mirrored.directory).startswith(str(tmp_path / "mirror"))
     assert (mirrored.directory / "runs" / "run0" / "hits.npz").is_file()
     assert mirrored is not dataset
     again = p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
     assert again.directory == mirrored.directory
+    # corrupting a mirrored file must make the verify-only read fail closed
+    (mirrored.directory / "runs" / "run0" / "hits.npz").write_bytes(b"corrupt")
+    with pytest.raises((RuntimeError, ValueError)):
+        p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
 
 def test_later_stages_reuse_the_verified_inventory(tmp_path, monkeypatch):
     """GPU stages read the X0-a inventory rather than re-hashing checkpoints."""
@@ -565,3 +576,36 @@ def test_later_stages_reuse_the_verified_inventory(tmp_path, monkeypatch):
     p2x.write_json(tmp_path / "x0" / "inventory.json", {"hash_files": True,
                                                        "rows": {}})
     assert p2x.load_verified_inventory()["hash_files"] is True
+
+def test_p10_dead_pmt_transform_matches_the_generator():
+    """The §2.3 dead-PMT condition (10 % of the 1995 PMTs) is generator-exact."""
+    condition = p2x.build_drift_conditions()["P10"]
+    dead = condition.dead_pmts(RUN_ID, GEOM)
+    state = dataclasses.replace(_base_state(),
+                                gains=np.where(dead, 0.0, _base_state().gains))
+    base = _hits(BASE, _base_state())
+    factor = _hits(BASE, state)
+    outcome = _compare(base, factor, condition, BASE)
+    assert outcome["compared"] >= 1, "no event was comparable"
+    assert not outcome["failures"], outcome["failures"]
+
+
+def test_cell_reading_r1_path_evaluates():
+    """The §5 P2-c R1 branch runs on the T1.0w cell (cell_reading, not transform-only)."""
+    n_train = _toy_rows([f"tr{i}" for i in range(5)], seed=11)
+    n_test = _toy_rows([f"te{i}" for i in range(5)], seed=12)
+    c_train = dict(n_train, events=n_train["events"] + 0.3)
+    c_test = dict(n_test, events=n_test["events"] + 0.3)
+    condition = p2x.build_drift_conditions()["T1.0w"]
+    data = {"condition": condition, "n_train": n_train, "n_test": n_test,
+            "c_train": c_train, "c_test": c_test,
+            "r1_test": dict(c_test, events=c_test["events"] - 0.1),
+            "t10_test": dict(c_test, events=c_test["events"] - 0.2),
+            "hbar": float(np.mean(n_train["n_hit"])), "geometry": GEOM}
+    frozen_vertex = p2x.er.fit_vertex_probe(n_train)
+    frozen_yield = p2x.er.fit_log_yield_probe(n_train)
+    reading = p2x.cell_reading(data, frozen_vertex=frozen_vertex,
+                               frozen_yield=frozen_yield)
+    assert reading["r1"]["status"] == "evaluated", reading["r1"]
+    assert reading["r1"]["walk_share"] is not None
+    assert reading["r1"]["rho_R1"] is not None

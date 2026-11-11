@@ -366,7 +366,7 @@ def open_probe_sets(config, gen, geometry, data_root, *, setting=S005, log=print
 
 
 # ===================================================== pinned-data RAM mirror
-def mirror_base() -> Path:
+def mirror_base(base=None) -> Path:
     """Where the GPU modes stage a verified read-only mirror of the pinned sets.
 
     ``JEPA_P2_MIRROR`` wins (the operator points it at RAM, e.g. ``/dev/shm``);
@@ -374,8 +374,9 @@ def mirror_base() -> Path:
     bytes are copies only: the pinned data under ``/ceph`` is never written and
     every mirrored run's ``SHA256SUMS`` is verified against the pinned manifest.
     """
-    base = (os.environ.get("JEPA_P2_MIRROR") or os.environ.get("TMPDIR")
-            or "/work/dwong")
+    if base is None:
+        base = (os.environ.get("JEPA_P2_MIRROR") or os.environ.get("TMPDIR")
+                or "/work/dwong")
     return Path(base) / "p2_data_mirror"
 
 
@@ -397,11 +398,25 @@ def _mirror_ok(dataset, root) -> bool:
     return True
 
 
-def mirror_dataset(dataset, *, log=print):
-    """A verified read-only copy of one pinned probe set for fast GPU-job reads."""
-    root = mirror_base() / dataset.key
+def mirror_root(base=None) -> Path:
+    """The mirror root directory: ``base`` verbatim, else ``mirror_base()``."""
+    return Path(base) if base is not None else mirror_base()
+
+
+def mirror_dataset(dataset, *, base=None, stage=False, log=print):
+    """A verified read-only copy of one pinned probe set for fast GPU-job reads.
+
+    The copy is staged once by the CPU ``preflight`` mode (``stage=True``) into a
+    declared TMPDIR/``JEPA_P2_MIRROR`` tree; the GPU modes only ever *verify* it
+    (``stage=False``) and fail closed when it is absent, so no GPU job's booked
+    wall includes staging I/O.
+    """
+    root = mirror_root(base) / dataset.key
     if _mirror_ok(dataset, root):
         return dataclasses.replace(dataset, directory=root)
+    if not stage:
+        raise RuntimeError(f"the pinned-data mirror for {dataset.key} is missing or "
+                           f"unverified at {root}; run the CPU preflight staging step")
     root.mkdir(parents=True, exist_ok=True)
     for row in dataset.runs:
         source = dataset.directory / "runs" / row["run_dir"]
@@ -424,8 +439,9 @@ def mirror_dataset(dataset, *, log=print):
     return dataclasses.replace(dataset, directory=root)
 
 
-def mirror_probe_sets(probes, *, log=print) -> dict:
-    return {role: mirror_dataset(dataset, log=log) for role, dataset in probes.items()}
+def mirror_probe_sets(probes, *, base=None, stage=False, log=print) -> dict:
+    return {role: mirror_dataset(dataset, base=base, stage=stage, log=log)
+            for role, dataset in probes.items()}
 
 
 # =========================================================== geometry helpers
@@ -989,6 +1005,9 @@ def gpu_set_projection(*, models=None) -> dict:
     hours = total_sets * PHOTON_SET_WALL_S / 3600.0 * PROJECTION_FACTOR
     runbook_sets = len(models) * (len(CONDITIONS) * 2) + len(NEW_MODELS) * 7
     runbook_hours = runbook_sets * PHOTON_SET_WALL_S / 3600.0 * PROJECTION_FACTOR
+    mirror_verify_s = 5.0
+    mirror_sets = 4
+    hours += mirror_sets * mirror_verify_s / 3600.0 * PROJECTION_FACTOR
     optional_sets = len(OPTIONAL_MODELS) * (len(CONDITIONS) * 2 + 1)
     optional_hours = optional_sets * PHOTON_SET_WALL_S / 3600.0 * PROJECTION_FACTOR
     return {"n_models": len(models), "conditions_sets": int(conditions_sets),
@@ -998,6 +1017,8 @@ def gpu_set_projection(*, models=None) -> dict:
             "projected_l40s_hours": round(hours, 4), "cap_hours": float(GPU_CAP_H),
             "pass": bool(hours <= GPU_CAP_H),
             "runbook_224_set_projection_hours": round(runbook_hours, 4),
+            "mirror_verify_sets": int(mirror_sets),
+            "mirror_verify_wall_s": float(mirror_verify_s),
             "note": ("the runbook §7 figure covers the 7 condition sets and the two "
                      "new models' 14 Part A sets; X0-b (10 sets) and the R1 test set "
                      "(15 sets) are added here"),
@@ -1095,6 +1116,28 @@ def load_verified_inventory(root=None) -> dict:
     if payload is None or payload.get("hash_files") is not True:
         raise RuntimeError("the X0-a verified inventory is missing; run preflight first")
     return payload
+
+
+def require_mirror_base(root=None) -> str:
+    """The mirror base recorded by the X0-a preflight staging step (fails closed)."""
+    plan = require_preflight_plan(root)
+    info = plan.get("data_mirror") or {}
+    base = info.get("base")
+    if not base:
+        raise RuntimeError("the X0-a plan carries no data_mirror base; re-run preflight")
+    return str(base)
+
+
+def gpu_cap_check() -> dict:
+    """§7 post-job STOP: booked Stage-1 GPU hours must not exceed the 1.3 h cap."""
+    used = float(job_hours().get("gpu", 0.0))
+    out = {"booked_gpu_hours": used, "cap_hours": float(GPU_CAP_H),
+           "pass": bool(used <= GPU_CAP_H)}
+    if not out["pass"]:
+        print(f"[p2] S1 STOP: booked GPU hours {used:.4f} > {GPU_CAP_H} h cap",
+              file=sys.stderr)
+        raise SystemExit(2)
+    return out
 
 
 def require_preflight_plan(root=None) -> dict:
@@ -1235,6 +1278,24 @@ def preflight(root=None, *, config, gen, arms_config, geometry,
         payload["stops"].append(
             f"checkpoint inventory: {len(inventory['unavailable'])} unavailable row(s)")
     probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    mirror_started = time.time()
+    mirror_sets = {}
+    for setting, probes in (("s005", probes005), ("s030", probes030)):
+        for role, dataset in probes.items():
+            mirrored = mirror_dataset(dataset, stage=True, log=log)
+            mirror_sets[f"{setting}__{role}"] = {
+                "dataset_key": dataset.key,
+                "source": str(dataset.directory),
+                "directory": str(mirrored.directory),
+                "source_manifest_sha256": dataset.manifest_sha256()}
+    payload["data_mirror"] = {
+        "base": str(mirror_root()),
+        "stage_wall_seconds": round(time.time() - mirror_started, 3),
+        "sets": mirror_sets,
+        "rule": "staged once by this CPU preflight; the GPU stages verify and read "
+                "it only, so no GPU job wall includes staging I/O",
+        "verified": True}
     payload["identity"] = identity_check(probes005["test"], geometry, gen,
                                          limit=limit or IDENTITY_EVENTS, log=log)
     payload["determinism"] = condition_determinism(probes005["test"], geometry, gen,
@@ -1290,8 +1351,10 @@ def reproduce(root=None, *, config, gen, arms_config, geometry,
     assert_budget("gpu", len(X0B_MODELS) * 2 * PHOTON_SET_WALL_S / 3600.0
                   * PROJECTION_FACTOR)
     require_preflight_plan(root)
+    mirror = require_mirror_base(root)
     probes005 = mirror_probe_sets(
-        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log), log=log)
+        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log),
+        base=mirror, stage=False, log=log)
     payload = {"registered": False, "extension": EXTENSION,
                "check": "X0-b reproduction gate §4", "runbook": RUNBOOK_REL,
                "tolerance_m": er.X0B_TOLERANCE_M, "models": {},
@@ -1329,10 +1392,13 @@ def reproduce(root=None, *, config, gen, arms_config, geometry,
                  "expected_source": source, "n_test": metrics["n_events"]}
         payload["models"][label] = entry
         payload["pass"] = bool(payload["pass"] and entry["pass"])
+    payload["data_mirror"] = {"base": mirror, "verified": True,
+                              "staged_by": "preflight"}
     payload["closure"] = assert_closure("reproduce", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "x0" / "reproduction.json", payload)
     record_job("reproduce", "gpu", time.time() - started)
+    payload["gpu_cap"] = gpu_cap_check()
     return payload
 
 
@@ -1396,10 +1462,13 @@ def new_models(root=None, *, config, gen, arms_config, geometry,
     assert_budget("gpu", len(NEW_MODELS) * 7 * PHOTON_SET_WALL_S / 3600.0
                   * PROJECTION_FACTOR)
     require_preflight_plan(root)
+    mirror = require_mirror_base(root)
     probes005 = mirror_probe_sets(
-        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log), log=log)
+        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log),
+        base=mirror, stage=False, log=log)
     probes030 = mirror_probe_sets(
-        open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log), log=log)
+        open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log),
+        base=mirror, stage=False, log=log)
     delta = er.run_log_gain_vectors(probes030["train"], geometry)
     delta.update(er.run_log_gain_vectors(probes030["test"], geometry))
     payload = {"registered": False, "extension": EXTENSION,
@@ -1445,10 +1514,13 @@ def new_models(root=None, *, config, gen, arms_config, geometry,
                              for name in rows[role]} for role in ("train", "test")}}
     payload["pass"] = all(entry.get("status") == "evaluated"
                           for entry in payload["models"].values())
+    payload["data_mirror"] = {"base": mirror, "verified": True,
+                              "staged_by": "preflight"}
     payload["closure"] = assert_closure("new-models", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "new_models.json", payload)
     record_job("new-models", "gpu", time.time() - started)
+    payload["gpu_cap"] = gpu_cap_check()
     return payload
 
 
@@ -1488,8 +1560,10 @@ def conditions(root=None, *, config, gen, arms_config, geometry,
     assert_budget("gpu", len(CORE_MODELS) * (len(CONDITIONS) * 2 + 1)
                   * PHOTON_SET_WALL_S / 3600.0 * PROJECTION_FACTOR)
     require_stage("x0/plan.json", message="conditions needs the X0-a plan")
+    mirror = require_mirror_base(root)
     probes005 = mirror_probe_sets(
-        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log), log=log)
+        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log),
+        base=mirror, stage=False, log=log)
     drift = build_drift_conditions()
     payload = {"registered": False, "extension": EXTENSION, "check": "§2.3 conditions",
                "runbook": RUNBOOK_REL, "conditions": list(drift), "models": {},
@@ -1527,10 +1601,13 @@ def conditions(root=None, *, config, gen, arms_config, geometry,
     payload["complete"] = all(entry.get("status") == "evaluated"
                               for entry in payload["models"].values())
     payload["pass"] = bool(payload["complete"])
+    payload["data_mirror"] = {"base": mirror, "verified": True,
+                              "staged_by": "preflight"}
     payload["closure"] = assert_closure("conditions", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "conditions.json", payload)
     record_job("conditions", "gpu", time.time() - started)
+    payload["gpu_cap"] = gpu_cap_check()
     return payload
 
 
@@ -1936,9 +2013,17 @@ def permutation_spearman(x, y, *, level, permutations=P2E_PERMUTATIONS) -> dict:
 
 
 def p2e_class(levels: dict) -> dict:
-    """§5 P2-e fixed class rule (supported / refuted / mixed)."""
+    """§5 P2-e fixed class rule (supported / refuted / mixed / not evaluable)."""
+    ns = [levels[level].get("n") for level in ("K5", "K15", "K30")]
     rho = [levels[level].get("rho_s") for level in ("K5", "K15", "K30")]
     p = [levels[level].get("p") for level in ("K5", "K15", "K30")]
+    if any(n is None or int(n) < 3 for n in ns):
+        return {"verdict": "not evaluable",
+                "reason": "a K level has fewer than 3 eligible models",
+                "n": dict(zip(("K5", "K15", "K30"), ns)),
+                "rho_s": dict(zip(("K5", "K15", "K30"), rho)),
+                "p": dict(zip(("K5", "K15", "K30"), p)),
+                "rule": "not evaluable when a K level has fewer than 3 eligible models"}
     supported = sum(1 for r, q in zip(rho, p)
                     if r is not None and q is not None and r >= P2E_RHO_SUPPORT
                     and q <= P2E_P_SUPPORT)
@@ -2784,6 +2869,17 @@ def report(root=None, *, log=print) -> dict:
                if payload is None]
     if missing:
         raise RuntimeError(f"report: stage payloads missing: {missing}")
+    stops = []
+    if not p2_payload.get("pass", True):
+        stops.append("P2 readings are incomplete: " + str(
+            p2_payload.get("missing_gain_r2_eq") or p2_payload.get(
+                "missing_conditions")))
+    if not reproduction.get("pass", True):
+        stops.append("X0-b reproduction did not pass")
+    if float(job_hours()["gpu"]) > GPU_CAP_H:
+        stops.append(f"booked GPU hours {job_hours()['gpu']:.4f} > {GPU_CAP_H} h cap")
+    if stops:
+        raise RuntimeError("report STOP: " + "; ".join(stops))
     for name, payload in (("plan.json", plan), ("reproduction.json", reproduction),
                           ("inventory.json", inventory), ("p2.json", p2_payload),
                           ("x3p.json", x3p_payload),
