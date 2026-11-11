@@ -3226,15 +3226,37 @@ def test_e3u_reading_replaces_the_x3_1_gain_specific_flag():
 
 
 # ---------------------------------------------------------------------- E3
+def _expected_recent_sum(ledger, base_key="mae_jepa_followup_2026-11-03"):
+    """Derive (base, {entry: booked hours}) from the committed ledger (never pinned)."""
+    recent = ((ledger.get("v4_caps") or {}).get("recent") or {})
+    base = float(recent[base_key]["l40s_charged_after"])
+    expected = {}
+    started = False
+    for name, entry in recent.items():
+        if name == base_key:
+            started = True
+            continue
+        if not started or not isinstance(entry, dict):
+            continue
+        expected[name] = (float((entry.get("part_a") or {}).get("gpu_hours") or 0.0)
+                          + float((entry.get("part_b") or {}).get("gpu_hours") or 0.0)
+                          + float(entry.get("gpu_hours") or 0.0))
+    return base, expected
+
+
 def test_booked_gpu_hours_is_the_exact_ledger_sum():
+    """Addendum A5: the expected total is read from the committed ledger."""
     ledger = rp.read_json(ROOT / "docs/jepa/RESOURCE_LEDGER.json")
+    base, expected = _expected_recent_sum(ledger)
     booked = rp.booked_gpu_hours(ledger)
     assert booked["available"] is True
     assert booked["base_key"] == "mae_jepa_followup_2026-11-03"
-    assert booked["base_hours"] == pytest.approx(129.7461)
-    assert booked["sum_hours"] == pytest.approx(133.6492, abs=1e-6)
-    assert booked["entries"]["repair_shortcut_2026-11-07"] == pytest.approx(3.7625)
-    assert booked["entries"]["repair_addendum_2026-11-08"] == pytest.approx(0.1406)
+    assert booked["base_hours"] == pytest.approx(base)
+    assert booked["sum_hours"] == pytest.approx(base + sum(expected.values()),
+                                                abs=1e-9)
+    assert set(booked["entries"]) == set(expected)
+    for name, hours in expected.items():
+        assert booked["entries"][name] == pytest.approx(hours, abs=1e-9)
 
 
 def test_inconsistent_ledger_fails_every_s1_check(tmp_path):

@@ -1053,29 +1053,49 @@ def _ledger_copy():
 
 
 def _corrected_ledger():
-    """The committed ledger with ``charged_gpu_hours`` set to the booked sum.
-
-    The committed ledger is the E3 *defect* state (charged still reads 129.7461)
-    until Part A's E3 fix writes the sum, so the S1 tests pin both states
-    explicitly and never depend on the on-disk correction.
-    """
+    """The committed ledger with ``charged_gpu_hours`` set to its booked sum."""
     ledger = _ledger_copy()
     booked = xs.booked_gpu_hours(ledger)["booked_gpu_hours"]
     ledger["v4_caps"]["E2_lucid_l40s_deepthought2"]["charged_gpu_hours"] = booked
     return ledger, booked
 
 
+def _committed_booked_ledger():
+    """(base, {later entry: booked hours}, sum) derived from the committed ledger.
+
+    Addendum A5: the expected total is read from the ledger (booked sum), never
+    pinned to a historical number, so later ledger lines do not break the S1 tests.
+    """
+    ledger = _ledger_copy()
+    recent = ledger["v4_caps"]["recent"]
+    base_entry = "mae_jepa_followup_2026-11-03"
+    base = float(recent[base_entry]["l40s_charged_after"])
+    expected = {}
+    started = False
+    for name, entry in recent.items():
+        if name == base_entry:
+            started = True
+            continue
+        if not started or not isinstance(entry, dict):
+            continue
+        expected[name] = (float((entry.get("part_a") or {}).get("gpu_hours") or 0.0)
+                          + float((entry.get("part_b") or {}).get("gpu_hours") or 0.0)
+                          + float(entry.get("gpu_hours") or 0.0))
+    return base, expected, base + sum(expected.values())
+
+
 def test_addendum_s1_uses_only_the_addendum2_cap_on_a_corrected_ledger():
-    """Addendum 2 §4: charged + 0.08 <= 160, keyed on the booked ledger sum."""
+    """Addendum 2 §4 / A5: charged + 0.08 <= 160, keyed on the ledger's booked sum."""
     ledger, booked = _corrected_ledger()
+    base, _expected, expected_sum = _committed_booked_ledger()
     result = xs.addendum_s1_check(ledger=ledger)
     assert result["pass"] is True and result["stopped"] is False
     assert result["id"] == "S1 (addendum 2)"
     assert result["addendum2_cap_hours"] == 0.08
     assert result["ledger_charged_gpu_hours"] == pytest.approx(booked)
-    assert result["booked_gpu_hours"] == pytest.approx(133.6492)
-    assert result["booked_base_hours"] == pytest.approx(129.7461)
-    assert result["sum_hours"] == pytest.approx(133.6492 + 0.08)
+    assert result["booked_gpu_hours"] == pytest.approx(expected_sum)
+    assert result["booked_base_hours"] == pytest.approx(base)
+    assert result["sum_hours"] == pytest.approx(expected_sum + 0.08)
     assert result["ledger_consistent"] is True
     assert abs(result["charged_minus_booked_hours"]) <= 1e-3
     assert "closed Part A and Part B caps are not consulted" in result["rule"]
@@ -1083,32 +1103,33 @@ def test_addendum_s1_uses_only_the_addendum2_cap_on_a_corrected_ledger():
 
 
 def test_booked_gpu_hours_recomputes_the_v4_caps_recent_sum():
-    """E3: base 129.7461 + later part_a/part_b/gpu_hours = 133.6492."""
+    """E3 / A5: the base plus every later entry, all derived from the ledger."""
     ledger = json.loads((ROOT / "docs/jepa/RESOURCE_LEDGER.json").read_text())
+    base, expected, expected_sum = _committed_booked_ledger()
     booked = xs.booked_gpu_hours(ledger)
     assert booked["available"] is True
     assert booked["base_entry"] == "mae_jepa_followup_2026-11-03"
-    assert booked["base_hours"] == pytest.approx(129.7461)
-    assert booked["booked_gpu_hours"] == pytest.approx(133.6492)
-    names = [row["name"] for row in booked["entries"]]
-    assert names == ["repair_shortcut_2026-11-07", "repair_addendum_2026-11-08"]
-    assert booked["entries"][0]["gpu_hours"] == pytest.approx(2.1974 + 1.5651)
-    assert booked["entries"][1]["gpu_hours"] == pytest.approx(0.1406)
+    assert booked["base_hours"] == pytest.approx(base)
+    assert booked["booked_gpu_hours"] == pytest.approx(expected_sum)
+    assert [row["name"] for row in booked["entries"]] == list(expected)
+    for row in booked["entries"]:
+        assert row["gpu_hours"] == pytest.approx(expected[row["name"]])
 
 
 def test_addendum_s1_fails_closed_on_an_inconsistent_ledger(tmp_path):
     """Addendum 2 §4 / E3: |charged - booked| > 1e-3 h must fail closed."""
     ledger = _ledger_copy()
     booked = xs.booked_gpu_hours(ledger)["booked_gpu_hours"]
-    assert booked == pytest.approx(133.6492)
-    # the E3 defect value 129.7461 differs from the booked sum by > 1e-3 h
+    base, _expected, expected_sum = _committed_booked_ledger()
+    assert booked == pytest.approx(expected_sum)
+    # the historical base charged value differs from the booked sum by > 1e-3 h
     stale = json.loads(json.dumps(ledger))
-    stale["v4_caps"]["E2_lucid_l40s_deepthought2"]["charged_gpu_hours"] = 129.7461
+    stale["v4_caps"]["E2_lucid_l40s_deepthought2"]["charged_gpu_hours"] = base
     result = xs.addendum_s1_check(ledger=stale)
     assert result["pass"] is False and result["stopped"] is True
     assert result["ledger_consistent"] is False
     assert abs(result["charged_minus_booked_hours"]) == pytest.approx(
-        booked - 129.7461, abs=1e-3)
+        booked - base, abs=1e-3)
     assert "fail closed" in result["reason"]
     assert "booked v4_caps.recent sum" in result["reason"]
     # a small drift inside the 1e-3 h tolerance is accepted

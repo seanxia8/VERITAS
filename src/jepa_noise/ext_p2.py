@@ -1996,9 +1996,9 @@ def _restrict_raw(raw, condition_name, lookup_train, lookup_test) -> tuple:
     train = raw.get((condition_name, "train"))
     test = raw.get((condition_name, "test"))
     if train is not None:
-        train = _subset_rows(train, _mask_rows(train, lookup_train))
+        train = _subset_rows(train, _mask_rows(train, _trig_lookup(lookup_train)))
     if test is not None:
-        test = _subset_rows(test, _mask_rows(test, lookup_test))
+        test = _subset_rows(test, _mask_rows(test, _trig_lookup(lookup_test)))
     return train, test
 
 
@@ -2121,18 +2121,18 @@ def _cell_for_model(label, cache, n_cache, drift, infos, raw, hbar, geometry, *,
         if exact:
             train_lookup = infos[(name, "train")]
             test_lookup = infos[(name, "test")]
-            mask_train = _mask_rows(c_train, train_lookup)
-            mask_test = _mask_rows(c_test, test_lookup)
+            mask_train = _mask_rows(c_train, _trig_lookup(train_lookup))
+            mask_test = _mask_rows(c_test, _trig_lookup(test_lookup))
             data["c_train"] = _subset_rows(c_train, mask_train)
             data["c_test"] = _subset_rows(c_test, mask_test)
             if data.get("r1_test") is not None:
                 data["r1_test"] = _subset_rows(
                     data["r1_test"], _mask_rows(data["r1_test"],
-                                                infos[(R1_NAME, "test")]))
+                                                _trig_lookup(infos[(R1_NAME, "test")])))
             if data.get("t10_test") is not None:
                 data["t10_test"] = _subset_rows(
                     data["t10_test"], _mask_rows(data["t10_test"],
-                                                 infos[("T1.0", "test")]))
+                                                 _trig_lookup(infos[("T1.0", "test")])))
         raw_train, raw_test = _restrict_raw(raw, name,
                                             infos[(name, "train")],
                                             infos[(name, "test")]) if exact else (
@@ -2389,6 +2389,8 @@ def _x3p_blocks(rows, *, kinds=("vertex", "log_yield")) -> dict:
     """Build a variant block {metric: {"N": block, "D": block}} from its rows."""
     block = {}
     for kind in kinds:
+        if kind == "energy":
+            continue        # F1: energy uses the particle rows below
         block[kind] = {"N": _metric_block(rows.get("train_N"), rows.get("test_N"), kind),
                        "D": _metric_block(rows.get("train_N"), rows.get("test_D"), kind)}
     if "energy" in kinds:

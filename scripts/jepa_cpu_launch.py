@@ -55,16 +55,33 @@ def parse_args(argv=None):
     return args
 
 
+#: Explicit allow-list: the CPU extensions this launcher may run.
+CPU_EXTENSION_MODULES = {
+    'scripts.jepa_ext_predictability_': 'ext_predictability_20261029',
+    'scripts.jepa_ext_p2': 'ext_p2_20261109',
+    'scripts.jepa_ext_p2a': 'ext_p2_20261109',
+}
+
+
+def extension_root_for_module(module):
+    """The extension root of an allowed CPU job module (explicit allow-list)."""
+    text = str(module)
+    for prefix, ext_name in CPU_EXTENSION_MODULES.items():
+        if text == prefix or text.startswith(prefix + '.') or text.startswith(prefix):
+            return ext_name
+    raise ValueError('CPU launcher restricted to the allow-listed extensions: '
+                     + ', '.join(sorted(CPU_EXTENSION_MODULES)))
+
+
 def main():
     args = parse_args()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', args.run_id):
         raise ValueError('invalid run ID')
     if not 0 < args.timeout_seconds <= 43200:
         raise ValueError('timeout must fit within the 12-hour cap')
-    if not args.module.startswith('scripts.jepa_ext_predictability_'):
-        raise ValueError('CPU launcher restricted to predictability extension modules')
+    ext_name = extension_root_for_module(args.module)
     root = Path('/ceph/dwong/jepa')
-    ext = root / 'returns/ext_predictability_20261029'
+    ext = root / 'returns' / ext_name
     if not ext.is_dir():
         raise FileNotFoundError('extension root must already exist')
     jobs = root / 'jobs'
