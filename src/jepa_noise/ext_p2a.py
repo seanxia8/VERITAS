@@ -309,6 +309,11 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
     dead = _dead_by_run(c_train, c_test, condition, geometry)
     u_train = fair_design(c_train, condition, dead, hbar, geometry)
     u_test = fair_design(c_test, condition, dead, hbar, geometry)
+    # R2's repair is P2's own design: for T/R1 it keeps the constant column
+    u2_train = np.asarray(p2x.r2_design(c_train, condition, dead, hbar, geometry),
+                          float)
+    u2_test = np.asarray(p2x.r2_design(c_test, condition, dead, hbar, geometry),
+                         float)
     h_train = hit_design(c_train, hbar)
     h_test = hit_design(c_test, hbar)
     # frozen P_N errors on the paired events
@@ -324,21 +329,20 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
     v_r3h, _ = probe_errors(augmented(c_train, h_train),
                             augmented(c_test, h_test))
     # R2 refit (for the fair ceiling check) — same repair as P2's R2
-    index_nt, index_ct, _ = p2x._align_subset(n_train, c_train)
+    index_nt, index_ct, runs_t = p2x._align_subset(n_train, c_train)
     dz_train = (np.asarray(c_train["events"], float)
                 - np.asarray(n_train["events"], float)[index_nt])
     index_ne, index_ce, runs_e = p2x._align_subset(n_test, c_test)
     dz_test = (np.asarray(c_test["events"], float)
                - np.asarray(n_test["events"], float)[index_ne])
     fit = er.equivariance_fit(
-        u_train, dz_train, u_test, dz_test,
-        run_ids_train=np.asarray(c_train["run_ids"]),
-        run_ids_test=np.asarray(c_test["run_ids"]),
+        u2_train, dz_train, u2_test, dz_test,
+        run_ids_train=runs_t, run_ids_test=runs_e,
         kind=("occupancy" if condition.kind == "dead" else "global"))
     a_raw = er.raw_map(fit)
     repaired = dict(c_test)
     repaired["events"] = (np.asarray(c_test["events"], float)
-                          - u_test @ np.asarray(a_raw, float).T)
+                          - u2_test @ np.asarray(a_raw, float).T)
     err_r2 = frozen_errors(n_train, repaired, frozen_vertex)[index_ce]
     v_r2 = float(np.mean(err_r2))
     ceiling_difference = ceiling_gap_ci(err_r2, err_r3u, runs_e)
