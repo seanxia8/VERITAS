@@ -132,6 +132,7 @@ def test_eta_rule_and_exclusion():
     ceilings["init9000"]["K5"]["rho_R3u"] = 0.01
     out2 = p2a.eta_readings(payload, ceilings, gain)
     assert out2["levels"]["K5"]["n"] == 4
+    assert set((out2.get("sensitivity_no_fix") or {})) == {"K5", "K15", "K30"}
     assert any(row["model"] == "init9000"
                for row in out2["levels"]["K5"]["excluded"])
 
@@ -235,6 +236,81 @@ def test_fold_f2_exact_mask_uses_the_trig_lookup(monkeypatch):
     assert out["T1.0w"]["condition"] == "T1.0w"
 
 
+
+
+# ----------------------------------------------- review round-1 regression tests
+def test_ceiling_gap_ci_sign_and_violation():
+    """B1: the ceiling gap is v_R2 - v_R3u and a 5 mm violation must be detected."""
+    runs = np.asarray(["r0"] * 30 + ["r1"] * 30, dtype=object)
+    better = np.full(60, 0.080)          # R2 better than R3u by 10 mm
+    worse = np.full(60, 0.090)
+    gap = p2a.ceiling_gap_ci(better, worse, runs)
+    assert gap["difference_m"] == pytest.approx(-0.010)
+    assert gap["ci95"][1] < 0.0 and gap["excludes_zero"] is True
+    assert gap["difference_m"] < -p2a.CEILING_TOLERANCE_M
+    reverse = p2a.ceiling_gap_ci(worse, better, runs)
+    assert reverse["difference_m"] == pytest.approx(+0.010)
+
+
+def _ceiling_cell_fixture(v_r2, v_r3u, committed, violation):
+    return {"v_R2_recomputed_m": v_r2, "v_R2_committed_m": committed,
+            "v_R2_minus_v_R3u_m": float(v_r2 - v_r3u),
+            "ci_m": [v_r2 - v_r3u, v_r2 - v_r3u],
+            "violation": violation}
+
+
+def test_ceiling_summary_propagates_violation_and_mismatch():
+    """B2/M7: S4 violations and >1e-9 mismatches reach the summary, full and exact."""
+    def model(v_r2, v_r3u, committed, violation, exact_offset=0.0001):
+        return {"cells": {
+            "K5": {"ceiling": _ceiling_cell_fixture(v_r2, v_r3u, committed,
+                                                    violation),
+                   "exact_subset_reading": {"ceiling": _ceiling_cell_fixture(
+                       v_r2 + exact_offset, v_r3u, v_r2 + exact_offset, False)}}}}
+    summary = p2a._ceiling_summary({"m": model(0.080, 0.090, 0.080, True,
+                                                exact_offset=0.0001)})
+    assert summary["n_cells_checked"] == 2            # full + exact
+    assert summary["n_violation_gt_5mm_ci"] == 1
+    clean = p2a._ceiling_summary({"m": model(0.090, 0.085, 0.090, False)})
+    assert clean["recomputed_mismatch"] == []
+    mismatch = p2a._ceiling_summary({"m": model(0.080, 0.090, 0.0799, True,
+                                                 exact_offset=0.0001)})
+    assert mismatch["recomputed_mismatch"]             # the full cell differs
+    assert mismatch["max_abs_recomputed_minus_committed_m"] > 1e-9
+    assert clean["n_violation_gt_5mm_ci"] == 0
+    assert clean["recomputed_mismatch"] == []
+
+
+def test_cell_equivalence_is_not_vacuous():
+    """M8: an empty or unavailable fresh side must not pass S3."""
+    assert p2a._cell_equivalence({}, {}, "x")["mismatches"]
+    assert p2a._cell_equivalence({"status": "no events"},
+                                 {"status": "no events"}, "x")["mismatches"] == []
+    assert p2a._cell_equivalence({"status": "unavailable"},
+                                 {"status": "evaluated"}, "x")["mismatches"]
+    good = p2a._cell_equivalence({"a": 1.0}, {"a": 1.0}, "x")
+    assert good["n_compared"] == 1 and good["mismatches"] == []
+
+
+def test_shift_readings_is_gated(tmp_path):
+    """B3: A6 must refuse to run without the acceptance record."""
+    with pytest.raises(SystemExit):
+        p2a.shift_readings(tmp_path, config=None, gen=None, geometry=None)
+
+
+def test_p2f_u_note_carries_the_numbers():
+    """M14: the A2 note must name the rung, the target share and R_c^u."""
+    cell = {"delta_c_m": 0.05, "v_c_m": 0.20,
+            "refit": {"v_R3_m": 0.18}, "latent": {"rho_R2": 0.5},
+            "r1": {"rho_R1": None}}
+    block = p2a.p2f_u(cell, {"rho_R3u": 0.9, "information_destroying_u": True,
+                             "R_c_u_m": 0.045})
+    assert "cheapest rung R3u" in block["note"]
+    assert "R_c^u = 0.045000" in block["note"]
+    plain = p2a.p2f_u(cell, {"rho_R3u": 0.2, "information_destroying_u": False,
+                             "R_c_u_m": 0.01})
+    assert "refit (R4/R5 territory)" not in plain["note"]
+
 # --------------------------------------------------------------- A5 CPU launcher
 def test_cpu_launcher_allow_list():
     from scripts import jepa_cpu_launch as launcher
@@ -245,6 +321,12 @@ def test_cpu_launcher_allow_list():
         "scripts.jepa_ext_p2a") == "ext_p2_20261109"
     with pytest.raises(ValueError):
         launcher.extension_root_for_module("scripts.jepa_ext_repair")
+    with pytest.raises(ValueError):
+        launcher.extension_root_for_module("scripts.jepa_ext_p2_evil")
+    with pytest.raises(ValueError):
+        launcher.extension_root_for_module("scripts.jepa_ext_predictability_evil")
+    assert launcher.extension_root_for_module(
+        "scripts.jepa_ext_predictability_budget") == "ext_predictability_20261029"
 
 
 # ------------------------------------------------------------------------ gate

@@ -44,13 +44,24 @@ def read_json(path, default=None):
     return p2a.read_json(path, default)
 
 
-def _out_json(raw, default_name, *, default_dir=None) -> Path:
+DEFAULT_NAMES = {
+    "dry-run": "dry_run.json",
+    "equivalence": "equivalence.json",
+    "p2a": "p2a.json",
+    "shift": "x3p_shift.json",
+    "report": "report.json",
+}
+
+
+def _out_json(raw, mode, *, default_dir=None) -> Path:
+    """Write ``<mode>`` to the §6 file name when ``--out`` is a directory (M11)."""
+    name = DEFAULT_NAMES.get(mode, f"{mode}.json")
     if raw is None:
         if default_dir is None:
             raise SystemExit("this mode needs --out")
-        return Path(default_dir) / default_name
+        return Path(default_dir) / name
     path = Path(raw)
-    return path if path.suffix == ".json" else path / default_name
+    return path if path.suffix == ".json" else path / name
 
 
 def load_setup(args):
@@ -70,7 +81,7 @@ def repo_root(args) -> Path:
 def _finish(payload, args, mode) -> int:
     out = getattr(args, "out", None)
     if out:
-        write_json(_out_json(out, f"{mode}.json"), payload)
+        write_json(_out_json(out, mode), payload)
     root = repo_root(args)
     closure = p2a.import_closure(root)
     if not closure["pass"]:
@@ -94,7 +105,7 @@ def _guard(fn, args, *, mode):
         out = getattr(args, "out", None)
         if out:
             try:
-                write_json(_out_json(out, "error.json"),
+                write_json(_out_json(out, mode).with_name("error.json"),
                            {"registered": False, "extension": p2a.EXTENSION,
                             "mode": mode,
                             "error": f"{type(problem).__name__}: {problem}",
@@ -114,7 +125,7 @@ def mode_dry_run(args) -> int:
                "code_sha": lr.git_head(root), "git_status": lr.git_status(root),
                "gate": gate, "setup": {}, "samples": {}, "errors": [],
                "closure": None, "wall_seconds": None}
-    out = _out_json(args.out, "dry_run.json")
+    out = _out_json(args.out, "dry-run")
     try:
         config, gen, arms, geometry = load_setup(args)
         payload["setup"]["objects"] = {

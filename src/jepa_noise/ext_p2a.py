@@ -228,7 +228,7 @@ def _dead_by_run(rows_n, rows_c, condition, geometry) -> dict | None:
 def fair_design(rows, condition, dead_by_run, hbar, geometry) -> np.ndarray:
     """``u_c``: ``dead_m h_e/hbar`` (K/P) or ``h_e/hbar`` with the constant dropped (T)."""
     design = p2x.r2_design(rows, condition, dead_by_run, hbar, geometry)
-    if design.ndim == 2 and design.shape[1] == 2 and np.allclose(design[:, 1], 1.0):
+    if condition.kind != "dead" and design.ndim == 2 and design.shape[1] > 1:
         # the T/R1 design is [h_e/hbar, 1]; drop the constant column (A1).
         # K/P designs are dead_m h_e/hbar (105 columns) and have no constant.
         design = design[:, :1]
@@ -255,6 +255,36 @@ def probe_errors(train_rows, test_rows):
 def frozen_errors(train_rows, test_rows, fitted) -> np.ndarray:
     return np.asarray(er.vertex_metrics(train_rows, test_rows,
                                         fitted=fitted)["errors"], float)
+
+
+def ceiling_gap_ci(err_r2, err_r3u, run_ids) -> dict:
+    """CI of ``v_R2 - v_R3u`` (the sign S4 is defined on)."""
+    reading = p2x._difference_reading(np.asarray(err_r3u, float),
+                                     np.asarray(err_r2, float), run_ids)
+    return {"difference_m": float(reading["difference"]),
+            "ci95": [float(reading["ci95"][0]), float(reading["ci95"][1])],
+            "excludes_zero": bool(reading["excludes_zero"])}
+
+
+def _aligned_rows(source, target, what) -> dict | None:
+    """Key-align ``source`` rows to ``target`` (run_id, event_id) order (M6)."""
+    if source is None:
+        return None
+    target_keys = list(zip(np.asarray(target["run_ids"]).astype(str).tolist(),
+                           np.asarray(target["event_ids"], np.int64).tolist()))
+    lookup = {key: position for position, key in enumerate(target_keys)}
+    order = []
+    for run, event in zip(np.asarray(source["run_ids"]).astype(str).tolist(),
+                          np.asarray(source["event_ids"], np.int64).tolist()):
+        position = lookup.get((run, int(event)))
+        if position is None:
+            raise ValueError(f"A1: {what} rows do not align with the embedding rows")
+        order.append(position)
+    out = {}
+    for key, value in source.items():
+        array = np.asarray(value)
+        out[key] = array[order] if array.ndim >= 1 and array.shape[0] == len(order) else array
+    return out
 
 
 def _raw_probe_errors(train_rows, test_rows):
@@ -311,14 +341,16 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
                           - u_test @ np.asarray(a_raw, float).T)
     err_r2 = frozen_errors(n_train, repaired, frozen_vertex)[index_ce]
     v_r2 = float(np.mean(err_r2))
-    ceiling_difference = _diff(err_r2, err_r3u, runs_e)
+    ceiling_difference = ceiling_gap_ci(err_r2, err_r3u, runs_e)
     ceiling_gap = float(v_r2 - v_r3u)
     # raw-std refit on [raw_c, u_c], the encoder-independent bound
     raw = {"status": "not available"}
     if data.get("raw_c_train") is not None and data.get("raw_c_test") is not None \
             and data.get("raw_n_train") is not None and data.get("raw_n_test") is not None:
-        raw_train = augmented(data["raw_c_train"], u_train)
-        raw_test = augmented(data["raw_c_test"], u_test)
+        raw_train = augmented(_aligned_rows(data["raw_c_train"], c_train, "raw_c_train"),
+                              u_train)
+        raw_test = augmented(_aligned_rows(data["raw_c_test"], c_test, "raw_c_test"),
+                             u_test)
         raw_n_fitted = p2x._raw_vertex_probe(data["raw_n_train"])
         raw_n_errors = p2x._raw_vertex_errors(data["raw_n_train"],
                                               data["raw_n_test"], raw_n_fitted)
@@ -330,7 +362,8 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
         v_raw_n = float(np.mean(np.asarray(raw_n_errors, float)[idx_raw_n]))
         v_raw_c = float(np.mean(raw_c_aligned))
         v_raw_r3u, raw_r3u_errors = _raw_probe_errors(raw_train, raw_test)
-        raw_difference = _diff(raw_c_aligned, raw_r3u_errors, runs_raw)
+        raw_difference = p2x._difference_reading(
+            np.asarray(raw_n_errors, float)[idx_raw_n], raw_r3u_errors, runs_raw)
         raw = {"status": "evaluated", "v_N_m": v_raw_n, "v_c_m": v_raw_c,
                "v_R3u_m": float(v_raw_r3u),
                "R_c_u_m": float(v_raw_r3u - v_raw_n),
@@ -338,6 +371,23 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
                "delta_c_m": float(v_raw_c - v_raw_n),
                "rho_R3u": (None if abs(v_raw_c - v_raw_n) <= 0 else
                            float((v_raw_c - v_raw_r3u) / (v_raw_c - v_raw_n)))}
+    log_yield = {"status": "not available"}
+    if all(row is not None and "log_yield" in row
+           for row in (c_train, c_test, n_train, n_test)):
+        augmented_train_y = augmented(c_train, u_train)
+        augmented_test_y = augmented(c_test, u_test)
+        v_r3u_y = float(er.log_yield_metrics(augmented_train_y,
+                                             augmented_test_y)["resolution"])
+        frozen_y = er.fit_log_yield_probe(n_train)
+        v_n_y = float(er.log_yield_metrics(n_train, n_test,
+                                           fitted=frozen_y)["resolution"])
+        v_c_y = float(er.log_yield_metrics(n_train, c_test,
+                                           fitted=frozen_y)["resolution"])
+        delta_y = v_c_y - v_n_y
+        log_yield = {"status": "evaluated", "v_N": v_n_y, "v_c": v_c_y,
+                     "v_R3u": v_r3u_y, "R_c_u": float(v_r3u_y - v_n_y),
+                     "rho_R3u": (None if abs(delta_y) <= 0 else float(
+                         (v_c_y - v_r3u_y) / delta_y))}
     out = {
         "condition": condition.name,
         "n_events": int(n_errors.size),
@@ -366,6 +416,7 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
                                       (p2_cell.get("latent") or {}).get("v_R2_m")
                                       or np.nan)) <= 1e-9))},
         "raw": raw,
+        "log_yield": log_yield,
     }
     return out
 
@@ -488,16 +539,23 @@ def p2f_u(p2_cell, ceiling) -> dict:
     caps = [value for name, value in rungs if name in ("R3", "R3u")
             and value is not None]
     target = (None if not caps else P2F_SHARE * max(caps))
+    values = dict(rungs)
     cheapest = None
     for rung, value in rungs:
         if target is not None and value >= target:
             cheapest = rung
             break
     beyond = bool(ceiling.get("information_destroying_u"))
+    note = None
+    if cheapest is not None and target is not None:
+        note = (f"cheapest rung {cheapest} reaches {values[cheapest]:.3f} of the "
+                f"{P2F_SHARE:.0%} refit ceiling target {target:.3f}")
+        if beyond and ceiling.get("R_c_u_m") is not None:
+            note += (f"; R_c^u = {float(ceiling['R_c_u_m']):.6f} m remains beyond "
+                     "refit (R4/R5 territory)")
     return {"status": "evaluated", "rho_R0": 0.0, "rho_R1": r1, "rho_R2": r2,
             "rho_R3": r3, "rho_R3u": r3u, "target": target,
-            "cheapest_rung": cheapest, "beyond_refit": beyond,
-            "note": ("beyond refit (R4/R5 territory)" if beyond else None)}
+            "cheapest_rung": cheapest, "beyond_refit": beyond, "note": note}
 
 
 # ============================================================== A3 eta (post hoc)
@@ -560,16 +618,18 @@ def eta_readings(p2_payload, ceilings, gain) -> dict:
             xs.append(float(gain[label])); ys.append(float(r2eq))
     out["secondary_r2eq_K15"] = (permutation_spearman_p2a(
         xs, ys, level="K15-r2eq") if len(xs) >= 3 else {"rho_s": None, "n": len(xs)})
-    # sensitivity: the primary Spearman without fix9000/fix9001 (n = 13)
-    x, y, used = p2x._eligible_cells(p2_payload.get("models") or {}, "K5")
-    keep = [position for position, label in enumerate(used)
-            if label not in ("fix9000", "fix9001")]
-    xs = [float(x[position]) for position in keep]
-    ys = [float(y[position]) for position in keep]
-    out["sensitivity_no_fix"] = (
-        permutation_spearman_p2a(xs, ys, level="no-fix-K5") if len(xs) >= 3
-        else {"rho_s": None, "n": len(xs)})
-    out["sensitivity_no_fix"]["models"] = [used[position] for position in keep]
+    # M16: the primary Spearman without fix9000/fix9001, at every K level (n = 13)
+    out["sensitivity_no_fix"] = {}
+    for level in ("K5", "K15", "K30"):
+        x, y, used = p2x._eligible_cells(p2_payload.get("models") or {}, level)
+        keep = [position for position, label in enumerate(used)
+                if label not in ("fix9000", "fix9001")]
+        xs = [float(x[position]) for position in keep]
+        ys = [float(y[position]) for position in keep]
+        block = (permutation_spearman_p2a(xs, ys, level=f"no-fix-{level}")
+                 if len(xs) >= 3 else {"rho_s": None, "n": len(xs)})
+        block["models"] = [used[position] for position in keep]
+        out["sensitivity_no_fix"][level] = block
     per_level = [out["levels"][level] for level in ("K5", "K15", "K30")]
     support = sum(1 for block in per_level
                   if block.get("rho_s") is not None and block.get("p") is not None
@@ -596,6 +656,8 @@ def shift_readings(root=None, *, config, gen, geometry, data_root=None,
                    log=print) -> dict:
     """A6: how much of the N->D latent shift each rank-r projection removes."""
     root = _resolve_root(root)
+    gate = assert_authorised("shift", root=root)          # B3: A6 is gated too
+    started = time.time()
     data_root = data_root or p2x.DATA_ROOT_DEFAULT
     probes005 = p2x.open_probe_sets(config, gen, geometry, data_root,
                                     setting=p2x.S005, log=log)
@@ -608,7 +670,8 @@ def shift_readings(root=None, *, config, gen, geometry, data_root=None,
         for role in ("train", "test")}
     payload = {"registered": False, "extension": EXTENSION, "check": "A6 X3-P shift",
                "ranks": list(p2x.X3P_RANKS), "controls": p2x.X3P_CONTROLS,
-               "models": {}, "wall_seconds": None}
+               "gate": {"status": gate["status"]}, "models": {},
+               "wall_seconds": None}
     for label in p2x.X3P_MODELS:
         cache = p2x.n_embedding_cache(label)
         rows = {"train_N": p2x.cache_rows(cache, er.embedding_cache_key("train", "N")),
@@ -659,6 +722,7 @@ def shift_readings(root=None, *, config, gen, geometry, data_root=None,
     payload["complete"] = all(entry.get("status") == "evaluated"
                               for entry in payload["models"].values())
     payload["pass"] = bool(payload["complete"])
+    payload["wall_seconds"] = round(time.time() - started, 3)
     return payload
 
 
@@ -689,42 +753,86 @@ def run_p2a(root=None, *, config, gen, geometry, data_root=None, log=print) -> d
     p2 = committed_p2(root)
     inputs = load_inputs(root, config=config, gen=gen, geometry=geometry,
                          data_root=data_root, log=log)
+    # M13: the gain table comes from the committed payload, not the live /ceph file
+    gain = {}
+    for label in CORE_MODELS:
+        value = (((p2.get("models") or {}).get(label) or {}).get("gain_r2_eq"))
+        if value is None:
+            value = inputs["gain"].get(label)
+        gain[label] = value
+    primary = (p2.get("P2-e") or {}).get("primary") or {}
     payload = {"registered": False, "extension": EXTENSION,
                "check": "P2 addendum A1/A2/A3", "runbook": RUNBOOK_REL,
                "runbook_sha256": RUNBOOK_SHA256,
                "gate": {"status": gate["status"]}, "models": {},
-               "ceiling_check": {}, "A2": {}, "A3": None, "wall_seconds": None}
+               "ceiling_check": {}, "A2": {}, "A3": None,
+               "gain_r2_eq": gain, "P2-e_primary": (p2.get("P2-e") or {}).get("class"),
+               "P2-e_primary_numbers": {
+                   level: {"rho_s": (primary.get(level) or {}).get("rho_s"),
+                           "p": (primary.get(level) or {}).get("p"),
+                           "n": (primary.get(level) or {}).get("n")}
+                   for level in ("K5", "K15", "K30")},
+               "unavailable": [], "stops": [], "wall_seconds": None}
     ceilings = {}
     for label in CORE_MODELS:
         full_cells = model_cells(inputs, label, exact=False)
         exact_cells = model_cells(inputs, label, exact=True)
         entry = {"C0": c0_reading(inputs, full_cells), "cells": {}}
         for name in CONDITIONS:
+            data = full_cells["cells"].get(name) or {}
             p2_cell = (((p2.get("models") or {}).get(label) or {}).get(
                 "conditions", {}) or {}).get(name) or {}
-            full = ceiling_cell(full_cells["cells"][name],
-                                frozen_vertex=full_cells["frozen"], p2_cell=p2_cell)
-            committed_exact = p2_cell.get("exact_subset_reading") or {}
-            exact = ceiling_cell(exact_cells["cells"][name],
-                                 frozen_vertex=exact_cells["frozen"],
-                                 p2_cell=committed_exact)
+            if data.get("status") in ("unavailable", "no events"):
+                entry["cells"][name] = data
+                payload["unavailable"].append({"model": label, "condition": name,
+                                               "status": data.get("status")})
+                continue
+            full = ceiling_cell(data, frozen_vertex=full_cells["frozen"],
+                                p2_cell=p2_cell)
+            exact_data = exact_cells["cells"].get(name) or {}
+            if exact_data.get("status") in ("unavailable", "no events"):
+                exact = exact_data
+            else:
+                exact = ceiling_cell(exact_data,
+                                     frozen_vertex=exact_cells["frozen"],
+                                     p2_cell=p2_cell.get("exact_subset_reading") or {})
             full["exact_subset_reading"] = exact
+            full["P2-f_original"] = p2_cell.get("P2-f")
+            refit = p2_cell.get("refit") or {}
+            latent = p2_cell.get("latent") or {}
+            delta = p2_cell.get("delta_c_m")
+            rho_r3 = (None if not refit.get("v_R3_m") or not delta
+                      else float((float(p2_cell["v_c_m"]) - float(refit["v_R3_m"]))
+                                 / float(delta)))
+            full["P2-committed"] = {"rho_R2": latent.get("rho_R2"),
+                                    "rho_R3": rho_r3, "r2_eq": latent.get("r2_eq")}
             full["P2-f_u"] = p2f_u(p2_cell, full)
             entry["cells"][name] = full
             ceilings.setdefault(label, {})[name] = full
         payload["models"][label] = entry
         log(f"[p2a] A1 {label}")
-    payload["gain_r2_eq"] = inputs["gain"]
     payload["A2"] = _p2f_summary(payload["models"])
-    payload["A3"] = eta_readings(p2, ceilings, inputs["gain"])
+    payload["A3"] = eta_readings(p2, ceilings, gain)
     payload["ceiling_check"] = _ceiling_summary(payload["models"])
-    payload["pass"] = bool(not payload["ceiling_check"].get("violations"))
-    payload["complete"] = all(
-        entry["cells"].get(name, {}).get("status") != "no events"
-        for entry in payload["models"].values() for name in CONDITIONS)
+    check = payload["ceiling_check"]
+    payload["complete"] = bool(not payload["unavailable"]
+                               and check["n_cells_checked"] > 0
+                               and all((entry["cells"].get(name) or {}).get(
+                                   "status") not in ("no events", "unavailable")
+                                   for entry in payload["models"].values()
+                                   for name in CONDITIONS))
+    if check["n_violation_gt_5mm_ci"]:
+        payload["stops"].append(f"S4: {check['n_violation_gt_5mm_ci']} ceiling cells "
+                                "have v_R2 below v_R3u by > 5 mm with a CI excluding 0")
+    if check["recomputed_mismatch"]:
+        payload["stops"].append(f"A1: {len(check['recomputed_mismatch'])} cells' "
+                                "recomputed v_R2 differs from the committed p2.json "
+                                "by more than 1e-9")
+    if not payload["complete"]:
+        payload["stops"].append("A1/A2: incomplete (missing or unavailable cells)")
+    payload["pass"] = bool(not payload["stops"])
     payload["wall_seconds"] = round(time.time() - started, 3)
     return payload
-
 
 def _p2f_summary(models) -> dict:
     out = {}
@@ -745,36 +853,45 @@ def _p2f_summary(models) -> dict:
 
 
 def _ceiling_summary(models) -> dict:
-    n_cells = n_any = n_violation = 0
-    max_gap = None
-    max_abs_recomputed = 0.0
-    recomputed_mismatch = []
+    """The A1 ceiling check over the full cells and the exact subsets (S4)."""
+    n_cells = n_below = 0
+    max_abs = 0.0
+    mismatches, violations = [], []
     for label, entry in models.items():
         for name, cell in entry["cells"].items():
-            ceiling = cell.get("ceiling") or {}
-            if not ceiling:
-                continue
-            n_cells += 1
-            gap = ceiling.get("v_R2_minus_v_R3u_m")
-            if gap is not None:
-                if gap < 0:
-                    n_any += 1
-                max_gap = gap if max_gap is None else min(max_gap, gap)
-            if ceiling.get("violation"):
-                n_violation += 1
-            absolute = ceiling.get("check_abs_lt_1e-9")
-            if absolute is False:
-                recomputed_mismatch.append({"model": label, "condition": name,
-                                            "gap": ceiling.get(
-                                                "v_R2_recomputed_m")})
-    return {"n_cells": int(n_cells), "n_R2_below_R3u": int(n_any),
-            "n_violation_gt_5mm_ci": int(n_violation),
-            "min_gap_m": max_gap,
-            "max_abs_recomputed_minus_committed_m": max_abs_recomputed,
-            "recomputed_mismatch": recomputed_mismatch,
-            "violations": recomputed_mismatch if False else [],
-            "rule": "v_R2 must not be below v_R3u by more than 5 mm with a CI "
-                    "excluding 0; a larger gap is S4"}
+            scopes = (("full", cell),
+                      ("exact", (cell or {}).get("exact_subset_reading") or {}))
+            for scope, block in scopes:
+                ceiling = (block or {}).get("ceiling") or {}
+                if not ceiling:
+                    continue
+                n_cells += 1
+                gap = ceiling.get("v_R2_minus_v_R3u_m")
+                if gap is not None and float(gap) < 0:
+                    n_below += 1
+                if ceiling.get("violation"):
+                    violations.append({"model": label, "condition": name,
+                                       "scope": scope,
+                                       "gap_m": gap, "ci_m": ceiling.get("ci_m")})
+                recomputed = ceiling.get("v_R2_recomputed_m")
+                committed = ceiling.get("v_R2_committed_m")
+                if recomputed is not None and committed is not None:
+                    difference = abs(float(recomputed) - float(committed))
+                    max_abs = max(max_abs, difference)
+                    if difference > 1e-9:
+                        mismatches.append({"model": label, "condition": name,
+                                           "scope": scope,
+                                           "difference": difference,
+                                           "recomputed_m": float(recomputed),
+                                           "committed_m": float(committed)})
+    return {"n_cells_checked": int(n_cells), "n_R2_below_R3u": int(n_below),
+            "n_violation_gt_5mm_ci": int(len(violations)),
+            "violations": violations,
+            "max_abs_recomputed_minus_committed_m": float(max_abs),
+            "recomputed_mismatch": mismatches,
+            "scopes": "full cell and exact subset",
+            "rule": "v_R2 must not be below v_R3u by more than 5 mm with the gap "
+                    "CI excluding 0; a larger gap is S4"}
 
 
 # =============================================================== A4 equivalence
@@ -805,6 +922,27 @@ def compare_numbers(left, right, *, path="", tolerance=1e-9, out=None) -> dict:
     return out
 
 
+def _cell_equivalence(fresh, committed, path) -> dict:
+    """Non-vacuous A4 cell comparison (M8)."""
+    if (isinstance(fresh, dict) and isinstance(committed, dict)
+            and "status" in fresh and "status" in committed):
+        if fresh.get("status") == committed.get("status"):
+            return {"path": path, "n_compared": 0, "max_abs_difference": 0.0,
+                    "mismatches": [], "status_match": str(fresh.get("status"))}
+        return {"path": path, "n_compared": 0, "max_abs_difference": 0.0,
+                "mismatches": [{"path": path, "reason": "fresh/committed status differ",
+                                "fresh": fresh.get("status"),
+                                "committed": committed.get("status")}]}
+    result = compare_numbers(fresh, committed, path=path)
+    if result["n_compared"] == 0:
+        result["mismatches"].append({"path": path,
+                                     "reason": "no numeric leaves compared (vacuous)"})
+    if isinstance(fresh, dict) and fresh.get("status") in ("unavailable", "no events"):
+        result["mismatches"].append({"path": path,
+                                     "reason": f"fresh cell is {fresh.get('status')}"})
+    return result
+
+
 def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
                     log=print) -> dict:
     """A4: the folded code must reproduce the committed X3-P energies and exact cells."""
@@ -832,8 +970,8 @@ def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
             committed = ((((p2.get("models") or {}).get(label) or {}).get(
                 "conditions", {}) or {}).get(name) or {}).get(
                 "exact_subset_reading") or {}
-            compare = compare_numbers(cells.get(name), committed,
-                                      path=f"{label}/{name}")
+            compare = _cell_equivalence(cells.get(name), committed,
+                                        f"{label}/{name}")
             exact_rows[f"{label}__{name}"] = compare
         log(f"[p2a] equivalence exact {label}")
     payload["exact_subset"] = {
@@ -859,7 +997,9 @@ def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
             (scratch / "x2b" / source.name).write_bytes(source.read_bytes())
     original_root = p2x.EXT_ROOT
     original_gate = p2x.assert_authorised
+    original_jobs = p2x.JOBS_RECORD
     p2x.EXT_ROOT = scratch
+    p2x.JOBS_RECORD = scratch / "jobs.jsonl"
     p2x.assert_authorised = lambda *a, **k: {"status": "equivalence"}
     try:
         fresh = p2x.x3p(root, config=config, gen=gen, arms_config=None,
@@ -867,12 +1007,13 @@ def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
                         labels=list(er.MAE_MODELS), log=log)
     finally:
         p2x.EXT_ROOT = original_root
+        p2x.JOBS_RECORD = original_jobs
         p2x.assert_authorised = original_gate
     comparisons = {}
     for label in er.MAE_MODELS:
-        comparisons[label] = compare_numbers(
+        comparisons[label] = _cell_equivalence(
             (fresh.get("models") or {}).get(label),
-            (x3.get("models") or {}).get(label), path=label)
+            (x3.get("models") or {}).get(label), label)
     payload["x3p_energy"] = {
         "models": len(comparisons),
         "max_abs_difference": max((row["max_abs_difference"]
@@ -880,8 +1021,15 @@ def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
         "n_compared": sum(row["n_compared"] for row in comparisons.values()),
         "mismatches": [{"model": key, **row} for key, row in comparisons.items()
                        if row["mismatches"]][:20]}
-    payload["pass"] = bool(not payload["exact_subset"]["n_cells_with_mismatch"]
-                           and not payload["x3p_energy"]["mismatches"])
+    exact_min = 1000
+    x3p_min = 100
+    payload["exact_subset"]["n_compared_min"] = exact_min
+    payload["x3p_energy"]["n_compared_min"] = x3p_min
+    payload["pass"] = bool(
+        not payload["exact_subset"]["n_cells_with_mismatch"]
+        and payload["exact_subset"]["n_compared"] >= exact_min
+        and not payload["x3p_energy"]["mismatches"]
+        and payload["x3p_energy"]["n_compared"] >= x3p_min)
     payload["wall_seconds"] = round(time.time() - started, 3)
     return payload
 
@@ -901,49 +1049,59 @@ def _means(models, name, key, sub=None):
     return float(np.mean(values)) if values else None
 
 
+def _mean(values):
+    return float(np.mean(values)) if values else None
+
+
 def p2a_summary(p2a, p2, equivalence=None, shift=None, extra=None) -> dict:
     models = p2a["models"]
     per_condition = {}
     for name in CONDITIONS:
+        deltas, refit, fair, rho2, rho3, rho3u = [], [], [], [], [], []
+        destroying_r3 = destroying_r3u = 0
+        for entry in models.values():
+            cell = entry["cells"].get(name) or {}
+            if cell.get("status") in ("no events", "unavailable"):
+                continue
+            deltas.append(float(cell["delta_c_m"]))
+            refit.append(float(cell["refit"]["R_c_m"]))
+            fair.append(float(cell["R_c_u_m"]))
+            committed = cell.get("P2-committed") or {}
+            if committed.get("rho_R2") is not None:
+                rho2.append(float(committed["rho_R2"]))
+            if committed.get("rho_R3") is not None:
+                rho3.append(float(committed["rho_R3"]))
+            if cell.get("rho_R3u") is not None:
+                rho3u.append(float(cell["rho_R3u"]))
+            destroying_r3 += int(bool((cell.get("refit") or {}).get(
+                "information_destroying")))
+            destroying_r3u += int(bool(cell.get("information_destroying_u")))
         per_condition[name] = {
-            "delta_c_m": _means(models, name, "delta_c_m"),
-            "R_c_m": _means(models, name, "R_c_m", sub="refit"),
-            "R_c_u_m": _means(models, name, "R_c_u_m"),
-            "n_information_destroying_R3": int(sum(
-                1 for entry in models.values()
-                if ((entry["cells"].get(name) or {}).get("refit") or {}).get(
-                    "information_destroying"))),
-            "n_information_destroying_R3u": int(sum(
-                1 for entry in models.values()
-                if (entry["cells"].get(name) or {}).get(
-                    "information_destroying_u"))),
-            "rho_R2_mean": _means(models, name, "rho_R2", sub="latent"),
-            "rho_R3_mean": _means(models, name, "R_c_m", sub="refit"),
-            "rho_R3u_mean": _means(models, name, "rho_R3u"),
-        }
-        if per_condition[name]["R_c_m"] is not None and \
-                per_condition[name]["delta_c_m"]:
-            per_condition[name]["rho_R3_mean"] = float(
-                (per_condition[name]["R_c_m"]
-                 / per_condition[name]["delta_c_m"]) if per_condition[name][
-                    "delta_c_m"] else None)
-        else:
-            per_condition[name]["rho_R3_mean"] = None
-    gain_table = p2a.get("gain_r2_eq") or (p2a.get("extra") or {}).get("gain") or {}
+            "n_cells": len(deltas), "delta_c_m": _mean(deltas),
+            "R_c_m": _mean(refit), "R_c_u_m": _mean(fair),
+            "n_information_destroying_R3": int(destroying_r3),
+            "n_information_destroying_R3u": int(destroying_r3u),
+            "rho_R2_mean": _mean(rho2), "rho_R3_mean": _mean(rho3),
+            "rho_R3u_mean": _mean(rho3u)}
     per_model = {}
     for label, entry in models.items():
-        row = {"C0": entry.get("C0"), "gain": gain_table.get(label),
-               "model": label}
+        row = {"C0": entry.get("C0"), "model": label,
+               "gain": (p2a.get("gain_r2_eq") or {}).get(label), "levels": {}}
         for level in ("K5", "K15", "K30"):
             cell = entry["cells"].get(level) or {}
-            rho2 = (cell.get("latent") or {}).get("rho_R2")
+            committed = cell.get("P2-committed") or {}
+            rho2 = committed.get("rho_R2")
             r3u = cell.get("rho_R3u")
-            row[level] = {"rho_R2": rho2, "rho_R3u": r3u,
-                          "eta": (None if rho2 is None or not r3u
-                                  or abs(r3u) <= 0 else float(rho2) / float(r3u))}
+            row["levels"][level] = {
+                "rho_R2": rho2, "rho_R3": committed.get("rho_R3"),
+                "rho_R3u": r3u,
+                "eta": (None if rho2 is None or r3u is None or abs(float(r3u)) <= 0
+                        else float(rho2) / float(r3u))}
         per_model[label] = row
     return {"registered": False, "extension": EXTENSION,
             "runbook_sha256": RUNBOOK_SHA256,
+            "primary": p2a.get("P2-e_primary"),
+            "primary_numbers": p2a.get("P2-e_primary_numbers"),
             "per_condition": per_condition, "per_model": per_model,
             "ceiling_check": p2a.get("ceiling_check"),
             "A2": p2a.get("A2"), "A3": p2a.get("A3"),
@@ -959,47 +1117,59 @@ def _readme(summary) -> str:
              "| condition | Delta_c | R_c | R_c^u | destroying R3 | destroying R3u | "
              "rho_R2 | rho_R3 | rho_R3u |", "|---|---|---|---|---|---|---|---|---|"]
     for name, row in summary["per_condition"].items():
+        n = row.get("n_cells") or 15
         lines.append(f"| {name} | {_fmt(row['delta_c_m'])} | {_fmt(row['R_c_m'])} | "
-                     f"{_fmt(row['R_c_u_m'])} | {row['n_information_destroying_R3']}/15 | "
-                     f"{row['n_information_destroying_R3u']}/15 | "
+                     f"{_fmt(row['R_c_u_m'])} | "
+                     f"{row['n_information_destroying_R3']}/{n} | "
+                     f"{row['n_information_destroying_R3u']}/{n} | "
                      f"{_fmt(row['rho_R2_mean'])} | {_fmt(row['rho_R3_mean'])} | "
                      f"{_fmt(row['rho_R3u_mean'])} |")
     lines += ["", "## 2. Per model at K5/K15/K30", "",
-              "| model | rho_R2 K5 | rho_R3u K5 | eta K5 | rho_R2 K15 | rho_R3u K15 | "
-              "eta K15 | rho_R2 K30 | rho_R3u K30 | eta K30 | C0 diff | C0 CI |",
-              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+              "| model | rho_R2 K5 | rho_R3 K5 | rho_R3u K5 | eta K5 | "
+              "rho_R2 K15 | rho_R3 K15 | rho_R3u K15 | eta K15 | "
+              "rho_R2 K30 | rho_R3 K30 | rho_R3u K30 | eta K30 | "
+              "C0 diff | C0 CI |", "|" + "---|" * 15]
     for label, row in summary["per_model"].items():
         c0 = row.get("C0") or {}
-        cells = [row[level] for level in ("K5", "K15", "K30")]
-        lines.append(f"| {label} | " + " | ".join(
-            f"{_fmt(cell['rho_R2'])} | {_fmt(cell['rho_R3u'])} | {_fmt(cell['eta'])}"
-            for cell in cells) + f" | {_fmt(c0.get('difference_m'))} | "
-            f"{_fmt(c0.get('ci_m'))} |")
+        cells = [row["levels"][level] for level in ("K5", "K15", "K30")]
+        rendered = " | ".join(
+            f"{_fmt(cell['rho_R2'])} | {_fmt(cell['rho_R3'])} | "
+            f"{_fmt(cell['rho_R3u'])} | {_fmt(cell['eta'])}" for cell in cells)
+        lines.append(f"| {label} | {rendered} | {_fmt(c0.get('difference_m'))} | "
+                     f"{_fmt(c0.get('ci_m'))} |")
     ceiling = summary.get("ceiling_check") or {}
     lines += ["", "## 3. Ceiling check (A1)", "",
-              f"- cells: {ceiling.get('n_cells')}; v_R2 below v_R3u in "
-              f"{ceiling.get('n_R2_below_R3u')}; beyond 5 mm with a CI excluding 0: "
-              f"{ceiling.get('n_violation_gt_5mm_ci')}; min gap "
-              f"{_fmt(ceiling.get('min_gap_m'))} m",
+              f"- cells checked ({ceiling.get('scopes')}): {ceiling.get('n_cells_checked')}; "
+              f"v_R2 below v_R3u in {ceiling.get('n_R2_below_R3u')}; beyond 5 mm "
+              f"with a CI excluding 0: {ceiling.get('n_violation_gt_5mm_ci')}; max "
+              f"|v_R2_recomputed - v_R2_committed| = "
+              f"{_fmt(ceiling.get('max_abs_recomputed_minus_committed_m'))} m; "
+              f"recomputed mismatches > 1e-9: {len(ceiling.get('recomputed_mismatch') or [])}",
               "", "## 4. P2-f_u cheapest rung (A2)", ""]
     for name, row in (summary.get("A2") or {}).items():
         lines.append(f"- {name}: {row['cheapest_rung_counts']}, beyond_refit "
                      f"{row['beyond_refit']}/{row['n_cells']}")
     a3 = summary.get("A3") or {}
-    lines += ["", "## 5. P2-e (primary unchanged) and A3 secondary", "",
-              "- primary P2-e verdict: `mixed` (unchanged); "
-              "rho_s K5/K15/K30 = 0.282/0.218/0.286 (p 0.156/0.208/0.147, n=15)"]
+    primary = summary.get("primary") or {}
+    numbers = summary.get("primary_numbers") or {}
+    primary_bits = " / ".join(
+        f"{level}: rho_s={_fmt((numbers.get(level) or {}).get('rho_s'))}, "
+        f"p={_fmt((numbers.get(level) or {}).get('p'))}, "
+        f"n={(numbers.get(level) or {}).get('n')}" for level in ("K5", "K15", "K30"))
+    lines += ["", "## 5. P2-e (primary unchanged) and A3 (post hoc / exploratory)", "",
+              f"- primary P2-e verdict: `{primary.get('verdict')}` (unchanged); "
+              f"{primary_bits}"]
     for level, block in (a3.get("levels") or {}).items():
-        lines.append(f"- eta {level}: rho_s={_fmt(block.get('rho_s'))}, "
+        lines.append(f"- eta {level} (exploratory): rho_s={_fmt(block.get('rho_s'))}, "
                      f"p={_fmt(block.get('p'))}, n={block.get('n')}")
     secondary = a3.get("secondary_r2eq_K15") or {}
-    lines.append("- secondary Spearman(gain R2_eq, R2_eq_K15): "
-                 f"rho_s={_fmt(secondary.get('rho_s'))}, "
+    lines.append(f"- secondary Spearman(gain R2_eq, R2_eq_K15) (exploratory, "
+                 f"permutation p): rho_s={_fmt(secondary.get('rho_s'))}, "
                  f"p={_fmt(secondary.get('p'))}, n={secondary.get('n')}")
-    sensitivity = a3.get("sensitivity_no_fix") or {}
-    lines.append("- sensitivity primary without fix9000/fix9001: "
-                 f"rho_s={_fmt(sensitivity.get('rho_s'))}, "
-                 f"p={_fmt(sensitivity.get('p'))}, n={sensitivity.get('n')}")
+    for level, block in (a3.get("sensitivity_no_fix") or {}).items():
+        lines.append(f"- sensitivity primary without fix9000/fix9001 at {level}: "
+                     f"rho_s={_fmt(block.get('rho_s'))}, p={_fmt(block.get('p'))}, "
+                     f"n={block.get('n')}")
     lines.append(f"- A3 rule: {(a3.get('rule') or {}).get('verdict')}")
     shift = summary.get("A6") or {}
     lines += ["", "## 6. A6 X3-P shift shares", "",
@@ -1016,7 +1186,13 @@ def _readme(summary) -> str:
     lines += ["", "## 7. Resources, tests, hygiene", ""]
     for key, value in extra.items():
         lines.append(f"- {key}: {value}")
-    lines.append("")
+    lines += ["", "## 8. Record corrections (A7)", "",
+              "- P2-c is a transform check, not a finding: R1 maps T1.0w to T1.0 by "
+              "construction (|v_R1 - v_T1.0| ~ 1e-6 m), so the recovery is the "
+              "transform working, not an empirical result.",
+              "- The fix9000 T0.5 cell is flagged information-destroying only because "
+              "its refit (3.18 mm) is worse than no repair (2.94 mm); it is recorded "
+              "as refit noise.", ""]
     return "\n".join(lines)
 
 
@@ -1026,18 +1202,9 @@ def render_figures(summary, out_dir, *, log=print) -> dict:
     figures, skipped = [], []
 
     def ceiling_plot(axes):
-        xs, ys = [], []
-        for entry in summary.get("per_model", {}).values():
-            pass
-        for name, row in summary["per_condition"].items():
-            if row.get("R_c_u_m") is not None and row.get("R_c_m") is not None:
-                xs.append(row["R_c_u_m"]); ys.append(row["R_c_m"])
-        for entry in (summary.get("cells") or {}).values():
-            pass
         p2a_cells = summary.get("_cells") or []
-        if p2a_cells:
-            xs = [cell["v_R3u_m"] for cell in p2a_cells]
-            ys = [cell["v_R2_m"] for cell in p2a_cells]
+        xs = [cell["v_R3u_m"] for cell in p2a_cells if cell.get("v_R2_m") is not None]
+        ys = [cell["v_R2_m"] for cell in p2a_cells if cell.get("v_R2_m") is not None]
         if xs:
             axes.scatter(xs, ys, s=12, label="cell")
             low = min(min(xs), min(ys)); high = max(max(xs), max(ys))
@@ -1071,6 +1238,30 @@ def render_figures(summary, out_dir, *, log=print) -> dict:
     return {"figures": figures, "skipped": skipped}
 
 
+def _execution_payload(root, p2a, equivalence, shift, extra, stops) -> dict:
+    extra = extra or {}
+    return {
+        "registered": False, "extension": EXTENSION,
+        "runbook": RUNBOOK_REL, "runbook_sha256": RUNBOOK_SHA256,
+        "impl_commit": extra.get("impl_commit"),
+        "acceptance": ACCEPTANCE_REL,
+        "stages": extra.get("stages"),
+        "tests": extra.get("tests"),
+        "resources": extra.get("resources"),
+        "hygiene": extra.get("hygiene"),
+        "a1_pass": bool(p2a.get("pass")),
+        "ceiling_check": p2a.get("ceiling_check"),
+        "unavailable": p2a.get("unavailable"),
+        "a4_equivalence_pass": bool(equivalence.get("pass")),
+        "a6_shift_pass": bool(shift.get("pass")),
+        "stops": list(stops),
+        "complete": bool(p2a.get("complete") and equivalence.get("pass")
+                         and shift.get("pass")),
+        "results_dir": RESULTS_DIR,
+        "note": "CPU-only addendum; no GPU job, no training, no data generation; "
+                "the P2 primary verdict is unchanged (mixed)."}
+
+
 def assemble_report(root=None, *, p2a, equivalence, shift, extra=None,
                     log=print) -> dict:
     root = _resolve_root(root)
@@ -1078,6 +1269,32 @@ def assemble_report(root=None, *, p2a, equivalence, shift, extra=None,
     out = root / RESULTS_DIR
     out.mkdir(parents=True, exist_ok=True)
     p2 = committed_p2(root)
+    stops = []
+    ceiling = p2a.get("ceiling_check") or {}
+    if not p2a.get("pass"):
+        stops.append("A1/A2/A3: " + "; ".join(p2a.get("stops")
+                                              or ["A1/A2/A3 failed"]))
+    if not p2a.get("complete"):
+        stops.append("A1/A2: the readings are incomplete")
+    if ceiling.get("n_violation_gt_5mm_ci"):
+        stops.append(f"S4: {ceiling['n_violation_gt_5mm_ci']} ceiling cells")
+    if ceiling.get("recomputed_mismatch"):
+        stops.append("A1: recomputed v_R2 differs from the committed p2.json")
+    if not equivalence.get("pass"):
+        stops.append("A4: the fold equivalence failed (S3)")
+    if not shift.get("pass"):
+        stops.append("A6: the shift readings are incomplete")
+    payload = {"registered": False, "extension": EXTENSION,
+               "check": "P2 addendum report §6", "results_dir": str(out),
+               "gate": {"status": gate["status"]}, "stops": stops,
+               "written": False, "complete": False, "pass": False,
+               "figures": None, "wall_seconds": None}
+    execution = _execution_payload(root, p2a, equivalence, shift, extra, stops)
+    if stops:
+        # S4/S3: write nothing to READINGS, only the execution record of the stop
+        write_json(out / "EXECUTION.json", execution)
+        log("[p2a] report stopped before writing READINGS: " + "; ".join(stops))
+        return payload
     summary = p2a_summary(p2a, p2, equivalence=equivalence, shift=shift,
                           extra=extra)
     cells = []
@@ -1098,12 +1315,11 @@ def assemble_report(root=None, *, p2a, equivalence, shift, extra=None,
                                       if key != "_cells"})
     (out / "READINGS_SUMMARY.md").write_text(_readme(summary))
     figures = render_figures(summary, out, log=log)
-    payload = {"registered": False, "extension": EXTENSION,
-               "check": "P2 addendum report §6", "results_dir": str(out),
-               "figures": figures, "gate": {"status": gate["status"]},
-               "complete": bool(p2a.get("complete")),
-               "pass": bool(p2a.get("pass") and equivalence.get("pass")
-                            and shift.get("pass")),
-               "wall_seconds": None}
+    execution["complete"] = True
+    write_json(out / "EXECUTION.json", execution)
+    payload["written"] = True
+    payload["complete"] = True
+    payload["pass"] = True
+    payload["figures"] = figures
     write_json(out / "report.json", payload)
     return payload

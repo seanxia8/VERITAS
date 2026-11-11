@@ -55,19 +55,30 @@ def parse_args(argv=None):
     return args
 
 
-#: Explicit allow-list: the CPU extensions this launcher may run.
+#: Explicit allow-list: the CPU job modules this launcher may run, by exact name.
 CPU_EXTENSION_MODULES = {
-    'scripts.jepa_ext_predictability_': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_archive_tests': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_budget': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_cost': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_linear': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_probes': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_report': 'ext_predictability_20261029',
+    'scripts.jepa_ext_predictability_summary': 'ext_predictability_20261029',
     'scripts.jepa_ext_p2': 'ext_p2_20261109',
     'scripts.jepa_ext_p2a': 'ext_p2_20261109',
 }
 
 
 def extension_root_for_module(module):
-    """The extension root of an allowed CPU job module (explicit allow-list)."""
+    """The extension root of an allowed CPU job module (explicit allow-list).
+
+    Acceptance is exactly the module name or the module name plus ``.`` — a bare
+    prefix match would let ``scripts.jepa_ext_p2_evil`` through and would shadow
+    the longer ``ext_p2a`` entry (review M10).
+    """
     text = str(module)
-    for prefix, ext_name in CPU_EXTENSION_MODULES.items():
-        if text == prefix or text.startswith(prefix + '.') or text.startswith(prefix):
+    for name, ext_name in CPU_EXTENSION_MODULES.items():
+        if text == name or text.startswith(name + '.'):
             return ext_name
     raise ValueError('CPU launcher restricted to the allow-listed extensions: '
                      + ', '.join(sorted(CPU_EXTENSION_MODULES)))
