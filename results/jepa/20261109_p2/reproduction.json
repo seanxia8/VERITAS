@@ -1,0 +1,301 @@
+{
+ "registered": false,
+ "extension": "paper3_p2_infoloss_2026-11-09",
+ "check": "X0-b reproduction gate \u00a74",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-09_P2_INFOLOSS.md",
+ "tolerance_m": 0.001,
+ "models": {
+  "mae_within_trigger9000": {
+   "status": "evaluated",
+   "expected_m": 0.104916,
+   "got_m": 0.10491560199168913,
+   "difference_m": 3.9800831086456157e-07,
+   "tolerance_m": 0.001,
+   "pass": true,
+   "expected_source": "Part A X0-b N (refit = frozen)",
+   "n_test": 3400
+  },
+  "fix9000": {
+   "status": "evaluated",
+   "expected_m": 0.219258,
+   "got_m": 0.21925859104673262,
+   "difference_m": 5.910467326120106e-07,
+   "tolerance_m": 0.001,
+   "pass": true,
+   "expected_source": "results/jepa/20261107_shortcut/reproduction.json item fix9000",
+   "n_test": 3400
+  },
+  "init9000": {
+   "status": "evaluated",
+   "expected_m": 0.160072,
+   "got_m": 0.16007169092238768,
+   "difference_m": 3.090776123093608e-07,
+   "tolerance_m": 0.001,
+   "pass": true,
+   "expected_source": "Part A X0-b N (refit = frozen)",
+   "n_test": 3400
+  },
+  "target_posfree9000": {
+   "status": "evaluated",
+   "expected_m": 0.12600451326211795,
+   "got_m": 0.12600451326211795,
+   "difference_m": 0.0,
+   "tolerance_m": 0.001,
+   "pass": true,
+   "expected_source": "results/jepa/20261107_shortcut/readings.json r2_b/r2_c",
+   "n_test": 3400
+  },
+  "target_posfree9001": {
+   "status": "evaluated",
+   "expected_m": 0.14054395507374678,
+   "got_m": 0.14054395507374678,
+   "difference_m": 0.0,
+   "tolerance_m": 0.001,
+   "pass": true,
+   "expected_source": "results/jepa/20261107_shortcut/readings.json r2_b/r2_c",
+   "n_test": 3400
+  }
+ },
+ "gate": {
+  "status": "granted"
+ },
+ "pass": true,
+ "wall_seconds": 120.218,
+ "data_mirror": {
+  "plan_base": "/work/dwong/p2_20261109/p2_data_mirror",
+  "env_base": "/dev/shm/p2_data_mirror",
+  "used_base": "/dev/shm/p2_data_mirror",
+  "rule": "JEPA_P2_MIRROR wins when set; content verified against the pinned source manifest",
+  "verified": true,
+  "staged_by": "preflight"
+ },
+ "closure": {
+  "registered": false,
+  "extension": "paper3_p2_infoloss_2026-11-09",
+  "check": "import closure \u00a78.2",
+  "root": "/ceph/dwong/jepa/code/followup_20261103",
+  "checked_modules": 69,
+  "outside_allowlist": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}

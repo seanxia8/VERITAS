@@ -1,0 +1,1537 @@
+{
+ "registered": false,
+ "extension": "paper3_p2_infoloss_2026-11-09",
+ "check": "X0-a preflight \u00a74",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-09_P2_INFOLOSS.md",
+ "runbook_sha256": "0dbabf1698f0deccaf1076c5a03a59c8bb9196a310cba2b1b0c741af5a56c57f",
+ "code_sha": "34b540e73d48644e47fc31fafa9abb5e204ae499",
+ "git_status": "?? results/jepa/20261106_repair/readings.json\n?? results/jepa/20261106_repair/readings.slim.json\n?? results/jepa/20261106_repair/x1.json\n?? results/jepa/20261106_repair/x2.json\n?? results/jepa/20261106_repair/x3.json",
+ "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+ "gate": {
+  "status": "granted"
+ },
+ "stops": [],
+ "wall_seconds": 99.364,
+ "execution_order": [
+  "preflight",
+  "reproduce",
+  "new-models",
+  "conditions",
+  "p2",
+  "x3p",
+  "report"
+ ],
+ "data": {
+  "registered": false,
+  "extension": "mae_jepa_followup_2026-11-03",
+  "check": "\u00a72 pinned data manifests",
+  "data_root": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025",
+  "sets": {
+   "dev_probe_train__F1__0.05__s20261017": {
+    "key": "dev_probe_train__F1__0.05__s20261017",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017/manifest.json",
+    "exists": true,
+    "expected_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.05__s20261017": {
+    "key": "dev_probe_test__F1__0.05__s20261017",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017/manifest.json",
+    "exists": true,
+    "expected_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a",
+    "pass": true
+   },
+   "dev_probe_train__F1__0.3__s20261017__n10000x50": {
+    "key": "dev_probe_train__F1__0.3__s20261017__n10000x50",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.3__s20261017__n10000x50/manifest.json",
+    "exists": true,
+    "expected_sha256": "6df84887b3469723da3ddb0646c292ab655b263d6063f5fd713432a53514bb46",
+    "manifest_sha256": "6df84887b3469723da3ddb0646c292ab655b263d6063f5fd713432a53514bb46",
+    "pass": true
+   },
+   "dev_probe_test__F1__0.3__s20261017__n10000x50": {
+    "key": "dev_probe_test__F1__0.3__s20261017__n10000x50",
+    "manifest": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.3__s20261017__n10000x50/manifest.json",
+    "exists": true,
+    "expected_sha256": "c68d83d1ef8cb202f3937f7cd48e3f74bd94f6d44ae203591053fde0605d1be2",
+    "manifest_sha256": "c68d83d1ef8cb202f3937f7cd48e3f74bd94f6d44ae203591053fde0605d1be2",
+    "pass": true
+   }
+  },
+  "pass": true,
+  "regeneration": "forbidden (no data generation in this extension)"
+ },
+ "s1": {
+  "registered": false,
+  "extension": "paper3_p2_infoloss_2026-11-09",
+  "id": "S1 (P2 stage 1)",
+  "ledger": "docs/jepa/RESOURCE_LEDGER.json",
+  "ledger_job": "E2_lucid_l40s_deepthought2",
+  "ledger_charged_gpu_hours": 133.6708,
+  "booked_gpu_hours": 133.6708,
+  "ledger_consistent": true,
+  "p2_gpu_cap_hours": 1.3,
+  "sum_hours": 134.9708,
+  "ceiling_hours": 160.0,
+  "pass": true,
+  "reason": null,
+  "rule": "booked L40S sum + the 1.3 h Stage 1 GPU cap <= 160 (fail closed on a ledger inconsistency)"
+ },
+ "entries": {
+  "registered": false,
+  "extension": "paper3_p2_infoloss_2026-11-09",
+  "id": "entries (P2)",
+  "projection": {
+   "writes": 600,
+   "floor": 30000
+  },
+  "snapshot": {
+   "available": true,
+   "guard_json": "/ceph/dwong/jepa/jobs/guard_deepthought2.json",
+   "free_entries": 40007,
+   "guard_level": "OK",
+   "guard_reasons": [],
+   "guard_timestamp": "2026-11-11T01:46:23Z"
+  },
+  "pass": true,
+  "free_entries": 40007,
+  "projected_after": 39407,
+  "floor": 30000
+ },
+ "gpu_projection": {
+  "n_models": 15,
+  "conditions_sets": 225,
+  "reproduce_sets": 10,
+  "new_model_sets": 14,
+  "total_sets": 249,
+  "photon_set_wall_s": 13.0,
+  "factor": 1.3,
+  "projected_l40s_hours": 1.1761,
+  "cap_hours": 1.3,
+  "pass": true,
+  "runbook_224_set_projection_hours": 1.0516,
+  "mirror_verify_sets": 4,
+  "mirror_verify_wall_s": 5.0,
+  "note": "the runbook \u00a77 figure covers the 7 condition sets and the two new models' 14 Part A sets; X0-b (10 sets) and the R1 test set (15 sets) are added here",
+  "optional_models": [
+   "ijepa9000",
+   "ijepa9001",
+   "static_target9000",
+   "static_target9001",
+   "mae_within_median9000",
+   "mae_within_median9001"
+  ],
+  "optional_sets": 90,
+  "with_optional_hours": 1.5986,
+  "with_optional_pass": false,
+  "rule": "optional models run only if the with-optional projection fits the 1.3 h cap; they are dropped here (\u00a77)"
+ },
+ "gpu_projection_core": {
+  "n_models": 15,
+  "conditions_sets": 225,
+  "reproduce_sets": 10,
+  "new_model_sets": 14,
+  "total_sets": 249,
+  "photon_set_wall_s": 13.0,
+  "factor": 1.3,
+  "projected_l40s_hours": 1.1761,
+  "cap_hours": 1.3,
+  "pass": true,
+  "runbook_224_set_projection_hours": 1.0516,
+  "mirror_verify_sets": 4,
+  "mirror_verify_wall_s": 5.0,
+  "note": "the runbook \u00a77 figure covers the 7 condition sets and the two new models' 14 Part A sets; X0-b (10 sets) and the R1 test set (15 sets) are added here",
+  "optional_models": [
+   "ijepa9000",
+   "ijepa9001",
+   "static_target9000",
+   "static_target9001",
+   "mae_within_median9000",
+   "mae_within_median9001"
+  ],
+  "optional_sets": 90,
+  "with_optional_hours": 1.5986,
+  "with_optional_pass": false,
+  "rule": "optional models run only if the with-optional projection fits the 1.3 h cap; they are dropped here (\u00a77)"
+ },
+ "cpu_projection": {
+  "tasks": {
+   "preflight": 0.2,
+   "p2": 2.6,
+   "x3p": 2.2,
+   "report": 0.2,
+   "new-models-x2b": 0.1,
+   "dry-run": 0.1
+  },
+  "projected_hours": 5.4,
+  "cap_hours": 8.0,
+  "pass": true
+ },
+ "hardware_and_software": {
+  "hardware": {
+   "cpu_count": 40,
+   "machine": "x86_64"
+  },
+  "software": {
+   "python": "3.12.2",
+   "platform": "Linux-4.18.0-553.156.1.el8_10.x86_64-x86_64-with-glibc2.28",
+   "host": "deepthought",
+   "numpy": "1.26.4",
+   "torch": "2.5.1+cu121",
+   "cuda_available": true
+  }
+ },
+ "inventory": {
+  "registered": false,
+  "extension": "paper3_p2_infoloss_2026-11-09",
+  "check": "\u00a72.2 inventory",
+  "root": "/ceph/dwong/jepa/code/followup_20261103",
+  "hash_files": true,
+  "rows": {
+   "mae_within_trigger9000": {
+    "label": "mae_within_trigger9000",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9000/final.pt",
+    "sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49"
+   },
+   "mae_within_trigger9001": {
+    "label": "mae_within_trigger9001",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9001/final.pt",
+    "sha256": "210845c4d40f94b1f518de2dbf10c4ab8a3b0d7237a4c97a1f5bf7eba86539f1",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "210845c4d40f94b1f518de2dbf10c4ab8a3b0d7237a4c97a1f5bf7eba86539f1"
+   },
+   "mae_across_trigger9000": {
+    "label": "mae_across_trigger9000",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s005_across",
+    "split": "across",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_across__mae_mse__s9000/final.pt",
+    "sha256": "30eae1fec959eb22fec5417d4d089dcfacd6d1042b5ebf17a71d85d50aa85a64",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "30eae1fec959eb22fec5417d4d089dcfacd6d1042b5ebf17a71d85d50aa85a64"
+   },
+   "mae_across_trigger9001": {
+    "label": "mae_across_trigger9001",
+    "family": "dejitter_mae",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s005_across",
+    "split": "across",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_across__mae_mse__s9001/final.pt",
+    "sha256": "77d36d84b033a9b973afdfefab9b5f0505abf30e5887d8df7c130f52b090986f",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "median_wrapper": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "77d36d84b033a9b973afdfefab9b5f0505abf30e5887d8df7c130f52b090986f"
+   },
+   "t1_s030_within_trigger9000": {
+    "label": "t1_s030_within_trigger9000",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9000/final.pt",
+    "sha256": "683f3ef9474ed0be3febcdc005bd4bbb0ed8ecd793b6df580b655e7f25462dbb",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "683f3ef9474ed0be3febcdc005bd4bbb0ed8ecd793b6df580b655e7f25462dbb"
+   },
+   "t1_s030_within_trigger9001": {
+    "label": "t1_s030_within_trigger9001",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_within_trigger__mae_mse__s9001/final.pt",
+    "sha256": "415b38031182fe4d5dd5f444ff12febe84cdd6a2e9ef9ce3774ab5a0e7bd8611",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "415b38031182fe4d5dd5f444ff12febe84cdd6a2e9ef9ce3774ab5a0e7bd8611"
+   },
+   "t1_s030_across_trigger9000": {
+    "label": "t1_s030_across_trigger9000",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_across",
+    "split": "across",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9000/final.pt",
+    "sha256": "accc9016b9b2270777033f76fc15636ecaca17da6c4531e0853816f78c30a475",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "accc9016b9b2270777033f76fc15636ecaca17da6c4531e0853816f78c30a475"
+   },
+   "t1_s030_across_trigger9001": {
+    "label": "t1_s030_across_trigger9001",
+    "family": "t1",
+    "arm": "mae_mse",
+    "cell": "ext_dev_s030_across",
+    "split": "across",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.3__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_followup_20261103/train/runs/ext_dev_s030_across_trigger__mae_mse__s9001/final.pt",
+    "sha256": "a8752fde554f7715bc96a67c3f5b717131e313155ae84a6497216710b6d193f8",
+    "data_setting": 0.3,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "smoke": false,
+    "actual_sha256": "a8752fde554f7715bc96a67c3f5b717131e313155ae84a6497216710b6d193f8"
+   },
+   "init9000": {
+    "label": "init9000",
+    "family": "matrix",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": null,
+    "sha256": null,
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "init": true
+   },
+   "fix9000": {
+    "label": "fix9000",
+    "family": "matrix",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/fix9000.pt",
+    "sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714"
+   },
+   "fix9001": {
+    "label": "fix9001",
+    "family": "matrix",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_readout_20261101/ckpt/fix9001.pt",
+    "sha256": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "actual_sha256": "95cb5e3f4f158a719098a4b3dc573eebb8c71645c22290f6483223ccc04c484e"
+   },
+   "frozen_target9000": {
+    "label": "frozen_target9000",
+    "family": "h12",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_h12_20261101/train/frozen_target/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+    "sha256": "8c6341c75d1463d0dcf0582a980c4b6cc700c9d755a2904305e7bcb36be8138f",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false
+    },
+    "actual_sha256": "8c6341c75d1463d0dcf0582a980c4b6cc700c9d755a2904305e7bcb36be8138f"
+   },
+   "frozen_target9001": {
+    "label": "frozen_target9001",
+    "family": "h12",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_h12_20261101/train/frozen_target/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+    "sha256": "54122fa57a0018828754c61f6675ae5a240fc785abfcaab62f394397f375ffb5",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false
+    },
+    "actual_sha256": "54122fa57a0018828754c61f6675ae5a240fc785abfcaab62f394397f375ffb5"
+   },
+   "target_posfree9000": {
+    "label": "target_posfree9000",
+    "family": "joint_embedding_working",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9000,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+    "sha256": "3bb04c30dd51a90602e632f20f553b635c211a73f3bb048778ef5b2ad45b610c",
+    "actual_sha256": "3bb04c30dd51a90602e632f20f553b635c211a73f3bb048778ef5b2ad45b610c",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "run_id": "dev_s005_within__sigreg_jepa__s9000",
+    "full_input_vertex_m": 0.12600451326211795
+   },
+   "target_posfree9001": {
+    "label": "target_posfree9001",
+    "family": "joint_embedding_working",
+    "arm": "sigreg_jepa",
+    "cell": "dev_s005_within",
+    "split": "within",
+    "seed": 9001,
+    "beta": null,
+    "encoder": null,
+    "data_key": "dev_train__F1__0.05__s20261017__n100000x1000",
+    "source": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+    "sha256": "e36a437d77714985e59009528b6e73ba092e213b7b209c630b970f275ddc71a2",
+    "actual_sha256": "e36a437d77714985e59009528b6e73ba092e213b7b209c630b970f275ddc71a2",
+    "data_setting": 0.05,
+    "status": "available",
+    "eval": {
+     "zero_geometry": false,
+     "median_wrapper": false,
+     "encoder_variant": null,
+     "anchor": false,
+     "time_convention": "trigger"
+    },
+    "run_id": "dev_s005_within__sigreg_jepa__s9001",
+    "full_input_vertex_m": 0.14054395507374678
+   }
+  },
+  "unavailable": [],
+  "counts": {
+   "labels": 15,
+   "available": 15,
+   "unavailable": 0,
+   "core": 15,
+   "new": 2,
+   "optional": 6
+  }
+ },
+ "data_mirror": {
+  "base": "/work/dwong/p2_20261109/p2_data_mirror",
+  "stage_wall_seconds": 3.456,
+  "sets": {
+   "s005__train": {
+    "dataset_key": "dev_probe_train__F1__0.05__s20261017",
+    "source": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.05__s20261017",
+    "directory": "/work/dwong/p2_20261109/p2_data_mirror/dev_probe_train__F1__0.05__s20261017",
+    "source_manifest_sha256": "093ea8949b6f079841f389775bfab771b0e2d9d9cc20f4dff707bea1532ecfd3"
+   },
+   "s005__test": {
+    "dataset_key": "dev_probe_test__F1__0.05__s20261017",
+    "source": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.05__s20261017",
+    "directory": "/work/dwong/p2_20261109/p2_data_mirror/dev_probe_test__F1__0.05__s20261017",
+    "source_manifest_sha256": "c11edc711833dddc9520cb69435608ad4654f66ef80bcf49810d32fa667a8c5a"
+   },
+   "s030__train": {
+    "dataset_key": "dev_probe_train__F1__0.3__s20261017__n10000x50",
+    "source": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_train__F1__0.3__s20261017__n10000x50",
+    "directory": "/work/dwong/p2_20261109/p2_data_mirror/dev_probe_train__F1__0.3__s20261017__n10000x50",
+    "source_manifest_sha256": "6df84887b3469723da3ddb0646c292ab655b263d6063f5fd713432a53514bb46"
+   },
+   "s030__test": {
+    "dataset_key": "dev_probe_test__F1__0.3__s20261017__n10000x50",
+    "source": "/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/dev_probe_test__F1__0.3__s20261017__n10000x50",
+    "directory": "/work/dwong/p2_20261109/p2_data_mirror/dev_probe_test__F1__0.3__s20261017__n10000x50",
+    "source_manifest_sha256": "c68d83d1ef8cb202f3937f7cd48e3f74bd94f6d44ae203591053fde0605d1be2"
+   }
+  },
+  "rule": "staged once by this CPU preflight; the GPU stages verify and read it only, so no GPU job wall includes staging I/O",
+  "verified": true
+ },
+ "identity": {
+  "check": "identity T(0.25, 0.25) \u00a74",
+  "samples": 200,
+  "mismatches": 0,
+  "no_trigger_fallback_events": 0,
+  "max_time_difference_ns": 0.0,
+  "tolerance_ns": 1e-09,
+  "examples": [],
+  "pass": true
+ },
+ "determinism": {
+  "T0.5": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "T1.0": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "T1.0w": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "K5": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "K15": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "K30": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "P10": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  },
+  "R1": {
+   "samples": 200,
+   "mutations": 0,
+   "differences": 0,
+   "pass": true
+  }
+ },
+ "transforms": {
+  "T0.5__train": {
+   "written": {
+    "key": "T0.5__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/T0.5__train.npz",
+    "status": "written",
+    "sha256": "2894867c21f4e5f3cb5c11010b1be9e40f7fca51e4e98215a54042fda5742e8c"
+   },
+   "condition": {
+    "name": "T0.5",
+    "kind": "threshold",
+    "tau": 0.5,
+    "cal": 0.5,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 77,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": 0.0,
+    "max": 18.540803909301758,
+    "n_positive": 77,
+    "n_zero": 9922,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.0,
+     "q99": 0.0,
+     "q100": 18.540803909301758
+    }
+   }
+  },
+  "T0.5__test": {
+   "written": {
+    "key": "T0.5__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/T0.5__test.npz",
+    "status": "written",
+    "sha256": "c4ddd2e4d5b4acd1ef9c798eb1aaf622ec5b4f602eb8c8b89bcf4f27c6dc83d6"
+   },
+   "condition": {
+    "name": "T0.5",
+    "kind": "threshold",
+    "tau": 0.5,
+    "cal": 0.5,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 10000,
+   "trigger_efficiency": 1.0,
+   "n_window_edge": 81,
+   "trig_rel_distribution": {
+    "n": 10000,
+    "min": 0.0,
+    "max": 16.49086570739746,
+    "n_positive": 81,
+    "n_zero": 9919,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.0,
+     "q99": 0.0,
+     "q100": 16.49086570739746
+    }
+   }
+  },
+  "T1.0__train": {
+   "written": {
+    "key": "T1.0__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/T1.0__train.npz",
+    "status": "written",
+    "sha256": "7fbbfeadc8420a62d751f99016d17b55ea1c2aedc2a71c0cb3360afc7ceb44b3"
+   },
+   "condition": {
+    "name": "T1.0",
+    "kind": "threshold",
+    "tau": 1.0,
+    "cal": 1.0,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 913,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": 0.0,
+    "max": 18.913837432861328,
+    "n_positive": 913,
+    "n_zero": 9086,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.5522143483161928,
+     "q99": 3.324854235649137,
+     "q100": 18.913837432861328
+    }
+   }
+  },
+  "T1.0__test": {
+   "written": {
+    "key": "T1.0__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/T1.0__test.npz",
+    "status": "written",
+    "sha256": "c343b69c2fe1da31050c946ffa7fd531b1e018fea27d687d2e60bc663ca649fc"
+   },
+   "condition": {
+    "name": "T1.0",
+    "kind": "threshold",
+    "tau": 1.0,
+    "cal": 1.0,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 10000,
+   "trigger_efficiency": 1.0,
+   "n_window_edge": 887,
+   "trig_rel_distribution": {
+    "n": 10000,
+    "min": 0.0,
+    "max": 19.860857009887695,
+    "n_positive": 887,
+    "n_zero": 9113,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.578375771641726,
+     "q99": 5.2696313667297545,
+     "q100": 19.860857009887695
+    }
+   }
+  },
+  "T1.0w__train": {
+   "written": {
+    "key": "T1.0w__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/T1.0w__train.npz",
+    "status": "written",
+    "sha256": "56d9708fb4eeafb15c685a6e20d0a3e903ffbbdbf1ddb7373e8f9c46c75da512"
+   },
+   "condition": {
+    "name": "T1.0w",
+    "kind": "threshold",
+    "tau": 1.0,
+    "cal": 0.25,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 9996,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": -19.740254106577257,
+    "max": 18.92576068149232,
+    "n_positive": 9996,
+    "n_zero": 0,
+    "n_negative": 3,
+    "quantiles": {
+     "q0": -19.740254106577257,
+     "q1": 0.0014081476733953963,
+     "q5": 0.0038060656334331314,
+     "q25": 0.016372262210103933,
+     "q50": 0.052840985018244975,
+     "q75": 0.19096557106755088,
+     "q95": 0.8735086684137761,
+     "q99": 3.2410767873164628,
+     "q100": 18.92576068149232
+    }
+   }
+  },
+  "T1.0w__test": {
+   "written": {
+    "key": "T1.0w__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/T1.0w__test.npz",
+    "status": "written",
+    "sha256": "bc3b612b313886e8e9a9beec1c3342dfe90f89fb9ad61af121d8b1f4944f526e"
+   },
+   "condition": {
+    "name": "T1.0w",
+    "kind": "threshold",
+    "tau": 1.0,
+    "cal": 0.25,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 10000,
+   "trigger_efficiency": 1.0,
+   "n_window_edge": 9998,
+   "trig_rel_distribution": {
+    "n": 10000,
+    "min": -19.6659248706512,
+    "max": 20.079901703685348,
+    "n_positive": 9998,
+    "n_zero": 0,
+    "n_negative": 2,
+    "quantiles": {
+     "q0": -19.6659248706512,
+     "q1": 0.0013464425544515773,
+     "q5": 0.003636164271617853,
+     "q25": 0.014958421523794991,
+     "q50": 0.0505412917264591,
+     "q75": 0.18107354476779702,
+     "q95": 0.8663512271021917,
+     "q99": 5.3425229647998895,
+     "q100": 20.079901703685348
+    }
+   }
+  },
+  "K5__train": {
+   "written": {
+    "key": "K5__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/K5__train.npz",
+    "status": "written",
+    "sha256": "b9c225648ccce416759eeb3f98e8fdc43a520818777d45bd89cea5919ed4a749"
+   },
+   "condition": {
+    "name": "K5",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.05,
+    "unit": "module",
+    "namespace": "paper3/p2/dead_modules"
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 606,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": 0.0,
+    "max": 18.692472457885742,
+    "n_positive": 606,
+    "n_zero": 9393,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.17760082334280167,
+     "q99": 1.4113101291656525,
+     "q100": 18.692472457885742
+    }
+   }
+  },
+  "K5__test": {
+   "written": {
+    "key": "K5__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/K5__test.npz",
+    "status": "written",
+    "sha256": "f9130a3d06bce166fad51cec76ac2c2811a71728689c2b01135d89ffd9ec49da"
+   },
+   "condition": {
+    "name": "K5",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.05,
+    "unit": "module",
+    "namespace": "paper3/p2/dead_modules"
+   },
+   "n_events": 10000,
+   "n_triggered": 9998,
+   "trigger_efficiency": 0.9998,
+   "n_window_edge": 591,
+   "trig_rel_distribution": {
+    "n": 9998,
+    "min": 0.0,
+    "max": 19.592538833618164,
+    "n_positive": 591,
+    "n_zero": 9407,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.16299537047743762,
+     "q99": 1.546922301054006,
+     "q100": 19.592538833618164
+    }
+   }
+  },
+  "K15__train": {
+   "written": {
+    "key": "K15__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/K15__train.npz",
+    "status": "written",
+    "sha256": "91dadb93d615c991404bdaff909944d56685cabc3bb778508e1f1f9c6ba90aac"
+   },
+   "condition": {
+    "name": "K15",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.15,
+    "unit": "module",
+    "namespace": "paper3/p2/dead_modules"
+   },
+   "n_events": 10000,
+   "n_triggered": 9997,
+   "trigger_efficiency": 0.9997,
+   "n_window_edge": 1545,
+   "trig_rel_distribution": {
+    "n": 9997,
+    "min": 0.0,
+    "max": 19.89948081970215,
+    "n_positive": 1545,
+    "n_zero": 8452,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 1.0315696239471417,
+     "q99": 2.333116121292112,
+     "q100": 19.89948081970215
+    }
+   }
+  },
+  "K15__test": {
+   "written": {
+    "key": "K15__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/K15__test.npz",
+    "status": "written",
+    "sha256": "8a6792696dd2c9e42877f74915047a06735e9aab87c0ddacc8035f5efa1f772a"
+   },
+   "condition": {
+    "name": "K15",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.15,
+    "unit": "module",
+    "namespace": "paper3/p2/dead_modules"
+   },
+   "n_events": 10000,
+   "n_triggered": 9997,
+   "trigger_efficiency": 0.9997,
+   "n_window_edge": 1534,
+   "trig_rel_distribution": {
+    "n": 9997,
+    "min": 0.0,
+    "max": 19.592538833618164,
+    "n_positive": 1534,
+    "n_zero": 8463,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 1.0572725057601922,
+     "q99": 2.571961317062374,
+     "q100": 19.592538833618164
+    }
+   }
+  },
+  "K30__train": {
+   "written": {
+    "key": "K30__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/K30__train.npz",
+    "status": "written",
+    "sha256": "c4f1baf8bcfc8c310e7bd178b2f811ff5c7661f78d6ac0c4d199cfb5575a76ca"
+   },
+   "condition": {
+    "name": "K30",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.3,
+    "unit": "module",
+    "namespace": "paper3/p2/dead_modules"
+   },
+   "n_events": 10000,
+   "n_triggered": 9993,
+   "trigger_efficiency": 0.9993,
+   "n_window_edge": 3066,
+   "trig_rel_distribution": {
+    "n": 9993,
+    "min": 0.0,
+    "max": 20.538454055786133,
+    "n_positive": 3066,
+    "n_zero": 6927,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.24386246502399445,
+     "q95": 1.7790321588516218,
+     "q99": 3.978215703964233,
+     "q100": 20.538454055786133
+    }
+   }
+  },
+  "K30__test": {
+   "written": {
+    "key": "K30__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/K30__test.npz",
+    "status": "written",
+    "sha256": "b7684cbfa181228400ca21056835ebd171339fdb5eceed7c4c22414e622f8c48"
+   },
+   "condition": {
+    "name": "K30",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.3,
+    "unit": "module",
+    "namespace": "paper3/p2/dead_modules"
+   },
+   "n_events": 10000,
+   "n_triggered": 9991,
+   "trigger_efficiency": 0.9991,
+   "n_window_edge": 3097,
+   "trig_rel_distribution": {
+    "n": 9991,
+    "min": 0.0,
+    "max": 20.385528564453125,
+    "n_positive": 3097,
+    "n_zero": 6894,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.24914949387311935,
+     "q95": 1.8081116080284119,
+     "q99": 4.513262462615978,
+     "q100": 20.385528564453125
+    }
+   }
+  },
+  "P10__train": {
+   "written": {
+    "key": "P10__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/P10__train.npz",
+    "status": "written",
+    "sha256": "e15524f14aded96b2205de459e4748e1a800f02fac3e81ddab3e4dca5f3a7ffa"
+   },
+   "condition": {
+    "name": "P10",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.1,
+    "unit": "pmt",
+    "namespace": "paper3/p2/dead_pmts"
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 983,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": 0.0,
+    "max": 19.89948081970215,
+    "n_positive": 983,
+    "n_zero": 9016,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.5287636518478409,
+     "q99": 1.5872346067428604,
+     "q100": 19.89948081970215
+    }
+   }
+  },
+  "P10__test": {
+   "written": {
+    "key": "P10__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/P10__test.npz",
+    "status": "written",
+    "sha256": "f1a908851cfaf65da95b48cc8603899bb4541db89dc4cecad6cde5cd9f9cf8ab"
+   },
+   "condition": {
+    "name": "P10",
+    "kind": "dead",
+    "tau": null,
+    "cal": null,
+    "fraction": 0.1,
+    "unit": "pmt",
+    "namespace": "paper3/p2/dead_pmts"
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 1004,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": 0.0,
+    "max": 18.330442428588867,
+    "n_positive": 1004,
+    "n_zero": 8995,
+    "n_negative": 0,
+    "quantiles": {
+     "q0": 0.0,
+     "q1": 0.0,
+     "q5": 0.0,
+     "q25": 0.0,
+     "q50": 0.0,
+     "q75": 0.0,
+     "q95": 0.4999445319175732,
+     "q99": 1.9214587306976352,
+     "q100": 18.330442428588867
+    }
+   }
+  },
+  "R1__train": {
+   "written": {
+    "key": "R1__train",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/R1__train.npz",
+    "status": "written",
+    "sha256": "cf2f28b321c49e33c36a9c7983042a6dfce8cea336195546ff88c1f633b6fb47"
+   },
+   "condition": {
+    "name": "R1",
+    "kind": "r1",
+    "tau": 1.0,
+    "cal": 0.25,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 9999,
+   "trigger_efficiency": 0.9999,
+   "n_window_edge": 9996,
+   "trig_rel_distribution": {
+    "n": 9999,
+    "min": -19.740254106577257,
+    "max": 18.92576068149232,
+    "n_positive": 9996,
+    "n_zero": 0,
+    "n_negative": 3,
+    "quantiles": {
+     "q0": -19.740254106577257,
+     "q1": 0.0014081476733953963,
+     "q5": 0.0038060656334331314,
+     "q25": 0.016372262210103933,
+     "q50": 0.052840985018244975,
+     "q75": 0.19096557106755088,
+     "q95": 0.8735086684137761,
+     "q99": 3.2410767873164628,
+     "q100": 18.92576068149232
+    }
+   }
+  },
+  "R1__test": {
+   "written": {
+    "key": "R1__test",
+    "path": "/ceph/dwong/jepa/returns/ext_p2_20261109/transforms/R1__test.npz",
+    "status": "written",
+    "sha256": "40b29688965a5748fa0b818e4aeb8f4c88138690c49d612979c30a856cbd0486"
+   },
+   "condition": {
+    "name": "R1",
+    "kind": "r1",
+    "tau": 1.0,
+    "cal": 0.25,
+    "fraction": null,
+    "unit": null,
+    "namespace": null
+   },
+   "n_events": 10000,
+   "n_triggered": 10000,
+   "trigger_efficiency": 1.0,
+   "n_window_edge": 9998,
+   "trig_rel_distribution": {
+    "n": 10000,
+    "min": -19.6659248706512,
+    "max": 20.079901703685348,
+    "n_positive": 9998,
+    "n_zero": 0,
+    "n_negative": 2,
+    "quantiles": {
+     "q0": -19.6659248706512,
+     "q1": 0.0013464425544515773,
+     "q5": 0.003636164271617853,
+     "q25": 0.014958421523794991,
+     "q50": 0.0505412917264591,
+     "q75": 0.18107354476779702,
+     "q95": 0.8663512271021917,
+     "q99": 5.3425229647998895,
+     "q100": 20.079901703685348
+    }
+   }
+  }
+ },
+ "trigger_efficiency": {
+  "T0.5__train": 0.9999,
+  "T0.5__test": 1.0,
+  "T1.0__train": 0.9999,
+  "T1.0__test": 1.0,
+  "T1.0w__train": 0.9999,
+  "T1.0w__test": 1.0,
+  "K5__train": 0.9999,
+  "K5__test": 0.9998,
+  "K15__train": 0.9997,
+  "K15__test": 0.9997,
+  "K30__train": 0.9993,
+  "K30__test": 0.9991,
+  "P10__train": 0.9999,
+  "P10__test": 0.9999,
+  "R1__train": 0.9999,
+  "R1__test": 1.0
+ },
+ "window_edge": {
+  "T0.5__train": 77,
+  "T0.5__test": 81,
+  "T1.0__train": 913,
+  "T1.0__test": 887,
+  "T1.0w__train": 9996,
+  "T1.0w__test": 9998,
+  "K5__train": 606,
+  "K5__test": 591,
+  "K15__train": 1545,
+  "K15__test": 1534,
+  "K30__train": 3066,
+  "K30__test": 3097,
+  "P10__train": 983,
+  "P10__test": 1004,
+  "R1__train": 9996,
+  "R1__test": 9998
+ },
+ "pass": true,
+ "closure": {
+  "registered": false,
+  "extension": "paper3_p2_infoloss_2026-11-09",
+  "check": "import closure \u00a78.2",
+  "root": "/ceph/dwong/jepa/code/followup_20261103",
+  "checked_modules": 72,
+  "outside_allowlist": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "forced_import_exceptions": [
+   {
+    "module": "noise_module",
+    "path": "src/noise_module/__init__.py"
+   },
+   {
+    "module": "noise_module.artifacts.injector",
+    "path": "src/noise_module/artifacts/injector.py"
+   },
+   {
+    "module": "noise_module.artifacts.non_gaussian",
+    "path": "src/noise_module/artifacts/non_gaussian.py"
+   },
+   {
+    "module": "noise_module.budgets",
+    "path": "src/noise_module/budgets/__init__.py"
+   },
+   {
+    "module": "noise_module.budgets.al2o3_athermal",
+    "path": "src/noise_module/budgets/al2o3_athermal.py"
+   },
+   {
+    "module": "noise_module.budgets.reference_budget",
+    "path": "src/noise_module/budgets/reference_budget.py"
+   },
+   {
+    "module": "noise_module.budgets.tes_budget",
+    "path": "src/noise_module/budgets/tes_budget.py"
+   },
+   {
+    "module": "noise_module.core",
+    "path": "src/noise_module/core/__init__.py"
+   },
+   {
+    "module": "noise_module.core.config",
+    "path": "src/noise_module/core/config.py"
+   },
+   {
+    "module": "noise_module.core.generator",
+    "path": "src/noise_module/core/generator.py"
+   },
+   {
+    "module": "noise_module.core.streaming",
+    "path": "src/noise_module/core/streaming.py"
+   },
+   {
+    "module": "noise_module.core.templates",
+    "path": "src/noise_module/core/templates.py"
+   },
+   {
+    "module": "noise_module.core.utils",
+    "path": "src/noise_module/core/utils.py"
+   },
+   {
+    "module": "noise_module.multichannel",
+    "path": "src/noise_module/multichannel/__init__.py"
+   },
+   {
+    "module": "noise_module.multichannel.generator",
+    "path": "src/noise_module/multichannel/generator.py"
+   },
+   {
+    "module": "noise_module.resampling",
+    "path": "src/noise_module/resampling/__init__.py"
+   },
+   {
+    "module": "noise_module.resampling.psd",
+    "path": "src/noise_module/resampling/psd.py"
+   },
+   {
+    "module": "noise_module.spectral",
+    "path": "src/noise_module/spectral/__init__.py"
+   },
+   {
+    "module": "noise_module.spectral.models",
+    "path": "src/noise_module/spectral/models.py"
+   },
+   {
+    "module": "noise_module.temporal",
+    "path": "src/noise_module/temporal/__init__.py"
+   },
+   {
+    "module": "noise_module.temporal.wrapper",
+    "path": "src/noise_module/temporal/wrapper.py"
+   },
+   {
+    "module": "noise_module.validation",
+    "path": "src/noise_module/validation/__init__.py"
+   },
+   {
+    "module": "noise_module.validation.calibration",
+    "path": "src/noise_module/validation/calibration.py"
+   },
+   {
+    "module": "noise_module.validation.checks",
+    "path": "src/noise_module/validation/checks.py"
+   },
+   {
+    "module": "reconstruction_model",
+    "path": "src/reconstruction_model/__init__.py"
+   },
+   {
+    "module": "reconstruction_model.model",
+    "path": "src/reconstruction_model/model.py"
+   },
+   {
+    "module": "reconstruction_model.muon",
+    "path": "src/reconstruction_model/muon.py"
+   }
+  ],
+  "violations": [],
+  "pass": true
+ }
+}

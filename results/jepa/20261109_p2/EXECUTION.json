@@ -1,0 +1,347 @@
+{
+ "registered": false,
+ "extension": "paper3_p2_infoloss_2026-11-09",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-09_P2_INFOLOSS.md",
+ "runbook_sha256": "0dbabf1698f0deccaf1076c5a03a59c8bb9196a310cba2b1b0c741af5a56c57f",
+ "impl_commit": "b3cc41192a8c953414237c966d48f63e2a268bf4",
+ "acceptance": "docs/jepa/ACCEPTANCE_2026-11-09_P2_INFOLOSS.json",
+ "acceptance_commit": "34b540e73d48644e47fc31fafa9abb5e204ae499",
+ "review": "docs/jepa/REVIEW_2026-11-09_P2_INFOLOSS.md",
+ "review_verdict": "PASS",
+ "review_rounds": [
+  {
+   "commit": "d5e12e1",
+   "verdict": "BLOCK"
+  },
+  {
+   "commit": "b4d2029",
+   "verdict": "BLOCK"
+  },
+  {
+   "commit": "ef3b923",
+   "verdict": "PASS"
+  },
+  {
+   "commit": "b3cc411",
+   "verdict": "PASS",
+   "scope": "delta"
+  }
+ ],
+ "stages": {
+  "preflight": {
+   "pass": true,
+   "gate": "granted",
+   "gpu_projection_hours": 1.1761,
+   "gpu_sets": 249,
+   "s1_hours": 134.9708,
+   "entries_pass": true,
+   "identity": {
+    "check": "identity T(0.25, 0.25) \u00a74",
+    "samples": 200,
+    "mismatches": 0,
+    "no_trigger_fallback_events": 0,
+    "max_time_difference_ns": 0.0,
+    "tolerance_ns": 1e-09,
+    "examples": [],
+    "pass": true
+   }
+  },
+  "reproduce": {
+   "pass": true,
+   "tolerance_m": 0.001,
+   "models": {
+    "mae_within_trigger9000": 0.10491560199168913,
+    "fix9000": 0.21925859104673262,
+    "init9000": 0.16007169092238768,
+    "target_posfree9000": 0.12600451326211795,
+    "target_posfree9001": 0.14054395507374678
+   }
+  },
+  "conditions": {
+   "pass": true
+  },
+  "p2": {
+   "pass": true,
+   "P2-e": {
+    "verdict": "mixed",
+    "n_levels_supporting": 0,
+    "rho_s": {
+     "K5": 0.2821428571428571,
+     "K15": 0.2178571428571428,
+     "K30": 0.28571428571428564
+    },
+    "p": {
+     "K5": 0.1556844315568443,
+     "K15": 0.20807919208079192,
+     "K30": 0.14708529147085292
+    },
+    "rule": "supported: rho_s >= 0.5 and p <= 0.05 in at least two of the three K levels; refuted: rho_s <= 0.1 in all three; else mixed"
+   },
+   "primary": {
+    "K5": {
+     "rho_s": 0.2821428571428571,
+     "p": 0.1556844315568443,
+     "n": 15
+    },
+    "K15": {
+     "rho_s": 0.2178571428571428,
+     "p": 0.20807919208079192,
+     "n": 15
+    },
+    "K30": {
+     "rho_s": 0.28571428571428564,
+     "p": 0.14708529147085292,
+     "n": 15
+    }
+   },
+   "P2-b": {
+    "T0.5": {
+     "n_destroying": 1,
+     "n_cells": 15
+    },
+    "T1.0": {
+     "n_destroying": 15,
+     "n_cells": 15
+    },
+    "T1.0w": {
+     "n_destroying": 15,
+     "n_cells": 15
+    },
+    "K5": {
+     "n_destroying": 15,
+     "n_cells": 15
+    },
+    "K15": {
+     "n_destroying": 15,
+     "n_cells": 15
+    },
+    "K30": {
+     "n_destroying": 15,
+     "n_cells": 15
+    },
+    "P10": {
+     "n_destroying": 15,
+     "n_cells": 15
+    }
+   },
+   "P2-c": {
+    "n_recovered": 15,
+    "n_cells": 15
+   },
+   "P2-g_K30_cov50": {
+    "v_c_mean_m": 0.2652,
+    "v_N_mean_m": 0.1331
+   }
+  },
+  "x3p": {
+   "pass": true,
+   "classes": {
+    "1": {
+     "price_present": [],
+     "no_price": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001",
+      "frozen_target9000",
+      "frozen_target9001",
+      "target_posfree9000",
+      "target_posfree9001"
+     ],
+     "unclear": [],
+     "invariance_achieved": [],
+     "invariance_not_achieved": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001",
+      "frozen_target9000",
+      "frozen_target9001",
+      "target_posfree9000",
+      "target_posfree9001"
+     ],
+     "dominance": {
+      "calibration dominates": [
+       "mae_within_trigger9000",
+       "mae_within_trigger9001",
+       "mae_across_trigger9000",
+       "mae_across_trigger9001"
+      ],
+      "not available": [
+       "t1_s030_within_trigger9000",
+       "t1_s030_within_trigger9001",
+       "t1_s030_across_trigger9000",
+       "t1_s030_across_trigger9001",
+       "frozen_target9000",
+       "frozen_target9001",
+       "target_posfree9000",
+       "target_posfree9001"
+      ]
+     }
+    },
+    "3": {
+     "price_present": [],
+     "no_price": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001",
+      "frozen_target9000",
+      "frozen_target9001",
+      "target_posfree9000",
+      "target_posfree9001"
+     ],
+     "unclear": [],
+     "invariance_achieved": [],
+     "invariance_not_achieved": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001",
+      "frozen_target9000",
+      "frozen_target9001",
+      "target_posfree9000",
+      "target_posfree9001"
+     ],
+     "dominance": {
+      "calibration dominates": [
+       "mae_within_trigger9000",
+       "mae_within_trigger9001",
+       "mae_across_trigger9000",
+       "mae_across_trigger9001"
+      ],
+      "not available": [
+       "t1_s030_within_trigger9000",
+       "t1_s030_within_trigger9001",
+       "t1_s030_across_trigger9000",
+       "t1_s030_across_trigger9001",
+       "frozen_target9000",
+       "frozen_target9001",
+       "target_posfree9000",
+       "target_posfree9001"
+      ]
+     }
+    },
+    "10": {
+     "price_present": [],
+     "no_price": [
+      "t1_s030_within_trigger9000",
+      "frozen_target9000",
+      "frozen_target9001",
+      "target_posfree9001"
+     ],
+     "unclear": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001",
+      "target_posfree9000"
+     ],
+     "invariance_achieved": [],
+     "invariance_not_achieved": [
+      "mae_within_trigger9000",
+      "mae_within_trigger9001",
+      "mae_across_trigger9000",
+      "mae_across_trigger9001",
+      "t1_s030_within_trigger9000",
+      "t1_s030_within_trigger9001",
+      "t1_s030_across_trigger9000",
+      "t1_s030_across_trigger9001",
+      "frozen_target9000",
+      "frozen_target9001",
+      "target_posfree9000",
+      "target_posfree9001"
+     ],
+     "dominance": {
+      "calibration dominates": [
+       "mae_within_trigger9000",
+       "mae_within_trigger9001",
+       "mae_across_trigger9000",
+       "mae_across_trigger9001"
+      ],
+      "not available": [
+       "t1_s030_within_trigger9000",
+       "t1_s030_within_trigger9001",
+       "t1_s030_across_trigger9000",
+       "t1_s030_across_trigger9001",
+       "frozen_target9000",
+       "frozen_target9001",
+       "target_posfree9000",
+       "target_posfree9001"
+      ]
+     }
+    }
+   },
+   "readings": "results/jepa/20261109_p2/x3p.json"
+  },
+  "report": {
+   "exit": 0,
+   "figures": [
+    "p2_drift_ladder.png",
+    "p2e_scatter.png",
+    "p2g_abstention.png",
+    "x3p_price.png"
+   ]
+  }
+ },
+ "resources": {
+  "gpu_booked_hours": 0.4797,
+  "gpu_cap_hours": 1.3,
+  "cpu_booked_hours": 1.2513,
+  "cpu_cap_hours": 8.0,
+  "gpu_jobs": {
+   "reproduce": 0.0334,
+   "new-models": 0.0404,
+   "conditions": 0.4061
+  },
+  "ledger": {
+   "charged_before": 133.6708,
+   "charged_after": 134.1505,
+   "s1_hours": 135.4505,
+   "ceiling": 160.0
+  },
+  "entries_free_after": 39450,
+  "data_generated": false,
+  "training": false
+ },
+ "execution_fixes": [
+  {
+   "id": "F1",
+   "defect": "X3P energy block used photon rows (KeyError deposited_MeV)",
+   "adapter": "/work/dwong/p2_20261109/fix_x3p_energy.py",
+   "folded": false
+  },
+  {
+   "id": "F2",
+   "defect": "exact-subset _mask_rows received the info dict instead of the trig lookup",
+   "adapter": "/work/dwong/p2_20261109/fix_p2_exact.py",
+   "folded": false
+  }
+ ],
+ "environment": {
+  "mirror_base_used": "/dev/shm/p2_data_mirror",
+  "mirror_staged_by": "CPU preflight (plan.json data_mirror)",
+  "pinned_data_written": false,
+  "cpu_launcher": "direct nice -n 10, TMPDIR /work/dwong (shipped CPU launcher hard-coded to another extension)"
+ },
+ "note": "Stage 1 only.  No training, no data generation, no reading rule or threshold changed after outcomes.  F1/F2 are runtime adapters outside <P> per the Part A execution-fix precedent, pending an in-<P> fold + fresh review + re-issued acceptance."
+}

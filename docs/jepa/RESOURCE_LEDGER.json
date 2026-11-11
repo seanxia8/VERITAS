@@ -6,7 +6,7 @@
   "note": "v4 \u00a73.5.6 and \u00a76.1 (author decision 2026-10-17): LUCiD criterion work has its own caps on two shared servers. Added as a separate block; the v3 campaign rows below are unchanged. Titan also carries the Tier-1 bridge, generation and evaluation.",
   "E2_lucid_l40s_deepthought2": {
    "cap_gpu_hours": 170.0,
-   "charged_gpu_hours": 133.6708,
+   "charged_gpu_hours": 134.1505,
    "device": "L40S x2 (shared, <=45% memory per process, <=2 jobs)",
    "cap_history": [
     {
@@ -226,6 +226,42 @@
     "s1_hours": 133.7508,
     "entries_free_after": 40152,
     "evidence": "results/jepa/20261106_repair/ADDENDUM2_2026-11-08.json, READINGS_SUMMARY.md, SUMMARY.json, OUTCOME.json; /ceph/dwong/jepa/returns/ext_repair_20261106/addendum2/; ledger /ceph/dwong/jepa/returns/addendum_20261107_jobs.jsonl"
+   },
+   "p2_infoloss_2026-11-09": {
+    "runbook_sha256": "0dbabf1698f0deccaf1076c5a03a59c8bb9196a310cba2b1b0c741af5a56c57f",
+    "impl_commit": "b3cc41192a8c953414237c966d48f63e2a268bf4",
+    "acceptance_record": "docs/jepa/ACCEPTANCE_2026-11-09_P2_INFOLOSS.json",
+    "review_path": "docs/jepa/REVIEW_2026-11-09_P2_INFOLOSS.md",
+    "review_verdict": "PASS",
+    "status": "executed",
+    "part_a": {
+     "gpu_hours": 0.4797,
+     "gpu_cap_hours": 1.3,
+     "cpu_wall_hours": 1.2513,
+     "cpu_cap_hours": 8.0
+    },
+    "l40s_charged_before": 133.6708,
+    "l40s_charged_after": 134.1505,
+    "s1_hours": 135.4505,
+    "entries_free_after": 39450,
+    "data_generated": false,
+    "training": false,
+    "evidence": "results/jepa/20261109_p2/ (plan, reproduction, p2, x3p, SUMMARY, READINGS_SUMMARY, figures, LARGE_ARRAYS); <ext> /ceph/dwong/jepa/returns/ext_p2_20261109/",
+    "execution_fixes": [
+     {
+      "id": "F1",
+      "defect": "X3P energy blocks built from photon rows (KeyError deposited_MeV)",
+      "fix": "runtime adapter outside <P> /work/dwong/p2_20261109/fix_x3p_energy.py",
+      "folded": false
+     },
+     {
+      "id": "F2",
+      "defect": "exact-subset _mask_rows received the info dict instead of the trig lookup",
+      "fix": "runtime adapter outside <P> /work/dwong/p2_20261109/fix_p2_exact.py",
+      "folded": false
+     }
+    ],
+    "note": "Stage 1 only; no training, no data generation; runtime adapters outside <P> are recorded as execution fixes pending an in-<P> fold and re-review (Part A precedent)"
    }
   }
  },
