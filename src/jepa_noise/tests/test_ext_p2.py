@@ -117,7 +117,7 @@ def test_pure_hit_loss_transform_matches_the_generator():
     base, factor, _cfg = _threshold_run(1.0, 1.0)
     condition = p2x.DriftCondition("T1.0", "threshold", tau=1.0, cal=1.0)
     outcome = _compare(base, factor, condition, BASE)
-    assert outcome["compared"] + outcome["flagged"] >= 1
+    assert outcome["compared"] >= 1, "no event was compared"
     assert not outcome["failures"], outcome["failures"]
 
 
@@ -225,8 +225,7 @@ def test_dead_sets_are_nested_across_k_levels():
 
 def test_transform_bookkeeping_counts_window_edges():
     hits = _hits(BASE, _base_state())
-    infos = {}
-    for name in ("T1.0w", "T1.0"):
+    for name, expect_edges in (("T1.0w", True), ("T1.0", None)):
         condition = p2x.build_drift_conditions()[name]
         records = []
         for base in hits:
@@ -234,10 +233,13 @@ def test_transform_bookkeeping_counts_window_edges():
                                                base.charge_pe, base.time_ns, GEOM, BASE,
                                                lb.pmt_time_rule()))
         kept = [r for r in records if r is not None]
-        infos[name] = {"n_events": len(records), "n_kept": len(kept),
-                       "n_window_edge": sum(1 for r in kept if r["trig_rel"] > 0)}
-        assert infos[name]["n_kept"] <= infos[name]["n_events"]
-    assert set(infos) == {"T1.0w", "T1.0"}
+        n_edge = sum(1 for r in kept if r["trig_rel"] > 0)
+        assert kept, name
+        assert n_edge == sum(1 for r in kept if r["window_edge"])
+        if expect_edges:
+            # the walk moves the trigger later for essentially every kept event
+            assert n_edge >= len(kept) - 1
+        assert all(np.isfinite(r["trig_final"]) for r in kept)
 
 
 # --------------------------------------------------------------------- R2 / P2-e
@@ -454,3 +456,100 @@ def test_forbidden_generation_and_training_paths_are_never_reached(tmp_path, mon
     assert "train" not in p2x.MODES and "generate" not in p2x.MODES
     assert set(p2x.MODES) == {"dry-run", "preflight", "reproduce", "new-models",
                               "conditions", "p2", "x3p", "report"}
+
+# ------------------------------------------------- end-to-end cell / X3-P helpers
+def _toy_rows(runs, *, offset=0.0, seed=0, n_events=60):
+    rng = np.random.default_rng(seed)
+    events = rng.standard_normal((n_events, 8)) + offset
+    return {"events": events, "run_ids": np.repeat(np.asarray(runs), n_events // len(runs)),
+            "event_ids": np.arange(n_events),
+            "vertex": rng.standard_normal((n_events, 3)),
+            "log_yield": rng.standard_normal(n_events),
+            "n_hit": rng.integers(0, 30, n_events).astype(float),
+            "particle": np.full(n_events, "none"),
+            "contained": np.zeros(n_events, bool),
+            "deposited_MeV": np.full(n_events, np.nan)}
+
+
+def test_cell_reading_dead_condition_uses_both_run_roles():
+    """R2's dead design must cover the disjoint probe-test runs (review B1)."""
+    n_train = _toy_rows([f"tr{i}" for i in range(5)], seed=1)
+    n_test = _toy_rows([f"te{i}" for i in range(5)], seed=2)
+    c_train = dict(n_train, events=n_train["events"] + 0.3)
+    c_test = dict(n_test, events=n_test["events"] + 0.3)
+    condition = p2x.build_drift_conditions()["K5"]
+    data = {"condition": condition, "n_train": n_train, "n_test": n_test,
+            "c_train": c_train, "c_test": c_test,
+            "hbar": float(np.mean(n_train["n_hit"])), "geometry": GEOM}
+    frozen_vertex = p2x.er.fit_vertex_probe(n_train)
+    frozen_yield = p2x.er.fit_log_yield_probe(n_train)
+    reading = p2x.cell_reading(data, frozen_vertex=frozen_vertex,
+                               frozen_yield=frozen_yield)
+    assert reading["condition"] == "K5"
+    assert reading["delta_c_m"] is not None
+    assert reading["latent"]["status"] == "evaluated", reading["latent"]
+    assert reading["latent"]["r2_eq"] is not None
+    assert reading["refit"]["information_destroying"] is not None
+    # the exact-subset re-run must not crash either
+    exact = dict(data)
+    for key in ("c_train", "c_test"):
+        exact[key] = p2x._subset_rows(exact[key], np.ones(len(exact[key]["run_ids"]), bool))
+    p2x.cell_reading(exact, frozen_vertex=frozen_vertex, frozen_yield=frozen_yield)
+
+
+def test_x3p_dominance_evaluates_with_vertex_blocks():
+    """Review B3: vertex blocks must carry mean_error_m for the Part A X3 helper."""
+    rng = np.random.default_rng(9)
+    n = 60
+    rows = {"events": rng.standard_normal((n, 8)), "run_ids": np.repeat(np.arange(5), 12),
+            "event_ids": np.arange(n), "vertex": rng.standard_normal((n, 3)),
+            "log_yield": rng.standard_normal(n), "n_hit": np.full(n, 5.0)}
+    block = {"N": p2x._metric_block(rows, rows, "vertex"),
+             "D": p2x._metric_block(rows, rows, "vertex")}
+    assert block["N"]["mean_error_m"] is not None
+    assert p2x.er._metric_rows({"vertex": {"N": block["N"]}}, "vertex", "N") is not None
+    scalar = p2x._metric_block(rows, rows, "log_yield")
+    calibrated = {"vertex": {"D": block["D"]}, "energy": {"D": scalar},
+                  "log_yield": {"D": scalar}}
+    variant = {"vertex": {"N": block["N"], "D": block["D"]},
+               "energy": {"N": scalar, "D": scalar},
+               "log_yield": {"N": scalar, "D": scalar}}
+    dominance = p2x.er._x3_dominance(calibrated, variant)
+    assert dominance["status"] == "evaluated"
+
+
+def test_x0b_target_table_covers_every_reproduction_model():
+    assert set(p2x.X0B_MODELS) <= set(p2x.X0B_EXPECTED)
+    assert p2x.X0B_EXPECTED["fix9000"] == pytest.approx(0.219258)
+    for label in p2x.NEW_MODELS:
+        assert (p2x.X0B_EXPECTED[label]
+                == pytest.approx(p2x.NEW_MODEL_SPECS[label]["full_input_vertex_m"]))
+
+
+def test_mirror_dataset_round_trip(tmp_path, monkeypatch):
+    """The GPU-mode data mirror copies and verifies a written synthetic run."""
+    source = tmp_path / "data"
+    run = source / "runs" / "run0"
+    run.mkdir(parents=True)
+    lb.write_sparse_hits(run / "hits.npz", lb.SparseHitStore(
+        np.asarray(EVENTS, np.int64), np.zeros(len(EVENTS) + 1, np.int64),
+        np.empty(0, np.int32), np.empty(0, np.float32), np.empty(0, np.float32)))
+    np.savez(run / "events.npz", event_ids=np.asarray(EVENTS))
+    (run / "manifest.json").write_text("{}")
+    lb.write_sha256sums(run)
+    (source / "manifest.json").write_text("{}")
+    monkeypatch.setenv("JEPA_P2_MIRROR", str(tmp_path / "mirror"))
+    dataset = p2x.lr.Dataset(
+        key="toy__F1__0.05__s7", directory=source, cohort="toy", law="F1",
+        setting=0.05, setting_kind=None, seed=7, n_events=len(EVENTS),
+        run_length=len(EVENTS), runs=tuple([{"run_id": RUN_ID, "run_dir": "run0",
+                                             "event_id_start": 0,
+                                             "n_events": len(EVENTS)}]),
+        manifest={})
+    mirrored = p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
+    assert str(mirrored.directory).startswith(str(tmp_path / "mirror"))
+    assert (mirrored.directory / "runs" / "run0" / "hits.npz").is_file()
+    assert mirrored is not dataset
+    again = p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
+    assert again.directory == mirrored.directory
+

@@ -33,6 +33,7 @@ import dataclasses
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -57,7 +58,6 @@ EXT_ROOT = Path("/ceph/dwong/jepa/returns/ext_p2_20261109")
 RESULTS_DIR = "results/jepa/20261109_p2"
 JOBS_DIR = Path("/ceph/dwong/jepa/jobs")
 GUARD_JSON = JOBS_DIR / "guard_deepthought2.json"
-GUARD_JSON_CPU = JOBS_DIR / "guard_deepthought.json"
 JOBS_RECORD = EXT_ROOT / "jobs.jsonl"
 
 PILOT_EXT_ROOT = er.EXT_ROOT
@@ -114,6 +114,16 @@ NEW_MODEL_SPECS = {
     },
 }
 X0B_MODELS = ("mae_within_trigger9000", "fix9000", "init9000") + NEW_MODELS
+#: §4 X0-b N vertex targets (the three old models from Part A X0-b, ``fix9000``
+#: from ``results/jepa/20261107_shortcut/reproduction.json`` = 0.219258; the two
+#: new models from ``readings.json`` r2_b/r2_c).
+X0B_EXPECTED = {
+    "mae_within_trigger9000": 0.104916,
+    "fix9000": 0.219258,
+    "init9000": 0.160072,
+    "target_posfree9000": 0.12600451326211795,
+    "target_posfree9001": 0.14054395507374678,
+}
 
 # ============================================================ drifts §2.3
 SEED = 20261109
@@ -148,6 +158,7 @@ P2F_SHARE = 0.8
 X3P_PRICE_HIGH = 1.20
 X3P_PRICE_NONE = 1.05
 X3P_ROBUST_VERTEX_M = 0.002
+X3P_ROBUST_VERTEX_CI_M = 0.003
 X3P_ROBUST_ENERGY_REL = 0.05
 X3P_RANKS = (1, 3, 10)
 X3P_CONTROLS = 20
@@ -352,6 +363,69 @@ def assert_closure(mode, root) -> dict:
 def open_probe_sets(config, gen, geometry, data_root, *, setting=S005, log=print) -> dict:
     """Open the pinned probe sets read-only through ``ext_followup`` (Part A §2.1)."""
     return er.open_probe_sets(config, gen, geometry, data_root, setting=setting, log=log)
+
+
+# ===================================================== pinned-data RAM mirror
+def mirror_base() -> Path:
+    """Where the GPU modes stage a verified read-only mirror of the pinned sets.
+
+    ``JEPA_P2_MIRROR`` wins (the operator points it at RAM, e.g. ``/dev/shm``);
+    otherwise the job's ``TMPDIR`` (``/work/dwong/...``) is used.  The mirrored
+    bytes are copies only: the pinned data under ``/ceph`` is never written and
+    every mirrored run's ``SHA256SUMS`` is verified against the pinned manifest.
+    """
+    base = (os.environ.get("JEPA_P2_MIRROR") or os.environ.get("TMPDIR")
+            or "/work/dwong")
+    return Path(base) / "p2_data_mirror"
+
+
+def _mirror_ok(dataset, root) -> bool:
+    marker = root / "mirror.json"
+    if not marker.is_file():
+        return False
+    payload = read_json(marker, {}) or {}
+    if payload.get("source_manifest_sha256") != dataset.manifest_sha256():
+        return False
+    for row in dataset.runs:
+        run = root / "runs" / row["run_dir"]
+        if not (run / "hits.npz").is_file() or not (run / "events.npz").is_file():
+            return False
+        try:
+            lb.verify_sha256sums(run)
+        except Exception:
+            return False
+    return True
+
+
+def mirror_dataset(dataset, *, log=print):
+    """A verified read-only copy of one pinned probe set for fast GPU-job reads."""
+    root = mirror_base() / dataset.key
+    if _mirror_ok(dataset, root):
+        return dataclasses.replace(dataset, directory=root)
+    root.mkdir(parents=True, exist_ok=True)
+    for row in dataset.runs:
+        source = dataset.directory / "runs" / row["run_dir"]
+        target = root / "runs" / row["run_dir"]
+        target.mkdir(parents=True, exist_ok=True)
+        for name in ("hits.npz", "events.npz", "twin_hits.npz", "manifest.json",
+                     "SHA256SUMS"):
+            if (source / name).is_file():
+                shutil.copyfile(source / name, target / name)
+        lb.verify_sha256sums(target)
+    for name in ("manifest.json", "SHA256SUMS"):
+        if (dataset.directory / name).is_file():
+            shutil.copyfile(dataset.directory / name, root / name)
+    write_json(root / "mirror.json",
+               {"source": str(dataset.directory),
+                "source_manifest_sha256": dataset.manifest_sha256(),
+                "n_runs": len(dataset.runs), "verified": True,
+                "note": "read-only copy of the pinned set for fast job reads"})
+    log(f"[p2] mirrored {dataset.key} -> {root} ({len(dataset.runs)} runs, verified)")
+    return dataclasses.replace(dataset, directory=root)
+
+
+def mirror_probe_sets(probes, *, log=print) -> dict:
+    return {role: mirror_dataset(dataset, log=log) for role, dataset in probes.items()}
 
 
 # =========================================================== geometry helpers
@@ -1003,6 +1077,13 @@ def entries_preflight(*, guard_json=GUARD_JSON, free_entries=None,
     return out
 
 
+def require_stage(relative, *, message) -> dict:
+    payload = read_json(Path(EXT_ROOT) / relative, None)
+    if payload is None:
+        raise RuntimeError(f"{message}: {Path(EXT_ROOT) / relative} is missing")
+    return payload
+
+
 def require_preflight_plan(root=None) -> dict:
     path = Path(EXT_ROOT) / "x0" / "plan.json"
     payload = read_json(path, None)
@@ -1193,8 +1274,11 @@ def reproduce(root=None, *, config, gen, arms_config, geometry,
     gate = assert_authorised("reproduce", root=root, log=log)
     started = time.time()
     inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
-    assert_budget("gpu", len(X0B_MODELS) * 2 * PHOTON_SET_WALL_S / 3600.0)
-    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+    assert_budget("gpu", len(X0B_MODELS) * 2 * PHOTON_SET_WALL_S / 3600.0
+                  * PROJECTION_FACTOR)
+    require_preflight_plan(root)
+    probes005 = mirror_probe_sets(
+        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log), log=log)
     payload = {"registered": False, "extension": EXTENSION,
                "check": "X0-b reproduction gate §4", "runbook": RUNBOOK_REL,
                "tolerance_m": er.X0B_TOLERANCE_M, "models": {},
@@ -1218,11 +1302,12 @@ def reproduce(root=None, *, config, gen, arms_config, geometry,
         fitted = er.fit_vertex_probe(rows["train"])
         metrics = er.vertex_metrics(rows["train"], rows["test"], fitted=fitted)
         got = metrics["mean_error_m"]
+        expected = X0B_EXPECTED[label]
         if label in NEW_MODEL_SPECS:
-            expected = NEW_MODEL_SPECS[label]["full_input_vertex_m"]
             source = "results/jepa/20261107_shortcut/readings.json r2_b/r2_c"
+        elif label == "fix9000":
+            source = "results/jepa/20261107_shortcut/reproduction.json item fix9000"
         else:
-            expected = er.X0B_TARGETS[label][0]
             source = "Part A X0-b N (refit = frozen)"
         check = er.check_reproduction(label, got, expected)
         entry = {"status": "evaluated", "expected_m": check["expected"],
@@ -1295,9 +1380,13 @@ def new_models(root=None, *, config, gen, arms_config, geometry,
     gate = assert_authorised("new-models", root=root, log=log)
     started = time.time()
     inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
-    assert_budget("gpu", len(NEW_MODELS) * 7 * PHOTON_SET_WALL_S / 3600.0)
-    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
-    probes030 = open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log)
+    assert_budget("gpu", len(NEW_MODELS) * 7 * PHOTON_SET_WALL_S / 3600.0
+                  * PROJECTION_FACTOR)
+    require_preflight_plan(root)
+    probes005 = mirror_probe_sets(
+        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log), log=log)
+    probes030 = mirror_probe_sets(
+        open_probe_sets(config, gen, geometry, data_root, setting=S030, log=log), log=log)
     delta = er.run_log_gain_vectors(probes030["train"], geometry)
     delta.update(er.run_log_gain_vectors(probes030["test"], geometry))
     payload = {"registered": False, "extension": EXTENSION,
@@ -1341,6 +1430,8 @@ def new_models(root=None, *, config, gen, arms_config, geometry,
             "A_hat_identity": fit["A_hat_identity"],
             "cache": {role: {name: rows[role][name].get("cache_status")
                              for name in rows[role]} for role in ("train", "test")}}
+    payload["pass"] = all(entry.get("status") == "evaluated"
+                          for entry in payload["models"].values())
     payload["closure"] = assert_closure("new-models", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "new_models.json", payload)
@@ -1382,8 +1473,10 @@ def conditions(root=None, *, config, gen, arms_config, geometry,
     inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
     projection = gpu_set_projection()
     assert_budget("gpu", len(CORE_MODELS) * (len(CONDITIONS) * 2 + 1)
-                  * PHOTON_SET_WALL_S / 3600.0)
-    probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
+                  * PHOTON_SET_WALL_S / 3600.0 * PROJECTION_FACTOR)
+    require_stage("x0/plan.json", message="conditions needs the X0-a plan")
+    probes005 = mirror_probe_sets(
+        open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log), log=log)
     drift = build_drift_conditions()
     payload = {"registered": False, "extension": EXTENSION, "check": "§2.3 conditions",
                "runbook": RUNBOOK_REL, "conditions": list(drift), "models": {},
@@ -1420,6 +1513,7 @@ def conditions(root=None, *, config, gen, arms_config, geometry,
         payload["models"][label] = entry
     payload["complete"] = all(entry.get("status") == "evaluated"
                               for entry in payload["models"].values())
+    payload["pass"] = bool(payload["complete"])
     payload["closure"] = assert_closure("conditions", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "conditions.json", payload)
@@ -1589,7 +1683,8 @@ def cell_reading(data, *, frozen_vertex, frozen_yield, frozen_raw_vertex=None,
     delta = _difference_reading(n_errors, c_errors, run_ids)
     delta_yield = _difference_reading(n_yield, c_yield, run_ids, statistic="rms")
     v_n, v_c = _mean(n_errors), _mean(c_errors)
-    eligible = bool(abs(delta["difference"]) >= DRIFT_COST_MIN_M and delta["excludes_zero"])
+    # §3: the drift cost is eligible if it is >= 3 mm with a CI excluding 0.
+    eligible = bool(delta["difference"] >= DRIFT_COST_MIN_M and delta["excludes_zero"])
     out = {"condition": condition.name, "n_events": int(n_errors.size),
            "v_N_m": v_n, "v_c_m": v_c,
            "delta_c_m": delta["difference"], "delta_ci_m": delta["ci95"],
@@ -1614,8 +1709,11 @@ def cell_reading(data, *, frozen_vertex, frozen_yield, frozen_raw_vertex=None,
         "R_c": float(_rms(r3_yield) - _rms(n_yield)),
         "ci": _difference_reading(n_yield, r3_yield, run_ids, statistic="rms")["ci95"]}
     # ---- R2 latent repair from the known detector state (label-free, §3)
-    dead_by_run = _dead_by_run(c_train if c_train is not None else c_test, condition,
-                               data["geometry"])
+    runs_both = set(np.asarray(c_train["run_ids"]).astype(str)) | set(
+        np.asarray(c_test["run_ids"]).astype(str))
+    dead_by_run = (None if condition.kind != "dead" else
+                   {str(run): condition.dead_fraction_by_module(str(run), data["geometry"])
+                    for run in runs_both})
     u_train = r2_design(c_train, condition, dead_by_run, data["hbar"], data["geometry"])
     u_test = r2_design(c_test, condition, dead_by_run, data["hbar"], data["geometry"])
     index_nt, index_ct, runs_t = _align_subset(n_train, c_train)
@@ -1665,12 +1763,12 @@ def cell_reading(data, *, frozen_vertex, frozen_yield, frozen_raw_vertex=None,
                       & set(zip(runs_t10, np.asarray(t10_test["event_ids"])[index_t10]))
                       & set(zip(runs_1, np.asarray(r1_test["event_ids"])[index_r1])))
             if common:
-                v_w = _errors_on_keys(n_test, c_test, frozen_vertex, common)
-                v_t10 = _errors_on_keys(n_test, t10_test, frozen_vertex, common)
-                v_r1 = _errors_on_keys(n_test, r1_test, frozen_vertex, common)
-                pairs = np.asarray(sorted(common), dtype=object)
+                pairs = sorted(common)
+                v_w = _errors_on_keys(n_test, c_test, frozen_vertex, pairs)
+                v_t10 = _errors_on_keys(n_test, t10_test, frozen_vertex, pairs)
+                v_r1 = _errors_on_keys(n_test, r1_test, frozen_vertex, pairs)
                 runs_c = np.asarray([key[0] for key in pairs], dtype=object)
-                v_n_common = _errors_on_keys(n_test, n_test, frozen_vertex, common)
+                v_n_common = _errors_on_keys(n_test, n_test, frozen_vertex, pairs)
                 bootstrap = _paired(v_t10, v_r1, runs_c)
                 denominator = _mean(v_w) - _mean(v_n_common)
                 walk_share = (None if abs(denominator) <= 0
@@ -1690,8 +1788,10 @@ def cell_reading(data, *, frozen_vertex, frozen_yield, frozen_raw_vertex=None,
                         and abs(bootstrap["ci95_m"][0]) <= P2C_RECOVERY_TOL_M
                         and abs(bootstrap["ci95_m"][1]) <= P2C_RECOVERY_TOL_M),
                     "class": ("invertible part recovered"
-                              if (abs(float(bootstrap["mean_difference_m"]))
-                                  <= P2C_RECOVERY_TOL_M)
+                              if abs(float(bootstrap["mean_difference_m"]))
+                              <= P2C_RECOVERY_TOL_M
+                              and abs(bootstrap["ci95_m"][0]) <= P2C_RECOVERY_TOL_M
+                              and abs(bootstrap["ci95_m"][1]) <= P2C_RECOVERY_TOL_M
                               else "not recovered")}
     # ---- raw-feature reference (§5 P2-b)
     out["raw"] = {"status": "not available"}
@@ -1938,7 +2038,7 @@ def _p2f(full: dict, condition_name: str) -> dict:
     delta = full.get("delta_c_m")
     if delta is None or abs(delta) <= 0:
         return {"status": "no drift cost"}
-    v_c = full["v_c_m"]; v_n = full["v_N_m"]
+    v_c = full["v_c_m"]
     r3 = full.get("refit") or {}
     rho_r3 = (None if r3.get("v_R3_m") is None
               else (v_c - float(r3["v_R3_m"])) / float(delta))
@@ -1972,6 +2072,8 @@ def p2(root=None, *, config, gen, arms_config, geometry,
     gate = assert_authorised("p2", root=root, log=log)
     started = time.time()
     plan = require_preflight_plan(root)
+    require_stage("conditions.json", message="p2 needs the conditions stage")
+    del plan
     inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
     probes005 = open_probe_sets(config, gen, geometry, data_root, setting=S005, log=log)
     drift = build_drift_conditions()
@@ -1982,11 +2084,12 @@ def p2(root=None, *, config, gen, arms_config, geometry,
     raw = build_raw_features(probes005, drift, geometry, gen, log=log)
     gain_table = gain_r2_eq_table(root)
     # the N-train mean hit count (h̄) is a property of the N set, not the model
-    first = model_row(inv, CORE_MODELS[0])
     hbar = None
     n0 = cache_rows(n_embedding_cache(CORE_MODELS[0]), er.embedding_cache_key("train", "N"))
-    if n0 is not None:
+    if n0 is not None and np.asarray(n0["n_hit"]).size:
         hbar = float(np.mean(np.asarray(n0["n_hit"], float)))
+    if hbar is None:
+        raise RuntimeError("p2: the N-train hit counts are unavailable")
     payload = {"registered": False, "extension": EXTENSION,
                "check": "P2 readings §5", "runbook": RUNBOOK_REL,
                "models": {}, "conditions": list(CONDITIONS), "hbar": hbar,
@@ -2022,13 +2125,25 @@ def p2(root=None, *, config, gen, arms_config, geometry,
     payload["P2-e"] = _p2e(payload["models"])
     payload["P2-b"] = _p2b(payload["models"])
     payload["P2-g"] = _p2g(payload["models"])
-    payload["complete"] = all(entry.get("gain_r2_eq") is not None
-                              for entry in payload["models"].values())
+    missing = [label for label in CORE_MODELS
+               if payload["models"].get(label, {}).get("gain_r2_eq") is None]
+    missing_conditions = [label for label, entry in payload["models"].items()
+                          if not all((entry.get("conditions") or {}).get(name, {}).get(
+                              "status") != "unavailable" for name in CONDITIONS)]
+    payload["missing_gain_r2_eq"] = missing
+    payload["missing_conditions"] = missing_conditions
+    payload["complete"] = bool(not missing and not missing_conditions
+                               and len(payload["models"]) == len(CORE_MODELS))
+    payload["pass"] = bool(payload["complete"])
     payload["closure"] = assert_closure("p2", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "p2.json", payload)
     record_job("p2", "cpu", time.time() - started)
     return payload
+
+
+def _missing_gain(models) -> list:
+    return [label for label, entry in models.items() if entry.get("gain_r2_eq") is None]
 
 
 def _eligible_cells(models, level) -> tuple:
@@ -2045,7 +2160,10 @@ def _eligible_cells(models, level) -> tuple:
 
 
 def _p2e(models) -> dict:
-    out = {"primary": {}, "secondary_T1.0": {}}
+    out = {"primary": {}, "secondary_T1.0": {},
+           "n_models_expected": len(CORE_MODELS),
+           "n_models_in_table": len(models),
+           "missing_gain_r2_eq": _missing_gain(models)}
     for level in ("K5", "K15", "K30"):
         x, y, used = _eligible_cells(models, level)
         stats = permutation_spearman(x, y, level=level) if x.size >= 3 else {
@@ -2053,6 +2171,10 @@ def _p2e(models) -> dict:
             "permutations": P2E_PERMUTATIONS, "status": "fewer than 3 eligible models"}
         out["primary"][level] = dict(stats, models=used)
     out["class"] = p2e_class(out["primary"])
+    if out["missing_gain_r2_eq"] or len(models) != len(CORE_MODELS):
+        out["class"]["verdict"] = "not evaluable"
+        out["class"]["reason"] = ("gain R2_eq missing for: "
+                                  + ", ".join(out["missing_gain_r2_eq"]))
     x, y, used = _eligible_cells(models, "T1.0")
     out["secondary_T1.0"] = dict(
         (permutation_spearman(x, y, level="T1.0") if x.size >= 3
@@ -2112,9 +2234,12 @@ def _metric_block(train_rows, test_rows, kind) -> dict | None:
     if kind == "vertex":
         fitted = er.fit_vertex_probe(train_rows)
         metrics = er.vertex_metrics(train_rows, test_rows, fitted=fitted)
-        return {"resolution": metrics["mean_error_m"], "errors": metrics["errors"],
-                "run_ids": metrics["run_ids"], "event_ids": metrics["event_ids"],
-                "n_events": metrics["n_events"]}
+        # ``_metric_rows`` (reused) reads ``mean_error_m`` for vertex and
+        # ``resolution`` otherwise; emit both so the Part A X3 helpers work.
+        return {"resolution": metrics["mean_error_m"],
+                "mean_error_m": metrics["mean_error_m"],
+                "errors": metrics["errors"], "run_ids": metrics["run_ids"],
+                "event_ids": metrics["event_ids"], "n_events": metrics["n_events"]}
     if kind == "log_yield":
         fitted = er.fit_log_yield_probe(train_rows)
         metrics = er.log_yield_metrics(train_rows, test_rows, fitted=fitted)
@@ -2211,10 +2336,25 @@ def x3p(root=None, *, config, gen, arms_config, geometry,
                "gate": {"status": gate["status"]}, "wall_seconds": None,
                "raw_feature_price": X3P_RAW_FEATURE_PRICE}
     fisher = read_json(root / "results/jepa/20261106_repair/x3_fisher.json", None)
+    fisher_rows = None
+    if fisher:
+        model_rows = {}
+        for name, entry in (fisher.get("models") or {}).items():
+            if not isinstance(entry, dict):
+                continue
+            model_rows[str(name)] = {
+                "median_crlb": entry.get("median_crlb"),
+                "sigma90": entry.get("sigma90"),
+                "n_events": entry.get("n_events")}
+        fisher_rows = {"source": "results/jepa/20261106_repair/x3_fisher.json",
+                       "theta": fisher.get("theta"), "sigmas": fisher.get("sigmas"),
+                       "models": model_rows,
+                       "underfull_caveat": "descriptive; the Part A Fisher rows "
+                                           "are reported beside rho_E, unchanged"}
     payload["X3P-4"] = {"raw_feature_price": X3P_RAW_FEATURE_PRICE,
-                        "fisher": (None if fisher is None else {
-                            "source": "results/jepa/20261106_repair/x3_fisher.json",
-                            "underfull_caveat": "descriptive; Part A numbers"})}
+                        "fisher": fisher_rows,
+                        "note": "rho_E beside the Fisher rows and the raw-feature "
+                                "3.56 (descriptive)"}
     selected = list(X3P_MODELS if labels is None else labels)
     for label in selected:
         row = model_row(inv, label)
@@ -2285,8 +2425,15 @@ def x3p(root=None, *, config, gen, arms_config, geometry,
             entry.setdefault("X3P-2", {})[str(r)] = _x3p2(variant)
         payload["models"][label] = entry
     payload["X3P-classes"] = _x3p_classes(payload["models"])
+    payload["X3P-4"]["rho_E_beside_fisher"] = {
+        label: {str(r): (((entry.get("price") or {}).get(str(r)) or {}).get(
+            "log_yield") or {}).get("rho_E")
+                for r in X3P_RANKS}
+        for label, entry in payload["models"].items()
+        if entry.get("status") == "evaluated"}
     payload["complete"] = all(entry.get("status") == "evaluated"
                               for entry in payload["models"].values())
+    payload["pass"] = bool(payload["complete"])
     payload["closure"] = assert_closure("x3p", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "x3p.json", payload)
@@ -2310,8 +2457,8 @@ def _x3p2(variant) -> dict:
         out["ci_m"] = [float(bootstrap["ci95_m"][0]), float(bootstrap["ci95_m"][1])]
         out["invariance_achieved"] = bool(
             abs(out["delta_vertex_m"]) <= X3P_ROBUST_VERTEX_M
-            and out["ci_m"][0] >= -3.0 * X3P_ROBUST_VERTEX_M
-            and out["ci_m"][1] <= 3.0 * X3P_ROBUST_VERTEX_M)
+            and out["ci_m"][0] >= -X3P_ROBUST_VERTEX_CI_M
+            and out["ci_m"][1] <= X3P_ROBUST_VERTEX_CI_M)
     e_n = (variant.get("energy") or {}).get("N")
     e_d = (variant.get("energy") or {}).get("D")
     if e_n is not None and e_d is not None and e_n.get("resolution"):
@@ -2430,19 +2577,30 @@ def _readme(summary) -> str:
                      f"n={block.get('n')}")
     lines.append(f"- verdict: **{(p2e.get('class') or {}).get('verdict')}**")
     lines += ["", "## Per-cell readings", ""]
-    lines += ["| model | condition | v_N | v_c | delta_c | R_c (refit) | "
-              "information-destroying | rho_R2 | r2_eq |", "|---|---|---|---|---|---|---|---|---|"]
+    lines += ["The exact-subset columns are the §2.3 item 3 robustness reading "
+              "(events with trig' <= 0) alongside the full-cell reading.",
+              "",
+              "| model | condition | n | v_N | v_c | delta_c | R_c (refit) | "
+              "information-destroying | rho_R2 | r2_eq | exact n | exact delta_c | "
+              "exact R_c | exact rho_R2 |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for label, entry in (summary.get("cells") or {}).items():
         for name, cell in (entry.get("conditions") or {}).items():
             if cell.get("status") == "unavailable":
                 continue
             refit = cell.get("refit") or {}
             latent = cell.get("latent") or {}
-            lines.append(f"| {label} | {name} | {_fmt(cell.get('v_N_m'))} | "
+            exact = cell.get("exact_subset") or {}
+            lines.append(f"| {label} | {name} | {cell.get('n_events')} | "
+                         f"{_fmt(cell.get('v_N_m'))} | "
                          f"{_fmt(cell.get('v_c_m'))} | {_fmt(cell.get('delta_c_m'))} | "
                          f"{_fmt(refit.get('R_c_m'))} | "
                          f"{refit.get('information_destroying')} | "
-                         f"{_fmt(latent.get('rho_R2'))} | {_fmt(latent.get('r2_eq'))} |")
+                         f"{_fmt(latent.get('rho_R2'))} | {_fmt(latent.get('r2_eq'))} | "
+                         f"{exact.get('n_events') if exact else None} | "
+                         f"{_fmt(exact.get('delta_c_m')) if exact else None} | "
+                         f"{_fmt(exact.get('R_c_m')) if exact else None} | "
+                         f"{_fmt(exact.get('rho_R2')) if exact else None} |")
     lines += ["", "## P2-c (T1.0w invertible part)", ""]
     for label, block in (summary.get("p2c") or {}).items():
         lines.append(f"- {label}: walk_share={_fmt(block.get('walk_share'))}, "
@@ -2553,7 +2711,7 @@ def render_figures(p2_payload, x3p_payload, out_dir, *, log=print) -> dict:
         axes.legend(fontsize=7)
 
     def x3p_price(axes):
-        classes = (x3p_payload.get("classes") or {})
+        classes = (x3p_payload.get("X3P-classes") or x3p_payload.get("classes") or {})
         ranks = sorted(int(r) for r in classes)
         mean_price, mean_control = [], []
         for r in ranks:
