@@ -37,6 +37,7 @@ MODES = ("dry-run", "equivalence", "p2a", "shift", "report")
 ROOT = Path(__file__).resolve().parents[2]
 P2_EXT_ROOT = p2x.EXT_ROOT
 RESULTS_DIR = "results/jepa/20261111_p2a"
+P2_RESULTS_DIR = p2x.RESULTS_DIR          # results/jepa/20261109_p2
 RUNBOOK_REL = "docs/jepa/RUNBOOK_2026-11-11_P2_ADDENDUM.md"
 RUNBOOK_SHA256 = "f97ed8101e5d0383a85ada70d974df4bb54bc70e63865d48fe77cb879cf59e0a"
 ACCEPTANCE_REL = "docs/jepa/ACCEPTANCE_2026-11-11_P2_ADDENDUM.json"
@@ -404,14 +405,14 @@ def load_inputs(root=None, *, config, gen, geometry, data_root=None, log=print) 
 
 
 def committed_p2(root=None) -> dict:
-    payload = read_json(_resolve_root(root) / RESULTS_DIR / "p2.json", None)
+    payload = read_json(_resolve_root(root) / P2_RESULTS_DIR / "p2.json", None)
     if payload is None:
         raise RuntimeError("A1 needs the committed results/jepa/20261109_p2/p2.json")
     return payload
 
 
 def committed_x3p(root=None) -> dict:
-    payload = read_json(_resolve_root(root) / RESULTS_DIR / "x3p.json", None)
+    payload = read_json(_resolve_root(root) / P2_RESULTS_DIR / "x3p.json", None)
     if payload is None:
         raise RuntimeError("A6 needs the committed results/jepa/20261109_p2/x3p.json")
     return payload
