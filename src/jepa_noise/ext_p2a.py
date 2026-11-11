@@ -1012,9 +1012,13 @@ def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
     original_root = p2x.EXT_ROOT
     original_gate = p2x.assert_authorised
     original_jobs = p2x.JOBS_RECORD
+    original_closure = p2x.assert_closure
     p2x.EXT_ROOT = scratch
     p2x.JOBS_RECORD = scratch / "jobs.jsonl"
+    # scoped: the inner x3p must run under the addendum's own acceptance/closure
     p2x.assert_authorised = lambda *a, **k: {"status": "equivalence"}
+    p2x.assert_closure = lambda *a, **k: {"pass": True,
+                                          "status": "equivalence"}
     try:
         fresh = p2x.x3p(root, config=config, gen=gen, arms_config=None,
                         geometry=geometry, data_root=data_root, device="cpu",
@@ -1023,6 +1027,7 @@ def run_equivalence(root=None, *, config, gen, geometry, data_root=None,
         p2x.EXT_ROOT = original_root
         p2x.JOBS_RECORD = original_jobs
         p2x.assert_authorised = original_gate
+        p2x.assert_closure = original_closure
     comparisons = {}
     for label in er.MAE_MODELS:
         comparisons[label] = _cell_equivalence(
