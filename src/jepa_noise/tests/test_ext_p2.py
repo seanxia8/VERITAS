@@ -553,3 +553,15 @@ def test_mirror_dataset_round_trip(tmp_path, monkeypatch):
     again = p2x.mirror_dataset(dataset, log=lambda *a, **k: None)
     assert again.directory == mirrored.directory
 
+def test_later_stages_reuse_the_verified_inventory(tmp_path, monkeypatch):
+    """GPU stages read the X0-a inventory rather than re-hashing checkpoints."""
+    monkeypatch.setattr(p2x, "EXT_ROOT", tmp_path)
+    with pytest.raises(RuntimeError):
+        p2x.load_verified_inventory()
+    (tmp_path / "x0").mkdir()
+    p2x.write_json(tmp_path / "x0" / "inventory.json", {"hash_files": False})
+    with pytest.raises(RuntimeError):
+        p2x.load_verified_inventory()
+    p2x.write_json(tmp_path / "x0" / "inventory.json", {"hash_files": True,
+                                                       "rows": {}})
+    assert p2x.load_verified_inventory()["hash_files"] is True

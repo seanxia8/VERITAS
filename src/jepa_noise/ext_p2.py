@@ -1084,6 +1084,19 @@ def require_stage(relative, *, message) -> dict:
     return payload
 
 
+def load_verified_inventory(root=None) -> dict:
+    """The X0-a inventory (hashes verified there); later stages reuse it.
+
+    X0-a is the §4 hash gate; re-hashing every checkpoint on the throttled GPU
+    host client would multiply the job wall for no extra assurance.  Fails closed
+    when the X0-a inventory is absent or unverified.
+    """
+    payload = read_json(Path(EXT_ROOT) / "x0" / "inventory.json", None)
+    if payload is None or payload.get("hash_files") is not True:
+        raise RuntimeError("the X0-a verified inventory is missing; run preflight first")
+    return payload
+
+
 def require_preflight_plan(root=None) -> dict:
     path = Path(EXT_ROOT) / "x0" / "plan.json"
     payload = read_json(path, None)
@@ -1273,7 +1286,7 @@ def reproduce(root=None, *, config, gen, arms_config, geometry,
     root = _resolve_root(root)
     gate = assert_authorised("reproduce", root=root, log=log)
     started = time.time()
-    inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
+    inv = inventory if inventory is not None else load_verified_inventory(root)
     assert_budget("gpu", len(X0B_MODELS) * 2 * PHOTON_SET_WALL_S / 3600.0
                   * PROJECTION_FACTOR)
     require_preflight_plan(root)
@@ -1379,7 +1392,7 @@ def new_models(root=None, *, config, gen, arms_config, geometry,
     root = _resolve_root(root)
     gate = assert_authorised("new-models", root=root, log=log)
     started = time.time()
-    inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
+    inv = inventory if inventory is not None else load_verified_inventory(root)
     assert_budget("gpu", len(NEW_MODELS) * 7 * PHOTON_SET_WALL_S / 3600.0
                   * PROJECTION_FACTOR)
     require_preflight_plan(root)
@@ -1470,7 +1483,7 @@ def conditions(root=None, *, config, gen, arms_config, geometry,
     root = _resolve_root(root)
     gate = assert_authorised("conditions", root=root, log=log)
     started = time.time()
-    inv = inventory if inventory is not None else p2_inventory(root, hash_files=True)
+    inv = inventory if inventory is not None else load_verified_inventory(root)
     projection = gpu_set_projection()
     assert_budget("gpu", len(CORE_MODELS) * (len(CONDITIONS) * 2 + 1)
                   * PHOTON_SET_WALL_S / 3600.0 * PROJECTION_FACTOR)
