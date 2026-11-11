@@ -609,3 +609,17 @@ def test_cell_reading_r1_path_evaluates():
     assert reading["r1"]["status"] == "evaluated", reading["r1"]
     assert reading["r1"]["walk_share"] is not None
     assert reading["r1"]["rho_R1"] is not None
+
+def test_gpu_stages_prefer_an_explicit_mirror_base(tmp_path, monkeypatch):
+    """JEPA_P2_MIRROR (node-local RAM) wins over the plan-recorded base."""
+    monkeypatch.setattr(p2x, "EXT_ROOT", tmp_path)
+    (tmp_path / "x0").mkdir()
+    p2x.write_json(tmp_path / "x0" / "plan.json",
+                   {"data_mirror": {"base": "/work/recorded/p2_data_mirror"}})
+    monkeypatch.delenv("JEPA_P2_MIRROR", raising=False)
+    assert p2x.require_mirror_base() == "/work/recorded/p2_data_mirror"
+    monkeypatch.setenv("JEPA_P2_MIRROR", str(tmp_path / "shm"))
+    assert p2x.require_mirror_base() == str(tmp_path / "shm" / "p2_data_mirror")
+    audit = p2x.mirror_audit()
+    assert audit["used_base"] == str(tmp_path / "shm" / "p2_data_mirror")
+    assert audit["plan_base"] == "/work/recorded/p2_data_mirror"

@@ -1119,13 +1119,35 @@ def load_verified_inventory(root=None) -> dict:
 
 
 def require_mirror_base(root=None) -> str:
-    """The mirror base recorded by the X0-a preflight staging step (fails closed)."""
+    """The mirror root for the GPU stages (fails closed when none is usable).
+
+    An explicit ``JEPA_P2_MIRROR`` (a node-local fast tree, e.g. ``/dev/shm``)
+    wins over the base recorded by the X0-a preflight staging step; both are
+    recorded in the payloads so the read path is auditable.  The mirror content
+    is verified against the pinned source manifest before it is read.
+    """
+    environment = os.environ.get("JEPA_P2_MIRROR")
+    if environment:
+        return str(mirror_root())
     plan = require_preflight_plan(root)
     info = plan.get("data_mirror") or {}
     base = info.get("base")
     if not base:
         raise RuntimeError("the X0-a plan carries no data_mirror base; re-run preflight")
     return str(base)
+
+
+def mirror_audit(root=None) -> dict:
+    """The mirror bases in play: the plan-recorded one and the env override."""
+    plan = read_json(Path(EXT_ROOT) / "x0" / "plan.json", {}) or {}
+    recorded = ((plan.get("data_mirror") or {}).get("base"))
+    environment = os.environ.get("JEPA_P2_MIRROR")
+    return {"plan_base": recorded,
+            "env_base": (None if not environment
+                         else str(mirror_root())),
+            "used_base": require_mirror_base(root),
+            "rule": "JEPA_P2_MIRROR wins when set; content verified against the "
+                    "pinned source manifest"}
 
 
 def gpu_cap_check() -> dict:
@@ -1392,8 +1414,8 @@ def reproduce(root=None, *, config, gen, arms_config, geometry,
                  "expected_source": source, "n_test": metrics["n_events"]}
         payload["models"][label] = entry
         payload["pass"] = bool(payload["pass"] and entry["pass"])
-    payload["data_mirror"] = {"base": mirror, "verified": True,
-                              "staged_by": "preflight"}
+    payload["data_mirror"] = dict(mirror_audit(root), verified=True,
+                                    staged_by="preflight")
     payload["closure"] = assert_closure("reproduce", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "x0" / "reproduction.json", payload)
@@ -1514,8 +1536,8 @@ def new_models(root=None, *, config, gen, arms_config, geometry,
                              for name in rows[role]} for role in ("train", "test")}}
     payload["pass"] = all(entry.get("status") == "evaluated"
                           for entry in payload["models"].values())
-    payload["data_mirror"] = {"base": mirror, "verified": True,
-                              "staged_by": "preflight"}
+    payload["data_mirror"] = dict(mirror_audit(root), verified=True,
+                                    staged_by="preflight")
     payload["closure"] = assert_closure("new-models", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "new_models.json", payload)
@@ -1601,8 +1623,8 @@ def conditions(root=None, *, config, gen, arms_config, geometry,
     payload["complete"] = all(entry.get("status") == "evaluated"
                               for entry in payload["models"].values())
     payload["pass"] = bool(payload["complete"])
-    payload["data_mirror"] = {"base": mirror, "verified": True,
-                              "staged_by": "preflight"}
+    payload["data_mirror"] = dict(mirror_audit(root), verified=True,
+                                    staged_by="preflight")
     payload["closure"] = assert_closure("conditions", root)
     payload["wall_seconds"] = round(time.time() - started, 3)
     write_json(Path(EXT_ROOT) / "conditions.json", payload)
