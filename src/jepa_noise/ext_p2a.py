@@ -272,11 +272,12 @@ def _aligned_rows(source, target, what) -> dict | None:
         return None
     target_keys = list(zip(np.asarray(target["run_ids"]).astype(str).tolist(),
                            np.asarray(target["event_ids"], np.int64).tolist()))
-    lookup = {key: position for position, key in enumerate(target_keys)}
+    source_keys = list(zip(np.asarray(source["run_ids"]).astype(str).tolist(),
+                           np.asarray(source["event_ids"], np.int64).tolist()))
+    source_index = {key: position for position, key in enumerate(source_keys)}
     order = []
-    for run, event in zip(np.asarray(source["run_ids"]).astype(str).tolist(),
-                          np.asarray(source["event_ids"], np.int64).tolist()):
-        position = lookup.get((run, int(event)))
+    for key in target_keys:
+        position = source_index.get(key)
         if position is None:
             raise ValueError(f"A1: {what} rows do not align with the embedding rows")
         order.append(position)
@@ -419,6 +420,7 @@ def ceiling_cell(data, *, frozen_vertex, p2_cell) -> dict:
                                   else bool(abs(v_r2 - float(
                                       (p2_cell.get("latent") or {}).get("v_R2_m")
                                       or np.nan)) <= 1e-9))},
+        "refit": ((p2_cell or {}).get("refit")),
         "raw": raw,
         "log_yield": log_yield,
     }
@@ -543,7 +545,6 @@ def p2f_u(p2_cell, ceiling) -> dict:
     caps = [value for name, value in rungs if name in ("R3", "R3u")
             and value is not None]
     target = (None if not caps else P2F_SHARE * max(caps))
-    values = dict(rungs)
     cheapest = None
     for rung, value in rungs:
         if target is not None and value >= target:
@@ -552,11 +553,11 @@ def p2f_u(p2_cell, ceiling) -> dict:
     beyond = bool(ceiling.get("information_destroying_u"))
     note = None
     if cheapest is not None and target is not None:
-        note = (f"cheapest rung {cheapest} reaches {values[cheapest]:.3f} of the "
-                f"{P2F_SHARE:.0%} refit ceiling target {target:.3f}")
+        note = (f"cheapest rung {cheapest} reaches {P2F_SHARE:.0%} of the refit "
+                f"ceiling")
         if beyond and ceiling.get("R_c_u_m") is not None:
-            note += (f"; R_c^u = {float(ceiling['R_c_u_m']):.6f} m remains beyond "
-                     "refit (R4/R5 territory)")
+            note += (f"; R_c^u = {1000.0 * float(ceiling['R_c_u_m']):.3f} mm remains "
+                     "beyond refit (R4/R5 territory)")
     return {"status": "evaluated", "rho_R0": 0.0, "rho_R1": r1, "rho_R2": r2,
             "rho_R3": r3, "rho_R3u": r3u, "target": target,
             "cheapest_rung": cheapest, "beyond_refit": beyond, "note": note}
@@ -808,8 +809,12 @@ def run_p2a(root=None, *, config, gen, geometry, data_root=None, log=print) -> d
             rho_r3 = (None if not refit.get("v_R3_m") or not delta
                       else float((float(p2_cell["v_c_m"]) - float(refit["v_R3_m"]))
                                  / float(delta)))
-            full["P2-committed"] = {"rho_R2": latent.get("rho_R2"),
-                                    "rho_R3": rho_r3, "r2_eq": latent.get("r2_eq")}
+            full["P2-committed"] = {
+                "rho_R2": latent.get("rho_R2"), "rho_R3": rho_r3,
+                "r2_eq": latent.get("r2_eq"),
+                "R_c_m": refit.get("R_c_m"),
+                "v_R3_m": refit.get("v_R3_m"),
+                "information_destroying": refit.get("information_destroying")}
             full["P2-f_u"] = p2f_u(p2_cell, full)
             entry["cells"][name] = full
             ceilings.setdefault(label, {})[name] = full
@@ -819,8 +824,10 @@ def run_p2a(root=None, *, config, gen, geometry, data_root=None, log=print) -> d
     payload["A3"] = eta_readings(p2, ceilings, gain)
     payload["ceiling_check"] = _ceiling_summary(payload["models"])
     check = payload["ceiling_check"]
+    expected_cells = len(CORE_MODELS) * len(CONDITIONS) * 2 - len(CORE_MODELS)
+    payload["expected_cells_min"] = int(expected_cells)
     payload["complete"] = bool(not payload["unavailable"]
-                               and check["n_cells_checked"] > 0
+                               and check["n_cells_checked"] >= expected_cells
                                and all((entry["cells"].get(name) or {}).get(
                                    "status") not in ("no events", "unavailable")
                                    for entry in payload["models"].values()
@@ -928,22 +935,25 @@ def compare_numbers(left, right, *, path="", tolerance=1e-9, out=None) -> dict:
 
 def _cell_equivalence(fresh, committed, path) -> dict:
     """Non-vacuous A4 cell comparison (M8)."""
-    if (isinstance(fresh, dict) and isinstance(committed, dict)
-            and "status" in fresh and "status" in committed):
-        if fresh.get("status") == committed.get("status"):
-            return {"path": path, "n_compared": 0, "max_abs_difference": 0.0,
-                    "mismatches": [], "status_match": str(fresh.get("status"))}
-        return {"path": path, "n_compared": 0, "max_abs_difference": 0.0,
-                "mismatches": [{"path": path, "reason": "fresh/committed status differ",
-                                "fresh": fresh.get("status"),
-                                "committed": committed.get("status")}]}
     result = compare_numbers(fresh, committed, path=path)
-    if result["n_compared"] == 0:
+    fresh_status = fresh.get("status") if isinstance(fresh, dict) else None
+    committed_status = committed.get("status") if isinstance(committed, dict) else None
+    statuses_match = (fresh_status is not None or committed_status is not None
+                      and fresh_status == committed_status)
+    if fresh_status is not None or committed_status is not None:
+        if fresh_status == committed_status:
+            result["status_match"] = str(fresh_status)
+        else:
+            result["mismatches"].append({
+                "path": path, "reason": "fresh/committed status differ",
+                "fresh": fresh_status, "committed": committed_status})
+    if (result["n_compared"] == 0 and not result["mismatches"]
+            and not (statuses_match and fresh_status in ("no events", "unavailable"))):
         result["mismatches"].append({"path": path,
                                      "reason": "no numeric leaves compared (vacuous)"})
-    if isinstance(fresh, dict) and fresh.get("status") in ("unavailable", "no events"):
+    if fresh_status == "unavailable":
         result["mismatches"].append({"path": path,
-                                     "reason": f"fresh cell is {fresh.get('status')}"})
+                                     "reason": "fresh cell is 'unavailable'"})
     return result
 
 
@@ -1065,20 +1075,20 @@ def p2a_summary(p2a, p2, equivalence=None, shift=None, extra=None) -> dict:
         destroying_r3 = destroying_r3u = 0
         for entry in models.values():
             cell = entry["cells"].get(name) or {}
-            if cell.get("status") in ("no events", "unavailable"):
+            if not cell or cell.get("status") in ("no events", "unavailable"):
                 continue
-            deltas.append(float(cell["delta_c_m"]))
-            refit.append(float(cell["refit"]["R_c_m"]))
-            fair.append(float(cell["R_c_u_m"]))
             committed = cell.get("P2-committed") or {}
+            deltas.append(float(cell["delta_c_m"]))
+            if committed.get("R_c_m") is not None:
+                refit.append(float(committed["R_c_m"]))
+            fair.append(float(cell["R_c_u_m"]))
             if committed.get("rho_R2") is not None:
                 rho2.append(float(committed["rho_R2"]))
             if committed.get("rho_R3") is not None:
                 rho3.append(float(committed["rho_R3"]))
             if cell.get("rho_R3u") is not None:
                 rho3u.append(float(cell["rho_R3u"]))
-            destroying_r3 += int(bool((cell.get("refit") or {}).get(
-                "information_destroying")))
+            destroying_r3 += int(bool(committed.get("information_destroying")))
             destroying_r3u += int(bool(cell.get("information_destroying_u")))
         per_condition[name] = {
             "n_cells": len(deltas), "delta_c_m": _mean(deltas),
@@ -1207,8 +1217,10 @@ def render_figures(summary, out_dir, *, log=print) -> dict:
 
     def ceiling_plot(axes):
         p2a_cells = summary.get("_cells") or []
-        xs = [cell["v_R3u_m"] for cell in p2a_cells if cell.get("v_R2_m") is not None]
-        ys = [cell["v_R2_m"] for cell in p2a_cells if cell.get("v_R2_m") is not None]
+        xs = [cell["v_R3u_m"] for cell in p2a_cells
+              if cell.get("v_R2_m") is not None]
+        ys = [cell["v_R2_m"] for cell in p2a_cells
+              if cell.get("v_R2_m") is not None]
         if xs:
             axes.scatter(xs, ys, s=12, label="cell")
             low = min(min(xs), min(ys)); high = max(max(xs), max(ys))
@@ -1223,7 +1235,7 @@ def render_figures(summary, out_dir, *, log=print) -> dict:
                              ("K30", "tab:green")):
             xs, ys = [], []
             for row in summary.get("per_model", {}).values():
-                cell = row.get(level) or {}
+                cell = (row.get("levels") or {}).get(level) or {}
                 if cell.get("eta") is not None and row.get("gain") is not None:
                     xs.append(row["gain"]); ys.append(cell["eta"])
             if xs:
@@ -1295,7 +1307,14 @@ def assemble_report(root=None, *, p2a, equivalence, shift, extra=None,
                "figures": None, "wall_seconds": None}
     execution = _execution_payload(root, p2a, equivalence, shift, extra, stops)
     if stops:
-        # S4/S3: write nothing to READINGS, only the execution record of the stop
+        # S4/S3: write nothing to READINGS, only the execution record of the stop;
+        # remove any stale output of an earlier report run so nothing is misread
+        for name in ("READINGS_SUMMARY.md", "p2a.json", "equivalence.json",
+                     "x3p_shift.json", "SUMMARY.json", "p2a_ceiling.png",
+                     "p2a_eta_scatter.png", "report.json"):
+            stale = out / name
+            if stale.is_file():
+                stale.unlink()
         write_json(out / "EXECUTION.json", execution)
         log("[p2a] report stopped before writing READINGS: " + "; ".join(stops))
         return payload
@@ -1304,12 +1323,11 @@ def assemble_report(root=None, *, p2a, equivalence, shift, extra=None,
     cells = []
     for label, entry in p2a["models"].items():
         for name, cell in entry["cells"].items():
-            if cell.get("v_R2_m") is None:
+            v_r2 = (cell.get("ceiling") or {}).get("v_R2_recomputed_m")
+            if v_r2 is None:
                 continue
             cells.append({"model": label, "condition": name,
-                          "v_R3u_m": cell.get("v_R3u_m"),
-                          "v_R2_m": (cell.get("ceiling") or {}).get(
-                              "v_R2_recomputed_m"),
+                          "v_R3u_m": cell.get("v_R3u_m"), "v_R2_m": v_r2,
                           "rho_R3u": cell.get("rho_R3u")})
     summary["_cells"] = cells
     write_json(out / "p2a.json", p2a)

@@ -306,7 +306,7 @@ def test_p2f_u_note_carries_the_numbers():
     block = p2a.p2f_u(cell, {"rho_R3u": 0.9, "information_destroying_u": True,
                              "R_c_u_m": 0.045})
     assert "cheapest rung R3u" in block["note"]
-    assert "R_c^u = 0.045000" in block["note"]
+    assert "R_c^u = 45.000 mm" in block["note"]
     plain = p2a.p2f_u(cell, {"rho_R3u": 0.2, "information_destroying_u": False,
                              "R_c_u_m": 0.01})
     assert "refit (R4/R5 territory)" not in plain["note"]
@@ -328,6 +328,80 @@ def test_cpu_launcher_allow_list():
     assert launcher.extension_root_for_module(
         "scripts.jepa_ext_predictability_budget") == "ext_predictability_20261029"
 
+
+
+
+# --------------------------------------------- delta-review regression tests
+def test_cell_equivalence_compares_evaluated_numbers():
+    """R2-B1: two evaluated dicts must be compared numerically, not skipped."""
+    fresh = {"status": "evaluated", "value": 1.0, "other": 2.0}
+    same = p2a._cell_equivalence(fresh, dict(fresh), "x")
+    assert same["n_compared"] == 2 and same["mismatches"] == []
+    different = p2a._cell_equivalence(
+        {"status": "evaluated", "value": 1.5}, {"status": "evaluated", "value": 1.0},
+        "x")
+    assert different["mismatches"]
+
+
+def test_aligned_rows_returns_target_order():
+    """M6: the source arrays come out in the target's key order."""
+    source = {"run_ids": np.asarray(["A", "B", "C"], dtype=object),
+              "event_ids": np.asarray([1, 2, 3], np.int64),
+              "value": np.asarray([10.0, 20.0, 30.0])}
+    target = {"run_ids": np.asarray(["C", "A", "B"], dtype=object),
+              "event_ids": np.asarray([3, 1, 2], np.int64)}
+    aligned = p2a._aligned_rows(source, target, "test")
+    assert list(aligned["value"]) == [30.0, 10.0, 20.0]
+    # a source missing a target key is an error, not a silent misalignment
+    with pytest.raises(ValueError):
+        p2a._aligned_rows(source, {"run_ids": np.asarray(["D"], dtype=object),
+                                   "event_ids": np.asarray([9], np.int64)}, "test")
+
+
+def test_p2a_summary_reads_the_committed_refit_block():
+    """R2-B2: table 1's R_c and the R3 destroying count come from P2-committed."""
+    model = {"cells": {"K5": {"status": "evaluated", "delta_c_m": 0.05,
+                              "R_c_u_m": 0.04, "rho_R3u": 0.2,
+                              "P2-committed": {"rho_R2": 0.3, "rho_R3": 0.1,
+                                               "r2_eq": 0.5, "R_c_m": 0.03,
+                                               "information_destroying": True}}},
+             "C0": None}
+    for name in p2a.CONDITIONS:
+        model["cells"].setdefault(name, dict(model["cells"]["K5"]))
+    p2a_payload = {"models": {"m": model}, "gain_r2_eq": {"m": 0.7},
+                   "P2-e_primary": {"verdict": "mixed"},
+                   "P2-e_primary_numbers": {}, "ceiling_check": {}, "A2": {},
+                   "A3": {}}
+    summary = p2a.p2a_summary(p2a_payload, {"models": {}})
+    condition = summary["per_condition"]["K5"]
+    assert condition["R_c_m"] == pytest.approx(0.03)
+    assert condition["n_information_destroying_R3"] == 1
+    assert summary["per_model"]["m"]["levels"]["K5"]["rho_R3"] == pytest.approx(0.1)
+
+
+def test_report_stop_clears_stale_readings(tmp_path, monkeypatch):
+    """R2-B4: a stopped report writes only EXECUTION.json, removing stale READINGS."""
+    out = tmp_path / p2a.RESULTS_DIR
+    out.mkdir(parents=True)
+    (out / "READINGS_SUMMARY.md").write_text("stale")
+    (out / "p2a_ceiling.png").write_bytes(b"stale")
+    monkeypatch.setattr(p2a, "assert_authorised",
+                        lambda *a, **k: {"status": "test"})
+    monkeypatch.setattr(p2a, "committed_p2", lambda root=None: {"models": {}})
+    p2a_payload = {"models": {}, "pass": False, "complete": False,
+                   "stopping": False,
+                   "stops": ["S4: test"],
+                   "ceiling_check": {"n_violation_gt_5mm_ci": 1,
+                                     "recomputed_mismatch": []}}
+    payload = p2a.assemble_report(tmp_path, p2a=p2a_payload,
+                                  equivalence={"pass": True},
+                                  shift={"pass": True}, extra={},
+                                  log=lambda *a, **k: None)
+    assert payload["pass"] is False and payload["written"] is False
+    assert not (out / "READINGS_SUMMARY.md").exists()
+    assert not (out / "p2a_ceiling.png").exists()
+    execution = json.loads((out / "EXECUTION.json").read_text())
+    assert execution["stops"] and execution["complete"] is False
 
 # ------------------------------------------------------------------------ gate
 def _fake_repo(tmp_path, *, record=True, verdict="PASS", sha=None):
