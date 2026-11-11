@@ -1,0 +1,8 @@
+{
+ "runbook_sha256": "0dbabf1698f0deccaf1076c5a03a59c8bb9196a310cba2b1b0c741af5a56c57f",
+ "impl_commit": "b3cc41192a8c953414237c966d48f63e2a268bf4",
+ "review_path": "docs/jepa/REVIEW_2026-11-09_P2_INFOLOSS.md",
+ "review_verdict": "PASS",
+ "lead": "Dowling Wong (author, lead)",
+ "date": "2026-11-09"
+}
