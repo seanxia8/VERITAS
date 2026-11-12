@@ -1,6 +1,16 @@
 {
  "cap_l40s_h": 60.0,
- "cpu_entries": [],
+ "cpu_entries": [
+  {
+   "detector": "sk",
+   "jobs": 900,
+   "kind": "generation",
+   "made": 900,
+   "utc": "2026-11-12T11:19:14Z",
+   "wall_h": 2.009643871055709,
+   "workers": 6
+  }
+ ],
  "entries": [
   {
    "arm": "init",
