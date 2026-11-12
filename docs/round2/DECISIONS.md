@@ -51,3 +51,4 @@ Standing rule for this execution (author, 30 Oct 2026): "别大事小事都问�
 - 2026-11-12 impl: the HK re-projection takes the larger of the SK/JUNO smoke step times scaled by N_PMT and the HK smoke step time (conservative; runbook §8 says "from the SK and JUNO measured step times").
 - 2026-11-12 impl: X0 yield range keeps one Poisson capacity (4 x the current bracket upper yield, as round 1's 4 x y_hi_initial) within each bisection, so trial yields re-map the same random numbers.
 - 2026-11-12 §4.3 review round 2 PASS at 8db555f; acceptance recorded. Non-blocking items 1-11 of round 2 are tracked in the review file and handled during r2-run/r2-report.
+- 2026-11-12 r2-run (routine, review round-2 items 6, 7, 9): WCTE-regression evaluations book into the main ledger; a crashed run books its GPU time; the 1.5x wall cap counts all invocations of a run; evaluate checks the checkpoint seed.

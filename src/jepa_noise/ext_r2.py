@@ -623,7 +623,13 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
                     ledger_load(out_root), "hk"):
                 raise ValueError(f"HK fallback step {fb['step']} excludes {arm} seed {seed}")
         budget = gpu_precheck(out_root, detector, arm, seed, proj["projected_h"])
-        wall_cap_s = WALL_CAP_FACTOR * proj["projected_h"] * 3600.0
+        prior_h = sum(float(e.get("gpu_h", 0.0)) for e in ledger_load(out_root)["entries"]
+                      if e.get("kind") == "train" and e["detector"] == detector
+                      and e["arm"] == arm and int(e["seed"]) == int(seed))
+        # the cap counts every invocation of this run (a resumed run keeps its earlier hours)
+        wall_cap_s = WALL_CAP_FACTOR * proj["projected_h"] * 3600.0 - prior_h * 3600.0
+        if wall_cap_s <= 0:
+            raise ValueError(f"{detector}/{arm}/{seed}: wall cap already used ({prior_h:.2f} h)")
     run_dir = check_write_path(Path(out_root) / ("smokes" if smoke else "runs")
                                / (run_name(detector, arm, seed, smoke)
                                   + (f"__mb{int(micro_batch)}" if smoke else "")))
@@ -662,15 +668,23 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
         if not smoke and not capped["hit"] and time.time() - t0 > wall_cap_s:
             capped["hit"] = True
             os.kill(os.getpid(), signal.SIGTERM)
-    result = lr.train_loop(arm=arm_module, loader=loader, steps=int(steps), optimizers=optimizers,
-                           checkpoint_path=checkpoint, identity=identity, config_sha=config_sha,
-                           checkpoint_minutes=float(cfg["training"]["checkpoint_minutes"]),
-                           checkpoint_every=int(cfg["training"]["checkpoint_every_steps"]),
-                           resume=(checkpoint if (resume and checkpoint.exists() and not smoke)
-                                   else None),
-                           log_path=run_dir / "train_log.jsonl",
-                           accum_steps=BATCH // int(micro_batch), log_every=1,
-                           scheduler=scheduler, step_callback=wall_cap)
+    try:
+        result = lr.train_loop(arm=arm_module, loader=loader, steps=int(steps),
+                               optimizers=optimizers, checkpoint_path=checkpoint,
+                               identity=identity, config_sha=config_sha,
+                               checkpoint_minutes=float(cfg["training"]["checkpoint_minutes"]),
+                               checkpoint_every=int(cfg["training"]["checkpoint_every_steps"]),
+                               resume=(checkpoint if (resume and checkpoint.exists() and not smoke)
+                                       else None),
+                               log_path=run_dir / "train_log.jsonl",
+                               accum_steps=BATCH // int(micro_batch), log_every=1,
+                               scheduler=scheduler, step_callback=wall_cap)
+    except BaseException as error:  # a crashed run still books its GPU time
+        ledger_add(out_root, {"kind": "smoke" if smoke else "train", "detector": detector,
+                              "arm": arm, "seed": int(seed), "micro_batch": int(micro_batch),
+                              "gpu_h": (time.time() - t0) / 3600.0, "complete": False,
+                              "crashed": repr(error)[:300], "precheck": budget})
+        raise
     wall = time.time() - t0
     complete = (not result["interrupted"]) and int(result["step"]) == int(steps)
     ledger_add(out_root, {"kind": "smoke" if smoke else "train", "detector": detector,
@@ -923,7 +937,7 @@ def paired_vertex_difference(left: dict, right: dict) -> dict:
 
 
 def evaluate_model(*, detector: str, arm: str, seed: int, h5_path, out_root, checkpoint=None,
-                   device: str = "cuda", log=print) -> dict:
+                   device: str = "cuda", ledger_root=None, log=print) -> dict:
     """Evaluate one §5.1 model on the detector's probe cohorts; writes JSON + npz."""
     import torch
     from . import r2_generator as gen
@@ -939,7 +953,10 @@ def evaluate_model(*, detector: str, arm: str, seed: int, h5_path, out_root, che
         if checkpoint is None:
             raise ValueError(f"{arm} needs its frozen final checkpoint")
         payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
-        if int(payload["step"]) != STEPS or payload["identity"]["arm"] != arm:
+        ident = payload["identity"]
+        if int(ident.get("seed", seed)) != int(seed):
+            raise RuntimeError(f"checkpoint seed {ident.get('seed')} != {seed}")
+        if int(payload["step"]) != STEPS or ident["arm"] != arm:
             raise RuntimeError("checkpoint is not the frozen final step of this arm")
         model.load_state_dict(payload["model"])
         ckpt_sha = rs.sha256_file(checkpoint)
@@ -958,7 +975,8 @@ def evaluate_model(*, detector: str, arm: str, seed: int, h5_path, out_root, che
     np.savez_compressed(out_dir / "per_event.npz",
                         **{k: v for k, v in arrays.items() if v is not None})
     if str(device).startswith("cuda"):
-        ledger_add(out_root, {"kind": "eval", "detector": detector, "arm": arm, "seed": int(seed),
+        ledger_add(ledger_root or out_root, {"kind": "eval", "detector": detector, "arm": arm,
+                                             "seed": int(seed),
                               "gpu_h": record["wall_seconds"] / 3600.0,
                               "wall_s": record["wall_seconds"]})
     log(json.dumps({"detector": detector, "arm": arm, "seed": seed,
@@ -1366,7 +1384,7 @@ def wcte_pack(work_dir) -> dict:
     return {"h5": str(h5), **rs.verify_pack(h5, shard_root, cohorts)}
 
 
-def wcte_regression(work_dir, *, device: str = "cuda") -> dict:
+def wcte_regression(work_dir, *, device: str = "cuda", ledger_root=RETURNS_ROOT) -> dict:
     """Reproduce init9000 and mae_within_trigger9000 full-input vertex within 1e-3 m (S6)."""
     pack = wcte_pack(work_dir)
     rows = {}
@@ -1374,7 +1392,7 @@ def wcte_regression(work_dir, *, device: str = "cuda") -> dict:
         record = evaluate_model(detector="wcte", arm=arm, seed=seed, h5_path=pack["h5"],
                                 out_root=work_dir,
                                 checkpoint=None if ckpt is None else ROUND1_RETURNS / ckpt,
-                                device=device)
+                                device=device, ledger_root=ledger_root)
         got = record["metrics"]["vertex_full_m"]
         rows[label] = {"expected_m": expected, "got_m": got, "abs_diff_m": abs(got - expected),
                        "pass": abs(got - expected) <= WCTE_REGRESSION_TOLERANCE_M,
