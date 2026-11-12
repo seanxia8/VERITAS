@@ -1,0 +1,46 @@
+# DECISIONS — round 2 (extension `r2_multidetector_2026-11-11`, registered: false)
+
+Runbook: `docs/round2/RUNBOOK_2026-11-11_R2_MULTIDETECTOR.md`, committed unchanged,
+sha256 `366f0680a5b262a90774bf725fd6ee75c516766789a605807b22978630572afe`.
+
+## §0 authority (quoted verbatim from the runbook)
+
+1. The author, 11 Nov 2026, 21:30 CET:
+   > "根据第一轮的configuration写一个可以follow的runbook，同样的configuration，对于HK，SK，JUNO三种simulation，每种simulation用同样的configuration。有了dataset之后更正后的JEPA，MAR，random init三种结果train后prob，然后做对比"
+
+   ("MAR" means MAE.) This authorises data generation for the three detectors, training of the arms
+   in §5, probing and the comparison.
+2. The author, 11 Nov 2026, answering the design questions: JEPA arm = **"Fixed-label + position-free
+   (Recommended)"**; GPU budget = **"New round-2 ledger, cap 60 h (Recommended)"**.
+3. The author, 11 Nov 2026, on the cleanup: **"Tag + fast-forward dev only (Recommended)"** (round 2
+   continues on `dev`).
+4. The standing rule, 30 Oct 2026:
+   > "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
+
+   Fix routine problems yourself (bugs, paths, environment, guard HOLD/SHED, launcher timeouts, ssh
+   drops), write one `DECISIONS.md` line each, and continue. Stop only for §9.
+5. The author, 11 Nov 2026, 23:05 CET, adding the receptive-field control:
+   > "加入这三条建议：只加 MAE 一个 arm、一个 seed；窗口按 64 × N_PMT / 1,995 缩放：SK 约 384，JUNO 约 320，HK 约 640；三个探测器加起来大约多 8–12 L40S h，60 h 的账本还装得下。"
+
+   This authorises the arm `mae_mse_rf` of §5.1 (one seed per detector) inside the same 60 h cap.
+6. The author, 11 Nov 2026, 23:18 CET, accepting three design recommendations (keep the time-scale
+   rule of §2.2 and log its effect; a pre-declared conditional seed 9002; random init with five seeds):
+   > "按照你的建议更新 runbook"
+
+Standing rule for this execution (author, 30 Oct 2026): "别大事小事都问我，自己找解决方案，按最好的解决方案解决".
+
+## Decisions (one line each)
+
+- 2026-11-12 impl: JUNO sensor positions generated once on Deepthought with LUCiD `generate_detector(config/JUNO_geom_config.json)` at `eaf2e89` and frozen to `configs/round2/juno_geometry_lucid_eaf2e89.npz` (sha256 `f91e6bc7…`); LUCiD file hashes pinned in `r2_geometry.LUCID_FILE_SHA256`.
+- 2026-11-12 impl: the sphere carries `height_m = 2R`, so every round-1 consumer of `radius_m`/`half_height_m` (Hilbert box, position scaling) sees the §2.2 box `[-R, R]^3` / `(R, R, R)` without touching round-1 code.
+- 2026-11-12 impl: sphere fiducial sampling consumes the same three keyed uniforms as the round-1 cylinder sampler (radius, azimuth, third coordinate): `r = 0.8 R u^(1/3)`, `phi ~ U[0, 2pi)`, `cos theta ~ U[-1, 1]`.
+- 2026-11-12 impl: `r2_generator.readout` is the round-1 readout with `nhits_trigger_time(n=…, window_ns=…)` and `prompt_window_mask(window_ns=…)` called explicitly; on WCTE it regenerates stored round-1 run `lucid/dev_train/0000` with bit-identical hits (test 2).
+- 2026-11-12 impl: the stored round-1 `events.npz` differs from the unchanged round-1 `draw_event` on Deepthought by <= 1 ulp in 11/60 photon yields (host libm); test 2 compares hits bit for bit and truth floats to 1e-12 relative.
+- 2026-11-12 impl: round-1 `lucid_run` generated training cohorts with twins; round 2 writes twin hits and per-PMT `expected_pe` only for the four probe cohorts (§3.1); the measured hits are unaffected (separate readout).
+- 2026-11-12 impl: training batches come from `r2_store.R2TrainingLoader`, which reuses the round-1 keyed stream `keyed_rng(seed, "lucid/batches", step)` and builds dense tokens only for the drawn events; equality with `lucid_run.TrainingLoader.batch_at` is test 6.
+- 2026-11-12 impl: training logs every step (`log_every=1`) so the §6 loss shares use the per-step terms of the first and last 100 steps.
+- 2026-11-12 impl: `init`, `target_posfree` and `mae_mse_rf` are built from the round-1 builders: `init` = `sigreg_jepa` at the seed with no training (as round-1 `init9000`); `target_posfree` = `sigreg_jepa` + `ext_shortcut.attach_posfree_target`; `mae_mse_rf` = `mae_mse` with `EncoderConfig(window=W_rf, shift=W_rf/2)`.
+- 2026-11-12 impl: the X0 yield range uses the round-1 bisection (10 iterations) with each statistic on the same 1,000 development events (§2.2 wording), parallelised over 16 processes; the round-1 start bracket (6,000–320,000) is doubled until it contains the target, S8 if 30 doublings do not.
+- 2026-11-12 impl: Gate V maps transport sensors to the active geometry within the round-1 0.06 m tolerance; photons on sensors absent from the active geometry (HK inactive entries, if the LUCiD transport carries them) are dropped and counted.
+- 2026-11-12 impl: seed-9002 planning walks the triggered arms in §5.1 order; a run that does not fit is skipped with its reason and does not block a cheaper later run.
+- 2026-11-12 impl: the Mac has no torch/h5py; round-2 tests run on Deepthought (`nice -n 10`, ≤ 8 threads, `TMPDIR=/work/dwong`) from an rsync copy at `/work/dwong/r2_code`.
