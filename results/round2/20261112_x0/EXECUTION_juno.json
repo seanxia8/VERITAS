@@ -1,0 +1,41 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "registered": false,
+ "detector": "juno",
+ "stopped": true,
+ "stop": {
+  "id": "S2",
+  "reason": "Gate V fails for JUNO with the round-1 harness (cherenkov_validation.validate requires every holdout event to pass): event 4 (e500_014) module-pattern Pearson 0.845 < 0.85; holdout medians pass (yield ratio 1.077, module 0.888, log 0.761, time 0.78 ns); no refit of the yield per MeV"
+ },
+ "per_event_module_pearson": [
+  0.911985457965595,
+  0.9112213796431153,
+  0.8772243218122844,
+  0.875736285286297,
+  0.8454759641992009,
+  0.9013142144705055,
+  0.8990897030997973,
+  0.8675692139883466,
+  0.8702580514879567,
+  0.9087413271175713
+ ],
+ "action": "JUNO stopped before generation; no JUNO data generated, no JUNO training (runbook \u00a79)",
+ "x0_record": "results/round2/20261112_x0/juno.json",
+ "other_x0_results": {
+  "geometry_table": "no differences",
+  "yield_range": [
+   16628.892533627542,
+   1027996.3213450833
+  ],
+  "trigger_efficiency": {
+   "electron": 1.0,
+   "muon": 1.0,
+   "photon_y_lo": 1.0
+  },
+  "dark_only_triggers": "1 / 10000 (recorded, not a \u00a79 stop)",
+  "benchmark_events_per_s": 6.129900406577796,
+  "cpu_projection_wall_h_16_cores": 0.4465194989283595
+ },
+ "gpu_l40s_h": 0.0,
+ "date": "2026-11-12"
+}

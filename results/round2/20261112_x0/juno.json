@@ -1,0 +1,440 @@
+{
+ "benchmark": {
+  "events_per_s": 6.129900406577796,
+  "hits_per_event": 2947.02,
+  "n_events": 1000,
+  "peak_rss_mb": 1422.09375,
+  "probe_seconds_per_event_with_twin_and_expected_pe": 0.23515110979788006,
+  "raw_hit_bytes_per_event": 35364.24,
+  "readout": {
+   "dark_moved_trigger_rate": 0.165,
+   "n_dark_moved_trigger": 165,
+   "n_events": 1000,
+   "n_no_trigger": 0,
+   "n_prompt_dropped": 6050
+  },
+  "seconds": 163.13478746358305
+ },
+ "code_sha": "420506bd0226fc30b907763ce3fc0b595a726ef8",
+ "cpu": {
+  "pass": true,
+  "projected_wall_h": 0.4465194989283595,
+  "remaining_wall_h": 29.57,
+  "round2_used_wall_h": 0.0,
+  "stop": null
+ },
+ "detector": "juno",
+ "extension": "r2_multidetector_2026-11-11",
+ "gate_v": {
+  "detector": "juno",
+  "events": 10,
+  "holdout": [
+   "e500_010.npz",
+   "e500_011.npz",
+   "e500_012.npz",
+   "e500_013.npz",
+   "e500_014.npz",
+   "e500_015.npz",
+   "e500_016.npz",
+   "e500_017.npz",
+   "e500_018.npz",
+   "e500_019.npz"
+  ],
+  "passed": false,
+  "photons_on_excluded_sensors": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "rows": [
+   {
+    "domain": "muon",
+    "event_id": 0,
+    "expected_detected": 6400.426624880324,
+    "log_pattern_pearson": 0.7637581851596615,
+    "module_pattern_pearson": 0.911985457965595,
+    "n_hit_pmts": 2182,
+    "n_photons": 43563,
+    "observed_detected": 6890.121186266785,
+    "pattern_pearson": 0.674619555157074,
+    "time_median_abs_ns": 0.8025144175234402,
+    "time_p95_abs_ns": 5.323352125968524,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.0765096750711702
+   },
+   {
+    "domain": "muon",
+    "event_id": 1,
+    "expected_detected": 6400.9005174544,
+    "log_pattern_pearson": 0.7857854757599185,
+    "module_pattern_pearson": 0.9112213796431153,
+    "n_hit_pmts": 3115,
+    "n_photons": 43634,
+    "observed_detected": 6901.959186689148,
+    "pattern_pearson": 0.6761258128790029,
+    "time_median_abs_ns": 0.7475775311257138,
+    "time_p95_abs_ns": 3.70432150744341,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.078279402697859
+   },
+   {
+    "domain": "muon",
+    "event_id": 2,
+    "expected_detected": 6417.30767253765,
+    "log_pattern_pearson": 0.758101071456653,
+    "module_pattern_pearson": 0.8772243218122844,
+    "n_hit_pmts": 2819,
+    "n_photons": 43241,
+    "observed_detected": 6857.119382899169,
+    "pattern_pearson": 0.6400849325392859,
+    "time_median_abs_ns": 0.7262263055375939,
+    "time_p95_abs_ns": 2.7802684393558446,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.068535238265676
+   },
+   {
+    "domain": "muon",
+    "event_id": 3,
+    "expected_detected": 6411.696567091228,
+    "log_pattern_pearson": 0.7544177494513629,
+    "module_pattern_pearson": 0.875736285286297,
+    "n_hit_pmts": 2407,
+    "n_photons": 43262,
+    "observed_detected": 6854.431657226868,
+    "pattern_pearson": 0.6476564147124882,
+    "time_median_abs_ns": 0.7745855735774825,
+    "time_p95_abs_ns": 3.08550921076712,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.0690511607189943
+   },
+   {
+    "domain": "muon",
+    "event_id": 4,
+    "expected_detected": 6406.535313690533,
+    "log_pattern_pearson": 0.7732924382825546,
+    "module_pattern_pearson": 0.8454759641992009,
+    "n_hit_pmts": 2233,
+    "n_photons": 44317,
+    "observed_detected": 7015.849370852356,
+    "pattern_pearson": 0.6052129961738127,
+    "time_median_abs_ns": 0.8843193148358779,
+    "time_p95_abs_ns": 6.313407868893311,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.0951082023788647
+   },
+   {
+    "domain": "muon",
+    "event_id": 5,
+    "expected_detected": 6401.807644244151,
+    "log_pattern_pearson": 0.7292617927148501,
+    "module_pattern_pearson": 0.9013142144705055,
+    "n_hit_pmts": 2654,
+    "n_photons": 44204,
+    "observed_detected": 6992.981094797669,
+    "pattern_pearson": 0.6587270752828583,
+    "time_median_abs_ns": 0.7808327418910395,
+    "time_p95_abs_ns": 5.808499676560331,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.092344769384791
+   },
+   {
+    "domain": "muon",
+    "event_id": 6,
+    "expected_detected": 6394.611806379873,
+    "log_pattern_pearson": 0.745457050310603,
+    "module_pattern_pearson": 0.8990897030997973,
+    "n_hit_pmts": 3832,
+    "n_photons": 42557,
+    "observed_detected": 6724.820655521546,
+    "pattern_pearson": 0.6320909277262851,
+    "time_median_abs_ns": 0.7372394647711431,
+    "time_p95_abs_ns": 3.7794192188969773,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.0516386074933
+   },
+   {
+    "domain": "muon",
+    "event_id": 7,
+    "expected_detected": 6406.472137133384,
+    "log_pattern_pearson": 0.772628099636391,
+    "module_pattern_pearson": 0.8675692139883466,
+    "n_hit_pmts": 2627,
+    "n_photons": 43699,
+    "observed_detected": 6918.204836961366,
+    "pattern_pearson": 0.6441032932750068,
+    "time_median_abs_ns": 0.7967938534020931,
+    "time_p95_abs_ns": 4.358029409141027,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.0798774565586355
+   },
+   {
+    "domain": "muon",
+    "event_id": 8,
+    "expected_detected": 6408.504145624052,
+    "log_pattern_pearson": 0.7555798890164406,
+    "module_pattern_pearson": 0.8702580514879567,
+    "n_hit_pmts": 2855,
+    "n_photons": 42373,
+    "observed_detected": 6710.220575958252,
+    "pattern_pearson": 0.6423442938874276,
+    "time_median_abs_ns": 0.8258975440548113,
+    "time_p95_abs_ns": 3.7926641766963622,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.047080632777654
+   },
+   {
+    "domain": "muon",
+    "event_id": 9,
+    "expected_detected": 6402.491677818145,
+    "log_pattern_pearson": 0.7866178020634936,
+    "module_pattern_pearson": 0.9087413271175713,
+    "n_hit_pmts": 3220,
+    "n_photons": 44064,
+    "observed_detected": 6971.74973933777,
+    "pattern_pearson": 0.7308826930948837,
+    "time_median_abs_ns": 0.7303417213204,
+    "time_p95_abs_ns": 4.474424804687806,
+    "truth": {
+     "contained": true,
+     "deposited_MeV": 500.0,
+     "energy_MeV": 500.0
+    },
+    "yield_ratio": 1.0889119564952903
+   }
+  ],
+  "schema": "jepa-cherenkov-validation-v0",
+  "stop": "S2",
+  "summary": {
+   "log_pattern_pearson_median": 0.7609296283081572,
+   "module_pattern_pearson_median": 0.8881570124560408,
+   "time_median_abs_ns_median": 0.777709157734261,
+   "yield_ratio_median": 1.0773945388845148
+  },
+  "thresholds": {
+   "max_time_median_ns": 5.0,
+   "min_log_pattern": 0.7,
+   "min_module_pattern": 0.85,
+   "yield_tolerance": [
+    0.5,
+    2.0
+   ]
+  },
+  "transport_sensors": 10000
+ },
+ "geometry": {
+  "derived": {
+   "L_m": 35.0,
+   "detector": "juno",
+   "fiducial_fraction": 0.8,
+   "half_extent_m": [
+    17.5,
+    17.5,
+    17.5
+   ],
+   "height_m": 35.0,
+   "k": 20,
+   "n_modules": 500,
+   "n_pmt": 10000,
+   "nhits_n": 6,
+   "nhits_window_ns": 20.0,
+   "prompt_window_ns": [
+    -20.0,
+    200.0
+   ],
+   "pseudo_modules": true,
+   "radius_m": 17.5,
+   "shape": "sphere",
+   "shift_rf": 160,
+   "t_cross_ns": 155.2740863147398,
+   "time_scale_ns": 333.33333333333337,
+   "w_rf": 320
+  },
+  "design_table": {
+   "L_m": 35.0,
+   "k": 20,
+   "n_modules": 500,
+   "n_pmt": 10000,
+   "nhits_n": 6,
+   "prompt_window_ns": [
+    -20.0,
+    200.0
+   ],
+   "pseudo_modules": true,
+   "shift_rf": 160,
+   "t_cross_ns": 155.3,
+   "time_scale_ns": 333.3,
+   "w_rf": 320
+  },
+  "detector": "juno",
+  "differences": [],
+  "geometry": {
+   "config_sha256": "9cacfe6a80615d3acdb749757f4fd9db3ded6588429bf82baee30588a1fd7413",
+   "detector": "juno",
+   "geometry_sha256": "3f9c4a36ba1d73c928ebc2b03ce5a038fbdaf03df9ad437aee0c57bcb9babe53",
+   "height_m": 35.0,
+   "module_ids_contiguous": true,
+   "n_modules": 500,
+   "n_sensors": 10000,
+   "name": "JUNO LUCiD eaf2e89f config/JUNO_geom_config.json",
+   "pmts_per_module": 20,
+   "pseudo_modules": true,
+   "radius_m": 17.5,
+   "sensor_radius_m": 0.25,
+   "shape": "sphere",
+   "source_path": "/work/dwong/r2_repo/configs/round2/juno_geometry_lucid_eaf2e89.npz",
+   "source_sha256": "f91e6bc702d93b2a7f50847851517d21803ee994367d1bd10a72bb626db6b4f3",
+   "surface_counts": {
+    "sphere": 10000
+   },
+   "synthetic": false
+  },
+  "readout_window": {
+   "needed_ns": [
+    -70.0,
+    250.0
+   ],
+   "ok": true,
+   "readout_window_ns": [
+    -200.0,
+    800.0
+   ]
+  },
+  "stop": null
+ },
+ "projection": {
+  "cohort_events": {
+   "dev_train": 100000,
+   "probe_total": 40000
+  },
+  "cpu_wall_h_16_cores": 0.4465194989283595,
+  "disk_bytes_estimate": 4352671253.333333
+ },
+ "storage": {
+  "ceph_free_bytes": 379205753765888,
+  "ceph_free_entries": 39262,
+  "entries_needed": 500,
+  "pass": true,
+  "projection_bytes": 4352671253.333333,
+  "stop": null,
+  "work_free_bytes": 175912255488
+ },
+ "trigger": {
+  "dark_check_pass": false,
+  "dark_trigger_rate_per_window": 0.0001,
+  "dark_triggers": 1,
+  "efficiency": {
+   "electron": 1.0,
+   "muon": 1.0,
+   "photon_y_lo": 1.0
+  },
+  "efficiency_pass": true,
+  "n_dark_windows": 10000,
+  "n_events": 1000,
+  "nhits_n": 6,
+  "pass": false,
+  "stop": null,
+  "window_ns": 20.0,
+  "y_lo": 16628.892533627542
+ },
+ "yield_range": {
+  "bracket_trail": [
+   {
+    "hits": 7119.5,
+    "y": 320000.0
+   },
+   {
+    "hits": 393.0,
+    "y": 6000.0
+   },
+   {
+    "hits": 7119.5,
+    "y": 320000.0
+   },
+   {
+    "hits": 8771.5,
+    "y": 640000.0
+   },
+   {
+    "hits": 9699.5,
+    "y": 1280000.0
+   },
+   {
+    "hits": 9966.5,
+    "y": 2560000.0
+   }
+  ],
+  "converged": true,
+  "iterations": 10,
+  "n_events": 1000,
+  "seed": 20261017,
+  "stop": null,
+  "targets": {
+   "hit_fraction": 0.95,
+   "median_hit_fraction_lo": 0.1,
+   "median_hit_pmts": 1000.0,
+   "module_charge_pe": 300.0
+  },
+  "y_at_hit_fraction_0.95": 1027996.3213450833,
+  "y_at_module_charge_300pe": 2149849.510494365,
+  "y_hi": 1027996.3213450833,
+  "y_hi_bound_source": "hit_fraction_0.95",
+  "y_hi_check": {
+   "median_hit_fraction": 0.95,
+   "median_hit_pmts": 9500.0,
+   "median_module_charge_pe": 143.53202248962242,
+   "n_events": 1000,
+   "yield_photons": 1027996.3213450833
+  },
+  "y_lo": 16628.892533627542,
+  "y_lo_check": {
+   "median_hit_fraction": 0.0996,
+   "median_hit_pmts": 996.0,
+   "median_module_charge_pe": 2.3262331698469962,
+   "n_events": 1000,
+   "yield_photons": 16628.892533627542
+  }
+ }
+}
