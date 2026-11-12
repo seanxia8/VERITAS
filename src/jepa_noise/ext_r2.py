@@ -918,6 +918,63 @@ def projections(bench: dict, n_pmt: int, *, cores: int = 16) -> dict:
             "cohort_events": {"dev_train": train_ev, "probe_total": probe_ev}}
 
 
+# ======================================================================= WCTE regression (§4.2)
+ROUND1_LUCID_ROOT = Path("/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid")
+ROUND1_PROBE_KEYS = {"dev_probe_train": "dev_probe_train__F1__0.05__s20261017",
+                     "dev_probe_test": "dev_probe_test__F1__0.05__s20261017"}
+ROUND1_RETURNS = Path("/ceph/dwong/jepa/returns")
+#: label -> (round-2 arm, seed, round-1 checkpoint (relative to ROUND1_RETURNS), committed
+#: full-input vertex in m, source of the committed value).
+WCTE_REGRESSION = {
+    "init9000": ("init", 9000, None, 0.16007169,
+                 "results/jepa/20261101_readout/matrix.json items/init9000"),
+    "mae_within_trigger9000": (
+        "mae_mse", 9000,
+        "ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9000/final.pt",
+        0.10491560, "results/jepa/20261031_mae_dejitter/summary.json")}
+WCTE_REGRESSION_TOLERANCE_M = 1e-3
+
+
+def wcte_pack(work_dir) -> dict:
+    """Pack the two round-1 WCTE probe cohorts (read-only, via symlinks) and verify them."""
+    from . import r2_generator as gen
+    from . import r2_store as rs
+    work_dir = check_write_path(work_dir)
+    shard_root = work_dir / "shards"
+    shard_root.mkdir(parents=True, exist_ok=True)
+    for cohort, key in ROUND1_PROBE_KEYS.items():
+        link = shard_root / cohort
+        if not link.exists():
+            link.symlink_to(ROUND1_LUCID_ROOT / key / "runs")
+    cohorts = {c: gen.cohort_runs(c) for c in ROUND1_PROBE_KEYS}
+    h5 = work_dir / "wcte_probe_r2.h5"
+    if not h5.exists():
+        geometry = rg.load_r2_geometry("wcte")
+        rs.pack_detector(h5, shard_root, cohorts,
+                         attrs={"extension": EXTENSION, "detector": "wcte",
+                                "geometry_sha256": geometry.digest,
+                                "source": "round-1 stored probe cohorts (read-only)"})
+    return {"h5": str(h5), **rs.verify_pack(h5, shard_root, cohorts)}
+
+
+def wcte_regression(work_dir, *, device: str = "cuda") -> dict:
+    """Reproduce init9000 and mae_within_trigger9000 full-input vertex within 1e-3 m (S6)."""
+    pack = wcte_pack(work_dir)
+    rows = {}
+    for label, (arm, seed, ckpt, expected, source) in WCTE_REGRESSION.items():
+        record = evaluate_model(detector="wcte", arm=arm, seed=seed, h5_path=pack["h5"],
+                                out_root=work_dir,
+                                checkpoint=None if ckpt is None else ROUND1_RETURNS / ckpt,
+                                device=device)
+        got = record["metrics"]["vertex_full_m"]
+        rows[label] = {"expected_m": expected, "got_m": got, "abs_diff_m": abs(got - expected),
+                       "pass": abs(got - expected) <= WCTE_REGRESSION_TOLERANCE_M,
+                       "source": source, "checkpoint_sha256": record["checkpoint_sha256"]}
+    ok = all(r["pass"] for r in rows.values())
+    return {"pack": pack, "items": rows, "tolerance_m": WCTE_REGRESSION_TOLERANCE_M,
+            "pass": ok, "stop": None if ok else "S6"}
+
+
 # ======================================================================= CLI
 def _parser():
     p = argparse.ArgumentParser(prog="python -m jepa_noise.ext_r2")
@@ -936,6 +993,7 @@ def _parser():
         s.add_argument("--items", default=None, help="arm:seed[:ckpt],... (evaluate)")
         s.add_argument("--steps", default="geometry,trigger,yield,gatev,bench")
         s.add_argument("--device", default="cuda")
+        s.add_argument("--out-dir", default=None, help="work directory (WCTE regression)")
     for name in ("smoke", "train"):
         s = sub.add_parser(name)
         s.add_argument("--detector", required=True, choices=sorted(rg.DETECTORS))
@@ -1010,6 +1068,10 @@ def _preflight(args):
     from . import r2_generator as gen
     out = {"detector": args.detector, "extension": EXTENSION, "code_sha": lb.current_code_sha()}
     steps = args.steps.split(",")
+    if "regression" in steps:
+        out["wcte_regression"] = wcte_regression(Path(args.out_dir or RETURNS_ROOT / "wcte_regression"),
+                                                 device=args.device)
+        steps = [s for s in steps if s != "regression"]
     geometry = rg.load_r2_geometry(args.detector)
     rule = gen.time_rule_for(geometry)
     cfg = gen.load_r2_config()
