@@ -80,9 +80,17 @@ def test_x0_clearance():
     good = {k: {"stop": None} for k in ("geometry", "trigger", "gate_v", "storage", "cpu")}
     good["yield_range"] = {"stop": None, "y_lo": 1e4, "y_hi": 1e6}
     assert x.x0_clearance(good) == {"y_lo": 1e4, "y_hi": 1e6}
+    # addendum: Gate V is informational, its S2 no longer blocks generation
+    assert x.x0_clearance({**good, "gate_v": {"stop": "S2"}}) == {"y_lo": 1e4, "y_hi": 1e6}
+    # S3 is re-judged from the efficiencies (dark-only triggers are recorded, not a stop)
+    old_rec = {"stop": "S3", "efficiency": {"photon_y_lo": 1.0, "muon": 1.0, "electron": 1.0}}
+    assert x.x0_clearance({**good, "trigger": old_rec})["y_lo"] == 1e4
     with pytest.raises(x.StopError) as err:
-        x.x0_clearance({**good, "gate_v": {"stop": "S2"}})
-    assert err.value.stop == "S2"
+        x.x0_clearance({**good, "trigger": {"stop": None, "efficiency": {"muon": 0.98}}})
+    assert err.value.stop == "S3"
+    with pytest.raises(x.StopError) as err:
+        x.x0_clearance({**good, "storage": {"stop": "S5"}})
+    assert err.value.stop == "S5"
     with pytest.raises(ValueError):
         x.x0_clearance({k: v for k, v in good.items() if k != "trigger"})
 
@@ -148,3 +156,14 @@ def test_stopped_detector_owes_nothing(tmp_path):
     with pytest.raises(x.StopError):
         x.train_r2(detector="sk", arm="mae_mse", seed=9000, h5_path=tmp_path / "x.h5",
                    out_root=tmp_path, device="cpu")
+
+
+def test_resume_stopped_keeps_record(tmp_path):
+    x.mark_stopped(tmp_path, "sk", "S2", "Gate V")
+    x.resume_stopped(tmp_path, "sk", "addendum d237ec2b")
+    ledger = x.ledger_load(tmp_path)
+    assert not x.is_stopped(ledger, "sk")
+    assert ledger["resumed"]["sk"]["original_stop"]["stop"] == "S2"
+    assert len(x.planned_runs(ledger, "sk")) == 7
+    with pytest.raises(ValueError):
+        x.resume_stopped(tmp_path, "sk", "again")

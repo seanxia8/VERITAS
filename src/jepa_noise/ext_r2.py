@@ -429,6 +429,19 @@ def mark_stopped(root, detector: str, stop: str, reason: str) -> dict:
         detector, {"stop": stop, "reason": reason}))
 
 
+def resume_stopped(root, detector: str, authority: str) -> dict:
+    """Lift a recorded detector stop by a later author decision (e.g. the Gate V addendum):
+    the original stop record is kept under ``resumed`` with the authority that lifted it."""
+    def fn(l):
+        rec = (l.get("stopped") or {}).pop(detector, None)
+        if rec is None:
+            raise ValueError(f"{detector} is not stopped")
+        l.setdefault("resumed", {})[detector] = {
+            "original_stop": rec, "authority": authority,
+            "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    return _ledger_update(root, fn)
+
+
 def is_stopped(ledger, detector: str) -> bool:
     return detector in (ledger.get("stopped") or {})
 
@@ -578,13 +591,29 @@ def cpu_check(root, projected_wall_h: float) -> dict:
             "remaining_wall_h": remaining, "pass": bool(ok), "stop": None if ok else "S7"}
 
 
+#: Addendum RUNBOOK_2026-11-12_R2_GATEV_CEILING.md (author, 12 Nov 2026 10:08): Gate V is
+#: informational for SK, JUNO and HK; S2 no longer applies. Gate V is still required in the
+#: X0 record (it is reported) but its result no longer blocks generation.
+ADDENDUM_GATEV_SHA256 = "d237ec2b3059f5359b51e20e2047b78454264b214cd73c8699d7d7030cca582c"
+GATE_V_INFORMATIONAL = True
+
+
 def x0_clearance(x0: dict) -> dict:
-    """The X0 record must show no stop before generation; returns the yield range."""
-    stops = {k: (x0.get(k) or {}).get("stop") for k in
-             ("geometry", "yield_range", "trigger", "gate_v", "storage", "cpu")}
-    missing = [k for k in stops if x0.get(k) is None]
+    """The X0 record must show no stop before generation; returns the yield range.
+
+    S3 is judged on the trigger efficiencies only (§9), so an X0 record written before that
+    fix (whose ``trigger.stop`` also counted dark-only windows) is re-judged from its
+    efficiencies. Gate V is informational (addendum)."""
+    keys = ("geometry", "yield_range", "trigger", "gate_v", "storage", "cpu")
+    missing = [k for k in keys if x0.get(k) is None]
     if missing:
         raise ValueError(f"X0 record lacks {missing}")
+    stops = {k: (x0.get(k) or {}).get("stop") for k in keys}
+    eff = (x0["trigger"] or {}).get("efficiency")
+    if eff:
+        stops["trigger"] = None if all(float(v) >= 0.99 for v in eff.values()) else "S3"
+    if GATE_V_INFORMATIONAL:
+        stops["gate_v"] = None
     fired = {k: v for k, v in stops.items() if v}
     if fired:
         raise StopError(sorted(fired.values())[0], f"X0 stop(s) {fired}; no generation")
