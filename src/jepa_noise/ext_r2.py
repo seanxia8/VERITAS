@@ -846,7 +846,11 @@ def gate_v(detector: str, cfg, *, photonsim_dir=PHOTONSIM_DIR) -> dict:
     No refit of the yield per MeV (S2 on failure).  Host-only (imports JAX via the pinned
     ``PromptTransport``).
     """
+    import sys
     from . import cherenkov_validation as cv
+    pinned = str(rg.lucid_config_dir().parent)  # the pinned LUCiD clone (eaf2e89), not another
+    if pinned not in sys.path[:1]:
+        sys.path.insert(0, pinned)
     from noise_module_lucid.lucid_transport import PromptTransport
     geometry = rg.load_r2_geometry(detector)
     config_path = rg.lucid_config_dir() / rg.DETECTORS[detector][0]
