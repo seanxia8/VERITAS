@@ -429,6 +429,19 @@ def mark_stopped(root, detector: str, stop: str, reason: str) -> dict:
         detector, {"stop": stop, "reason": reason}))
 
 
+def mark_run_stopped(root, detector: str, arm: str, seed: int, stop: str, reason: str) -> dict:
+    """Record a §9 stop for one planned run (e.g. S1 for ``mae_mse_rf`` when the cap cannot
+    hold it after the main runs): the run is no longer reserved and its training is refused."""
+    return _ledger_update(root, lambda l: l.setdefault("run_stops", []).append(
+        {"detector": detector, "arm": arm, "seed": int(seed), "stop": stop, "reason": reason,
+         "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}))
+
+
+def run_stopped(ledger, detector: str, arm: str, seed: int):
+    return next((r for r in ledger.get("run_stops") or [] if r["detector"] == detector
+                 and r["arm"] == arm and int(r["seed"]) == int(seed)), None)
+
+
 def resume_stopped(root, detector: str, authority: str) -> dict:
     """Lift a recorded detector stop by a later author decision (e.g. the Gate V addendum):
     the original stop record is kept under ``resumed`` with the authority that lifted it."""
@@ -459,7 +472,7 @@ def planned_runs(ledger, detector: str) -> list:
             runs = [r for r in runs if r[1] == 9000]
         if fb["step"] >= 3:
             runs = []
-    return runs
+    return [r for r in runs if run_stopped(ledger, detector, *r) is None]
 
 
 def eval_booked_h(ledger, detector: str) -> float:
@@ -639,6 +652,9 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     if is_stopped(ledger_load(out_root), detector):
         raise StopError(ledger_load(out_root)["stopped"][detector]["stop"],
                         f"{detector} is stopped; no training")
+    rs_ = None if smoke else run_stopped(ledger_load(out_root), detector, arm, seed)
+    if rs_ is not None:
+        raise StopError(rs_["stop"], f"{detector}/{arm}/{seed} is stopped: {rs_['reason']}")
     if not smoke:
         triggered = ()
         if int(seed) == CONDITIONAL_SEED and arm in MAIN_ARMS:

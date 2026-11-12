@@ -167,3 +167,18 @@ def test_resume_stopped_keeps_record(tmp_path):
     assert len(x.planned_runs(ledger, "sk")) == 7
     with pytest.raises(ValueError):
         x.resume_stopped(tmp_path, "sk", "again")
+
+
+def test_run_stop_removes_one_run(tmp_path):
+    before = x.reserved_gpu_h(tmp_path, x.ledger_load(tmp_path))
+    x.mark_run_stopped(tmp_path, "sk", x.RF_ARM, 9000, "S1", "cap")
+    ledger = x.ledger_load(tmp_path)
+    assert (x.RF_ARM, 9000) not in x.planned_runs(ledger, "sk")
+    assert len(x.planned_runs(ledger, "sk")) == 6
+    after = x.reserved_gpu_h(tmp_path, ledger)
+    assert abs((before - after) - x.DESIGN_RF_RUN_H["sk"]) < 1e-9
+    pytest.importorskip("torch")
+    with pytest.raises(x.StopError) as err:
+        x.train_r2(detector="sk", arm=x.RF_ARM, seed=9000, h5_path=tmp_path / "x.h5",
+                   out_root=tmp_path, device="cpu")
+    assert err.value.stop == "S1"
