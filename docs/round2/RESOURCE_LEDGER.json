@@ -9,6 +9,15 @@
    "utc": "2026-11-12T11:19:14Z",
    "wall_h": 2.009643871055709,
    "workers": 6
+  },
+  {
+   "detector": "juno",
+   "jobs": 900,
+   "kind": "generation",
+   "made": 900,
+   "utc": "2026-11-12T12:46:22Z",
+   "wall_h": 1.0872260967228147,
+   "workers": 10
   }
  ],
  "entries": [

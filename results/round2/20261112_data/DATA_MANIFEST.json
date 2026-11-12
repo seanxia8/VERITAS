@@ -108,6 +108,113 @@
     "wall_h": 2.009643871055709
    },
    "shards": "/work/dwong/r2_gen/sk (removed after this manifest is committed)"
+  },
+  "juno": {
+   "file": "/ceph/dwong/jepa/data/round2/juno/juno_r2.h5",
+   "sha256": "a6494ee6aa046cffba9c19eb133a6bec941ae195d15b23ca17f9870b31a2cadb",
+   "bytes": 4885659522,
+   "cohorts": {
+    "dev_train": {
+     "n_runs": 100,
+     "n_events": 100000,
+     "n_hits": 291643216,
+     "twin_present": false
+    },
+    "dev_probe_train": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 29176971,
+     "twin_present": true
+    },
+    "dev_probe_test": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 29693997,
+     "twin_present": true
+    },
+    "dev_probe_train_s030": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 29134531,
+     "twin_present": true
+    },
+    "dev_probe_test_s030": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 29651326,
+     "twin_present": true
+    }
+   },
+   "verified_runs_byte_for_byte": {
+    "dev_train": 100,
+    "dev_probe_train": 200,
+    "dev_probe_test": 200,
+    "dev_probe_train_s030": 200,
+    "dev_probe_test_s030": 200
+   },
+   "derived_values": {
+    "L_m": 35.0,
+    "detector": "juno",
+    "fiducial_fraction": 0.8,
+    "half_extent_m": [
+     17.5,
+     17.5,
+     17.5
+    ],
+    "height_m": 35.0,
+    "k": 20,
+    "n_modules": 500,
+    "n_pmt": 10000,
+    "nhits_n": 6,
+    "nhits_window_ns": 20.0,
+    "prompt_window_ns": [
+     -20.0,
+     200.0
+    ],
+    "pseudo_modules": true,
+    "radius_m": 17.5,
+    "shape": "sphere",
+    "shift_rf": 160,
+    "t_cross_ns": 155.2740863147398,
+    "time_scale_ns": 333.33333333333337,
+    "w_rf": 320
+   },
+   "yield_range_photons": [
+    16628.892533627542,
+    1027996.3213450833
+   ],
+   "benchmark": {
+    "events_per_s": 6.129900406577796,
+    "hits_per_event": 2947.02,
+    "n_events": 1000,
+    "peak_rss_mb": 1422.09375,
+    "probe_seconds_per_event_with_twin_and_expected_pe": 0.23515110979788006,
+    "raw_hit_bytes_per_event": 35364.24,
+    "readout": {
+     "dark_moved_trigger_rate": 0.165,
+     "n_dark_moved_trigger": 165,
+     "n_events": 1000,
+     "n_no_trigger": 0,
+     "n_prompt_dropped": 6050
+    },
+    "seconds": 163.13478746358305
+   },
+   "projection": {
+    "cohort_events": {
+     "dev_train": 100000,
+     "probe_total": 40000
+    },
+    "cpu_wall_h_16_cores": 0.4465194989283595,
+    "disk_bytes_estimate": 4352671253.333333
+   },
+   "generation": {
+    "runs": 900,
+    "made": 900,
+    "wall_s": 3914.0180644989014,
+    "workers": 10,
+    "wall_h": 1.0872260967228147
+   },
+   "shards": "/work/dwong/r2_gen/juno (removed after this manifest is committed)"
   }
  }
 }

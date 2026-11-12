@@ -1,0 +1,509 @@
+{
+ "detector": "wcte",
+ "skipped": false,
+ "n_pmt": 1995,
+ "n_modules": 105,
+ "events": [
+  {
+   "event": 0,
+   "lambda_photons": 21641,
+   "w_bar": 0.15794444439413258,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 24.152901785714285,
+   "photons_per_hit_module": 245.92045454545453,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9871362903636371,
+     "p05": 0.985587509377986,
+     "p95": 0.9885814917924918,
+     "observed": 0.5671665155962233,
+     "normalised": 0.5745574558780459
+    },
+    "log_pattern_pearson": {
+     "c": 0.9787624390150882,
+     "p05": 0.9769400583472949,
+     "p95": 0.9803566151026427,
+     "observed": 0.7366686103176889,
+     "normalised": 0.7526531270028975
+    },
+    "module_pattern_pearson": {
+     "c": 0.9993819734603406,
+     "p05": 0.9990610060329737,
+     "p95": 0.9996237136244435,
+     "observed": 0.8768394451371639,
+     "normalised": 0.8773816903071849
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8347555146537029,
+     "spearman_brown": 0.9099365097820753,
+     "sqrt_reliability": 0.9539059229201144
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.83760074165496,
+     "spearman_brown": 0.911624296473247,
+     "sqrt_reliability": 0.9547901845291703
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9953815464606484,
+     "spearman_brown": 0.9976854283595317,
+     "sqrt_reliability": 0.9988420437484256
+    }
+   }
+  },
+  {
+   "event": 1,
+   "lambda_photons": 21567,
+   "w_bar": 0.1577931487621803,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 19.052120141342755,
+   "photons_per_hit_module": 217.84848484848484,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9840987508068204,
+     "p05": 0.9820813974256685,
+     "p95": 0.9858394852965214,
+     "observed": 0.7094558343500964,
+     "normalised": 0.7209193526243621
+    },
+    "log_pattern_pearson": {
+     "c": 0.9799957743671284,
+     "p05": 0.9782862384220652,
+     "p95": 0.9816013198084051,
+     "observed": 0.816800426862247,
+     "normalised": 0.8334734171580777
+    },
+    "module_pattern_pearson": {
+     "c": 0.999294388113259,
+     "p05": 0.9988476614620426,
+     "p95": 0.9995321601846756,
+     "observed": 0.9412204271995644,
+     "normalised": 0.9418850324744218
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.858284045422582,
+     "spearman_brown": 0.9237382708383577,
+     "sqrt_reliability": 0.961113037492655
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.885317291312066,
+     "spearman_brown": 0.9391706058092101,
+     "sqrt_reliability": 0.9691081496970346
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9954536222145065,
+     "spearman_brown": 0.9977216319463,
+     "sqrt_reliability": 0.9988601663627897
+    }
+   }
+  },
+  {
+   "event": 2,
+   "lambda_photons": 20932,
+   "w_bar": 0.15828937766394602,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 19.25666973321067,
+   "photons_per_hit_module": 222.68085106382978,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9850705738773873,
+     "p05": 0.9831963376719255,
+     "p95": 0.9867501051346328,
+     "observed": 0.6458310765739312,
+     "normalised": 0.6556190933933211
+    },
+    "log_pattern_pearson": {
+     "c": 0.9788610351727136,
+     "p05": 0.976964544412318,
+     "p95": 0.9806774831462488,
+     "observed": 0.815896627812966,
+     "normalised": 0.8335162995521692
+    },
+    "module_pattern_pearson": {
+     "c": 0.9992629654941716,
+     "p05": 0.9988878971772506,
+     "p95": 0.9995291611692189,
+     "observed": 0.9054520096332492,
+     "normalised": 0.9061198512300218
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.859963841212811,
+     "spearman_brown": 0.9247102789396826,
+     "sqrt_reliability": 0.961618572480629
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8733320562483251,
+     "spearman_brown": 0.9323836138237288,
+     "sqrt_reliability": 0.9656001314331564
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9953486522780366,
+     "spearman_brown": 0.9976689047717786,
+     "sqrt_reliability": 0.9988337723424147
+    }
+   }
+  },
+  {
+   "event": 3,
+   "lambda_photons": 21458,
+   "w_bar": 0.15793185152527245,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 22.008205128205127,
+   "photons_per_hit_module": 223.52083333333334,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.986545570137437,
+     "p05": 0.9847156845746928,
+     "p95": 0.9880679492559175,
+     "observed": 0.5846751476908097,
+     "normalised": 0.5926489007591994
+    },
+    "log_pattern_pearson": {
+     "c": 0.9789308965065788,
+     "p05": 0.9768817152381684,
+     "p95": 0.9806166355070708,
+     "observed": 0.785180747194806,
+     "normalised": 0.802079850576592
+    },
+    "module_pattern_pearson": {
+     "c": 0.9993428321750562,
+     "p05": 0.9989322916044306,
+     "p95": 0.9995697948580791,
+     "observed": 0.8929321622011328,
+     "normalised": 0.8935193543717905
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8327082975691438,
+     "spearman_brown": 0.9087188601411651,
+     "sqrt_reliability": 0.9532674651645073
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8502347352969428,
+     "spearman_brown": 0.9190560733478925,
+     "sqrt_reliability": 0.9586741226026144
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9952130604347378,
+     "spearman_brown": 0.9976007877754072,
+     "sqrt_reliability": 0.9987996734958453
+    }
+   }
+  },
+  {
+   "event": 4,
+   "lambda_photons": 21636,
+   "w_bar": 0.1579346575932953,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 24.201342281879196,
+   "photons_per_hit_module": 237.75824175824175,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9886598590248961,
+     "p05": 0.9871282536415568,
+     "p95": 0.9900008256654237,
+     "observed": 0.5730428395707237,
+     "normalised": 0.5796157640464025
+    },
+    "log_pattern_pearson": {
+     "c": 0.9782369062767106,
+     "p05": 0.9763366456960083,
+     "p95": 0.9800471261334188,
+     "observed": 0.7756485576393781,
+     "normalised": 0.7929046150912374
+    },
+    "module_pattern_pearson": {
+     "c": 0.9994166777639132,
+     "p05": 0.9991224937791084,
+     "p95": 0.9996432362625737,
+     "observed": 0.891027986024688,
+     "normalised": 0.8915480458243571
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8266788043852127,
+     "spearman_brown": 0.9051167642616184,
+     "sqrt_reliability": 0.9513762474760542
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8141713642823376,
+     "spearman_brown": 0.8975683116951999,
+     "sqrt_reliability": 0.947400818922593
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.995563415968771,
+     "spearman_brown": 0.9977767762248361,
+     "sqrt_reliability": 0.9988877695841691
+    }
+   }
+  },
+  {
+   "event": 5,
+   "lambda_photons": 22034,
+   "w_bar": 0.1581897556307078,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 23.024033437826542,
+   "photons_per_hit_module": 222.56565656565655,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9854916695788825,
+     "p05": 0.9837551154459295,
+     "p95": 0.9870565186632647,
+     "observed": 0.5922828352654369,
+     "normalised": 0.6010023763250374
+    },
+    "log_pattern_pearson": {
+     "c": 0.9797092173895848,
+     "p05": 0.9778902628735161,
+     "p95": 0.9813864261085686,
+     "observed": 0.752389487891258,
+     "normalised": 0.7679722457812375
+    },
+    "module_pattern_pearson": {
+     "c": 0.9993012698069137,
+     "p05": 0.9989181669290278,
+     "p95": 0.9995946020695525,
+     "observed": 0.8866910231762271,
+     "normalised": 0.8873110141724874
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.861564512739508,
+     "spearman_brown": 0.9256348698564477,
+     "sqrt_reliability": 0.9620991995924577
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8644760710606604,
+     "spearman_brown": 0.9273125941153845,
+     "sqrt_reliability": 0.962970713010206
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9959586112508187,
+     "spearman_brown": 0.9979752141520366,
+     "sqrt_reliability": 0.9989870940868238
+    }
+   }
+  },
+  {
+   "event": 6,
+   "lambda_photons": 19964,
+   "w_bar": 0.15718890004091715,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 15.262996941896024,
+   "photons_per_hit_module": 190.13333333333333,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9835724079867847,
+     "p05": 0.9817465986570587,
+     "p95": 0.9855275760601703,
+     "observed": 0.7166824148824887,
+     "normalised": 0.7286524195503034
+    },
+    "log_pattern_pearson": {
+     "c": 0.9784724043226833,
+     "p05": 0.9766237334092975,
+     "p95": 0.9802647925513076,
+     "observed": 0.82418557668886,
+     "normalised": 0.8423186725019358
+    },
+    "module_pattern_pearson": {
+     "c": 0.9992691916659238,
+     "p05": 0.9988312442946174,
+     "p95": 0.9995391746171354,
+     "observed": 0.9621690103605284,
+     "normalised": 0.9628726857439244
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8924849605093499,
+     "spearman_brown": 0.943188431224461,
+     "sqrt_reliability": 0.9711788873448913
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.9091035482858942,
+     "spearman_brown": 0.9523878881291076,
+     "sqrt_reliability": 0.9759036264555572
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9954066339787686,
+     "spearman_brown": 0.9976980300942108,
+     "sqrt_reliability": 0.9988483519004328
+    }
+   }
+  },
+  {
+   "event": 7,
+   "lambda_photons": 20991,
+   "w_bar": 0.15750936779008223,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 19.082727272727272,
+   "photons_per_hit_module": 205.7941176470588,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.984926401624991,
+     "p05": 0.982967369083642,
+     "p95": 0.9865082554542371,
+     "observed": 0.6826746514029555,
+     "normalised": 0.6931225016170118
+    },
+    "log_pattern_pearson": {
+     "c": 0.9786634544539232,
+     "p05": 0.9765848642976894,
+     "p95": 0.9804214027571164,
+     "observed": 0.8214296513892715,
+     "normalised": 0.8393382297570462
+    },
+    "module_pattern_pearson": {
+     "c": 0.9993135548918191,
+     "p05": 0.9989182574421973,
+     "p95": 0.9995770898517146,
+     "observed": 0.8975653084119036,
+     "normalised": 0.8981818609566141
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8524020437799288,
+     "spearman_brown": 0.9203207766285502,
+     "sqrt_reliability": 0.9593335064661038
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8591285588512816,
+     "spearman_brown": 0.9242271652070365,
+     "sqrt_reliability": 0.9613673414502057
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9957446089732506,
+     "spearman_brown": 0.9978677677456241,
+     "sqrt_reliability": 0.9989333149643294
+    }
+   }
+  },
+  {
+   "event": 8,
+   "lambda_photons": 20649,
+   "w_bar": 0.15824205047858667,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 20.00872093023256,
+   "photons_per_hit_module": 206.49,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9842740017312285,
+     "p05": 0.9823455324205329,
+     "p95": 0.9860687605602998,
+     "observed": 0.6777803269789717,
+     "normalised": 0.6886093971666747
+    },
+    "log_pattern_pearson": {
+     "c": 0.9789217828989447,
+     "p05": 0.9769791203393311,
+     "p95": 0.9805558636251499,
+     "observed": 0.8141378783725408,
+     "normalised": 0.8316679561073628
+    },
+    "module_pattern_pearson": {
+     "c": 0.9992922432723474,
+     "p05": 0.9988109804008458,
+     "p95": 0.9995493691520108,
+     "observed": 0.9512417856014506,
+     "normalised": 0.9519155102079571
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8410167696516944,
+     "spearman_brown": 0.9136437902309906,
+     "sqrt_reliability": 0.9558471584050405
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8641891242602433,
+     "spearman_brown": 0.927147479849369,
+     "sqrt_reliability": 0.9628849774762139
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9953989197068069,
+     "spearman_brown": 0.9976941551647882,
+     "sqrt_reliability": 0.9988464121999879
+    }
+   }
+  },
+  {
+   "event": 9,
+   "lambda_photons": 21204,
+   "w_bar": 0.15714502881094547,
+   "mu_rel_diff": 0.0,
+   "photons_per_hit_pmt": 17.818487394957984,
+   "photons_per_hit_module": 207.88235294117646,
+   "metrics": {
+    "pattern_pearson": {
+     "c": 0.9836504237928654,
+     "p05": 0.9817035295961309,
+     "p95": 0.9854493236725015,
+     "observed": 0.7346972338500108,
+     "normalised": 0.7469088774618589
+    },
+    "log_pattern_pearson": {
+     "c": 0.9795293647487106,
+     "p05": 0.9777371906474887,
+     "p95": 0.981266265519929,
+     "observed": 0.8582246200321808,
+     "normalised": 0.876160175404594
+    },
+    "module_pattern_pearson": {
+     "c": 0.999257080427169,
+     "p05": 0.9988197431243494,
+     "p95": 0.9995231030367165,
+     "observed": 0.9477954179739649,
+     "normalised": 0.9485000772461829
+    }
+   },
+   "split_half": {
+    "pattern_pearson": {
+     "split_half_r": 0.8611082561723818,
+     "spearman_brown": 0.9253714858515176,
+     "sqrt_reliability": 0.9619623099953125
+    },
+    "log_pattern_pearson": {
+     "split_half_r": 0.8861214723222428,
+     "spearman_brown": 0.939622909049677,
+     "sqrt_reliability": 0.9693414821669797
+    },
+    "module_pattern_pearson": {
+     "split_half_r": 0.9949188660832047,
+     "spearman_brown": 0.997452962121326,
+     "sqrt_reliability": 0.998725669101043
+    }
+   }
+  }
+ ],
+ "C": {
+  "pattern_pearson": 0.9849984877511891,
+  "log_pattern_pearson": 0.9788914090358292,
+  "module_pattern_pearson": 0.9992978289600863
+ },
+ "normalised_median": {
+  "pattern_pearson": 0.672114245279998,
+  "log_pattern_pearson": 0.8325706866327203,
+  "module_pattern_pearson": 0.902150856093318
+ },
+ "observed_median": {
+  "pattern_pearson": 0.6618057017764515,
+  "log_pattern_pearson": 0.8150172530927534,
+  "module_pattern_pearson": 0.9015086590225765
+ },
+ "addendum_sha256": "d237ec2b3059f5359b51e20e2047b78454264b214cd73c8699d7d7030cca582c",
+ "seed": 20261112,
+ "k": 500,
+ "rows_source": "results/jepa/20261022_a10_calibration/validation_holdout.json",
+ "wall_s": 226.90880370140076,
+ "code_sha": "7a162729cae19482d78d39c71a07abe733d0c455"
+}
