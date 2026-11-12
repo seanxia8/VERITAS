@@ -1,0 +1,36 @@
+{
+ "code_sha": "92680535a3cf119b20baf69497a2ebfbd177d0af",
+ "detector": "wcte",
+ "extension": "r2_multidetector_2026-11-11",
+ "wcte_regression": {
+  "items": {
+   "init9000": {
+    "abs_diff_m": 7.352839057062077e-08,
+    "checkpoint_sha256": null,
+    "expected_m": 0.16007169,
+    "got_m": 0.16007161647160942,
+    "pass": true,
+    "source": "results/jepa/20261101_readout/matrix.json items/init9000"
+   },
+   "mae_within_trigger9000": {
+    "abs_diff_m": 1.727700126019638e-08,
+    "checkpoint_sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49",
+    "expected_m": 0.1049156,
+    "got_m": 0.10491561727700126,
+    "pass": true,
+    "source": "results/jepa/20261031_mae_dejitter/summary.json"
+   }
+  },
+  "pack": {
+   "h5": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/titan/wcte_regression/wcte_probe_r2.h5",
+   "sha256": "086c60199478ed5cbaf4ec3094f9b02d9b7780d4350663cf93a396bde983724b",
+   "verified_runs": {
+    "dev_probe_test": 200,
+    "dev_probe_train": 200
+   }
+  },
+  "pass": true,
+  "stop": null,
+  "tolerance_m": 0.001
+ }
+}

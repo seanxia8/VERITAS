@@ -2,7 +2,7 @@
  "extension": "r2_multidetector_2026-11-11",
  "registered": false,
  "detector": "juno",
- "stopped": false,
+ "stopped": true,
  "stop": {
   "id": "S2",
   "reason": "Gate V fails for JUNO with the round-1 harness (cherenkov_validation.validate requires every holdout event to pass): event 4 (e500_014) module-pattern Pearson 0.845 < 0.85; holdout medians pass (yield ratio 1.077, module 0.888, log 0.761, time 0.78 ns); no refit of the yield per MeV"
@@ -59,5 +59,12 @@
   "authority": "docs/round2/RUNBOOK_2026-11-12_R2_JUNO_TITAN.md (sha256 f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229); author 12 Nov 2026 23:37",
   "effect": "JUNO's S1 is lifted; the original S2 and S1 records above are kept. All JUNO GPU work runs on Deepthought's GTX Titans under the ledger line R2_titan_deepthought (cap 100 Titan GPU-h), after the feasibility test (addendum section 2). JUNO uses no L40S time.",
   "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)"
+ },
+ "stop_titan": {
+  "id": "T-S1",
+  "date": "2026-11-13",
+  "reason": "T-S1: JUNO projection exceeds the 100 Titan GPU-h cap after the addendum section 2 fallback: six main runs 626.4 h + evaluation 2.87 h (+ rf 41.2 h); fallback 1 (drop rf) 629.3 h; fallback 2 (seed 9000 only) 313.2 h + 2.87 h = 316.1 h > 99.2 h left (booked 0.81 h)",
+  "feasibility": "results/round2/20261113_titan/feasibility.json",
+  "action": "JUNO not trained or evaluated; data (juno_r2.h5, verified) kept. Titan GPU-h used: smokes and the Titan WCTE regression only. SK is unaffected (addendum section 4)."
  }
 }

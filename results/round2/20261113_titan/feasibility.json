@@ -1,0 +1,80 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "addendum": "docs/round2/RUNBOOK_2026-11-12_R2_JUNO_TITAN.md",
+ "addendum_sha256": "0a8d76e980e94007699f920dc809a00767e7843f6611840a8c614cdf7d8d277f",
+ "date": "2026-11-13",
+ "verdict": "GO criteria 2/4/5 met; projection over cap -> T-S1",
+ "gpus": "4 x NVIDIA GeForce GTX TITAN X (Maxwell, capability 5.2, 12 GB), idle, no other user's process at test time",
+ "torch": "2.5.1+cu121 (round-2 environment; arch list includes sm_50); cuda.is_available True; CUDA matmul and conv OK; no new environment",
+ "launcher": "scripts/jepa_run.sh with the round-1 guard profile 'deepthought' (memory fraction 0.80 = 9.54 GiB allowed)",
+ "wcte_regression": {
+  "init9000": {
+   "abs_diff_m": 7.352839057062077e-08,
+   "checkpoint_sha256": null,
+   "expected_m": 0.16007169,
+   "got_m": 0.16007161647160942,
+   "pass": true,
+   "source": "results/jepa/20261101_readout/matrix.json items/init9000"
+  },
+  "mae_within_trigger9000": {
+   "abs_diff_m": 1.727700126019638e-08,
+   "checkpoint_sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49",
+   "expected_m": 0.1049156,
+   "got_m": 0.10491561727700126,
+   "pass": true,
+   "source": "results/jepa/20261031_mae_dejitter/summary.json"
+  }
+ },
+ "smokes": {
+  "sigreg_jepa": {
+   "micro_batch": 2,
+   "seconds_per_step": 48.338727259635924,
+   "projected_h": 134.27424238787756,
+   "peak_memory_gib": 6.125516414642334
+  },
+  "target_posfree": {
+   "micro_batch": 2,
+   "seconds_per_step": 49.55271836519241,
+   "projected_h": 137.64643990331226,
+   "peak_memory_gib": 6.126187324523926
+  },
+  "mae_mse": {
+   "micro_batch": 8,
+   "seconds_per_step": 14.867488741874695,
+   "projected_h": 41.29857983854082,
+   "peak_memory_gib": 8.763776779174805
+  },
+  "mae_mse_rf": {
+   "micro_batch": 8,
+   "seconds_per_step": 14.818941283226014,
+   "projected_h": 41.16372578673892,
+   "peak_memory_gib": 8.772186279296875
+  }
+ },
+ "smoke_oom": {
+  "sigreg_jepa": [
+   8,
+   4
+  ],
+  "target_posfree": [
+   8,
+   4
+  ]
+ },
+ "projection_titan_gpu_h": {
+  "six_main_runs": 626.4385242594612,
+  "mae_mse_rf": 41.16372578673892,
+  "evaluation_12_models": 2.871835799444289,
+  "full_plan": 670.4740858456445,
+  "fallback_drop_rf": 629.3103600589055,
+  "fallback_seed9000_only": 316.0910979291749,
+  "wall_h_four_gpus_six_main": 208.81284141982042,
+  "note": "the guard admits 3 training jobs; the 4th GPU takes jobs <= 30 min"
+ },
+ "booked_titan_gpu_h": 0.8056007524993685,
+ "cap_titan_gpu_h": 100.0,
+ "stop": {
+  "id": "T-S1",
+  "reason": "T-S1: JUNO projection exceeds the 100 Titan GPU-h cap after the addendum section 2 fallback: six main runs 626.4 h + evaluation 2.87 h (+ rf 41.2 h); fallback 1 (drop rf) 629.3 h; fallback 2 (seed 9000 only) 313.2 h + 2.87 h = 316.1 h > 99.2 h left (booked 0.81 h)"
+ }
+}

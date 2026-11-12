@@ -4,12 +4,11 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 
 ## Where we are
 
-- Runbook (sha256 `366f068…`) and addendum `RUNBOOK_2026-11-12_R2_GATEV_CEILING.md` (sha256 `d237ec2b…`, Gate V informational) committed unchanged.
-- Implementation accepted (PASS). WCTE regression PASS. X0 recorded for SK and JUNO; HK X0 finishing on Deepthought.
-- SK: generated and packed (`sk_r2.h5`, sha256 `89cde55c…`, verified); smokes done; six main runs training on deepthought2 (projection 55.4 L40S h); `mae_mse_rf` stopped (S1).
-- JUNO: **S1** (does not fit after SK). Data generated and packed as safe work.
-- HK: **S1** (§8 fallback step 3). No generation.
-- Gate V ceiling diagnostic: WCTE and SK done; JUNO running.
+- Runbook and addenda committed unchanged: Gate V informational (`d237ec2b…`), JUNO on Titans v2 (`0a8d76e9…`).
+- SK (L40S): data packed and verified; smokes done; main runs training under co-tenancy (core comparison first; watchdog pauses runs that cannot finish within their cap); `init` evaluations running; `mae_mse_rf` S1.
+- JUNO: data packed and verified; Titan feasibility done (CUDA OK, WCTE regression PASS on a Titan) but JEPA arms need ≈ 135 h per run on a TITAN X: **T-S1**, not trained.
+- HK: S1 (§8 fallback step 3), not generated.
+- Gate V ceiling: WCTE, SK, JUNO done (review PASS); HK pending its Gate V rows.
 
 ## Paths
 

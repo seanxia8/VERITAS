@@ -241,6 +241,128 @@
      "seed": 9000,
      "utc": "2026-11-12T22:56:18Z",
      "wall_s": 170.85108518600464
+    },
+    {
+     "arm": "mae_mse",
+     "detector": "wcte",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.04774427016576131,
+     "kind": "eval",
+     "seed": 9000,
+     "utc": "2026-11-12T22:59:11Z",
+     "wall_s": 171.87937259674072
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "crashed": "OutOfMemoryError('CUDA out of memory. Tried to allocate 2.60 GiB. GPU 0 has a total capacity of 11.92 GiB of which 2.83 GiB is free. Including non-PyTorch memory, this process has 9.09 GiB memory in use. 9.54 GiB allowed; Of the allocated memory 8.91 GiB is allocated by PyTorch, and 70.88 MiB is res",
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.00046595176060994464,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "utc": "2026-11-12T23:03:15Z"
+    },
+    {
+     "arm": "sigreg_jepa",
+     "complete": false,
+     "crashed": "OutOfMemoryError('CUDA out of memory. Tried to allocate 2.60 GiB. GPU 0 has a total capacity of 11.92 GiB of which 2.83 GiB is free. Including non-PyTorch memory, this process has 9.09 GiB memory in use. 9.54 GiB allowed; Of the allocated memory 8.90 GiB is allocated by PyTorch, and 73.62 MiB is res",
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.0004496467775768704,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "utc": "2026-11-12T23:05:36Z"
+    },
+    {
+     "arm": "mae_mse",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.08259715967708164,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-12T23:06:22Z",
+     "wall_cap_hit": false,
+     "wall_s": 297.3497748374939
+    },
+    {
+     "arm": "sigreg_jepa",
+     "complete": false,
+     "crashed": "OutOfMemoryError('CUDA out of memory. Tried to allocate 1.30 GiB. GPU 0 has a total capacity of 11.92 GiB of which 3.45 GiB is free. Including non-PyTorch memory, this process has 8.47 GiB memory in use. 9.54 GiB allowed; Of the allocated memory 8.27 GiB is allocated by PyTorch, and 85.22 MiB is res",
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.00036209371354844837,
+     "kind": "smoke",
+     "micro_batch": 4,
+     "precheck": null,
+     "seed": 9000,
+     "utc": "2026-11-12T23:08:45Z"
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "crashed": "OutOfMemoryError('CUDA out of memory. Tried to allocate 1.30 GiB. GPU 0 has a total capacity of 11.92 GiB of which 3.45 GiB is free. Including non-PyTorch memory, this process has 8.47 GiB memory in use. 9.54 GiB allowed; Of the allocated memory 8.27 GiB is allocated by PyTorch, and 83.81 MiB is res",
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.0003541794750425551,
+     "kind": "smoke",
+     "micro_batch": 4,
+     "precheck": null,
+     "seed": 9000,
+     "utc": "2026-11-12T23:09:37Z"
+    },
+    {
+     "arm": "mae_mse_rf",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.08232745157347784,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-12T23:10:53Z",
+     "wall_cap_hit": false,
+     "wall_s": 296.37882566452026
+    },
+    {
+     "arm": "target_posfree",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.27529287980662454,
+     "kind": "smoke",
+     "micro_batch": 2,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-12T23:29:30Z",
+     "wall_cap_hit": false,
+     "wall_s": 991.0543673038483
+    },
+    {
+     "arm": "sigreg_jepa",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
+     "gpu_h": 0.26854848477575516,
+     "kind": "smoke",
+     "micro_batch": 2,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-12T23:31:13Z",
+     "wall_cap_hit": false,
+     "wall_s": 966.7745451927185
     }
    ],
    "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)",
@@ -249,7 +371,13 @@
     "original_stop_on_l40s_line": "S1 (see RESOURCE_LEDGER_R2.json stopped.juno)",
     "utc": "2026-11-12T22:56:01Z"
    },
-   "line": "R2_titan_deepthought"
+   "line": "R2_titan_deepthought",
+   "stopped": {
+    "juno": {
+     "reason": "T-S1: JUNO projection exceeds the 100 Titan GPU-h cap after the addendum section 2 fallback: six main runs 626.4 h + evaluation 2.87 h (+ rf 41.2 h); fallback 1 (drop rf) 629.3 h; fallback 2 (seed 9000 only) 313.2 h + 2.87 h = 316.1 h > 99.2 h left (booked 0.81 h)",
+     "stop": "T-S1"
+    }
+   }
   }
  },
  "totals": {
@@ -258,7 +386,7 @@
    "cap_gpu_h": 60.0
   },
   "R2_titan_deepthought": {
-   "booked_gpu_h": 0.0475,
+   "booked_gpu_h": 0.8056,
    "cap_gpu_h": 100.0
   }
  }
