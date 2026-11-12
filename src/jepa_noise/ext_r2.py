@@ -1139,10 +1139,15 @@ def trigger_check(geometry, cfg, rule, *, y_lo: float, n_dark: int = 10_000,
     for dom in lb.PARTICLE_DOMAINS:
         eff[dom] = float(np.mean(_parallel_map(particle, [(dom, i) for i in range(int(n_events))],
                                                workers)))
-    ok = dark_triggers == 0 and all(v >= 0.99 for v in eff.values())
+    # §9 S3 is defined by the efficiencies only ("the only stops"); the dark-only result is
+    # recorded as its own check and reported.
+    eff_ok = all(v >= 0.99 for v in eff.values())
     return {"nhits_n": rule.n, "window_ns": rule.trigger_window_ns, "n_dark_windows": int(n_dark),
-            "dark_triggers": dark_triggers, "efficiency": eff, "n_events": int(n_events),
-            "y_lo": float(y_lo), "pass": bool(ok), "stop": None if ok else "S3"}
+            "dark_triggers": dark_triggers, "dark_check_pass": dark_triggers == 0,
+            "dark_trigger_rate_per_window": dark_triggers / float(n_dark),
+            "efficiency": eff, "efficiency_pass": bool(eff_ok), "n_events": int(n_events),
+            "y_lo": float(y_lo), "pass": bool(eff_ok and dark_triggers == 0),
+            "stop": None if eff_ok else "S3"}
 
 
 def tolerant_sensor_map(geometry, sensor_points, max_distance_m: float = 0.06) -> np.ndarray:
