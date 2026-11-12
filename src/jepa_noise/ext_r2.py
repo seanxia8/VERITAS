@@ -358,16 +358,69 @@ CEPH_QUOTA_ROOT = Path("/ceph/dwong")
 CEPH_FREE_ENTRIES_FLOOR = 30_000
 
 
+#: GPU profiles (addendum RUNBOOK_2026-11-12_R2_JUNO_TITAN.md): SK (and HK) on the deepthought2
+#: L40S under the 60 h line; JUNO on Deepthought's GTX Titans under its own 100 h line. The
+#: process profile comes from ``R2_GPU_PROFILE`` (default ``l40s``: round-2 behaviour unchanged).
+TITAN_ADDENDUM_SHA256 = "f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229"
+GPU_PROFILES = {
+    "l40s": {"line": LEDGER_LINE, "cap_h": GPU_CAP_H, "file": "RESOURCE_LEDGER_R2.json",
+             "detectors": DETECTOR_ORDER, "mem_limit_gib": GPU_MEMORY_FRACTION_CAP * L40S_MEMORY_GIB,
+             "gpu": "NVIDIA L40S (deepthought2)"},
+    "titan": {"line": "R2_titan_deepthought", "cap_h": 100.0, "file": "RESOURCE_LEDGER_R2_TITAN.json",
+              "detectors": ("juno",), "mem_limit_gib": 11.0,
+              "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)"},
+}
+DETECTOR_PROFILE = {"sk": "l40s", "hk": "l40s", "juno": "titan"}
+#: Titan evaluation reservation: the measured Titan WCTE-regression evaluation time per model,
+#: scaled by the token count (N_PMT_det / 1,995), x 12 models (7 trained + 5 init).
+WCTE_N_PMT = 1995
+
+
+def gpu_profile_name() -> str:
+    name = os.environ.get("R2_GPU_PROFILE", "l40s")
+    if name not in GPU_PROFILES:
+        raise ValueError(f"unknown R2_GPU_PROFILE {name!r}")
+    return name
+
+
+def gpu_profile() -> dict:
+    return GPU_PROFILES[gpu_profile_name()]
+
+
+def cap_h() -> float:
+    return float(gpu_profile()["cap_h"])
+
+
 def ledger_path(root) -> Path:
-    return Path(root) / "ledger" / "RESOURCE_LEDGER_R2.json"
+    return Path(root) / "ledger" / gpu_profile()["file"]
 
 
 def ledger_load(root) -> dict:
     p = ledger_path(root)
     if p.is_file():
         return json.loads(p.read_text())
-    return {"line": LEDGER_LINE, "cap_l40s_h": GPU_CAP_H, "entries": [], "cpu_entries": [],
-            "hk_fallback": None}
+    prof = gpu_profile()
+    if gpu_profile_name() == "l40s":
+        return {"line": LEDGER_LINE, "cap_l40s_h": GPU_CAP_H, "entries": [], "cpu_entries": [],
+                "hk_fallback": None}
+    return {"line": prof["line"], "cap_h": prof["cap_h"], "gpu": prof["gpu"], "entries": [],
+            "cpu_entries": [], "addendum_sha256": TITAN_ADDENDUM_SHA256}
+
+
+def eval_total_h(root, detector: str) -> float:
+    """Evaluation reservation of one detector under the current profile (§8 / Titan addendum)."""
+    if gpu_profile_name() == "l40s":
+        return DESIGN_EVAL_H
+    wcte = [float(e["wall_s"]) for e in ledger_load(root)["entries"]
+            if e.get("kind") == "eval" and e.get("detector") == "wcte" and e.get("wall_s")]
+    if not wcte:
+        return 12 * DESIGN_EVAL_MODEL_H * 10.0  # before the Titan measurement: 10x the L40S design
+    scale = rg.DESIGN_TABLE[detector]["n_pmt"] / WCTE_N_PMT
+    return 12 * max(wcte) * scale / 3600.0
+
+
+def eval_model_h(root, detector: str) -> float:
+    return eval_total_h(root, detector) / 12.0
 
 
 def _ledger_update(root, fn) -> dict:
@@ -387,6 +440,8 @@ def _ledger_update(root, fn) -> dict:
 
 def ledger_add(root, entry: dict, *, cpu: bool = False) -> dict:
     stamped = {**entry, "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    if not cpu and gpu_profile_name() != "l40s":
+        stamped["gpu"] = gpu_profile()["gpu"]
     return _ledger_update(root, lambda l: l["cpu_entries" if cpu else "entries"].append(stamped))
 
 
@@ -399,7 +454,7 @@ def run_complete(ledger, detector: str, arm: str, seed: int) -> bool:
                and e["arm"] == arm and int(e["seed"]) == int(seed) for e in ledger["entries"])
 
 
-def smoke_projection_h(root, detector: str, arm: str, card_gib: float = L40S_MEMORY_GIB):
+def smoke_projection_h(root, detector: str, arm: str, card_gib: float | None = None):
     """10,000-step projection from the detector/arm smoke at the chosen micro-batch, or None."""
     smokes = []
     for p in sorted((Path(root) / "smokes").glob(f"{detector}__{arm}__s*__smoke*/run_record.json")):
@@ -484,7 +539,7 @@ def reserved_gpu_h(root, ledger, *, exclude=None, hk_minimal: bool = False) -> f
     """GPU hours still owed to higher-priority work: every planned main/rf run not yet
     complete and the remaining evaluation of each detector (§8 priority)."""
     total = 0.0
-    for det in DETECTOR_ORDER:
+    for det in gpu_profile()["detectors"]:
         runs = planned_runs(ledger, det)
         if det == "hk" and hk_minimal and ledger.get("hk_fallback") is None:
             runs = [(a, 9000) for a in MAIN_ARMS]  # the smallest HK plan before S1 (§8 step 2)
@@ -493,7 +548,7 @@ def reserved_gpu_h(root, ledger, *, exclude=None, hk_minimal: bool = False) -> f
                 continue
             total += run_projection_h(root, det, arm)
         if not is_stopped(ledger, det):
-            total += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
+            total += max(0.0, eval_total_h(root, det) - eval_booked_h(ledger, det))
     return total
 
 
@@ -540,12 +595,13 @@ def seed9002_decision(root, detector: str, arm: str) -> dict:
     ledger = ledger_load(root)
     triggers = seed9002_triggers(readings, {a: {s: readings["metrics"][f"{a}:{s}"]["vertex_full_m"]
                                                 for s in MAIN_SEEDS} for a in WCTE_ORDER})
-    remaining = GPU_CAP_H - booked_gpu_h(ledger) - reserved_gpu_h(root, ledger)
+    remaining = cap_h() - booked_gpu_h(ledger) - reserved_gpu_h(root, ledger)
     done = [t for t in triggers if run_complete(ledger, detector, t["arm"], CONDITIONAL_SEED)]
     pending = [t for t in triggers if t not in done]
     plan = plan_seed9002(pending, remaining,
                          {t["arm"]: run_projection_h(root, detector, t["arm"]) for t in pending},
-                         2 * DESIGN_EVAL_MODEL_H)  # the arm and its seed-matched init 9002
+                         2 * (DESIGN_EVAL_MODEL_H if gpu_profile_name() == "l40s"
+                              else eval_model_h(root, detector)))  # the arm + its init 9002
     entry = next((p for p in plan if p["arm"] == arm), None)
     return {"triggers": triggers, "plan": plan, "remaining_h": remaining, "entry": entry}
 
@@ -559,11 +615,13 @@ def gpu_precheck(root, detector: str, arm: str, seed: int, projected_h: float) -
     if int(seed) == CONDITIONAL_SEED:
         reserved = reserved_gpu_h(root, ledger, exclude=(detector, arm, seed))
     total = booked + float(projected_h) + reserved
-    if total > GPU_CAP_H:
-        raise StopError("S1", f"booked {booked:.2f} + this run {projected_h:.2f} + still owed "
-                              f"{reserved:.2f} = {total:.2f} L40S h > cap {GPU_CAP_H}")
+    cap = cap_h()
+    if total > cap:
+        stop = "S1" if gpu_profile_name() == "l40s" else "T-S1"
+        raise StopError(stop, f"booked {booked:.2f} + this run {projected_h:.2f} + still owed "
+                              f"{reserved:.2f} = {total:.2f} {gpu_profile()['line']} h > cap {cap}")
     return {"booked_h": booked, "projected_h": float(projected_h), "reserved_h": reserved,
-            "total_h": total, "cap_h": GPU_CAP_H}
+            "total_h": total, "cap_h": cap, "ledger_line": gpu_profile()["line"]}
 
 
 def ceph_free_entries(quota_root=CEPH_QUOTA_ROOT) -> int:
@@ -649,6 +707,9 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     from . import r2_generator as gen
     from . import r2_store as rs
     budget = None
+    if DETECTOR_PROFILE.get(detector) != gpu_profile_name():
+        raise ValueError(f"{detector} trains under GPU profile {DETECTOR_PROFILE.get(detector)!r}, "
+                         f"this process is {gpu_profile_name()!r} (set R2_GPU_PROFILE)")
     if is_stopped(ledger_load(out_root), detector):
         raise StopError(ledger_load(out_root)["stopped"][detector]["stop"],
                         f"{detector} is stopped; no training")
@@ -765,16 +826,20 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
               "time_scale_ns": rule.time_scale_ns, "interrupted": result["interrupted"],
               "resumed_from_step": result["resumed_from_step"], "code_sha": lb.current_code_sha(),
               "checkpoint": str(checkpoint), "registered": False, "complete": bool(complete),
-              "wall_cap_hit": capped["hit"], "budget_precheck": budget}
+              "wall_cap_hit": capped["hit"], "budget_precheck": budget,
+              "gpu_model": (torch.cuda.get_device_name() if device.startswith("cuda") else None),
+              "gpu_profile": gpu_profile_name(), "ledger_line": gpu_profile()["line"]}
     (run_dir / "run_record.json").write_text(json.dumps(record, indent=1, sort_keys=True) + "\n")
     log(json.dumps({k: record[k] for k in ("detector", "arm", "seed", "steps", "wall_seconds",
                                            "peak_memory_gib")}))
     return record
 
 
-def choose_micro_batch(smokes: list, card_gib: float = L40S_MEMORY_GIB) -> int:
-    """Largest of 8, 4, 2, 1 whose smoke peak stays <= 45 % of the card (§5.2)."""
-    limit = GPU_MEMORY_FRACTION_CAP * float(card_gib)
+def choose_micro_batch(smokes: list, card_gib: float | None = None) -> int:
+    """Largest of 8, 4, 2, 1 whose smoke peak stays <= 45 % of the L40S (§5.2), or <= 11 GiB
+    on the Titans (Titan addendum §2.5); ``card_gib`` keeps the 45 % rule for a given card."""
+    limit = (GPU_MEMORY_FRACTION_CAP * float(card_gib) if card_gib is not None
+             else float(gpu_profile()["mem_limit_gib"]))
     ok = [int(s["micro_batch"]) for s in smokes
           if s.get("peak_memory_gib") is not None and float(s["peak_memory_gib"]) <= limit]
     for m in MICRO_BATCH_CHOICES:
@@ -1031,7 +1096,9 @@ def evaluate_model(*, detector: str, arm: str, seed: int, h5_path, out_root, che
     record = {"extension": EXTENSION, "detector": detector, "arm": arm, "seed": int(seed),
               "checkpoint_sha256": ckpt_sha, "metrics": metrics,
               "wall_seconds": time.time() - t0, "code_sha": lb.current_code_sha(),
-              "h5_sha256": None, "registered": False}
+              "h5_sha256": None, "registered": False,
+              "gpu_model": (torch.cuda.get_device_name() if str(device).startswith("cuda") else None),
+              "gpu_profile": gpu_profile_name(), "ledger_line": gpu_profile()["line"]}
     (out_dir / "metrics.json").write_text(json.dumps(record, indent=1, sort_keys=True,
                                                      default=float) + "\n")
     np.savez_compressed(out_dir / "per_event.npz",
