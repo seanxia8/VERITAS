@@ -423,8 +423,20 @@ def run_projection_h(root, detector: str, arm: str) -> float:
     return DESIGN_RF_RUN_H[detector] if arm == RF_ARM else DESIGN_MAIN_RUN_H[detector]
 
 
+def mark_stopped(root, detector: str, stop: str, reason: str) -> dict:
+    """Record a §9 detector stop (e.g. S2): its runs and evaluation are no longer owed."""
+    return _ledger_update(root, lambda l: l.setdefault("stopped", {}).__setitem__(
+        detector, {"stop": stop, "reason": reason}))
+
+
+def is_stopped(ledger, detector: str) -> bool:
+    return detector in (ledger.get("stopped") or {})
+
+
 def planned_runs(ledger, detector: str) -> list:
-    """The §5.1 runs of a detector, cut by a recorded HK fallback (§8)."""
+    """The §5.1 runs of a detector, cut by a recorded HK fallback (§8); none if stopped."""
+    if is_stopped(ledger, detector):
+        return []
     runs = [(a, s) for a in MAIN_ARMS for s in MAIN_SEEDS] + [(RF_ARM, 9000)]
     fb = ledger.get("hk_fallback") if detector == "hk" else None
     if fb is not None:
@@ -454,7 +466,8 @@ def reserved_gpu_h(root, ledger, *, exclude=None, hk_minimal: bool = False) -> f
             if exclude == (det, arm, seed) or run_complete(ledger, det, arm, seed):
                 continue
             total += run_projection_h(root, det, arm)
-        total += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
+        if not is_stopped(ledger, det):
+            total += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
     return total
 
 
@@ -481,7 +494,8 @@ def hk_fallback_decision(root) -> dict:
         for arm, seed in planned_runs(ledger, det):
             if not run_complete(ledger, det, arm, seed):
                 other += run_projection_h(root, det, arm)
-        other += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
+        if not is_stopped(ledger, det):
+            other += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
     remaining = GPU_CAP_H - booked_gpu_h(ledger) - other
     decision = hk_fallback(remaining, main_h, rf_h, DESIGN_EVAL_H)
     decision.update({"remaining_h": remaining, "hk_main_run_h": main_h, "hk_rf_run_h": rf_h,
@@ -593,6 +607,9 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     from . import r2_generator as gen
     from . import r2_store as rs
     budget = None
+    if is_stopped(ledger_load(out_root), detector):
+        raise StopError(ledger_load(out_root)["stopped"][detector]["stop"],
+                        f"{detector} is stopped; no training")
     if not smoke:
         triggered = ()
         if int(seed) == CONDITIONAL_SEED and arm in MAIN_ARMS:

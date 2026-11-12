@@ -134,3 +134,17 @@ def test_train_refuses_untriggered_seed_9002(tmp_path):
     with pytest.raises(ValueError):
         x.train_r2(detector="sk", arm="mae_mse", seed=9002, h5_path=tmp_path / "x.h5",
                    out_root=tmp_path, device="cpu")
+
+
+def test_stopped_detector_owes_nothing(tmp_path):
+    before = x.reserved_gpu_h(tmp_path, x.ledger_load(tmp_path))
+    x.mark_stopped(tmp_path, "sk", "S2", "Gate V")
+    ledger = x.ledger_load(tmp_path)
+    assert x.planned_runs(ledger, "sk") == []
+    after = x.reserved_gpu_h(tmp_path, ledger)
+    expected = 6 * x.DESIGN_MAIN_RUN_H["sk"] + x.DESIGN_RF_RUN_H["sk"] + x.DESIGN_EVAL_H
+    assert abs((before - after) - expected) < 1e-9
+    pytest.importorskip("torch")
+    with pytest.raises(x.StopError):
+        x.train_r2(detector="sk", arm="mae_mse", seed=9000, h5_path=tmp_path / "x.h5",
+                   out_root=tmp_path, device="cpu")
