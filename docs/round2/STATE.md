@@ -4,11 +4,12 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 
 ## Where we are
 
-- Runbook committed unchanged (sha256 `366f068…`); addendum `RUNBOOK_2026-11-12_R2_GATEV_CEILING.md` committed unchanged (sha256 `d237ec2b…`): Gate V informational, S2 no longer applies.
-- Implementation accepted (`ACCEPTANCE_2026-11-11_R2.json`, PASS). WCTE regression PASS.
-- X0: SK and JUNO recorded (Gate V failed, informational since the addendum; the S2 stops are lifted with the original records kept). HK X0 running on Deepthought.
-- SK: generation running (Deepthought). JUNO, HK: waiting.
-- Gate V ceiling diagnostic: code and tests committed; runs on spare CPU.
+- Runbook (sha256 `366f068…`) and addendum `RUNBOOK_2026-11-12_R2_GATEV_CEILING.md` (sha256 `d237ec2b…`, Gate V informational) committed unchanged.
+- Implementation accepted (PASS). WCTE regression PASS. X0 recorded for SK and JUNO; HK X0 finishing on Deepthought.
+- SK: generated and packed (`sk_r2.h5`, sha256 `89cde55c…`, verified); smokes done; six main runs training on deepthought2 (projection 55.4 L40S h); `mae_mse_rf` stopped (S1).
+- JUNO: **S1** (does not fit after SK). Data generated and packed as safe work.
+- HK: **S1** (§8 fallback step 3). No generation.
+- Gate V ceiling diagnostic: WCTE and SK done; JUNO running.
 
 ## Paths
 

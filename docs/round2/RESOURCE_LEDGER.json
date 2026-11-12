@@ -29,9 +29,106 @@
    "seed": 9000,
    "utc": "2026-11-12T04:46:33Z",
    "wall_s": 41.5300018787384
+  },
+  {
+   "arm": "target_posfree",
+   "complete": false,
+   "crashed": "OutOfMemoryError('CUDA out of memory. Tried to allocate 3.03 GiB. GPU 0 has a total capacity of 44.40 GiB of which 12.94 GiB is free. Process 2953590 has 12.15 GiB memory in use. Including non-PyTorch memory, this process has 19.30 GiB memory in use. 19.98 GiB allowed; Of the allocated memory 18.76 ",
+   "detector": "sk",
+   "gpu_h": 0.00010550174448225233,
+   "kind": "smoke",
+   "micro_batch": 8,
+   "precheck": null,
+   "seed": 9000,
+   "utc": "2026-11-12T12:13:36Z"
+  },
+  {
+   "arm": "mae_mse_rf",
+   "complete": true,
+   "detector": "sk",
+   "gpu_h": 0.012794440388679504,
+   "kind": "smoke",
+   "micro_batch": 8,
+   "precheck": null,
+   "seed": 9000,
+   "steps": 20,
+   "utc": "2026-11-12T12:14:36Z",
+   "wall_cap_hit": false,
+   "wall_s": 46.059985399246216
+  },
+  {
+   "arm": "target_posfree",
+   "complete": true,
+   "detector": "sk",
+   "gpu_h": 0.018236629896693758,
+   "kind": "smoke",
+   "micro_batch": 4,
+   "precheck": null,
+   "seed": 9000,
+   "steps": 20,
+   "utc": "2026-11-12T12:17:59Z",
+   "wall_cap_hit": false,
+   "wall_s": 65.65186762809753
+  },
+  {
+   "arm": "sigreg_jepa",
+   "complete": false,
+   "crashed": "OutOfMemoryError('CUDA out of memory. Tried to allocate 3.03 GiB. GPU 0 has a total capacity of 44.40 GiB of which 10.45 GiB is free. Process 2953590 has 12.15 GiB memory in use. Process 322756 has 526.00 MiB memory in use. Process 329696 has 1.96 GiB memory in use. Including non-PyTorch memory, thi",
+   "detector": "sk",
+   "gpu_h": 0.00022569821940528022,
+   "kind": "smoke",
+   "micro_batch": 8,
+   "precheck": null,
+   "seed": 9000,
+   "utc": "2026-11-12T12:19:41Z"
+  },
+  {
+   "arm": "mae_mse",
+   "complete": true,
+   "detector": "sk",
+   "gpu_h": 0.019321992331080968,
+   "kind": "smoke",
+   "micro_batch": 8,
+   "precheck": null,
+   "seed": 9000,
+   "steps": 20,
+   "utc": "2026-11-12T12:21:04Z",
+   "wall_cap_hit": false,
+   "wall_s": 69.55917239189148
+  },
+  {
+   "arm": "sigreg_jepa",
+   "complete": true,
+   "detector": "sk",
+   "gpu_h": 0.01784328705734677,
+   "kind": "smoke",
+   "micro_batch": 4,
+   "precheck": null,
+   "seed": 9000,
+   "steps": 20,
+   "utc": "2026-11-12T12:39:58Z",
+   "wall_cap_hit": false,
+   "wall_s": 64.23583340644836
   }
  ],
- "hk_fallback": null,
+ "hk_fallback": {
+  "hk_main_run_h": 17.19232428665847,
+  "hk_rf_run_h": 24.92887021565478,
+  "projected_h": 53.24363952664207,
+  "projection_inputs": {
+   "hk_smoke": [],
+   "sk_juno_scaled_by_n_pmt": [
+    15.876601758938774,
+    16.226590390235895,
+    17.19232428665847
+   ]
+  },
+  "remaining_h": -3.5587367022037455,
+  "rule": "max of SK/JUNO smoke step times scaled by N_PMT and the HK smoke",
+  "runs": "none",
+  "step": 3,
+  "stop": "S1"
+ },
  "line": "R2_l40s_deepthought2",
  "resumed": {
   "juno": {
@@ -51,5 +148,24 @@
    "utc": "2026-11-12T09:18:24Z"
   }
  },
- "stopped": {}
+ "run_stops": [
+  {
+   "arm": "mae_mse_rf",
+   "detector": "sk",
+   "reason": "after the six SK main runs and the SK evaluation the cap cannot hold mae_mse_rf: 0.09 + 55.40 + 1.67 + 6.40 = 63.56 h > 60 (rf ranks below every main run, sections 5.1/8)",
+   "seed": 9000,
+   "stop": "S1",
+   "utc": "2026-11-12T12:43:28Z"
+  }
+ ],
+ "stopped": {
+  "hk": {
+   "reason": "HK fallback step 3 (even three HK seed-9000 runs do not fit): remaining -3.56 h, HK main run 17.19 h (max SK smoke scaled by N_PMT 19,746/11,096), three runs + evaluation 53.24 h",
+   "stop": "S1"
+  },
+  "juno": {
+   "reason": "GPU projection over the cap after the fallback (runbook S1): SK six main runs 55.40 h (measured smokes) + SK evaluation 1.67 h + booked 0.09 h leave 2.84 h of 60; JUNO six main runs project to 49.93 h (SK smoke step times scaled by N_PMT 10,000/11,096) + evaluation 1.67 h; the section 8 fallback applies to HK only; the order SK -> JUNO -> HK keeps SK.",
+   "stop": "S1"
+  }
+ }
 }

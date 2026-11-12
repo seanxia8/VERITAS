@@ -2,7 +2,7 @@
  "extension": "r2_multidetector_2026-11-11",
  "registered": false,
  "detector": "juno",
- "stopped": false,
+ "stopped": true,
  "stop": {
   "id": "S2",
   "reason": "Gate V fails for JUNO with the round-1 harness (cherenkov_validation.validate requires every holdout event to pass): event 4 (e500_014) module-pattern Pearson 0.845 < 0.85; holdout medians pass (yield ratio 1.077, module 0.888, log 0.761, time 0.78 ns); no refit of the yield per MeV"
@@ -47,5 +47,11 @@
  "original_stop_kept": {
   "id": "S2",
   "reason": "Gate V fails for JUNO with the round-1 harness (cherenkov_validation.validate requires every holdout event to pass): event 4 (e500_014) module-pattern Pearson 0.845 < 0.85; holdout medians pass (yield ratio 1.077, module 0.888, log 0.761, time 0.78 ns); no refit of the yield per MeV"
+ },
+ "stop_after_resume": {
+  "id": "S1",
+  "date": "2026-11-12",
+  "reason": "GPU projection over the cap after the fallback (runbook S1): SK six main runs 55.40 h (measured smokes) + SK evaluation 1.67 h + booked 0.09 h leave 2.84 h of 60; JUNO six main runs project to 49.93 h (SK smoke step times scaled by N_PMT 10,000/11,096) + evaluation 1.67 h; the section 8 fallback applies to HK only; the order SK -> JUNO -> HK keeps SK.",
+  "action": "JUNO generation and pack (already running on CPU when S1 fired) are finished as safe work and kept for a later budget; no JUNO smoke or training (GPU), no JUNO evaluation."
  }
 }

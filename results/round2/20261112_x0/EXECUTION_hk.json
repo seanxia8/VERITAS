@@ -1,0 +1,32 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "registered": false,
+ "detector": "hk",
+ "stopped": true,
+ "stop": {
+  "id": "S1",
+  "reason": "HK fallback step 3 (even three HK seed-9000 runs do not fit): remaining -3.56 h, HK main run 17.19 h (max SK smoke scaled by N_PMT 19,746/11,096), three runs + evaluation 53.24 h"
+ },
+ "hk_fallback": {
+  "hk_main_run_h": 17.19232428665847,
+  "hk_rf_run_h": 24.92887021565478,
+  "projected_h": 53.24363952664207,
+  "projection_inputs": {
+   "hk_smoke": [],
+   "sk_juno_scaled_by_n_pmt": [
+    15.876601758938774,
+    16.226590390235895,
+    17.19232428665847
+   ]
+  },
+  "remaining_h": -3.5587367022037455,
+  "rule": "max of SK/JUNO smoke step times scaled by N_PMT and the HK smoke",
+  "runs": "none",
+  "step": 3,
+  "stop": "S1"
+ },
+ "action": "HK stopped before generation: the section 8 fallback reaches step 3 (S1) from the measured SK smoke step times. The running HK X0 job (CPU) is finished as safe work; its Gate V is informational (addendum). No HK generation, training or evaluation.",
+ "x0_record": "results/round2/20261112_x0/hk.json (when the running X0 job finishes)",
+ "gpu_l40s_h": 0.0,
+ "date": "2026-11-12"
+}
