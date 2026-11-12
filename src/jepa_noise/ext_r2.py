@@ -361,7 +361,7 @@ CEPH_FREE_ENTRIES_FLOOR = 30_000
 #: GPU profiles (addendum RUNBOOK_2026-11-12_R2_JUNO_TITAN.md): SK (and HK) on the deepthought2
 #: L40S under the 60 h line; JUNO on Deepthought's GTX Titans under its own 100 h line. The
 #: process profile comes from ``R2_GPU_PROFILE`` (default ``l40s``: round-2 behaviour unchanged).
-TITAN_ADDENDUM_SHA256 = "f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229"
+TITAN_ADDENDUM_SHA256 = "0a8d76e980e94007699f920dc809a00767e7843f6611840a8c614cdf7d8d277f"  # v2 (v1 f381955d...)
 GPU_PROFILES = {
     "l40s": {"line": LEDGER_LINE, "cap_h": GPU_CAP_H, "file": "RESOURCE_LEDGER_R2.json",
              "detectors": DETECTOR_ORDER, "mem_limit_gib": GPU_MEMORY_FRACTION_CAP * L40S_MEMORY_GIB,

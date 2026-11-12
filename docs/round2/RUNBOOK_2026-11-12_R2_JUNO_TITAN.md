@@ -1,6 +1,6 @@
 # Runbook addendum — Round 2: JUNO trains on Deepthought's GTX Titans; SK stays on deepthought2
 
-Date: 12 Nov 2026, 23:45. Parents:
+Date: 12 Nov 2026, 23:45 (v2, 00:05 on 13 Nov: all four Titans may be used). Parents:
 - `docs/round2/RUNBOOK_2026-11-11_R2_MULTIDETECTOR.md` (sha256 `366f0680…`);
 - `docs/round2/RUNBOOK_2026-11-12_R2_GATEV_CEILING.md` (v2, sha256 `d237ec2b…`).
 
@@ -24,9 +24,13 @@ All parent rules hold unless changed here.
 - record Titan time in its own ledger, separate from the 60 h L40S ledger, with a cap of about 100 Titan GPU-h (JUNO's six main runs plus evaluation);
 - keep each detector on one GPU type: SK on L40S, JUNO on Titan.
 
+**Author, 12 Nov 2026, 23:59** (changes the Titan limit): "titan四张可以全占用", i.e. all four Titans may be
+fully occupied.
+
 **Standing rule (30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决".
 
-**Machine rule from the author** (recorded earlier): Deepthought's four GTX Titans (12 GB each) are shared; we may use them, but not all four fully loaded.
+**Machine rule from the author:** Deepthought's four GTX Titans (12 GB each) are shared. Earlier rule: not all four fully
+loaded. Since 23:59 on 12 Nov: all four may be fully occupied.
 
 ---
 
@@ -34,7 +38,7 @@ All parent rules hold unless changed here.
 
 1. **SK** is unchanged. It trains and evaluates on the deepthought2 L40S under the 60 h ledger `R2_l40s_deepthought2`.
 2. **JUNO's S1 is lifted.** Record a resume in the ledger and in `EXECUTION_juno.json`, keeping the original record and citing this addendum.
-3. **All JUNO GPU work runs on Deepthought's GTX Titans:**
+3. **All JUNO GPU work runs on Deepthought's GTX Titans (up to all four):**
    - smokes;
    - the six main runs: `sigreg_jepa`, `target_posfree`, `mae_mse` × seeds 9000/9001;
    - `mae_mse_rf` if the cap allows (it ranks last);
@@ -60,7 +64,7 @@ On Deepthought, using our own processes only:
    - Rerun step 2 and the round-2 unit tests that touch the model code.
 4. **Equivalence on this hardware.** Rerun the WCTE regression (parent §4.2: `init9000` and `mae_within_trigger9000` full-input vertex through the HDF5 reader) on one Titan. It must match the committed values within 1e-3 m.
 5. **JUNO smokes**, 20 steps per arm (`sigreg_jepa`, `target_posfree`, `mae_mse`, `mae_mse_rf`). Use the largest micro-batch in 8/4/2/1 whose peak memory is ≤ 11 GiB. Record step time and peak memory.
-6. **Projection.** JUNO's six main runs + evaluation (+ rf) in Titan GPU-h, and the wall time with up to three GPUs in parallel.
+6. **Projection.** JUNO's six main runs + evaluation (+ rf) in Titan GPU-h, and the wall time with up to four GPUs in parallel.
 
 **GO** if steps 2 (or 3), 4 and 5 succeed for the three main arms and the six main runs + evaluation fit the 100 h cap.
 - If they do not fit: drop `mae_mse_rf`, then train the main arms with seed 9000 only (three runs + evaluation).
@@ -73,9 +77,9 @@ On Deepthought, using our own processes only:
 ## 3. Running on the Titans
 
 **Limits:**
-- At most **3 of the 4** GPUs at once, never all four.
+- Up to **all 4** GPUs at once (author, 23:59).
 - One job per GPU, and only on a GPU that has no other user's process when the job launches.
-- Peak memory ≤ 11 GiB.
+- Peak memory ≤ 11 GiB (practical headroom on a 12 GB card).
 - `nice -n 10`, `TMPDIR=/work/dwong`, `setsid` for long jobs.
 - Training data-loader threads count against the 28-core Deepthought limit.
 
