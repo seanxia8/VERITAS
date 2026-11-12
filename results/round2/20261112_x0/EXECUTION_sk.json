@@ -2,7 +2,7 @@
  "extension": "r2_multidetector_2026-11-11",
  "registered": false,
  "detector": "sk",
- "stopped": true,
+ "stopped": false,
  "stop": {
   "id": "S2",
   "reason": "Gate V fails for SK (no refit of the yield per MeV): holdout medians module-pattern Pearson 0.829 < 0.85, PMT log-charge Pearson 0.692 < 0.70; yield ratio 1.186 and time 0.78 ns pass"
@@ -25,5 +25,15 @@
   "cpu_projection_wall_h_16_cores": 0.4381101879795703
  },
  "gpu_l40s_h": 0.0,
- "date": "2026-11-12"
+ "date": "2026-11-12",
+ "resume": {
+  "date": "2026-11-12",
+  "authority": "docs/round2/RUNBOOK_2026-11-12_R2_GATEV_CEILING.md (v2, sha256 d237ec2b3059f5359b51e20e2047b78454264b214cd73c8699d7d7030cca582c); author 12 Nov 2026 10:08",
+  "effect": "Gate V is informational for SK, JUNO and HK; S2 no longer applies. The original S2 record above is kept. The detector proceeds to generation, training and evaluation.",
+  "caveat": "Gate V (absolute, round-1 thresholds) failed: the analytic model is not validated against PhotonSim + LUCiD at this scale; every result for this detector carries this caveat."
+ },
+ "original_stop_kept": {
+  "id": "S2",
+  "reason": "Gate V fails for SK (no refit of the yield per MeV): holdout medians module-pattern Pearson 0.829 < 0.85, PMT log-charge Pearson 0.692 < 0.70; yield ratio 1.186 and time 0.78 ns pass"
+ }
 }

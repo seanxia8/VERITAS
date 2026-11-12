@@ -1,0 +1,45 @@
+{
+ "cap_l40s_h": 60.0,
+ "cpu_entries": [],
+ "entries": [
+  {
+   "arm": "init",
+   "detector": "wcte",
+   "gpu_h": 0.012876894805166456,
+   "kind": "eval",
+   "seed": 9000,
+   "utc": "2026-11-12T04:45:51Z",
+   "wall_s": 46.35682129859924
+  },
+  {
+   "arm": "mae_mse",
+   "detector": "wcte",
+   "gpu_h": 0.01153611163298289,
+   "kind": "eval",
+   "seed": 9000,
+   "utc": "2026-11-12T04:46:33Z",
+   "wall_s": 41.5300018787384
+  }
+ ],
+ "hk_fallback": null,
+ "line": "R2_l40s_deepthought2",
+ "resumed": {
+  "juno": {
+   "authority": "docs/round2/RUNBOOK_2026-11-12_R2_GATEV_CEILING.md (sha256 d237ec2b..., author 12 Nov 2026 10:08): Gate V informational, S2 no longer applies",
+   "original_stop": {
+    "reason": "Gate V: e500_014 module Pearson 0.845 < 0.85 (round-1 per-event gate); results/round2/20261112_x0/EXECUTION_juno.json",
+    "stop": "S2"
+   },
+   "utc": "2026-11-12T09:18:24Z"
+  },
+  "sk": {
+   "authority": "docs/round2/RUNBOOK_2026-11-12_R2_GATEV_CEILING.md (sha256 d237ec2b..., author 12 Nov 2026 10:08): Gate V informational, S2 no longer applies",
+   "original_stop": {
+    "reason": "Gate V fails (module pattern 0.829 < 0.85, log pattern 0.692 < 0.70); results/round2/20261112_x0/EXECUTION_sk.json",
+    "stop": "S2"
+   },
+   "utc": "2026-11-12T09:18:24Z"
+  }
+ },
+ "stopped": {}
+}

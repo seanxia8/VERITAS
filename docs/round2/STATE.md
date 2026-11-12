@@ -4,12 +4,11 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 
 ## Where we are
 
-- Runbook committed unchanged (sha256 `366f068…`).
-- §4.1 implementation and the ten required tests: done (52 tests pass on Deepthought, including
-  WCTE identity (test 1) and the bit-for-bit regeneration of round-1 run `lucid/dev_train/0000`
-  (test 2)). The recomputed §2.2 table matches the runbook for WCTE, SK, HK and JUNO.
-- §4.3 review: round 1 BLOCK (fixed), round 2 PASS at `8db555f`; acceptance recorded. Next: the WCTE regression, X0 and the
-  detectors (SK, JUNO, HK). Nothing generated or trained yet.
+- Runbook committed unchanged (sha256 `366f068…`); addendum `RUNBOOK_2026-11-12_R2_GATEV_CEILING.md` committed unchanged (sha256 `d237ec2b…`): Gate V informational, S2 no longer applies.
+- Implementation accepted (`ACCEPTANCE_2026-11-11_R2.json`, PASS). WCTE regression PASS.
+- X0: SK and JUNO recorded (Gate V failed, informational since the addendum; the S2 stops are lifted with the original records kept). HK X0 running on Deepthought.
+- SK: generation running (Deepthought). JUNO, HK: waiting.
+- Gate V ceiling diagnostic: code and tests committed; runs on spare CPU.
 
 ## Paths
 

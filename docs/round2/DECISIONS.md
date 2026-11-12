@@ -58,3 +58,16 @@ Standing rule for this execution (author, 30 Oct 2026): "别大事小事都问�
 - 2026-11-12 r2-run: X0 for JUNO and HK run concurrently with 8 workers each (16 cores in total); the round-1 CPU launcher's module allow-list is a protected file, so X0/generation run directly with nice -n 10 on Deepthought.
 - 2026-11-12 r2-run: the ledger records stopped detectors (SK: S2); a stopped detector's runs and evaluation are no longer reserved and its training is refused.
 - 2026-11-12 r2-run: JUNO X0 Gate V FAILS with the round-1 harness, which requires every holdout event to pass (round-1 calibration record: "event-level min module Pearson ≥ 0.85 per event"): e500_014 module-pattern Pearson 0.845 < 0.85, while the holdout medians pass (yield 1.077, module 0.888, log 0.761, time 0.78 ns). The gate is applied as fixed (no change after outcomes, §0/§9): S2, JUNO stopped. Dark-only: 1 / 10,000 windows triggered at N = 6 (recorded).
+
+## Addendum 2026-11-12: Gate V informational (`RUNBOOK_2026-11-12_R2_GATEV_CEILING.md`, v2, sha256 `d237ec2b3059f5359b51e20e2047b78454264b214cd73c8699d7d7030cca582c`, committed unchanged at f547174)
+
+Addendum §0, verbatim:
+- **Author, 12 Nov 2026, 10:08, after learning that only preflight had run:** "啊？只是preflight？
+  能不能一步步往下走，我会handsoff now，直接从生成数据开始".
+- **Author, 12 Nov 2026, 10:01** (option B, the ceiling diagnostic): "做B，那现在我把run——chain停掉了".
+- **Standing rule (30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决".
+
+- 2026-11-12 r2-run (addendum): `x0_clearance` treats Gate V as informational and re-judges S3 from the stored efficiencies (the SK X0 JSON was written before the S3 fix and still says `"stop": "S3"` for 1 dark-only trigger); the ledger's SK and JUNO S2 stops move to `resumed` with the original record kept; `EXECUTION_sk.json` / `EXECUTION_juno.json` carry the resume record.
+- 2026-11-12 r2-run: SK generation runs with 6 workers while the HK X0 job (8 workers + the 1-worker Gate V job) still runs, so round-2 CPU use stays ≤ 16 cores.
+- 2026-11-12 r2-run: the ceiling diagnostic (`ext_r2_gatev.py`) re-transports the ten holdout events with the exact `gate_v` code and caches them; it reproduces μ via the `compare_event` arithmetic and checks Σμ against the committed `expected_detected` (1e-6 relative). It runs on spare CPU after generation work, never ahead of it.
+- 2026-11-12 r2-run: the log-charge ceiling is not monotone in Λ (more photons bring low-μ PMTs into the `keep` set), so the test asserts monotonicity on the module metric only.
