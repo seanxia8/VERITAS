@@ -922,6 +922,74 @@ def projections(bench: dict, n_pmt: int, *, cores: int = 16) -> dict:
             "cohort_events": {"dev_train": train_ev, "probe_total": probe_ev}}
 
 
+# ======================================================================= readings aggregation
+def load_eval(root, detector: str, arm: str, seed: int):
+    """(metrics, per-event arrays) of one evaluated model, or None if absent."""
+    d = Path(root) / "eval" / run_name(detector, arm, seed)
+    if not (d / "metrics.json").is_file():
+        return None
+    metrics = json.loads((d / "metrics.json").read_text())["metrics"]
+    with np.load(d / "per_event.npz", allow_pickle=False) as data:
+        arrays = {k: data[k] for k in data.files}
+    return metrics, arrays
+
+
+def detector_readings(root, detector: str, *, seeds=MAIN_SEEDS) -> dict:
+    """R2-a..R2-e, the floor band and the seed-9002 triggers of one detector (§7, §8)."""
+    seeds = tuple(int(s) for s in seeds)
+    ev = {(a, s): load_eval(root, detector, a, s)
+          for a in MAIN_ARMS + (INIT_ARM,) for s in seeds}
+    missing = [f"{a}:{s}" for (a, s), v in ev.items() if v is None]
+    if missing:
+        return {"detector": detector, "status": "incomplete", "missing": missing}
+    m = {k: v[0] for k, v in ev.items()}
+    arr = {k: v[1] for k, v in ev.items()}
+    out = {"detector": detector, "status": "evaluated", "seeds": list(seeds)}
+    out["R2-a"] = reading_r2a({s: m[("sigreg_jepa", s)]["f_event"] for s in seeds})
+    out["R2-b"] = reading_r2b(
+        {s: {"vertex": m[("target_posfree", s)]["vertex_full_m"],
+             "token_r2": m[("target_posfree", s)]["token_log_charge_r2"],
+             "f_event": m[("target_posfree", s)]["f_event"]} for s in seeds},
+        {s: {"vertex": m[("init", s)]["vertex_full_m"]} for s in seeds})
+    out["R2-c"] = reading_r2c({s: paired_vertex_difference(arr[("init", s)], arr[("mae_mse", s)])
+                               for s in seeds})
+    vertex = {a: {s: m[(a, s)]["vertex_full_m"] for s in seeds} for a in WCTE_ORDER}
+    out["R2-d"] = reading_r2d(vertex)
+    rf, mae = load_eval(root, detector, RF_ARM, 9000), ev[("mae_mse", 9000)]
+    if rf is not None:
+        pick = lambda mm: {"token_r2": mm["token_log_charge_r2"], "f_event": mm["f_event"],
+                           "particle": {k: v for k, v in mm.get("particle", {}).items()
+                                        if isinstance(v, (int, float))}}
+        out["R2-e"] = reading_r2e(paired_vertex_difference(mae[1], rf[1]), pick(rf[0]),
+                                  pick(mae[0]))
+    else:
+        out["R2-e"] = {"reading": "R2-e", "status": "not run"}
+    init_all = {s: load_eval(root, detector, INIT_ARM, s) for s in INIT_SEEDS}
+    flat = lambda mm: {"vertex_full_m": mm["vertex_full_m"],
+                       "token_log_charge_r2": mm["token_log_charge_r2"],
+                       **{k: v for k, v in mm.get("particle", {}).items()
+                          if isinstance(v, (int, float))}}
+    out["floor_band"] = floor_band({s: flat(v[0]) for s, v in init_all.items() if v is not None})
+    out["floor_band"]["seeds"] = [s for s, v in init_all.items() if v is not None]
+    out["seed9002_triggers"] = seed9002_triggers(out, vertex)
+    out["metrics"] = {f"{a}:{s}": m[(a, s)] for (a, s) in m}
+    if rf is not None:
+        out["metrics"][f"{RF_ARM}:9000"] = rf[0]
+    return out
+
+
+def readings_with_seed9002(root, detector: str, triggered_arms) -> dict | None:
+    """The three-seed version of the readings (same rules, "all three seeds"), if evaluated."""
+    if not triggered_arms:
+        return None
+    seeds = MAIN_SEEDS + (CONDITIONAL_SEED,)
+    for arm in MAIN_ARMS + (INIT_ARM,):
+        if load_eval(root, detector, arm, CONDITIONAL_SEED) is None:
+            if arm in triggered_arms or arm == INIT_ARM:
+                return {"status": "incomplete", "missing": f"{arm}:{CONDITIONAL_SEED}"}
+    return detector_readings(root, detector, seeds=seeds)
+
+
 # ======================================================================= WCTE regression (§4.2)
 ROUND1_LUCID_ROOT = Path("/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid")
 ROUND1_PROBE_KEYS = {"dev_probe_train": "dev_probe_train__F1__0.05__s20261017",
@@ -1138,7 +1206,8 @@ def main(argv=None) -> int:
                            out_root=args.out or RETURNS_ROOT,
                            checkpoint=parts[2] if len(parts) > 2 else None, device=args.device)
     elif args.mode == "report":
-        print(json.dumps({"root": args.root, "note": "aggregation is done by scripts/jepa_r2.py report"}))
+        out = {det: detector_readings(args.root, det) for det in DETECTOR_ORDER}
+        print(json.dumps(out, indent=1, sort_keys=True, default=float))
     return 0
 
 

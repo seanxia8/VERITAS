@@ -99,3 +99,34 @@ def test_init_seeds_build_and_are_reproducible():
         states[seed] = a
     key = next(k for k in states[9000] if states[9000][k].ndim == 2)
     assert len({float(states[s][key].sum()) for s in x.INIT_SEEDS}) == 5
+
+
+def test_detector_readings_from_saved_evaluations(tmp_path):
+    import json
+    import numpy as np
+    rng = np.random.default_rng(1)
+    runs = np.repeat([f"r{i}" for i in range(20)], 10)
+    ids = np.arange(200)
+    base = {"init": 0.30, "sigreg_jepa": 0.40, "target_posfree": 0.20, "mae_mse": 0.10,
+            "mae_mse_rf": 0.08}
+    for arm, v in base.items():
+        for seed in (x.INIT_SEEDS if arm == "init" else (9000, 9001)):
+            if arm == "mae_mse_rf" and seed != 9000:
+                continue
+            d = tmp_path / "eval" / x.run_name("sk", arm, seed)
+            d.mkdir(parents=True)
+            err = np.abs(rng.normal(v, 0.01, 200))
+            metrics = {"vertex_full_m": float(err.mean()), "token_log_charge_r2": 0.9,
+                       "f_event": 5e-4 if arm == "sigreg_jepa" else 0.05,
+                       "particle": {"mue_auc": 0.8}}
+            (d / "metrics.json").write_text(json.dumps({"metrics": metrics}))
+            np.savez(d / "per_event.npz", vertex_errors=err, run_ids=runs, event_ids=ids)
+    r = x.detector_readings(tmp_path, "sk")
+    assert r["R2-a"]["class"] == "event-invariant"
+    assert r["R2-b"]["class"] == "recovered"
+    assert r["R2-c"]["class"] == "yes"
+    assert r["R2-d"]["order"] == list(x.WCTE_ORDER) and r["R2-d"]["kendall_tau"] == 1.0
+    assert r["R2-e"]["vertex"]["mean_difference_m"] < 0
+    assert r["floor_band"]["seeds"] == list(x.INIT_SEEDS)
+    assert r["seed9002_triggers"] == []
+    assert x.detector_readings(tmp_path, "juno")["status"] == "incomplete"
