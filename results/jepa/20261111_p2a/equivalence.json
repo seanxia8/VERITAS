@@ -1,0 +1,26 @@
+{
+ "registered": false,
+ "extension": "paper3_p2_addendum_2026-11-11",
+ "check": "A4 fold equivalence",
+ "gate": {
+  "status": "granted"
+ },
+ "exact_subset": {
+  "cells": 105,
+  "max_abs_difference": 0.0,
+  "n_compared": 4846,
+  "n_cells_with_mismatch": 0,
+  "mismatches": [],
+  "n_compared_min": 1000
+ },
+ "x3p_energy": {
+  "models": 4,
+  "max_abs_difference": 0.0,
+  "n_compared": 2040,
+  "mismatches": [],
+  "n_compared_min": 100
+ },
+ "wall_seconds": 3756.756,
+ "tolerance": 1e-09,
+ "pass": true
+}

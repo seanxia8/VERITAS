@@ -1,0 +1,300 @@
+{
+ "registered": false,
+ "extension": "paper3_p2_addendum_2026-11-11",
+ "runbook": "docs/jepa/RUNBOOK_2026-11-11_P2_ADDENDUM.md",
+ "runbook_sha256": "f97ed8101e5d0383a85ada70d974df4bb54bc70e63865d48fe77cb879cf59e0a",
+ "impl_commit": "f19106d6e724b318835a13c684f70590c7593a40",
+ "acceptance": "docs/jepa/ACCEPTANCE_2026-11-11_P2_ADDENDUM.json",
+ "stages": {
+  "equivalence": {
+   "pass": true,
+   "wall_seconds": 3718.051,
+   "exact_subset": {
+    "cells": 105,
+    "max_abs_difference": 0.0,
+    "n_compared": 4846,
+    "n_cells_with_mismatch": 0,
+    "n_compared_min": 1000
+   },
+   "x3p_energy": {
+    "models": 4,
+    "max_abs_difference": 0.0,
+    "n_compared": 2040,
+    "n_compared_min": 100
+   }
+  },
+  "p2a": {
+   "pass": false,
+   "complete": true,
+   "stop": "S4",
+   "cells_checked": 195,
+   "expected_cells_min": 195,
+   "n_R2_below_R3u": 28,
+   "n_violation_gt_5mm_ci": 4,
+   "max_abs_recomputed_minus_committed_m": 0.0,
+   "violations": [
+    {
+     "model": "fix9001",
+     "condition": "K5",
+     "scope": "full",
+     "gap_m": -0.006646528980952748,
+     "ci_m": [
+      -0.008430324386886076,
+      -0.004908927318839547
+     ],
+     "v_R2_m": 0.21533285669220056,
+     "v_R3u_m": 0.2219793856731533,
+     "n_events": 3400
+    },
+    {
+     "model": "fix9001",
+     "condition": "K5",
+     "scope": "exact",
+     "gap_m": -0.0073401883672208346,
+     "ci_m": [
+      -0.009211305382215982,
+      -0.00555822975532998
+     ],
+     "v_R2_m": 0.21436037813893122,
+     "v_R3u_m": 0.22170056650615205,
+     "n_events": 3222
+    },
+    {
+     "model": "fix9001",
+     "condition": "P10",
+     "scope": "full",
+     "gap_m": -0.005306523628050869,
+     "ci_m": [
+      -0.007481165617278038,
+      -0.0032106625638714235
+     ],
+     "v_R2_m": 0.21946288406147996,
+     "v_R3u_m": 0.22476940768953083,
+     "n_events": 3400
+    },
+    {
+     "model": "fix9001",
+     "condition": "P10",
+     "scope": "exact",
+     "gap_m": -0.006611246291667733,
+     "ci_m": [
+      -0.009005976057353489,
+      -0.0044184764459986575
+     ],
+     "v_R2_m": 0.21970168717240252,
+     "v_R3u_m": 0.22631293346407025,
+     "n_events": 3061
+    }
+   ],
+   "probe_settings": {
+    "probe": "er.fit_vertex_probe (ridge, 5 run-grouped folds, alpha selection)",
+    "u_design": "ext_p2.r2_design with the constant column dropped (T/R1: h_e/hbar; K/P: dead_m h_e/hbar, 105 columns)",
+    "train_test": "3400 train / 3400 test full cells; exact subset per cell",
+    "hbar": 1007.9688235294118,
+    "n_pmt": 1995,
+    "n_modules": 105,
+    "bootstrap": "paired run-cluster bootstrap, 95% CI"
+   },
+   "A3": {
+    "levels": {
+     "K5": {
+      "rho_s": -0.7214285714285712,
+      "p": 0.9985001499850015,
+      "n": 15
+     },
+     "K15": {
+      "rho_s": 0.15714285714285714,
+      "p": 0.28817118288171184,
+      "n": 15
+     },
+     "K30": {
+      "rho_s": 0.37857142857142856,
+      "p": 0.0826917308269173,
+      "n": 15
+     }
+    },
+    "secondary_r2eq_K15": {
+     "rho_s": 0.6249999999999999,
+     "p": 0.0065993400659934,
+     "n": 15
+    },
+    "sensitivity_no_fix": {
+     "K5": {
+      "rho_s": 0.4945054945054945,
+      "p": 0.0456954304569543,
+      "n": 13
+     },
+     "K15": {
+      "rho_s": 0.43956043956043955,
+      "p": 0.06779322067793221,
+      "n": 13
+     },
+     "K30": {
+      "rho_s": 0.510989010989011,
+      "p": 0.0428957104289571,
+      "n": 13
+     }
+    },
+    "rule": {
+     "criterion": "eta Spearman >= 0.5 and p <= 0.05 in at least two of the three K levels",
+     "levels_supporting": 0,
+     "verdict": "not supported",
+     "label": "exploratory post hoc; does not replace the P2-e primary (mixed)"
+    }
+   },
+   "A2": {
+    "T0.5": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R3u": 11,
+      "R3": 2,
+      "R0": 2
+     },
+     "beyond_refit": 0
+    },
+    "T1.0": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R3": 15
+     },
+     "beyond_refit": 15
+    },
+    "T1.0w": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R3": 15
+     },
+     "beyond_refit": 15
+    },
+    "K5": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R2": 12,
+      "R3": 2,
+      "R3u": 1
+     },
+     "beyond_refit": 15
+    },
+    "K15": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R2": 3,
+      "R3": 6,
+      "R3u": 6
+     },
+     "beyond_refit": 15
+    },
+    "K30": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R3": 8,
+      "R3u": 7
+     },
+     "beyond_refit": 15
+    },
+    "P10": {
+     "n_cells": 15,
+     "cheapest_rung_counts": {
+      "R3": 13,
+      "R2": 2
+     },
+     "beyond_refit": 15
+    }
+   }
+  },
+  "shift": {
+   "pass": true,
+   "complete": true,
+   "models": 12
+  },
+  "report": {
+   "written": false,
+   "reason": "S4 stop: READINGS and figures were not written"
+  }
+ },
+ "tests": {
+  "addendum": "20 passed",
+  "targeted_existing": "34 passed, 1 xfailed",
+  "full_suite": "896 passed, 2 skipped, 1 xfailed in 1110.93s (0:18:30)"
+ },
+ "resources": {
+  "gpu_hours": 0.0,
+  "gpu_cap_hours": 0.0,
+  "cpu_wall_hours": 2.3,
+  "cpu_cap_hours": 4.0,
+  "max_concurrent_jobs": 2,
+  "threads_per_job": 4,
+  "note": "stages ran 2026-11-12T00:23Z..03:05Z; the equivalence job was paused during p2a to keep <=2 jobs"
+ },
+ "hygiene": {
+  "mirror": "no /dev/shm/p2_data_mirror on deepthought (02:00Z) or deepthought2 (00:1xZ); nothing to remove",
+  "launcher": "scripts/jepa_cpu_launch.py now allow-lists the seven predictability modules plus ext_p2/ext_p2a by exact name; ext_p2a maps to ext_p2_20261109",
+  "ledger": "unchanged: charged_gpu_hours 134.1505 == booked sum 134.1505; S1 135.4505 <= 160; GPU 0",
+  "fix9000": "test_ext_followup::test_label_collector_reproduces_the_committed_fix9000_rows is xfailed: shapes 64000x128 match, max|dy|=4.41e-6, mean|dy|=4.97e-7 (torch 2.5.1+cu121), environment-level numerical mismatch, not a path issue",
+  "worktree_incident": "the /private/tmp worktree was partially pruned by the OS at ~00:06 on 12 Nov (lost .git and many tracked files); recovered from the pushed SHA, the untracked review file survived; no work was lost",
+  "entries_free_after": 39387
+ },
+ "a1_pass": false,
+ "ceiling_check": {
+  "n_cells_checked": 195,
+  "n_R2_below_R3u": 28,
+  "n_violation_gt_5mm_ci": 4,
+  "violations": [
+   {
+    "model": "fix9001",
+    "condition": "K5",
+    "scope": "full",
+    "gap_m": -0.006646528980952748,
+    "ci_m": [
+     -0.008430324386886076,
+     -0.004908927318839547
+    ]
+   },
+   {
+    "model": "fix9001",
+    "condition": "K5",
+    "scope": "exact",
+    "gap_m": -0.0073401883672208346,
+    "ci_m": [
+     -0.009211305382215982,
+     -0.00555822975532998
+    ]
+   },
+   {
+    "model": "fix9001",
+    "condition": "P10",
+    "scope": "full",
+    "gap_m": -0.005306523628050869,
+    "ci_m": [
+     -0.007481165617278038,
+     -0.0032106625638714235
+    ]
+   },
+   {
+    "model": "fix9001",
+    "condition": "P10",
+    "scope": "exact",
+    "gap_m": -0.006611246291667733,
+    "ci_m": [
+     -0.009005976057353489,
+     -0.0044184764459986575
+    ]
+   }
+  ],
+  "max_abs_recomputed_minus_committed_m": 0.0,
+  "recomputed_mismatch": [],
+  "scopes": "full cell and exact subset",
+  "rule": "v_R2 must not be below v_R3u by more than 5 mm with the gap CI excluding 0; a larger gap is S4"
+ },
+ "unavailable": [],
+ "a4_equivalence_pass": true,
+ "a6_shift_pass": true,
+ "stops": [
+  "A1/A2/A3: S4: 4 ceiling cells have v_R2 below v_R3u by > 5 mm with a CI excluding 0",
+  "S4: 4 ceiling cells"
+ ],
+ "complete": true,
+ "results_dir": "results/jepa/20261111_p2a",
+ "note": "CPU-only addendum; no GPU job, no training, no data generation; the P2 primary verdict is unchanged (mixed).",
+ "regeneration_note": "the report S4 stop-path removed the just-produced stage payloads; p2a.json/equivalence.json/x3p_shift.json were regenerated deterministically (identical values) and this EXECUTION.json is the stop record"
+}
