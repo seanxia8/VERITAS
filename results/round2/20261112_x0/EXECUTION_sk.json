@@ -1,0 +1,29 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "registered": false,
+ "detector": "sk",
+ "stopped": true,
+ "stop": {
+  "id": "S2",
+  "reason": "Gate V fails for SK (no refit of the yield per MeV): holdout medians module-pattern Pearson 0.829 < 0.85, PMT log-charge Pearson 0.692 < 0.70; yield ratio 1.186 and time 0.78 ns pass"
+ },
+ "action": "SK stopped before generation; no SK data generated, no SK training (runbook \u00a79: stop that detector, continue the others)",
+ "x0_record": "results/round2/20261112_x0/sk.json",
+ "other_x0_results": {
+  "geometry_table": "no differences",
+  "yield_range": [
+   24903.5714905108,
+   1881271.608177258
+  ],
+  "trigger_efficiency": {
+   "electron": 1.0,
+   "muon": 1.0,
+   "photon_y_lo": 1.0
+  },
+  "dark_only_triggers": "1 / 10000 (recorded, not a \u00a79 stop)",
+  "benchmark_events_per_s": 6.436279525255215,
+  "cpu_projection_wall_h_16_cores": 0.4381101879795703
+ },
+ "gpu_l40s_h": 0.0,
+ "date": "2026-11-12"
+}
