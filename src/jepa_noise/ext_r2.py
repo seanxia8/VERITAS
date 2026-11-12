@@ -81,8 +81,13 @@ class ForbiddenPath(PermissionError):
 
 
 def check_write_path(path) -> Path:
-    """Refuse any write under round-1 data, round-1 checkpoints or code clones (§0)."""
+    """Refuse any write under round-1 data, round-1 checkpoints or code clones (§0).
+
+    Both the normalised path and its symlink-resolved target are checked."""
     p = Path(os.path.abspath(str(path)))
+    real = Path(os.path.realpath(str(path)))
+    if real != p:
+        check_write_path(real)
     if p.is_relative_to(ROUND1_DATA_ROOT) and not p.is_relative_to(DATA_ROOT):
         raise ForbiddenPath(f"{p}: round-1 data is read-only (runbook §0)")
     for root in ROUND1_CHECKPOINT_ROOTS:
@@ -332,16 +337,270 @@ def run_name(detector: str, arm: str, seed: int, smoke: bool = False) -> str:
     return f"{detector}__{arm}__s{int(seed)}" + ("__smoke" if smoke else "")
 
 
+# ======================================================================= budget enforcement (§8, §9)
+class StopError(RuntimeError):
+    """A runbook §9 stop; ``stop`` is its id (S1..S9)."""
+
+    def __init__(self, stop: str, reason: str):
+        super().__init__(f"{stop}: {reason}")
+        self.stop, self.reason = stop, reason
+
+
+#: Design-time projections of runbook §8 (replaced by smoke measurements once they exist):
+#: main-arm training per detector (upper ends) / 6 runs, ``mae_mse_rf``, evaluation 5 h / 3.
+DESIGN_MAIN_RUN_H = {"sk": 17.0 / 6, "juno": 15.0 / 6, "hk": 30.0 / 6}
+DESIGN_RF_RUN_H = {"sk": 2.0, "juno": 1.7, "hk": 4.0}
+DESIGN_EVAL_H = 5.0 / 3
+DESIGN_EVAL_MODEL_H = DESIGN_EVAL_H / 12  # one model: 7 trained + 5 init per detector
+CPU_GENERATION_CAP_H = 48.0
+CPU_GENERATION_USED_ROUND1_H = 18.43
+CEPH_QUOTA_ROOT = Path("/ceph/dwong")
+CEPH_FREE_ENTRIES_FLOOR = 30_000
+
+
+def ledger_path(root) -> Path:
+    return Path(root) / "ledger" / "RESOURCE_LEDGER_R2.json"
+
+
+def ledger_load(root) -> dict:
+    p = ledger_path(root)
+    if p.is_file():
+        return json.loads(p.read_text())
+    return {"line": LEDGER_LINE, "cap_l40s_h": GPU_CAP_H, "entries": [], "cpu_entries": [],
+            "hk_fallback": None}
+
+
+def _ledger_update(root, fn) -> dict:
+    """Read-modify-write the ledger under an exclusive lock (two GPU jobs may finish together)."""
+    import fcntl
+    p = check_write_path(ledger_path(root))
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p.with_suffix(".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        ledger = ledger_load(root)
+        fn(ledger)
+        tmp = p.with_suffix(".tmp")
+        tmp.write_text(json.dumps(ledger, indent=1, sort_keys=True) + "\n")
+        tmp.replace(p)
+    return ledger
+
+
+def ledger_add(root, entry: dict, *, cpu: bool = False) -> dict:
+    stamped = {**entry, "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    return _ledger_update(root, lambda l: l["cpu_entries" if cpu else "entries"].append(stamped))
+
+
+def booked_gpu_h(ledger) -> float:
+    return float(sum(float(e.get("gpu_h", 0.0)) for e in ledger["entries"]))
+
+
+def run_complete(ledger, detector: str, arm: str, seed: int) -> bool:
+    return any(e.get("kind") == "train" and e.get("complete") and e["detector"] == detector
+               and e["arm"] == arm and int(e["seed"]) == int(seed) for e in ledger["entries"])
+
+
+def smoke_projection_h(root, detector: str, arm: str, card_gib: float = L40S_MEMORY_GIB):
+    """10,000-step projection from the detector/arm smoke at the chosen micro-batch, or None."""
+    smokes = []
+    for p in sorted((Path(root) / "smokes").glob(f"{detector}__{arm}__s*__smoke*/run_record.json")):
+        smokes.append(json.loads(p.read_text()))
+    if not smokes:
+        return None
+    try:
+        micro = choose_micro_batch(smokes, card_gib)
+    except RuntimeError:
+        return None
+    rec = [s for s in smokes if int(s["micro_batch"]) == micro][-1]
+    return {"micro_batch": micro, "seconds_per_step": float(rec["seconds_per_step"]),
+            "projected_h": float(rec["seconds_per_step"]) * STEPS / 3600.0,
+            "peak_memory_gib": rec["peak_memory_gib"]}
+
+
+def run_projection_h(root, detector: str, arm: str) -> float:
+    s = smoke_projection_h(root, detector, arm)
+    if s is not None:
+        return s["projected_h"]
+    return DESIGN_RF_RUN_H[detector] if arm == RF_ARM else DESIGN_MAIN_RUN_H[detector]
+
+
+def planned_runs(ledger, detector: str) -> list:
+    """The §5.1 runs of a detector, cut by a recorded HK fallback (§8)."""
+    runs = [(a, s) for a in MAIN_ARMS for s in MAIN_SEEDS] + [(RF_ARM, 9000)]
+    fb = ledger.get("hk_fallback") if detector == "hk" else None
+    if fb is not None:
+        if fb["step"] >= 1:
+            runs = [r for r in runs if r[0] != RF_ARM]
+        if fb["step"] >= 2:
+            runs = [r for r in runs if r[1] == 9000]
+        if fb["step"] >= 3:
+            runs = []
+    return runs
+
+
+def eval_booked_h(ledger, detector: str) -> float:
+    return float(sum(float(e.get("gpu_h", 0.0)) for e in ledger["entries"]
+                     if e.get("kind") == "eval" and e["detector"] == detector))
+
+
+def reserved_gpu_h(root, ledger, *, exclude=None, hk_minimal: bool = False) -> float:
+    """GPU hours still owed to higher-priority work: every planned main/rf run not yet
+    complete and the remaining evaluation of each detector (§8 priority)."""
+    total = 0.0
+    for det in DETECTOR_ORDER:
+        runs = planned_runs(ledger, det)
+        if det == "hk" and hk_minimal and ledger.get("hk_fallback") is None:
+            runs = [(a, 9000) for a in MAIN_ARMS]  # the smallest HK plan before S1 (§8 step 2)
+        for arm, seed in runs:
+            if exclude == (det, arm, seed) or run_complete(ledger, det, arm, seed):
+                continue
+            total += run_projection_h(root, det, arm)
+        total += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
+    return total
+
+
+def hk_fallback_decision(root) -> dict:
+    """§8: before HK training, re-project HK from the measured SK and JUNO step times and
+    record the fallback step in the ledger (computed once)."""
+    ledger = ledger_load(root)
+    if ledger.get("hk_fallback") is not None:
+        return ledger["hk_fallback"]
+    n_pmt = {d: rg.DESIGN_TABLE[d]["n_pmt"] for d in DETECTOR_ORDER}
+    scaled = []
+    for det in ("sk", "juno"):
+        for arm in MAIN_ARMS:
+            s = smoke_projection_h(root, det, arm)
+            if s is not None:
+                scaled.append(s["projected_h"] * n_pmt["hk"] / n_pmt[det])
+    hk_meas = [p["projected_h"] for p in (smoke_projection_h(root, "hk", a) for a in MAIN_ARMS)
+               if p is not None]
+    main_h = max(scaled + hk_meas) if (scaled or hk_meas) else DESIGN_MAIN_RUN_H["hk"]
+    rf_s = smoke_projection_h(root, "hk", RF_ARM)
+    rf_h = rf_s["projected_h"] if rf_s else main_h * 1.45
+    other = 0.0
+    for det in ("sk", "juno"):
+        for arm, seed in planned_runs(ledger, det):
+            if not run_complete(ledger, det, arm, seed):
+                other += run_projection_h(root, det, arm)
+        other += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
+    remaining = GPU_CAP_H - booked_gpu_h(ledger) - other
+    decision = hk_fallback(remaining, main_h, rf_h, DESIGN_EVAL_H)
+    decision.update({"remaining_h": remaining, "hk_main_run_h": main_h, "hk_rf_run_h": rf_h,
+                     "projection_inputs": {"sk_juno_scaled_by_n_pmt": scaled,
+                                           "hk_smoke": hk_meas},
+                     "rule": "max of SK/JUNO smoke step times scaled by N_PMT and the HK smoke"})
+    _ledger_update(root, lambda l: l.__setitem__("hk_fallback", decision))
+    return decision
+
+
+def seed9002_decision(root, detector: str, arm: str) -> dict:
+    """Derive the §8 seed-9002 plan for this detector from its evaluated readings."""
+    readings = detector_readings(root, detector)
+    if readings.get("status") != "evaluated":
+        raise ValueError(f"{detector}: readings incomplete; seed 9002 needs the evaluation first")
+    ledger = ledger_load(root)
+    triggers = seed9002_triggers(readings, {a: {s: readings["metrics"][f"{a}:{s}"]["vertex_full_m"]
+                                                for s in MAIN_SEEDS} for a in WCTE_ORDER})
+    remaining = GPU_CAP_H - booked_gpu_h(ledger) - reserved_gpu_h(root, ledger)
+    done = [t for t in triggers if run_complete(ledger, detector, t["arm"], CONDITIONAL_SEED)]
+    pending = [t for t in triggers if t not in done]
+    plan = plan_seed9002(pending, remaining,
+                         {t["arm"]: run_projection_h(root, detector, t["arm"]) for t in pending},
+                         2 * DESIGN_EVAL_MODEL_H)  # the arm and its seed-matched init 9002
+    entry = next((p for p in plan if p["arm"] == arm), None)
+    return {"triggers": triggers, "plan": plan, "remaining_h": remaining, "entry": entry}
+
+
+def gpu_precheck(root, detector: str, arm: str, seed: int, projected_h: float) -> dict:
+    """Refuse a run the 60 h cap cannot hold after the §8 fallback (S1)."""
+    ledger = ledger_load(root)
+    booked = booked_gpu_h(ledger)
+    reserved = reserved_gpu_h(root, ledger, exclude=(detector, arm, seed),
+                              hk_minimal=(detector != "hk"))
+    if int(seed) == CONDITIONAL_SEED:
+        reserved = reserved_gpu_h(root, ledger, exclude=(detector, arm, seed))
+    total = booked + float(projected_h) + reserved
+    if total > GPU_CAP_H:
+        raise StopError("S1", f"booked {booked:.2f} + this run {projected_h:.2f} + still owed "
+                              f"{reserved:.2f} = {total:.2f} L40S h > cap {GPU_CAP_H}")
+    return {"booked_h": booked, "projected_h": float(projected_h), "reserved_h": reserved,
+            "total_h": total, "cap_h": GPU_CAP_H}
+
+
+def ceph_free_entries(quota_root=CEPH_QUOTA_ROOT) -> int:
+    q = str(quota_root)
+    return (int(os.getxattr(q, "ceph.quota.max_files")) - int(os.getxattr(q, "ceph.dir.rfiles"))
+            - int(os.getxattr(q, "ceph.dir.rsubdirs")))
+
+
+def storage_check(disk_bytes: float, *, entries_needed: int = 500,
+                  work_root="/work/dwong", ceph_root=CEPH_QUOTA_ROOT) -> dict:
+    """S5: free bytes >= 2 x the projection on /work and /ceph; Ceph entries >= 30,000 after."""
+    import shutil
+    out = {"projection_bytes": float(disk_bytes)}
+    ok = True
+    for label, root in (("work", work_root), ("ceph", ceph_root)):
+        free = shutil.disk_usage(str(root)).free
+        out[f"{label}_free_bytes"] = int(free)
+        ok = ok and free >= 2.0 * float(disk_bytes)
+    try:
+        entries = ceph_free_entries(ceph_root)
+    except OSError:
+        entries = None
+    out["ceph_free_entries"] = entries
+    out["entries_needed"] = int(entries_needed)
+    ok = ok and entries is not None and entries - int(entries_needed) >= CEPH_FREE_ENTRIES_FLOOR
+    out["pass"], out["stop"] = bool(ok), (None if ok else "S5")
+    return out
+
+
+def cpu_check(root, projected_wall_h: float) -> dict:
+    """S7: the generation projection must fit the remaining round-1 generation cap."""
+    ledger = ledger_load(root)
+    used = float(sum(float(e.get("wall_h", 0.0)) for e in ledger["cpu_entries"]
+                     if e.get("kind") == "generation"))
+    remaining = CPU_GENERATION_CAP_H - CPU_GENERATION_USED_ROUND1_H - used
+    ok = float(projected_wall_h) <= remaining
+    return {"projected_wall_h": float(projected_wall_h), "round2_used_wall_h": used,
+            "remaining_wall_h": remaining, "pass": bool(ok), "stop": None if ok else "S7"}
+
+
+def x0_clearance(x0: dict) -> dict:
+    """The X0 record must show no stop before generation; returns the yield range."""
+    stops = {k: (x0.get(k) or {}).get("stop") for k in
+             ("geometry", "yield_range", "trigger", "gate_v", "storage", "cpu")}
+    missing = [k for k in stops if x0.get(k) is None]
+    if missing:
+        raise ValueError(f"X0 record lacks {missing}")
+    fired = {k: v for k, v in stops.items() if v}
+    if fired:
+        raise StopError(sorted(fired.values())[0], f"X0 stop(s) {fired}; no generation")
+    return {"y_lo": float(x0["yield_range"]["y_lo"]), "y_hi": float(x0["yield_range"]["y_hi"])}
+
+
 def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: int = STEPS,
-             micro_batch: int = 8, device: str = "cuda", triggered=(), smoke: bool = False,
+             micro_batch: int = 8, device: str = "cuda", smoke: bool = False,
              resume: bool = True, log=print) -> dict:
-    """One round-2 training run with the round-1 optimiser, loop and checkpoints."""
+    """One round-2 training run with the round-1 optimiser, loop and checkpoints.
+
+    A main run needs its detector/arm smoke (projection, micro-batch), passes the §8/§9
+    budget checks (S1, HK fallback, seed-9002 plan), runs under the 1.5 x projection wall cap
+    and books its GPU hours in the ledger.
+    """
     import hashlib
+    import signal
     import torch
     from . import lucid_run as lr
     from . import r2_generator as gen
     from . import r2_store as rs
+    budget = None
     if not smoke:
+        triggered = ()
+        if int(seed) == CONDITIONAL_SEED and arm in MAIN_ARMS:
+            decision = seed9002_decision(out_root, detector, arm)
+            entry = decision["entry"]
+            if entry is None or entry["decision"] != "train":
+                raise ValueError(f"seed 9002 for {arm} on {detector} is not planned: {entry}")
+            triggered = (arm,)
         allowed_training(arm, seed, detector=detector, triggered=triggered)
         if int(steps) != STEPS:
             raise ValueError("a main run trains the §2.1 10,000 steps")
@@ -350,8 +609,24 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     if arm not in TRAINED_ARMS:
         raise ValueError(f"{arm} is not a trained arm")
     out_root = check_write_path(out_root)
+    if not smoke:
+        proj = smoke_projection_h(out_root, detector, arm)
+        if proj is None:
+            raise ValueError(f"{detector}/{arm}: no smoke projection yet (§5.2)")
+        if int(micro_batch) != proj["micro_batch"]:
+            raise ValueError(f"micro-batch must be the smoke choice {proj['micro_batch']}")
+        if detector == "hk":
+            fb = hk_fallback_decision(out_root)
+            if fb.get("stop"):
+                raise StopError("S1", f"HK fallback exhausted: {fb}")
+            if int(seed) != CONDITIONAL_SEED and (arm, int(seed)) not in planned_runs(
+                    ledger_load(out_root), "hk"):
+                raise ValueError(f"HK fallback step {fb['step']} excludes {arm} seed {seed}")
+        budget = gpu_precheck(out_root, detector, arm, seed, proj["projected_h"])
+        wall_cap_s = WALL_CAP_FACTOR * proj["projected_h"] * 3600.0
     run_dir = check_write_path(Path(out_root) / ("smokes" if smoke else "runs")
-                               / run_name(detector, arm, seed, smoke))
+                               / (run_name(detector, arm, seed, smoke)
+                                  + (f"__mb{int(micro_batch)}" if smoke else "")))
     run_dir.mkdir(parents=True, exist_ok=True)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
@@ -380,6 +655,13 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     if device.startswith("cuda"):
         torch.cuda.reset_peak_memory_stats()
     t0 = time.time()
+    capped = {"hit": False}
+
+    def wall_cap(step):
+        # The round-1 loop checkpoints and stops cleanly on SIGTERM; the cap uses that path.
+        if not smoke and not capped["hit"] and time.time() - t0 > wall_cap_s:
+            capped["hit"] = True
+            os.kill(os.getpid(), signal.SIGTERM)
     result = lr.train_loop(arm=arm_module, loader=loader, steps=int(steps), optimizers=optimizers,
                            checkpoint_path=checkpoint, identity=identity, config_sha=config_sha,
                            checkpoint_minutes=float(cfg["training"]["checkpoint_minutes"]),
@@ -388,8 +670,14 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
                                    else None),
                            log_path=run_dir / "train_log.jsonl",
                            accum_steps=BATCH // int(micro_batch), log_every=1,
-                           scheduler=scheduler)
+                           scheduler=scheduler, step_callback=wall_cap)
     wall = time.time() - t0
+    complete = (not result["interrupted"]) and int(result["step"]) == int(steps)
+    ledger_add(out_root, {"kind": "smoke" if smoke else "train", "detector": detector,
+                          "arm": arm, "seed": int(seed), "micro_batch": int(micro_batch),
+                          "gpu_h": wall / 3600.0, "wall_s": wall, "steps": int(result["step"]),
+                          "complete": bool(complete), "wall_cap_hit": capped["hit"],
+                          "precheck": budget})
     peak = (torch.cuda.max_memory_allocated() / 2 ** 30) if device.startswith("cuda") else None
     record = {"extension": EXTENSION, "detector": detector, "arm": arm, "seed": int(seed),
               "smoke": bool(smoke), "steps": int(result["step"]), "steps_scheduled": int(steps),
@@ -400,7 +688,8 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
               "config_sha256": config_sha, "encoder": r2cfg["encoder"],
               "time_scale_ns": rule.time_scale_ns, "interrupted": result["interrupted"],
               "resumed_from_step": result["resumed_from_step"], "code_sha": lb.current_code_sha(),
-              "checkpoint": str(checkpoint), "registered": False}
+              "checkpoint": str(checkpoint), "registered": False, "complete": bool(complete),
+              "wall_cap_hit": capped["hit"], "budget_precheck": budget}
     (run_dir / "run_record.json").write_text(json.dumps(record, indent=1, sort_keys=True) + "\n")
     log(json.dumps({k: record[k] for k in ("detector", "arm", "seed", "steps", "wall_seconds",
                                            "peak_memory_gib")}))
@@ -668,6 +957,10 @@ def evaluate_model(*, detector: str, arm: str, seed: int, h5_path, out_root, che
                                                      default=float) + "\n")
     np.savez_compressed(out_dir / "per_event.npz",
                         **{k: v for k, v in arrays.items() if v is not None})
+    if str(device).startswith("cuda"):
+        ledger_add(out_root, {"kind": "eval", "detector": detector, "arm": arm, "seed": int(seed),
+                              "gpu_h": record["wall_seconds"] / 3600.0,
+                              "wall_s": record["wall_seconds"]})
     log(json.dumps({"detector": detector, "arm": arm, "seed": seed,
                     "vertex_full_m": metrics["vertex_full_m"], "f_event": metrics["f_event"]}))
     return record
@@ -684,20 +977,26 @@ def x0_geometry(detector: str) -> dict:
             "stop": ("S4" if diffs or not rg.readout_window_check(values)["ok"] else None)}
 
 
-def _fixed_yield_draws(geometry, cfg, y: float, event_id: int, seed: int, tag: str):
+def _fixed_yield_draws(geometry, cfg, y: float, event_id: int, seed: int, tag: str,
+                      capacity_y: float | None = None):
+    """Round-1 ``lucid_detectability._fixed_yield_draws``: the draws are made at a fixed
+    capacity yield (so every trial yield of a bisection re-maps the same random numbers),
+    then the yield is set to ``y``."""
     from . import r2_generator as gen
-    cap = dataclasses.replace(cfg, y_lo=float(y) * (1.0 - 1e-12), y_hi=float(y))
+    cy = float(y if capacity_y is None else max(float(capacity_y), float(y)))
+    cap = dataclasses.replace(cfg, y_lo=cy * (1.0 - 1e-12), y_hi=cy)
     return dataclasses.replace(gen.draw_event(geometry, cap, tag, int(event_id), seed=seed),
                                yield_photons=float(y))
 
 
 def occupancy_stats(geometry, cfg, rule, y: float, n_events: int, seed: int,
-                    tag: str = "r2/x0/occupancy", workers: int = 1) -> dict:
+                    tag: str = "r2/x0/occupancy", workers: int = 1,
+                    capacity_y: float | None = None) -> dict:
     """Median hit count, mean (pseudo-)module charge and hit fraction at a fixed yield."""
     def one(i):
         from . import r2_generator as gen
         state = lb.nominal_state(geometry, tag)
-        hits = gen.readout(state, _fixed_yield_draws(geometry, cfg, y, i, seed, tag),
+        hits = gen.readout(state, _fixed_yield_draws(geometry, cfg, y, i, seed, tag, capacity_y),
                            geometry, cfg, rule)
         charge = np.bincount(geometry.module_index[np.asarray(hits.pmt_id, int)],
                              weights=hits.charge_pe, minlength=geometry.n_modules).mean()
@@ -738,7 +1037,9 @@ def compute_yield_range(geometry, cfg, rule, *, n_events: int = 1000, iterations
     starting bracket is the round-1 one, doubled until it contains the targets (no doubling
     on WCTE); a bracket that cannot be found in 30 doublings is S8.
     """
-    stats = lambda y: occupancy_stats(geometry, cfg, rule, y, n_events, seed, workers=workers)
+    cap = {"y": 4.0 * float(y_hi_start)}  # round 1: capacity 4 x the bracket's upper yield
+    stats = lambda y: occupancy_stats(geometry, cfg, rule, y, n_events, seed, workers=workers,
+                                      capacity_y=cap["y"])
     target_hits = 0.100 * geometry.n_pmt
     lo, hi = float(y_lo_start), float(y_hi_start)
     trail = []
@@ -748,6 +1049,7 @@ def compute_yield_range(geometry, cfg, rule, *, n_events: int = 1000, iterations
         if s["median_hit_pmts"] >= target_hits:
             break
         lo, hi = hi, hi * 2.0
+        cap["y"] = max(cap["y"], 4.0 * hi)
     else:
         return {"converged": False, "stop": "S8", "reason": "no Y_lo bracket", "trail": trail}
     for _ in range(30):
@@ -767,6 +1069,7 @@ def compute_yield_range(geometry, cfg, rule, *, n_events: int = 1000, iterations
     y_lo = bisect(lambda y: stats(y)["median_hit_pmts"], target_hits, lo, hi)
     upper = max(hi, 2.0 * y_lo)
     for _ in range(30):
+        cap["y"] = max(cap["y"], 4.0 * upper)
         s = stats(upper)
         trail.append(s)
         if s["median_module_charge_pe"] >= 300.0 and s["median_hit_fraction"] >= 0.95:
@@ -934,27 +1237,44 @@ def load_eval(root, detector: str, arm: str, seed: int):
     return metrics, arrays
 
 
-def detector_readings(root, detector: str, *, seeds=MAIN_SEEDS) -> dict:
-    """R2-a..R2-e, the floor band and the seed-9002 triggers of one detector (§7, §8)."""
-    seeds = tuple(int(s) for s in seeds)
-    ev = {(a, s): load_eval(root, detector, a, s)
-          for a in MAIN_ARMS + (INIT_ARM,) for s in seeds}
-    missing = [f"{a}:{s}" for (a, s), v in ev.items() if v is None]
+def detector_readings(root, detector: str, *, three_seed: bool = False) -> dict:
+    """R2-a..R2-e, the floor band and the seed-9002 triggers of one detector (§7, §8).
+
+    ``three_seed=True`` is the §7 seed-9002 version: each reading uses seed 9002 where every
+    arm it reads (and the seed-matched ``init``) has a 9002 evaluation, so a single-arm
+    trigger (e.g. only ``mae_mse`` for an unclear R2-c) yields a three-seed version of exactly
+    the readings that concern it; the others keep two seeds and say so.
+    """
+    seeds = tuple(int(s) for s in MAIN_SEEDS)
+    ev = {(a, s): load_eval(root, detector, a, s) for a in MAIN_ARMS + (INIT_ARM,)
+          for s in seeds + (CONDITIONAL_SEED,)}
+    missing = [f"{a}:{s}" for (a, s), v in ev.items() if v is None and s in seeds]
     if missing:
         return {"detector": detector, "status": "incomplete", "missing": missing}
-    m = {k: v[0] for k, v in ev.items()}
-    arr = {k: v[1] for k, v in ev.items()}
-    out = {"detector": detector, "status": "evaluated", "seeds": list(seeds)}
-    out["R2-a"] = reading_r2a({s: m[("sigreg_jepa", s)]["f_event"] for s in seeds})
+    m = {k: v[0] for k, v in ev.items() if v is not None}
+    arr = {k: v[1] for k, v in ev.items() if v is not None}
+
+    def seeds_for(*arms):
+        if three_seed and all((a, CONDITIONAL_SEED) in m for a in arms):
+            return seeds + (CONDITIONAL_SEED,)
+        return seeds
+    out = {"detector": detector, "status": "evaluated",
+           "version": "three_seed" if three_seed else "two_seed"}
+    sa = seeds_for("sigreg_jepa")
+    out["R2-a"] = reading_r2a({s: m[("sigreg_jepa", s)]["f_event"] for s in sa})
+    sb = seeds_for("target_posfree", INIT_ARM)
     out["R2-b"] = reading_r2b(
         {s: {"vertex": m[("target_posfree", s)]["vertex_full_m"],
              "token_r2": m[("target_posfree", s)]["token_log_charge_r2"],
-             "f_event": m[("target_posfree", s)]["f_event"]} for s in seeds},
-        {s: {"vertex": m[("init", s)]["vertex_full_m"]} for s in seeds})
-    out["R2-c"] = reading_r2c({s: paired_vertex_difference(arr[("init", s)], arr[("mae_mse", s)])
-                               for s in seeds})
-    vertex = {a: {s: m[(a, s)]["vertex_full_m"] for s in seeds} for a in WCTE_ORDER}
+             "f_event": m[("target_posfree", s)]["f_event"]} for s in sb},
+        {s: {"vertex": m[(INIT_ARM, s)]["vertex_full_m"]} for s in sb})
+    sc = seeds_for("mae_mse", INIT_ARM)
+    out["R2-c"] = reading_r2c({s: paired_vertex_difference(arr[(INIT_ARM, s)], arr[("mae_mse", s)])
+                               for s in sc})
+    vertex = {a: {s: m[(a, s)]["vertex_full_m"] for s in seeds_for(a)} for a in WCTE_ORDER}
     out["R2-d"] = reading_r2d(vertex)
+    out["seeds_used"] = {"R2-a": list(sa), "R2-b": list(sb), "R2-c": list(sc),
+                         "R2-d": {a: sorted(v) for a, v in vertex.items()}}
     rf, mae = load_eval(root, detector, RF_ARM, 9000), ev[("mae_mse", 9000)]
     if rf is not None:
         pick = lambda mm: {"token_r2": mm["token_log_charge_r2"], "f_event": mm["f_event"],
@@ -967,27 +1287,44 @@ def detector_readings(root, detector: str, *, seeds=MAIN_SEEDS) -> dict:
     init_all = {s: load_eval(root, detector, INIT_ARM, s) for s in INIT_SEEDS}
     flat = lambda mm: {"vertex_full_m": mm["vertex_full_m"],
                        "token_log_charge_r2": mm["token_log_charge_r2"],
+                       "module_gain_r2": mm.get("module_gain_r2"),
                        **{k: v for k, v in mm.get("particle", {}).items()
                           if isinstance(v, (int, float))}}
     out["floor_band"] = floor_band({s: flat(v[0]) for s, v in init_all.items() if v is not None})
     out["floor_band"]["seeds"] = [s for s, v in init_all.items() if v is not None]
-    out["seed9002_triggers"] = seed9002_triggers(out, vertex)
-    out["metrics"] = {f"{a}:{s}": m[(a, s)] for (a, s) in m}
+    # Module gain R² minus the seed-matched init floor (§6)
+    out["module_gain_minus_init"] = {
+        f"{a}:{s}": (m[(a, s)].get("module_gain_r2") - m[(INIT_ARM, s)].get("module_gain_r2")
+                     if m[(a, s)].get("module_gain_r2") is not None
+                     and m[(INIT_ARM, s)].get("module_gain_r2") is not None else None)
+        for a in MAIN_ARMS for s in seeds}
+    if not three_seed:
+        out["seed9002_triggers"] = seed9002_triggers(out, vertex)
+    out["metrics"] = {f"{a}:{s}": v for (a, s), v in m.items()}
     if rf is not None:
         out["metrics"][f"{RF_ARM}:9000"] = rf[0]
     return out
 
 
-def readings_with_seed9002(root, detector: str, triggered_arms) -> dict | None:
-    """The three-seed version of the readings (same rules, "all three seeds"), if evaluated."""
-    if not triggered_arms:
-        return None
-    seeds = MAIN_SEEDS + (CONDITIONAL_SEED,)
-    for arm in MAIN_ARMS + (INIT_ARM,):
-        if load_eval(root, detector, arm, CONDITIONAL_SEED) is None:
-            if arm in triggered_arms or arm == INIT_ARM:
-                return {"status": "incomplete", "missing": f"{arm}:{CONDITIONAL_SEED}"}
-    return detector_readings(root, detector, seeds=seeds)
+def readings_both_versions(root, detector: str) -> dict:
+    """The two-seed readings and, where any seed 9002 was evaluated, the three-seed version."""
+    two = detector_readings(root, detector)
+    out = {"two_seed": two, "three_seed": None}
+    if two.get("status") == "evaluated" and any(
+            load_eval(root, detector, a, CONDITIONAL_SEED) is not None for a in MAIN_ARMS):
+        out["three_seed"] = detector_readings(root, detector, three_seed=True)
+    return out
+
+
+def loss_share_diagnostics(root, detector: str) -> dict:
+    """§6 time-scale diagnostic: loss-term shares of mae_mse and mae_mse_rf (seed 9000)."""
+    out = {}
+    for arm in ("mae_mse", RF_ARM):
+        log_path = Path(root) / "runs" / run_name(detector, arm, 9000) / "train_log.jsonl"
+        if log_path.is_file():
+            lines = [json.loads(x) for x in log_path.read_text().splitlines() if x.strip()]
+            out[arm] = loss_shares(lines)
+    return out
 
 
 # ======================================================================= WCTE regression (§4.2)
@@ -1064,6 +1401,7 @@ def _parser():
         s.add_argument("--runs", default=None, help="a:b run slice (generate)")
         s.add_argument("--items", default=None, help="arm:seed[:ckpt],... (evaluate)")
         s.add_argument("--steps", default="geometry,trigger,yield,gatev,bench")
+        s.add_argument("--x0", default=None, help="preflight JSON (generate)")
         s.add_argument("--device", default="cuda")
         s.add_argument("--out-dir", default=None, help="work directory (WCTE regression)")
     for name in ("smoke", "train"):
@@ -1074,7 +1412,6 @@ def _parser():
         s.add_argument("--micro-batch", type=int, default=8)
         s.add_argument("--h5", required=True)
         s.add_argument("--out", default=str(RETURNS_ROOT))
-        s.add_argument("--triggered", default="")
         s.add_argument("--device", default="cuda")
     r = sub.add_parser("report")
     r.add_argument("--root", required=True)
@@ -1086,9 +1423,11 @@ def _generate(args):
     from . import r2_generator as gen
     geometry = rg.load_r2_geometry(args.detector)
     rule = gen.time_rule_for(geometry)
-    if args.y_lo is None or args.y_hi is None:
-        raise SystemExit("generate needs --y-lo/--y-hi from the X0 yield range")
-    cfg = gen.load_r2_config(args.y_lo, args.y_hi)
+    if not args.x0:
+        raise SystemExit("generate needs --x0 <preflight JSON> with no stop (runbook §4.2)")
+    yields = x0_clearance(json.loads(Path(args.x0).read_text()))
+    cfg = gen.load_r2_config(yields["y_lo"], yields["y_hi"])
+    ledger_root = Path(args.out_dir) if args.out_dir else RETURNS_ROOT
     root = check_write_path(Path(args.out or GEN_ROOT / args.detector))
     cohorts = [args.cohort] if args.cohort else list(gen.COHORTS)
     jobs = []
@@ -1112,6 +1451,10 @@ def _generate(args):
         return "made"
     t0 = time.time()
     done = _parallel_map(one, jobs, args.workers)
+    ledger_add(ledger_root, {"kind": "generation", "detector": args.detector,
+                             "jobs": len(jobs), "made": done.count("made"),
+                             "workers": int(args.workers), "wall_h": (time.time() - t0) / 3600.0},
+               cpu=True)
     print(json.dumps({"detector": args.detector, "jobs": len(jobs), "made": done.count("made"),
                       "kept": done.count("kept"), "wall_s": time.time() - t0}))
 
@@ -1124,7 +1467,10 @@ def _pack(args):
     shard_root = Path(args.out or GEN_ROOT / args.detector)
     h5 = check_write_path(Path(args.h5 or DATA_ROOT / args.detector / f"{args.detector}_r2.h5"))
     cohorts = {c: gen.cohort_runs(c) for c in gen.COHORTS}
-    cfg = gen.load_r2_config(args.y_lo, args.y_hi)
+    if not args.x0:
+        raise SystemExit("pack needs --x0 <preflight JSON>")
+    yields = x0_clearance(json.loads(Path(args.x0).read_text()))
+    cfg = gen.load_r2_config(yields["y_lo"], yields["y_hi"])
     attrs = {"extension": EXTENSION, "detector": args.detector,
              "geometry_sha256": geometry.digest, "geometry_summary": geometry.summary(),
              "generator_config_sha256": cfg.digest, "derived_values": rg.derived_values(geometry),
@@ -1161,6 +1507,9 @@ def _preflight(args):
         bench = benchmark(geometry, gen.load_r2_config(y_lo, y_hi), rule)
         out["benchmark"] = bench
         out["projection"] = projections(bench, geometry.n_pmt)
+        root = Path(args.out_dir) if args.out_dir else RETURNS_ROOT
+        out["storage"] = storage_check(out["projection"]["disk_bytes_estimate"])
+        out["cpu"] = cpu_check(root, out["projection"]["cpu_wall_h_16_cores"])
     text = json.dumps(out, indent=1, sort_keys=True, default=float)
     if args.out:
         Path(check_write_path(args.out)).write_text(text + "\n")
@@ -1194,8 +1543,7 @@ def main(argv=None) -> int:
         smoke = args.mode == "smoke"
         train_r2(detector=args.detector, arm=args.arm, seed=args.seed, h5_path=args.h5,
                  out_root=args.out, steps=SMOKE_STEPS if smoke else STEPS,
-                 micro_batch=args.micro_batch, device=args.device, smoke=smoke,
-                 triggered=tuple(x for x in args.triggered.split(",") if x))
+                 micro_batch=args.micro_batch, device=args.device, smoke=smoke)
     elif args.mode == "evaluate":
         h5 = args.h5 or DATA_ROOT / args.detector / f"{args.detector}_r2.h5"
         for item in (args.items or "").split(","):
@@ -1206,7 +1554,10 @@ def main(argv=None) -> int:
                            out_root=args.out or RETURNS_ROOT,
                            checkpoint=parts[2] if len(parts) > 2 else None, device=args.device)
     elif args.mode == "report":
-        out = {det: detector_readings(args.root, det) for det in DETECTOR_ORDER}
+        out = {det: {**readings_both_versions(args.root, det),
+                     "loss_shares": loss_share_diagnostics(args.root, det),
+                     "ledger_booked_l40s_h": booked_gpu_h(ledger_load(args.root))}
+               for det in DETECTOR_ORDER}
         print(json.dumps(out, indent=1, sort_keys=True, default=float))
     return 0
 

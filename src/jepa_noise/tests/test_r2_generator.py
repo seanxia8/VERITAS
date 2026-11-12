@@ -83,3 +83,12 @@ def test_explicit_trigger_and_prompt_window_are_used():
     assert np.all((narrow.time_ns >= -1.0) & (narrow.time_ns <= 1.0))
     never = gen.readout(state, draws, geometry, cfg, gen.TimeRule(10_000, 20.0, (-20.0, 60.0), 1.0))
     assert never.trigger_ns is None
+
+
+def test_fixed_capacity_draws_share_random_numbers():
+    from jepa_noise import ext_r2 as x
+    g = small_cylinder()
+    cfg = gen.load_r2_config(2000.0, 20000.0)
+    a = x._fixed_yield_draws(g, cfg, 5000.0, 3, 1, "t", capacity_y=80000.0)
+    b = x._fixed_yield_draws(g, cfg, 9000.0, 3, 1, "t", capacity_y=80000.0)
+    assert np.array_equal(a.poisson_u, b.poisson_u) and a.yield_photons == 5000.0

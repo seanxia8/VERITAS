@@ -296,6 +296,8 @@ def tokenise_sparse(store: lb.SparseHitStore, geometry, *, event_ids=None, limit
         keys.append(mask.key)
     if not features:
         raise RuntimeError("tokenise: every event was excluded by the N_min rule")
+    if len({t.size for t in targets}) != 1 or len({c.size for c in contexts}) != 1:
+        raise ValueError("tokenise: ragged views; one split per batch only")
     target_np = np.zeros((len(features), geometry.n_pmt), dtype=bool)
     hidden_np = np.zeros_like(target_np)
     for row, (target, hide) in enumerate(zip(targets, hidden)):

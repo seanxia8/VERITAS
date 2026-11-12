@@ -175,8 +175,14 @@ def readout(state, draws, geometry, cfg, rule: TimeRule, reference=None, *,
         raise ValueError("dark_counts must be one non-negative count per PMT")
     dark_sensor = np.repeat(np.arange(geometry.n_pmt, dtype=np.int64), n_dark)
     dark_times = np.asarray(draws.dark_times, dtype=float)
+    if dark_times.shape != (dark_sensor.size,) or not np.all(np.isfinite(dark_times)):
+        raise ValueError("dark_times must be one finite time per dark photoelectron")
     emission_offset_ns = float(draws.emission_offset_ns)
+    if not np.isfinite(emission_offset_ns):
+        raise ValueError("emission_offset_ns must be finite (it is truth, not a feature)")
     start, end = (float(v) for v in cfg.readout_window_ns)
+    if dark_times.size and (dark_times.min() < start - 1e-9 or dark_times.max() > end + 1e-9):
+        raise ValueError("dark times must lie in the readout window")
     ref = lb.generator_reference(cfg) if reference is None else reference
     fixed_gain = lb.fixed_charge_gain(geometry, ref)
     mu, source_time = expected_pe(state, draws, geometry, cfg, fixed_gain)
@@ -215,6 +221,8 @@ def readout(state, draws, geometry, cfg, rule: TimeRule, reference=None, *,
             moved = trigger is None or abs(float(trigger) - float(source_trigger)) > 1e-9
             if moved and accounting is not None:
                 accounting.n_dark_moved_trigger += 1
+    if trigger is not None and not np.isfinite(trigger):
+        raise ValueError("nhits_trigger_time returned a non-finite trigger")
     if trigger is None:
         origin = start
         if accounting is not None:
