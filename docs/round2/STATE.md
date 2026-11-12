@@ -8,7 +8,7 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 - §4.1 implementation and the ten required tests: done (52 tests pass on Deepthought, including
   WCTE identity (test 1) and the bit-for-bit regeneration of round-1 run `lucid/dev_train/0000`
   (test 2)). The recomputed §2.2 table matches the runbook for WCTE, SK, HK and JUNO.
-- Pending: §4.3 independent review and acceptance record; then the WCTE regression, X0 and the
+- §4.3 review: round 1 BLOCK (fixed), round 2 PASS at `8db555f`; acceptance recorded. Next: the WCTE regression, X0 and the
   detectors (SK, JUNO, HK). Nothing generated or trained yet.
 
 ## Paths

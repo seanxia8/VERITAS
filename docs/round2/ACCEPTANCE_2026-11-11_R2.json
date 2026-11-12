@@ -1,0 +1,14 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "registered": false,
+ "runbook": "docs/round2/RUNBOOK_2026-11-11_R2_MULTIDETECTOR.md",
+ "runbook_sha256": "366f0680a5b262a90774bf725fd6ee75c516766789a605807b22978630572afe",
+ "runbook_commit": "2d995bb",
+ "impl_commit": "8db555f",
+ "review": "docs/round2/REVIEW_2026-11-11_R2.md",
+ "review_rounds": [{"head": "1fe00d2", "verdict": "BLOCK", "blocking": ["vi: B1 three-seed readings", "vi: B2 budget/stops enforcement"]},
+                   {"head": "8db555f", "verdict": "PASS", "blocking": []}],
+ "tests": "61 passed (src/jepa_noise/tests/test_r2_*.py) on Deepthought at 8db555f",
+ "verdict": "PASS",
+ "date": "2026-11-12"
+}
