@@ -288,6 +288,9 @@ def test_cell_equivalence_is_not_vacuous():
                                  {"status": "no events"}, "x")["mismatches"] == []
     assert p2a._cell_equivalence({"status": "unavailable"},
                                  {"status": "evaluated"}, "x")["mismatches"]
+    # two legitimately-unavailable cells are equivalent (the T1.0w exact subset)
+    assert p2a._cell_equivalence({"status": "unavailable"},
+                                 {"status": "unavailable"}, "x")["mismatches"] == []
     good = p2a._cell_equivalence({"a": 1.0}, {"a": 1.0}, "x")
     assert good["n_compared"] == 1 and good["mismatches"] == []
 

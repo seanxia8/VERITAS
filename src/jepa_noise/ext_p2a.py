@@ -951,7 +951,7 @@ def _cell_equivalence(fresh, committed, path) -> dict:
             and not (statuses_match and fresh_status in ("no events", "unavailable"))):
         result["mismatches"].append({"path": path,
                                      "reason": "no numeric leaves compared (vacuous)"})
-    if fresh_status == "unavailable":
+    if fresh_status == "unavailable" and committed_status != "unavailable":
         result["mismatches"].append({"path": path,
                                      "reason": "fresh cell is 'unavailable'"})
     return result
