@@ -1,0 +1,18 @@
+{
+  "runbook_sha256": "f97ed8101e5d0383a85ada70d974df4bb54bc70e63865d48fe77cb879cf59e0a",
+  "impl_commit": "f19106d6e724b318835a13c684f70590c7593a40",
+  "review_path": "docs/jepa/REVIEW_2026-11-11_P2_ADDENDUM.md",
+  "review_verdict": "PASS",
+  "lead": "Dowling Wong (author, lead)",
+  "date": "2026-11-12",
+  "review_rounds": [
+    "d5e12e1-style round 1 (fresh context): BLOCK, 5 blocking findings B1-B5 + 18 medium M1-M18",
+    "round 2 (delta, fresh context): BLOCK, 2 new blockers R2-B1/R2-B2 + M6/M12/figure/stop-path findings",
+    "round 2b (R2-design fix, fresh context): PASS for commit 0b2edde",
+    "round 3 (final delta, fresh context): BLOCK on the stale 798b39b exact-unavailable rule (R3-B1), already fixed in f19106d",
+    "round 4 (micro-review of f19106d, fresh context): PASS; A4 equivalence passes on the current code (exact 4846 compared / 0 mismatch, x3p 2040 compared / 0 mismatch)"
+  ],
+  "scope": "P2 addendum only: A1 fair R3u ceiling, A2 P2-f_u, A3 eta, A4 F1/F2 fold + equivalence, A5 hygiene, A6 shift shares, A7 record corrections; CPU only",
+  "p2_primary": "unchanged (mixed)",
+  "note": "The P2 primary reading rule and every threshold are untouched; the F1/F2 folds are into ext_p2.py under this acceptance (addendum §4.3)."
+}
