@@ -85,3 +85,18 @@ Addendum §0, verbatim:
 - 2026-11-12 r2-run: the deepthought2 guard shed `target_posfree` s9000 at step 903 (SIGTERM 13:56:32Z, `shed_signal` in `guard_deepthought2.log`); the round-1 loop checkpointed and exited 0. The lane runner is replaced by `r2_lane2.sh`, which relaunches a training run (resume from its checkpoint, same wall cap counting all invocations) until its record is complete or its cap is hit, and never starts a run whose launcher is alive. posfree 9000 resumes first on lane A (A: posfree 9000, mae 9000, posfree 9001, sigreg 9000; B: mae 9001 (running), sigreg 9001).
 - 2026-11-12 r2-run: `mae_mse` s9001 trains at 1.49 s/step on a quiet GPU against 3.48 s/step in its smoke: the smokes ran under co-tenancy, so their projections (used by the precheck and the S1 decisions) are conservative. The S1 decisions stand as recorded (fixed rule, no change after outcomes); the actual booked hours decide which SK runs the cap admits.
 - 2026-11-12 r2-run: co-tenancy on deepthought2 slowed SK training to 1.5–2× the smoke step times (our jobs got 24–33 % of the SMs; host CPU load 85). The per-run wall cap (1.5 × smoke projection, all invocations) stays as fixed in §5.2. A watchdog (`/work/dwong/r2_ops/watchdog.py`, every 10 min) pauses a run, with SIGTERM and a clean checkpoint as in a guard SHED, when its last-20-min rate cannot finish within the remaining cap. The lane then resumes it once the guard sees a quiet GPU (5-min mean < 60 %). Paused time does not count against the cap or the ledger; a resume loses only start-up time (posfree 9000 resumed exactly at step 903). First pause: posfree 9000 at step 2,336 (6.67 s/step: 14.2 h needed > 10.19 h left).
+
+## Addendum 2026-11-12 23:45: JUNO on Deepthought's GTX Titans (`RUNBOOK_2026-11-12_R2_JUNO_TITAN.md`, sha256 `f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229`, committed unchanged at f07f1a8)
+
+Addendum §0, verbatim:
+> 我同意K 继续在 deepthought2 的 L40S 上跑完；
+> * 把 JUNO 整体挪到 Deepthought 的 Titan 上。数据已经生成好了，因为 S1 被停着
+> * 然后
+> 1. 先花约 10 分钟做可行性测试：查卡、检查 torch 能不能用 CUDA、跑 20 步 smoke 测速度和显存；
+> 2. 能用就开始在最多 3 张 Titan 上训练 JUNO；
+> 3. 用不了就把原因记下来，第二轮维持只出 SK。
+
+- 2026-11-12 r2-run (Titan): JUNO's S1 lifted (resume records in both ledger lines and `EXECUTION_juno.json`, originals kept). New line `R2_titan_deepthought` (cap 100 Titan GPU-h) in `RESOURCE_LEDGER_R2_TITAN.json`; `docs/round2/RESOURCE_LEDGER.json` now mirrors both lines with totals. Code: GPU profile from `R2_GPU_PROFILE` (default `l40s`, unchanged), `titan` = JUNO only, 11 GiB micro-batch rule, T-S1, Titan evaluation reservation = 12 × measured Titan WCTE eval time × N_PMT/1,995; run/eval records carry the GPU model.
+- 2026-11-12 r2-run (Titan feasibility 1–2): 4 × NVIDIA GeForce GTX TITAN X (Maxwell, capability 5.2, 12 GB), idle, no other user's process; the round-2 environment's torch 2.5.1+cu121 includes sm_50 kernels, `cuda.is_available()` True, CUDA matmul and conv run: no new environment needed.
+- 2026-11-12 r2-run (Titan launcher): `scripts/jepa_run.sh` supports Deepthought; its guard (profile "deepthought": ≤ 3 training jobs, 4th GPU only for ≤ 30 min jobs, start only on a GPU at < 20 % 5-min mean utilisation with no other user's process > 1 GB, memory fraction 0.80 ≈ 9.6 GiB, stricter than the addendum's 11 GiB) was not running and is started (`jepa_guard.py --host deepthought --interval 120`). Titan jobs run through `/work/dwong/r2_ops/r2_lane2.sh` lanes `titan*` with `R2_GPU_PROFILE=titan`; the guard's SHED gives the clean pause the addendum asks for when another user appears.
+- 2026-11-12 r2-run (SK, Titan addendum §1.7): the five SK `init` evaluations run first on L40S lane A, ahead of the paused posfree 9000.
