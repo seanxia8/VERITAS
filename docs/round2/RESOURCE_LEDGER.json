@@ -338,6 +338,48 @@
      "utc": "2026-11-13T16:55:20Z",
      "wall_cap_hit": false,
      "wall_s": 13291.364687204361
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "detector": "sk",
+     "gpu_h": 0.4222392111354404,
+     "kind": "train",
+     "micro_batch": 4,
+     "precheck": {
+      "booked_h": 28.93470289594597,
+      "cap_h": 72.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 7.696061030570977,
+      "reserved_h": 29.27219463646937,
+      "total_h": 65.90295856298631
+     },
+     "seed": 9001,
+     "steps": 3548,
+     "utc": "2026-11-13T19:25:20Z",
+     "wall_cap_hit": false,
+     "wall_s": 1520.0611600875854
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "detector": "sk",
+     "gpu_h": 0.40004657904307045,
+     "kind": "train",
+     "micro_batch": 4,
+     "precheck": {
+      "booked_h": 29.356942107081412,
+      "cap_h": 72.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 10.264598073633465,
+      "reserved_h": 26.48921004460967,
+      "total_h": 66.11075022532455
+     },
+     "seed": 9000,
+     "steps": 3168,
+     "utc": "2026-11-13T20:25:22Z",
+     "wall_cap_hit": false,
+     "wall_s": 1440.1676845550537
     }
    ],
    "hk_fallback": {
@@ -594,7 +636,7 @@
  },
  "totals": {
   "R2_l40s_deepthought2": {
-   "booked_gpu_h": 28.9347,
+   "booked_gpu_h": 29.757,
    "cap_gpu_h": 72.0
   },
   "R2_titan_deepthought": {

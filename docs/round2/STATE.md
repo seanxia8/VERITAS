@@ -4,9 +4,9 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 
 ## Where we are
 
-- Runbook and addenda committed unchanged: Gate V informational (`d237ec2b…`), JUNO on Titans v2 (`0a8d76e9…`), caps raised (`d715eee6…`: L40S 72 h, Titan 160 h).
-- SK (L40S, cap 72 h): mae 9001 complete; mae 9000 resuming at step 8,880; posfree 9000 (2,337), posfree 9001, sigreg 9000, sigreg 9001 (restored by the cap raise) and `mae_mse_rf` (restored, last) queued; `init` 9000–9003 evaluated. The guard admits one job at a time while another user shares the GPU.
-- JUNO: data packed and verified; Titan feasibility done (CUDA OK, WCTE regression PASS on a Titan); T-S1 kept at 160 h (seed-9000 plan needs 316 Titan GPU-h).
+- Runbook and addenda committed unchanged: Gate V informational (`d237ec2b…`), JUNO on Titans v2 (`0a8d76e9…`), caps (`d715eee6…`: L40S 72 h, Titan 160 h), SK order + co-tenancy (`2e9869ea…`).
+- SK (L40S, cap 72 h, wall cap 2.5×, shared GPUs allowed since 13 Nov 23:20): mae 9000 and 9001 complete and evaluated; `init` 9000–9004 evaluated; priority order sigreg 9000 → posfree 9000 (3,168) → posfree 9001 (3,548+) → sigreg 9001 → `mae_mse_rf` (S1 unless the cap holds it).
+- JUNO: data packed and verified; Titan feasibility done; T-S1 kept at 160 h (seed-9000 plan needs 316 Titan GPU-h).
 - HK: S1 (§8 fallback step 3), not generated; Gate V (informational) failed.
 - Gate V ceiling: WCTE, SK, JUNO done (review PASS); HK skipped (CPU allowance).
 
