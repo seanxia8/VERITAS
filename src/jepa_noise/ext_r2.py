@@ -54,6 +54,13 @@ MICRO_BATCH_CHOICES = (8, 4, 2, 1)
 GPU_MEMORY_FRACTION_CAP = 0.45
 L40S_MEMORY_GIB = 44.4  # usable L40S memory reported by torch (46,068 MiB card)
 WALL_CAP_FACTOR = 1.5
+#: SK runs: 2.5 x the smoke projection (RUNBOOK_2026-11-13_R2_SK_ORDER_COTENANCY.md §2.2, author
+#: 13 Nov 2026 23:17), all invocations counted; other detectors keep 1.5 x (§5.2).
+WALL_CAP_FACTOR_BY_DETECTOR = {"sk": 2.5}
+
+
+def wall_cap_factor(detector: str) -> float:
+    return float(WALL_CAP_FACTOR_BY_DETECTOR.get(detector, WALL_CAP_FACTOR))
 #: L40S cap: 60 h (author line 2), raised to 72 h by RUNBOOK_2026-11-13_R2_CAPS.md (author 13 Nov 11:38).
 CAPS_ADDENDUM_SHA256 = "d715eee6c417a54b4b36890210ee4f15da4b1d6b04e20c2329c75648c96a1d07"
 GPU_CAP_H = 72.0
@@ -799,7 +806,7 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
                       if e.get("kind") == "train" and e["detector"] == detector
                       and e["arm"] == arm and int(e["seed"]) == int(seed))
         # the cap counts every invocation of this run (a resumed run keeps its earlier hours)
-        wall_cap_s = WALL_CAP_FACTOR * proj["projected_h"] * 3600.0 - prior_h * 3600.0
+        wall_cap_s = wall_cap_factor(detector) * proj["projected_h"] * 3600.0 - prior_h * 3600.0
         if wall_cap_s <= 0:
             raise ValueError(f"{detector}/{arm}/{seed}: wall cap already used ({prior_h:.2f} h)")
     run_dir = check_write_path(Path(out_root) / ("smokes" if smoke else "runs")

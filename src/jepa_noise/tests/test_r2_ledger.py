@@ -229,3 +229,8 @@ def test_lift_run_stop(tmp_path):
     l = x.ledger_load(tmp_path)
     assert ("sigreg_jepa", 9001) in x.planned_runs(l, "sk")
     assert l["run_stops_lifted"][0]["original"]["reason"] == "cap 60"
+
+
+def test_sk_wall_cap_is_2_5x_others_1_5x():
+    assert x.wall_cap_factor("sk") == 2.5
+    assert x.wall_cap_factor("juno") == x.WALL_CAP_FACTOR == 1.5

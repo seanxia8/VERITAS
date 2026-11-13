@@ -224,6 +224,10 @@ def test_deepthought2_profile_numbers():
     assert p.gpu_memory_shed_fraction == pytest.approx(0.95)
     assert p.load_shed_ratio == pytest.approx(0.90)
     assert p.free_entries_shed_min == 10_000
+    # round-2 co-tenancy addendum (13 Nov 2026): sharing a card with other users
+    assert p.share_with_others is True
+    assert p.share_total_memory_fraction_max == pytest.approx(0.90)
+    assert guard.PROFILES[DT].share_with_others is False
 
 
 def test_get_profile_unknown_host_raises():
@@ -335,7 +339,11 @@ def test_foreign_heavy_work_on_a_gpu_we_use_holds(host):
                    process(2002, owner="otheruser", memory_mib=3000.0)],
     )
     d = guard.evaluate(reading(host, gpus=gpus, our_processes=jobs), guard.get_profile(host))
-    assert_hold(d, "another user's processes hold")
+    if host == DT:
+        assert_hold(d, "another user's processes hold")
+    else:  # deepthought2 shares cards with other users (co-tenancy addendum): no HOLD
+        assert d.level == "OK", d.reasons
+        assert not any("another user's processes" in r for r in d.reasons)
 
 
 def test_foreign_heavy_utilisation_on_a_gpu_we_use_holds():
@@ -403,31 +411,47 @@ def test_deepthought_small_foreign_process_does_not_block_start():
     assert d.start_gpu == 0
 
 
-def test_deepthought2_foreign_memory_plus_our_cap_must_fit_85_percent():
+def test_deepthought2_share_card_memory_plus_our_peak_must_fit_90_percent(monkeypatch):
     total = L40S_TOTAL_MIB
     our_cap = guard.PROFILES[DT2].gpu_memory_fraction_max * total
-    allowed_foreign = 0.85 * total - our_cap
-    # just below the bound: start allowed
-    gpus = [gpu(i, total=total) for i in range(2)]
-    gpus[0] = gpu(0, total=total, used=allowed_foreign, processes=[process(3000, memory_mib=allowed_foreign)])
+    allowed_used = 0.90 * total - our_cap
+    # without a measured peak the 45 % cap counts: just below the bound starts
+    gpus = [gpu(i, total=total, used=allowed_used, util=100.0,
+                processes=[process(3000 + i, memory_mib=allowed_used)]) for i in range(2)]
     d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2))
     assert d.level == "OK", d.reasons
-    # over the bound on both cards: HOLD
-    too_much = allowed_foreign + 1.0
-    gpus = [
-        gpu(i, total=total, used=too_much, processes=[process(3000 + i, memory_mib=too_much)])
-        for i in range(2)
-    ]
+    gpus = [gpu(i, total=total, used=allowed_used + 1.0, util=100.0,
+                processes=[process(3000 + i, memory_mib=allowed_used + 1.0)]) for i in range(2)]
     d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2))
-    assert_hold(d, "other users'")
+    assert_hold(d, "card memory in use")
+    # with a measured peak of 14 GiB the same card fits
+    monkeypatch.setenv("JEPA_PEAK_MEMORY_MIB", str(14 * 1024))
+    d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2), {"kind": "training"})
+    assert d.level == "OK", d.reasons
+    # a candidate peak above the cap is clipped to the cap (never looser than 45 %)
+    d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2),
+                       {"kind": "training", "peak_memory_mib": 10 * total})
+    assert_hold(d, "card memory in use")
 
 
-def test_deepthought2_util_5m_threshold_is_60():
+def test_deepthought2_busy_shared_card_no_longer_blocks_start():
     total = L40S_TOTAL_MIB
-    gpus = [gpu(i, total=total, util=59.0) for i in range(2)]
-    assert guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2)).level == "OK"
-    gpus = [gpu(i, total=total, util=60.0) for i in range(2)]
-    assert_hold(guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2)), "utilisation")
+    gpus = [gpu(i, total=total, used=12000.0, util=100.0,
+                processes=[process(3000 + i, memory_mib=12000.0, utilization_pct=90.0)]) for i in range(2)]
+    d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2))
+    assert d.level == "OK", d.reasons
+    assert d.start_gpu == 0
+
+
+def test_deepthought2_shedding_unchanged_when_sharing():
+    total = L40S_TOTAL_MIB
+    jobs = [our_job("r1", 1001, 0)]
+    gpus = [gpu(i, total=total) for i in range(2)]
+    gpus[0] = gpu(0, total=total, used=0.96 * total, util=100.0,
+                  processes=[process(1001, owner="dwong", memory_mib=9000.0, in_pid_file=True),
+                             process(2002, memory_mib=0.96 * total - 9000.0)])
+    d = guard.evaluate(reading(DT2, gpus=gpus, our_processes=jobs), guard.get_profile(DT2))
+    assert d.level == "SHED", d.reasons
 
 
 def test_deepthought_util_5m_threshold_is_20():

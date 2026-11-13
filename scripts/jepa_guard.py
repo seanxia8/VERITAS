@@ -240,6 +240,14 @@ class HostProfile:
     # "another user starts heavy work on a GPU we use"
     foreign_heavy_memory_mib: float = 2048.0
     foreign_heavy_util_pct: float = 30.0
+    # GPU sharing (round-2 addendum RUNBOOK_2026-11-13_R2_SK_ORDER_COTENANCY.md, author 13 Nov
+    # 2026 23:17): our job may start and run on a card other users also use. The start/HOLD
+    # conditions that refuse a GPU because of other users' processes (5-min utilisation,
+    # others + our cap, foreign-heavy HOLD) are replaced by one memory rule: the card's current
+    # memory use + our job's measured peak <= share_total_memory_fraction_max of the card.
+    # Every SHED rule is unchanged.
+    share_with_others: bool = False
+    share_total_memory_fraction_max: float | None = None
 
     def cpu_core_cap(self, cores: int | None) -> int | None:
         """CPU core cap for our processes on this host."""
@@ -274,6 +282,8 @@ class HostProfile:
             "free_entries_shed_min": self.free_entries_shed_min,
             "foreign_heavy_memory_mib": self.foreign_heavy_memory_mib,
             "foreign_heavy_util_pct": self.foreign_heavy_util_pct,
+            "share_with_others": self.share_with_others,
+            "share_total_memory_fraction_max": self.share_total_memory_fraction_max,
         }
 
 
@@ -304,6 +314,8 @@ PROFILES: dict[str, HostProfile] = {
         cpu_cores_abs_max=16,                   # <= 16, or 40% of the cores if fewer
         cpu_core_fraction_max=0.40,
         ram_total_max_gb=64.0,
+        share_with_others=True,                 # round-2 co-tenancy addendum (13 Nov 2026)
+        share_total_memory_fraction_max=0.90,   # card memory (others + our peak) at start
     ),
 }
 
@@ -409,7 +421,14 @@ def _normalize_candidate(candidate: Mapping[str, Any] | None) -> dict[str, Any]:
         kind = "other"
     kind = kind.strip().lower()
     planned = _to_float(candidate.get("planned_minutes"))
-    return {"kind": kind, "planned_minutes": planned}
+    peak = _to_float(candidate.get("peak_memory_mib"))
+    return {"kind": kind, "planned_minutes": planned, "peak_memory_mib": peak}
+
+
+def _candidate_peak_from_env() -> float | None:
+    """Our job's measured peak GPU memory (MiB), set by the round-2 lane runner."""
+    value = _to_float(os.environ.get("JEPA_PEAK_MEMORY_MIB"))
+    return value if value is not None and value > 0 else None
 
 
 def _normalize_gpus(reading: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -626,20 +645,22 @@ def _gpu_memory_shed_cap_mib(profile: HostProfile, gpu: Mapping[str, Any]) -> fl
     return cap + tolerance
 
 
-def assess_gpus(reading: Mapping[str, Any], profile: HostProfile) -> list[dict[str, Any]]:
+def assess_gpus(reading: Mapping[str, Any], profile: HostProfile,
+                peak_memory_mib: float | None = None) -> list[dict[str, Any]]:
     """Per-GPU block: usage, owners, and whether a new job could start on it."""
     gpus = _normalize_gpus(reading)
     used = set(_used_gpu_indices(_our_jobs(reading)))
     for gpu in gpus:
         gpu["used_by_us"] = gpu["index"] in used
-        start_ok, blockers = _gpu_start_condition(gpu, profile)
+        start_ok, blockers = _gpu_start_condition(gpu, profile, peak_memory_mib)
         gpu["start_ok"] = bool(start_ok)
         gpu["start_blockers"] = blockers
         gpu["free"] = not gpu["used_by_us"] and not gpu["processes"]
     return gpus
 
 
-def _gpu_start_condition(gpu: Mapping[str, Any], profile: HostProfile) -> tuple[bool, list[str]]:
+def _gpu_start_condition(gpu: Mapping[str, Any], profile: HostProfile,
+                         peak_memory_mib: float | None = None) -> tuple[bool, list[str]]:
     """Runbook v4 section 6.2 "Start on a GPU only if" rules for one GPU."""
     index = gpu["index"]
     blockers: list[str] = []
@@ -648,6 +669,8 @@ def _gpu_start_condition(gpu: Mapping[str, Any], profile: HostProfile) -> tuple[
     total = gpu.get("memory_total_mib")
     if total is None or total <= 0:
         blockers.append(f"GPU {index}: card memory total is unknown")
+    if profile.share_with_others:
+        return _gpu_share_start_condition(gpu, profile, peak_memory_mib, blockers)
     util = gpu.get("utilization_5m_mean_pct")
     if util is None:
         blockers.append(f"GPU {index}: 5-minute mean utilisation is unknown")
@@ -690,11 +713,40 @@ def _gpu_start_condition(gpu: Mapping[str, Any], profile: HostProfile) -> tuple[
     return (not blockers), blockers
 
 
+def _gpu_share_start_condition(gpu: Mapping[str, Any], profile: HostProfile,
+                               peak_memory_mib: float | None,
+                               blockers: list[str]) -> tuple[bool, list[str]]:
+    """Co-tenancy start rule: current card memory + our measured peak <= the share fraction.
+
+    Without a measured peak the per-process cap (gpu_memory_fraction_max x card) is used,
+    which is stricter. Other users' processes alone no longer refuse the card.
+    """
+    index = gpu["index"]
+    total = gpu.get("memory_total_mib")
+    if total is None or total <= 0:
+        return False, blockers
+    used = gpu.get("memory_used_mib")
+    if used is None:
+        blockers.append(f"GPU {index}: memory used is unknown")
+        return False, blockers
+    cap = profile.gpu_memory_fraction_max * total
+    ours = cap if peak_memory_mib is None else min(float(peak_memory_mib), cap)
+    allowed = float(profile.share_total_memory_fraction_max) * total
+    if used + ours > allowed:
+        blockers.append(
+            f"GPU {index}: card memory in use {used:.0f} MiB + our peak {ours:.0f} MiB > "
+            f"{profile.share_total_memory_fraction_max * 100:.0f}% of {total:.0f} MiB"
+        )
+    return (not blockers), blockers
+
+
 def _foreign_heavy_reasons(
     gpus: list[dict[str, Any]], profile: HostProfile
 ) -> list[str]:
     """HOLD when another user starts heavy work on a GPU we use (section 6.2)."""
     reasons: list[str] = []
+    if profile.share_with_others:
+        return reasons  # co-tenancy addendum: other users on our card no longer HOLD
     for gpu in gpus:
         if not gpu.get("used_by_us"):
             continue
@@ -925,7 +977,10 @@ def evaluate_start(
             f"GPU count: our jobs use {len(used_gpus)} GPUs (limit {profile.gpu_count_max})"
         )
         return None, None, blockers
-    gpu_blocks = assess_gpus(reading, profile)
+    peak = cand.get("peak_memory_mib")
+    if peak is None:
+        peak = _candidate_peak_from_env()
+    gpu_blocks = assess_gpus(reading, profile, peak)
     eligible = [gpu for gpu in gpu_blocks if not gpu.get("used_by_us") and gpu.get("start_ok")]
     if not eligible:
         blockers.append("no GPU satisfies the start condition")
