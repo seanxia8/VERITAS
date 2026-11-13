@@ -26,7 +26,19 @@
   "stop": "S1"
  },
  "action": "HK stopped before generation: the section 8 fallback reaches step 3 (S1) from the measured SK smoke step times. The running HK X0 job (CPU) is finished as safe work; its Gate V is informational (addendum). No HK generation, training or evaluation.",
- "x0_record": "results/round2/20261112_x0/hk.json (when the running X0 job finishes)",
+ "x0_record": "results/round2/20261112_x0/hk_gatev.json (Gate V only; the full X0 job was stopped as a duplicate after HK's S1, its yield range and trigger check were never written)",
  "gpu_l40s_h": 0.0,
- "date": "2026-11-12"
+ "date": "2026-11-12",
+ "gate_v_informational": {
+  "passed": false,
+  "summary": {
+   "log_pattern_pearson_median": 0.5634281680492477,
+   "module_pattern_pearson_median": 0.7564646552840093,
+   "time_median_abs_ns_median": 0.8016060813930324,
+   "yield_ratio_median": 2.072946624213161
+  },
+  "record": "results/round2/20261112_x0/hk_gatev.json",
+  "note": "Gate V informational (addendum d237ec2b); HK stays stopped by S1."
+ },
+ "ceiling": "skipped: a second HK transport exceeds the addendum's 3 wall-h ceiling allowance"
 }

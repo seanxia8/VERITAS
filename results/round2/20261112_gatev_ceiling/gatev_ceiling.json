@@ -1504,6 +1504,14 @@
     }
    ],
    "max_mu_rel_diff": 0.0
+  },
+  "hk": {
+   "gate_v_passed": false,
+   "observed_median": {
+    "module_pattern_pearson": 0.7564646552840093,
+    "log_pattern_pearson": 0.5634281680492477
+   },
+   "ceiling": "skipped (CPU allowance)"
   }
  }
 }

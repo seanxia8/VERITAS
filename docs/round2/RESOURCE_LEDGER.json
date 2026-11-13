@@ -161,6 +161,44 @@
      "utc": "2026-11-12T16:25:14Z",
      "wall_cap_hit": false,
      "wall_s": 8201.536212682724
+    },
+    {
+     "arm": "init",
+     "detector": "sk",
+     "gpu_h": 0.08023878455162048,
+     "kind": "eval",
+     "seed": 9000,
+     "utc": "2026-11-13T00:13:51Z",
+     "wall_s": 288.85962438583374
+    },
+    {
+     "arm": "mae_mse",
+     "complete": true,
+     "detector": "sk",
+     "gpu_h": 11.214369213382403,
+     "kind": "train",
+     "micro_batch": 8,
+     "precheck": {
+      "booked_h": 1.2989339121845034,
+      "cap_h": 60.0,
+      "projected_h": 9.660996165540483,
+      "reserved_h": 47.40757978624767,
+      "total_h": 58.36750986397266
+     },
+     "seed": 9001,
+     "steps": 10000,
+     "utc": "2026-11-13T01:13:48Z",
+     "wall_cap_hit": false,
+     "wall_s": 40371.72916817665
+    },
+    {
+     "arm": "init",
+     "detector": "sk",
+     "gpu_h": 0.0637580637799369,
+     "kind": "eval",
+     "seed": 9001,
+     "utc": "2026-11-13T01:14:20Z",
+     "wall_s": 229.52902960777283
     }
    ],
    "hk_fallback": {
@@ -208,6 +246,14 @@
      "seed": 9000,
      "stop": "S1",
      "utc": "2026-11-12T12:43:28Z"
+    },
+    {
+     "arm": "sigreg_jepa",
+     "detector": "sk",
+     "reason": "co-tenancy made the SK runs cost about 1.2x their smoke projections (mae 9001 booked 11.21 h vs 9.66 h); booked 14.94 h + still owed 47.26 h > 60: the lowest-priority SK main run (fixed-label collapse reference, second seed) is dropped; core comparison first (DECISIONS 2026-11-12)",
+     "seed": 9001,
+     "stop": "S1",
+     "utc": "2026-11-13T01:15:33Z"
     }
    ],
    "stopped": {
@@ -382,7 +428,7 @@
  },
  "totals": {
   "R2_l40s_deepthought2": {
-   "booked_gpu_h": 3.5771,
+   "booked_gpu_h": 14.9355,
    "cap_gpu_h": 60.0
   },
   "R2_titan_deepthought": {
