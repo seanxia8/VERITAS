@@ -593,8 +593,11 @@ def seed9002_decision(root, detector: str, arm: str) -> dict:
     if readings.get("status") != "evaluated":
         raise ValueError(f"{detector}: readings incomplete; seed 9002 needs the evaluation first")
     ledger = ledger_load(root)
-    triggers = seed9002_triggers(readings, {a: {s: readings["metrics"][f"{a}:{s}"]["vertex_full_m"]
-                                                for s in MAIN_SEEDS} for a in WCTE_ORDER})
+    if readings.get("partial"):
+        triggers = readings["seed9002_triggers"]
+    else:
+        triggers = seed9002_triggers(readings, {a: {s: readings["metrics"][f"{a}:{s}"]["vertex_full_m"]
+                                                    for s in MAIN_SEEDS} for a in WCTE_ORDER})
     remaining = cap_h() - booked_gpu_h(ledger) - reserved_gpu_h(root, ledger)
     done = [t for t in triggers if run_complete(ledger, detector, t["arm"], CONDITIONAL_SEED)]
     pending = [t for t in triggers if t not in done]
@@ -1401,10 +1404,16 @@ def detector_readings(root, detector: str, *, three_seed: bool = False) -> dict:
     ev = {(a, s): load_eval(root, detector, a, s) for a in MAIN_ARMS + (INIT_ARM,)
           for s in seeds + (CONDITIONAL_SEED,)}
     missing = [f"{a}:{s}" for (a, s), v in ev.items() if v is None and s in seeds]
-    if missing:
+    led = ledger_load(root)
+    stopped_runs = {f"{a}:{s}" for a in MAIN_ARMS for s in seeds
+                    if run_stopped(led, detector, a, s) is not None}
+    unexplained = [k for k in missing if k not in stopped_runs]
+    if unexplained:
         return {"detector": detector, "status": "incomplete", "missing": missing}
     m = {k: v[0] for k, v in ev.items() if v is not None}
     arr = {k: v[1] for k, v in ev.items() if v is not None}
+    if missing:  # some planned runs carry a run-level §9 stop: readings that need them are
+        return _partial_readings(root, detector, m, arr, seeds, sorted(missing), led)
 
     def seeds_for(*arms):
         if three_seed and all((a, CONDITIONAL_SEED) in m for a in arms):
@@ -1452,6 +1461,88 @@ def detector_readings(root, detector: str, *, three_seed: bool = False) -> dict:
         for a in MAIN_ARMS for s in seeds}
     if not three_seed:
         out["seed9002_triggers"] = seed9002_triggers(out, vertex)
+    out["metrics"] = {f"{a}:{s}": v for (a, s), v in m.items()}
+    if rf is not None:
+        out["metrics"][f"{RF_ARM}:9000"] = rf[0]
+    return out
+
+
+def _partial_readings(root, detector, m, arr, seeds, missing, ledger) -> dict:
+    """§7 readings when some planned runs carry a run-level stop: a reading whose rule needs a
+    missing run is "not determined" (with the missing runs and their stop); the others use the
+    unchanged rules. R2-d (descriptive) uses the seeds that exist and says so."""
+    have = lambda a, s: (a, s) in m
+    stop_of = lambda k: (run_stopped(ledger, detector, *k.split(":")[:1], int(k.split(":")[1])) or {}).get("stop")
+    nd = lambda name, need, extra: {"reading": name, "class": "not determined",
+                                    "missing": [k for k in need if k in missing],
+                                    "stops": {k: stop_of(k) for k in need if k in missing}, **extra}
+    out = {"detector": detector, "status": "evaluated", "version": "two_seed",
+           "partial": True, "missing_runs": missing}
+    need_a = [f"sigreg_jepa:{s}" for s in seeds]
+    fa = {s: m[("sigreg_jepa", s)]["f_event"] for s in seeds if have("sigreg_jepa", s)}
+    out["R2-a"] = (reading_r2a(fa) if all(k not in missing for k in need_a)
+                   else nd("R2-a", need_a, {"f_event": {str(s): float(v) for s, v in fa.items()}}))
+    need_b = [f"target_posfree:{s}" for s in seeds]
+    if all(k not in missing for k in need_b):
+        out["R2-b"] = reading_r2b(
+            {s: {"vertex": m[("target_posfree", s)]["vertex_full_m"],
+                 "token_r2": m[("target_posfree", s)]["token_log_charge_r2"],
+                 "f_event": m[("target_posfree", s)]["f_event"]} for s in seeds},
+            {s: {"vertex": m[(INIT_ARM, s)]["vertex_full_m"]} for s in seeds})
+    else:
+        out["R2-b"] = nd("R2-b", need_b, {"per_seed": {}})
+    need_c = [f"mae_mse:{s}" for s in seeds]
+    if all(k not in missing for k in need_c):
+        out["R2-c"] = reading_r2c({s: paired_vertex_difference(arr[(INIT_ARM, s)], arr[("mae_mse", s)])
+                                   for s in seeds})
+    else:
+        out["R2-c"] = nd("R2-c", need_c, {"per_seed": {}})
+    vertex = {a: {s: m[(a, s)]["vertex_full_m"] for s in seeds if have(a, s)} for a in WCTE_ORDER}
+    if all(vertex[a] for a in WCTE_ORDER):
+        out["R2-d"] = reading_r2d(vertex)
+        out["R2-d"]["note"] = "seed means over the seeds that exist"
+    else:
+        out["R2-d"] = {"reading": "R2-d", "class": "not determined",
+                       "missing_arms": [a for a in WCTE_ORDER if not vertex[a]]}
+    out["seeds_used"] = {"R2-d": {a: sorted(v) for a, v in vertex.items()}}
+    rf, mae = load_eval(root, detector, RF_ARM, 9000), load_eval(root, detector, "mae_mse", 9000)
+    if rf is not None and mae is not None:
+        pick = lambda mm: {"token_r2": mm["token_log_charge_r2"], "f_event": mm["f_event"],
+                           "particle": {k: v for k, v in mm.get("particle", {}).items()
+                                        if isinstance(v, (int, float))}}
+        out["R2-e"] = reading_r2e(paired_vertex_difference(mae[1], rf[1]), pick(rf[0]), pick(mae[0]))
+    else:
+        out["R2-e"] = {"reading": "R2-e", "status": "not run"}
+    init_all = {s: load_eval(root, detector, INIT_ARM, s) for s in INIT_SEEDS}
+    flat = lambda mm: {"vertex_full_m": mm["vertex_full_m"],
+                       "token_log_charge_r2": mm["token_log_charge_r2"],
+                       "module_gain_r2": mm.get("module_gain_r2"),
+                       **{k: v for k, v in mm.get("particle", {}).items() if isinstance(v, (int, float))}}
+    out["floor_band"] = floor_band({s: flat(v[0]) for s, v in init_all.items() if v is not None})
+    out["floor_band"]["seeds"] = [s for s, v in init_all.items() if v is not None]
+    out["module_gain_minus_init"] = {
+        f"{a}:{s}": (m[(a, s)].get("module_gain_r2") - m[(INIT_ARM, s)].get("module_gain_r2")
+                     if m[(a, s)].get("module_gain_r2") is not None
+                     and m[(INIT_ARM, s)].get("module_gain_r2") is not None else None)
+        for a in MAIN_ARMS for s in seeds if have(a, s)}
+    determined = {k: out[k] for k in ("R2-a", "R2-b", "R2-c")}
+    trig = []
+    if determined["R2-b"]["class"] == "unclear":
+        trig.append({"arm": "target_posfree", "seed": CONDITIONAL_SEED, "triggers": ["R2-b unclear"]})
+    if determined["R2-c"]["class"] == "unclear":
+        trig.append({"arm": "mae_mse", "seed": CONDITIONAL_SEED, "triggers": ["R2-c unclear"]})
+    if len(vertex["mae_mse"]) == len(seeds) and len(vertex["target_posfree"]) == len(seeds):
+        a_, b_ = list(vertex["mae_mse"].values()), list(vertex["target_posfree"].values())
+        if max(min(a_), min(b_)) <= min(max(a_), max(b_)):
+            for t in trig:
+                t["triggers"].append("mae_mse / target_posfree vertex seed ranges overlap")
+            for arm in ("mae_mse", "target_posfree"):
+                if not any(t["arm"] == arm for t in trig):
+                    trig.append({"arm": arm, "seed": CONDITIONAL_SEED,
+                                 "triggers": ["mae_mse / target_posfree vertex seed ranges overlap"]})
+    if determined["R2-a"]["class"] == "intermediate":
+        trig.append({"arm": "sigreg_jepa", "seed": CONDITIONAL_SEED, "triggers": ["R2-a intermediate"]})
+    out["seed9002_triggers"] = sorted(trig, key=lambda t: MAIN_ARMS.index(t["arm"]))
     out["metrics"] = {f"{a}:{s}": v for (a, s), v in m.items()}
     if rf is not None:
         out["metrics"][f"{RF_ARM}:9000"] = rf[0]

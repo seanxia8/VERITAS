@@ -182,3 +182,19 @@ def test_run_stop_removes_one_run(tmp_path):
         x.train_r2(detector="sk", arm=x.RF_ARM, seed=9000, h5_path=tmp_path / "x.h5",
                    out_root=tmp_path, device="cpu")
     assert err.value.stop == "S1"
+
+
+def test_partial_readings_with_run_stop(tmp_path):
+    """A run-level stop leaves the readings that need it "not determined"; the rest use the rules."""
+    x.mark_run_stopped(tmp_path, "sk", "sigreg_jepa", 9001, "S1", "cap")
+    spec = {("init", s): (1.0, 0.05) for s in (9000, 9001, 9002, 9003, 9004)}
+    spec.update({("mae_mse", s): (0.5, 0.05) for s in (9000, 9001)})
+    spec.update({("target_posfree", s): (0.7, 0.05) for s in (9000, 9001)})
+    spec[("sigreg_jepa", 9000)] = (1.4, 5e-4)
+    _write_evals(tmp_path, "sk", spec)
+    r = x.detector_readings(tmp_path, "sk")
+    assert r["status"] == "evaluated" and r["partial"]
+    assert r["R2-a"]["class"] == "not determined" and r["R2-a"]["stops"] == {"sigreg_jepa:9001": "S1"}
+    assert r["R2-b"]["class"] in ("recovered", "not recovered", "unclear")
+    assert r["R2-c"]["class"] in ("yes", "no", "unclear")
+    assert r["R2-d"]["order"][0] == "mae_mse"
