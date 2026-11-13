@@ -2,7 +2,17 @@
  "extension": "r2_multidetector_2026-11-11",
  "lines": {
   "R2_l40s_deepthought2": {
-   "cap_l40s_h": 60.0,
+   "cap_history": [
+    {
+     "cap": 60.0,
+     "until": "2026-11-13T10:38Z"
+    },
+    {
+     "authority": "docs/round2/RUNBOOK_2026-11-13_R2_CAPS.md (sha256 d715eee6...), author 13 Nov 2026 11:38: 'raise cap for both, 72 and 160'",
+     "cap": 72.0
+    }
+   ],
+   "cap_l40s_h": 72.0,
    "cpu_entries": [
     {
      "detector": "sk",
@@ -199,6 +209,45 @@
      "seed": 9001,
      "utc": "2026-11-13T01:14:20Z",
      "wall_s": 229.52902960777283
+    },
+    {
+     "arm": "mae_mse",
+     "complete": false,
+     "detector": "sk",
+     "gpu_h": 8.468243491715855,
+     "kind": "train",
+     "micro_batch": 8,
+     "precheck": {
+      "booked_h": 14.935504477421443,
+      "cap_h": 60.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 9.660996165540483,
+      "reserved_h": 28.680943243702252,
+      "total_h": 53.27744388666418
+     },
+     "seed": 9000,
+     "steps": 8880,
+     "utc": "2026-11-13T09:44:31Z",
+     "wall_cap_hit": false,
+     "wall_s": 30485.67657017708
+    },
+    {
+     "arm": "init",
+     "detector": "sk",
+     "gpu_h": 0.07328880654440986,
+     "kind": "eval",
+     "seed": 9002,
+     "utc": "2026-11-13T10:23:36Z",
+     "wall_s": 263.8397035598755
+    },
+    {
+     "arm": "init",
+     "detector": "sk",
+     "gpu_h": 0.07291438778241476,
+     "kind": "eval",
+     "seed": 9003,
+     "utc": "2026-11-13T10:42:41Z",
+     "wall_s": 262.4917960166931
     }
    ],
    "hk_fallback": {
@@ -238,22 +287,31 @@
      "utc": "2026-11-12T09:18:24Z"
     }
    },
-   "run_stops": [
+   "run_stops": [],
+   "run_stops_lifted": [
     {
-     "arm": "mae_mse_rf",
-     "detector": "sk",
-     "reason": "after the six SK main runs and the SK evaluation the cap cannot hold mae_mse_rf: 0.09 + 55.40 + 1.67 + 6.40 = 63.56 h > 60 (rf ranks below every main run, sections 5.1/8)",
-     "seed": 9000,
-     "stop": "S1",
-     "utc": "2026-11-12T12:43:28Z"
+     "authority": "docs/round2/RUNBOOK_2026-11-13_R2_CAPS.md (sha256 d715eee6...), author 13 Nov 2026 11:38: 'raise cap for both, 72 and 160'; SK main runs + evaluation now project 64.38 h <= 72",
+     "original": {
+      "arm": "sigreg_jepa",
+      "detector": "sk",
+      "reason": "co-tenancy made the SK runs cost about 1.2x their smoke projections (mae 9001 booked 11.21 h vs 9.66 h); booked 14.94 h + still owed 47.26 h > 60: the lowest-priority SK main run (fixed-label collapse reference, second seed) is dropped; core comparison first (DECISIONS 2026-11-12)",
+      "seed": 9001,
+      "stop": "S1",
+      "utc": "2026-11-13T01:15:33Z"
+     },
+     "utc": "2026-11-13T10:46:04Z"
     },
     {
-     "arm": "sigreg_jepa",
-     "detector": "sk",
-     "reason": "co-tenancy made the SK runs cost about 1.2x their smoke projections (mae 9001 booked 11.21 h vs 9.66 h); booked 14.94 h + still owed 47.26 h > 60: the lowest-priority SK main run (fixed-label collapse reference, second seed) is dropped; core comparison first (DECISIONS 2026-11-12)",
-     "seed": 9001,
-     "stop": "S1",
-     "utc": "2026-11-13T01:15:33Z"
+     "authority": "docs/round2/RUNBOOK_2026-11-13_R2_CAPS.md (sha256 d715eee6...), author 13 Nov 2026 11:38: 'raise cap for both, 72 and 160'; + mae_mse_rf 6.40 h = 70.78 h <= 72",
+     "original": {
+      "arm": "mae_mse_rf",
+      "detector": "sk",
+      "reason": "after the six SK main runs and the SK evaluation the cap cannot hold mae_mse_rf: 0.09 + 55.40 + 1.67 + 6.40 = 63.56 h > 60 (rf ranks below every main run, sections 5.1/8)",
+      "seed": 9000,
+      "stop": "S1",
+      "utc": "2026-11-12T12:43:28Z"
+     },
+     "utc": "2026-11-13T10:46:04Z"
     }
    ],
    "stopped": {
@@ -275,7 +333,16 @@
   },
   "R2_titan_deepthought": {
    "addendum_sha256": "f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229",
-   "cap_h": 100.0,
+   "cap_h": 160.0,
+   "cap_history": [
+    {
+     "cap": 100.0
+    },
+    {
+     "authority": "docs/round2/RUNBOOK_2026-11-13_R2_CAPS.md (sha256 d715eee6...), author 13 Nov 2026 11:38: 'raise cap for both, 72 and 160'",
+     "cap": 160.0
+    }
+   ],
    "cpu_entries": [],
    "entries": [
     {
@@ -428,12 +495,12 @@
  },
  "totals": {
   "R2_l40s_deepthought2": {
-   "booked_gpu_h": 14.9355,
-   "cap_gpu_h": 60.0
+   "booked_gpu_h": 23.55,
+   "cap_gpu_h": 72.0
   },
   "R2_titan_deepthought": {
    "booked_gpu_h": 0.8056,
-   "cap_gpu_h": 100.0
+   "cap_gpu_h": 160.0
   }
  }
 }

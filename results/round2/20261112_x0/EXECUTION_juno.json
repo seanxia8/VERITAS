@@ -66,5 +66,12 @@
   "reason": "T-S1: JUNO projection exceeds the 100 Titan GPU-h cap after the addendum section 2 fallback: six main runs 626.4 h + evaluation 2.87 h (+ rf 41.2 h); fallback 1 (drop rf) 629.3 h; fallback 2 (seed 9000 only) 313.2 h + 2.87 h = 316.1 h > 99.2 h left (booked 0.81 h)",
   "feasibility": "results/round2/20261113_titan/feasibility.json",
   "action": "JUNO not trained or evaluated; data (juno_r2.h5, verified) kept. Titan GPU-h used: smokes and the Titan WCTE regression only. SK is unaffected (addendum section 4)."
+ },
+ "caps_addendum": {
+  "date": "2026-11-13",
+  "authority": "docs/round2/RUNBOOK_2026-11-13_R2_CAPS.md (sha256 d715eee6c417a54b4b36890210ee4f15da4b1d6b04e20c2329c75648c96a1d07); author 13 Nov 2026 11:38",
+  "titan_cap_h": 160.0,
+  "result": "T-S1 kept: the Titan addendum section 2 fallback at the new cap still does not hold JUNO. Three seed-9000 main runs (sigreg_jepa 134.3 h, target_posfree 137.6 h, mae_mse 41.3 h, measured 20-step smokes on a GTX TITAN X) + evaluation 2.87 h = 316.1 Titan GPU-h > 159.2 h left (booked 0.81 h). In parallel on three Titans this is about 138 h of wall time; the cap counts wall hours x GPUs. A cap of about 320 Titan GPU-h would hold the seed-9000 plan.",
+  "stopped": true
  }
 }
