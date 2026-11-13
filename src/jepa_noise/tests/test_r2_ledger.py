@@ -43,7 +43,8 @@ def test_ledger_books_and_s1_refuses(tmp_path):
     assert err.value.stop == "S1"
 
 
-def test_hk_fallback_recorded_once_and_cuts_runs(tmp_path):
+def test_hk_fallback_recorded_once_and_cuts_runs(tmp_path, monkeypatch):
+    monkeypatch.setitem(x.GPU_PROFILES["l40s"], "cap_h", 60.0)  # scenario at the original cap
     for det in ("sk", "juno", "hk"):
         for arm in x.TRAINED_ARMS:
             _smoke(tmp_path, det, arm, 1.0 if det != "hk" else 2.0)
@@ -208,3 +209,23 @@ def test_partly_trained_run_projects_only_its_remaining_steps(tmp_path):
     assert x.remaining_fraction(tmp_path, "sk", "mae_mse", 9000) == 0.25
     after = x.reserved_gpu_h(tmp_path, x.ledger_load(tmp_path))
     assert abs((full - after) - 0.75 * x.DESIGN_MAIN_RUN_H["sk"]) < 1e-9
+
+
+def test_resumed_run_charged_at_its_measured_step_time(tmp_path):
+    d = tmp_path / "runs" / x.run_name("sk", "mae_mse", 9000)
+    d.mkdir(parents=True)
+    (d / "run_record.json").write_text(json.dumps({"steps": 8000, "complete": False}))
+    (d / "train_log.jsonl").write_text("\n".join(json.dumps({"step": s, "elapsed_seconds": 4.0 * s})
+                                                  for s in (1, 4000, 8000)) + "\n")
+    assert abs(x.remaining_run_h(tmp_path, "sk", "mae_mse", 9000) - 2000 * 4.0 / 3600) < 1e-12
+    # a run not started is charged its full smoke (here design) projection
+    assert x.remaining_run_h(tmp_path, "sk", "mae_mse", 9001) == x.DESIGN_MAIN_RUN_H["sk"]
+
+
+def test_lift_run_stop(tmp_path):
+    x.mark_run_stopped(tmp_path, "sk", "sigreg_jepa", 9001, "S1", "cap 60")
+    assert ("sigreg_jepa", 9001) not in x.planned_runs(x.ledger_load(tmp_path), "sk")
+    x.lift_run_stop(tmp_path, "sk", "sigreg_jepa", 9001, "CAPS addendum")
+    l = x.ledger_load(tmp_path)
+    assert ("sigreg_jepa", 9001) in x.planned_runs(l, "sk")
+    assert l["run_stops_lifted"][0]["original"]["reason"] == "cap 60"

@@ -54,7 +54,9 @@ MICRO_BATCH_CHOICES = (8, 4, 2, 1)
 GPU_MEMORY_FRACTION_CAP = 0.45
 L40S_MEMORY_GIB = 44.4  # usable L40S memory reported by torch (46,068 MiB card)
 WALL_CAP_FACTOR = 1.5
-GPU_CAP_H = 60.0
+#: L40S cap: 60 h (author line 2), raised to 72 h by RUNBOOK_2026-11-13_R2_CAPS.md (author 13 Nov 11:38).
+CAPS_ADDENDUM_SHA256 = "d715eee6c417a54b4b36890210ee4f15da4b1d6b04e20c2329c75648c96a1d07"
+GPU_CAP_H = 72.0
 LEDGER_LINE = "R2_l40s_deepthought2"
 ROUND1_MAE_SEED_SPREAD_M = 0.015
 WCTE_ORDER = ("mae_mse", "target_posfree", "init", "sigreg_jepa")  # best -> worst (Q4)
@@ -366,7 +368,8 @@ GPU_PROFILES = {
     "l40s": {"line": LEDGER_LINE, "cap_h": GPU_CAP_H, "file": "RESOURCE_LEDGER_R2.json",
              "detectors": DETECTOR_ORDER, "mem_limit_gib": GPU_MEMORY_FRACTION_CAP * L40S_MEMORY_GIB,
              "gpu": "NVIDIA L40S (deepthought2)"},
-    "titan": {"line": "R2_titan_deepthought", "cap_h": 100.0, "file": "RESOURCE_LEDGER_R2_TITAN.json",
+    # Titan cap 100 h, raised to 160 h by the CAPS addendum
+    "titan": {"line": "R2_titan_deepthought", "cap_h": 160.0, "file": "RESOURCE_LEDGER_R2_TITAN.json",
               "detectors": ("juno",), "mem_limit_gib": 11.0,
               "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)"},
 }
@@ -480,6 +483,20 @@ def remaining_fraction(root, detector: str, arm: str, seed: int) -> float:
     return max(0.0, (STEPS - step) / STEPS)
 
 
+def remaining_run_h(root, detector: str, arm: str, seed: int) -> float:
+    """GPU hours a planned run still needs: its remaining steps at the measured step time
+    (CAPS addendum §1.3). The step time is the run's own measured mean (train log, all
+    invocations) once it has started, else its smoke step time."""
+    frac = remaining_fraction(root, detector, arm, seed)
+    log = Path(root) / "runs" / run_name(detector, arm, seed) / "train_log.jsonl"
+    if frac < 1.0 and log.is_file():
+        rows = [json.loads(l) for l in log.read_text().splitlines() if l.strip()]
+        if rows and int(rows[-1]["step"]) > 0:
+            rate = float(rows[-1]["elapsed_seconds"]) / int(rows[-1]["step"])
+            return frac * STEPS * rate / 3600.0
+    return run_projection_h(root, detector, arm) * frac
+
+
 def run_projection_h(root, detector: str, arm: str) -> float:
     s = smoke_projection_h(root, detector, arm)
     if s is not None:
@@ -504,6 +521,25 @@ def mark_run_stopped(root, detector: str, arm: str, seed: int, stop: str, reason
 def run_stopped(ledger, detector: str, arm: str, seed: int):
     return next((r for r in ledger.get("run_stops") or [] if r["detector"] == detector
                  and r["arm"] == arm and int(r["seed"]) == int(seed)), None)
+
+
+def lift_run_stop(root, detector: str, arm: str, seed: int, authority: str) -> dict:
+    """Lift a run-level stop (e.g. after a cap raise): the original record moves to
+    ``run_stops_lifted`` with the authority, so the run is planned again."""
+    def fn(l):
+        keep, lifted = [], None
+        for r in l.get("run_stops") or []:
+            if r["detector"] == detector and r["arm"] == arm and int(r["seed"]) == int(seed):
+                lifted = r
+            else:
+                keep.append(r)
+        if lifted is None:
+            raise ValueError(f"{detector}/{arm}/{seed} has no run-level stop")
+        l["run_stops"] = keep
+        l.setdefault("run_stops_lifted", []).append(
+            {"original": lifted, "authority": authority,
+             "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    return _ledger_update(root, fn)
 
 
 def resume_stopped(root, detector: str, authority: str) -> dict:
@@ -555,7 +591,7 @@ def reserved_gpu_h(root, ledger, *, exclude=None, hk_minimal: bool = False) -> f
         for arm, seed in runs:
             if exclude == (det, arm, seed) or run_complete(ledger, det, arm, seed):
                 continue
-            total += run_projection_h(root, det, arm) * remaining_fraction(root, det, arm, seed)
+            total += remaining_run_h(root, det, arm, seed)
         if not is_stopped(ledger, det):
             total += max(0.0, eval_total_h(root, det) - eval_booked_h(ledger, det))
     return total
@@ -586,7 +622,7 @@ def hk_fallback_decision(root) -> dict:
                 other += run_projection_h(root, det, arm)
         if not is_stopped(ledger, det):
             other += max(0.0, DESIGN_EVAL_H - eval_booked_h(ledger, det))
-    remaining = GPU_CAP_H - booked_gpu_h(ledger) - other
+    remaining = cap_h() - booked_gpu_h(ledger) - other
     decision = hk_fallback(remaining, main_h, rf_h, DESIGN_EVAL_H)
     decision.update({"remaining_h": remaining, "hk_main_run_h": main_h, "hk_rf_run_h": rf_h,
                      "projection_inputs": {"sk_juno_scaled_by_n_pmt": scaled,
@@ -758,7 +794,7 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
                     ledger_load(out_root), "hk"):
                 raise ValueError(f"HK fallback step {fb['step']} excludes {arm} seed {seed}")
         budget = gpu_precheck(out_root, detector, arm, seed,
-                              proj["projected_h"] * remaining_fraction(out_root, detector, arm, seed))
+                              remaining_run_h(out_root, detector, arm, seed))
         prior_h = sum(float(e.get("gpu_h", 0.0)) for e in ledger_load(out_root)["entries"]
                       if e.get("kind") == "train" and e["detector"] == detector
                       and e["arm"] == arm and int(e["seed"]) == int(seed))

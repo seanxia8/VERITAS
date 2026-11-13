@@ -6,7 +6,7 @@ from jepa_noise import ext_r2 as x
 
 def test_default_profile_unchanged(tmp_path, monkeypatch):
     monkeypatch.delenv("R2_GPU_PROFILE", raising=False)
-    assert x.gpu_profile_name() == "l40s" and x.cap_h() == 60.0
+    assert x.gpu_profile_name() == "l40s" and x.cap_h() == 72.0
     assert x.ledger_path(tmp_path).name == "RESOURCE_LEDGER_R2.json"
     assert x.choose_micro_batch([{"micro_batch": 8, "peak_memory_gib": 19.9}]) == 8
     with pytest.raises(RuntimeError):
@@ -15,7 +15,7 @@ def test_default_profile_unchanged(tmp_path, monkeypatch):
 
 def test_titan_profile(tmp_path, monkeypatch):
     monkeypatch.setenv("R2_GPU_PROFILE", "titan")
-    assert x.cap_h() == 100.0
+    assert x.cap_h() == 160.0
     assert x.ledger_path(tmp_path).name == "RESOURCE_LEDGER_R2_TITAN.json"
     led = x.ledger_load(tmp_path)
     assert led["line"] == "R2_titan_deepthought"
@@ -32,7 +32,7 @@ def test_titan_profile(tmp_path, monkeypatch):
     assert x.choose_micro_batch([{"micro_batch": 4, "peak_memory_gib": 10.9},
                                  {"micro_batch": 8, "peak_memory_gib": 11.1}]) == 4
     with pytest.raises(x.StopError) as err:
-        x.gpu_precheck(tmp_path, "juno", "mae_mse", 9000, 101.0)
+        x.gpu_precheck(tmp_path, "juno", "mae_mse", 9000, 161.0)
     assert err.value.stop == "T-S1"
 
 
