@@ -248,6 +248,96 @@
      "seed": 9003,
      "utc": "2026-11-13T10:42:41Z",
      "wall_s": 262.4917960166931
+    },
+    {
+     "arm": "init",
+     "detector": "sk",
+     "gpu_h": 0.06365088754230075,
+     "kind": "eval",
+     "seed": 9004,
+     "utc": "2026-11-13T11:29:15Z",
+     "wall_s": 229.14319515228271
+    },
+    {
+     "arm": "mae_mse",
+     "detector": "sk",
+     "gpu_h": 0.06251106288697984,
+     "kind": "eval",
+     "seed": 9001,
+     "utc": "2026-11-13T11:35:20Z",
+     "wall_s": 225.03982639312744
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "detector": "sk",
+     "gpu_h": 0.6236143267154693,
+     "kind": "train",
+     "micro_batch": 4,
+     "precheck": {
+      "booked_h": 23.676113113893404,
+      "cap_h": 72.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 11.423992603290067,
+      "reserved_h": 35.67719233907787,
+      "total_h": 70.77729805626134
+     },
+     "seed": 9000,
+     "steps": 2858,
+     "utc": "2026-11-13T12:15:23Z",
+     "wall_cap_hit": false,
+     "wall_s": 2245.0115761756897
+    },
+    {
+     "arm": "mae_mse",
+     "complete": true,
+     "detector": "sk",
+     "gpu_h": 0.856934540801578,
+     "kind": "train",
+     "micro_batch": 8,
+     "precheck": {
+      "booked_h": 23.676113113893404,
+      "cap_h": 72.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 1.0680654654654653,
+      "reserved_h": 45.880896909147516,
+      "total_h": 70.62507548850638
+     },
+     "seed": 9000,
+     "steps": 10000,
+     "utc": "2026-11-13T12:31:36Z",
+     "wall_cap_hit": false,
+     "wall_s": 3084.964346885681
+    },
+    {
+     "arm": "mae_mse",
+     "detector": "sk",
+     "gpu_h": 0.08599516808986664,
+     "kind": "eval",
+     "seed": 9000,
+     "utc": "2026-11-13T14:05:26Z",
+     "wall_s": 309.5826051235199
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "detector": "sk",
+     "gpu_h": 3.6920457464456558,
+     "kind": "train",
+     "micro_batch": 4,
+     "precheck": {
+      "booked_h": 25.15666198141045,
+      "cap_h": 72.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 9.11831494834688,
+      "reserved_h": 35.75540999889899,
+      "total_h": 70.03038692865633
+     },
+     "seed": 9001,
+     "steps": 3242,
+     "utc": "2026-11-13T16:55:20Z",
+     "wall_cap_hit": false,
+     "wall_s": 13291.364687204361
     }
    ],
    "hk_fallback": {
@@ -287,7 +377,16 @@
      "utc": "2026-11-12T09:18:24Z"
     }
    },
-   "run_stops": [],
+   "run_stops": [
+    {
+     "arm": "mae_mse_rf",
+     "detector": "sk",
+     "reason": "re-check at cap 72 (CAPS addendum fixed order): with resumed runs charged at their measured (co-tenancy) step times, booked 28.93 h + still owed 43.37 h = 72.30 h > 72; mae_mse_rf (6.40 h) ranks below the main runs and evaluation; re-checked when the main runs finish",
+     "seed": 9000,
+     "stop": "S1",
+     "utc": "2026-11-13T18:39:38Z"
+    }
+   ],
    "run_stops_lifted": [
     {
      "authority": "docs/round2/RUNBOOK_2026-11-13_R2_CAPS.md (sha256 d715eee6...), author 13 Nov 2026 11:38: 'raise cap for both, 72 and 160'; SK main runs + evaluation now project 64.38 h <= 72",
@@ -495,7 +594,7 @@
  },
  "totals": {
   "R2_l40s_deepthought2": {
-   "booked_gpu_h": 23.55,
+   "booked_gpu_h": 28.9347,
    "cap_gpu_h": 72.0
   },
   "R2_titan_deepthought": {
