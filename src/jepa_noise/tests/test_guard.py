@@ -432,6 +432,11 @@ def test_deepthought2_share_card_memory_plus_our_peak_must_fit_90_percent(monkey
     d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2),
                        {"kind": "training", "peak_memory_mib": 10 * total})
     assert_hold(d, "card memory in use")
+    # a zero candidate peak is ignored (cap used), never loosening the rule
+    monkeypatch.delenv("JEPA_PEAK_MEMORY_MIB")
+    d = guard.evaluate(reading(DT2, gpus=gpus), guard.get_profile(DT2),
+                       {"kind": "training", "peak_memory_mib": 0})
+    assert_hold(d, "card memory in use")
 
 
 def test_deepthought2_busy_shared_card_no_longer_blocks_start():

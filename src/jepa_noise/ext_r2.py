@@ -752,7 +752,8 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     """One round-2 training run with the round-1 optimiser, loop and checkpoints.
 
     A main run needs its detector/arm smoke (projection, micro-batch), passes the §8/§9
-    budget checks (S1, HK fallback, seed-9002 plan), runs under the 1.5 x projection wall cap
+    budget checks (S1, HK fallback, seed-9002 plan), runs under the wall cap (1.5 x the smoke
+    projection; 2.5 x for SK, co-tenancy addendum)
     and books its GPU hours in the ledger.
     """
     import hashlib

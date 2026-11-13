@@ -422,6 +422,8 @@ def _normalize_candidate(candidate: Mapping[str, Any] | None) -> dict[str, Any]:
     kind = kind.strip().lower()
     planned = _to_float(candidate.get("planned_minutes"))
     peak = _to_float(candidate.get("peak_memory_mib"))
+    if peak is not None and peak <= 0:
+        peak = None  # a non-positive peak would loosen the share rule; use the cap instead
     return {"kind": kind, "planned_minutes": planned, "peak_memory_mib": peak}
 
 
