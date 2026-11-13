@@ -199,7 +199,8 @@ def summary_markdown(bundles: dict, wcte_time: dict | None, seed9002: dict, gate
             L.append("- Seed 9002: no trigger.")
         L.append("")
     L += ["## Particle tasks (seed 9000)", "",
-          "| Detector | Arm | μ/e AUC | direction median angle | deposited-energy R² |", "|---|---|---|---|---|"]
+          "| Detector | Arm | μ/e AUC | e direction (deg) | μ direction (deg) | e energy R² | μ energy R² |",
+          "|---|---|---|---|---|---|---|"]
     for det, b in bundles.items():
         two = b["readings"]["two_seed"]
         if two.get("status") != "evaluated":
@@ -212,8 +213,10 @@ def summary_markdown(bundles: dict, wcte_time: dict | None, seed9002: dict, gate
             keys = list(p)
             pick = lambda *subs: next((p[k] for k in keys if all(s in k for s in subs)
                                        and isinstance(p[k], (int, float))), None)
-            L.append(f"| {det.upper()} | {ARM_LABEL[a]} | {_fmt(pick('auc'))} | "
-                     f"{_fmt(pick('angle'))} | {_fmt(pick('energy'))} |")
+            L.append(f"| {det.upper()} | {ARM_LABEL[a]} | {_fmt(p.get('mue_auc'))} | "
+                     f"{_fmt(p.get('electron_direction_mlp_median_deg'))} | "
+                     f"{_fmt(p.get('muon_direction_mlp_median_deg'))} | {_fmt(p.get('electron_energy_r2'))} | "
+                     f"{_fmt(p.get('muon_energy_r2'))} |")
     L += ["", "## Time-scale diagnostics (§6, logged, no threshold)", ""]
     wls = None
     try:
