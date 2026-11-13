@@ -198,3 +198,13 @@ def test_partial_readings_with_run_stop(tmp_path):
     assert r["R2-b"]["class"] in ("recovered", "not recovered", "unclear")
     assert r["R2-c"]["class"] in ("yes", "no", "unclear")
     assert r["R2-d"]["order"][0] == "mae_mse"
+
+
+def test_partly_trained_run_projects_only_its_remaining_steps(tmp_path):
+    full = x.reserved_gpu_h(tmp_path, x.ledger_load(tmp_path))
+    d = tmp_path / "runs" / x.run_name("sk", "mae_mse", 9000)
+    d.mkdir(parents=True)
+    (d / "run_record.json").write_text(json.dumps({"steps": 7500, "complete": False}))
+    assert x.remaining_fraction(tmp_path, "sk", "mae_mse", 9000) == 0.25
+    after = x.reserved_gpu_h(tmp_path, x.ledger_load(tmp_path))
+    assert abs((full - after) - 0.75 * x.DESIGN_MAIN_RUN_H["sk"]) < 1e-9

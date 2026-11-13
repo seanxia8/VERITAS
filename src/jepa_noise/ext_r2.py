@@ -471,6 +471,15 @@ def smoke_projection_h(root, detector: str, arm: str, card_gib: float | None = N
             "peak_memory_gib": rec["peak_memory_gib"]}
 
 
+def remaining_fraction(root, detector: str, arm: str, seed: int) -> float:
+    """Share of the 10,000 steps a run still needs (its last run record's step; 1 if none)."""
+    p = Path(root) / "runs" / run_name(detector, arm, seed) / "run_record.json"
+    if not p.is_file():
+        return 1.0
+    step = int(json.loads(p.read_text()).get("steps", 0))
+    return max(0.0, (STEPS - step) / STEPS)
+
+
 def run_projection_h(root, detector: str, arm: str) -> float:
     s = smoke_projection_h(root, detector, arm)
     if s is not None:
@@ -546,7 +555,7 @@ def reserved_gpu_h(root, ledger, *, exclude=None, hk_minimal: bool = False) -> f
         for arm, seed in runs:
             if exclude == (det, arm, seed) or run_complete(ledger, det, arm, seed):
                 continue
-            total += run_projection_h(root, det, arm)
+            total += run_projection_h(root, det, arm) * remaining_fraction(root, det, arm, seed)
         if not is_stopped(ledger, det):
             total += max(0.0, eval_total_h(root, det) - eval_booked_h(ledger, det))
     return total
@@ -748,7 +757,8 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
             if int(seed) != CONDITIONAL_SEED and (arm, int(seed)) not in planned_runs(
                     ledger_load(out_root), "hk"):
                 raise ValueError(f"HK fallback step {fb['step']} excludes {arm} seed {seed}")
-        budget = gpu_precheck(out_root, detector, arm, seed, proj["projected_h"])
+        budget = gpu_precheck(out_root, detector, arm, seed,
+                              proj["projected_h"] * remaining_fraction(out_root, detector, arm, seed))
         prior_h = sum(float(e.get("gpu_h", 0.0)) for e in ledger_load(out_root)["entries"]
                       if e.get("kind") == "train" and e["detector"] == detector
                       and e["arm"] == arm and int(e["seed"]) == int(seed))
