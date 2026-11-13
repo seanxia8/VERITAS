@@ -73,5 +73,9 @@
   "titan_cap_h": 160.0,
   "result": "T-S1 kept: the Titan addendum section 2 fallback at the new cap still does not hold JUNO. Three seed-9000 main runs (sigreg_jepa 134.3 h, target_posfree 137.6 h, mae_mse 41.3 h, measured 20-step smokes on a GTX TITAN X) + evaluation 2.87 h = 316.1 Titan GPU-h > 159.2 h left (booked 0.81 h). In parallel on three Titans this is about 138 h of wall time; the cap counts wall hours x GPUs. A cap of about 320 Titan GPU-h would hold the seed-9000 plan.",
   "stopped": true
+ },
+ "batch_addendum": {
+  "date": "2026-11-14",
+  "result": "B-S2 NO-GO (results/round2/20261114_batch/feasibility.json); the detector keeps its stop"
  }
 }

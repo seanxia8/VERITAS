@@ -40,5 +40,9 @@
   "record": "results/round2/20261112_x0/hk_gatev.json",
   "note": "Gate V informational (addendum d237ec2b); HK stays stopped by S1."
  },
- "ceiling": "skipped: a second HK transport exceeds the addendum's 3 wall-h ceiling allowance"
+ "ceiling": "skipped: a second HK transport exceeds the addendum's 3 wall-h ceiling allowance",
+ "batch_addendum": {
+  "date": "2026-11-14",
+  "result": "B-S2 NO-GO (results/round2/20261114_batch/feasibility.json); the detector keeps its stop"
+ }
 }

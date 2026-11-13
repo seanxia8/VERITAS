@@ -128,3 +128,12 @@ Addendum §0, verbatim: **Author, 13 Nov 2026, 23:17:** "你的建议A+B都采�
 - 2026-11-13 r2-run (B, wall cap): SK per-run wall cap 1.5× → 2.5× the smoke projection, all invocations counted (`wall_cap_factor`); the watchdog uses 2.5×, so runs it paused under the old cap are eligible again.
 - 2026-11-13 r2-run (B): fresh-context review of the guard diff (base 238976e, head 82972e9): **PASS**, non-blocking notes — (1) unattributed-memory HOLD still applies (kept, protective); (2) the lane must supply a peak as nvidia-smi sees it → peaks in `sk_priority.list` = smoke `max_memory_allocated` + 1.5 GiB CUDA context/cache (JEPA 15,821 MiB, MAE-RF 11,469 MiB); (3) non-positive candidate peak now ignored (d5ff4df, test); (4) docstring fixed; (5) watchdog 2.5× and this record done outside the delta. The deepthought2 guard daemon (PID 976691, round-1 clone `jepa_work_20261107`) was replaced by the same script from the round-2 clone at d5ff4df (PID 1857090, `--host deepthought2 --interval 120`, default jobs dir). The other guard processes (Deepthought `jepa_a10` jobs dir) are untouched.
 - SK runs launched after 2026-11-13 23:20 may train on GPUs shared with other users (reported).
+
+## Addendum 2026-11-13 23:40: HTCondor batch GPUs (`RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md`, sha256 `878f5969dcec981499d7d804727a5e86927665646a3cebb381d7db97b762bfc7`, committed unchanged at 140f02f)
+
+Addendum §0, verbatim: **Author, 13 Nov 2026, 23:35:**
+> 1. accounting group是cms, 你让他先用 `condor_userprio` 和小作业去试
+> 2. 200小时
+> 3. 也搬过去
+
+- 2026-11-14 r2-run (batch feasibility): access passes (condor tools on Deepthought; `condor_userprio` shows `cms`, `cms.higgs`, `cms.jet`, `cms.production`; NEMO2 L40S slots listed). The tiny GPU job (cluster 759618, `accounting_group = cms`, docker `mschnepf/slc7-condocker`, NEMO2 L40S requirement, 900 s) found no match in 30 min (the NEMO2 L40S slots advertise `Requirements = false`) and was removed. Staging: `/ceph/srv/dwong` does not exist → **NO-GO, B-S2** (addendum §2.3: the author has to ask the ETP admins). No area created, nothing staged, no batch GPU hours booked. Round 2 continues as it is: SK on deepthought2; JUNO T-S1; HK S1. Record: `results/round2/20261114_batch/feasibility.json`.

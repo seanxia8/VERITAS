@@ -1,0 +1,37 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "addendum": "docs/round2/RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md",
+ "addendum_sha256": "878f5969dcec981499d7d804727a5e86927665646a3cebb381d7db97b762bfc7",
+ "date": "2026-11-14",
+ "verdict": "NO-GO",
+ "stop": {
+  "id": "B-S2",
+  "reason": "staging area /ceph/srv/dwong does not exist (addendum section 2.3: if it is missing, NO-GO; the author has to ask the ETP admins)"
+ },
+ "steps": {
+  "1_access": {
+   "result": "pass",
+   "detail": "condor_status, condor_q and condor_userprio work from deepthought.etp.kit.edu; condor_userprio lists the groups cms, cms.higgs, cms.jet, cms.production, belle; condor_status lists NEMO2 slots with GPUs_DeviceName 'NVIDIA L40S' (45540 MB, Rocky 9, driver 615.71.10)"
+  },
+  "2_tiny_gpu_job": {
+   "result": "not run (no match)",
+   "detail": "cluster 759618 (docker universe, mschnepf/slc7-condocker, accounting_group = cms, request_GPUs = 1, +RemoteJob = True, +RequestWalltime = 900, requirement CloudSite == BwForCluster-Nemo2 && GPUs_DeviceName == NVIDIA L40S) stayed idle 30 min: 'No machines matched the job's constraints'; the NEMO2 L40S partitionable slots advertise Requirements = false at that time. Removed after the staging NO-GO.",
+   "accounting_group_tried": "cms"
+  },
+  "3_staging": {
+   "result": "fail",
+   "detail": "/ceph/srv is mounted on Deepthought (42 user areas) but /ceph/srv/dwong does not exist; no area was created (admin-managed)."
+  },
+  "4_wcte_regression": {
+   "result": "not run"
+  },
+  "5_smokes": {
+   "result": "not run"
+  },
+  "6_projection": {
+   "result": "not run"
+  }
+ },
+ "consequence": "Round 2 continues as it is: SK on the deepthought2 L40S; JUNO keeps T-S1; HK keeps S1. No batch GPU hours booked (the tiny job never started).",
+ "to_unblock": "the ETP admins create /ceph/srv/dwong (xrootd root://ceph-node-j.etp.kit.edu); NEMO2 L40S slots must accept jobs"
+}
