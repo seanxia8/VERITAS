@@ -33,6 +33,10 @@ def main():
     cut = argv.index("--")
     a = ap.parse_args(argv[:cut])
     args = argv[cut + 1:]
+    sums = Path("/ceph/srv/dwong/r2/SHA256SUMS").read_text()
+    for f in [a.code] + a.files:
+        if f" {f}\n" not in sums + "\n":
+            raise SystemExit(f"{f} is not staged (not in /ceph/srv/dwong/r2/SHA256SUMS)")
     if a.walltime_h > 24:
         raise SystemExit("walltime above 24 h: chain resumed jobs instead (addendum §3)")
     d = JOBS / a.run_id / time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
