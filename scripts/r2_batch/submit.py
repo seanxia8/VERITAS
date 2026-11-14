@@ -25,9 +25,14 @@ def main():
     ap.add_argument("--mem-mb", type=int, default=64000); ap.add_argument("--disk-kb", type=int, default=40_000_000)
     ap.add_argument("--files", nargs="*", default=[]); ap.add_argument("--code", required=True)
     ap.add_argument("--resume-run", default=None); ap.add_argument("--smokes-for", default=None)
-    ap.add_argument("--extra-env", nargs="*", default=[]); ap.add_argument("args", nargs=argparse.REMAINDER)
-    a = ap.parse_args()
-    args = a.args[1:] if a.args and a.args[0] == "--" else a.args
+    ap.add_argument("--extra-env", nargs="*", default=[])
+    import sys
+    argv = sys.argv[1:]
+    if "--" not in argv:
+        raise SystemExit("separate the ext_r2 arguments with --")
+    cut = argv.index("--")
+    a = ap.parse_args(argv[:cut])
+    args = argv[cut + 1:]
     if a.walltime_h > 24:
         raise SystemExit("walltime above 24 h: chain resumed jobs instead (addendum §3)")
     d = JOBS / a.run_id / time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
