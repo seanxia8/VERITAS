@@ -53,8 +53,8 @@ def main():
                 if (src / name).exists():
                     t.add(src / name, arcname=f"returns/runs/{a.resume_run}/{name}")
     wall_s = int(a.walltime_h * 3600)
-    env = [f"R2_FILES={' '.join(a.files)}", f"R2_CODE={a.code}", f"R2_TIME_LIMIT_S={max(600, wall_s - 1200)}",
-           f"R2_EXTRA_ENV={' '.join(a.extra_env)}", "USE_USER=dwong"]
+    env = [f"R2_FILES='{' '.join(a.files)}'", f"R2_CODE='{a.code}'", f"R2_TIME_LIMIT_S={max(600, wall_s - 1200)}",
+           f"R2_EXTRA_ENV='{' '.join(a.extra_env)}'", "USE_USER=dwong"]
     universe = ("Universe = docker\ndocker_image = " + IMAGE) if a.gpu == "a100" else \
                ("Universe = container\ncontainer_image = docker://" + IMAGE)
     jdl = f"""Executable = job.sh
