@@ -2,7 +2,7 @@
  "extension": "r2_multidetector_2026-11-11",
  "registered": false,
  "detector": "hk",
- "stopped": true,
+ "stopped": false,
  "stop": {
   "id": "S1",
   "reason": "HK fallback step 3 (even three HK seed-9000 runs do not fit): remaining -3.56 h, HK main run 17.19 h (max SK smoke scaled by N_PMT 19,746/11,096), three runs + evaluation 53.24 h"
@@ -44,5 +44,11 @@
  "batch_addendum": {
   "date": "2026-11-14",
   "result": "B-S2 NO-GO (results/round2/20261114_batch/feasibility.json); the detector keeps its stop"
+ },
+ "batch_resume": {
+  "date": "2026-11-14",
+  "authority": "RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md \u00a71.2 (author 13 Nov 23:35) after the batch GO (results/round2/20261114_batch/feasibility.json)",
+  "original_stops_kept": "S1",
+  "where": "TOpAS A100-40GB (HTCondor batch, ledger R2_batch_gpu, cap 200 GPU-h)"
  }
 }

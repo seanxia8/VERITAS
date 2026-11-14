@@ -2,7 +2,7 @@
  "extension": "r2_multidetector_2026-11-11",
  "registered": false,
  "detector": "juno",
- "stopped": true,
+ "stopped": false,
  "stop": {
   "id": "S2",
   "reason": "Gate V fails for JUNO with the round-1 harness (cherenkov_validation.validate requires every holdout event to pass): event 4 (e500_014) module-pattern Pearson 0.845 < 0.85; holdout medians pass (yield ratio 1.077, module 0.888, log 0.761, time 0.78 ns); no refit of the yield per MeV"
@@ -77,5 +77,11 @@
  "batch_addendum": {
   "date": "2026-11-14",
   "result": "B-S2 NO-GO (results/round2/20261114_batch/feasibility.json); the detector keeps its stop"
+ },
+ "batch_resume": {
+  "date": "2026-11-14",
+  "authority": "RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md \u00a71.2 (author 13 Nov 23:35) after the batch GO (results/round2/20261114_batch/feasibility.json)",
+  "original_stops_kept": "T-S1 (Titan) / S1 (L40S)",
+  "where": "TOpAS A100-40GB (HTCondor batch, ledger R2_batch_gpu, cap 200 GPU-h)"
  }
 }

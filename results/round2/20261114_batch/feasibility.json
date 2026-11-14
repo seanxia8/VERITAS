@@ -1,37 +1,87 @@
 {
  "extension": "r2_multidetector_2026-11-11",
- "addendum": "docs/round2/RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md",
- "addendum_sha256": "878f5969dcec981499d7d804727a5e86927665646a3cebb381d7db97b762bfc7",
+ "supersedes": "the B-S2 NO-GO of b751224 (kept in history; reversed by RUNBOOK_2026-11-14_R2_BATCH_REOPEN.md)",
+ "addenda": [
+  "RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md (878f5969)",
+  "RUNBOOK_2026-11-13_R2_STAGING_DWONG.md (93321be5)",
+  "RUNBOOK_2026-11-14_R2_BATCH_REOPEN.md (6b173d50)",
+  "RUNBOOK_2026-11-14_R2_A100_EQUAL.md (2997a3a1)"
+ ],
  "date": "2026-11-14",
- "verdict": "NO-GO",
- "stop": {
-  "id": "B-S2",
-  "reason": "staging area /ceph/srv/dwong does not exist (addendum section 2.3: if it is missing, NO-GO; the author has to ask the ETP admins)"
+ "verdict": "GO on TOpAS A100-40GB",
+ "access": "condor tools on Deepthought; accounting_group = cms accepted (jobs ran)",
+ "no_match_diagnosis": {
+  "job_759618_requirements": "CloudSite==Nemo2 && GPUs_DeviceName==L40S && Arch && TARGET.HasDocker && Disk/Memory/GPUs && (FileSystemDomain||HasFileTransfer)",
+  "cause": "the docker universe adds TARGET.HasDocker; NEMO2 slots advertise HasDockerURL/HasContainer/HasSingularity but not HasDocker; several NEMO2 GPU slots Drained/Start=false",
+  "nemo2_container_universe": "matches NEMO2 L40S (needs RequestDisk >= ~20 GB for the image); torch runs on the L40S"
  },
- "steps": {
-  "1_access": {
-   "result": "pass",
-   "detail": "condor_status, condor_q and condor_userprio work from deepthought.etp.kit.edu; condor_userprio lists the groups cms, cms.higgs, cms.jet, cms.production, belle; condor_status lists NEMO2 slots with GPUs_DeviceName 'NVIDIA L40S' (45540 MB, Rocky 9, driver 615.71.10)"
-  },
-  "2_tiny_gpu_job": {
-   "result": "not run (no match)",
-   "detail": "cluster 759618 (docker universe, mschnepf/slc7-condocker, accounting_group = cms, request_GPUs = 1, +RemoteJob = True, +RequestWalltime = 900, requirement CloudSite == BwForCluster-Nemo2 && GPUs_DeviceName == NVIDIA L40S) stayed idle 30 min: 'No machines matched the job's constraints'; the NEMO2 L40S partitionable slots advertise Requirements = false at that time. Removed after the staging NO-GO.",
-   "accounting_group_tried": "cms"
-  },
-  "3_staging": {
-   "result": "fail",
-   "detail": "/ceph/srv is mounted on Deepthought (42 user areas) but /ceph/srv/dwong does not exist; no area was created (admin-managed)."
-  },
-  "4_wcte_regression": {
-   "result": "not run"
-  },
-  "5_smokes": {
-   "result": "not run"
-  },
-  "6_projection": {
-   "result": "not run"
-  }
+ "staging": {
+  "area": "/ceph/srv/dwong/r2/ (created by the author 13 Nov 23:55; r2/ by us); 9.6 GB staged with SHA256SUMS",
+  "deepthought_xrootd": "xrdcp hangs; TCP 1094 to ceph-node-j does not connect",
+  "nemo2_xrootd": "TCP connect to [::ffff:129.13.101.127]:1094 never completes (xrdcp -d 2 log); NEMO2 cannot stage -> not used",
+  "topas_xrootd_read": "works (LCG xrdcp in slc7 image; shipped xrootd 6.2.1 client with XRD_NETWORKSTACK=IPv4 in the PyTorch image; IPv6 gives '[3014] No servers are reachable via public IPv6 network')",
+  "topas_xrootd_write": "refused: '[3011] No servers have write access to the file (destination)' -> outputs/checkpoints by HTCondor transfer (checkpoint set ~9.5 MB < 100 MB)",
+  "topas_direct_ceph_srv": "not mounted inside the docker container even with ProvidesEtpCeph"
  },
- "consequence": "Round 2 continues as it is: SK on the deepthought2 L40S; JUNO keeps T-S1; HK keeps S1. No batch GPU hours booked (the tiny job never started).",
- "to_unblock": "the ETP admins create /ceph/srv/dwong (xrootd root://ceph-node-j.etp.kit.edu); NEMO2 L40S slots must accept jobs"
+ "tiny_jobs": {
+  "759626 (a, tutorial form)": "ran on TOpAS V100S (diagnostic only)",
+  "759629 (b', NEMO2 container)": "ran on NEMO2 L40S after disk fix",
+  "759630 (c, TOpAS A100)": "ran on A100",
+  "759631": "NEMO2 xrootd diagnostic"
+ },
+ "environment": {
+  "image": "pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime",
+  "python": "3.11.10",
+  "torch": "2.5.1+cu121",
+  "numpy": "1.26.4",
+  "scipy": "1.13.1",
+  "h5py": "3.11.0",
+  "others": "scikit-learn 1.5.1, threadpoolctl 3.5.0, joblib 1.4.2, jaxtyping 0.3.11, wadler-lindig 0.1.7, tqdm 4.66.5, dill 0.3.8, typing_extensions 4.15.0"
+ },
+ "wcte_regression_a100": "PASS: init9000 0.16007168 m (|d| 6.5e-9), mae_within_trigger9000 0.10491561 m (|d| 5.9e-9); cluster 759639",
+ "smokes_a100": {
+  "juno sigreg_jepa": "mb8 2.04 s/step 24.3 GiB 5.7 h",
+  "juno target_posfree": "mb8 1.99 s/step 24.3 GiB 5.5 h",
+  "juno mae_mse": "mb8 1.63 s/step 8.76 GiB 4.5 h",
+  "juno mae_mse_rf": "mb8 1.78 s/step 8.77 GiB 4.9 h",
+  "sk sigreg_jepa": "mb4 2.41 s/step 13.95 GiB 6.7 h"
+ },
+ "projection_200h": "SK runs moved to batch (posfree 9000 resume, sigreg 9001) ~12 h; JUNO six main runs 31.4 h + evaluation ~1.6 h; HK (after X0/generation, smokes) estimated ~100-110 h for six main runs on A100 (predictor scales ~ N_PMT^2); rf runs ~25 h; within 200 h, with the HK figure to be replaced by HK smokes",
+ "previous_record": {
+  "extension": "r2_multidetector_2026-11-11",
+  "addendum": "docs/round2/RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md",
+  "addendum_sha256": "878f5969dcec981499d7d804727a5e86927665646a3cebb381d7db97b762bfc7",
+  "date": "2026-11-14",
+  "verdict": "NO-GO",
+  "stop": {
+   "id": "B-S2",
+   "reason": "staging area /ceph/srv/dwong does not exist (addendum section 2.3: if it is missing, NO-GO; the author has to ask the ETP admins)"
+  },
+  "steps": {
+   "1_access": {
+    "result": "pass",
+    "detail": "condor_status, condor_q and condor_userprio work from deepthought.etp.kit.edu; condor_userprio lists the groups cms, cms.higgs, cms.jet, cms.production, belle; condor_status lists NEMO2 slots with GPUs_DeviceName 'NVIDIA L40S' (45540 MB, Rocky 9, driver 615.71.10)"
+   },
+   "2_tiny_gpu_job": {
+    "result": "not run (no match)",
+    "detail": "cluster 759618 (docker universe, mschnepf/slc7-condocker, accounting_group = cms, request_GPUs = 1, +RemoteJob = True, +RequestWalltime = 900, requirement CloudSite == BwForCluster-Nemo2 && GPUs_DeviceName == NVIDIA L40S) stayed idle 30 min: 'No machines matched the job's constraints'; the NEMO2 L40S partitionable slots advertise Requirements = false at that time. Removed after the staging NO-GO.",
+    "accounting_group_tried": "cms"
+   },
+   "3_staging": {
+    "result": "fail",
+    "detail": "/ceph/srv is mounted on Deepthought (42 user areas) but /ceph/srv/dwong does not exist; no area was created (admin-managed)."
+   },
+   "4_wcte_regression": {
+    "result": "not run"
+   },
+   "5_smokes": {
+    "result": "not run"
+   },
+   "6_projection": {
+    "result": "not run"
+   }
+  },
+  "consequence": "Round 2 continues as it is: SK on the deepthought2 L40S; JUNO keeps T-S1; HK keeps S1. No batch GPU hours booked (the tiny job never started).",
+  "to_unblock": "the ETP admins create /ceph/srv/dwong (xrootd root://ceph-node-j.etp.kit.edu); NEMO2 L40S slots must accept jobs"
+ }
 }

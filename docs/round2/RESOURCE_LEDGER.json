@@ -55,6 +55,136 @@
      "kind": "batch_overhead",
      "note": "failed setup attempts of the A100 WCTE regression (clusters 759633, 759634, 759635, 759636: 75+8+91+39 s)",
      "utc": "2026-11-14T03:14:02Z"
+    },
+    {
+     "arm": "mae_mse",
+     "batch_cluster": "759642",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_mae_mse_mb8/20261114T031323Z",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.009036855763859219,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-14T03:57:31Z",
+     "wall_cap_hit": false,
+     "wall_s": 32.53268074989319
+    },
+    {
+     "batch_cluster": "759642",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_mae_mse_mb8/20261114T031323Z",
+     "gpu": "a100",
+     "gpu_h": 0.02901869979169634,
+     "job_wall_s": 137.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_juno_mae_mse_mb8"
+    },
+    {
+     "arm": "mae_mse_rf",
+     "batch_cluster": "759643",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_mae_mse_rf_mb8/20261114T031323Z",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.009889979230033027,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-14T04:00:01Z",
+     "wall_cap_hit": false,
+     "wall_s": 35.6039252281189
+    },
+    {
+     "batch_cluster": "759643",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_mae_mse_rf_mb8/20261114T031323Z",
+     "gpu": "a100",
+     "gpu_h": 0.032054465214411416,
+     "job_wall_s": 151.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_juno_mae_mse_rf_mb8"
+    },
+    {
+     "arm": "sigreg_jepa",
+     "batch_cluster": "759640",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_sigreg_jepa_mb8/20261114T031322Z",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.011344482964939541,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-14T03:52:41Z",
+     "wall_cap_hit": false,
+     "wall_s": 40.84013867378235
+    },
+    {
+     "batch_cluster": "759640",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_sigreg_jepa_mb8/20261114T031322Z",
+     "gpu": "a100",
+     "gpu_h": 0.034211072590616017,
+     "job_wall_s": 164.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_juno_sigreg_jepa_mb8"
+    },
+    {
+     "arm": "target_posfree",
+     "batch_cluster": "759641",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_target_posfree_mb8/20261114T031322Z",
+     "complete": true,
+     "detector": "juno",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.011074647108713786,
+     "kind": "smoke",
+     "micro_batch": 8,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-14T03:55:14Z",
+     "wall_cap_hit": false,
+     "wall_s": 39.86872959136963
+    },
+    {
+     "batch_cluster": "759641",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_juno_target_posfree_mb8/20261114T031322Z",
+     "gpu": "a100",
+     "gpu_h": 0.031425352891286215,
+     "job_wall_s": 153.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_juno_target_posfree_mb8"
+    },
+    {
+     "arm": "sigreg_jepa",
+     "batch_cluster": "759644",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_sk_sigreg_jepa_mb4/20261114T031323Z",
+     "complete": true,
+     "detector": "sk",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.013405533565415276,
+     "kind": "smoke",
+     "micro_batch": 4,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-14T04:02:51Z",
+     "wall_cap_hit": false,
+     "wall_s": 48.259920835494995
+    },
+    {
+     "batch_cluster": "759644",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_sk_sigreg_jepa_mb4/20261114T031323Z",
+     "gpu": "a100",
+     "gpu_h": 0.03353891087902917,
+     "job_wall_s": 169.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_sk_sigreg_jepa_mb4"
     }
    ],
    "line": "R2_batch_gpu"
@@ -694,7 +824,7 @@
  },
  "totals": {
   "R2_batch_gpu": {
-   "booked_gpu_h": 0.2044,
+   "booked_gpu_h": 0.4194,
    "cap_gpu_h": 200.0
   },
   "R2_l40s_deepthought2": {

@@ -4,11 +4,11 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 
 ## Where we are
 
-- Runbook and addenda committed unchanged: Gate V informational (`d237ec2b…`), JUNO on Titans v2 (`0a8d76e9…`), caps (`d715eee6…`: L40S 72 h, Titan 160 h), SK order + co-tenancy (`2e9869ea…`).
-- SK (L40S, cap 72 h, wall cap 2.5×, shared GPUs allowed since 13 Nov 23:20): mae 9000 and 9001 complete and evaluated; `init` 9000–9004 evaluated; priority order sigreg 9000 → posfree 9000 (3,168) → posfree 9001 (3,548+) → sigreg 9001 → `mae_mse_rf` (S1 unless the cap holds it).
-- JUNO: data packed and verified; Titan feasibility done; T-S1 kept at 160 h (seed-9000 plan needs 316 Titan GPU-h).
-- HK: S1 (§8 fallback step 3), not generated; Gate V (informational) failed.
-- Gate V ceiling: WCTE, SK, JUNO done (review PASS); HK skipped (CPU allowance).
+- Runbook and addenda committed unchanged (Gate V, JUNO-Titan v2, caps, SK order/co-tenancy, HTCondor batch, staging dwong, batch reopen, A100 equal).
+- SK: mae 9000/9001 done and evaluated; `init` 9000–9004 evaluated; sigreg 9000 and posfree 9001 training on deepthought2 (shared L40S); posfree 9000 (resume from 3,168) and sigreg 9001 on TOpAS A100; `mae_mse_rf` S1 on the L40S line (re-checked under the batch priority).
+- JUNO: six main runs training on TOpAS A100 (batch, `R2_batch_gpu`); evaluation follows on A100.
+- HK: X0 (yield, trigger, benchmark) running on Deepthought; then generation, pack, A100 smokes and runs.
+- Batch: GO on TOpAS A100 (WCTE regression PASS); NEMO2 unusable (xrootd unreachable). Ledger lines: L40S 72 h, Titan 160 h (JUNO smokes only), batch 200 h.
 
 ## Paths
 
