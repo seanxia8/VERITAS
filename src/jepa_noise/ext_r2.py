@@ -75,7 +75,7 @@ BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED = 1000, 20261103
 
 DATA_ROOT = Path("/ceph/dwong/jepa/data/round2")
 GEN_ROOT = Path("/work/dwong/r2_gen")
-RETURNS_ROOT = Path(f"/ceph/dwong/jepa/returns/{EXTENSION}")
+RETURNS_ROOT = Path(os.environ.get("R2_RETURNS_ROOT", f"/ceph/dwong/jepa/returns/{EXTENSION}"))
 ROUND1_DATA_ROOT = Path("/ceph/dwong/jepa/data")
 ROUND1_CHECKPOINT_ROOTS = (Path("/ceph/dwong/jepa/returns"), Path("/work/dwong/jepa_a10"),
                            Path("/ceph/dwong/jepa/code"))

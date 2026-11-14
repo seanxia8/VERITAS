@@ -27,7 +27,7 @@ fetch lucid/lucid_config.tar lucid.tar; mkdir -p lucid && tar xf lucid.tar -C lu
 for f in $R2_FILES; do fetch "$f" "staged/$f"; done
 python3 -m pip install -q --no-index --find-links wheels --target pylib -r code/scripts/r2_batch/requirements_cp311.txt || { log "pip failed"; exit 5; }
 mkdir -p returns; [ -f returns_in.tar ] && tar xf returns_in.tar
-export PYTHONPATH=$W/code/src:$W/code:$W/pylib JEPA_LUCID_CONFIG=$W/lucid/config R2_GPU_PROFILE=batch
+export PYTHONPATH=$W/code/src:$W/code:$W/pylib JEPA_LUCID_CONFIG=$W/lucid/config R2_GPU_PROFILE=batch R2_RETURNS_ROOT=$W/returns
 export TMPDIR=$W OMP_NUM_THREADS=${RequestCPUs:-4} MKL_NUM_THREADS=${RequestCPUs:-4}
 export R2_BATCH_GPU="$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)"
 export R2_BATCH_MEM_LIMIT_GIB=$(python3 -c "import torch;print(round(0.9*torch.cuda.get_device_properties(0).total_memory/2**30,2))")
