@@ -14,6 +14,47 @@
      "note": "diagnostic only; V100 not used for runs",
      "utc": "2026-11-13T23:54:15Z",
      "wall_s": 247.0
+    },
+    {
+     "arm": "init",
+     "batch_cluster": "759639",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_a100_wcte_regression/20261114T023851Z",
+     "detector": "wcte",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.03246291511588627,
+     "kind": "eval",
+     "seed": 9000,
+     "utc": "2026-11-14T03:10:33Z",
+     "wall_s": 116.86649441719055
+    },
+    {
+     "arm": "mae_mse",
+     "batch_cluster": "759639",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_a100_wcte_regression/20261114T023851Z",
+     "detector": "wcte",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.029549301266670228,
+     "kind": "eval",
+     "seed": 9000,
+     "utc": "2026-11-14T03:12:20Z",
+     "wall_s": 106.37748456001282
+    },
+    {
+     "batch_cluster": "759639",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_a100_wcte_regression/20261114T023851Z",
+     "gpu": "a100",
+     "gpu_h": 0.014654450284110165,
+     "job_wall_s": 276.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_a100_wcte_regression"
+    },
+    {
+     "gpu": "a100",
+     "gpu_h": 0.059166666666666666,
+     "job_wall_s": 213,
+     "kind": "batch_overhead",
+     "note": "failed setup attempts of the A100 WCTE regression (clusters 759633, 759634, 759635, 759636: 75+8+91+39 s)",
+     "utc": "2026-11-14T03:14:02Z"
     }
    ],
    "line": "R2_batch_gpu"
@@ -653,7 +694,7 @@
  },
  "totals": {
   "R2_batch_gpu": {
-   "booked_gpu_h": 0.0686,
+   "booked_gpu_h": 0.2044,
    "cap_gpu_h": 200.0
   },
   "R2_l40s_deepthought2": {
