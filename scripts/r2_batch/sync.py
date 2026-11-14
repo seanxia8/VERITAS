@@ -37,6 +37,21 @@ def main(job_dir):
         new = [e for e in json.loads(jl.read_text())["entries"] if key(e) not in shipped]
     for e in new:
         e.setdefault("batch_cluster", sub.get("cluster")); e.setdefault("batch_job_dir", str(d))
+    # the batch line books the job's full GPU wall time (download, setup, run): add the overhead
+    import subprocess
+    wall = None
+    if sub.get("cluster"):
+        q = subprocess.run(["condor_history", str(sub["cluster"]), "-limit", "1", "-af", "RemoteWallClockTime"],
+                           capture_output=True, text=True).stdout.strip()
+        try:
+            wall = float(q.split()[0])
+        except (ValueError, IndexError):
+            wall = None
+    booked = sum(float(e.get("gpu_h", 0)) for e in new)
+    if wall is not None and wall / 3600.0 > booked:
+        new.append({"kind": "batch_overhead", "gpu_h": wall / 3600.0 - booked, "job_wall_s": wall,
+                    "batch_cluster": sub.get("cluster"), "batch_job_dir": str(d), "gpu": sub.get("gpu"),
+                    "run_id": sub.get("run_id")})
     LED.parent.mkdir(parents=True, exist_ok=True)
     with open(LED.with_suffix(".lock"), "w") as lk:
         fcntl.flock(lk, fcntl.LOCK_EX)
