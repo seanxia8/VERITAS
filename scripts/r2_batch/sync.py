@@ -53,11 +53,15 @@ def main(job_dir):
                     "batch_cluster": sub.get("cluster"), "batch_job_dir": str(d), "gpu": sub.get("gpu"),
                     "run_id": sub.get("run_id")})
     LED.parent.mkdir(parents=True, exist_ok=True)
+    B.mkdir(parents=True, exist_ok=True)
+    if (d / "LEDGER_MERGED").exists():
+        new = []  # merged by an earlier (interrupted) sync
     with open(LED.with_suffix(".lock"), "w") as lk:
         fcntl.flock(lk, fcntl.LOCK_EX)
         led = json.loads(LED.read_text()) if LED.exists() else {"line": "R2_batch_gpu", "cap_h": 200.0, "entries": [], "cpu_entries": []}
         led["entries"].extend(new)
         LED.write_text(json.dumps(led, indent=1, sort_keys=True) + "\n")
+    (d / "LEDGER_MERGED").write_text(str(len(new)))
     for sub_dir in ("runs", "smokes", "eval", "wcte_regression"):
         src = ret / sub_dir
         if src.exists():
