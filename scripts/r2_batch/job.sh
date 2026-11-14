@@ -9,18 +9,28 @@ set -u
 export USE_USER=dwong
 W=${_CONDOR_SCRATCH_DIR:-$PWD}; cd "$W"
 XR=root://ceph-node-j.etp.kit.edu://dwong/r2
-LCG=/cvmfs/sft.cern.ch/lcg/views/LCG_101cuda/x86_64-centos7-gcc8-opt/setup.sh
 log() { echo "$(date -u +%FT%TZ) job.sh: $*"; }
+# xrdcp: from PATH, or from an LCG view that loads in this image (centos7 or el9 build)
+LCG=""
+if ! command -v xrdcp >/dev/null; then
+  for v in /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-el9-gcc11-opt/setup.sh \
+           /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc11-opt/setup.sh \
+           /cvmfs/sft.cern.ch/lcg/views/LCG_101cuda/x86_64-centos7-gcc8-opt/setup.sh; do
+    if [ -f "$v" ] && ( source "$v" >/dev/null 2>&1; xrdcp --version >/dev/null 2>&1 ); then LCG="$v"; break; fi
+  done
+fi
+log "xrdcp source: ${LCG:-PATH} ($(ls -d /cvmfs/sft.cern.ch 2>&1 | head -1))"
+xr() { if [ -n "$LCG" ]; then ( source "$LCG" >/dev/null 2>&1; xrdcp -f "$@" ); else xrdcp -f "$@"; fi; }
 finish() { log "packing outputs"; tar cf returns_out.tar returns 2>/dev/null || true; }
 trap finish EXIT
 fetch() {  # fetch <staged relative path> <local path>
   mkdir -p "$(dirname "$2")"
-  ( source $LCG >/dev/null 2>&1; xrdcp -s -f "$XR/$1" "$2" ) || { log "xrdcp failed: $1"; exit 3; }
+  xr "$XR/$1" "$2" 2>&1 | tail -2 || true; [ -s "$2" ] || { log "xrdcp failed: $1"; exit 3; }
   want=$(awk -v f="$1" '$2==f {print $1}' SHA256SUMS); got=$(sha256sum "$2" | cut -d' ' -f1)
   [ -n "$want" ] && [ "$want" = "$got" ] || { log "sha256 mismatch for $1 ($got vs $want)"; exit 4; }
 }
 log "host $(hostname)"; nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
-( source $LCG >/dev/null 2>&1; xrdcp -s -f "$XR/SHA256SUMS" SHA256SUMS ) || { log "cannot fetch SHA256SUMS"; exit 3; }
+xr "$XR/SHA256SUMS" SHA256SUMS 2>&1 | tail -3; [ -s SHA256SUMS ] || { log "cannot fetch SHA256SUMS"; exit 3; }
 fetch "$R2_CODE" code.tar.gz; mkdir -p code && tar xzf code.tar.gz -C code
 fetch env/wheels_cp311.tar wheels.tar; tar xf wheels.tar
 fetch lucid/lucid_config.tar lucid.tar; mkdir -p lucid && tar xf lucid.tar -C lucid
