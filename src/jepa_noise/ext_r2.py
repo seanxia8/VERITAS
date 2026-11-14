@@ -60,6 +60,8 @@ WALL_CAP_FACTOR_BY_DETECTOR = {"sk": 2.5}
 
 
 def wall_cap_factor(detector: str) -> float:
+    if os.environ.get("R2_GPU_PROFILE") == "batch":
+        return 2.5  # HTCondor batch addendum §3: 2.5 x the batch smoke projection
     return float(WALL_CAP_FACTOR_BY_DETECTOR.get(detector, WALL_CAP_FACTOR))
 #: L40S cap: 60 h (author line 2), raised to 72 h by RUNBOOK_2026-11-13_R2_CAPS.md (author 13 Nov 11:38).
 CAPS_ADDENDUM_SHA256 = "d715eee6c417a54b4b36890210ee4f15da4b1d6b04e20c2329c75648c96a1d07"
@@ -381,6 +383,14 @@ GPU_PROFILES = {
               "gpu": "NVIDIA GeForce GTX TITAN X (Deepthought)"},
 }
 DETECTOR_PROFILE = {"sk": "l40s", "hk": "l40s", "juno": "titan"}
+#: HTCondor batch (RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md + RUNBOOK_2026-11-14_R2_BATCH_REOPEN.md):
+#: line R2_batch_gpu, cap 200 GPU-h over all batch hardware; a batch GPU is exclusive, so the
+#: micro-batch rule is peak <= 90 % of the card (R2_BATCH_MEM_LIMIT_GIB, set per GPU type by the
+#: job wrapper). The run priority and reservations of §3 are applied at submission on Deepthought;
+#: inside a job the precheck sees the batch ledger shipped with the job (booked hours only).
+GPU_PROFILES["batch"] = {"line": "R2_batch_gpu", "cap_h": 200.0, "file": "RESOURCE_LEDGER_R2_BATCH.json",
+                         "detectors": (), "mem_limit_gib": float(os.environ.get("R2_BATCH_MEM_LIMIT_GIB", "35.0")),
+                         "gpu": os.environ.get("R2_BATCH_GPU", "HTCondor batch GPU")}
 #: Titan evaluation reservation: the measured Titan WCTE-regression evaluation time per model,
 #: scaled by the token count (N_PMT_det / 1,995), x 12 models (7 trained + 5 init).
 WCTE_N_PMT = 1995
@@ -763,7 +773,7 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
     from . import r2_generator as gen
     from . import r2_store as rs
     budget = None
-    if DETECTOR_PROFILE.get(detector) != gpu_profile_name():
+    if gpu_profile_name() != "batch" and DETECTOR_PROFILE.get(detector) != gpu_profile_name():
         raise ValueError(f"{detector} trains under GPU profile {DETECTOR_PROFILE.get(detector)!r}, "
                          f"this process is {gpu_profile_name()!r} (set R2_GPU_PROFILE)")
     if is_stopped(ledger_load(out_root), detector):
@@ -885,7 +895,8 @@ def train_r2(*, detector: str, arm: str, seed: int, h5_path, out_root, steps: in
               "checkpoint": str(checkpoint), "registered": False, "complete": bool(complete),
               "wall_cap_hit": capped["hit"], "budget_precheck": budget,
               "gpu_model": (torch.cuda.get_device_name() if device.startswith("cuda") else None),
-              "gpu_profile": gpu_profile_name(), "ledger_line": gpu_profile()["line"]}
+              "gpu_profile": gpu_profile_name(), "ledger_line": gpu_profile()["line"],
+              "site": os.environ.get("R2_SITE", "deepthought2" if gpu_profile_name() == "l40s" else None)}
     (run_dir / "run_record.json").write_text(json.dumps(record, indent=1, sort_keys=True) + "\n")
     log(json.dumps({k: record[k] for k in ("detector", "arm", "seed", "steps", "wall_seconds",
                                            "peak_memory_gib")}))
@@ -1628,7 +1639,7 @@ def loss_share_diagnostics(root, detector: str) -> dict:
 ROUND1_LUCID_ROOT = Path("/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid")
 ROUND1_PROBE_KEYS = {"dev_probe_train": "dev_probe_train__F1__0.05__s20261017",
                      "dev_probe_test": "dev_probe_test__F1__0.05__s20261017"}
-ROUND1_RETURNS = Path("/ceph/dwong/jepa/returns")
+ROUND1_RETURNS = Path(os.environ.get("R2_ROUND1_RETURNS", "/ceph/dwong/jepa/returns"))
 #: label -> (round-2 arm, seed, round-1 checkpoint (relative to ROUND1_RETURNS), committed
 #: full-input vertex in m, source of the committed value).
 WCTE_REGRESSION = {
@@ -1646,14 +1657,26 @@ def wcte_pack(work_dir) -> dict:
     from . import r2_generator as gen
     from . import r2_store as rs
     work_dir = check_write_path(work_dir)
+    if os.environ.get("R2_WCTE_PACK_SHA256") and (work_dir / "wcte_probe_r2.h5").exists():
+        got = rs.sha256_file(work_dir / "wcte_probe_r2.h5")
+        if got != os.environ["R2_WCTE_PACK_SHA256"]:
+            raise ValueError(f"WCTE pack sha256 {got} != staged {os.environ['R2_WCTE_PACK_SHA256']}")
+        return {"h5": str(work_dir / "wcte_probe_r2.h5"), "sha256": got,
+                "verified": "sha256 of the pack verified on Deepthought"}
     shard_root = work_dir / "shards"
     shard_root.mkdir(parents=True, exist_ok=True)
     for cohort, key in ROUND1_PROBE_KEYS.items():
         link = shard_root / cohort
         if not link.exists():
             link.symlink_to(ROUND1_LUCID_ROOT / key / "runs")
-    cohorts = {c: gen.cohort_runs(c) for c in ROUND1_PROBE_KEYS}
     h5 = work_dir / "wcte_probe_r2.h5"
+    want = os.environ.get("R2_WCTE_PACK_SHA256")
+    if want and h5.exists():  # batch job: the pack was verified run by run on Deepthought
+        got = rs.sha256_file(h5)
+        if got != want:
+            raise ValueError(f"{h5}: sha256 {got} != staged {want}")
+        return {"h5": str(h5), "verified": "sha256 of the pack verified on Deepthought", "sha256": got}
+    cohorts = {c: gen.cohort_runs(c) for c in ROUND1_PROBE_KEYS}
     if not h5.exists():
         geometry = rg.load_r2_geometry("wcte")
         rs.pack_detector(h5, shard_root, cohorts,

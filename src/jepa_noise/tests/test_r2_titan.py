@@ -46,3 +46,16 @@ def test_profile_guard(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="GPU profile"):
         x.train_r2(detector="juno", arm="mae_mse", seed=9000, h5_path=tmp_path / "x.h5",
                    out_root=tmp_path, device="cpu", smoke=True, steps=x.SMOKE_STEPS)
+
+
+def test_batch_profile(tmp_path, monkeypatch):
+    monkeypatch.setenv("R2_GPU_PROFILE", "batch")
+    assert x.cap_h() == 200.0
+    assert x.ledger_path(tmp_path).name == "RESOURCE_LEDGER_R2_BATCH.json"
+    assert x.ledger_load(tmp_path)["line"] == "R2_batch_gpu"
+    assert x.wall_cap_factor("juno") == 2.5 and x.wall_cap_factor("sk") == 2.5
+    assert x.reserved_gpu_h(tmp_path, x.ledger_load(tmp_path)) == 0.0
+    with pytest.raises(x.StopError):
+        x.gpu_precheck(tmp_path, "juno", "mae_mse", 9000, 201.0)
+    monkeypatch.setenv("R2_GPU_PROFILE", "l40s")
+    assert x.wall_cap_factor("juno") == 1.5
