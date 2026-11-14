@@ -24,7 +24,7 @@ st, res = proc.run()
 if not st.ok or (res and not res[0]["status"].ok):
     sys.exit(f"copy: {st.message} {res[0]['status'].message if res else ''}")
 PY
-xr() { PYTHONPATH=$W/xrdpy timeout 900 python3 xrcp.py "$@"; }
+xr() { local d="$2"; [[ "$d" = /* ]] || d="$W/$d"; PYTHONPATH=$W/xrdpy timeout 900 python3 $W/xrcp.py "$1" "$d"; }
 log "xrootd client: $(PYTHONPATH=$W/xrdpy python3 -c 'import XRootD;print(XRootD.__file__)' 2>&1 | tail -1)"
 finish() { log "packing outputs"; tar cf returns_out.tar returns 2>/dev/null || true; }
 trap finish EXIT
