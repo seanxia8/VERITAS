@@ -26,6 +26,8 @@ def main():
     ap.add_argument("--files", nargs="*", default=[]); ap.add_argument("--code", required=True)
     ap.add_argument("--resume-run", default=None); ap.add_argument("--smokes-for", default=None)
     ap.add_argument("--extra-env", nargs="*", default=[])
+    ap.add_argument("--ship-glob", nargs="*", default=[],
+                    help="returns-root-relative globs shipped into the job's returns/ (e.g. eval/sk__*)")
     import sys
     argv = sys.argv[1:]
     if "--" not in argv:
@@ -51,6 +53,9 @@ def main():
         if a.smokes_for:
             for p in sorted((B / "smokes").glob(f"{a.smokes_for}__*/run_record.json")):
                 t.add(p, arcname=f"returns/smokes/{p.parent.name}/run_record.json")
+        for g in a.ship_glob:
+            for p in sorted(R.glob(g)):
+                t.add(p, arcname=f"returns/{p.relative_to(R).as_posix()}")
         if a.resume_run:
             src = B / "runs" / a.resume_run
             if not src.exists():
