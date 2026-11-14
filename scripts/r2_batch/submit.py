@@ -38,6 +38,8 @@ def main():
     d = JOBS / a.run_id / time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
     d.mkdir(parents=True)
     shutil.copy(REPO / "scripts/r2_batch/job.sh", d / "job.sh")
+    wheel = sorted(Path("/work/dwong/r2_batch/xw").glob("xrootd-*-cp311-*.whl"))[-1]
+    shutil.copy(wheel, d / wheel.name)
     with tarfile.open(d / "returns_in.tar", "w") as t:
         led = R / "ledger" / "RESOURCE_LEDGER_R2_BATCH.json"
         if led.exists():
@@ -62,7 +64,7 @@ Arguments = {' '.join(args)}
 Output = out.txt
 Error = err.txt
 Log = log.txt
-transfer_input_files = returns_in.tar
+transfer_input_files = returns_in.tar, {wheel.name}
 transfer_output_files = returns_out.tar
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT

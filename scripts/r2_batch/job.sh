@@ -10,17 +10,22 @@ export USE_USER=dwong
 W=${_CONDOR_SCRATCH_DIR:-$PWD}; cd "$W"
 XR=root://ceph-node-j.etp.kit.edu://dwong/r2
 log() { echo "$(date -u +%FT%TZ) job.sh: $*"; }
-# xrdcp: from PATH, or from an LCG view that loads in this image (centos7 or el9 build)
-LCG=""
-if ! command -v xrdcp >/dev/null; then
-  for v in /cvmfs/sft.cern.ch/lcg/views/LCG_105/x86_64-el9-gcc11-opt/setup.sh \
-           /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc11-opt/setup.sh \
-           /cvmfs/sft.cern.ch/lcg/views/LCG_101cuda/x86_64-centos7-gcc8-opt/setup.sh; do
-    if [ -f "$v" ] && ( source "$v" >/dev/null 2>&1; xrdcp --version >/dev/null 2>&1 ); then LCG="$v"; break; fi
-  done
-fi
-log "xrdcp source: ${LCG:-PATH} ($(ls -d /cvmfs/sft.cern.ch 2>&1 | head -1))"
-xr() { if [ -n "$LCG" ]; then ( source "$LCG" >/dev/null 2>&1; xrdcp -f "$@" ); else xrdcp -f "$@"; fi; }
+# xrootd client: the xrootd wheel shipped with the job (HTCondor input transfer, < 100 MB); copies go
+# through the XRootD Python client (the LCG views do not load in this image)
+python3 -m pip install -q --no-index --target xrdpy ./xrootd-*.whl || { log "xrootd wheel install failed"; exit 5; }
+cat > xrcp.py <<"PY"
+import sys
+from XRootD import client
+proc = client.CopyProcess()
+proc.add_job(sys.argv[1], sys.argv[2], force=True)
+st = proc.prepare(); 
+if not st.ok: sys.exit(f"prepare: {st.message}")
+st, res = proc.run()
+if not st.ok or (res and not res[0]["status"].ok):
+    sys.exit(f"copy: {st.message} {res[0]['status'].message if res else ''}")
+PY
+xr() { PYTHONPATH=$W/xrdpy timeout 900 python3 xrcp.py "$@"; }
+log "xrootd client: $(PYTHONPATH=$W/xrdpy python3 -c 'import XRootD;print(XRootD.__file__)' 2>&1 | tail -1)"
 finish() { log "packing outputs"; tar cf returns_out.tar returns 2>/dev/null || true; }
 trap finish EXIT
 fetch() {  # fetch <staged relative path> <local path>
