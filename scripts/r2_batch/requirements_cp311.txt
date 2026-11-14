@@ -4,3 +4,8 @@ h5py==3.11.0
 scikit-learn==1.5.1
 threadpoolctl==3.5.0
 joblib==1.4.2
+jaxtyping==0.3.11
+wadler-lindig==0.1.7
+tqdm==4.66.5
+dill==0.3.8
+typing_extensions==4.15.0
