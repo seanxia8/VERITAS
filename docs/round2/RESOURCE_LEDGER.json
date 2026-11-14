@@ -1,6 +1,23 @@
 {
  "extension": "r2_multidetector_2026-11-11",
  "lines": {
+  "R2_batch_gpu": {
+   "authority": "RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md (878f5969...) and RUNBOOK_2026-11-14_R2_BATCH_REOPEN.md (6b173d50...)",
+   "cap_h": 200.0,
+   "cpu_entries": [],
+   "entries": [
+    {
+     "gpu": "Tesla V100S-PCIE-32GB (TOpAS c03-001-159)",
+     "gpu_h": 0.06861111111111111,
+     "job": "759626 (variant a)",
+     "kind": "feasibility",
+     "note": "diagnostic only; V100 not used for runs",
+     "utc": "2026-11-13T23:54:15Z",
+     "wall_s": 247.0
+    }
+   ],
+   "line": "R2_batch_gpu"
+  },
   "R2_l40s_deepthought2": {
    "cap_history": [
     {
@@ -635,6 +652,10 @@
   }
  },
  "totals": {
+  "R2_batch_gpu": {
+   "booked_gpu_h": 0.0686,
+   "cap_gpu_h": 200.0
+  },
   "R2_l40s_deepthought2": {
    "booked_gpu_h": 29.757,
    "cap_gpu_h": 72.0
