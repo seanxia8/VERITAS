@@ -29,30 +29,51 @@ ARM_LABEL = {"sigreg_jepa": "fixed-label JEPA", "target_posfree": "position-free
              "mae_mse": "MAE", "init": "random init", "mae_mse_rf": "MAE (RF-matched)"}
 
 
-def runs_table(root, detector: str) -> list:
-    ledger = x.ledger_load(root)
+#: Where each detector's evaluations live (SK: deepthought2 L40S; JUNO, HK: TOpAS A100 batch).
+EVAL_ROOT = {"sk": "", "juno": "batch", "hk": "batch"}
+
+
+def detector_root(root, detector: str) -> Path:
+    return Path(root) / EVAL_ROOT.get(detector, "")
+
+
+def runs_table(root, detector: str) -> dict:
+    """Per run: final record (batch record preferred when a run moved to batch), GPU hours from
+    every ledger line it used, and the hardware of each segment."""
+    root = Path(root)
+    led = {}
+    for name in ("RESOURCE_LEDGER_R2.json", "RESOURCE_LEDGER_R2_BATCH.json"):
+        p = root / "ledger" / name
+        led[name] = json.loads(p.read_text())["entries"] if p.exists() else []
+    names = sorted({d.name for base in (root / "runs", root / "batch" / "runs") if base.exists()
+                    for d in base.glob(f"{detector}__*")})
     rows = []
-    for d in sorted((Path(root) / "runs").glob(f"{detector}__*")):
-        p = d / "run_record.json"
-        if not p.is_file():
+    for n in names:
+        recs = [(where, base / n / "run_record.json") for where, base in
+                (("deepthought2", root / "runs"), ("batch", root / "batch" / "runs"))
+                if (base / n / "run_record.json").exists()]
+        if not recs:
             continue
-        r = json.loads(p.read_text())
-        gpu_h = sum(float(e.get("gpu_h", 0.0)) for e in ledger["entries"]
-                    if e.get("kind") == "train" and e["detector"] == detector
-                    and e["arm"] == r["arm"] and int(e["seed"]) == int(r["seed"]))
-        rows.append({"detector": detector, "arm": r["arm"], "seed": r["seed"],
-                     "steps": r["steps"], "complete": r["complete"],
-                     "micro_batch": r["micro_batch"], "wall_seconds_last_invocation": r["wall_seconds"],
-                     "gpu_h_booked": gpu_h, "peak_memory_gib": r["peak_memory_gib"],
-                     "seconds_per_step": r["seconds_per_step"], "wall_cap_hit": r["wall_cap_hit"],
-                     "config_sha256": r["config_sha256"], "code_sha": r["code_sha"]})
+        final_where, final_p = recs[-1]
+        r = json.loads(final_p.read_text())
+        hours = {k: sum(float(e.get("gpu_h", 0.0)) for e in v if e.get("kind") == "train"
+                        and e.get("detector") == detector and e.get("arm") == r["arm"]
+                        and int(e.get("seed", -1)) == int(r["seed"])) for k, v in led.items()}
+        rows.append({"detector": detector, "arm": r["arm"], "seed": r["seed"], "steps": r["steps"],
+                     "complete": r["complete"], "micro_batch": r["micro_batch"],
+                     "l40s_gpu_h": hours["RESOURCE_LEDGER_R2.json"],
+                     "batch_gpu_h": hours["RESOURCE_LEDGER_R2_BATCH.json"],
+                     "hardware": [w for w, _ in recs], "final_gpu_model": r.get("gpu_model"),
+                     "final_site": r.get("site"), "peak_memory_gib": r["peak_memory_gib"],
+                     "seconds_per_step_last": r["seconds_per_step"], "config_sha256": r["config_sha256"]})
     smokes = []
-    for p in sorted((Path(root) / "smokes").glob(f"{detector}__*/run_record.json")):
-        r = json.loads(p.read_text())
-        smokes.append({"arm": r["arm"], "micro_batch": r["micro_batch"],
-                       "seconds_per_step": r["seconds_per_step"],
-                       "projected_h": r["seconds_per_step"] * x.STEPS / 3600.0,
-                       "peak_memory_gib": r["peak_memory_gib"]})
+    for base, hw in ((root / "smokes", "L40S (deepthought2)"), (root / "batch" / "smokes", "A100 (TOpAS)")):
+        for p in sorted(base.glob(f"{detector}__*/run_record.json")):
+            r = json.loads(p.read_text())
+            smokes.append({"arm": r["arm"], "micro_batch": r["micro_batch"], "hardware": hw,
+                           "seconds_per_step": r["seconds_per_step"],
+                           "projected_h": r["seconds_per_step"] * x.STEPS / 3600.0,
+                           "peak_memory_gib": r["peak_memory_gib"]})
     return {"runs": rows, "smokes": smokes}
 
 
@@ -108,9 +129,11 @@ def time_share_ratio(det_shares: dict, wcte: dict) -> dict:
 
 
 def detector_bundle(root, detector: str, h5_path=None) -> dict:
+    droot = detector_root(root, detector)
     out = {"detector": detector, "extension": x.EXTENSION, "registered": False,
-           "readings": x.readings_both_versions(root, detector),
-           "loss_shares": x.loss_share_diagnostics(root, detector)}
+           "evaluation_hardware": "L40S (deepthought2)" if detector == "sk" else "A100-40GB (TOpAS batch)",
+           "readings": x.readings_both_versions(droot, detector),
+           "loss_shares": x.loss_share_diagnostics(droot, detector)}
     if h5_path is not None and Path(h5_path).is_file():
         out["time_feature"] = time_feature_stats(h5_path, detector)
     return out
