@@ -9,6 +9,7 @@ set -u
 export USE_USER=dwong
 W=${_CONDOR_SCRATCH_DIR:-$PWD}; cd "$W"
 XR=root://ceph-node-j.etp.kit.edu://dwong/r2
+export XRD_NETWORKSTACK=IPv4  # the data servers are not reachable over public IPv6 from TOpAS
 log() { echo "$(date -u +%FT%TZ) job.sh: $*"; }
 # xrootd client: the xrootd wheel shipped with the job (HTCondor input transfer, < 100 MB); copies go
 # through the XRootD Python client (the LCG views do not load in this image)
