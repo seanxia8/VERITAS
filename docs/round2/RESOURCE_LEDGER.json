@@ -185,6 +185,104 @@
      "job_wall_s": 169.0,
      "kind": "batch_overhead",
      "run_id": "r2_batch_smoke_sk_sigreg_jepa_mb4"
+    },
+    {
+     "batch_cluster": "759645",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_sk_target_posfree_mb4/20261114T040538Z",
+     "gpu": "a100",
+     "gpu_h": 0.0030555555555555557,
+     "job_wall_s": 11.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_sk_target_posfree_mb4"
+    },
+    {
+     "batch_cluster": "759649",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_juno_mae_mse_s9000/20261114T040539Z",
+     "gpu": "a100",
+     "gpu_h": 0.0019444444444444444,
+     "job_wall_s": 7.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_juno_mae_mse_s9000"
+    },
+    {
+     "batch_cluster": "759652",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_juno_mae_mse_s9001/20261114T040540Z",
+     "gpu": "a100",
+     "gpu_h": 0.0016666666666666668,
+     "job_wall_s": 6.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_juno_mae_mse_s9001"
+    },
+    {
+     "batch_cluster": "759647",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_juno_sigreg_jepa_s9000/20261114T040539Z",
+     "gpu": "a100",
+     "gpu_h": 0.0019444444444444444,
+     "job_wall_s": 7.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_juno_sigreg_jepa_s9000"
+    },
+    {
+     "batch_cluster": "759650",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_juno_sigreg_jepa_s9001/20261114T040539Z",
+     "gpu": "a100",
+     "gpu_h": 0.0019444444444444444,
+     "job_wall_s": 7.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_juno_sigreg_jepa_s9001"
+    },
+    {
+     "batch_cluster": "759648",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_juno_target_posfree_s9000/20261114T040539Z",
+     "gpu": "a100",
+     "gpu_h": 0.0016666666666666668,
+     "job_wall_s": 6.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_juno_target_posfree_s9000"
+    },
+    {
+     "batch_cluster": "759651",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_juno_target_posfree_s9001/20261114T040540Z",
+     "gpu": "a100",
+     "gpu_h": 0.0019444444444444444,
+     "job_wall_s": 7.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_juno_target_posfree_s9001"
+    },
+    {
+     "batch_cluster": "759646",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_sk_sigreg_jepa_s9001/20261114T040538Z",
+     "gpu": "a100",
+     "gpu_h": 0.0019444444444444444,
+     "job_wall_s": 7.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_sk_sigreg_jepa_s9001"
+    },
+    {
+     "arm": "target_posfree",
+     "batch_cluster": "759653",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_sk_target_posfree_mb4/20261114T042233Z",
+     "complete": true,
+     "detector": "sk",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.013032134175300598,
+     "kind": "smoke",
+     "micro_batch": 4,
+     "precheck": null,
+     "seed": 9000,
+     "steps": 20,
+     "utc": "2026-11-14T04:26:58Z",
+     "wall_cap_hit": false,
+     "wall_s": 46.91568303108215
+    },
+    {
+     "batch_cluster": "759653",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_smoke_sk_target_posfree_mb4/20261114T042233Z",
+     "gpu": "a100",
+     "gpu_h": 0.028912310269143846,
+     "job_wall_s": 151.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_smoke_sk_target_posfree_mb4"
     }
    ],
    "line": "R2_batch_gpu"
@@ -219,6 +317,15 @@
      "utc": "2026-11-12T12:46:22Z",
      "wall_h": 1.0872260967228147,
      "workers": 10
+    },
+    {
+     "detector": "hk",
+     "jobs": 900,
+     "kind": "generation",
+     "made": 900,
+     "utc": "2026-11-14T08:35:18Z",
+     "wall_h": 1.1573905281888115,
+     "workers": 16
     }
    ],
    "entries": [
@@ -568,6 +675,27 @@
      "utc": "2026-11-13T20:25:22Z",
      "wall_cap_hit": false,
      "wall_s": 1440.1676845550537
+    },
+    {
+     "arm": "target_posfree",
+     "complete": false,
+     "detector": "sk",
+     "gpu_h": 9.564568969806036,
+     "kind": "train",
+     "micro_batch": 4,
+     "precheck": {
+      "booked_h": 29.756988686124483,
+      "cap_h": 72.0,
+      "ledger_line": "R2_l40s_deepthought2",
+      "projected_h": 7.481613481773769,
+      "reserved_h": 28.728454040389217,
+      "total_h": 65.96705620828746
+     },
+     "seed": 9001,
+     "steps": 9074,
+     "utc": "2026-11-14T07:23:43Z",
+     "wall_cap_hit": true,
+     "wall_s": 34432.44829130173
     }
    ],
    "hk_fallback": {
@@ -824,11 +952,11 @@
  },
  "totals": {
   "R2_batch_gpu": {
-   "booked_gpu_h": 0.4194,
+   "booked_gpu_h": 0.4775,
    "cap_gpu_h": 200.0
   },
   "R2_l40s_deepthought2": {
-   "booked_gpu_h": 29.757,
+   "booked_gpu_h": 39.3216,
    "cap_gpu_h": 72.0
   },
   "R2_titan_deepthought": {

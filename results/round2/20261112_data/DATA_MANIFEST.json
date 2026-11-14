@@ -215,6 +215,113 @@
     "wall_h": 1.0872260967228147
    },
    "shards": "/work/dwong/r2_gen/juno (removed after this manifest is committed)"
+  },
+  "hk": {
+   "file": "/ceph/dwong/jepa/data/round2/hk/hk_r2.h5",
+   "sha256": "282bbb2c0bdb213e640efe4128e561d7ef59a39c4b5f94147899dd716382beac",
+   "bytes": 7449612282,
+   "cohorts": {
+    "dev_train": {
+     "n_runs": 100,
+     "n_events": 100000,
+     "n_hits": 424853749,
+     "twin_present": false
+    },
+    "dev_probe_train": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 42648628,
+     "twin_present": true
+    },
+    "dev_probe_test": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 43796851,
+     "twin_present": true
+    },
+    "dev_probe_train_s030": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 42575198,
+     "twin_present": true
+    },
+    "dev_probe_test_s030": {
+     "n_runs": 200,
+     "n_events": 10000,
+     "n_hits": 43722889,
+     "twin_present": true
+    }
+   },
+   "verified_runs_byte_for_byte": {
+    "dev_train": 100,
+    "dev_probe_train": 200,
+    "dev_probe_test": 200,
+    "dev_probe_train_s030": 200,
+    "dev_probe_test_s030": 200
+   },
+   "derived_values": {
+    "L_m": 92.48460538431502,
+    "detector": "hk",
+    "fiducial_fraction": 0.8,
+    "half_extent_m": [
+     32.42959111111606,
+     32.42959111111606,
+     32.964711111110006
+    ],
+    "height_m": 65.92942222222001,
+    "k": 18,
+    "n_modules": 1097,
+    "n_pmt": 19746,
+    "nhits_n": 8,
+    "nhits_window_ns": 20.0,
+    "prompt_window_ns": [
+     -20.0,
+     460.0
+    ],
+    "pseudo_modules": true,
+    "radius_m": 32.42959111111606,
+    "shape": "cylinder",
+    "shift_rf": 320,
+    "t_cross_ns": 410.29893140653655,
+    "time_scale_ns": 766.6666666666667,
+    "w_rf": 640
+   },
+   "yield_range_photons": [
+    120969.57877622715,
+    10974018.760535885
+   ],
+   "benchmark": {
+    "events_per_s": 4.127520781631571,
+    "hits_per_event": 4269.069,
+    "n_events": 1000,
+    "peak_rss_mb": 667.73828125,
+    "probe_seconds_per_event_with_twin_and_expected_pe": 0.3696397368889302,
+    "raw_hit_bytes_per_event": 51228.828,
+    "readout": {
+     "dark_moved_trigger_rate": 0.278,
+     "n_dark_moved_trigger": 278,
+     "n_events": 1000,
+     "n_no_trigger": 0,
+     "n_prompt_dropped": 8973
+    },
+    "seconds": 242.27618779055774
+   },
+   "projection": {
+    "cohort_events": {
+     "dev_train": 100000,
+     "probe_total": 40000
+    },
+    "cpu_wall_h_16_cores": 0.6773126433092531,
+    "disk_bytes_estimate": 6585833424.0
+   },
+   "generation": {
+    "runs": 900,
+    "made": 900,
+    "wall_s": 4166.650158166885,
+    "workers": 16,
+    "wall_h": 1.1573905281888115
+   },
+   "shards": "/work/dwong/r2_gen/hk (removed after this manifest is committed)"
   }
  }
 }
