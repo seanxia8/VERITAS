@@ -1,0 +1,16 @@
+{
+ "detector": "juno",
+ "ok": true,
+ "max_rel_mu_diff": 1.5543122344752192e-15,
+ "abs_C_diff_vs_committed": {
+  "pattern_pearson": 0.0,
+  "log_pattern_pearson": 0.0,
+  "module_pattern_pearson": 1.1102230246251565e-16
+ },
+ "addendum_sha256": "d237ec2b3059f5359b51e20e2047b78454264b214cd73c8699d7d7030cca582c",
+ "seed": 20261112,
+ "k": 500,
+ "rows_source": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/x0/juno.json",
+ "wall_s": 7.628479957580566,
+ "code_sha": "22dec277b28450260b2286ddb73e349ac0e7ea2a"
+}

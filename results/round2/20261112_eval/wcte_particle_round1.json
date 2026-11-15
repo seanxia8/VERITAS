@@ -1,0 +1,23 @@
+{
+ "mae_mse": {
+  "mue_auc": 0.9048856617647059,
+  "electron_direction_mlp_median_deg": 3.285272238454879,
+  "muon_direction_mlp_median_deg": 4.932074374504344,
+  "electron_energy_r2": 0.9527021610563364,
+  "muon_energy_r2": null
+ },
+ "init": {
+  "mue_auc": 0.8850607536764706,
+  "electron_direction_mlp_median_deg": 6.190602535634933,
+  "muon_direction_mlp_median_deg": 8.405085560808825,
+  "electron_energy_r2": 0.9427568288891538,
+  "muon_energy_r2": null
+ },
+ "sigreg_jepa": {
+  "mue_auc": 0.8401972426470588,
+  "electron_direction_mlp_median_deg": 7.450125412779556,
+  "muon_direction_mlp_median_deg": 9.95245067868176,
+  "electron_energy_r2": 0.9084274929035,
+  "muon_energy_r2": null
+ }
+}

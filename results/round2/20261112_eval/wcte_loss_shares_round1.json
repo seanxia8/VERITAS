@@ -1,0 +1,19 @@
+{
+ "start": {
+  "step": 100,
+  "shares": {
+   "charge": 0.7729378738855691,
+   "hit": 0.22239825811307645,
+   "time": 0.004663868001354432
+  }
+ },
+ "end": {
+  "step": 10000,
+  "shares": {
+   "charge": 0.6632026196985035,
+   "hit": 0.3349850190830355,
+   "time": 0.001812361218461012
+  }
+ },
+ "note": "round-1 log every 100 steps: single rows, not 100-step means"
+}

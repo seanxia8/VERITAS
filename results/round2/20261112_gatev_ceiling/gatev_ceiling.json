@@ -1507,11 +1507,24 @@
   },
   "hk": {
    "gate_v_passed": false,
-   "observed_median": {
-    "module_pattern_pearson": 0.7564646552840093,
-    "log_pattern_pearson": 0.5634281680492477
+   "C": {
+    "pattern_pearson": 0.703967576549208,
+    "log_pattern_pearson": 0.7297157657712621,
+    "module_pattern_pearson": 0.9925184455761529
    },
-   "ceiling": "skipped (CPU allowance)"
+   "normalised_median": {
+    "pattern_pearson": 0.6607534810406528,
+    "log_pattern_pearson": 0.7681034394069028,
+    "module_pattern_pearson": 0.7620858819376266
+   },
+   "observed_median": {
+    "pattern_pearson": 0.46450547667927433,
+    "log_pattern_pearson": 0.5634281680492477,
+    "module_pattern_pearson": 0.7564646552840093
+   },
+   "photons_per_hit_pmt_median": 6.681018162075639,
+   "method": "scaled_mu_no_transport (ext_r2_gatev_scaled.py, r2-report): mu shape from the analytic model on the PhotonSim truth, scale fixed by sum(mu) = committed expected_detected; the transport enters mu only through a uniform QE scalar. Validated on the cached SK and JUNO transported events: max relative mu difference 1.7e-15, C identical to the exact path (validate_scaled_sk.json, validate_scaled_juno.json). The 1e-6 expected_detected check is true by construction for HK; split-half and photons per hit module not computed (need the transported hits).",
+   "review": "fresh-context review PASS (r2-report, base e6e5b73, head 22dec27)"
   }
  }
 }

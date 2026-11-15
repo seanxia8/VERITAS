@@ -2411,5 +2411,30 @@
    "booked_gpu_h": 0.8056,
    "cap_gpu_h": 160.0
   }
+ },
+ "cpu_summary": {
+  "generation": {
+   "wall_h": {
+    "sk": 2.0096,
+    "juno": 1.0872,
+    "hk": 1.1574,
+    "total": 4.2543
+   },
+   "cap": "remaining round-1 generation cap (runbook §8): 18.43 / 48 wall-h used before round 2; 22.68 / 48 after"
+  },
+  "gatev_ceiling": {
+   "wall_h": 1.3108,
+   "cap_wall_h": 3.0,
+   "note": "WCTE, SK, JUNO 1.30 wall-h in r2-run (one core); HK + SK/JUNO validation in r2-report 39 s (scaled-mu method, no transport)"
+  },
+  "evaluation_and_reports": {
+   "cap_wall_h": 12.0,
+   "note": "probes ran inside the GPU evaluation jobs (booked on the GPU lines); CPU-only report work (loss shares, figures) under 0.05 wall-h"
+  }
+ },
+ "final": {
+  "utc": "2026-11-15T23:08:58Z",
+  "phase": "r2-report",
+  "note": "final mirror of R/ledger/RESOURCE_LEDGER_R2*.json; no GPU booked in r2-report"
  }
 }
