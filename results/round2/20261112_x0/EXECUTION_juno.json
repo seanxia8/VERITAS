@@ -83,5 +83,47 @@
   "authority": "RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md \u00a71.2 (author 13 Nov 23:35) after the batch GO (results/round2/20261114_batch/feasibility.json)",
   "original_stops_kept": "T-S1 (Titan) / S1 (L40S)",
   "where": "TOpAS A100-40GB (HTCondor batch, ledger R2_batch_gpu, cap 200 GPU-h)"
+ },
+ "final": {
+  "date": "2026-11-15",
+  "status": "evaluated",
+  "readings_two_seed": {
+   "R2-a": "intermediate",
+   "R2-b": "not recovered",
+   "R2-c": "yes",
+   "R2-d": [
+    "mae_mse",
+    "init",
+    "target_posfree",
+    "sigreg_jepa"
+   ]
+  },
+  "readings_three_seed": {
+   "R2-a": "intermediate",
+   "R2-b": "not recovered",
+   "R2-c": "yes",
+   "R2-d": [
+    "mae_mse",
+    "init",
+    "target_posfree",
+    "sigreg_jepa"
+   ]
+  },
+  "R2-e": {
+   "rf_minus_mae_vertex_m": -0.1651546384453212,
+   "ci95_m": [
+    -0.17672448810794616,
+    -0.15375860157192886
+   ],
+   "confounded_by_receptive_field": true
+  },
+  "seed9002": "sigreg_jepa (R2-a intermediate): trained on A100, evaluated",
+  "hardware": "training and evaluation: TOpAS A100-40GB (HTCondor batch, ledger line R2_batch_gpu) for every JUNO model; no L40S time; Titan time only the feasibility test",
+  "gpu_batch_h": 42.05,
+  "results": [
+   "results/round2/20261112_eval/readings.json",
+   "results/round2/20261112_eval/READINGS_SUMMARY.md",
+   "results/round2/20261112_train/runs.json"
+  ]
  }
 }

@@ -1479,6 +1479,60 @@
      "job_wall_s": 19572.0,
      "kind": "batch_overhead",
      "run_id": "r2_batch_train_sk_mae_mse_rf_s9000"
+    },
+    {
+     "arm": "sigreg_jepa",
+     "batch_cluster": "759706",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_eval_juno__sigreg_jepa__s9002/20261115T083310Z",
+     "detector": "juno",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.09182160682148403,
+     "kind": "eval",
+     "seed": 9002,
+     "utc": "2026-11-15T08:51:15Z",
+     "wall_s": 330.55778455734253
+    },
+    {
+     "batch_cluster": "759706",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_eval_juno__sigreg_jepa__s9002/20261115T083310Z",
+     "gpu": "a100",
+     "gpu_h": 0.02567839317851596,
+     "job_wall_s": 423.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_eval_juno__sigreg_jepa__s9002"
+    },
+    {
+     "arm": "mae_mse_rf",
+     "batch_cluster": "759686",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_hk_mae_mse_rf_s9000/20261114T104827Z",
+     "complete": true,
+     "detector": "hk",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 14.807884420156478,
+     "kind": "train",
+     "micro_batch": 8,
+     "precheck": {
+      "booked_h": 16.22055555555556,
+      "cap_h": 200.0,
+      "ledger_line": "R2_batch_gpu",
+      "projected_h": 14.80469716919793,
+      "reserved_h": 0.0,
+      "total_h": 31.02525272475349
+     },
+     "seed": 9000,
+     "steps": 10000,
+     "utc": "2026-11-15T10:04:26Z",
+     "wall_cap_hit": false,
+     "wall_s": 53308.383912563324
+    },
+    {
+     "batch_cluster": "759686",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_hk_mae_mse_rf_s9000/20261114T104827Z",
+     "gpu": "a100",
+     "gpu_h": 0.03211557984352176,
+     "job_wall_s": 53424.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_hk_mae_mse_rf_s9000"
     }
    ],
    "hk_fallback": {
@@ -2271,7 +2325,7 @@
  },
  "totals": {
   "R2_batch_gpu": {
-   "booked_gpu_h": 158.6922,
+   "booked_gpu_h": 173.6497,
    "cap_gpu_h": 200.0
   },
   "R2_l40s_deepthought2": {

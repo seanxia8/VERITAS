@@ -483,6 +483,24 @@
     },
     {
      "detector": "hk",
+     "arm": "mae_mse_rf",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 14.807884420156478,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759686.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 17.17826795578003,
+     "seconds_per_step_last": 5.330838391256332,
+     "config_sha256": "04f56ab853d6b922fa72eaaa5d7f75b4634e0108907e38a26668c39d3ec43b78"
+    },
+    {
+     "detector": "hk",
      "arm": "sigreg_jepa",
      "seed": 9000,
      "steps": 10000,

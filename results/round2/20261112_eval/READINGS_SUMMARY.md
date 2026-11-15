@@ -30,6 +30,7 @@ Extension `r2_multidetector_2026-11-11`, `registered: false`. Gate V is informat
 - R2-d ranking: mae_mse < init < target_posfree < sigreg_jepa; Kendall τ vs WCTE = 0.667.
 - R2-e receptive field (RF − MAE, seed 9000): vertex -0.1652 m, CI [-0.1767, -0.1538]; token R² -0.0006288; f_event 0.0050; confounded by receptive field by 0.165 m.
 - Floor band (5 init seeds): vertex mean 0.9298 m, range [0.8902, 0.9682]; token R² mean 0.9993.
+- Three-seed version: R2-a intermediate, R2-b not recovered, R2-c yes, R2-d mae_mse < init < target_posfree < sigreg_jepa (seeds used {'R2-a': [9000, 9001, 9002], 'R2-b': [9000, 9001], 'R2-c': [9000, 9001], 'R2-d': {'mae_mse': [9000, 9001], 'target_posfree': [9000, 9001], 'init': [9000, 9001, 9002], 'sigreg_jepa': [9000, 9001, 9002]}}).
 - Seed 9002: sigreg_jepa (R2-a intermediate): train.
 
 ### HK (fiducial radius 25.94 m)
@@ -75,6 +76,8 @@ Extension `r2_multidetector_2026-11-11`, `registered: false`. Gate V is informat
 - HK: time-feature std 0.0834 (scale 766.7 ns).
   - mae_mse loss shares (first / last 100 steps): charge 0.599 → 0.519, hit 0.352 → 0.480, time 0.050 → 0.001.
     The time term's share is 10.67× (start) and 0.46× (end) the WCTE share: it moved by more than 2× relative to WCTE.
+  - mae_mse_rf loss shares (first / last 100 steps): charge 0.601 → 0.519, hit 0.347 → 0.480, time 0.051 → 0.001.
+    The time term's share is 11.04× (start) and 0.47× (end) the WCTE share: it moved by more than 2× relative to WCTE.
 
 ## Gate V (informational) and the photon-statistics ceiling
 

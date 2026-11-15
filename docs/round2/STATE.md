@@ -5,9 +5,9 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 ## Where we are
 
 - Runbook and addenda committed unchanged (Gate V, JUNO-Titan v2, caps, SK order/co-tenancy, HTCondor batch, staging dwong, batch reopen, A100 equal).
-- SK: mae 9000/9001 done and evaluated; `init` 9000–9004 evaluated; sigreg 9000 and posfree 9001 training on deepthought2 (shared L40S); posfree 9000 (resume from 3,168) and sigreg 9001 on TOpAS A100; `mae_mse_rf` S1 on the L40S line (re-checked under the batch priority).
-- JUNO: six main runs training on TOpAS A100 (batch, `R2_batch_gpu`); evaluation follows on A100.
-- HK: X0 (yield, trigger, benchmark) running on Deepthought; then generation, pack, A100 smokes and runs.
+- SK: done — every model evaluated (L40S + A100), readings two/three-seed, R2-e; `EXECUTION_sk.json` final.
+- JUNO: done — six main runs, `mae_mse_rf` and seed-9002 `sigreg_jepa` trained and evaluated on TOpAS A100 (42.05 batch GPU-h); `EXECUTION_juno.json` final.
+- HK: six main runs, `init` 9000–9004 and `mae_mse_rf` trained/evaluated except: `mae_mse_rf` evaluation and seed-9002 `target_posfree` (training, cluster 759705) pending.
 - Batch: GO on TOpAS A100 (WCTE regression PASS); NEMO2 unusable (xrootd unreachable). Ledger lines: L40S 72 h, Titan 160 h (JUNO smokes only), batch 200 h.
 
 ## Paths
