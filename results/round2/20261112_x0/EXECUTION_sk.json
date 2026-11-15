@@ -35,5 +35,46 @@
  "original_stop_kept": {
   "id": "S2",
   "reason": "Gate V fails for SK (no refit of the yield per MeV): holdout medians module-pattern Pearson 0.829 < 0.85, PMT log-charge Pearson 0.692 < 0.70; yield ratio 1.186 and time 0.78 ns pass"
+ },
+ "final": {
+  "date": "2026-11-15",
+  "status": "evaluated",
+  "readings_two_seed": {
+   "R2-a": "event-invariant",
+   "R2-b": "unclear",
+   "R2-c": "yes",
+   "R2-d": [
+    "mae_mse",
+    "init",
+    "target_posfree",
+    "sigreg_jepa"
+   ]
+  },
+  "readings_three_seed": {
+   "R2-a": "event-invariant",
+   "R2-b": "unclear",
+   "R2-c": "yes",
+   "R2-d": [
+    "mae_mse",
+    "init",
+    "target_posfree",
+    "sigreg_jepa"
+   ]
+  },
+  "R2-e": {
+   "rf_minus_mae_vertex_m": -0.16035739163686258,
+   "ci95_m": [
+    -0.1752473025416117,
+    -0.14619973327961208
+   ],
+   "confounded_by_receptive_field": true
+  },
+  "seed9002": "target_posfree (R2-b unclear): trained on A100, evaluated",
+  "hardware": "evaluation: L40S (deepthought2) for every SK model; training: L40S for mae 9000/9001, sigreg 9000, posfree 9001; A100 (TOpAS) for sigreg 9001, posfree 9002, mae_mse_rf; posfree 9000 L40S steps 0-3,168 then A100",
+  "results": [
+   "results/round2/20261112_eval/readings.json",
+   "results/round2/20261112_eval/READINGS_SUMMARY.md",
+   "results/round2/20261112_train/runs.json"
+  ]
  }
 }

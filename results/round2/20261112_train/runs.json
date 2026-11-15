@@ -1,0 +1,609 @@
+{
+ "extension": "r2_multidetector_2026-11-11",
+ "ledger_line": "R2_l40s_deepthought2",
+ "cap_l40s_h": 72.0,
+ "booked_l40s_h": 53.506798697246445,
+ "hk_fallback": {
+  "hk_main_run_h": 17.19232428665847,
+  "hk_rf_run_h": 24.92887021565478,
+  "projected_h": 53.24363952664207,
+  "projection_inputs": {
+   "hk_smoke": [],
+   "sk_juno_scaled_by_n_pmt": [
+    15.876601758938774,
+    16.226590390235895,
+    17.19232428665847
+   ]
+  },
+  "remaining_h": -3.5587367022037455,
+  "rule": "max of SK/JUNO smoke step times scaled by N_PMT and the HK smoke",
+  "runs": "none",
+  "step": 3,
+  "stop": "S1"
+ },
+ "detectors": {
+  "sk": {
+   "runs": [
+    {
+     "detector": "sk",
+     "arm": "mae_mse",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 9.325178032517433,
+     "batch_gpu_h": 0,
+     "hardware": [
+      "deepthought2"
+     ],
+     "final_gpu_model": "NVIDIA L40S",
+     "final_site": null,
+     "peak_memory_gib": 9.695269107818604,
+     "seconds_per_step_last": 2.754432452576501,
+     "config_sha256": "35fc5edfaea9431894372122d683306b252aeb3398b9b48a3cc0c236c387e4be"
+    },
+    {
+     "detector": "sk",
+     "arm": "mae_mse",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 11.214369213382403,
+     "batch_gpu_h": 0,
+     "hardware": [
+      "deepthought2"
+     ],
+     "final_gpu_model": null,
+     "final_site": null,
+     "peak_memory_gib": 9.695269107818604,
+     "seconds_per_step_last": 4.037172916817665,
+     "config_sha256": "35fc5edfaea9431894372122d683306b252aeb3398b9b48a3cc0c236c387e4be"
+    },
+    {
+     "detector": "sk",
+     "arm": "mae_mse_rf",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 5.41243181294865,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759698.0-c03-001-167.gridka.de",
+     "peak_memory_gib": 9.695269107818604,
+     "seconds_per_step_last": 1.9484754526615142,
+     "config_sha256": "d4c7e53057c00cbb4563e9f8e83230de1c5232ef8921f2e3eba46e69f72e7592"
+    },
+    {
+     "detector": "sk",
+     "arm": "sigreg_jepa",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 12.97694906592369,
+     "batch_gpu_h": 0,
+     "hardware": [
+      "deepthought2"
+     ],
+     "final_gpu_model": "NVIDIA L40S",
+     "final_site": null,
+     "peak_memory_gib": 13.94910717010498,
+     "seconds_per_step_last": 4.671701663732529,
+     "config_sha256": "145a35aaa4ab196ff9520353a8f83a959cf27932d3c1469d7f8757487dd00e14"
+    },
+    {
+     "detector": "sk",
+     "arm": "sigreg_jepa",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 6.4082869281371435,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759654.0-c03-001-167.gridka.de",
+     "peak_memory_gib": 13.94910717010498,
+     "seconds_per_step_last": 2.3069832941293718,
+     "config_sha256": "145a35aaa4ab196ff9520353a8f83a959cf27932d3c1469d7f8757487dd00e14"
+    },
+    {
+     "detector": "sk",
+     "arm": "target_posfree",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 4.507858765390185,
+     "batch_gpu_h": 4.383388889564408,
+     "hardware": [
+      "deepthought2",
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759661.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 13.951518058776855,
+     "seconds_per_step_last": 2.3097482439156716,
+     "config_sha256": "cbf02f5c79083a1f40b5fd285f65ea7bc9548a9721ce8f1a3c5afdbec84dd5f4"
+    },
+    {
+     "detector": "sk",
+     "arm": "target_posfree",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 14.421343825525708,
+     "batch_gpu_h": 0,
+     "hardware": [
+      "deepthought2"
+     ],
+     "final_gpu_model": "NVIDIA L40S",
+     "final_site": "deepthought2",
+     "peak_memory_gib": 13.951518058776855,
+     "seconds_per_step_last": 2.8865697983789134,
+     "config_sha256": "cbf02f5c79083a1f40b5fd285f65ea7bc9548a9721ce8f1a3c5afdbec84dd5f4"
+    },
+    {
+     "detector": "sk",
+     "arm": "target_posfree",
+     "seed": 9002,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 6.419046523306105,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759691.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 13.951518058776855,
+     "seconds_per_step_last": 2.3108567483901976,
+     "config_sha256": "cbf02f5c79083a1f40b5fd285f65ea7bc9548a9721ce8f1a3c5afdbec84dd5f4"
+    }
+   ],
+   "smokes": [
+    {
+     "arm": "mae_mse",
+     "micro_batch": 8,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 3.477958619594574,
+     "projected_h": 9.660996165540483,
+     "peak_memory_gib": 9.695269107818604
+    },
+    {
+     "arm": "mae_mse_rf",
+     "micro_batch": 8,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 2.302999269962311,
+     "projected_h": 6.397220194339752,
+     "peak_memory_gib": 9.695269107818604
+    },
+    {
+     "arm": "sigreg_jepa",
+     "micro_batch": 4,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 3.2117916703224183,
+     "projected_h": 8.921643528673384,
+     "peak_memory_gib": 13.94910717010498
+    },
+    {
+     "arm": "target_posfree",
+     "micro_batch": 4,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 3.282593381404877,
+     "projected_h": 9.11831494834688,
+     "peak_memory_gib": 13.951518058776855
+    },
+    {
+     "arm": "mae_mse_rf",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 1.944889783859253,
+     "projected_h": 5.402471621831258,
+     "peak_memory_gib": 9.695269107818604
+    },
+    {
+     "arm": "sigreg_jepa",
+     "micro_batch": 4,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 2.4129960417747496,
+     "projected_h": 6.702766782707638,
+     "peak_memory_gib": 13.94910717010498
+    },
+    {
+     "arm": "target_posfree",
+     "micro_batch": 4,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 2.3457841515541076,
+     "projected_h": 6.516067087650299,
+     "peak_memory_gib": 13.951518058776855
+    }
+   ]
+  },
+  "juno": {
+   "runs": [
+    {
+     "detector": "juno",
+     "arm": "mae_mse",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 4.347569581800037,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759657.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 8.763776779174805,
+     "seconds_per_step_last": 1.5651250494480133,
+     "config_sha256": "086b3fe5fde35bbf8fb137999e437de06ca7cf72a02f319b8982421b450fc874"
+    },
+    {
+     "detector": "juno",
+     "arm": "mae_mse",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 4.360688350200653,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759660.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 8.763776779174805,
+     "seconds_per_step_last": 1.5698478060722352,
+     "config_sha256": "086b3fe5fde35bbf8fb137999e437de06ca7cf72a02f319b8982421b450fc874"
+    },
+    {
+     "detector": "juno",
+     "arm": "mae_mse_rf",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 4.5634378022617765,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759685.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 8.772186279296875,
+     "seconds_per_step_last": 1.6428376088142396,
+     "config_sha256": "8d94046518d213426ea6ac0ddeec7cda370a228fc62c6c38540124d0d250c264"
+    },
+    {
+     "detector": "juno",
+     "arm": "sigreg_jepa",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 5.404675726824337,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759655.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 24.29501485824585,
+     "seconds_per_step_last": 1.9456832616567612,
+     "config_sha256": "5d943a72757c249dd52fbc5a09a7f976cd8e2193a1da22f3bef939cc1bd9b2c2"
+    },
+    {
+     "detector": "juno",
+     "arm": "sigreg_jepa",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 5.397920703225665,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759658.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 24.29501485824585,
+     "seconds_per_step_last": 1.9432514531612397,
+     "config_sha256": "5d943a72757c249dd52fbc5a09a7f976cd8e2193a1da22f3bef939cc1bd9b2c2"
+    },
+    {
+     "detector": "juno",
+     "arm": "sigreg_jepa",
+     "seed": 9002,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 5.430147788193491,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759699.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 24.29501485824585,
+     "seconds_per_step_last": 1.9548532037496567,
+     "config_sha256": "5d943a72757c249dd52fbc5a09a7f976cd8e2193a1da22f3bef939cc1bd9b2c2"
+    },
+    {
+     "detector": "juno",
+     "arm": "target_posfree",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 5.413806840976079,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759656.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 24.297697067260742,
+     "seconds_per_step_last": 1.9489704627513886,
+     "config_sha256": "4c78d41025209f31b7086f458f0d57c2df1ea646a27459e02470ee57e9a2dfb4"
+    },
+    {
+     "detector": "juno",
+     "arm": "target_posfree",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 5.387498884002368,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759659.0-c03-001-167.gridka.de",
+     "peak_memory_gib": 24.297697067260742,
+     "seconds_per_step_last": 1.9394995982408523,
+     "config_sha256": "4c78d41025209f31b7086f458f0d57c2df1ea646a27459e02470ee57e9a2dfb4"
+    }
+   ],
+   "smokes": [
+    {
+     "arm": "mae_mse",
+     "micro_batch": 8,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 14.867488741874695,
+     "projected_h": 41.29857983854082,
+     "peak_memory_gib": 8.763776779174805
+    },
+    {
+     "arm": "mae_mse_rf",
+     "micro_batch": 8,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 14.818941283226014,
+     "projected_h": 41.16372578673892,
+     "peak_memory_gib": 8.772186279296875
+    },
+    {
+     "arm": "sigreg_jepa",
+     "micro_batch": 2,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 48.338727259635924,
+     "projected_h": 134.27424238787756,
+     "peak_memory_gib": 6.125516414642334
+    },
+    {
+     "arm": "target_posfree",
+     "micro_batch": 2,
+     "hardware": "L40S (deepthought2)",
+     "seconds_per_step": 49.55271836519241,
+     "projected_h": 137.64643990331226,
+     "peak_memory_gib": 6.126187324523926
+    },
+    {
+     "arm": "mae_mse",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 1.6266340374946595,
+     "projected_h": 4.518427881929609,
+     "peak_memory_gib": 8.763776779174805
+    },
+    {
+     "arm": "mae_mse_rf",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 1.7801962614059448,
+     "projected_h": 4.944989615016514,
+     "peak_memory_gib": 8.772186279296875
+    },
+    {
+     "arm": "sigreg_jepa",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 2.0420069336891173,
+     "projected_h": 5.6722414824697704,
+     "peak_memory_gib": 24.29501485824585
+    },
+    {
+     "arm": "target_posfree",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 1.9934364795684814,
+     "projected_h": 5.537323554356893,
+     "peak_memory_gib": 24.297697067260742
+    }
+   ]
+  },
+  "hk": {
+   "runs": [
+    {
+     "detector": "hk",
+     "arm": "mae_mse",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 13.64531500822968,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759683.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 17.174304962158203,
+     "seconds_per_step_last": 4.912313402962685,
+     "config_sha256": "4770c74f59449077686a3d078f79cec5c44b28a7b3cdd6fa6d174c77d750a33a"
+    },
+    {
+     "detector": "hk",
+     "arm": "mae_mse",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 8,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 13.647521265612708,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759684.0-c03-001-167.gridka.de",
+     "peak_memory_gib": 17.174304962158203,
+     "seconds_per_step_last": 4.913107655620575,
+     "config_sha256": "4770c74f59449077686a3d078f79cec5c44b28a7b3cdd6fa6d174c77d750a33a"
+    },
+    {
+     "detector": "hk",
+     "arm": "sigreg_jepa",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 15.851262221799956,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759679.0-c03-001-167.gridka.de",
+     "peak_memory_gib": 23.946656227111816,
+     "seconds_per_step_last": 5.706454399847984,
+     "config_sha256": "9183934ef6fad12be814e70325d2753f112a61a35ff4b04c6860b80579538b80"
+    },
+    {
+     "detector": "hk",
+     "arm": "sigreg_jepa",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 16.05569036854638,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759681.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 23.946656227111816,
+     "seconds_per_step_last": 5.780048532676696,
+     "config_sha256": "9183934ef6fad12be814e70325d2753f112a61a35ff4b04c6860b80579538b80"
+    },
+    {
+     "detector": "hk",
+     "arm": "target_posfree",
+     "seed": 9000,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 15.960703758332464,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759680.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 23.949304580688477,
+     "seconds_per_step_last": 5.745853352999688,
+     "config_sha256": "4b08f8df4bafe9c004e91d91caaa53b026c005f96fd6dabe84f91f33caa26658"
+    },
+    {
+     "detector": "hk",
+     "arm": "target_posfree",
+     "seed": 9001,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 15.997756171226502,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759682.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 23.949304580688477,
+     "seconds_per_step_last": 5.75919222164154,
+     "config_sha256": "4b08f8df4bafe9c004e91d91caaa53b026c005f96fd6dabe84f91f33caa26658"
+    }
+   ],
+   "smokes": [
+    {
+     "arm": "mae_mse",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 4.968287873268127,
+     "projected_h": 13.80079964796702,
+     "peak_memory_gib": 17.174304962158203
+    },
+    {
+     "arm": "mae_mse_rf",
+     "micro_batch": 8,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 5.329690980911255,
+     "projected_h": 14.80469716919793,
+     "peak_memory_gib": 17.17826795578003
+    },
+    {
+     "arm": "sigreg_jepa",
+     "micro_batch": 2,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 5.915835440158844,
+     "projected_h": 16.432876222663456,
+     "peak_memory_gib": 12.067252159118652
+    },
+    {
+     "arm": "sigreg_jepa",
+     "micro_batch": 4,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 5.7755953669548035,
+     "projected_h": 16.043320463763344,
+     "peak_memory_gib": 23.946656227111816
+    },
+    {
+     "arm": "target_posfree",
+     "micro_batch": 2,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 5.9001569747924805,
+     "projected_h": 16.38932492997911,
+     "peak_memory_gib": 12.068594932556152
+    },
+    {
+     "arm": "target_posfree",
+     "micro_batch": 4,
+     "hardware": "A100 (TOpAS)",
+     "seconds_per_step": 5.8073718547821045,
+     "projected_h": 16.131588485505844,
+     "peak_memory_gib": 23.949304580688477
+    }
+   ]
+  }
+ }
+}
