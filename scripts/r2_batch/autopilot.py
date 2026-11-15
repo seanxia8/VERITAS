@@ -76,6 +76,11 @@ def main():
                         "evaluate", "--detector", det, "--items", f"{arm}:{seed}:{ckpt}",
                         "--h5", f"staged/data/{det}_r2.h5", "--out", "returns", "--device", "cuda"])
                 print(f"EVAL-SUBMIT {run}: {r.stdout.strip()[-160:]} {r.stderr.strip()[-200:]}")
+                try:
+                    c = json.loads(r.stdout)["cluster"]
+                    sh(["condor_prio", "-p", "10", str(c)])  # evaluations before training (§3)
+                except (ValueError, KeyError, TypeError):
+                    pass
             mark.write_text("eval")
         elif rec.get("wall_cap_hit"):
             print(f"CAPPED {run} at step {rec.get('steps')}"); mark.write_text("capped")
