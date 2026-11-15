@@ -570,6 +570,24 @@
      "peak_memory_gib": 23.949304580688477,
      "seconds_per_step_last": 5.75919222164154,
      "config_sha256": "4b08f8df4bafe9c004e91d91caaa53b026c005f96fd6dabe84f91f33caa26658"
+    },
+    {
+     "detector": "hk",
+     "arm": "target_posfree",
+     "seed": 9002,
+     "steps": 10000,
+     "complete": true,
+     "micro_batch": 4,
+     "l40s_gpu_h": 0,
+     "batch_gpu_h": 16.117719281713168,
+     "hardware": [
+      "batch"
+     ],
+     "final_gpu_model": "NVIDIA A100-PCIE-40GB",
+     "final_site": "topas:dwong-759705.0-c03-001-179.gridka.de",
+     "peak_memory_gib": 23.949304580688477,
+     "seconds_per_step_last": 5.80237894141674,
+     "config_sha256": "4b08f8df4bafe9c004e91d91caaa53b026c005f96fd6dabe84f91f33caa26658"
     }
    ],
    "smokes": [

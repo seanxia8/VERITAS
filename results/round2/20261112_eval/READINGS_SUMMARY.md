@@ -9,7 +9,7 @@ Extension `r2_multidetector_2026-11-11`, `registered: false`. Gate V is informat
 | WCTE (round 1) | 0.1049 | 0.1260/0.1405 | 0.1601 | 0.2193/0.2043 | – |
 | SK | 0.9287/0.8264 | 1.1442/1.4193 | 1.2755/1.2572 | 2.1863/1.9727 | 0.7684 |
 | JUNO | 0.6855/0.4972 | 1.0135/0.9716 | 0.9499/0.9682 | 1.3400/1.2834 | 0.5203 |
-| HK | 1.5797/1.2582 | 2.1615/1.9736 | 2.0771/2.0311 | 3.7033/3.3839 | – |
+| HK | 1.5797/1.2582 | 2.1615/1.9736 | 2.0771/2.0311 | 3.7033/3.3839 | 1.2492 |
 
 ## Readings R2-a to R2-e (two seeds; three-seed version where seed 9002 ran)
 
@@ -38,8 +38,9 @@ Extension `r2_multidetector_2026-11-11`, `registered: false`. Gate V is informat
 - R2-b position-free recovery: **unclear** (9000: vertex 2.1615 vs init 2.0771, token R² 0.9893, f_event 0.0431; 9001: vertex 1.9736 vs init 2.0311, token R² 0.9959, f_event 0.0164).
 - R2-c MAE above floor: **yes** (9000: MAE − init -0.4974 m, CI [-0.5310, -0.4661]; 9001: MAE − init -0.7729 m, CI [-0.8092, -0.7381]).
 - R2-d ranking: mae_mse < init < target_posfree < sigreg_jepa; Kendall τ vs WCTE = 0.667.
-- R2-e receptive field: not run.
+- R2-e receptive field (RF − MAE, seed 9000): vertex -0.3305 m, CI [-0.3549, -0.3046]; token R² -0.0005622; f_event 0.0072; confounded by receptive field by 0.330 m.
 - Floor band (5 init seeds): vertex mean 1.9953 m, range [1.9458, 2.0771]; token R² mean 0.9990.
+- Three-seed version: R2-a event-invariant, R2-b unclear, R2-c yes, R2-d mae_mse < init < target_posfree < sigreg_jepa (seeds used {'R2-a': [9000, 9001], 'R2-b': [9000, 9001, 9002], 'R2-c': [9000, 9001], 'R2-d': {'mae_mse': [9000, 9001], 'target_posfree': [9000, 9001, 9002], 'init': [9000, 9001, 9002], 'sigreg_jepa': [9000, 9001]}}).
 - Seed 9002: target_posfree (R2-b unclear): train.
 
 ## Particle tasks (seed 9000)
@@ -60,6 +61,7 @@ Extension `r2_multidetector_2026-11-11`, `registered: false`. Gate V is informat
 | HK | position-free JEPA | 0.9534 | 4.6242 | 4.5883 | 0.9888 | 0.9719 |
 | HK | random init | 0.8836 | 6.5168 | 6.2395 | 0.9899 | 0.9737 |
 | HK | fixed-label JEPA | 0.6733 | 9.6213 | 11.0114 | 0.9429 | 0.8431 |
+| HK | MAE (RF-matched) | 0.9492 | 3.9258 | 4.6670 | 0.9891 | 0.9725 |
 
 ## Time-scale diagnostics (§6, logged, no threshold)
 

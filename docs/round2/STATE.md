@@ -7,7 +7,8 @@ Updated: 2026-11-12. Extension `r2_multidetector_2026-11-11`, `registered: false
 - Runbook and addenda committed unchanged (Gate V, JUNO-Titan v2, caps, SK order/co-tenancy, HTCondor batch, staging dwong, batch reopen, A100 equal).
 - SK: done — every model evaluated (L40S + A100), readings two/three-seed, R2-e; `EXECUTION_sk.json` final.
 - JUNO: done — six main runs, `mae_mse_rf` and seed-9002 `sigreg_jepa` trained and evaluated on TOpAS A100 (42.05 batch GPU-h); `EXECUTION_juno.json` final.
-- HK: six main runs, `init` 9000–9004 and `mae_mse_rf` trained/evaluated except: `mae_mse_rf` evaluation and seed-9002 `target_posfree` (training, cluster 759705) pending.
+- HK: done — six main runs, `mae_mse_rf` and seed-9002 `target_posfree` trained and evaluated on TOpAS A100; `init` 9000–9004 evaluated; `EXECUTION_hk.json` final.
+- Phase r2-run complete: every detector evaluated. Ledger: L40S 53.51/72 h, Titan 0.81/160 h, batch 190.23/200 h.
 - Batch: GO on TOpAS A100 (WCTE regression PASS); NEMO2 unusable (xrootd unreachable). Ledger lines: L40S 72 h, Titan 160 h (JUNO smokes only), batch 200 h.
 
 ## Paths

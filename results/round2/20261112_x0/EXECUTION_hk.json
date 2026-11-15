@@ -50,5 +50,49 @@
   "authority": "RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md \u00a71.2 (author 13 Nov 23:35) after the batch GO (results/round2/20261114_batch/feasibility.json)",
   "original_stops_kept": "S1",
   "where": "TOpAS A100-40GB (HTCondor batch, ledger R2_batch_gpu, cap 200 GPU-h)"
+ },
+ "final": {
+  "date": "2026-11-15",
+  "status": "evaluated",
+  "readings_two_seed": {
+   "R2-a": "event-invariant",
+   "R2-b": "unclear",
+   "R2-c": "yes",
+   "R2-d": [
+    "mae_mse",
+    "init",
+    "target_posfree",
+    "sigreg_jepa"
+   ]
+  },
+  "readings_three_seed": {
+   "R2-a": "event-invariant",
+   "R2-b": "unclear",
+   "R2-c": "yes",
+   "R2-d": [
+    "mae_mse",
+    "init",
+    "target_posfree",
+    "sigreg_jepa"
+   ]
+  },
+  "R2-e": {
+   "rf_minus_mae_vertex_m": -0.33045262069230175,
+   "ci95_m": [
+    -0.35492883381215395,
+    -0.30459184026991126
+   ],
+   "confounded_by_receptive_field": true
+  },
+  "seed9002": "target_posfree (R2-b unclear): trained on A100, evaluated",
+  "fallback": "parent \u00a78 HK fallback step 0 (all six main runs + mae_mse_rf) under the batch line, recorded once as hk_fallback",
+  "hardware": "training and evaluation: TOpAS A100-40GB (HTCondor batch, ledger line R2_batch_gpu) for every HK model; no L40S or Titan time",
+  "gpu_batch_h": 125.13,
+  "gatev_ceiling": "skipped (second HK transport > 15 CPU-h, beyond the addendum's 3 wall-h allowance); Gate V informational, failed",
+  "results": [
+   "results/round2/20261112_eval/readings.json",
+   "results/round2/20261112_eval/READINGS_SUMMARY.md",
+   "results/round2/20261112_train/runs.json"
+  ]
  }
 }

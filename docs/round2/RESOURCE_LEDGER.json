@@ -1533,6 +1533,81 @@
      "job_wall_s": 53424.0,
      "kind": "batch_overhead",
      "run_id": "r2_batch_train_hk_mae_mse_rf_s9000"
+    },
+    {
+     "arm": "mae_mse_rf",
+     "batch_cluster": "759709",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_eval_hk__mae_mse_rf__s9000/20261115T145335Z",
+     "detector": "hk",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.19093038068877327,
+     "kind": "eval",
+     "seed": 9000,
+     "utc": "2026-11-15T15:11:59Z",
+     "wall_s": 687.3493704795837
+    },
+    {
+     "batch_cluster": "759709",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_eval_hk__mae_mse_rf__s9000/20261115T145335Z",
+     "gpu": "a100",
+     "gpu_h": 0.030458508200115614,
+     "job_wall_s": 797.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_eval_hk__mae_mse_rf__s9000"
+    },
+    {
+     "arm": "target_posfree",
+     "batch_cluster": "759705",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_hk_target_posfree_s9002/20261115T061000Z",
+     "complete": true,
+     "detector": "hk",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 16.117719281713168,
+     "kind": "train",
+     "micro_batch": 4,
+     "precheck": {
+      "booked_h": 141.35972222222225,
+      "cap_h": 200.0,
+      "ledger_line": "R2_batch_gpu",
+      "projected_h": 16.131588485505844,
+      "reserved_h": 0.0,
+      "total_h": 157.49131070772808
+     },
+     "seed": 9002,
+     "steps": 10000,
+     "utc": "2026-11-15T22:32:44Z",
+     "wall_cap_hit": false,
+     "wall_s": 58023.789414167404
+    },
+    {
+     "batch_cluster": "759705",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_train_hk_target_posfree_s9002/20261115T061000Z",
+     "gpu": "a100",
+     "gpu_h": 0.03033627384238713,
+     "job_wall_s": 58133.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_train_hk_target_posfree_s9002"
+    },
+    {
+     "arm": "target_posfree",
+     "batch_cluster": "759713",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_eval_hk__target_posfree__s9002/20261115T223733Z",
+     "detector": "hk",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "gpu_h": 0.1826846351226171,
+     "kind": "eval",
+     "seed": 9002,
+     "utc": "2026-11-15T22:52:08Z",
+     "wall_s": 657.6646864414215
+    },
+    {
+     "batch_cluster": "759713",
+     "batch_job_dir": "/work/dwong/r2_batch/jobs/r2_batch_eval_hk__target_posfree__s9002/20261115T223733Z",
+     "gpu": "a100",
+     "gpu_h": 0.03287092043293846,
+     "job_wall_s": 776.0,
+     "kind": "batch_overhead",
+     "run_id": "r2_batch_eval_hk__target_posfree__s9002"
     }
    ],
    "hk_fallback": {
@@ -2325,7 +2400,7 @@
  },
  "totals": {
   "R2_batch_gpu": {
-   "booked_gpu_h": 173.6497,
+   "booked_gpu_h": 190.2347,
    "cap_gpu_h": 200.0
   },
   "R2_l40s_deepthought2": {
