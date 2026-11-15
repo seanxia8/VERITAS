@@ -55,7 +55,9 @@ def main():
                 t.add(p, arcname=f"returns/smokes/{p.parent.name}/run_record.json")
         for g in a.ship_glob:
             for p in sorted(R.glob(g)):
-                t.add(p, arcname=f"returns/{p.relative_to(R).as_posix()}")
+                rel = p.relative_to(R).as_posix()
+                rel = rel[len("batch/"):] if rel.startswith("batch/") else rel  # batch tree = job returns/
+                t.add(p, arcname=f"returns/{rel}")
         if a.resume_run:
             src = B / "runs" / a.resume_run
             if not src.exists():
