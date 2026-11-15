@@ -14,6 +14,7 @@ import argparse
 import json
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -24,14 +25,12 @@ from . import ext_r2_gatev as g
 def truth_event(raw: dict, event_id: int):
     """The fields ``expected_mu`` reads, exactly as ``cv.event_from_transport`` sets them; the
     wavelengths are the emitted ones (they only set the uniform QE scalar, removed by rescaling)."""
-    from . import cherenkov_validation as cv
     direction = np.asarray(raw["primary_direction"], dtype=float)
     path = np.asarray(raw.get("primary_path_m", np.zeros((2, 3))), dtype=float)
     track_length = float(np.linalg.norm(path[-1] - path[0])) if path.shape[0] >= 2 else float("nan")
-    return cv.ValidationEvent(
+    return SimpleNamespace(
         event_id=int(event_id), domain=lb.DOMAIN_MUON,
         vertex_m=np.asarray(raw["vertex_m"], dtype=float),
-        sensor_id=np.zeros(0, np.int64), time_ns=np.zeros(0),
         wavelength_nm=np.asarray(raw["wavelength_nm"], dtype=float),
         direction_m=direction / np.linalg.norm(direction),
         energy_MeV=float(raw["energy_MeV"]), deposited_MeV=float(raw["energy_MeV"]),
