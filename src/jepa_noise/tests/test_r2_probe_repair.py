@@ -61,3 +61,19 @@ def test_spatial_moment_recovers_spherical_wavefront():
         return np.linalg.norm(prediction - vertex[192:], axis=1).mean()
 
     assert error(latent) * 5 < error(pool_tokens(tokens, raw, "all_mean"))
+
+
+def test_checkpoint_selection_skips_incomplete_copy(tmp_path):
+    import torch
+
+    from jepa_noise.ext_r2_repair_probes import final_checkpoint
+
+    identity = {"arm": "target_posfree", "seed": 9000}
+    partial = tmp_path / "partial.pt"
+    final = tmp_path / "final.pt"
+    torch.save({"step": 3168, "identity": identity}, partial)
+    torch.save({"step": 10000, "identity": identity}, final)
+    selected, payload, digest = final_checkpoint([partial, final], "target_posfree", 9000)
+    assert selected == final
+    assert payload["step"] == 10000
+    assert len(digest) == 64

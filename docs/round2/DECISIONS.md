@@ -183,3 +183,7 @@ Addendum §0, verbatim: **Author, 13 Nov 2026, 23:35:**
 195db1db3398e183582b32475eee830e47376fa38b56d2292dd21dfdc6da9d78  docs/round2/ROOT_CAUSE_ANALYSIS_2026-11-17.md
 ca715c77a9e90f170655b3fd57558acd9f451a82ec5a7b98b243b5846391dd00  docs/round2/RUNBOOK_2026-11-17_R2_DIAGNOSTICS.md
 f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RUNBOOK_2026-11-17_R2_REPAIR.md
+
+- 2026-11-17 r2-repair Stage 1: Freeze the Stage 1 source at `7498c49` for production probes. Use matching hidden-hit positions for raw, post-LayerNorm and masked token R² to keep the test populations identical. Use charge weighting if all hits are pretrigger and use the active mean if there are zero hits.
+- 2026-11-17 r2-repair Stage 1: The initial Titan check found a foreign process on all four cards. Use six CPU threads on dt1 for WCTE and at most two guarded L40S probe workers on dt2 for SK, HK and then JUNO. Book occupied L40S time from the launcher status on `R2_repair_gpu`.
+- 2026-11-17 r2-repair Stage 1: The SK position-free seed-9000 primary path retained a partial checkpoint (step 3168). Select verified final checkpoints across both return namespaces and keep completed scores. The complete SK position-free seed-9000 batch copy is step 10000, SHA256 `d6d90524a41fe1b6cd73039c803b5a18a4f6286fbc76d774100fa0379db9c291`. JUNO took the released L40S lane while the resolver was repaired.

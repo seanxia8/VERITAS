@@ -2240,7 +2240,21 @@
    "authority": "RUNBOOK_2026-11-17_R2_REPAIR.md",
    "cap_h": 100.0,
    "cpu_entries": [],
-   "entries": []
+   "entries": [
+    {
+     "kind": "frozen_probe",
+     "detector": "sk",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "run_id": "r2repair_stage1_sk",
+     "wall_s": 1198.88,
+     "gpu_h": 0.3330222222222223,
+     "utc": "2026-11-17T02:37:55Z",
+     "exit_status": 1,
+     "note": "Partial target_posfree copy discovered after seven valid completed probe rows. Preserve those rows and resume against the final copy."
+    }
+   ]
   },
   "R2_titan_deepthought": {
    "addendum_sha256": "f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229",

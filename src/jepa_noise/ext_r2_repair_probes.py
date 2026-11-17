@@ -40,10 +40,10 @@ def dataset_path(detector):
     return r2.DATA_ROOT / detector / f"{detector}_r2.h5"
 
 
-def checkpoint_path(detector, arm, seed):
-    """Locate existing final checkpoints using the frozen campaign namespaces."""
+def checkpoint_candidates(detector, arm, seed):
+    """List checkpoints in the frozen campaign namespaces, including partial copies."""
     if arm == "init":
-        return None
+        return []
     if detector == "wcte":
         candidates = {
             "mae_mse": RETURNS / "ext_mae_dejitter_20261031/train/runs"
@@ -57,23 +57,34 @@ def checkpoint_path(detector, arm, seed):
     else:
         tag = f"{detector}__{arm}__s{seed}/checkpoint.pt"
         paths = [R2 / "runs" / tag, R2 / "batch/runs" / tag]
+    return [path for path in paths if path.is_file()]
+
+
+def final_checkpoint(paths, arm, seed):
+    """Select a final matching checkpoint and catch ambiguous complete copies."""
+    valid, seen = [], []
     for path in paths:
-        if path.is_file():
-            return path
-    if arm == "mae_mse_rf":
-        return None
-    raise FileNotFoundError(f"{detector}/{arm}/{seed}: {paths}")
+        payload = torch.load(path, map_location="cpu", weights_only=False)
+        identity = payload.get("identity", {})
+        step = int(payload.get("step", -1))
+        seen.append((str(path), step, identity.get("arm"), identity.get("seed")))
+        if (step == r2.STEPS and identity.get("seed") == seed
+                and identity.get("arm") in (arm, r2.base_arm_name(arm))):
+            valid.append((path, payload, rs.sha256_file(path)))
+    if not valid:
+        raise ValueError(f"no matching final checkpoint for {arm}/{seed}: {seen}")
+    if len({digest for _, _, digest in valid}) > 1:
+        raise ValueError(f"conflicting final copies for {arm}/{seed}: {seen}")
+    return valid[0]
 
 
-def make_model(detector, arm, seed, geometry, scaling, checkpoint, device):
+def make_model(arm, seed, geometry, scaling, paths, device):
     model = r2.build_r2_arm(arm, geometry, seed, scaling=scaling)
     meta = {"checkpoint": None, "checkpoint_sha256": None, "step": 0}
-    if checkpoint is not None:
-        payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
-        if int(payload["step"]) != r2.STEPS or int(payload["identity"]["seed"]) != seed:
-            raise ValueError(f"{checkpoint} is not the matching final checkpoint")
+    if arm != "init":
+        path, payload, digest = final_checkpoint(paths, arm, seed)
         model.load_state_dict(payload["model"])
-        meta = {"checkpoint": str(checkpoint), "checkpoint_sha256": rs.sha256_file(checkpoint),
+        meta = {"checkpoint": str(path), "checkpoint_sha256": digest,
                 "step": int(payload["step"]), "identity": payload["identity"]}
     return model.to(device).eval(), meta
 
@@ -218,13 +229,13 @@ def probe_matrix(args):
             record = out / f"{name}.json"
             if record.exists():
                 continue
-            ckpt = checkpoint_path(detector, arm, seed)
-            if ckpt is None and arm != "init":
+            candidates = checkpoint_candidates(detector, arm, seed)
+            if not candidates and arm == "mae_mse_rf":
                 print(f"{name}: optional checkpoint unavailable", flush=True)
                 continue
             start = time.monotonic()
-            print(f"{name}: {ckpt or 'random initialization'}", flush=True)
-            model, meta = make_model(detector, arm, seed, geometry, scaling, ckpt, device)
+            model, meta = make_model(arm, seed, geometry, scaling, candidates, device)
+            print(f"{name}: {meta['checkpoint'] or 'random initialization'}", flush=True)
             scores, arrays = evaluate(model, detector, seed, geometry, scaling, cohorts,
                                       device=device, chunk_size=args.chunk_size,
                                       events_per_run=args.events_per_run)
@@ -239,7 +250,7 @@ def probe_matrix(args):
 
 
 def aggregate(root, out):
-    rows = []
+    rows, unavailable = [], []
     lines = ["# Frozen-checkpoint probe repair", "",
              "Mean 3-D error in metres / fraction of the fiducial radius. "
              "Both fit and model selection use complete probe-training runs.", "",
@@ -251,8 +262,14 @@ def aggregate(root, out):
             for arm in ARMS:
                 path = root / f"{detector}__{arm}__s{seed}.json"
                 if not path.exists() and arm == "mae_mse_rf":
-                    continue
+                    if not checkpoint_candidates(detector, arm, seed):
+                        unavailable.append({"detector": detector, "arm": arm, "seed": seed})
+                        continue
                 row = json.loads(path.read_text())
+                if (row["detector"], row["arm"], row["seed"]) != (detector, arm, seed):
+                    raise ValueError(f"row identity differs from its path: {path}")
+                if not path.with_suffix(".npz").is_file():
+                    raise FileNotFoundError(f"missing per-event predictions for {path}")
                 if row["events_per_run"] is not None:
                     raise ValueError(f"refusing to aggregate smoke output {path}")
                 rows.append(row)
@@ -275,7 +292,8 @@ def aggregate(root, out):
                   "provenance are keyed by detector, run and event on Ceph.", ""])
     out.mkdir(parents=True, exist_ok=True)
     (out / "probe_repair_results.json").write_text(json.dumps(
-        {"extension": EXTENSION, "registered": False, "runs": rows},
+        {"extension": EXTENSION, "registered": False, "runs": rows,
+         "unavailable_optional_checkpoints": unavailable},
         indent=2, sort_keys=True, allow_nan=False) + "\n")
     (out / "PROBE_REPAIR_TABLE.md").write_text("\n".join(lines))
 
