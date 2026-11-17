@@ -2253,6 +2253,66 @@
      "utc": "2026-11-17T02:37:55Z",
      "exit_status": 1,
      "note": "Partial target_posfree copy discovered after seven valid completed probe rows. Preserve those rows and resume against the final copy."
+    },
+    {
+     "kind": "frozen_probe",
+     "detector": "juno",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "run_id": "r2repair_stage1_juno",
+     "wall_s": 1358.54,
+     "gpu_h": 0.3773722222222222,
+     "utc": "2026-11-17T03:02:28Z",
+     "exit_status": 0
+    },
+    {
+     "kind": "frozen_probe",
+     "detector": "sk",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "run_id": "r2repair_stage1_sk_retry",
+     "wall_s": 349.42,
+     "gpu_h": 0.09706111111111111,
+     "utc": "2026-11-17T03:10:38Z",
+     "exit_status": 0
+    },
+    {
+     "kind": "frozen_probe",
+     "detector": "wcte",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "run_id": "r2repair_stage1_wcte_posfree",
+     "wall_s": 92.06,
+     "gpu_h": 0.025572222222222222,
+     "utc": "2026-11-17T03:14:05Z",
+     "exit_status": 0
+    },
+    {
+     "kind": "frozen_probe",
+     "detector": "hk",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 1,
+     "run_id": "r2repair_stage1_hk",
+     "wall_s": 3343.65,
+     "gpu_h": 0.9287916666666667,
+     "utc": "2026-11-17T03:14:25Z",
+     "exit_status": 0
+    },
+    {
+     "kind": "frozen_probe",
+     "detector": "wcte",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "run_id": "r2repair_stage1_wcte_fix9001",
+     "wall_s": 48.55,
+     "gpu_h": 0.01348611111111111,
+     "utc": "2026-11-17T03:17:45Z",
+     "exit_status": 0
     }
    ]
   },
