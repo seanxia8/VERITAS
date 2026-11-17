@@ -172,3 +172,14 @@ Addendum §0, verbatim: **Author, 13 Nov 2026, 23:35:**
 - 2026-11-16 r2-report: SK `mae_mse_rf` loss shares were missing from the §6 diagnostics because the results writer read only `R/runs/` and that run trained on the batch line (`R/batch/runs/`); computed from its committed 10,000-step log with `ext_r2.loss_shares` and added to `readings.json` (`loss_shares_note`). No reading changed.
 - 2026-11-16 r2-report: the extra §10 figures (particle tasks, RF − MAE, time scale) are rendered on Deepthought (`ext_r2_report_figs.py`; the Mac has no matplotlib) from the committed `readings.json` and the round-1 A-3 particle tasks; the WCTE particle reference uses `mae_within_trigger9000`, `init9000`, `fix9000` (no position-free entry in round-1 A-3).
 - 2026-11-16 r2-report: the cross-detector table puts the round-1 WCTE values beside the round-2 classes without re-reading round 1; WCTE R2-a is described by applying the unchanged §7 threshold to the committed f_event, and R2-b quotes the round-1 R-2 reading. All §7 rules unchanged (no S9).
+
+## r2-repair (runbook `RUNBOOK_2026-11-17_R2_REPAIR.md`)
+
+- **Author, 17 Nov 2026, 02:52 CET:** "不错，然后根据这个md写一个runbook，让一个能ssh进deepthought的agent去一步步做，可以用deepthought gpu也可以jobsubmission，要求agent一直做直到做完runbook，它做完我会让你来验收"
+- **Author, 17 Nov 2026, 01:26 CET (Diagnostics Part A & Part B):** Authorises event displays, error anatomy, simulation sanity & HK `2.07x` Gate V reconciliation, representations (PCA/t-SNE/UMAP/CKA), photon-bomb physics ceiling (ML fit + Cramér–Rao bound), JEPA bug checks, and GPU retraining with intermediate step snapshots (`0, 50, 100, 200, 500, 1k, 2k, 5k, 10k`).
+- **Standing Rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
+- 2026-11-17 r2-repair: The worktree contains active Part-A diagnostic edits from a separate run. Stage only the three requested documents, the repair ledger line and this new decision section.
+- 2026-11-17 r2-repair: Stage 0 verified the three source documents by SHA256.
+195db1db3398e183582b32475eee830e47376fa38b56d2292dd21dfdc6da9d78  docs/round2/ROOT_CAUSE_ANALYSIS_2026-11-17.md
+ca715c77a9e90f170655b3fd57558acd9f451a82ec5a7b98b243b5846391dd00  docs/round2/RUNBOOK_2026-11-17_R2_DIAGNOSTICS.md
+f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RUNBOOK_2026-11-17_R2_REPAIR.md

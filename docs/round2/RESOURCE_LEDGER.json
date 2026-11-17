@@ -2236,6 +2236,12 @@
     }
    }
   },
+  "R2_repair_gpu": {
+   "authority": "RUNBOOK_2026-11-17_R2_REPAIR.md",
+   "cap_h": 100.0,
+   "cpu_entries": [],
+   "entries": []
+  },
   "R2_titan_deepthought": {
    "addendum_sha256": "f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229",
    "cap_h": 160.0,
