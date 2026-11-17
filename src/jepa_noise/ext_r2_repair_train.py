@@ -122,8 +122,9 @@ def train_locked(args, run_dir):
                           encoder_config=encoder).to(args.device)
     optimizers, optimiser, scheduler = lr.build_optimizers(arm, cfg)
     shuffle = args.arm in ("jepa_repaired", "mae_repaired")
+    split = "spatial_patch" if args.arm == "mae_repaired" else "within"
     loader = rs.R2TrainingLoader(cohort, geometry, seed=SEED, scaling=scaling, batch=r2.BATCH,
-                                 mask_seed=mask_seed, n_min=int(cfg["views"]["n_min"]),
+                                 mask_seed=mask_seed, split=split, n_min=int(cfg["views"]["n_min"]),
                                  shuffle_events_within_batch=shuffle)
     snapshots = ((0, args.smoke) if args.smoke else
                  SNAPSHOTS if args.detector in ("wcte", "sk") else (0, 500, 2000, 10000))
@@ -131,8 +132,10 @@ def train_locked(args, run_dir):
     identity = {"run_id": run_id(args.detector, args.arm), "cell_id": f"r2_{args.detector}_within",
                 "arm": args.arm, "seed": SEED, "beta": None, "steps_scheduled": steps,
                 "gradient_clip": optimiser.get("gradient_clip")}
+    training = dict(cfg["training"], micro_batch=args.micro_batch,
+                    gradient_accumulation=r2.BATCH // args.micro_batch)
     recipe = {"identity": identity, "encoder": asdict(encoder), "scaling": asdict(scaling),
-              "training": cfg["training"], "geometry_sha256": geometry.digest,
+              "training": training, "geometry_sha256": geometry.digest, "view_mode": split,
               "data_identity_sha256": data_identity, "mask_seed": int(mask_seed),
               "micro_batch": args.micro_batch, "shuffle": shuffle,
               "full_batch_sigreg": args.arm == "jepa_repaired", "snapshot_steps": snapshots}
@@ -159,7 +162,8 @@ def train_locked(args, run_dir):
                                    if args.device == "cuda" else None),
                   complete=result["step"] == steps and not result["interrupted"])
     write_json(run_dir / "run_record.json", record)
-    print(json.dumps(lr._safe(record)), flush=True)
+    print(json.dumps({key: record[key] for key in ("complete", "step", "elapsed_seconds",
+                                                     "wall_seconds", "peak_memory_gib")}), flush=True)
     return 0 if record["complete"] else 2
 
 

@@ -13,11 +13,49 @@ def key(e):
     return json.dumps(e, sort_keys=True)
 
 
+
+def sync_repair(directory, submission):
+    """Keep one immutable return bundle and one HTCondor usage record per attempt."""
+    import os
+    import subprocess
+
+    cluster = submission["cluster"]
+    if not cluster or not cluster.isdecimal():
+        raise ValueError("a repair return requires a valid cluster ID")
+    destination = R.parent / "r2_repair_2026-11-17" / "batch" / "attempts" / cluster
+    if destination.exists():
+        print((destination / "batch_record.json").read_text())
+        return
+    completed = subprocess.run(
+        ["condor_history", cluster, "-limit", "1", "-json"], check=True,
+        capture_output=True, text=True)
+    history, = json.loads(completed.stdout)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=destination.parent) as work:
+        work = Path(work)
+        with tarfile.open(directory / "returns_out.tar") as archive:
+            for member in archive.getmembers():
+                path = Path(member.name)
+                if (not path.parts or path.parts[0] != "returns" or ".." in path.parts
+                        or not (member.isreg() or member.isdir())):
+                    raise ValueError(f"unexpected repair bundle member {member.name!r}")
+            archive.extractall(work)
+        payload = work / "returns"
+        status = payload / "JOB_EXIT_CODE"
+        record = {"submission": submission, "gpu_wall_seconds": history["RemoteWallClockTime"],
+                  "remote_host": history.get("LastRemoteHost"),
+                  "exit": int(status.read_text()) if status.exists() else None}
+        (payload / "batch_record.json").write_text(json.dumps(record, indent=2) + "\n")
+        os.rename(payload, destination)
+    print(json.dumps(record))
+
 def main(job_dir):
     d = Path(job_dir)
     if (d / "SYNCED").exists():
         print("already synced"); return
     sub = json.loads((d / "submit.json").read_text())
+    if sub.get("campaign") == "repair":
+        return sync_repair(d, sub)
     out = d / "returns_out.tar"
     if not out.exists():
         raise SystemExit(f"{out} missing")

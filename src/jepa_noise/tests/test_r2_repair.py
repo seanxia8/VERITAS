@@ -88,8 +88,20 @@ class _Loader:
         return self.batch, None
 
 
+@pytest.fixture
+def fixed_gradient_test_threads():
+    # Full and sliced FP32 matmuls can change reduction order with the CPU thread count.
+    previous = torch.get_num_threads()
+    torch.set_num_threads(2)
+    try:
+        yield
+    finally:
+        torch.set_num_threads(previous)
+
+
 @pytest.mark.parametrize("name", ["sigreg_jepa", "jepa_repaired"])
-def test_full_batch_sigreg_loss_and_gradients_match_micro_batches(tmp_path, name):
+def test_full_batch_sigreg_loss_and_gradients_match_micro_batches(
+        tmp_path, name, fixed_gradient_test_threads):
     geometry, scaling, _, batch = _synthetic()
     full, micro = [_arm(name, geometry, scaling) for _ in range(2)]
     records = []

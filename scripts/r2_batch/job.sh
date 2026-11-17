@@ -50,7 +50,12 @@ export R2_BATCH_MEM_LIMIT_GIB=$(python3 -c "import torch;print(round(0.9*torch.c
 export R2_SITE="$(grep -E '^CloudSite' ${_CONDOR_MACHINE_AD:-/dev/null} 2>/dev/null | cut -d'"' -f2):$(hostname)"
 for kv in ${R2_EXTRA_ENV:-}; do export "$kv"; done
 python3 -c "import torch,numpy,scipy,h5py,sys;print('env', sys.version.split()[0], torch.__version__, numpy.__version__, scipy.__version__, h5py.__version__, torch.cuda.get_device_name(0))"
-log "run: $*"
-timeout -s TERM -k 300 ${R2_TIME_LIMIT_S:-80000} python3 -m jepa_noise.ext_r2 "$@"
-rc=$?; log "ext_r2 exit $rc"; echo $rc > returns/JOB_EXIT_CODE
+module=jepa_noise.ext_r2
+if [[ ${R2_BATCH_CAMPAIGN:-multidetector} == repair ]]; then
+  module=jepa_noise.ext_r2_repair_train
+  export R2_REPAIR_OUTPUT_ROOT=$W/returns
+fi
+log "run: $module $*"
+timeout -s TERM -k 300 ${R2_TIME_LIMIT_S:-80000} python3 -m "$module" "$@"
+rc=$?; log "$module exit $rc"; echo $rc > returns/JOB_EXIT_CODE
 exit 0

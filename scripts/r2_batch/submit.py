@@ -10,6 +10,7 @@ from pathlib import Path
 
 R = Path("/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11")
 B = R / "batch"
+REPAIR = R.parent / "r2_repair_2026-11-17"
 JOBS = Path("/work/dwong/r2_batch/jobs")
 REPO = Path("/work/dwong/r2_repo")
 IMAGE = "pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime"
@@ -26,6 +27,7 @@ def main():
     ap.add_argument("--files", nargs="*", default=[]); ap.add_argument("--code", required=True)
     ap.add_argument("--resume-run", default=None); ap.add_argument("--smokes-for", default=None)
     ap.add_argument("--extra-env", nargs="*", default=[])
+    ap.add_argument("--campaign", choices=("multidetector", "repair"), default="multidetector")
     ap.add_argument("--ship-glob", nargs="*", default=[],
                     help="returns-root-relative globs shipped into the job's returns/ (e.g. eval/sk__*)")
     import sys
@@ -35,6 +37,10 @@ def main():
     cut = argv.index("--")
     a = ap.parse_args(argv[:cut])
     args = argv[cut + 1:]
+    repair = a.campaign == "repair"
+    returns = REPAIR if repair else R
+    if repair and (a.smokes_for or a.gpu == "h200"):
+        ap.error("the repair campaign stages its own smokes and uses A100 or L40S")
     sums = Path("/ceph/srv/dwong/r2/SHA256SUMS").read_text()
     for f in [a.code] + a.files:
         if f" {f}\n" not in sums + "\n":
@@ -48,26 +54,34 @@ def main():
     shutil.copy(wheel, d / wheel.name)
     with tarfile.open(d / "returns_in.tar", "w") as t:
         led = R / "ledger" / "RESOURCE_LEDGER_R2_BATCH.json"
-        if led.exists():
+        if not repair and led.exists():
             t.add(led, arcname="returns/ledger/RESOURCE_LEDGER_R2_BATCH.json")
         if a.smokes_for:
             for p in sorted((B / "smokes").glob(f"{a.smokes_for}__*/run_record.json")):
                 t.add(p, arcname=f"returns/smokes/{p.parent.name}/run_record.json")
         for g in a.ship_glob:
-            for p in sorted(R.glob(g)):
-                rel = p.relative_to(R).as_posix()
+            for p in sorted(returns.glob(g)):
+                rel = p.relative_to(returns).as_posix()
                 rel = rel[len("batch/"):] if rel.startswith("batch/") else rel  # batch tree = job returns/
                 t.add(p, arcname=f"returns/{rel}")
         if a.resume_run:
-            src = B / "runs" / a.resume_run
+            src = returns / "batch" / "runs" / a.resume_run
             if not src.exists():
-                src = R / "runs" / a.resume_run  # a deepthought2 run moving to batch
-            for name in ("checkpoint.pt", "train_log.jsonl", "run_record.json"):
-                if (src / name).exists():
-                    t.add(src / name, arcname=f"returns/runs/{a.resume_run}/{name}")
+                src = returns / "runs" / a.resume_run
+            state = [src / name for name in ("checkpoint.pt", "train_log.jsonl", "run_record.json")]
+            if repair:
+                state.extend(sorted(src.glob("snapshot_step_*.pt")))
+            for path in state:
+                if path.is_file():
+                    t.add(path, arcname=f"returns/runs/{a.resume_run}/{path.name}")
     wall_s = int(a.walltime_h * 3600)
     env = [f"R2_FILES='{' '.join(a.files)}'", f"R2_CODE='{a.code}'", f"R2_TIME_LIMIT_S={max(600, wall_s - 1200)}",
            f"R2_EXTRA_ENV='{' '.join(a.extra_env)}'", "USE_USER=dwong"]
+    if repair:
+        code_head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
+        if a.code != f"code/r2_{code_head[:8]}.tar.gz":
+            ap.error("repair code must match the staged clone HEAD")
+        env.extend(("R2_BATCH_CAMPAIGN=repair", f"JEPA_CODE_SHA={code_head}"))
     universe = ("Universe = docker\ndocker_image = " + IMAGE) if a.gpu == "a100" else \
                ("Universe = container\ncontainer_image = docker://" + IMAGE)
     jdl = f"""Executable = job.sh
@@ -96,12 +110,14 @@ Queue
     cluster = out.stdout.strip().split()[-1].rstrip(".") if out.returncode == 0 else None
     rec = {"run_id": a.run_id, "dir": str(d), "cluster": cluster, "gpu": a.gpu, "walltime_h": a.walltime_h,
            "args": args, "files": a.files, "code": a.code, "resume_run": a.resume_run,
+           "campaign": a.campaign,
            "submitted_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "stderr": out.stderr[-500:]}
     (d / "submit.json").write_text(json.dumps(rec, indent=1))
     with open(JOBS / "submissions.jsonl", "a") as f:
         f.write(json.dumps(rec) + "\n")
     print(json.dumps(rec))
+    return out.returncode
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
