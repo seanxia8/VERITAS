@@ -145,6 +145,8 @@ class LucidBatch:
     scaling: FeatureScaling
     split: str
     occupancy: str
+    run_ids: np.ndarray | None = None
+    domains: np.ndarray | None = None
 
 
 def _hits_path(source) -> Path:

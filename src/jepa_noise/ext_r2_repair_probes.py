@@ -111,7 +111,7 @@ def stream(model, geometry, scaling, cohort, *, device, chunk_size, events_per_r
             if not np.array_equal(ids, batch.event_ids):
                 raise RuntimeError(f"evaluation lost alignment at {run_id}")
             x = batch.features
-            encoded = model.jepa.encode(x.to(device))
+            encoded = model.encode_tokens(x.to(device))
             z = encoded.float().cpu().numpy()
             raw = x.numpy()
             latent, full = moment_features(z, raw)
@@ -145,7 +145,7 @@ def stream(model, geometry, scaling, cohort, *, device, chunk_size, events_per_r
             sample_rows = np.asarray(sample_rows)
             columns = np.asarray(columns)
             pmts = target[sample_rows, columns]
-            context = model.jepa.encode(x_dev, hidden_mask=hidden)
+            context = model.jepa.encode(model._encoder_features(x_dev), hidden_mask=hidden)
             prediction = model.jepa.predict(context, batch.context_index.to(device),
                                             torch.as_tensor(target, device=device))
             unmasked = encoded[sample_rows, pmts].float()

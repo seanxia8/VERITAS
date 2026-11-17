@@ -137,6 +137,9 @@ def encoder_config_for(arm: str, geometry):
     if arm == RF_ARM:
         w, s = rg.rf_window_rule(geometry.n_pmt)
         return EncoderConfig(window=int(w), shift=int(s))
+    if arm in ("jepa_repaired", "mae_repaired"):
+        window = {"wcte": 64, "sk": 384, "juno": 320, "hk": 640}[geometry.detector]
+        return EncoderConfig(window=window, shift=window // 2)
     return EncoderConfig()
 
 
@@ -145,13 +148,14 @@ def base_arm_name(arm: str) -> str:
     return {"target_posfree": "sigreg_jepa", "init": "sigreg_jepa", RF_ARM: "mae_mse"}.get(arm, arm)
 
 
-def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, run_cfg=None):
+def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, run_cfg=None,
+                 encoder_config=None):
     """Build one §5.1 arm on a round-2 geometry with the round-1 builders."""
     import torch
     from . import lucid_arms as la
     from . import lucid_run as lr
     from .ext_shortcut import attach_posfree_target
-    if arm not in ALL_ARMS:
+    if arm not in ALL_ARMS + la.REPAIR_ARMS:
         raise ValueError(f"unknown round-2 arm {arm!r}")
     run_cfg = run_config() if run_cfg is None else run_cfg
     arms_cfg = arms_config() if arms_cfg is None else arms_cfg
@@ -159,8 +163,13 @@ def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, 
     settings = la.ArmSettings.from_config(arms_cfg, cell=(cell.s_arm, cell.s_p))
     torch.manual_seed(int(seed))
     np.random.seed(int(seed) % 2 ** 32)
+    if scaling is None and arm == "mae_repaired":
+        from . import r2_generator, r2_store
+        scaling = r2_store.scaling_for(geometry, r2_generator.time_rule_for(geometry).time_scale_ns)
+    time_weight = (scaling.time_scale_ns / 50.0) ** 2 if arm == "mae_repaired" else 1.0
     made = la.build_arm(base_arm_name(arm), geometry, settings=settings, seed=int(seed),
-                        encoder_config=encoder_config_for(arm, geometry), scaling=scaling)
+                        encoder_config=encoder_config or encoder_config_for(arm, geometry), scaling=scaling,
+                        time_loss_weight=time_weight)
     if arm == "target_posfree":
         attach_posfree_target(made)
     return made

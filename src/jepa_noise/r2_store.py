@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -327,7 +327,8 @@ class R2TrainingLoader:
 
     def __init__(self, cohort: R2Cohort, geometry, *, seed: int, scaling, split: str = "within",
                  n_min: int = lb.N_MIN, batch: int = 32, mask_seed: int = lb.DEFAULT_SEED,
-                 occupancy: str = "natural"):
+                 occupancy: str = "natural", shuffle_events_within_batch: bool = False):
+        self.shuffle_events_within_batch = bool(shuffle_events_within_batch)
         self.cohort, self.geometry, self.seed = cohort, geometry, int(seed)
         self.scaling, self.split, self.n_min, self.batch = scaling, split, int(n_min), int(batch)
         self.mask_seed, self.occupancy = int(mask_seed), occupancy
@@ -343,7 +344,7 @@ class R2TrainingLoader:
         rng = lb.keyed_rng(self.seed, "lucid/batches", int(step))
         chosen = np.sort(rng.choice(len(self.rows), min(8, len(self.rows)), replace=False))
         per = max(1, self.batch // chosen.size)
-        batches, rows = [], []
+        batches, rows, run_ids, domains = [], [], [], []
         for index in chosen:
             row = self.rows[int(index)]
             take = np.sort(int(row["event_id_start"]) + rng.permutation(int(row["n_events"]))[:per])
@@ -356,4 +357,24 @@ class R2TrainingLoader:
                 continue
             batches.append(b)
             rows.append(np.arange(b.event_ids.size))
-        return lr._stack(batches, rows), None
+            if self.shuffle_events_within_batch:
+                run_ids.extend([row["run_id"]] * len(b.event_ids))
+                if "domain" in self.cohort.truth:
+                    lookup = {eid: domain for eid, domain in zip(
+                        self._store(int(index)).event_ids, self.cohort.truth["domain"][self.cohort.run_slice(int(index))]
+                    )}
+                    domains.extend(lookup[eid] for eid in b.event_ids)
+        batch = lr._stack(batches, rows)
+        if self.shuffle_events_within_batch:
+            runs = np.asarray(run_ids)
+            batch = replace(batch, run_ids=runs, domains=np.asarray(domains) if domains else None)
+            rng = np.random.default_rng(self.seed + int(step) + 7919)
+            permutation = rng.permutation(len(batch.event_ids))
+            # With four events per run, a random permutation can still group a
+            # complete run into one four-event slice. Redraw that rare case.
+            if len(np.unique(runs)) > 1 and np.max(np.unique(runs, return_counts=True)[1]) <= 4:
+                while any(len(set(runs[permutation[i:i + 4]])) == 1
+                          for i in range(0, len(permutation) - 3, 4)):
+                    permutation = rng.permutation(len(batch.event_ids))
+            batch = lr._select_batch(batch, permutation)
+        return batch, None

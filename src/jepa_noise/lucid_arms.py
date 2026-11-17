@@ -49,7 +49,7 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Sequence
 
@@ -80,6 +80,7 @@ __all__ = [
 ARMS = ("mae_mse", "mae_chi2", "ijepa_ema", "sigreg_jepa", "sigreg_jepa_anchored",
         "anchor_only", "oracle_nominal_twin")
 DARK_VARIANT = "sigreg_jepa_anchored_dark"
+REPAIR_ARMS = ("sigreg_jepa_all_posfree", "jepa_repaired", "mae_repaired")
 ALL_ARMS = ARMS + (DARK_VARIANT,)
 ANCHOR_ARMS = ("sigreg_jepa_anchored", DARK_VARIANT)
 #: Arms whose beta is chosen on the §3.5.6 development cohort.
@@ -321,10 +322,11 @@ class LucidArm(nn.Module):
     def __init__(self, arm: str, geometry, *, settings: ArmSettings,
                  encoder_config: EncoderConfig | None = None,
                  scaling: FeatureScaling | None = None, beta: float | None = None,
-                 seed: int = 0, dark_bank: DarkBank | None = None):
+                 seed: int = 0, dark_bank: DarkBank | None = None,
+                 sigreg_mode: str | None = None, time_loss_weight: float = 1.0):
         super().__init__()
-        if arm not in ALL_ARMS:
-            raise ValueError(f"unknown LUCiD arm {arm!r}; expected {ALL_ARMS}")
+        if arm not in ALL_ARMS + REPAIR_ARMS:
+            raise ValueError(f"unknown LUCiD arm {arm!r}; expected {ALL_ARMS + REPAIR_ARMS}")
         if arm in BETA_ARMS:
             if beta is None:
                 raise ValueError(f"{arm} requires beta from the registered grid "
@@ -337,6 +339,12 @@ class LucidArm(nn.Module):
         elif beta is not None:
             raise ValueError(f"{arm} takes no beta")
         self.arm, self.settings, self.seed = arm, settings, int(seed)
+        self.sigreg_mode = sigreg_mode or ("event_and_hit_token" if arm == "jepa_repaired" else "legacy_flat")
+        if self.sigreg_mode not in ("legacy_flat", "event_and_hit_token"):
+            raise ValueError(f"unknown SIGReg mode {self.sigreg_mode!r}")
+        if not math.isfinite(time_loss_weight) or time_loss_weight <= 0:
+            raise ValueError("time_loss_weight must be positive and finite")
+        self.time_loss_weight = float(time_loss_weight)
         self.beta = float(beta) if beta is not None else None
         self.dark_only = arm == DARK_VARIANT
         self.n_modules = int(geometry.n_modules)
@@ -352,16 +360,18 @@ class LucidArm(nn.Module):
                              torch.as_tensor(geometry.pmt_id_in_mpmt - 1, dtype=torch.long),
                              persistent=False)
         self.charge_floor = float(self.jepa.scaling.charge_floor_pe)
-        sizes = {"mae_mse": 3, "mae_chi2": 2}
+        sizes = {"mae_mse": 3, "mae_repaired": 3, "mae_chi2": 2}
         self.head = nn.Linear(self.d_model, sizes[arm]) if arm in sizes else None
-        self.sigreg = SIGReg(settings.sigreg) if arm in SIGREG_ARMS else None
+        self.sigreg = SIGReg(settings.sigreg) if arm in SIGREG_ARMS + REPAIR_ARMS[:2] else None
         self.target_encoder, self.target_norm = None, None
-        if arm == "ijepa_ema":
+        if arm in ("ijepa_ema", "jepa_repaired"):
             import copy
             self.target_encoder = copy.deepcopy(self.jepa.encoder)
             for parameter in self.target_encoder.parameters():
                 parameter.requires_grad_(False)
             self.target_norm = nn.LayerNorm(self.d_model, elementwise_affine=False)
+        self.hit_head = nn.Linear(self.d_model, 1) if arm == "jepa_repaired" else None
+        self.obs_head = nn.Linear(self.d_model, 2) if arm == "jepa_repaired" else None
         self._generator = torch.Generator().manual_seed(self.seed + 100003)
         bank = dark_bank if dark_bank is not None else DarkBank.empty(self.n_pmt)
         if int(bank.hit.shape[1]) != self.n_pmt:
@@ -404,17 +414,18 @@ class LucidArm(nn.Module):
 
     def _encode_views(self, batch: LucidBatch, *, need_full: bool = True):
         hidden_index = self._hidden_index(batch)
-        context = self.jepa.encode(batch.features, hidden_mask=batch.hidden)
+        features = self._encoder_features(batch.features)
+        context = self.jepa.encode(features, hidden_mask=batch.hidden)
         prediction = self.jepa.predict(context, batch.context_index, hidden_index)
         if not need_full:
             return context, prediction, None, hidden_index, None
-        full = self.jepa.encode(batch.features)
+        full = self.jepa.encode(features)
         # WP4 label definition (v3, kept by v4 §2): labels come from a target-only
         # pass.  The full unmasked pass is still returned for the anchor and for
         # evaluation (and existing callers); it is not used as the prediction label.
         # A label read-out on the full event can otherwise copy context through
         # the shared encoder (A10 audit / 2026-10-23 label-shortcut diagnostic).
-        label_full = self.jepa.encode(batch.features, hidden_mask=~batch.target)
+        label_full = self.jepa.encode(features, hidden_mask=~batch.target)
         gather = hidden_index.unsqueeze(-1).expand(-1, -1, self.d_model)
         return context, prediction, label_full.gather(1, gather), hidden_index, full
 
@@ -450,7 +461,7 @@ class LucidArm(nn.Module):
             batch = twin_batch
         elif oracle or twin_batch is not None:
             raise PermissionError("the nominal twin is private to oracle_nominal_twin")
-        if self.arm == "mae_mse":
+        if self.arm in ("mae_mse", "mae_repaired"):
             return self._forward_mae_mse(batch)
         if self.arm == "mae_chi2":
             return self._forward_mae_chi2(batch)
@@ -461,17 +472,120 @@ class LucidArm(nn.Module):
         out = self._forward_sigreg(batch)
         return self._add_anchor(batch, out) if self.arm in ANCHOR_ARMS else out
 
-    def _forward_sigreg(self, batch: LucidBatch) -> dict:
-        context, prediction, labels, _, full = self._encode_views(batch)
-        prediction_loss = F.mse_loss(prediction, labels)
-        regulariser = self.sigreg(self._context_pooled(context, batch.context_index), labels)
-        loss = prediction_loss + self.coefficient_lambda * regulariser["value"]
-        metrics = {"loss": float(loss.detach()), "prediction": float(prediction_loss.detach()),
-                   "sigreg": float(regulariser["value"].detach()),
-                   "sigreg_context": float(regulariser["context"].detach()),
-                   "sigreg_target": float(regulariser["target"].detach())}
-        return {"loss": loss, "metrics": metrics, "prediction": prediction,
+    def encode_tokens(self, features: Tensor, hidden_mask: Tensor | None = None) -> Tensor:
+        """Online readout with the repaired arm's training-time feature convention."""
+        features = self._encoder_features(features)
+        tokens = self.jepa.encode(features, hidden_mask=hidden_mask)
+        if self.arm == "jepa_repaired":
+            tokens = F.layer_norm(tokens, (self.d_model,))
+        return tokens
+
+    def _encoder_features(self, features):
+        if self.arm == "sigreg_jepa_all_posfree":
+            return self._position_free(features)
+        return features
+
+    @staticmethod
+    def _position_free(features):
+        return torch.cat((torch.zeros_like(features[..., :6]), features[..., 6:]), dim=-1)
+
+    @staticmethod
+    def _hit_mean(tokens, hits):
+        weight = hits[..., None].to(tokens.dtype)
+        return (tokens * weight).sum(1) / weight.sum(1).clamp_min(1)
+
+    def _hit_regularizer_inputs(self, batch, context, labels, hidden_index):
+        context_index = batch.context_index
+        z_context = context.gather(1, context_index[..., None].expand(-1, -1, self.d_model))
+        hit = batch.features[..., HIT_INDEX] > 0.5
+        context_hits = hit.gather(1, context_index)
+        target_hits = hit.gather(1, hidden_index)
+        # Deterministic, event-local subsampling gives identical rows in a
+        # whole batch or any partition into micro-batches.
+        event_ids = torch.as_tensor(batch.event_ids, device=context_index.device)[:, None]
+        priority = ((context_index + 1) * 1103515245 + event_ids * 12345) % (2 ** 31 - 1)
+        priority = priority.masked_fill(~context_hits, 2 ** 31 - 1)
+        sample = priority.topk(min(8, context_index.size(1)), dim=1, largest=False).indices
+        sampled = z_context.gather(1, sample[..., None].expand(-1, -1, self.d_model))
+        return (self._hit_mean(z_context, context_hits), self._hit_mean(labels, target_hits),
+                sampled[context_hits.gather(1, sample)])
+
+    def sigreg_value(self, inputs):
+        """Apply the selected nonlinear regularizer once to one (effective) batch."""
+        if self.sigreg_mode == "legacy_flat":
+            return self.sigreg(*inputs)
+        context, target, hits = inputs
+        if hits.size(0) > 256:
+            picks = torch.arange(256, device=hits.device) * hits.size(0) // 256
+            hits = hits[picks]
+
+        def statistic(samples):
+            if samples.size(0) < 2:
+                return samples.sum() * 0.0
+            return self.sigreg.sliced(samples.float()) / samples.size(0)
+
+        scores = {"context": statistic(context), "target": statistic(target),
+                  "hit_token": statistic(hits)}
+        scores["value"] = (scores["context"] + scores["target"]) * 0.5 + scores["hit_token"] * 0.25
+        return scores
+
+    def sigreg_inputs(self, batch, *, stats_only=False):
+        """Return predictions and sufficient inputs for the batchwise penalty."""
+        if self.arm == "jepa_repaired":
+            hidden_index = self._hidden_index(batch)
+            context = self.jepa.encode(batch.features, hidden_mask=batch.hidden)
+            with torch.no_grad():
+                label_full = self.target_encoder(self._position_free(batch.features),
+                                                 hidden_mask=~batch.target,
+                                                 order=self.jepa.token_order)
+                labels = self.target_norm(
+                    label_full.gather(1, hidden_index[..., None].expand(-1, -1, self.d_model)))
+            full, prediction = None, None
+            if not stats_only:
+                prediction = self.jepa.predict(context, batch.context_index, hidden_index)
+        else:
+            context, prediction, labels, hidden_index, full = self._encode_views(batch)
+        if self.sigreg_mode == "legacy_flat":
+            inputs = (self._context_pooled(context, batch.context_index), labels)
+        else:
+            inputs = self._hit_regularizer_inputs(batch, context, labels, hidden_index)
+        return inputs, prediction, labels, hidden_index, context, full
+
+    def sigreg_objective(self, batch, *, total_events=None, total_hits=None):
+        """Local additive prediction terms with optional effective-batch denominators."""
+        inputs, prediction, labels, hidden_index, context, full = self.sigreg_inputs(batch)
+        weight = 1.0 if total_events is None else batch.features.size(0) / total_events
+        if self.arm == "jepa_repaired":
+            features = batch.features.gather(1, hidden_index[..., None].expand(-1, -1, N_FEATURES))
+            hit = features[..., HIT_INDEX] > 0.5
+            denominator = hit.sum().clamp_min(1) if total_hits is None else max(total_hits, 1)
+            pred_loss = ((prediction - labels).square().mean(-1) * hit).sum() / denominator
+            occupancy = F.binary_cross_entropy_with_logits(
+                self.hit_head(prediction).squeeze(-1), hit.to(prediction.dtype)) * weight
+            observed = torch.stack((features[..., LOG_CHARGE_INDEX] / 3.0,
+                                    features[..., TIME_INDEX] * (batch.scaling.time_scale_ns / 50.0)),
+                                   dim=-1)
+            obs_loss = ((self.obs_head(prediction) - observed).square().mean(-1) * hit).sum() / denominator
+            local = pred_loss + occupancy + 0.25 * obs_loss
+            metrics = {"prediction": float(pred_loss.detach()), "occupancy": float(occupancy.detach()),
+                       "observable": float(obs_loss.detach()), "hidden_hits": int(hit.sum())}
+        else:
+            local = F.mse_loss(prediction, labels) * weight
+            metrics = {"prediction": float(local.detach())}
+        return {"loss": local, "metrics": metrics, "prediction": prediction, "sigreg_inputs": inputs,
                 "context_tokens": context, "target_tokens": labels, "full_readout": full}
+
+    def sigreg_metrics(self, regulariser):
+        return {f"sigreg_{key}" if key != "value" else "sigreg": float(value.detach())
+                for key, value in regulariser.items()}
+
+    def _forward_sigreg(self, batch: LucidBatch) -> dict:
+        out = self.sigreg_objective(batch)
+        regulariser = self.sigreg_value(out.pop("sigreg_inputs"))
+        loss = out["loss"] + self.coefficient_lambda * regulariser["value"]
+        out["loss"] = loss
+        out["metrics"].update(self.sigreg_metrics(regulariser), loss=float(loss.detach()))
+        return out
 
     def _forward_ijepa_ema(self, batch: LucidBatch, step: int) -> dict:
         context, prediction, _, hidden_index, _ = self._encode_views(batch, need_full=False)
@@ -492,7 +606,8 @@ class LucidArm(nn.Module):
                 "context_tokens": context, "target_tokens": labels}
 
     def _forward_mae_mse(self, batch: LucidBatch) -> dict:
-        _, prediction, _, hidden_index, _ = self._encode_views(batch)
+        _, prediction, _, hidden_index, _ = self._encode_views(
+            batch, need_full=self.arm != "mae_repaired")
         columns = torch.tensor([LOG_CHARGE_INDEX, TIME_INDEX, HIT_INDEX],
                                device=batch.features.device)
         gather = hidden_index.unsqueeze(-1).expand(-1, -1, N_FEATURES)
@@ -503,10 +618,15 @@ class LucidArm(nn.Module):
         loss_hit = F.mse_loss(out[..., 2], label[..., 2])
         loss_time = (((out[..., 1] - label[..., 1])[hit] ** 2).mean() if bool(hit.any())
                      else out.sum() * 0.0)
-        loss = loss_charge + loss_hit + loss_time
+        weighted_time = loss_time * self.time_loss_weight
+        loss = loss_charge + loss_hit + weighted_time
         metrics = {"loss": float(loss.detach()), "charge": float(loss_charge.detach()),
-                   "hit": float(loss_hit.detach()), "time": float(loss_time.detach()),
+                   "hit": float(loss_hit.detach()), "time": float(weighted_time.detach()),
                    "hidden_hits": int(hit.sum())}
+        if self.arm == "mae_repaired":
+            metrics.update(time_raw=float(loss_time.detach()),
+                           time_loss_weight=self.time_loss_weight,
+                           time_fraction=float(weighted_time.detach() / loss.detach().clamp_min(_TINY)))
         return {"loss": loss, "metrics": metrics, "prediction": out}
 
     def _forward_mae_chi2(self, batch: LucidBatch) -> dict:
@@ -626,7 +746,7 @@ class LucidArm(nn.Module):
     def update_target(self, step: int) -> float:
         """One cosine EMA step of the ``ijepa_ema`` target encoder; returns tau."""
         if self.target_encoder is None:
-            raise ValueError("only ijepa_ema has a target encoder")
+            raise ValueError(f"{self.arm} has no target encoder")
         tau = self.settings.ema_tau(step)
         with torch.no_grad():
             for target, online in zip(self.target_encoder.parameters(),
@@ -639,11 +759,15 @@ def build_arm(arm: str, geometry, *, config: dict | None = None,
               settings: ArmSettings | None = None, cell=None, beta: float | None = None,
               seed: int = 0, dark_bank: DarkBank | None = None,
               encoder_config: EncoderConfig | None = None,
-              scaling: FeatureScaling | None = None) -> LucidArm:
+              scaling: FeatureScaling | None = None, sigreg_mode: str | None = None,
+              time_loss_weight: float = 1.0) -> LucidArm:
     """Build one arm; ``seed`` fixes the init (the floor hook uses the first seed)."""
     settings = settings or ArmSettings.from_config(config, cell=cell, beta=beta)
+    if arm == "jepa_repaired":
+        settings = replace(settings, tau_start=0.992, tau_end=0.9995)
     return LucidArm(arm, geometry, settings=settings, encoder_config=encoder_config,
-                    scaling=scaling, beta=beta, seed=seed, dark_bank=dark_bank)
+                    scaling=scaling, beta=beta, seed=seed, dark_bank=dark_bank,
+                    sigreg_mode=sigreg_mode, time_loss_weight=time_loss_weight)
 
 
 # ---------------------------------------------------------------------- probes

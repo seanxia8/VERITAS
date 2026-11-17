@@ -388,13 +388,20 @@ def _stack(batches, rows):
         event_ids=np.concatenate([b.event_ids[r] for b, r in sel]),
         keys=tuple(k for b, r in sel for k in (b.keys[int(i)] for i in r)),
         report=dict(first.report), scaling=first.scaling, split=first.split, occupancy=first.occupancy)
+def _select_batch(batch, rows):
+    keys = batch.keys[rows] if isinstance(rows, slice) else tuple(batch.keys[i] for i in rows)
+    return replace(batch, features=batch.features[rows], target=batch.target[rows],
+                   hidden=batch.hidden[rows], context_index=batch.context_index[rows],
+                   target_index=batch.target_index[rows], hit_flags=batch.hit_flags[rows],
+                   log_charge=batch.log_charge[rows], event_ids=batch.event_ids[rows], keys=keys,
+                   run_ids=None if batch.run_ids is None else batch.run_ids[rows],
+                   domains=None if batch.domains is None else batch.domains[rows])
+
+
 def _slice(batch, start, stop):
-    s = slice(int(start), int(stop))
-    return pe.LucidBatch(features=batch.features[s], target=batch.target[s], hidden=batch.hidden[s],
-                         context_index=batch.context_index[s], target_index=batch.target_index[s],
-                         hit_flags=batch.hit_flags[s], log_charge=batch.log_charge[s],
-                         event_ids=batch.event_ids[s], keys=batch.keys[s], report=batch.report,
-                         scaling=batch.scaling, split=batch.split, occupancy=batch.occupancy)
+    return _select_batch(batch, slice(int(start), int(stop)))
+
+
 def _to_device(batch, device):
     if batch is None or device.type == "cpu":
         return batch
@@ -664,11 +671,78 @@ def _validate(payload, *, identity, config_sha):
             raise RuntimeError(f"checkpoint {name} differs from the requested run")
     if payload.get("config_sha256") != config_sha:
         raise RuntimeError("checkpoint config sha256 differs")
+def _save_snapshot(checkpoint_path, arm, *, step, metrics, identity, config_sha):
+    path = checkpoint_path.parent / f"snapshot_step_{step:05d}.pt"
+    if path.exists():
+        existing = torch.load(path, map_location="cpu", weights_only=False)
+        if (existing.get("step"), existing.get("identity"), existing.get("config_sha256")) != (
+                step, identity, config_sha):
+            raise ValueError(f"snapshot identity mismatch at {path}")
+        return
+    payload = {"schema": "jepa-lucid-snapshot-v1", "model": {
+        name: value.detach().cpu() for name, value in arm.state_dict().items()},
+        "identity": dict(identity), "config_sha256": config_sha,
+        "step": int(step), "metrics": dict(metrics)}
+    temporary = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        torch.save(payload, temporary)
+        os.link(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _full_sigreg_backward(arm, batch, micro):
+    """Cache effective-batch gradients, then replay each local encoder graph."""
+    n_events = int(batch.features.size(0))
+    micro_batches = [_slice(batch, start, min(start + micro, n_events))
+                     for start in range(0, n_events, micro)]
+    with torch.no_grad():
+        cached = [arm.sigreg_inputs(part, stats_only=True)[0] for part in micro_batches]
+    complete = tuple(torch.cat(inputs).detach().requires_grad_(True) for inputs in zip(*cached))
+    regulariser = arm.sigreg_value(complete)
+    scaled = arm.coefficient_lambda * regulariser["value"]
+    gradients = torch.autograd.grad(scaled, complete)
+    sigreg_metrics = arm.sigreg_metrics(regulariser)
+    total = float(scaled.detach())
+    del complete, regulariser, scaled
+
+    hits = batch.features[..., pe.HIT_INDEX] > 0.5
+    n_hits = int((hits & batch.hidden).sum())
+    offsets = [0] * len(gradients)
+    metrics = {}
+    for part, cached_inputs in zip(micro_batches, cached):
+        out = arm.sigreg_objective(part, total_events=n_events, total_hits=n_hits)
+        local = out["loss"]
+        for i, (feature, gradient, expected) in enumerate(zip(out["sigreg_inputs"], gradients, cached_inputs)):
+            if feature.shape != expected.shape:
+                raise RuntimeError("SIGReg replay changed the cached embedding shape")
+            stop = offsets[i] + feature.size(0)
+            local = local + (feature * gradient[offsets[i]:stop]).sum()
+            offsets[i] = stop
+        if not torch.isfinite(local):
+            raise RuntimeError("non-finite full-batch SIGReg gradient replay")
+        local.backward()
+        total += float(out["loss"].detach())
+        for key, value in out["metrics"].items():
+            metrics[key] = metrics.get(key, 0.0) + float(value)
+    metrics.update(sigreg_metrics)
+    return total, metrics
+
+
 def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, config_sha,
                checkpoint_minutes=30.0, checkpoint_every=500, stop_after=None, resume=None,
                step_callback=None, log_path=None, accum_steps=1, oracle=False, log_every=None,
-               scheduler=None) -> dict:
-    """Deterministic training; SIGTERM -> checkpoint + interrupted; the final step is kept."""
+               scheduler=None, snapshot_steps: tuple[int, ...] = (),
+               full_batch_sigreg: bool = False) -> dict:
+    """Deterministic training with optional immutable snapshots and effective-batch SIGReg."""
+    snapshots = frozenset(snapshot_steps)
+    if any(not isinstance(k, int) or not 0 <= k <= steps for k in snapshots):
+        raise ValueError("snapshot steps must be integers within the scheduled run")
+    if full_batch_sigreg and (oracle or arm.arm not in (
+            "sigreg_jepa", "sigreg_jepa_all_posfree", "jepa_repaired")):
+        raise ValueError("full-batch SIGReg requires an unanchored JEPA objective")
+    checkpoint_path = Path(checkpoint_path)
     start, elapsed_before, resumed = 0, 0.0, None
     if resume is not None:
         payload = torch.load(resume, map_location="cpu", weights_only=False)
@@ -690,6 +764,12 @@ def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, con
     next_timed = time.perf_counter() + checkpoint_minutes * 60.0 if checkpoint_minutes else math.inf
     started, step, interrupted, last = time.perf_counter(), int(start), False, {}
     try:
+        if start and any(k < start and not (checkpoint_path.parent / f"snapshot_step_{k:05d}.pt").exists()
+                         for k in snapshots):
+            raise ValueError("cannot resume past a missing requested snapshot")
+        if step in snapshots:
+            _save_snapshot(checkpoint_path, arm, step=step, metrics=last,
+                           identity=identity, config_sha=config_sha)
         while step < int(steps):
             if stop["signal"] is not None or (stop_after is not None and step >= int(stop_after)):
                 interrupted = True; break
@@ -699,28 +779,34 @@ def train_loop(*, arm, loader, steps, optimizers, checkpoint_path, identity, con
             for optimizer in optimizers:
                 optimizer.zero_grad(set_to_none=True)
             accum = max(1, int(accum_steps)); micro = max(1, math.ceil(int(batch.features.size(0)) / accum))
-            total, metrics = 0.0, {}
-            for chunk in range(accum):
-                begin, end = chunk * micro, min((chunk + 1) * micro, int(batch.features.size(0)))
-                if begin >= end:
-                    continue
-                out = arm(_slice(batch, begin, end), oracle=oracle,
-                          twin_batch=(_slice(twin, begin, end) if twin is not None else None), step=step)
-                loss = out["loss"]
-                if not torch.isfinite(loss):
-                    raise RuntimeError(f"non-finite loss at step {step + 1}")
-                (loss / accum).backward(); total += float(loss.detach()) / accum
-                for key, value in out["metrics"].items():
-                    metrics[key] = metrics.get(key, 0.0) + float(value) / accum
+            if full_batch_sigreg and micro < batch.features.size(0):
+                total, metrics = _full_sigreg_backward(arm, batch, micro)
+            else:
+                total, metrics = 0.0, {}
+                for chunk in range(accum):
+                    begin, end = chunk * micro, min((chunk + 1) * micro, int(batch.features.size(0)))
+                    if begin >= end:
+                        continue
+                    out = arm(_slice(batch, begin, end), oracle=oracle,
+                              twin_batch=(_slice(twin, begin, end) if twin is not None else None), step=step)
+                    loss = out["loss"]
+                    if not torch.isfinite(loss):
+                        raise RuntimeError(f"non-finite loss at step {step + 1}")
+                    (loss / accum).backward(); total += float(loss.detach()) / accum
+                    for key, value in out["metrics"].items():
+                        metrics[key] = metrics.get(key, 0.0) + float(value) / accum
             if identity.get("gradient_clip"):
                 torch.nn.utils.clip_grad_norm_(arm.parameters(), float(identity["gradient_clip"]))
             for optimizer in optimizers:
                 optimizer.step()
             if scheduler is not None:
                 scheduler.step()
-            if arm.arm == "ijepa_ema":
+            if arm.arm in ("ijepa_ema", "jepa_repaired"):
                 arm.update_target(step)
             last, step = dict(metrics, loss=total), step + 1
+            if step in snapshots:
+                _save_snapshot(checkpoint_path, arm, step=step, metrics=last,
+                               identity=identity, config_sha=config_sha)
             if step % log_every == 0 or step == int(steps):
                 line = {"step": step, "elapsed_seconds": round(time.perf_counter() - started + elapsed_before, 2),
                         "metrics": last}

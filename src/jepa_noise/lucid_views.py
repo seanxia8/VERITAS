@@ -34,13 +34,13 @@ from .lucid_bombs import (MAX_REDRAWS, N_MIN, DetectorGeometry, ViewExclusionCou
 
 __all__ = ["NS_VIEWS", "TOKEN_HILBERT_BITS", "MODULE_HILBERT_BITS", "OCCUPANCY_MODES",
            "SPLITS", "hilbert_index_3d", "module_hilbert_order", "token_hilbert_order",
-           "ViewMask", "across_mask", "within_mask", "mask_from_key", "ViewMasker"]
+           "ViewMask", "across_mask", "within_mask", "spatial_patch_mask", "mask_from_key", "ViewMasker"]
 
 NS_VIEWS = "lucid/views"
 TOKEN_HILBERT_BITS = 12
 MODULE_HILBERT_BITS = 10
 OCCUPANCY_MODES = ("natural", "balanced")
-SPLITS = ("across", "within")
+SPLITS = ("across", "within", "spatial_patch")
 
 _ORDER_CACHE: dict = {}
 
@@ -219,6 +219,29 @@ def within_mask(geometry: DetectorGeometry, event_id: int, hit_pmt, *, n_min: in
                     np.empty(0, dtype=np.int64), key)
 
 
+def spatial_patch_mask(geometry, event_id, hit_pmt, *, seed=0, replicate=0, n_min=N_MIN):
+    """Hide half of the complete contiguous Hilbert patches with fixed token counts."""
+    hit = _hit_array(geometry, hit_pmt)
+    order = token_hilbert_order(geometry)
+    size = min(max(32, geometry.n_pmt // 64), geometry.n_pmt // 2)
+    if size <= 0:
+        raise ValueError("spatial patch views require at least two PMTs")
+    count = len(order) // size
+    patches = order[:count * size].reshape(count, size)
+    rng = keyed_rng(seed, NS_VIEWS, "spatial_patch", replicate, int(event_id))
+    target = np.sort(patches[rng.permutation(count)[:count // 2]].reshape(-1))
+    is_target = np.zeros(geometry.n_pmt, dtype=bool)
+    is_target[target] = True
+    context = np.flatnonzero(~is_target)
+    context_hits, target_hits = int(hit[context].sum()), int(hit[target].sum())
+    key = {"split": "spatial_patch", "geometry_sha256": geometry.digest,
+           "event_id": int(event_id), "seed": int(seed), "replicate": int(replicate),
+           "n_min": int(n_min), "patch_size": int(size), "occupancy": "natural",
+           "context_hits": context_hits, "target_hits": target_hits}
+    return ViewMask("spatial_patch", int(event_id), context, target, target_hits >= n_min,
+                    0, context_hits, target_hits, attempt_hits=(target_hits,), key=key)
+
+
 def mask_from_key(geometry: DetectorGeometry, key: dict, hit_pmt=None) -> ViewMask:
     """Recompute a mask from its recorded key (and check counts if hits are given)."""
     split = key.get("split")
@@ -229,6 +252,13 @@ def mask_from_key(geometry: DetectorGeometry, key: dict, hit_pmt=None) -> ViewMa
         mask = within_mask(geometry, int(key["event_id"]),
                            np.zeros(0, dtype=np.int64) if hit is None else hit,
                            n_min=int(key.get("n_min", N_MIN)))
+    elif split == "spatial_patch":
+        mask = spatial_patch_mask(geometry, int(key["event_id"]),
+                                  np.zeros(0, dtype=np.int64) if hit is None else hit,
+                                  seed=int(key["seed"]), replicate=int(key["replicate"]),
+                                  n_min=int(key.get("n_min", N_MIN)))
+        if mask.key["patch_size"] != key["patch_size"]:
+            raise ValueError("mask_from_key: patch size does not round-trip")
     elif split == "across":
         order = module_hilbert_order(geometry, int(key.get("module_hilbert_bits", MODULE_HILBERT_BITS)))
         target, context, _ = _across_partition(geometry, int(key["offset"]),
@@ -282,6 +312,10 @@ class ViewMasker:
                                n_target_modules=self.n_target_modules,
                                module_bits=self.module_bits)
             self.counter.record_across(mask.attempt_hits)
+        elif self.split == "spatial_patch":
+            mask = spatial_patch_mask(self.geometry, event_id, hit, seed=self.seed,
+                                      replicate=self.replicate, n_min=self.n_min)
+            self.counter.record_within(mask.target_hits)
         else:
             mask = within_mask(self.geometry, event_id, hit, n_min=self.n_min)
             self.counter.record_within(mask.target_hits)
