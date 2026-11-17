@@ -1,0 +1,103 @@
+{
+  "runbook": "docs/round2/RUNBOOK_2026-11-17_R2_REPAIR.md",
+  "root_cause_doc": "docs/round2/ROOT_CAUSE_ANALYSIS_2026-11-17.md",
+  "authority_sha256": {
+    "runbook": "f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8",
+    "root_cause_doc": "195db1db3398e183582b32475eee830e47376fa38b56d2292dd21dfdc6da9d78"
+  },
+  "extension": "r2_repair_2026-11-17",
+  "registered": false,
+  "verdict": "NOT_READY_FOR_ACCEPTANCE",
+  "verdict_reason": "The historical WCTE P2a S4 audit has two residual K5 exact violations, and all 54 gain/time cells violate the restricted split ceiling.",
+  "execution_complete": true,
+  "stages_completed": [
+    "stage0_preflight",
+    "stage1_probe_repair",
+    "stage2_diagnostics_ceiling_gatev",
+    "stage3_wcte_p2a_repair",
+    "stage4_code_fixes",
+    "stage5_gpu_retrain_evolution",
+    "stage6_report"
+  ],
+  "scientific_gates": {
+    "wcte_p2a_s4": {
+      "status": "FAIL",
+      "original_audit_cells": 78,
+      "original_violations_before_repair": 4,
+      "original_violations_after_repair": 2,
+      "requested_gain_time_cells": 54,
+      "requested_grid_split_violations": 54,
+      "requested_grid_full_violations": 0,
+      "tolerance_m": 0.005,
+      "residuals": [
+        {
+          "model": "fix9000",
+          "condition": "K5",
+          "stratum": "exact",
+          "r2_minus_split_m": -0.0054206840946726675,
+          "ci95_m": [
+            -0.007237612709223903,
+            -0.0037476440132022484
+          ]
+        },
+        {
+          "model": "fix9001",
+          "condition": "K5",
+          "stratum": "exact",
+          "r2_minus_split_m": -0.005437231929508096,
+          "ci95_m": [
+            -0.007142611147533303,
+            -0.0038228971485355853
+          ]
+        }
+      ]
+    }
+  },
+  "pytest_summary": {
+    "passed": 992,
+    "failed": 0,
+    "skipped": 2,
+    "xfailed": 1,
+    "collected": 995
+  },
+  "deliverables": {
+    "probe_repair_json": "results/round2/20261117_repair/probes/probe_repair_results.json",
+    "physics_ceiling_json": "results/round2/20261117_repair/diagnostics/physics_ceiling.json",
+    "gatev_reconciliation_json": "results/round2/20261117_repair/gatev/gatev_reconciliation.json",
+    "latent_variance_cka_json": "results/round2/20261117_repair/diagnostics/latent_variance_cka.json",
+    "wcte_p2a_repair_json": "results/round2/20261117_repair/wcte_p2a/p2a_repaired_readings.json",
+    "retrain_eval_json": "results/round2/20261117_repair/retrain/retrain_readings.json",
+    "evolution_json": "results/round2/20261117_repair/retrain/latent_evolution.json",
+    "master_report": "results/round2/20261117_repair/REPAIR_AND_DIAGNOSTICS_REPORT.md"
+  },
+  "deliverables_sha256": {
+    "probe_repair_json": "098e89abc1bfcc1313ecf36497a178f8da39dba35bbf2af1319f9a1ca97c55ab",
+    "physics_ceiling_json": "ed90c30314489a1d015a29aed5e9a51704c49e9d034b91f41194e47f7c4695b6",
+    "gatev_reconciliation_json": "3247cf99f03682d1ce82b418d10900fc709deee71a3e23a4de73829ca6ff719b",
+    "latent_variance_cka_json": "5ea7e8fb584b6e8f93c243c34dc8c9124824b04977c4fe64ee604f33c28fc7aa",
+    "wcte_p2a_repair_json": "c549c2dc8457931ad883e83cfa71a36641bcb0f716d36a12cc5561a364aab23e",
+    "retrain_eval_json": "594e2102ad3a74c4eadef46c625e105e5807b59437792fce594dc4badf8b1345",
+    "evolution_json": "16a42d668d783572b640dba1bc60623b16e8bc8c497e33615c6c612f59668d77",
+    "master_report": "39316c0ca0fff61b6620c90c0b24bd81d63c9d19401818f5b4582d0eb2775ee9"
+  },
+  "evolution_figures_sha256": {
+    "results/round2/20261117_repair/figures/evolution/metrics_vs_step_sk.png": "676b1c6a448b262236334301f7d4fd47fa9954049a027f57a5ba87fd6d2732d7",
+    "results/round2/20261117_repair/figures/evolution/metrics_vs_step_wcte.png": "7eb9debd4c2a0a0793854cfda6ff1fe02851b262fb722774ab6a60624b3ab27e",
+    "results/round2/20261117_repair/figures/evolution/umap_evolution_sk.png": "d9dd98dfd166f374d93ee068d9c8665091f6a3c24b1956ac57ec6a3cf192ac5d",
+    "results/round2/20261117_repair/figures/evolution/umap_evolution_wcte.png": "445b39ec8ebb8108c53e80950c8319ac3acce6a54373892a46b00c544b2a85fa"
+  },
+  "retrain_summary": {
+    "requested": 14,
+    "trained_step_10000": 14,
+    "both_final_probe_suites": 14,
+    "snapshot_files_verified": 106,
+    "snapshot_readouts": 90,
+    "final_photon_test_events_per_run": 3400,
+    "evolution_photon_test_events_per_snapshot": 1000
+  },
+  "gpu_hours_used": 66.0729861111111,
+  "gpu_hours_cap": 100.0,
+  "head_commit": "d25f50bdc2d6861075bb1191e943d9a156af5b5b",
+  "head_commit_role": "pushed report and evidence tree",
+  "completed_utc": "2026-11-17T20:34:44Z"
+}
