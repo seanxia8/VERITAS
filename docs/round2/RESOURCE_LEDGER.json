@@ -2760,6 +2760,69 @@
      "utc": "2026-11-17T13:38:00Z",
      "exit_status": 0,
      "note": "Full guarded-slot duration charged while rendering SK UMAP and metric figures."
+    },
+    {
+     "run_id": "r2repair_s5_hk_jepa_w128_b8",
+     "kind": "repair_training",
+     "detector": "hk",
+     "arm": "jepa_repaired",
+     "seed": 9000,
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "wall_s": 40595.85,
+     "gpu_h": 11.276625,
+     "window": 128,
+     "micro_batch": 8,
+     "steps": 10000,
+     "exit_status": 0,
+     "utc": "2026-11-17T16:11:48Z"
+    },
+    {
+     "run_id": "r2repair_s5_eval_hk_jepa_repaired",
+     "kind": "repair_evaluation",
+     "detector": "hk",
+     "arm": "jepa_repaired",
+     "seed": 9000,
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 1,
+     "wall_s": 694.05,
+     "gpu_h": 0.19279166666666667,
+     "exit_status": 0,
+     "utc": "2026-11-17T16:23:53Z"
+    },
+    {
+     "run_id": "r2repair_s5_hk_mae",
+     "kind": "repair_training",
+     "detector": "hk",
+     "arm": "mae_repaired",
+     "seed": 9000,
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "host": "c03-001-179.gridka.de",
+     "slot": "slot1_5",
+     "batch_cluster": "759768",
+     "wall_s": 51270.0,
+     "gpu_h": 14.241666666666667,
+     "window": 640,
+     "micro_batch": 8,
+     "steps": 10000,
+     "exit_status": 0,
+     "utc": "2026-11-17T20:03:24Z"
+    },
+    {
+     "run_id": "r2repair_s5_eval_hk_mae_repaired",
+     "kind": "repair_evaluation",
+     "detector": "hk",
+     "arm": "mae_repaired",
+     "seed": 9000,
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "wall_s": 759.23,
+     "gpu_h": 0.21089722222222224,
+     "utc": "2026-11-17T20:18:39Z",
+     "exit_status": 0
     }
    ]
   },
@@ -2939,7 +3002,7 @@
    "cap_gpu_h": 160.0
   },
   "R2_repair_gpu": {
-   "booked_gpu_h": 40.15100555555556,
+   "booked_gpu_h": 66.0729861111111,
    "cap_gpu_h": 100.0
   }
  },
