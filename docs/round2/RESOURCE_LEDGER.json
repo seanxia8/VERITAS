@@ -2339,6 +2339,81 @@
      "gpu_h": 0.05551944444444445,
      "utc": "2026-11-17T04:08:38Z",
      "exit_status": 0
+    },
+    {
+     "run_id": "r2repair_s5_smoke_hk_jepa_rf_b2",
+     "kind": "repair_training_smoke",
+     "detector": "hk",
+     "arm": "jepa_repaired",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "wall_s": 116.05,
+     "utc": "2026-11-17T04:50:33Z",
+     "exit_status": 0,
+     "window": 640,
+     "micro_batch": 2,
+     "gpu_h": 0.03223611111111111
+    },
+    {
+     "run_id": "r2repair_s5_smoke_hk_jepa_w128_b8",
+     "kind": "repair_training_smoke",
+     "detector": "hk",
+     "arm": "jepa_repaired",
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 0,
+     "wall_s": 97.2,
+     "utc": "2026-11-17T04:53:21Z",
+     "exit_status": 0,
+     "window": 128,
+     "micro_batch": 8,
+     "gpu_h": 0.027
+    },
+    {
+     "run_id": "r2repair_s5_smoke_juno_jepa",
+     "kind": "repair_training_smoke",
+     "detector": "juno",
+     "arm": "jepa_repaired",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "host": "c03-001-179.gridka.de",
+     "batch_cluster": "759760",
+     "wall_s": 158.0,
+     "exit_status": 0,
+     "window": 320,
+     "micro_batch": 8,
+     "gpu_h": 0.04388888888888889
+    },
+    {
+     "run_id": "r2repair_s5_smoke_hk_mae",
+     "kind": "repair_training_smoke",
+     "detector": "hk",
+     "arm": "mae_repaired",
+     "gpu": "NVIDIA A100-PCIE-40GB",
+     "host": "c03-001-179.gridka.de",
+     "batch_cluster": "759761",
+     "wall_s": 254.0,
+     "exit_status": 0,
+     "window": 640,
+     "micro_batch": 8,
+     "gpu_h": 0.07055555555555555
+    },
+    {
+     "run_id": "r2repair_s5_wcte_sigreg_b8",
+     "kind": "repair_training",
+     "detector": "wcte",
+     "arm": "sigreg_jepa",
+     "seed": 9000,
+     "gpu": "NVIDIA L40S",
+     "host": "deepthought2",
+     "gpu_index": 1,
+     "wall_s": 2407.97,
+     "gpu_h": 0.6688805555555555,
+     "utc": "2026-11-17T05:29:30Z",
+     "exit_status": 0,
+     "window": 64,
+     "micro_batch": 8,
+     "steps": 10000
     }
    ]
   },
@@ -2516,6 +2591,10 @@
   "R2_titan_deepthought": {
    "booked_gpu_h": 0.8056,
    "cap_gpu_h": 160.0
+  },
+  "R2_repair_gpu": {
+   "booked_gpu_h": 2.728575,
+   "cap_gpu_h": 100.0
   }
  },
  "cpu_summary": {

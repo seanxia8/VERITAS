@@ -195,8 +195,7 @@ def plot(args):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from sklearn.decomposition import PCA
-    from umap import UMAP
+    from .ext_r2_repair_figs import RANDOM_STATE, _project
 
     detector = args.detector
     arms = MATRIX[detector]
@@ -246,9 +245,7 @@ def plot(args):
             if heldout is not None and not np.array_equal(heldout, ids):
                 raise ValueError("plot event order differs across checkpoints")
             heldout = ids
-            reduced = PCA(n_components=min(32, values.shape[1]), random_state=SEED).fit_transform(values)
-            embedding = UMAP(n_neighbors=15, min_dist=0.1, metric="euclidean",
-                             random_state=SEED, n_jobs=1).fit_transform(reduced)
+            embedding = _project(values, "umap")
             maps[arm][str(step)] = embedding.astype(float).tolist()
             for k, (color, name, cmap) in enumerate(zip(colors, ("Vertex radius (m)", "Log yield"),
                                                        ("viridis", "plasma"))):
@@ -266,7 +263,8 @@ def plot(args):
     figure.savefig(args.output / f"umap_evolution_{detector}.png", dpi=135)
     plt.close(figure)
     write_json(ROOT / "retrain" / f"umap_coordinates_{detector}.json",
-               {"event_ids": heldout.tolist(), "seed": SEED, "coordinates": maps})
+               {"event_ids": heldout.tolist(), "cohort_seed": SEED,
+                "projection_seed": RANDOM_STATE, "coordinates": maps})
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
