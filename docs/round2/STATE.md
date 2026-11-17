@@ -2,6 +2,19 @@
 
 Updated: 2026-11-16 (phase r2-report, final). Extension `r2_multidetector_2026-11-11`, `registered: false`.
 
+## Repair campaign, 17 November 2026
+
+Execution complete for `r2_repair_2026-11-17` (unregistered). Stages 0–6 produced the frozen checkpoint probes, detector simulations and diagnostics, WCTE ceiling audit, objective repairs, full retraining matrix, and final record. All 14 models reached step 10,000. Both final probes use 3,400 held-out photon-bomb events per model. The WCTE/SK evolution contains 90 scored checkpoints with 1,000 fixed test events per detector.
+
+The acceptance verdict is `NOT_READY_FOR_ACCEPTANCE`. Historical S4 violations fell from four to two on the original audit. The K5 exact comparisons remain over the 5 mm margin. The requested gain/time grid gives 54 split-ceiling violations and zero full-ceiling violations. Deepthought tests returned 992 passed, zero failed, two skipped and one expected failure.
+
+The repair GPU ledger settled at 66.072986 GPU-h under the 100 GPU-h cap. Training receipts, checkpoints and probe arrays are under `/ceph/dwong/jepa/returns/r2_repair_2026-11-17/`.
+
+- [Repair and diagnostics report](../../results/round2/20261117_repair/REPAIR_AND_DIAGNOSTICS_REPORT.md)
+- [Machine-readable acceptance record](./ACCEPTANCE_2026-11-17_R2_REPAIR.json)
+- [Repair campaign decisions](./DECISIONS.md)
+- [Repair GPU accounting](./RESOURCE_LEDGER.json)
+
 ## Where we are
 
 - **Round 2 complete.** Runbook and every addendum committed unchanged (Gate V ceiling, JUNO Titan v1/v2, caps, SK order/co-tenancy, HTCondor batch, staging dwong, batch reopen, A100 equal; batch staging withdrawn).

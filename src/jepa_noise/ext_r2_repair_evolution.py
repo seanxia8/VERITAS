@@ -227,7 +227,7 @@ def plot(args):
         ax.tick_params(axis="x", labelrotation=45)
         ax.grid(alpha=0.2)
     axes[0, 0].legend(fontsize=8)
-    figure.suptitle(f"{detector.upper()} training evolution across 1,000 held-out photons per snapshot")
+    figure.suptitle(f"{detector.upper()} training evolution across 1,000 held-out photon events per snapshot")
     figure.savefig(args.output / f"metrics_vs_step_{detector}.png", dpi=145)
     plt.close(figure)
 
