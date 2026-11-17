@@ -1,0 +1,753 @@
+{
+  "extension": "r2_repair_2026-11-17",
+  "detectors": {
+    "wcte": {
+      "n_event_maps": 2000,
+      "event_sample_seed": 42,
+      "representative_event": [
+        "lucid/dev_probe_test/0059",
+        1212955.0
+      ],
+      "n_plotted_token_pmts": 1995,
+      "host": "deepthought",
+      "variance": {
+        "init": {
+          "n_events": 200,
+          "n_pmts": 1995,
+          "static_layout": 334.7023021890601,
+          "hit_vs_unhit": 17.95746741216125,
+          "within_hit": 27.2802610108916,
+          "within_unhit": 8.963711601263393,
+          "same_pmt_across_event_variance": 54.20144002431624,
+          "checkpoint": null,
+          "checkpoint_sha256": null,
+          "total_variance": 388.90374221337635,
+          "component_fractions": {
+            "static_layout": 0.8606301916360115,
+            "hit_vs_unhit": 0.04617458117003329,
+            "within_hit": 0.07014656340314664,
+            "within_unhit": 0.023048663790808558
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/wcte_init_per_pmt_variance.npz",
+            "sha256": "4f554734fc6f6d9f6500fa8697b786df4f0d5ec3614bc95579b633cc3ac90b1c"
+          }
+        },
+        "mae_mse": {
+          "n_events": 200,
+          "n_pmts": 1995,
+          "static_layout": 692.1073241909223,
+          "hit_vs_unhit": 22.974903118364384,
+          "within_hit": 26.303555434235548,
+          "within_unhit": 12.941057447077595,
+          "same_pmt_across_event_variance": 62.219515999677526,
+          "checkpoint": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9000/final.pt",
+          "checkpoint_sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49",
+          "total_variance": 754.3268401905998,
+          "component_fractions": {
+            "static_layout": 0.9175165025495365,
+            "hit_vs_unhit": 0.030457491228284006,
+            "within_hit": 0.03487023665708261,
+            "within_unhit": 0.017155769565096887
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/wcte_mae_mse_per_pmt_variance.npz",
+            "sha256": "67654747c29dbf3d87eb35651504a29b46436876380163b589344658340ad036"
+          }
+        },
+        "sigreg_jepa": {
+          "n_events": 200,
+          "n_pmts": 1995,
+          "static_layout": 57.15389281139512,
+          "hit_vs_unhit": 0.07824102868727555,
+          "within_hit": 0.08622010865957287,
+          "within_unhit": 0.034643678924664925,
+          "same_pmt_across_event_variance": 0.19910481627151336,
+          "checkpoint": "/work/dwong/jepa_a10_work/fixed_s9000/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+          "checkpoint_sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+          "total_variance": 57.35299762766663,
+          "component_fractions": {
+            "static_layout": 0.9965284322614819,
+            "hit_vs_unhit": 0.0013642012087182118,
+            "within_hit": 0.001503323491813111,
+            "within_unhit": 0.0006040430379867902
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/wcte_sigreg_jepa_per_pmt_variance.npz",
+            "sha256": "4f18a0831225e68386d487ad3f31eaefdb0b8674e91afce8f379672a2cab4843"
+          }
+        },
+        "target_posfree": {
+          "n_events": 200,
+          "n_pmts": 1995,
+          "static_layout": 134.8425543423743,
+          "hit_vs_unhit": 11.172878419587219,
+          "within_hit": 9.983595102372789,
+          "within_unhit": 6.569058816608011,
+          "same_pmt_across_event_variance": 27.72553233856802,
+          "checkpoint": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+          "checkpoint_sha256": "3bb04c30dd51a90602e632f20f553b635c211a73f3bb048778ef5b2ad45b610c",
+          "total_variance": 162.56808668094234,
+          "component_fractions": {
+            "static_layout": 0.8294527978730387,
+            "hit_vs_unhit": 0.06872737846460121,
+            "within_hit": 0.06141177709722749,
+            "within_unhit": 0.04040804656513247
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/wcte_target_posfree_per_pmt_variance.npz",
+            "sha256": "0858624910f537b4aab37e79469e11fe37a914afc7fd8319e79f74e635aa3034"
+          }
+        }
+      },
+      "cka": {
+        "all_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.9733413031154993,
+            "sigreg_jepa": 0.9020963882202357,
+            "target_posfree": 0.9899100338801247
+          },
+          "mae_mse": {
+            "init": 0.9733413031154993,
+            "mae_mse": 1.0,
+            "sigreg_jepa": 0.9206200339531766,
+            "target_posfree": 0.964811381928873
+          },
+          "sigreg_jepa": {
+            "init": 0.9020963882202357,
+            "mae_mse": 0.9206200339531766,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.8867559466191971
+          },
+          "target_posfree": {
+            "init": 0.9899100338801247,
+            "mae_mse": 0.964811381928873,
+            "sigreg_jepa": 0.8867559466191971,
+            "target_posfree": 1.0
+          }
+        },
+        "hit_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.7985730037860337,
+            "sigreg_jepa": 0.35611993544171,
+            "target_posfree": 0.9324640298383288
+          },
+          "mae_mse": {
+            "init": 0.7985730037860337,
+            "mae_mse": 1.0,
+            "sigreg_jepa": 0.7803671507346654,
+            "target_posfree": 0.7768400299186229
+          },
+          "sigreg_jepa": {
+            "init": 0.35611993544171,
+            "mae_mse": 0.7803671507346654,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.32846613535713687
+          },
+          "target_posfree": {
+            "init": 0.9324640298383288,
+            "mae_mse": 0.7768400299186229,
+            "sigreg_jepa": 0.32846613535713687,
+            "target_posfree": 1.0
+          }
+        }
+      }
+    },
+    "sk": {
+      "n_event_maps": 2000,
+      "event_sample_seed": 42,
+      "representative_event": [
+        "lucid/dev_probe_test/0059",
+        1212955.0
+      ],
+      "n_plotted_token_pmts": 2000,
+      "host": "deepthought",
+      "variance": {
+        "init": {
+          "n_events": 200,
+          "n_pmts": 11096,
+          "static_layout": 409.779481462976,
+          "hit_vs_unhit": 17.44311279517872,
+          "within_hit": 27.759415436350036,
+          "within_unhit": 6.573034387942182,
+          "same_pmt_across_event_variance": 51.775562619470946,
+          "checkpoint": null,
+          "checkpoint_sha256": null,
+          "total_variance": 461.5550440824469,
+          "component_fractions": {
+            "static_layout": 0.8878236446913961,
+            "hit_vs_unhit": 0.03779205323138638,
+            "within_hit": 0.060143239234953336,
+            "within_unhit": 0.014241062842264271
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/sk_init_per_pmt_variance.npz",
+            "sha256": "20db2b44e0e2873386a7430dd2d50b0e694437504b00901d4c8f87ebdb4d150c"
+          }
+        },
+        "mae_mse": {
+          "n_events": 200,
+          "n_pmts": 11096,
+          "static_layout": 981.8853064219524,
+          "hit_vs_unhit": 38.89444285266571,
+          "within_hit": 47.6118073359185,
+          "within_unhit": 19.760065801197072,
+          "same_pmt_across_event_variance": 106.26631598978129,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/runs/sk__mae_mse__s9000/checkpoint.pt",
+          "checkpoint_sha256": "b846b0b7a9e6863af6727c4d70ab9f6fb9a53d2c942bb17b8b09581f9b067d47",
+          "total_variance": 1088.1516224117336,
+          "component_fractions": {
+            "static_layout": 0.9023423631402975,
+            "hit_vs_unhit": 0.035743587613701944,
+            "within_hit": 0.043754754719194086,
+            "within_unhit": 0.01815929452680656
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/sk_mae_mse_per_pmt_variance.npz",
+            "sha256": "ddb58d4dfe5e018f9ee354289eb70a4083ab453ea2ee8034dd3fd702218934a4"
+          }
+        },
+        "mae_mse_rf": {
+          "n_events": 200,
+          "n_pmts": 11096,
+          "static_layout": 767.1423093327592,
+          "hit_vs_unhit": 51.45553140148691,
+          "within_hit": 53.869853452130336,
+          "within_unhit": 22.928989179482127,
+          "same_pmt_across_event_variance": 128.25437403309937,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/sk__mae_mse_rf__s9000/checkpoint.pt",
+          "checkpoint_sha256": "802fce8e53f63709e0751252e2b4a43e5a3c2f280e015b65ba6c2bbeeb6b4f1d",
+          "total_variance": 895.3966833658585,
+          "component_fractions": {
+            "static_layout": 0.8567625093818951,
+            "hit_vs_unhit": 0.05746674335230055,
+            "within_hit": 0.060163114799163434,
+            "within_unhit": 0.025607632466640884
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/sk_mae_mse_rf_per_pmt_variance.npz",
+            "sha256": "7959de3f0145909dcf344d15d0836c495b830ea3ed98a87d79bd51ff9aff8a5e"
+          }
+        },
+        "sigreg_jepa": {
+          "n_events": 200,
+          "n_pmts": 11096,
+          "static_layout": 69.89887687126175,
+          "hit_vs_unhit": 0.35957466904971663,
+          "within_hit": 0.5777816461246963,
+          "within_unhit": 0.13424520050092922,
+          "same_pmt_across_event_variance": 1.0716015156753422,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/runs/sk__sigreg_jepa__s9000/checkpoint.pt",
+          "checkpoint_sha256": "9797b2a65d70f388dd8ffd7bb7fab2954f8a0215364645ad04143701ed3fa54c",
+          "total_variance": 70.97047838693709,
+          "component_fractions": {
+            "static_layout": 0.9849007426745403,
+            "hit_vs_unhit": 0.005066538611861751,
+            "within_hit": 0.008141154734431711,
+            "within_unhit": 0.0018915639791662804
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/sk_sigreg_jepa_per_pmt_variance.npz",
+            "sha256": "7ef3263fddb98deaf3d2b10d7b5bf4b5406cb88e8acd1c89988ef4d933957fb4"
+          }
+        },
+        "target_posfree": {
+          "n_events": 200,
+          "n_pmts": 11096,
+          "static_layout": 84.39987413633189,
+          "hit_vs_unhit": 8.071341324192531,
+          "within_hit": 10.52660844109478,
+          "within_unhit": 4.320715536282034,
+          "same_pmt_across_event_variance": 22.918665301569344,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/sk__target_posfree__s9000/checkpoint.pt",
+          "checkpoint_sha256": "d6d90524a41fe1b6cd73039c803b5a18a4f6286fbc76d774100fa0379db9c291",
+          "total_variance": 107.31853943790124,
+          "component_fractions": {
+            "static_layout": 0.78644262751236,
+            "hit_vs_unhit": 0.07520919839635844,
+            "within_hit": 0.09808751121874792,
+            "within_unhit": 0.04026066287253351
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/sk_target_posfree_per_pmt_variance.npz",
+            "sha256": "34d01de998bf8554e03aa0c0547ac31ab29e54ba68d328b4ed459e43245b0fdd"
+          }
+        }
+      },
+      "cka": {
+        "all_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.9603793072577016,
+            "mae_mse_rf": 0.9653224462454068,
+            "sigreg_jepa": 0.9141304821095375,
+            "target_posfree": 0.9696178186273543
+          },
+          "mae_mse": {
+            "init": 0.9603793072577016,
+            "mae_mse": 1.0,
+            "mae_mse_rf": 0.995438050245519,
+            "sigreg_jepa": 0.9066270627605715,
+            "target_posfree": 0.9695493636194918
+          },
+          "mae_mse_rf": {
+            "init": 0.9653224462454068,
+            "mae_mse": 0.995438050245519,
+            "mae_mse_rf": 1.0,
+            "sigreg_jepa": 0.9105029363149664,
+            "target_posfree": 0.972069783117526
+          },
+          "sigreg_jepa": {
+            "init": 0.9141304821095375,
+            "mae_mse": 0.9066270627605715,
+            "mae_mse_rf": 0.9105029363149664,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.9158032240054182
+          },
+          "target_posfree": {
+            "init": 0.9696178186273543,
+            "mae_mse": 0.9695493636194918,
+            "mae_mse_rf": 0.972069783117526,
+            "sigreg_jepa": 0.9158032240054182,
+            "target_posfree": 1.0
+          }
+        },
+        "hit_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.8170789348271792,
+            "mae_mse_rf": 0.8629617584864736,
+            "sigreg_jepa": 0.6270219145719325,
+            "target_posfree": 0.7911561425591215
+          },
+          "mae_mse": {
+            "init": 0.8170789348271792,
+            "mae_mse": 1.0,
+            "mae_mse_rf": 0.9861772024354886,
+            "sigreg_jepa": 0.9014400251642116,
+            "target_posfree": 0.9131198104470657
+          },
+          "mae_mse_rf": {
+            "init": 0.8629617584864736,
+            "mae_mse": 0.9861772024354886,
+            "mae_mse_rf": 1.0,
+            "sigreg_jepa": 0.8402947029445832,
+            "target_posfree": 0.9216815898424163
+          },
+          "sigreg_jepa": {
+            "init": 0.6270219145719325,
+            "mae_mse": 0.9014400251642116,
+            "mae_mse_rf": 0.8402947029445832,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.8045628783042572
+          },
+          "target_posfree": {
+            "init": 0.7911561425591215,
+            "mae_mse": 0.9131198104470657,
+            "mae_mse_rf": 0.9216815898424163,
+            "sigreg_jepa": 0.8045628783042572,
+            "target_posfree": 1.0
+          }
+        }
+      }
+    },
+    "juno": {
+      "n_event_maps": 2000,
+      "event_sample_seed": 42,
+      "representative_event": [
+        "lucid/dev_probe_test/0059",
+        1212955.0
+      ],
+      "n_plotted_token_pmts": 2000,
+      "host": "deepthought",
+      "variance": {
+        "init": {
+          "n_events": 200,
+          "n_pmts": 10000,
+          "static_layout": 402.7433862173725,
+          "hit_vs_unhit": 17.003511025302302,
+          "within_hit": 27.068136861524266,
+          "within_unhit": 7.197677857469864,
+          "same_pmt_across_event_variance": 51.26932574429644,
+          "checkpoint": null,
+          "checkpoint_sha256": null,
+          "total_variance": 454.01271196166897,
+          "component_fractions": {
+            "static_layout": 0.8870751316129999,
+            "hit_vs_unhit": 0.03745161881444822,
+            "within_hit": 0.0596197774828154,
+            "within_unhit": 0.01585347208973643
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/juno_init_per_pmt_variance.npz",
+            "sha256": "76e2ba37392a78b3769fe4f9f2cc616c0ec390ece39c7fb1dec72b2b7e55b9a5"
+          }
+        },
+        "mae_mse": {
+          "n_events": 200,
+          "n_pmts": 10000,
+          "static_layout": 905.9438270385069,
+          "hit_vs_unhit": 71.58592548947642,
+          "within_hit": 67.08632495369271,
+          "within_unhit": 28.363683670616492,
+          "same_pmt_across_event_variance": 167.03593411378566,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__mae_mse__s9000/checkpoint.pt",
+          "checkpoint_sha256": "115fd70b039b9402e16507bbe074a11cd8487b5e43861781bc133e7519e6177d",
+          "total_variance": 1072.9797611522927,
+          "component_fractions": {
+            "static_layout": 0.8443251772667149,
+            "hit_vs_unhit": 0.06671693920172267,
+            "within_hit": 0.06252338336899055,
+            "within_unhit": 0.026434500162571765
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/juno_mae_mse_per_pmt_variance.npz",
+            "sha256": "fbf624eb8c65ae9040b4c6a1c0ef31b60c99d17042eedf3efad22958848a16c3"
+          }
+        },
+        "mae_mse_rf": {
+          "n_events": 200,
+          "n_pmts": 10000,
+          "static_layout": 781.6298880998819,
+          "hit_vs_unhit": 89.40278129794453,
+          "within_hit": 75.09382157706561,
+          "within_unhit": 28.592681563152553,
+          "same_pmt_across_event_variance": 193.0892844381627,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__mae_mse_rf__s9000/checkpoint.pt",
+          "checkpoint_sha256": "ae3b2696ebdfbf934b900d2a9390d73706571587c1ee592bdbe03fa611b2595d",
+          "total_variance": 974.7191725380446,
+          "component_fractions": {
+            "static_layout": 0.8019026506523076,
+            "hit_vs_unhit": 0.09172157870369069,
+            "within_hit": 0.07704149430192377,
+            "within_unhit": 0.029334276342077945
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/juno_mae_mse_rf_per_pmt_variance.npz",
+            "sha256": "fe2dac821dc2d147bed47b6c52eeadab0a5be4b16fd06382e0fdca0581a2aad7"
+          }
+        },
+        "sigreg_jepa": {
+          "n_events": 200,
+          "n_pmts": 10000,
+          "static_layout": 61.270382464367906,
+          "hit_vs_unhit": 2.4137986106600002,
+          "within_hit": 3.6829466898596146,
+          "within_unhit": 1.104300600861793,
+          "same_pmt_across_event_variance": 7.201045901381407,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__sigreg_jepa__s9000/checkpoint.pt",
+          "checkpoint_sha256": "76a5ed013ee35e098ebe8b30aeaba60095434363e2c4676d6a703da26b9af075",
+          "total_variance": 68.47142836574932,
+          "component_fractions": {
+            "static_layout": 0.8948313760461362,
+            "hit_vs_unhit": 0.03525263994445057,
+            "within_hit": 0.053788080338950446,
+            "within_unhit": 0.016127903670462712
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/juno_sigreg_jepa_per_pmt_variance.npz",
+            "sha256": "ecf7a701039cb9918fcff45403e33859fd6907d7df31559e45a5a9a95fafef31"
+          }
+        },
+        "target_posfree": {
+          "n_events": 200,
+          "n_pmts": 10000,
+          "static_layout": 227.91875172435437,
+          "hit_vs_unhit": 8.234229051870967,
+          "within_hit": 13.686916408335799,
+          "within_unhit": 3.0054209128996647,
+          "same_pmt_across_event_variance": 24.926566373106432,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__target_posfree__s9000/checkpoint.pt",
+          "checkpoint_sha256": "bb1eadb3a22f1eadf3f16863232d703ec1103d6ad95365ec96157583e6f1a6d5",
+          "total_variance": 252.8453180974608,
+          "component_fractions": {
+            "static_layout": 0.9014157487246873,
+            "hit_vs_unhit": 0.032566270610939425,
+            "within_hit": 0.05413157938348731,
+            "within_unhit": 0.011886401280885917
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/juno_target_posfree_per_pmt_variance.npz",
+            "sha256": "dce3073d02a7b0402d2efa0d34de4b096cc33daeb5faefa9d808e6b1fa062846"
+          }
+        }
+      },
+      "cka": {
+        "all_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.9516951013857825,
+            "mae_mse_rf": 0.9426666594159463,
+            "sigreg_jepa": 0.9611178902634132,
+            "target_posfree": 0.9907462424669271
+          },
+          "mae_mse": {
+            "init": 0.9516951013857825,
+            "mae_mse": 1.0,
+            "mae_mse_rf": 0.9920389758887637,
+            "sigreg_jepa": 0.9529043756223011,
+            "target_posfree": 0.9362268753483565
+          },
+          "mae_mse_rf": {
+            "init": 0.9426666594159463,
+            "mae_mse": 0.9920389758887637,
+            "mae_mse_rf": 1.0,
+            "sigreg_jepa": 0.9464488781237284,
+            "target_posfree": 0.9310428916800992
+          },
+          "sigreg_jepa": {
+            "init": 0.9611178902634132,
+            "mae_mse": 0.9529043756223011,
+            "mae_mse_rf": 0.9464488781237284,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.9623463311453109
+          },
+          "target_posfree": {
+            "init": 0.9907462424669271,
+            "mae_mse": 0.9362268753483565,
+            "mae_mse_rf": 0.9310428916800992,
+            "sigreg_jepa": 0.9623463311453109,
+            "target_posfree": 1.0
+          }
+        },
+        "hit_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.8842089418343818,
+            "mae_mse_rf": 0.8752735862084611,
+            "sigreg_jepa": 0.9299514690337889,
+            "target_posfree": 0.8427778370677274
+          },
+          "mae_mse": {
+            "init": 0.8842089418343818,
+            "mae_mse": 1.0,
+            "mae_mse_rf": 0.989938046360575,
+            "sigreg_jepa": 0.9294509765863992,
+            "target_posfree": 0.90952044934074
+          },
+          "mae_mse_rf": {
+            "init": 0.8752735862084611,
+            "mae_mse": 0.989938046360575,
+            "mae_mse_rf": 1.0,
+            "sigreg_jepa": 0.9180900049328298,
+            "target_posfree": 0.9078678040447973
+          },
+          "sigreg_jepa": {
+            "init": 0.9299514690337889,
+            "mae_mse": 0.9294509765863992,
+            "mae_mse_rf": 0.9180900049328298,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.9173093012085821
+          },
+          "target_posfree": {
+            "init": 0.8427778370677274,
+            "mae_mse": 0.90952044934074,
+            "mae_mse_rf": 0.9078678040447973,
+            "sigreg_jepa": 0.9173093012085821,
+            "target_posfree": 1.0
+          }
+        }
+      }
+    },
+    "hk": {
+      "n_event_maps": 2000,
+      "event_sample_seed": 42,
+      "representative_event": [
+        "lucid/dev_probe_test/0059",
+        1212955.0
+      ],
+      "n_plotted_token_pmts": 2000,
+      "host": "deepthought",
+      "variance": {
+        "init": {
+          "n_events": 200,
+          "n_pmts": 19746,
+          "static_layout": 405.58721365123415,
+          "hit_vs_unhit": 19.408563052168812,
+          "within_hit": 30.964321925961563,
+          "within_unhit": 6.531050167454621,
+          "same_pmt_across_event_variance": 56.903935145584995,
+          "checkpoint": null,
+          "checkpoint_sha256": null,
+          "total_variance": 462.4911487968192,
+          "component_fractions": {
+            "static_layout": 0.8769621098833527,
+            "hit_vs_unhit": 0.04196526377350272,
+            "within_hit": 0.06695116653911307,
+            "within_unhit": 0.014121459804031474
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/hk_init_per_pmt_variance.npz",
+            "sha256": "26a56f9d37fb6b354e6811df4f8eb76d14fc47b06932651ebe897355e0dde0f3"
+          }
+        },
+        "mae_mse": {
+          "n_events": 200,
+          "n_pmts": 19746,
+          "static_layout": 1159.4826417203049,
+          "hit_vs_unhit": 43.87027962892201,
+          "within_hit": 59.70938345170487,
+          "within_unhit": 19.36790822984575,
+          "same_pmt_across_event_variance": 122.94757131047263,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__mae_mse__s9000/checkpoint.pt",
+          "checkpoint_sha256": "491d70c60c35b7f69b492818b0006b73c902c0ead23506da02072242151bfbdc",
+          "total_variance": 1282.4302130307774,
+          "component_fractions": {
+            "static_layout": 0.904129230533403,
+            "hit_vs_unhit": 0.03420870717420407,
+            "within_hit": 0.04655955766247367,
+            "within_unhit": 0.015102504629919331
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/hk_mae_mse_per_pmt_variance.npz",
+            "sha256": "c228967f375d0729e03882cf06ff0bf8862df83066319efcb1abd8eadf5ee631"
+          }
+        },
+        "mae_mse_rf": {
+          "n_events": 200,
+          "n_pmts": 19746,
+          "static_layout": 935.9551063390525,
+          "hit_vs_unhit": 58.682856673734214,
+          "within_hit": 65.82351684541362,
+          "within_unhit": 17.952284154254667,
+          "same_pmt_across_event_variance": 142.45865767340254,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__mae_mse_rf__s9000/checkpoint.pt",
+          "checkpoint_sha256": "09cb9f3f81793b2b90ec6e7caf54970b5fdce4addef1ea4ef68d7952894b8d21",
+          "total_variance": 1078.413764012455,
+          "component_fractions": {
+            "static_layout": 0.8678998150548853,
+            "hit_vs_unhit": 0.05441590105025446,
+            "within_hit": 0.06103734859661287,
+            "within_unhit": 0.016646935298247297
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/hk_mae_mse_rf_per_pmt_variance.npz",
+            "sha256": "1645f860bb3d2680a8e0f29a334bce037760f25a7f7c08ffae2a3d37ea69f696"
+          }
+        },
+        "sigreg_jepa": {
+          "n_events": 200,
+          "n_pmts": 19746,
+          "static_layout": 78.57266119106667,
+          "hit_vs_unhit": 0.807883390632206,
+          "within_hit": 1.464732422673697,
+          "within_unhit": 0.2936121488601953,
+          "same_pmt_across_event_variance": 2.5662279621660984,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__sigreg_jepa__s9000/checkpoint.pt",
+          "checkpoint_sha256": "04cac5d70058709f0422e374f898f94ddab12411b72255885fecde1910586031",
+          "total_variance": 81.13888915323277,
+          "component_fractions": {
+            "static_layout": 0.9683724045405686,
+            "hit_vs_unhit": 0.009956796291683247,
+            "within_hit": 0.018052162630764073,
+            "within_unhit": 0.0036186365369841535
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/hk_sigreg_jepa_per_pmt_variance.npz",
+            "sha256": "2afd5949ac31a2be98953fdc48b7570e6daaef63de7f33003a9d99323cc8b477"
+          }
+        },
+        "target_posfree": {
+          "n_events": 200,
+          "n_pmts": 19746,
+          "static_layout": 170.9519856246145,
+          "hit_vs_unhit": 9.186370031994977,
+          "within_hit": 16.28982071698147,
+          "within_unhit": 3.0071497760496677,
+          "same_pmt_across_event_variance": 28.48334052502612,
+          "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__target_posfree__s9000/checkpoint.pt",
+          "checkpoint_sha256": "4289b28088866f8f070506be8e814e820ca0eb32e409ab6c37a5da53f145b6cd",
+          "total_variance": 199.43532614964062,
+          "component_fractions": {
+            "static_layout": 0.8571800639589074,
+            "hit_vs_unhit": 0.04606189991186539,
+            "within_hit": 0.08167971558237816,
+            "within_unhit": 0.01507832054684905
+          },
+          "per_pmt_artifact": {
+            "path_from_repair_root": "figures/latent/hk_target_posfree_per_pmt_variance.npz",
+            "sha256": "846782b47469b8928b089449b827e5d470cf253b5106d220f0beaa5e879f764d"
+          }
+        }
+      },
+      "cka": {
+        "all_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.933970853458888,
+            "mae_mse_rf": 0.9759717152510683,
+            "sigreg_jepa": 0.8664217086385936,
+            "target_posfree": 0.9934929043131131
+          },
+          "mae_mse": {
+            "init": 0.933970853458888,
+            "mae_mse": 1.0,
+            "mae_mse_rf": 0.9778489658503701,
+            "sigreg_jepa": 0.8414311491627278,
+            "target_posfree": 0.9197943699035169
+          },
+          "mae_mse_rf": {
+            "init": 0.9759717152510683,
+            "mae_mse": 0.9778489658503701,
+            "mae_mse_rf": 1.0,
+            "sigreg_jepa": 0.8681995656723566,
+            "target_posfree": 0.9707778318473472
+          },
+          "sigreg_jepa": {
+            "init": 0.8664217086385936,
+            "mae_mse": 0.8414311491627278,
+            "mae_mse_rf": 0.8681995656723566,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.8902881449213657
+          },
+          "target_posfree": {
+            "init": 0.9934929043131131,
+            "mae_mse": 0.9197943699035169,
+            "mae_mse_rf": 0.9707778318473472,
+            "sigreg_jepa": 0.8902881449213657,
+            "target_posfree": 1.0
+          }
+        },
+        "hit_mean": {
+          "init": {
+            "init": 1.0,
+            "mae_mse": 0.8124696334481231,
+            "mae_mse_rf": 0.8383879243857885,
+            "sigreg_jepa": 0.7974026549449864,
+            "target_posfree": 0.8903755419269643
+          },
+          "mae_mse": {
+            "init": 0.8124696334481231,
+            "mae_mse": 1.0,
+            "mae_mse_rf": 0.990817823906243,
+            "sigreg_jepa": 0.9300476402434267,
+            "target_posfree": 0.9431302656714883
+          },
+          "mae_mse_rf": {
+            "init": 0.8383879243857885,
+            "mae_mse": 0.990817823906243,
+            "mae_mse_rf": 1.0,
+            "sigreg_jepa": 0.9309661446707899,
+            "target_posfree": 0.965189183134906
+          },
+          "sigreg_jepa": {
+            "init": 0.7974026549449864,
+            "mae_mse": 0.9300476402434267,
+            "mae_mse_rf": 0.9309661446707899,
+            "sigreg_jepa": 1.0,
+            "target_posfree": 0.9194211983387358
+          },
+          "target_posfree": {
+            "init": 0.8903755419269643,
+            "mae_mse": 0.9431302656714883,
+            "mae_mse_rf": 0.965189183134906,
+            "sigreg_jepa": 0.9194211983387358,
+            "target_posfree": 1.0
+          }
+        }
+      }
+    }
+  }
+}

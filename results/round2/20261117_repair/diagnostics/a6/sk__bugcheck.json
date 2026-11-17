@@ -1,0 +1,72 @@
+{
+ "detector": "sk",
+ "checkpoints": {
+  "fixed": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/runs/sk__sigreg_jepa__s9000/checkpoint.pt",
+  "posfree": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/sk__target_posfree__s9000/checkpoint.pt"
+ },
+ "source_diff": [
+  "--- lucid_arms.LucidArm._encode_views",
+  "+++ ext_shortcut._encode_views",
+  "@@ -1,15 +1,19 @@",
+  "-    def _encode_views(self, batch: LucidBatch, *, need_full: bool = True):",
+  "-        hidden_index = self._hidden_index(batch)",
+  "-        context = self.jepa.encode(batch.features, hidden_mask=batch.hidden)",
+  "-        prediction = self.jepa.predict(context, batch.context_index, hidden_index)",
+  "-        if not need_full:",
+  "-            return context, prediction, None, hidden_index, None",
+  "-        full = self.jepa.encode(batch.features)",
+  "-        # WP4 label definition (v3, kept by v4 \u00a72): labels come from a target-only",
+  "-        # pass.  The full unmasked pass is still returned for the anchor and for",
+  "-        # evaluation (and existing callers); it is not used as the prediction label.",
+  "-        # A label read-out on the full event can otherwise copy context through",
+  "-        # the shared encoder (A10 audit / 2026-10-23 label-shortcut diagnostic).",
+  "-        label_full = self.jepa.encode(batch.features, hidden_mask=~batch.target)",
+  "-        gather = hidden_index.unsqueeze(-1).expand(-1, -1, self.d_model)",
+  "-        return context, prediction, label_full.gather(1, gather), hidden_index, full",
+  "+def _encode_views(arm, batch, *, need_full=True, zero_positions=True):",
+  "+    \"\"\"The ``lucid_arms.LucidArm._encode_views`` body with the label-pass change.",
+  "+",
+  "+    Identical to ``lucid_arms.py:405-420`` except that the label pass receives",
+  "+    ``posfree_features(batch.features)``.  The label is **not** detached: the",
+  "+    encoder is trained through it, exactly as in the fixed-label arm.  With",
+  "+    ``zero_positions=False`` this is the original body bit for bit (used by the",
+  "+    \u00a79.3 variant test).",
+  "+    \"\"\"",
+  "+    hidden_index = arm._hidden_index(batch)",
+  "+    context = arm.jepa.encode(batch.features, hidden_mask=batch.hidden)",
+  "+    prediction = arm.jepa.predict(context, batch.context_index, hidden_index)",
+  "+    if not need_full:",
+  "+        return context, prediction, None, hidden_index, None",
+  "+    full = arm.jepa.encode(batch.features)",
+  "+    label_features = posfree_features(batch.features) if zero_positions else batch.features",
+  "+    label_full = arm.jepa.encode(label_features, hidden_mask=~batch.target)",
+  "+    gather = hidden_index.unsqueeze(-1).expand(-1, -1, arm.d_model)",
+  "+    return context, prediction, label_full.gather(1, gather), hidden_index, full"
+ ],
+ "position_columns": [
+  0,
+  6
+ ],
+ "state_dict_keys_equal": true,
+ "encoder_config_equal": true,
+ "settings_equal": true,
+ "same_weights_outputs": {
+  "context": true,
+  "prediction": true,
+  "full": true,
+  "hidden_index": true,
+  "label_differs": true
+ },
+ "label_pass": {
+  "posfree_equals_zeroed_cols_0_5_with_hidden_not_target": true,
+  "fixed_equals_hidden_not_target": true
+ },
+ "forward_metric_keys_equal": true,
+ "hidden_equals_target": true,
+ "hidden_index_is_target_index": true,
+ "query_features_are_scaled_positions": true,
+ "context_disjoint_from_hidden": true,
+ "context_pass_ignores_hidden_features_max_abs": 0.0,
+ "label_pass_ignores_non_target_features_max_abs": 0.0,
+ "n_target_tokens": 23360
+}

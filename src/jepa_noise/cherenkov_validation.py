@@ -28,6 +28,26 @@ from . import lucid_bombs as lb
 
 
 @dataclass(frozen=True)
+class AnalyticConfig:
+    """Optical assumptions used only on the analytic side of Gate V."""
+
+    attenuation_m: float | None = lb.LAMBDA0_M
+    angular_mode: str = "cos"
+
+    def __post_init__(self):
+        if self.angular_mode not in ("cos", "spherical"):
+            raise ValueError(f"unknown angular mode {self.angular_mode!r}")
+        if self.attenuation_m is not None and not np.isfinite(self.attenuation_m):
+            raise ValueError("attenuation length must be finite or None")
+
+    @property
+    def length(self):
+        if self.attenuation_m is None or self.attenuation_m <= 0:
+            return None
+        return self.attenuation_m
+
+
+@dataclass(frozen=True)
 class ValidationEvent:
     event_id: int
     domain: str
@@ -83,15 +103,15 @@ def _observed(event: ValidationEvent, geometry, cfg) -> tuple[np.ndarray, np.nda
     return counts, detected, first
 
 
-def compare_event(geometry, cfg: lb.GeneratorConfig, event: ValidationEvent) -> dict:
-    """Compare one transported PhotonSim event with the analytic particle model."""
-    counts, detected, observed_first = _observed(event, geometry, cfg)
+def analytic_prediction(geometry, cfg: lb.GeneratorConfig, event: ValidationEvent,
+                        analytic: AnalyticConfig):
+    """Return per-PMT expectation and first time on the validation geometry."""
     if event.domain == lb.DOMAIN_PHOTON:
         if not np.isfinite(event.yield_photons):
             raise ValueError("photon validation event needs yield_photons")
         qe = np.full(geometry.n_pmt, float(lb.qe_at(np.array([450.0]), cfg)[0]))
         mu = lb.expected_charge(geometry, event.vertex_m, event.yield_photons, qe,
-                                lb.LAMBDA0_M, cfg)
+                                analytic.length, cfg, angular_mode=analytic.angular_mode)
         analytic_first = lb.propagation_time_ns(geometry, event.vertex_m, cfg)
         truth = None
     else:
@@ -104,7 +124,17 @@ def compare_event(geometry, cfg: lb.GeneratorConfig, event: ValidationEvent) -> 
                                  track_length_m=event.track_length_m)
         qe_mean = float(np.mean(lb.qe_at(event.wavelength_nm, cfg))) if event.wavelength_nm.size else 0.2
         mu, analytic_first = lb.expected_charge_particle(
-            geometry, truth, np.full(geometry.n_pmt, qe_mean), lb.LAMBDA0_M, cfg)
+            geometry, truth, np.full(geometry.n_pmt, qe_mean), analytic.length, cfg,
+            angular_mode=analytic.angular_mode)
+    return mu, analytic_first, truth
+
+
+def compare_event(geometry, cfg: lb.GeneratorConfig, event: ValidationEvent, *,
+                  analytic: AnalyticConfig | None = None) -> dict:
+    """Compare one transported PhotonSim event with the analytic particle model."""
+    counts, detected, observed_first = _observed(event, geometry, cfg)
+    mu, analytic_first, truth = analytic_prediction(geometry, cfg, event,
+                                                   analytic or AnalyticConfig())
     total_expected, total_observed = float(mu.sum()), float(detected.sum())
     ratio = total_observed / total_expected if total_expected > 0 else float("nan")
     keep = (counts > 0) & (mu > 0)

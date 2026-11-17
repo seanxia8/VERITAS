@@ -1,0 +1,419 @@
+{
+  "extension": "r2_repair_2026-11-17",
+  "heldout": {
+    "wcte__sigreg_jepa__s9000": {
+      "loss": 0.2257629451341927,
+      "prediction": 0.013943632249720395,
+      "sigreg": 10.590965896844864,
+      "sigreg_context": 3.2042775824666023,
+      "sigreg_target": 17.97765424847603,
+      "n_micro_batches": 32,
+      "micro_batch": 8,
+      "sigreg_context_by_batch_size": {
+        "4": 1.6084405751455397,
+        "8": 3.216879221700853,
+        "32": 12.867511340550013,
+        "255": 102.5379638671875
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/wcte__sigreg_jepa__s9000.json",
+      "verified_heldout_reference_sha256": "da22b0dd9bd3f1d789258e94edfc48f510494d4382fc06c7d65bc6fa971c7212",
+      "checkpoint": "/work/dwong/jepa_a10_work/fixed_s9000/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+      "training_micro_batch": 8,
+      "last_logged": {
+        "loss": 0.2241329327225685,
+        "prediction": 0.013786953408271074,
+        "sigreg": 10.517299175262451,
+        "sigreg_context": 3.1163394451141357,
+        "sigreg_target": 17.918258666992188
+      },
+      "last_logged_step": 10000
+    },
+    "wcte__target_posfree__s9000": {
+      "loss": 0.3290316313505173,
+      "prediction": 0.041310256463475525,
+      "sigreg": 14.386068910360336,
+      "sigreg_context": 1.4011268857866526,
+      "sigreg_target": 27.37101113796234,
+      "n_micro_batches": 32,
+      "micro_batch": 8,
+      "sigreg_context_by_batch_size": {
+        "4": 1.1046888090315319,
+        "8": 1.4310866825042232,
+        "32": 3.1331917217799594,
+        "255": 19.598003387451172
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/wcte__target_posfree__s9000.json",
+      "verified_heldout_reference_sha256": "8528bebd9bdba4ccc7d55f184ea602a79aef9b95c3e32b322a019e48b165e34d",
+      "checkpoint": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+      "training_micro_batch": 8,
+      "last_logged": {
+        "loss": 0.32976289093494415,
+        "prediction": 0.043746924959123135,
+        "sigreg": 14.300798892974854,
+        "sigreg_context": 1.2606697231531143,
+        "sigreg_target": 27.340928077697754
+      },
+      "last_logged_step": 10000
+    },
+    "sk__sigreg_jepa__s9000": {
+      "loss": 0.39778860565274954,
+      "prediction": 0.2177401154767722,
+      "sigreg": 9.00242467224598,
+      "sigreg_context": 1.6085039228200912,
+      "sigreg_target": 16.39634545147419,
+      "n_micro_batches": 64,
+      "micro_batch": 4,
+      "sigreg_context_by_batch_size": {
+        "4": 1.6084782890975475,
+        "8": 3.2169527038931847,
+        "32": 12.867799639701843,
+        "256": 102.94236755371094
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/sk__sigreg_jepa__s9000.json",
+      "verified_heldout_reference_sha256": "442529142781457b62540d5dacf7f367284cef6e62e2d822ebb23e5eddad7964",
+      "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/runs/sk__sigreg_jepa__s9000/checkpoint.pt",
+      "training_micro_batch": 4,
+      "last_logged": {
+        "loss": 0.3975409269332886,
+        "prediction": 0.2176415529102087,
+        "sigreg": 8.994969010353088,
+        "sigreg_context": 1.6085159331560135,
+        "sigreg_target": 16.38142216205597
+      },
+      "last_logged_step": 10000
+    },
+    "sk__target_posfree__s9000": {
+      "loss": 2.063705386593938,
+      "prediction": 0.6669002422131598,
+      "sigreg": 69.84025885164738,
+      "sigreg_context": 1.2411994850263,
+      "sigreg_target": 138.439317882061,
+      "n_micro_batches": 64,
+      "micro_batch": 4,
+      "sigreg_context_by_batch_size": {
+        "4": 1.229001745581627,
+        "8": 1.9182823300361633,
+        "32": 5.964007556438446,
+        "256": 44.87551498413086
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/sk__target_posfree__s9000.json",
+      "verified_heldout_reference_sha256": "768df6a46bc734d17c4a26bc100b2cff70c5d350a9434c91cc92dcec0cc551e1",
+      "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/sk__target_posfree__s9000/checkpoint.pt",
+      "training_micro_batch": 4,
+      "last_logged": {
+        "loss": 2.3189185857772827,
+        "prediction": 0.6254029311239719,
+        "sigreg": 84.67578458786011,
+        "sigreg_context": 1.1643956378102303,
+        "sigreg_target": 168.18717241287231
+      },
+      "last_logged_step": 10000
+    },
+    "juno__sigreg_jepa__s9000": {
+      "loss": 0.5174033753573895,
+      "prediction": 0.3476384524255991,
+      "sigreg": 8.488246440887451,
+      "sigreg_context": 3.216356009244919,
+      "sigreg_target": 13.760136932134628,
+      "n_micro_batches": 32,
+      "micro_batch": 8,
+      "sigreg_context_by_batch_size": {
+        "4": 1.6082421783357859,
+        "8": 3.2163397893309593,
+        "32": 12.864956140518188,
+        "256": 102.91880798339844
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/juno__sigreg_jepa__s9000.json",
+      "verified_heldout_reference_sha256": "cf8e06018360236b9fd4dced450389b550ea1fc19c7c4f4c92613b4e3bd7e291",
+      "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__sigreg_jepa__s9000/checkpoint.pt",
+      "training_micro_batch": 8,
+      "last_logged": {
+        "loss": 0.5150936096906662,
+        "prediction": 0.34578026086091995,
+        "sigreg": 8.465666770935059,
+        "sigreg_context": 3.2161768078804016,
+        "sigreg_target": 13.715156555175781
+      },
+      "last_logged_step": 10000
+    },
+    "juno__target_posfree__s9000": {
+      "loss": 8.703564703464508,
+      "prediction": 1.0295435264706612,
+      "sigreg": 383.70106983184814,
+      "sigreg_context": 1.4854005426168442,
+      "sigreg_target": 765.9167394638062,
+      "n_micro_batches": 32,
+      "micro_batch": 8,
+      "sigreg_context_by_batch_size": {
+        "4": 1.126168361864984,
+        "8": 1.4831085577607155,
+        "32": 3.3438572883605957,
+        "256": 21.881698608398438
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/juno__target_posfree__s9000.json",
+      "verified_heldout_reference_sha256": "c4eb6be683164d714021a62f51c5f75b96d38213c60b99d0c59e0034daf45809",
+      "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__target_posfree__s9000/checkpoint.pt",
+      "training_micro_batch": 8,
+      "last_logged": {
+        "loss": 11.455878973007202,
+        "prediction": 0.9452052861452103,
+        "sigreg": 525.5336990356445,
+        "sigreg_context": 1.2358207404613495,
+        "sigreg_target": 1049.8315887451172
+      },
+      "last_logged_step": 10000
+    },
+    "hk__sigreg_jepa__s9000": {
+      "loss": 0.48235198203474283,
+      "prediction": 0.3329191985540092,
+      "sigreg": 7.471639283001423,
+      "sigreg_context": 1.6083314344286919,
+      "sigreg_target": 13.334947124123573,
+      "n_micro_batches": 64,
+      "micro_batch": 4,
+      "sigreg_context_by_batch_size": {
+        "4": 1.6083169486373663,
+        "8": 3.2166279926896095,
+        "32": 12.866495013237,
+        "256": 102.93193054199219
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/hk__sigreg_jepa__s9000.json",
+      "verified_heldout_reference_sha256": "8e7350319b1392f01a1848ee62763810b45b3001ce9bf69fe1cd959b28fe79bb",
+      "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__sigreg_jepa__s9000/checkpoint.pt",
+      "training_micro_batch": 4,
+      "last_logged": {
+        "loss": 0.4819539934396744,
+        "prediction": 0.3323053903877735,
+        "sigreg": 7.482430279254913,
+        "sigreg_context": 1.6083394885063171,
+        "sigreg_target": 13.356521129608154
+      },
+      "last_logged_step": 10000
+    },
+    "hk__target_posfree__s9000": {
+      "loss": 15.245791621506214,
+      "prediction": 1.1956882001832128,
+      "sigreg": 702.5051891803741,
+      "sigreg_context": 1.305267771705985,
+      "sigreg_target": 1403.705114364624,
+      "n_micro_batches": 64,
+      "micro_batch": 4,
+      "sigreg_context_by_batch_size": {
+        "4": 1.2966585773974657,
+        "8": 1.9988682493567467,
+        "32": 6.214978218078613,
+        "256": 46.91236114501953
+      },
+      "verified_heldout_reference": "/ceph/dwong/jepa/returns/r2_diagnostics_2026-11-17/embed/hk__target_posfree__s9000.json",
+      "verified_heldout_reference_sha256": "c9cb892307243fb09cec53e07678dd1b31ffc18fed29e700f6a1d518a7c50f0e",
+      "checkpoint": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__target_posfree__s9000/checkpoint.pt",
+      "training_micro_batch": 4,
+      "last_logged": {
+        "loss": 17.684817850589752,
+        "prediction": 1.153810791671276,
+        "sigreg": 826.5503787994385,
+        "sigreg_context": 1.2770300582051277,
+        "sigreg_target": 1651.8237228393555
+      },
+      "last_logged_step": 10000
+    }
+  },
+  "A6_logs": {
+    "logged_metric_keys": [
+      "charge",
+      "hidden_hits",
+      "hit",
+      "loss",
+      "prediction",
+      "sigreg",
+      "sigreg_context",
+      "sigreg_target",
+      "time"
+    ],
+    "last_logged": {
+      "sk__mae_mse__s9000": {
+        "charge": 0.0929489815607667,
+        "hidden_hits": 11769.5,
+        "hit": 0.06861580908298492,
+        "loss": 0.16165544651448727,
+        "time": 9.065698941412847e-05
+      },
+      "sk__mae_mse__s9001": {
+        "charge": 0.06118022557348013,
+        "hidden_hits": 8369.75,
+        "hit": 0.0540691539645195,
+        "loss": 0.11534875258803368,
+        "time": 9.936992501025088e-05
+      },
+      "sk__sigreg_jepa__s9000": {
+        "loss": 0.3975409269332886,
+        "prediction": 0.2176415529102087,
+        "sigreg": 8.994969010353088,
+        "sigreg_context": 1.6085159331560135,
+        "sigreg_target": 16.38142216205597
+      },
+      "sk__target_posfree__s9000": {
+        "loss": 2.3189185857772827,
+        "prediction": 0.6254029311239719,
+        "sigreg": 84.67578458786011,
+        "sigreg_context": 1.1643956378102303,
+        "sigreg_target": 168.18717241287231
+      },
+      "sk__target_posfree__s9001": {
+        "loss": 2.939583793282509,
+        "prediction": 0.6110925823450089,
+        "sigreg": 116.42456483840942,
+        "sigreg_context": 1.1127746552228928,
+        "sigreg_target": 231.7363519668579
+      },
+      "hk__mae_mse__s9000": {
+        "charge": 0.05845085438340902,
+        "hidden_hits": 13888.25,
+        "hit": 0.06360236741602421,
+        "loss": 0.12217308208346367,
+        "time": 0.00011986131539742928
+      },
+      "hk__mae_mse__s9001": {
+        "charge": 0.04084530146792531,
+        "hidden_hits": 10163.0,
+        "hit": 0.05541978497058153,
+        "loss": 0.0964699238538742,
+        "time": 0.000204839940124657
+      },
+      "hk__mae_mse_rf__s9000": {
+        "charge": 0.05852119345217943,
+        "hidden_hits": 13888.25,
+        "hit": 0.06357885617762804,
+        "loss": 0.12222492881119251,
+        "time": 0.00012487628373492043
+      },
+      "hk__sigreg_jepa__s9000": {
+        "loss": 0.4819539934396744,
+        "prediction": 0.3323053903877735,
+        "sigreg": 7.482430279254913,
+        "sigreg_context": 1.6083394885063171,
+        "sigreg_target": 13.356521129608154
+      },
+      "hk__sigreg_jepa__s9001": {
+        "loss": 0.47880715131759644,
+        "prediction": 0.329596895724535,
+        "sigreg": 7.460512936115265,
+        "sigreg_context": 1.6083305031061172,
+        "sigreg_target": 13.312695384025574
+      },
+      "hk__target_posfree__s9000": {
+        "loss": 17.684817850589752,
+        "prediction": 1.153810791671276,
+        "sigreg": 826.5503787994385,
+        "sigreg_context": 1.2770300582051277,
+        "sigreg_target": 1651.8237228393555
+      },
+      "hk__target_posfree__s9001": {
+        "loss": 21.552046298980713,
+        "prediction": 0.9896932765841484,
+        "sigreg": 1028.1176948547363,
+        "sigreg_context": 1.1306561902165413,
+        "sigreg_target": 2055.104766845703
+      },
+      "hk__target_posfree__s9002": {
+        "loss": 10.85830843448639,
+        "prediction": 1.2286131605505943,
+        "sigreg": 481.4847888946533,
+        "sigreg_context": 1.141278624534607,
+        "sigreg_target": 961.8282928466797
+      },
+      "juno__mae_mse__s9000": {
+        "charge": 0.0995318777859211,
+        "hidden_hits": 10874.25,
+        "hit": 0.06714477483183146,
+        "loss": 0.16676093637943268,
+        "time": 8.428231467405567e-05
+      },
+      "juno__mae_mse__s9001": {
+        "charge": 0.06791085191071033,
+        "hidden_hits": 7816.5,
+        "hit": 0.05306567624211311,
+        "loss": 0.12103836983442307,
+        "time": 6.184279209264787e-05
+      },
+      "juno__mae_mse_rf__s9000": {
+        "charge": 0.09957543201744556,
+        "hidden_hits": 10874.25,
+        "hit": 0.06720330659300089,
+        "loss": 0.16687154956161976,
+        "time": 9.28150466279476e-05
+      },
+      "juno__sigreg_jepa__s9000": {
+        "loss": 0.5150936096906662,
+        "prediction": 0.34578026086091995,
+        "sigreg": 8.465666770935059,
+        "sigreg_context": 3.2161768078804016,
+        "sigreg_target": 13.715156555175781
+      },
+      "juno__sigreg_jepa__s9001": {
+        "loss": 0.5194934457540512,
+        "prediction": 0.3441653996706009,
+        "sigreg": 8.766402244567871,
+        "sigreg_context": 3.216209888458252,
+        "sigreg_target": 14.31659483909607
+      },
+      "juno__sigreg_jepa__s9002": {
+        "loss": 0.5170837789773941,
+        "prediction": 0.34581541270017624,
+        "sigreg": 8.5634183883667,
+        "sigreg_context": 3.2162311673164368,
+        "sigreg_target": 13.910605907440186
+      },
+      "juno__target_posfree__s9000": {
+        "loss": 11.455878973007202,
+        "prediction": 0.9452052861452103,
+        "sigreg": 525.5336990356445,
+        "sigreg_context": 1.2358207404613495,
+        "sigreg_target": 1049.8315887451172
+      },
+      "juno__target_posfree__s9001": {
+        "loss": 16.40172266960144,
+        "prediction": 0.7731240093708038,
+        "sigreg": 781.429931640625,
+        "sigreg_context": 1.414700210094452,
+        "sigreg_target": 1561.4451599121094
+      },
+      "sk__mae_mse_rf__s9000": {
+        "charge": 0.09276089444756508,
+        "hidden_hits": 11769.5,
+        "hit": 0.06860200967639685,
+        "loss": 0.1614441890269518,
+        "time": 8.128553599817678e-05
+      },
+      "sk__sigreg_jepa__s9001": {
+        "loss": 0.39775051549077034,
+        "prediction": 0.21778315491974354,
+        "sigreg": 8.998368501663208,
+        "sigreg_context": 1.6085384339094162,
+        "sigreg_target": 16.388198494911194
+      },
+      "sk__target_posfree__s9002": {
+        "loss": 1.7061344385147095,
+        "prediction": 0.770321361720562,
+        "sigreg": 46.79065227508545,
+        "sigreg_context": 1.1151682287454605,
+        "sigreg_target": 92.46613502502441
+      },
+      "wcte__sigreg_jepa__s9000": {
+        "loss": 0.2241329327225685,
+        "prediction": 0.013786953408271074,
+        "sigreg": 10.517299175262451,
+        "sigreg_context": 3.1163394451141357,
+        "sigreg_target": 17.918258666992188
+      },
+      "wcte__posfree__s9000": {
+        "loss": 0.32976289093494415,
+        "prediction": 0.043746924959123135,
+        "sigreg": 14.300798892974854,
+        "sigreg_context": 1.2606697231531143,
+        "sigreg_target": 27.340928077697754
+      }
+    },
+    "rank_or_variance_metric_logged": false
+  }
+}

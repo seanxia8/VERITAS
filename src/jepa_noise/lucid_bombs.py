@@ -1703,7 +1703,8 @@ def fiducial_vertex(geometry, rng: np.random.Generator, fraction: float = 0.8) -
     phi = rng.uniform(0.0, 2.0 * np.pi)
     return np.array([r * np.cos(phi), r * np.sin(phi), rng.uniform(-half_height, half_height)])
 
-def solid_angle_fraction(geometry, vertex_m, sensor_radius_m: float | None = None) -> np.ndarray:
+def solid_angle_fraction(geometry, vertex_m, sensor_radius_m: float | None = None,
+                         *, angular_mode: str = "cos") -> np.ndarray:
     """Disc solid angle / 4π per sensor.
 
     Approximation: the exact on-axis disc solid angle ``2π(1 - d/√(d²+r²))`` times the
@@ -1716,22 +1717,30 @@ def solid_angle_fraction(geometry, vertex_m, sensor_radius_m: float | None = Non
     if np.any(dist <= 0.0):
         raise ValueError("expected charge: a sensor coincides with the vertex")
     r = float(geometry.sensor_radius_m if sensor_radius_m is None else sensor_radius_m)
+    if angular_mode == "spherical":
+        # A sphere subtends a cone with sin(opening angle) = r / d.
+        return np.where(dist <= r, 1.0,
+                        0.5 * (1.0 - np.sqrt(np.maximum(1.0 - (r / dist) ** 2, 0.0))))
+    if angular_mode != "cos":
+        raise ValueError(f"unknown angular mode {angular_mode!r}")
     cos = np.abs(np.einsum("ij,ij->i", delta, geometry.directions)) / dist
     omega = 2.0 * np.pi * (1.0 - dist / np.sqrt(dist * dist + r * r)) * np.clip(cos, 0.0, 1.0)
     return omega / (4.0 * np.pi)
 
 def expected_charge(geometry, vertex_m, yield_photons, qe_eff, lambda_m, cfg: GeneratorConfig,
-                    *, sensor_radius_m: float | None = None) -> np.ndarray:
+                    *, sensor_radius_m: float | None = None,
+                    angular_mode: str = "cos") -> np.ndarray:
     """``mu_p = Y * QE(lambda) * CE * Omega_p/(4pi) * exp(-d_p/lambda)``."""
-    lam = float(lambda_m)
-    if not np.isfinite(lam) or lam <= 0.0:
+    lam = None if lambda_m is None else float(lambda_m)
+    if lam is not None and (not np.isfinite(lam) or lam <= 0.0):
         raise ValueError("expected charge: attenuation length must be positive and finite")
     if not np.isfinite(yield_photons) or yield_photons < 0.0:
         raise ValueError("expected charge: yield must be finite and non-negative")
     dist = np.linalg.norm(geometry.positions_m - np.asarray(vertex_m, dtype=float), axis=1)
-    omega = solid_angle_fraction(geometry, vertex_m, sensor_radius_m)
+    omega = solid_angle_fraction(geometry, vertex_m, sensor_radius_m, angular_mode=angular_mode)
+    survival = 1.0 if lam is None else np.exp(-dist / lam)
     return (float(yield_photons) * np.clip(np.asarray(qe_eff, float), 0.0, 1.0) * float(cfg.ce)
-            * omega * np.exp(-dist / lam))
+            * omega * survival)
 
 def propagation_time_ns(geometry, vertex_m, cfg: GeneratorConfig) -> np.ndarray:
     """Prompt direct-light time from the vertex, in ns (group velocity ``c / n_group``)."""
@@ -1814,11 +1823,12 @@ def draw_particle_truth(geometry, cfg: GeneratorConfig, run_id: str, event_id: i
                          deposited_MeV=deposited, contained=contained, track_length_m=track_length)
 
 
-def expected_charge_particle(geometry, truth: ParticleTruth, qe_eff, lambda_m: float,
-                             cfg: GeneratorConfig) -> tuple[np.ndarray, np.ndarray]:
+def expected_charge_particle(geometry, truth: ParticleTruth, qe_eff, lambda_m: float | None,
+                             cfg: GeneratorConfig, *, angular_mode: str = "cos"
+                             ) -> tuple[np.ndarray, np.ndarray]:
     """Simplified Cherenkov ring model: per-PMT mean PE and first-arrival time (A10.3)."""
-    lam = float(lambda_m)
-    if not np.isfinite(lam) or lam <= 0.0:
+    lam = None if lambda_m is None else float(lambda_m)
+    if lam is not None and (not np.isfinite(lam) or lam <= 0.0):
         raise ValueError("particle expected charge: attenuation length must be positive")
     if truth.deposited_MeV <= 0.0 or truth.track_length_m <= 0.0:
         return np.zeros(geometry.n_pmt), np.full(geometry.n_pmt, np.inf)
@@ -1846,9 +1856,9 @@ def expected_charge_particle(geometry, truth: ParticleTruth, qe_eff, lambda_m: f
             raise ValueError("particle expected charge: a sensor coincides with an emission point")
         cosine = np.einsum("ij,j->i", delta / dist[:, None], truth.direction)
         ring = np.exp(-0.5 * ((cosine - cos_theta) / sigma) ** 2)
-        solid = solid_angle_fraction(geometry, point)
-        weight = (per_segment * qe * float(cfg.ce) * solid
-                  * np.exp(-dist / lam) * ring)
+        solid = solid_angle_fraction(geometry, point, angular_mode=angular_mode)
+        survival = 1.0 if lam is None else np.exp(-dist / lam)
+        weight = per_segment * qe * float(cfg.ce) * solid * survival * ring
         mu += weight
         t = (s[i] / (beta * C_M_PER_S) * 1e9
              + dist * (float(cfg.n_group) / C_M_PER_S) * 1e9)
