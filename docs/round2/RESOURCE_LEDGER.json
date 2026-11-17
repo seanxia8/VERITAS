@@ -2313,6 +2313,32 @@
      "gpu_h": 0.01348611111111111,
      "utc": "2026-11-17T03:17:45Z",
      "exit_status": 0
+    },
+    {
+     "detector": "wcte",
+     "kind": "split_ceiling_grid",
+     "seed": 9000,
+     "host": "deepthought2",
+     "gpu": "NVIDIA L40S",
+     "gpu_index": 0,
+     "run_id": "r2repair_stage3_grid_9000",
+     "wall_s": 198.68,
+     "gpu_h": 0.05518888888888889,
+     "utc": "2026-11-17T04:06:56Z",
+     "exit_status": 0
+    },
+    {
+     "detector": "wcte",
+     "kind": "split_ceiling_grid",
+     "seed": 9001,
+     "host": "deepthought2",
+     "gpu": "NVIDIA L40S",
+     "gpu_index": 1,
+     "run_id": "r2repair_stage3_grid_9001",
+     "wall_s": 199.87,
+     "gpu_h": 0.05551944444444445,
+     "utc": "2026-11-17T04:08:38Z",
+     "exit_status": 0
     }
    ]
   },
