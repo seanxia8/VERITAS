@@ -1,0 +1,183 @@
+{
+ "extension": "r2_lucid_2026-11-21",
+ "registered": false,
+ "runbook": "docs/round2/RUNBOOK_2026-11-21_R2_LUCID_REGEN.md",
+ "runbook_sha256": "007e06bee837e647f2ffb775347f4087f114d4d7166dfd508985be0183fb6e6a",
+ "head_at_writing": "5c0f734529d5dcc687c3ba617cee0045a04cea6e",
+ "lucid_sha": "e651e836b420f541b02672d9866e6219f2c6d66d",
+ "sampling_tier": "A1",
+ "dataset_kind": "lucid_mc_native",
+ "deliverables": [
+  {
+   "item": "L0 runbook committed + decisions",
+   "path": "docs/round2/RUNBOOK_2026-11-21_R2_LUCID_REGEN.md",
+   "sha256": "007e06bee837e647f2ffb775347f4087f114d4d7166dfd508985be0183fb6e6a",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L0 host inventory",
+   "path": "results/round2/20261121_lucid/HOSTS.md",
+   "sha256": "3113277b9dd69477a87cc5e95dfcc0696839d4fc2d44dfb872df69733ac47017",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L1 LUCiD install and smoke tests",
+   "path": "results/round2/20261121_lucid/LUCID_INSTALL.md",
+   "sha256": "fac52ba2f9f7d9c95e8924790f27a1ff92716c4ed5b9c39f04d2cff9fda5fc6f",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L2 capability audit, tier A1",
+   "path": "results/round2/20261121_lucid/LUCID_CAPABILITIES.md",
+   "sha256": "6f89ee5531a09a3aacad01ecd81ad5541599211729a05ce93575d6a68a298dbe",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L3 generator adapter",
+   "path": "src/jepa_noise/lucid_mc_generator.py",
+   "sha256": "590656009847fd922ebb5b04f7e5d1dfdc7b99e6f063b3093ad4a17cb05e0eee",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L3 generation CLI",
+   "path": "scripts/lucid_generate.py",
+   "sha256": "e9faa31fad20e03e10c49105235026562dfe3853e717c523305cb93aa07c7dd9",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L3 dataset-derived constants",
+   "path": "src/jepa_noise/configs/lucid_v1.json",
+   "sha256": "840130a9bbef60d2f7bc49005cc89281c335baa2bc50a505acd7b5d70da896dd",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L3 tests",
+   "path": "src/jepa_noise/tests/test_lucid_mc_generator.py",
+   "sha256": "254d26bdf6ada88299667b8b31d47c52880ece5876227208b925fd4d3483d082",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L4 validation gates G1-G6 (all detectors)",
+   "path": "results/round2/20261121_lucid/VALIDATION.md",
+   "sha256": "87cea4eb8493f778f72e67e8e62bea6852faafff7243f303bb748061966c05bb",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L5 data lineage",
+   "path": "docs/DATA_LINEAGE.md",
+   "sha256": "6803db9241c96e0ecfcef14299dd1ea3ba8a97d61731b0ac220646bd35ec259d",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L5 default data roots lucid_v1",
+   "path": "src/jepa_noise/data_roots.py",
+   "sha256": "ae218425622e8bb0a716478b8dcd90c5b840797e85e40745d78d26e9b5396506",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L6 data manifest WCTE",
+   "path": "results/round2/20261121_lucid/DATA_MANIFEST_wcte.json",
+   "sha256": "b90d0f4406e2c48777fb8605fc796ba0477891371723fc5144d6a37ec4055995",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L6 data manifest SK",
+   "path": "results/round2/20261121_lucid/DATA_MANIFEST_sk.json",
+   "sha256": "05cea8d77941e97109bd23611fb654c38ee4cb60762db9c5744d2f4fd5b13ad4",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L6 data manifest JUNO",
+   "path": "results/round2/20261121_lucid/DATA_MANIFEST_juno.json",
+   "sha256": "2382a0c87ee78b32709837ea727cd69996b59d56766312c7dd15dcae8cb04fc6",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L6 data manifest HK",
+   "path": "results/round2/20261121_lucid/DATA_MANIFEST_hk.json",
+   "sha256": "fa10c007ae9365d80d705ab791becdd3114066abd4fbb62778227b21b151c4c6",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L7/L8 night-1 interim (WCTE)",
+   "path": "results/round2/20261121_lucid/INTERIM_NIGHT1.md",
+   "sha256": "69289faabdaf662a7be568a5ec2375bcc4030b75abf689975be470f4cc49834a",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L8 toy vs LUCiD (all detectors)",
+   "path": "results/round2/20261121_lucid/TOY_VS_LUCID.md",
+   "sha256": "4ae8f7529e1d7fcd84cbeeed1279710313e47ae50e54b8d0b4b026cddf266598",
+   "verdict": "PASS"
+  },
+  {
+   "item": "L9 report",
+   "path": "results/round2/20261121_lucid/LUCID_REGEN_REPORT.md",
+   "sha256": "3408812ff23514e0ca8994892b18f127bf9a6d642e6b4285f04488300f376059",
+   "verdict": "PASS"
+  },
+  {
+   "item": "Resource ledger R2_lucid_gpu (93.1 / 120 GPU-h)",
+   "path": "docs/round2/RESOURCE_LEDGER.json",
+   "sha256": "d3bd1f2431166cea3119311c06719ac006a149f3e6d71bb4aa770f6d15520b5a",
+   "verdict": "PASS"
+  },
+  {
+   "item": "Decisions",
+   "path": "docs/round2/DECISIONS.md",
+   "sha256": "59593f266b74a31360b093bb86bdbd3bf593c89a50dc3a6b27445fb09414e81d",
+   "verdict": "PASS"
+  }
+ ],
+ "off_repo": {
+  "archive_md": {
+   "path": "/ceph/dwong/jepa/data/ARCHIVE_ANALYTIC_TOY_2026-11-21.md",
+   "sha256": "1e0c73f96db7ef281640c843db65abda590ba4f5ee9548c846fd57e0136c3686",
+   "verdict": "PASS"
+  },
+  "archive_json": {
+   "path": "/ceph/dwong/jepa/data/ARCHIVE_ANALYTIC_TOY_2026-11-21.json",
+   "sha256": "8c641e3f3146334c0f0acdbee25e2b25feff7a41529ee0f07ac9eeea7086cef8",
+   "verdict": "PASS"
+  },
+  "packs": {
+   "wcte": {
+    "bytes": 335631668,
+    "path": "/ceph/dwong/jepa/data/lucid_v1/wcte/wcte_lucid_v1.h5",
+    "sha256": "f3a3cf68e2539d3261c2562db51d7f8a03de760d5d52432137fd7aeec8028a5d"
+   },
+   "sk": {
+    "bytes": 2334706393,
+    "path": "/ceph/dwong/jepa/data/lucid_v1/sk/sk_lucid_v1.h5",
+    "sha256": "0ffd0ff668502d991d49fcee43559456fbabcd73857a826a2b60dfb6c3b5f15b"
+   },
+   "juno": {
+    "bytes": 2087739638,
+    "path": "/ceph/dwong/jepa/data/lucid_v1/juno/juno_lucid_v1.h5",
+    "sha256": "0429e0f50835d6b57961cfa19f15d830926f72cd201dd25ad1bbdeabb2e6e088"
+   },
+   "hk": {
+    "bytes": 3020037762,
+    "path": "/ceph/dwong/jepa/data/lucid_v1/hk/hk_lucid_v1.h5",
+    "sha256": "1b33020d80c5c306335de700646d8aedeb9020d747500a6c54d45d5373609fdc"
+   }
+  }
+ },
+ "training_matrix": {
+  "wcte": "mae_mse s9000/9001, mae_repaired s9000/9001, jepa_repaired s9000/9001, sigreg_jepa s9000, init s9000/9001, sweep 450/15/5/1.5 ns: PASS",
+  "sk": "mae_mse, mae_repaired, jepa_repaired, sigreg_jepa s9000; init s9000/9001: PASS",
+  "juno": "mae_repaired, jepa_repaired s9000; init s9000/9001: PASS",
+  "hk": "mae_repaired, jepa_repaired (W128) s9000; init s9000/9001: PASS"
+ },
+ "native_suite": {
+  "passed": 1556,
+  "failed": 1,
+  "failed_tests": [
+   "src/noise_module_lucid/tests/test_dark_counts.py::test_rate_zero_is_identical_to_the_pre_r6_reference (fails identically on origin/dev)"
+  ],
+  "skipped": 9,
+  "xfailed": 1
+ },
+ "overall": "PASS",
+ "open_issues": "see LUCID_REGEN_REPORT.md \u00a77"
+}
