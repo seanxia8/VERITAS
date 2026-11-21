@@ -1,0 +1,110 @@
+{
+ "dark_pad_no_trigger_ns": 100.0,
+ "dark_rate_hz_lucid": 4200.0,
+ "dataset_kind": "lucid_mc_native",
+ "energy_MeV": {
+  "electron": [
+   100.0,
+   1000.0
+  ],
+  "muon": [
+   300.0,
+   1500.0
+  ]
+ },
+ "extension": "r2_lucid_2026-11-21",
+ "geometry": {
+  "hk": {
+   "frozen_npz": "src/jepa_noise/configs/lucid_v1/hk_geometry_e651e836.npz",
+   "reuse_round2_positions": true,
+   "sha256": "24afb0932c4ca866a853fdcbc67ce0ee1f16e462dc928169cd053281fd01e442"
+  },
+  "juno": {
+   "frozen_npz": "src/jepa_noise/configs/lucid_v1/juno_geometry_e651e836.npz",
+   "reuse_round2_positions": true,
+   "sha256": "cccfda111d918e9204340a51687b345cf2b60ecdbd577a46d6d609905ed38f90"
+  },
+  "sk": {
+   "frozen_npz": "src/jepa_noise/configs/lucid_v1/sk_geometry_e651e836.npz",
+   "reuse_round2_positions": false,
+   "sha256": "a40f9ec08992414a3f2652bf2c325f2c4b7e33a07abfdf4dad40971f54a06798"
+  },
+  "wcte": {
+   "frozen_npz": "src/jepa_noise/configs/lucid_v1/wcte_geometry_e651e836.npz",
+   "reuse_round2_positions": false,
+   "sha256": "9e59c2b99d046a0688894883ce7c0d3015e48c929ae8273d7adcc358769a9e43"
+  }
+ },
+ "lucid_sha": "e651e836b420f541b02672d9866e6219f2c6d66d",
+ "readout_start_ns": -200.0,
+ "regime_target_true_pe_5_50_95": [
+  200,
+  3000,
+  30000
+ ],
+ "registered": false,
+ "sampling_tier": "A1",
+ "schema": "jepa-lucid-v1-config",
+ "time_rule": {
+  "hk": {
+   "n": 12,
+   "prompt_window_ns": [
+    -20.0,
+    460.0
+   ],
+   "time_scale_ns": 766.6666666666667,
+   "trigger": "NHits",
+   "trigger_window_ns": 20.0
+  },
+  "juno": {
+   "n": 10,
+   "prompt_window_ns": [
+    -20.0,
+    200.0
+   ],
+   "time_scale_ns": 333.3333333333333,
+   "trigger": "NHits",
+   "trigger_window_ns": 20.0
+  },
+  "sk": {
+   "n": 10,
+   "prompt_window_ns": [
+    -20.0,
+    270.0
+   ],
+   "time_scale_ns": 450.0,
+   "trigger": "NHits",
+   "trigger_window_ns": 20.0
+  },
+  "wcte": {
+   "n": 6,
+   "prompt_window_ns": [
+    -20.0,
+    60.0
+   ],
+   "time_scale_ns": 100.0,
+   "trigger": "NHits",
+   "trigger_window_ns": 20.0
+  }
+ },
+ "time_rule_note": "round-2 procedures (r2_geometry.prompt_window_rule / time_scale_rule / nhits_n_rule) re-evaluated with LUCiD's digitizer dark rate 4.2 kHz; prompt window and time scale are geometry-only and unchanged; WCTE keeps its round-1 prompt window and time scale",
+ "yield_range_photons": {
+  "hk": [
+   10000.0,
+   1000000.0
+  ],
+  "juno": [
+   10000.0,
+   1000000.0
+  ],
+  "sk": [
+   10000.0,
+   1000000.0
+  ],
+  "wcte": [
+   10000.0,
+   1000000.0
+  ]
+ },
+ "yield_range_status": "placeholder until the L2 calibration pilot"
+}
