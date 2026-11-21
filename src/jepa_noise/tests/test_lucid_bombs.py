@@ -420,9 +420,17 @@ def test_invalid_detectability_inputs_raise():
 
 
 # --------------------------------------------------------------------------- hygiene / config
+#: r2-lucid (RUNBOOK_2026-11-21_R2_LUCID_REGEN.md P1): the LUCiD generator adapter is the one module
+#: that must call LUCiD; every other module keeps the round-1 rule. Its own tests check that it never
+#: uses lucid_bombs physics (gate G6).
+LUCID_ADAPTERS = {"lucid_mc_generator.py", "test_lucid_mc_generator.py"}
+
+
 def test_nothing_imports_lucid():
     root = Path(lb.__file__).resolve().parent
     for path in root.rglob("*.py"):
+        if path.name in LUCID_ADAPTERS:
+            continue
         for node in ast.walk(ast.parse(path.read_text())):
             modules = []
             if isinstance(node, ast.Import):
