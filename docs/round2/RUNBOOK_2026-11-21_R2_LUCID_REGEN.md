@@ -65,7 +65,13 @@ Quote verbatim in `docs/round2/DECISIONS.md` on branch `lucid-mc`:
 
 ### 0.4 Hosts, paths, budget
 
-- **portal1.** Host `portal1.etp.kit.edu`, user `dwong`, defined in the author's `~/.ssh/config`. Reach it with the `p1` wrapper (`p1 '<cmd>'`; default host `portal1.etp.kit.edu`, overridable via `$CC_STATE/hosts_p1.env`). It shares the filesystem with Deepthought (verify which mounts: `/ceph`, `/work`). Use portal1 for cloning, environments, CPU work and, if it has GPUs, LUCiD generation. Do not run heavy jobs on portal1 if it is a shared login node: check its core count and load first, and keep at most 4 cores busy there unless it is a compute node.
+- **portal1.** Host `portal1.etp.kit.edu`, user `dwong`, defined in the author's `~/.ssh/config`. Reach it with the `p1` wrapper (`p1 '<cmd>'`; default host `portal1.etp.kit.edu`, overridable via `$CC_STATE/hosts_p1.env`). It shares the filesystem with Deepthought (verify which mounts: `/ceph`, `/work`). Use portal1 for cloning, environments, CPU work and, if it has GPUs, LUCiD generation. **portal1 CPU policy (author decision, 21 Nov 2026, 02:47 CET: "Half, with backoff").** portal1's CPUs are much faster than Deepthought's.
+- Use up to **half of portal1's cores** (`nproc` / 2) for LUCiD generation (JAX on CPU), conversion, readout and evaluation, at `nice -n 10`.
+- Always leave at least 8 cores free.
+- **Backoff:** every 10 minutes compute other users' load (1-minute load average minus our own running workers). If that exceeds a quarter of the cores, halve our worker count. Restore it step by step when their load drops.
+- Record the core count, CPU model and the backoff events in `HOSTS.md` and the notes.
+- Measure throughput on portal1 CPU against a Titan or L40S GPU in L1/L4, and put generation wherever it is faster per wall-clock hour. Both may run in parallel.
+- This replaces the earlier 4-core cap. It also overrides the "≤ 24 cores across hosts" budget line for portal1: portal1 workers count separately, within this policy.
 - **GPU options, in order of preference for LUCiD generation:**
   1. portal1 GPUs, if present and free;
   2. deepthought2 L40S, under the guard;
@@ -225,6 +231,35 @@ Write `results/round2/20261121_lucid/VALIDATION.md` with figures. A failed gate 
 - **Throughput.** Use the throughput measured in L1 and L4 to choose hosts and parallelism within §0.3 and §0.4. Record GPU-h per detector in the ledger.
 - **Per detector**, write `results/round2/20261121_lucid/DATA_MANIFEST_<det>.json` with counts, regime quantiles, provenance and SHA256 per file.
 
+## Stage L6b — Pipelining and batch submission (author addendum, 21 Nov 2026 02:45 CET)
+
+The author is concerned about wall time ("我怕时间不够"). These rules override any reading of L6 → L7 → L8 as strictly sequential.
+
+1. **Pipeline per detector.**
+   - Start a detector's L7 training as soon as its L6 manifest is written and verified; do not wait for the other detectors.
+   - Generation of the next detector continues in parallel.
+   - Start L8 evaluation of each model as soon as its training finishes.
+2. **Training placement.**
+   - **WCTE:** deepthought2 L40S through the guard (≤ 2 lanes) plus any free Titans. The runs are short.
+   - **SK, JUNO, HK: HTCondor batch first**, with the round-2 tooling unchanged:
+     - `scripts/r2_batch/stage_code.sh`: code tarball at the current `lucid-mc` commit, listed in `/ceph/srv/dwong/r2_lucid/SHA256SUMS`;
+     - stage the verified LUCiD packs read-only to `/ceph/srv/dwong/r2_lucid/<det>/` with SHA256SUMS. This is the xrootd read path, as in `RUNBOOK_2026-11-13_R2_STAGING_DWONG.md` and `RUNBOOK_2026-11-13_R2_HTCONDOR_BATCH.md`;
+     - `scripts/r2_batch/submit.py`: `--gpu a100` (TOpAS A100-40GB) or `--gpu l40s` (NEMO2), `accounting_group = cms`, ≤ 12 concurrent jobs;
+     - returns via HTCondor file transfer and `scripts/r2_batch/sync.py` into `/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/batch/`.
+   - **Smoke first.** Run a 20-step batch smoke per detector and arm before production, to project runtime as in round 2. The HK JEPA W128 fallback rule of L7 is unchanged.
+   - **No-wait failover.** If a batch job sits idle for more than 30 minutes while a guarded deepthought2 lane or a Titan is free, run it natively and `condor_rm` the idle duplicate.
+3. **Generation placement.** Generation stays on portal1, Titans or deepthought2 GPUs, unless the batch image is verified to run the LUCiD JAX environment. CPU-side conversion and readout may run on `dt1` or portal1 in parallel, within the core limits.
+4. **Accounting.** Book native and batch GPU-h under `R2_lucid_gpu`.
+5. **Expected wall time once a detector's data exist.**
+
+   | Detector | Expected wall time |
+   |---|---|
+   | WCTE matrix | ≈ 2–4 h on two lanes |
+   | SK runs | ≈ 6–8 h each, in parallel on batch |
+   | HK runs | ≈ 12–16 h |
+
+   Target: WCTE results by the morning of 21 Nov. SK, JUNO and HK within about 1.5–2 days, limited by generation throughput and HK training length.
+
 ## Stage L7 — Retraining (recipes unchanged)
 
 Use the same code paths, recipes, 10,000 steps, windows and micro-batch rules as the round-2 and `r2-repair` runs. Only the data roots and the dataset-derived constants of §L3 change. Training jobs may use dt2 L40S (guard), Titans and HTCondor batch, as in round 2. Save nine snapshots for the WCTE and SK runs.
@@ -273,6 +308,7 @@ Write `results/round2/20261121_lucid/TOY_VS_LUCID.md`: for each detector and arm
   - L0–L5 complete;
   - L6 for WCTE and SK;
   - L7 and L8 for WCTE;
+  - SK batch smokes and production training submitted as soon as the SK data pass L4 and the L6 manifest (§L6b);
   - an interim `results/round2/20261121_lucid/INTERIM_NIGHT1.md` with the WCTE toy-versus-LUCiD table, committed and pushed.
 - **Later:** JUNO and HK generation, SK/JUNO/HK training and evaluation continue on the following days under the same runbook. The driver resumes automatically.
 - If any stage blocks for more than 2 h on infrastructure (environment, GPU availability), record it, move to the next independent item (e.g. the archive, or another detector), and come back.
@@ -298,6 +334,10 @@ Write `results/round2/20261121_lucid/TOY_VS_LUCID.md`: for each detector and arm
 10. Early commits of the install, capabilities and validation documents.
 11. WCTE output written in the formats the WCTE launchers actually consume (round-1 shard layout for training, round-2 probe pack for probes).
 12. Detector state (F1 gain spread, fixed response) reproduced through the existing VERITAS detector-state code, so that toy and LUCiD datasets differ only in photon physics.
+
+**Round 2 (21 Nov 2026, 02:45 CET, after launch).** Added §L6b at the author's request: per-detector pipelining, HTCondor batch first for SK/JUNO/HK with the round-2 staging and submission tooling, no-wait failover, and wall-time expectations. If you are the running agent and see this section for the first time, commit the updated runbook with the message "Runbook: author addendum L6b (pipelining and batch)" and follow it from now on.
+
+**Round 3 (21 Nov 2026, 02:47 CET, after launch).** portal1 CPU policy changed from a 4-core cap to "half of the cores, nice 10, keep ≥ 8 free, automatic backoff when other users' load rises" (§0.4, author decision). Generation goes wherever measured throughput per wall-clock hour is best: portal1 CPU or the Titan/L40S GPUs, in parallel. The running agent should apply this from the next job it launches on portal1, including scaling up the current environment build if that helps.
 
 **Known open risks.**
 - The public LUCiD may lack both a data-like mode and photon-level export. Generation then stops before mass production, with a report.
