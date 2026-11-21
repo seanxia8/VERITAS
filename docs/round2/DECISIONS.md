@@ -223,3 +223,12 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
 - 2026-11-21 r2-ablate A0: addendum copied unchanged; SHA256 `0d1c658c64d7d38ab5d5cf4dbddf317fe7aa10cfc28ed102e4c8327429da4644`. Start gate: `r2-repair` status `done` (17 Nov 20:36 UTC).
 - 2026-11-21 r2-ablate A0: the worktree carries uncommitted leftovers of the unfinished `r2-diag` phase (`abs_render.py` additions, `ext_r2_diag*.py`, `test_r2_diag.py`, a DECISIONS block). They are left uncommitted and untouched (backed up off-repo); every r2-ablate commit stages explicit paths only and commits DECISIONS.md without the r2-diag block.
+
+## r2-lucid (runbook `RUNBOOK_2026-11-21_R2_LUCID_REGEN.md`)
+
+- **Author, 21 Nov 2026, 02:14 CET:**
+  > "没经过lucid模拟啊，我们需要重新在portal1上（和deephtought是同一个文件系统）上克隆lucid，重新生成数据（lucid的数据！，这一点很重要），然后重新训练。你能不能帮我写一个runbook，然后让一个claude agent（在cli里面，能连上portal1，通宵去跑lucid生成数据），我们需不需要改架构，把数据从我们的玩具数据改到lucid，能不能一个agent自己通宵去干，克隆，生成正经lucid数据，archive之前toy数据，重新做training，拿结果"
+
+  (Translation: "It never went through LUCiD simulation. We need to clone LUCiD again on portal1 (same filesystem as Deepthought), regenerate the data — LUCiD data, this is very important — and retrain. Write a runbook for a Claude agent in the CLI that can reach portal1 and run LUCiD data generation overnight: clone, generate proper LUCiD data, archive the old toy data, retrain, get results.")
+- **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
+- 2026-11-21 r2-lucid L0: runbook copied unchanged; SHA256 `ef7e24e03b4f3a89cf7e629aa1eef8adb3c4540683d555cdaf0c282fc192b7bc`. Branch `lucid-mc` fast-forwarded to `origin/dev` 4162979 (docs-only commit) before the first push.
