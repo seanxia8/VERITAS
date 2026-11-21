@@ -13,9 +13,19 @@ from . import ext_r2_repair_probes as probes
 from . import ext_readout as er
 from . import lucid_bombs as lb
 from . import r2_store as rs
+from . import data_roots as dr
 from .ext_r2_repair_train import (
-    MATRIX, ROOT, SEED, SNAPSHOTS, geometry_and_scaling, run_id, write_json,
+    LUCID_EXTENSION, LUCID_MATRIX, MATRIX, RETURNS, ROOT, SEED, SNAPSHOTS, geometry_and_scaling,
+    run_id, write_json,
 )
+
+
+def campaign_root(kind):
+    """Output root: the repair campaign for the toy, r2-lucid for LUCiD data."""
+    import os
+    if os.environ.get("R2_REPAIR_OUTPUT_ROOT"):
+        return Path(os.environ["R2_REPAIR_OUTPUT_ROOT"])
+    return ROOT if dr.check(kind) == dr.ANALYTIC_TOY else RETURNS / LUCID_EXTENSION / "train"
 from .lucid_views import ViewMasker
 from .point_encoder import EncoderConfig
 from .r2_probe_repair import fit_ridge, moment_features
@@ -93,21 +103,30 @@ def time_share(metrics):
 
 
 def evaluate(args):
-    tag = run_id(args.detector, args.arm)
-    directory = args.run_dir or ROOT / "runs" / tag
-    output = ROOT / "retrain" / "by_run" / tag
+    kind = dr.check(getattr(args, "data_kind", None))
+    seed = int(getattr(args, "seed", SEED) or SEED)
+    root = campaign_root(kind)
+    tag = run_id(args.detector, args.arm, seed)
+    directory = args.run_dir or root / "runs" / tag
+    output = root / "retrain" / "by_run" / tag
     output.mkdir(parents=True, exist_ok=True)
-    record = json.loads((directory / "run_record.json").read_text())
-    if not record["complete"] or record["step"] != r2.STEPS:
-        raise ValueError(f"{tag}: evaluation requires the complete 10,000-step run")
-    geometry, scaling = geometry_and_scaling(args.detector)
-    encoder = EncoderConfig(**record["recipe"]["encoder"])
-    arm = r2.build_r2_arm(args.arm, geometry, SEED, scaling=scaling,
-                          encoder_config=encoder).to(args.device).eval()
-    h5 = args.data or probes.dataset_path(args.detector)
+    geometry, scaling = geometry_and_scaling(args.detector, kind)
+    h5 = args.data or probes.dataset_path(args.detector, kind)
     cohorts = {split: rs.open_cohort(h5, f"dev_probe_{split}") for split in ("train", "test")}
     if np.intersect1d(cohorts["train"].run_ids, cohorts["test"].run_ids).size:
         raise ValueError("overlapping probe train and test runs")
+    if args.arm == "init":  # random initialisation: the final suites only (no training record)
+        if (output / "final.json").is_file():
+            return
+        arm = r2.build_r2_arm(r2.INIT_ARM, geometry, seed, scaling=scaling).to(args.device).eval()
+        return _final(args, arm, geometry, scaling, cohorts, output, tag, seed, None,
+                      {"checkpoint": None, "step": 0}, kind)
+    record = json.loads((directory / "run_record.json").read_text())
+    if not record["complete"] or record["step"] != r2.STEPS:
+        raise ValueError(f"{tag}: evaluation requires the complete 10,000-step run")
+    encoder = EncoderConfig(**record["recipe"]["encoder"])
+    arm = r2.build_r2_arm(args.arm, geometry, seed, scaling=scaling,
+                          encoder_config=encoder).to(args.device).eval()
     if args.detector in ("wcte", "sk") and args.include != "final":
         samples = {split: cohort_sample(cohort) for split, cohort in cohorts.items()}
         sequence = []
@@ -147,28 +166,35 @@ def evaluate(args):
             if final["checkpoint"] != meta:
                 raise ValueError(f"{tag}: stale final evaluation")
             return
-        streamed = r2.stream_forms(EncoderReadout(arm), geometry, scaling, cohorts,
-                                   device=args.device, chunk_events=args.chunk)
-        standard, standard_arrays = r2.metrics_from_streams(streamed, geometry)
-        del streamed
-        repaired, arrays = probes.evaluate(arm, args.detector, SEED, geometry, scaling,
-                                           list(cohorts.values()), device=args.device,
-                                           chunk_size=args.chunk)
-        if not np.array_equal(standard_arrays["event_ids"], arrays["event_ids"]):
-            raise ValueError(f"{tag}: final probe sets lost alignment")
-        mae = args.arm in ("mae_mse", "mae_repaired")
-        if mae:
-            lines = (json.loads(line) for line in (directory / "train_log.jsonl").read_text().splitlines())
-            by_step = {line["step"]: line for line in lines}
-            if set(by_step) != set(range(1, r2.STEPS + 1)):
-                raise ValueError(f"{tag}: MAE loss log is missing training steps")
-            standard["mae_loss_shares"] = r2.loss_shares(by_step.values())
-        np.savez_compressed(output / "predictions.npz", **arrays,
-                            standard_vertex_errors=standard_arrays["vertex_errors"])
-        record = {"run_id": tag, "detector": args.detector, "arm": args.arm, "seed": SEED,
-                  "training": record, "checkpoint": meta, "standard": standard, "repaired": repaired}
-        write_json(output / "final.json", record)
-        print(tag, "final evaluated", flush=True)
+        _final(args, arm, geometry, scaling, cohorts, output, tag, seed, record, meta, kind,
+               directory=directory)
+
+
+def _final(args, arm, geometry, scaling, cohorts, output, tag, seed, record, meta, kind,
+           directory=None):
+    streamed = r2.stream_forms(EncoderReadout(arm), geometry, scaling, cohorts,
+                               device=args.device, chunk_events=args.chunk)
+    standard, standard_arrays = r2.metrics_from_streams(streamed, geometry)
+    del streamed
+    repaired, arrays = probes.evaluate(arm, args.detector, seed, geometry, scaling,
+                                       list(cohorts.values()), device=args.device,
+                                       chunk_size=args.chunk)
+    if not np.array_equal(standard_arrays["event_ids"], arrays["event_ids"]):
+        raise ValueError(f"{tag}: final probe sets lost alignment")
+    mae = args.arm in ("mae_mse", "mae_repaired")
+    if mae and directory is not None:
+        lines = (json.loads(line) for line in (directory / "train_log.jsonl").read_text().splitlines())
+        by_step = {line["step"]: line for line in lines}
+        if set(by_step) != set(range(1, r2.STEPS + 1)):
+            raise ValueError(f"{tag}: MAE loss log is missing training steps")
+        standard["mae_loss_shares"] = r2.loss_shares(by_step.values())
+    np.savez_compressed(output / "predictions.npz", **arrays,
+                        standard_vertex_errors=standard_arrays["vertex_errors"])
+    out = {"run_id": tag, "detector": args.detector, "arm": args.arm, "seed": seed,
+           "data_kind": kind, "training": record, "checkpoint": meta, "standard": standard,
+           "repaired": repaired}
+    write_json(output / "final.json", out)
+    print(tag, "final evaluated", flush=True)
 
 
 def aggregate(args):
@@ -271,7 +297,10 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     one = sub.add_parser("evaluate")
     one.add_argument("detector", choices=MATRIX)
-    one.add_argument("arm", choices=sorted(set().union(*MATRIX.values())))
+    one.add_argument("arm", choices=sorted(set().union(*MATRIX.values(), *LUCID_MATRIX.values(),
+                                                       {"init"})))
+    one.add_argument("--seed", type=int, default=SEED)
+    one.add_argument("--data-kind", choices=dr.DATA_KINDS, default=dr.DEFAULT_DATA_KIND)
     one.add_argument("--data", type=Path)
     one.add_argument("--run-dir", type=Path)
     one.add_argument("--device", default="cuda")

@@ -26,30 +26,50 @@ def main():
     ap.add_argument("--walltime-h", type=float, required=True); ap.add_argument("--cpus", type=int, default=4)
     ap.add_argument("--mem-mb", type=int, default=32000); ap.add_argument("--disk-kb", type=int, default=20_000_000)
     ap.add_argument("--code", required=True)
+    ap.add_argument("--torch-module", default=None, help="torch job: python module to run (training/eval)")
+    ap.add_argument("--files", nargs="*", default=[], help="torch job: staged data files")
+    ap.add_argument("--ship", nargs="*", default=[], help="torch job: directories shipped as returns/<name>")
     a = ap.parse_args(argv[:cut]); args = argv[cut + 1:]
+    torch_job = a.torch_module is not None
     sums = Path("/ceph/srv/dwong/r2/SHA256SUMS").read_text()
-    for f in (a.code, "lucid/wheels_lucid_cp311.tar", "lucid/LUCiD_e651e836.tar", "lucid/lucid_config.tar"):
+    needed = ((a.code, "env/wheels_cp311.tar", "lucid/lucid_config.tar", *a.files) if torch_job else
+              (a.code, "lucid/wheels_lucid_cp311.tar", "lucid/LUCiD_e651e836.tar", "lucid/lucid_config.tar"))
+    for f in needed:
         if f" {f}\n" not in sums + "\n":
             raise SystemExit(f"{f} is not staged")
     if a.walltime_h > 24:
         raise SystemExit("walltime above 24 h")
     d = JOBS / a.job_id / time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
     d.mkdir(parents=True)
-    shutil.copy(REPO / "scripts/r2_batch/lucid_job.sh", d / "lucid_job.sh")
+    script = "lucid_torch_job.sh" if torch_job else "lucid_job.sh"
+    shutil.copy(REPO / "scripts/r2_batch" / script, d / script)
+    inputs = []
+    if torch_job and a.ship:
+        import tarfile
+        with tarfile.open(d / "returns_in.tar", "w") as t:
+            for src in a.ship:
+                src = Path(src)
+                rel = src.relative_to(src.parents[1])  # <kind>/<run>  e.g. runs/wcte__mae_mse__s9000
+                for p in sorted(src.rglob("*")):
+                    if p.is_file() and not p.name.endswith(".lock"):
+                        t.add(p, arcname=f"returns/{rel}/{p.relative_to(src)}")
+        inputs.append("returns_in.tar")
     wheel = sorted(Path("/work/dwong/r2_batch/xw").glob("xrootd-*-cp311-*.whl"))[-1]
     shutil.copy(wheel, d / wheel.name)
     wall_s = int(a.walltime_h * 3600)
     sha = a.code.split("_")[-1].split(".")[0]
     env = [f"R2_CODE='{a.code}'", f"R2_TIME_LIMIT_S={max(600, wall_s - 900)}", "USE_USER=dwong",
            f"JEPA_CODE_SHA={sha}"]
+    if torch_job:
+        env += [f"R2_MODULE={a.torch_module}", f"R2_FILES='{' '.join(a.files)}'"]
     universe = ("Universe = docker\ndocker_image = " + IMAGE) if a.gpu == "a100" else \
                ("Universe = container\ncontainer_image = docker://" + IMAGE)
-    jdl = f"""Executable = lucid_job.sh
+    jdl = f"""Executable = {script}
 Arguments = {' '.join(args)}
 Output = out.txt
 Error = err.txt
 Log = log.txt
-transfer_input_files = {wheel.name}
+transfer_input_files = {', '.join([wheel.name] + inputs)}
 transfer_output_files = returns_out.tar
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
@@ -69,7 +89,8 @@ Queue
     out = subprocess.run(["condor_submit", "job.jdl"], cwd=d, capture_output=True, text=True)
     cluster = out.stdout.strip().split()[-1].rstrip(".") if out.returncode == 0 else None
     rec = {"job_id": a.job_id, "dir": str(d), "cluster": cluster, "gpu": a.gpu, "walltime_h": a.walltime_h,
-           "args": args, "code": a.code, "submitted_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+           "args": args, "code": a.code, "torch_module": a.torch_module, "files": a.files,
+           "ship": a.ship, "submitted_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
            "stderr": out.stderr[-500:]}
     (d / "submit.json").write_text(json.dumps(rec, indent=1))
     with open(JOBS / "submissions.jsonl", "a") as f:

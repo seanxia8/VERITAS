@@ -19,6 +19,7 @@ from . import lucid_run as lr
 from . import r2_generator as gen
 from . import r2_geometry as rg
 from . import r2_store as rs
+from . import data_roots as dr
 from .ext_r2_repair_probes import EXTENSION, RETURNS
 
 ROOT = RETURNS / EXTENSION
@@ -32,6 +33,14 @@ MATRIX = {
     "hk": ("jepa_repaired", "mae_repaired"),
 }
 WCTE_SHARDS = r2.ROUND1_LUCID_ROOT / "dev_train__F1__0.05__s20261017__n100000x1000"
+#: r2-lucid: LUCiD data are the default (data_roots); the training matrix adds SK mae_mse (L7).
+LUCID_EXTENSION = "r2_lucid_2026-11-21"
+LUCID_MATRIX = {
+    "wcte": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa"),
+    "sk": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa"),
+    "juno": ("mae_repaired", "jepa_repaired"),
+    "hk": ("mae_repaired", "jepa_repaired"),
+}
 
 
 class WcteTrainingShards:
@@ -54,12 +63,12 @@ class WcteTrainingShards:
         return lb.read_sparse_hits(self.directory / "runs" / self.rows[index]["run_dir"] / "hits.npz")
 
 
-def run_id(detector, arm):
-    return f"{detector}__{arm}__s{SEED}"
+def run_id(detector, arm, seed=SEED):
+    return f"{detector}__{arm}__s{seed}"
 
 
-def geometry_and_scaling(detector):
-    geometry = rg.load_r2_geometry(detector)
+def geometry_and_scaling(detector, kind=None):
+    geometry = dr.geometry(detector, kind)
     rule = gen.ROUND1_TIME_RULE if detector == "wcte" else gen.time_rule_for(geometry)
     return geometry, rs.scaling_for(geometry, rule.time_scale_ns)
 
@@ -76,12 +85,17 @@ def sha_json(data):
 
 
 def train(args):
-    backend_root = Path(os.environ.get("R2_REPAIR_OUTPUT_ROOT", ROOT)).resolve()
-    if args.arm not in MATRIX[args.detector] or r2.BATCH % args.micro_batch:
-        raise ValueError("detector/arm or effective batch is outside the Stage 5 matrix")
+    kind = dr.check(getattr(args, "data_kind", None))
+    args.data_kind = kind
+    args.seed = int(getattr(args, "seed", SEED) or SEED)
+    default_root = ROOT if kind == dr.ANALYTIC_TOY else RETURNS / LUCID_EXTENSION / "train"
+    backend_root = Path(os.environ.get("R2_REPAIR_OUTPUT_ROOT", default_root)).resolve()
+    matrix = MATRIX if kind == dr.ANALYTIC_TOY else LUCID_MATRIX
+    if args.arm not in matrix[args.detector] or r2.BATCH % args.micro_batch:
+        raise ValueError("detector/arm or effective batch is outside the training matrix")
     if args.device == "cpu" and not args.smoke:
         raise ValueError("Stage 5 training requires a GPU")
-    tag = run_id(args.detector, args.arm)
+    tag = run_id(args.detector, args.arm, args.seed)
     if args.smoke:
         tag += f"__mb{args.micro_batch}__w{args.window or 'default'}"
     run_dir = backend_root / ("smokes" if args.smoke else "runs") / tag
@@ -99,16 +113,17 @@ def train_locked(args, run_dir):
         if args.memory_fraction is not None:
             torch.cuda.set_per_process_memory_fraction(args.memory_fraction, 0)
         torch.cuda.reset_peak_memory_stats(0)
-    geometry, scaling = geometry_and_scaling(args.detector)
+    seed = args.seed
+    geometry, scaling = geometry_and_scaling(args.detector, args.data_kind)
     encoder = r2.encoder_config_for(args.arm, geometry)
     if args.window is not None:
         if args.detector not in ("sk", "hk") or args.arm != "jepa_repaired":
             raise ValueError("a window override is only specified for repaired SK/HK JEPA")
         encoder = replace(encoder, window=args.window, shift=args.window // 2)
     cfg = r2.run_config()
-    h5 = Path(args.data) if args.data else r2.DATA_ROOT / args.detector / f"{args.detector}_r2.h5"
+    h5 = Path(args.data) if args.data else dr.pack(args.detector, args.data_kind)
     if args.detector == "wcte":
-        cohort = WcteTrainingShards(args.data or WCTE_SHARDS)
+        cohort = WcteTrainingShards(args.data or dr.wcte_train_shards(args.data_kind))
         data_identity = rs.sha256_file(cohort.directory / "manifest.json")
         mask_seed = cohort.manifest["dataset_seed"]
         source = str(cohort.directory)
@@ -118,19 +133,19 @@ def train_locked(args, run_dir):
                                   "state_sha256": cohort.state_sha256})
         mask_seed = lb.DEFAULT_SEED
         source = str(h5)
-    arm = r2.build_r2_arm(args.arm, geometry, SEED, scaling=scaling, run_cfg=cfg,
+    arm = r2.build_r2_arm(args.arm, geometry, seed, scaling=scaling, run_cfg=cfg,
                           encoder_config=encoder).to(args.device)
     optimizers, optimiser, scheduler = lr.build_optimizers(arm, cfg)
     shuffle = args.arm in ("jepa_repaired", "mae_repaired")
     split = "spatial_patch" if args.arm == "mae_repaired" else "within"
-    loader = rs.R2TrainingLoader(cohort, geometry, seed=SEED, scaling=scaling, batch=r2.BATCH,
+    loader = rs.R2TrainingLoader(cohort, geometry, seed=seed, scaling=scaling, batch=r2.BATCH,
                                  mask_seed=mask_seed, split=split, n_min=int(cfg["views"]["n_min"]),
                                  shuffle_events_within_batch=shuffle)
     snapshots = ((0, args.smoke) if args.smoke else
                  SNAPSHOTS if args.detector in ("wcte", "sk") else (0, 500, 2000, 10000))
     steps = args.smoke or r2.STEPS
-    identity = {"run_id": run_id(args.detector, args.arm), "cell_id": f"r2_{args.detector}_within",
-                "arm": args.arm, "seed": SEED, "beta": None, "steps_scheduled": steps,
+    identity = {"run_id": run_id(args.detector, args.arm, seed), "cell_id": f"r2_{args.detector}_within",
+                "arm": args.arm, "seed": seed, "beta": None, "steps_scheduled": steps,
                 "gradient_clip": optimiser.get("gradient_clip")}
     training = dict(cfg["training"], micro_batch=args.micro_batch,
                     gradient_accumulation=r2.BATCH // args.micro_batch)
@@ -138,10 +153,12 @@ def train_locked(args, run_dir):
               "training": training, "geometry_sha256": geometry.digest, "view_mode": split,
               "data_identity_sha256": data_identity, "mask_seed": int(mask_seed),
               "micro_batch": args.micro_batch, "shuffle": shuffle,
-              "full_batch_sigreg": args.arm == "jepa_repaired", "snapshot_steps": snapshots}
+              "full_batch_sigreg": args.arm == "jepa_repaired", "snapshot_steps": snapshots,
+              "data_kind": args.data_kind}
     config_sha = sha_json(recipe)
     checkpoint = run_dir / "checkpoint.pt"
-    record = {"extension": EXTENSION, "recipe": recipe, "config_sha256": config_sha,
+    record = {"extension": EXTENSION if args.data_kind == dr.ANALYTIC_TOY else LUCID_EXTENSION,
+              "recipe": recipe, "config_sha256": config_sha,
               "source": source, "code_sha": os.environ.get("JEPA_CODE_SHA") or lb.current_code_sha(),
               "host": socket.gethostname(), "device": args.device,
               "gpu_model": torch.cuda.get_device_name(0) if args.device == "cuda" else None,
@@ -170,7 +187,9 @@ def train_locked(args, run_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("detector", choices=MATRIX)
-    parser.add_argument("arm", choices=sorted(set().union(*MATRIX.values())))
+    parser.add_argument("arm", choices=sorted(set().union(*MATRIX.values(), *LUCID_MATRIX.values())))
+    parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--data-kind", choices=dr.DATA_KINDS, default=dr.DEFAULT_DATA_KIND)
     parser.add_argument("--data", type=Path)
     parser.add_argument("--micro-batch", type=int, choices=(1, 2, 4, 8, 16, 32), required=True)
     parser.add_argument("--window", type=int, choices=(128, 256))

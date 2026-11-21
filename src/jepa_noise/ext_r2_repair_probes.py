@@ -34,10 +34,10 @@ TOKEN_FORMS = ("raw_unmasked_r2", "post_ln_unmasked_r2", "masked_target_pred_r2"
 XYZ = ("x", "y", "z")
 
 
-def dataset_path(detector):
-    if detector == "wcte":
-        return R2 / "wcte_regression/wcte_probe_r2.h5"
-    return r2.DATA_ROOT / detector / f"{detector}_r2.h5"
+def dataset_path(detector, kind=None):
+    """Probe pack; LUCiD data by default on lucid-mc (``JEPA_DATA_KIND=analytic_toy`` for the toy)."""
+    from . import data_roots as dr
+    return dr.pack(detector, kind)
 
 
 def checkpoint_candidates(detector, arm, seed):

@@ -13,6 +13,28 @@ from pathlib import Path
 JOBS = Path("/work/dwong/r2_lucid/batch_jobs")
 DATA = Path("/ceph/dwong/jepa/data/lucid_v1")
 RECEIPTS = Path("/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/ledger/receipts.jsonl")
+TRAIN = Path("/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train")
+
+
+def collect_torch(job_dir: Path, sub: dict):
+    """Training/evaluation outputs -> TRAIN/{runs,retrain/by_run}/<tag>; older copies kept aside."""
+    tar = job_dir / "returns_out.tar"
+    inc = TRAIN / ".incoming" / f"{sub['job_id']}_{sub['cluster']}"
+    inc.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(tar) as t:
+        t.extractall(inc, filter="data")
+    ret = inc / "returns"
+    moved = []
+    for kind in ("runs", "retrain/by_run", "smokes"):
+        for d in sorted((ret / kind).glob("*")) if (ret / kind).exists() else []:
+            dest = TRAIN / kind / d.name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if dest.exists():
+                os.rename(dest, dest.with_name(f"{d.name}.prev_{sub['cluster']}"))
+            os.rename(d, dest)
+            moved.append(str(dest))
+    code = (ret / "JOB_EXIT_CODE").read_text().strip() if (ret / "JOB_EXIT_CODE").exists() else None
+    return moved, code
 
 
 def wallclock(cluster):
@@ -29,6 +51,22 @@ def collect(job_dir: Path):
     if done.exists() or not tar.exists():
         return None
     args = sub["args"]
+    if sub.get("torch_module"):
+        moved, code = collect_torch(job_dir, sub)
+        wc = wallclock(sub["cluster"])
+        wall = float(wc[0]) if wc else None
+        receipt = {"line": "R2_lucid_gpu", "job_id": sub["job_id"], "cluster": sub["cluster"],
+                   "kind": "train" if "train" in sub["torch_module"] else "eval",
+                   "module": sub["torch_module"], "args": args, "wall_s": wall,
+                   "gpu_h": (wall / 3600.0) if wall else None,
+                   "gpu": " ".join(wc[1:-2]) if len(wc) > 3 else sub["gpu"],
+                   "host": wc[-2] if len(wc) > 2 else None, "moved": moved, "exit_code": code,
+                   "collected_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        RECEIPTS.parent.mkdir(parents=True, exist_ok=True)
+        with open(RECEIPTS, "a") as f:
+            f.write(json.dumps(receipt) + "\n")
+        done.write_text(json.dumps({"receipt": receipt}, indent=1))
+        return dict(receipt, shards_moved=len(moved), shards_skipped=0)
     det = args[args.index("--detector") + 1] if "--detector" in args else "misc"
     inc = DATA / det / ".incoming" / f"{sub['job_id']}_{sub['cluster']}"
     inc.mkdir(parents=True, exist_ok=True)
