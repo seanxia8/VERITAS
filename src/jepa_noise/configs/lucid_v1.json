@@ -90,21 +90,21 @@
  "time_rule_note": "round-2 procedures (r2_geometry.prompt_window_rule / time_scale_rule / nhits_n_rule) re-evaluated with LUCiD's digitizer dark rate 4.2 kHz; prompt window and time scale are geometry-only and unchanged; WCTE keeps its round-1 prompt window and time scale",
  "yield_range_photons": {
   "hk": [
-   10000.0,
-   1000000.0
+   3097.2,
+   810762.7
   ],
   "juno": [
-   10000.0,
-   1000000.0
+   4545.6,
+   1181190.2
   ],
   "sk": [
-   10000.0,
-   1000000.0
+   2383.4,
+   623686.7
   ],
   "wcte": [
-   10000.0,
-   1000000.0
+   2368.9,
+   621416.0
   ]
  },
- "yield_range_status": "placeholder until the L2 calibration pilot"
+ "yield_range_status": "L2 pilot: photon-bomb detection efficiency at 60 random fiducial vertices x 20000 photons per detector (LUCiD kernel, CPU), log-uniform range solved for detected-PE quantiles 200/3000/30000; achieved 205/2500/30800 (predicted)"
 }

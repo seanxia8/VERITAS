@@ -54,6 +54,57 @@ def calibrate(args):
     print(json.dumps({k: v for k, v in out.items() if k != "rows"}), flush=True)
 
 
+def selfcheck(args):
+    """G3: mean sampled per-PMT PE (200 events) vs LUCiD's expected-mode response, 3 positions."""
+    import os
+    import jax
+    cfg = mg.load_config(args.config)
+    det = args.detector
+    geometry, l2r = mg.lucid_geometry(det, cfg)
+    kernel = _kernel(args, det)
+    spec = mg.SPECS[det]
+    cwd = os.getcwd(); os.chdir(mg.LUCID_ROOT)
+    try:
+        from lucid.simulation import setup_event_simulator
+        from lucid.sources.calibration_sources import isotropic_source
+        esim = setup_event_simulator(str(kernel.geom_cfg), args.buffer, source="light_source",
+                                     transport="expected", detection="expected",
+                                     hits="first_arrival", K=12, temperature=0.0,
+                                     physics_config=str(kernel.phys_cfg),
+                                     default_detector_params=True,
+                                     wavelength_mode=bool(spec["wavelength_mode"]))
+    finally:
+        os.chdir(cwd)
+    r_f = mg.rg.fiducial_radius_m(geometry)
+    positions = [np.zeros(3), np.array([0.5 * r_f, 0.0, 0.0]), np.array([0.0, 0.9 * r_f, 0.0])]
+    y = float(np.sqrt(np.prod(cfg["yield_range_photons"][det])))
+    out = {"detector": det, "yield_photons": y, "n_events": args.n, "positions": []}
+    for k, pos in enumerate(positions):
+        expected = np.zeros(kernel.n_sensors)
+        n_exp = 8
+        for j in range(n_exp):  # average expected-mode calls (independent wavelength/scatter draws)
+            res = esim(isotropic_source(pos, intensity=y), jax.random.PRNGKey(1000 + 10 * k + j))
+            expected += np.asarray(res.charge, float) / n_exp
+        counts = np.zeros(kernel.n_sensors)
+        for i in range(args.n):
+            truth = mg.Truth(f"selfcheck/{det}", i, lb.DOMAIN_PHOTON, pos, y, 0.0)
+            dep = kernel.simulate(truth, mg.event_seed(mg.DATASET_SEED, "selfcheck", 1000 * k + i, det))
+            fin = np.isfinite(dep["t_reco"])
+            counts += np.bincount(dep["sensor"][fin], minlength=kernel.n_sensors)
+        mean = counts / args.n
+        lit = expected > 0
+        out["positions"].append({"position_m": pos.tolist(),
+                                 "pearson": float(np.corrcoef(mean, expected)[0, 1]),
+                                 "mean_ratio_total": float(mean.sum() / expected.sum()),
+                                 "total_sampled_pe": float(mean.sum()),
+                                 "total_expected_pe": float(expected.sum()),
+                                 "n_lit_expected": int(lit.sum())})
+        print(json.dumps(out["positions"][-1]), flush=True)
+    p = Path(args.shards).parent / f"selfcheck_{det}.json"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(out, indent=1) + "\n")
+
+
 def _provenance(kernel, det):
     import os
     return {"detector": det, "kernel": kernel.version,
@@ -136,17 +187,22 @@ def wcte_manifest(args):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name in ("calibrate", "run", "wcte-manifest"):
+    for name in ("calibrate", "run", "wcte-manifest", "selfcheck"):
         s = sub.add_parser(name)
         s.add_argument("--detector", choices=sorted(mg.SPECS), default="wcte")
         s.add_argument("--config")
         s.add_argument("--buffer", type=int, default=65536)
+        if name == "wcte-manifest":
+            s.add_argument("--cache")
         if name == "calibrate":
             s.add_argument("--n", type=int, default=100)
             s.add_argument("--yield-photons", type=float, default=20000.0)
             s.add_argument("--out", required=True)
         else:
             s.add_argument("--shards", required=True)
+        if name == "selfcheck":
+            s.add_argument("--n", type=int, default=200)
+            s.add_argument("--cache")
         if name == "run":
             s.add_argument("--cohort", choices=sorted(mg.COHORTS), required=True)
             s.add_argument("--runs", default="0:1000")
@@ -155,7 +211,8 @@ def main():
             s.add_argument("--stride", type=int)
             s.add_argument("--no-s030", action="store_true")
     args = p.parse_args()
-    {"calibrate": calibrate, "run": run, "wcte-manifest": wcte_manifest}[args.cmd](args)
+    {"calibrate": calibrate, "run": run, "wcte-manifest": wcte_manifest,
+     "selfcheck": selfcheck}[args.cmd](args)
 
 
 if __name__ == "__main__":

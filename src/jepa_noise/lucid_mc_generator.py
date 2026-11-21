@@ -108,7 +108,7 @@ ALLOWED_LB_NAMES = frozenset({
     "COHORTS", "make_runs", "RunSpec", "nominal_state", "generator_reference",
     "fixed_charge_gain", "fixed_timing_width_factor", "load_generator_config", "_repo_root",
     "domain_plan", "_unit_direction", "sparse_from_readouts", "write_sparse_hits",
-    "write_sha256sums", "HitReadout", "DOMAIN_PHOTON", "DOMAIN_MUON", "DOMAIN_ELECTRON",
+    "write_sha256sums", "read_sparse_hits", "HitReadout", "DOMAIN_PHOTON", "DOMAIN_MUON", "DOMAIN_ELECTRON",
     "PARTICLE_DOMAINS", "current_code_sha", "_sha", "fiducial_vertex",
     "_distance_to_boundary", "_event_ids_sha", "ReadoutRecord", "state_for_run",
 })
