@@ -1,0 +1,82 @@
+{
+ "model": "K4: ToF-only vertex fit and timing-only CRLB with a deliberately simple model, plus the\noptional charge-only CRLB (K4b).\n\nModel: t_i = t0 + n_g |r_i - v| / c for every hit PMT (stored digit - trigger times are the\nfirst-hit times, already inside the prompt window).  No walk, no scattering, no TTS shape.\nn_g = 1.33: LUCiD materials/water.json refractive_index used by the analytic generator\n(single index, no dispersion); 1.38 reported as a sensitivity.  Huber loss, scale 3 ns,\n8 random starts uniform in the fiducial volume; best cost kept.\n\nTiming CRLB: J = sum_i g_i g_i^T / sigma^2, g_i = d t_i / d(v, t0) at the true vertex over\nthe observed hit PMTs; sigma = 1.5 ns (reference.json timing_width at 1 PE).  Reported:\nmedian sqrt(tr (J^-1)_pos).  Variant: per-hit sigma(q) from the reference.json table.\n\nK4b charge-only CRLB (simplification stated): mu_i = A cos(theta_i)_+ / d_i^2 exp(-d_i / 50 m),\nPoisson over all PMTs, parameters (v, ln A), A set so sum mu = observed total PE.",
+ "n_events": 100,
+ "detectors": {
+  "wcte": {
+   "r_fid_m": 1.2617046790597004,
+   "median_n_hit": 1081.0,
+   "tof_ng1.33": {
+    "mean_err_m": 0.03614306807619254,
+    "median_err_m": 0.031179432236763827,
+    "mean_err_all_m": 0.03614306807619254,
+    "convergence_rate": 1.0
+   },
+   "tof_ng1.38": {
+    "mean_err_m": 0.051905827192246956,
+    "median_err_m": 0.05105888256615734,
+    "mean_err_all_m": 0.051905827192246956,
+    "convergence_rate": 1.0
+   },
+   "crlb_timing_sigma1p5_median_m": 0.03374573416000738,
+   "crlb_timing_sigma_q_median_m": 0.02469016576577903,
+   "crlb_charge_only_median_m": 0.024761530285426072
+  },
+  "sk": {
+   "r_fid_m": 13.569824196148785,
+   "median_n_hit": 5721.0,
+   "tof_ng1.33": {
+    "mean_err_m": 0.0162762948688931,
+    "median_err_m": 0.013902157631150215,
+    "mean_err_all_m": 0.0162762948688931,
+    "convergence_rate": 1.0
+   },
+   "tof_ng1.38": {
+    "mean_err_m": 0.4462457955615555,
+    "median_err_m": 0.456133293601532,
+    "mean_err_all_m": 0.4462457955615555,
+    "convergence_rate": 1.0
+   },
+   "crlb_timing_sigma1p5_median_m": 0.014144309785500426,
+   "crlb_timing_sigma_q_median_m": 0.010811952048970647,
+   "crlb_charge_only_median_m": 0.14012995929254796
+  },
+  "juno": {
+   "r_fid_m": 14.0,
+   "median_n_hit": 5004.5,
+   "tof_ng1.33": {
+    "mean_err_m": 0.015586573926837502,
+    "median_err_m": 0.014288508324072604,
+    "mean_err_all_m": 0.015586573926837502,
+    "convergence_rate": 1.0
+   },
+   "tof_ng1.38": {
+    "mean_err_m": 0.422168903214849,
+    "median_err_m": 0.42658009467801056,
+    "mean_err_all_m": 0.422168903214849,
+    "convergence_rate": 1.0
+   },
+   "crlb_timing_sigma1p5_median_m": 0.015168142582056957,
+   "crlb_timing_sigma_q_median_m": 0.01174309855964278,
+   "crlb_charge_only_median_m": 0.1415279347340579
+  },
+  "hk": {
+   "r_fid_m": 25.94367288889285,
+   "median_n_hit": 10188.0,
+   "tof_ng1.33": {
+    "mean_err_m": 0.01193990325072892,
+    "median_err_m": 0.011425802781125226,
+    "mean_err_all_m": 0.01193990325072892,
+    "convergence_rate": 1.0
+   },
+   "tof_ng1.38": {
+    "mean_err_m": 0.8274515366230467,
+    "median_err_m": 0.8268483025220639,
+    "mean_err_all_m": 0.8274515366230467,
+    "convergence_rate": 1.0
+   },
+   "crlb_timing_sigma1p5_median_m": 0.010576279861132156,
+   "crlb_timing_sigma_q_median_m": 0.007902773670561185,
+   "crlb_charge_only_median_m": 0.16408678557734224
+  }
+ }
+}
