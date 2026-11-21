@@ -93,8 +93,11 @@ def selfcheck(args):
             counts += np.bincount(dep["sensor"][fin], minlength=kernel.n_sensors)
         mean = counts / args.n
         lit = expected > 0
+        # Pearson ceiling from photon statistics alone: var(signal) / (var(signal) + mean Poisson var)
+        ceiling = float(np.sqrt(np.var(expected) / (np.var(expected) + np.mean(expected) / args.n)))
         out["positions"].append({"position_m": pos.tolist(),
                                  "pearson": float(np.corrcoef(mean, expected)[0, 1]),
+                                 "pearson_poisson_ceiling": ceiling,
                                  "mean_ratio_total": float(mean.sum() / expected.sum()),
                                  "total_sampled_pe": float(mean.sum()),
                                  "total_expected_pe": float(expected.sum()),

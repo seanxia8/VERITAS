@@ -100,7 +100,8 @@ def _wcte_pilot_dir(det, out_dir):
         link = d / "runs" / name
         if not link.exists():
             link.symlink_to(DATA / det / "shards" / "dev_probe_train" / name)
-        rows.append({"run_dir": name, "run_id": r.run_id, "n_events": r.n_events})
+        m = json.loads((DATA / det / "shards" / "dev_probe_train" / name / "manifest.json").read_text())
+        rows.append(dict(m["runs"][0], run_dir=name))
     (d / "manifest.json").write_text(json.dumps({"pilot": True, "cohort": "dev_probe_train",
                                                  "dataset_seed": mg.DATASET_SEED, "runs": rows}) + "\n")
     return d
@@ -283,7 +284,8 @@ def main():
     res["G2"], r = g2(det, caches, geometry, cfg, digitizer)
     res["G4"] = g4(det, caches, cfg, rule)
     sc = DATA / det / "returns"
-    sfiles = sorted(sc.glob("selfcheck_*selfcheck_*.json")) if sc.exists() else []
+    sfiles = (sorted(sc.glob("selfcheck_*selfcheck_*.json")) + sorted(sc.glob(f"selfcheck_dt2/selfcheck_{det}.json"))
+              if sc.exists() else [])
     if sfiles:
         s = json.loads(sfiles[-1].read_text())
         res["G3"] = {"positions": s["positions"],
