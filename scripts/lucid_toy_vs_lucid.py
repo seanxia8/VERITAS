@@ -104,7 +104,12 @@ def tof(det, kind, n_max=1000):
         if len(errs) >= n_max:
             break
     e = np.array(errs)
-    return {"n": int(e.size), "mean_m": float(e.mean()), "median_m": float(np.median(e))}
+    from jepa_noise import r2_geometry as rg
+    rf = rg.fiducial_radius_m(geometry)
+    ok = e < 2.0 * rf  # fits that left the detector count as failures (the fit is not robust)
+    return {"n": int(e.size), "median_m": float(np.median(e)), "p68_m": float(np.quantile(e, 0.68)),
+            "mean_converged_m": float(e[ok].mean()) if ok.any() else None,
+            "failure_fraction": float(1.0 - ok.mean()), "mean_all_m": float(e.mean())}
 
 
 def build(dets, out_md, title, with_tof):
@@ -156,9 +161,11 @@ def build(dets, out_md, title, with_tof):
         if with_tof:
             rec["tof"][det] = {"toy": tof(det, "analytic_toy"), "lucid": tof(det, "lucid_v1")}
             tt, tl = rec["tof"][det]["toy"], rec["tof"][det]["lucid"]
-            L += ["", f"Approximate ToF-only ceiling (simple Huber fit on token first-hit times, {tl['n']} probe-test bombs; "
-                  f"not a likelihood ceiling): toy {tt['mean_m']:.3f} m mean / {tt['median_m']:.3f} m median; "
-                  f"LUCiD {tl['mean_m']:.3f} / {tl['median_m']:.3f} m."]
+            L += ["", f"Approximate ToF-only ceiling (simple Huber fit on token first-hit times, {tl['n']} probe-test bombs, "
+                  f"straight-line n = 1.33; approximate, not a likelihood ceiling, no CRLB claim): "
+                  f"toy median {tt['median_m']:.3f} m, p68 {tt['p68_m']:.3f} m, failures {100 * tt['failure_fraction']:.1f} %; "
+                  f"LUCiD median {tl['median_m']:.3f} m, p68 {tl['p68_m']:.3f} m, failures {100 * tl['failure_fraction']:.1f} % "
+                  f"(failure = fit outside 2 R_fid)."]
         L.append("")
     Path(out_md).write_text("\n".join(L) + "\n")
     Path(out_md).with_suffix(".json").write_text(json.dumps(rec, indent=1, default=float) + "\n")
