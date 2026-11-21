@@ -34,6 +34,11 @@ def main(out=RET / "R2_lucid_gpu.json"):
         for line in rec.read_text().splitlines():
             r = json.loads(line)
             seen.add(str(r["cluster"]))
+            if not r.get("gpu_h"):  # HTCondor history can lag the collection; re-query
+                h = subprocess.run(["condor_history", str(r["cluster"]), "-af", "RemoteWallClockTime"],
+                                   capture_output=True, text=True).stdout.split()
+                if h and float(h[0]) > 0:
+                    r["wall_s"], r["gpu_h"] = float(h[0]), float(h[0]) / 3600.0
             entries.append({"source": "htcondor", "run_id": r["job_id"], "cluster": r["cluster"],
                             "gpu": r.get("gpu"), "host": r.get("host"), "wall_s": r.get("wall_s"),
                             "gpu_h": r.get("gpu_h") or 0.0, "kind": r.get("kind"),
