@@ -83,8 +83,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--detector", required=True, choices=sorted(mg.SPECS))
     ap.add_argument("--out-manifest", default=str(REPO / "results/round2/20261121_lucid"))
+    ap.add_argument("--train-only", action="store_true",
+                    help="WCTE: write only the training directory (dev_train complete)")
     a = ap.parse_args()
     det = a.detector
+    if a.train_only:
+        if det != "wcte" or not complete(det, "dev_train"):
+            raise SystemExit("--train-only needs WCTE with a complete dev_train cohort")
+        root, man = wcte_train(det)
+        print(json.dumps({"wcte_train": str(root), "n_events": man["n_events"]}))
+        return
     cfg = mg.load_config()
     geometry, _ = mg.lucid_geometry(det, cfg)
     cohorts = cohorts_for(det)
