@@ -95,9 +95,14 @@ def selfcheck(args):
         lit = expected > 0
         # Pearson ceiling from photon statistics alone: var(signal) / (var(signal) + mean Poisson var)
         ceiling = float(np.sqrt(np.var(expected) / (np.var(expected) + np.mean(expected) / args.n)))
+        # per-PMT consistency: sampled-mean noise e/n plus the expected-mode MC noise e*Y/R
+        rays = n_exp * args.buffer
+        var = expected / args.n + expected * y / rays
+        chi2 = float(np.mean((mean[lit] - expected[lit]) ** 2 / var[lit]))
         out["positions"].append({"position_m": pos.tolist(),
                                  "pearson": float(np.corrcoef(mean, expected)[0, 1]),
                                  "pearson_poisson_ceiling": ceiling,
+                                 "chi2_per_pmt": chi2, "expected_mode_rays": int(rays),
                                  "mean_ratio_total": float(mean.sum() / expected.sum()),
                                  "total_sampled_pe": float(mean.sum()),
                                  "total_expected_pe": float(expected.sum()),
