@@ -14,3 +14,7 @@ Findings that shaped the plan:
 - The Titans cannot run the LUCiD JAX stack: JAX 0.6.2 with its CUDA 12.9 runtime on driver 525 (Maxwell, sm_52) fails with `CUDA_ERROR_ILLEGAL_ADDRESS` in `hello_simulate.py`.
 - The deepthought2 guard reported `HOLD` (15-minute load > 0.70 × 128 cores) from the start of the phase; no job was started there while it held.
 - LUCiD generation therefore runs on HTCondor batch GPUs (runbook §0.4 option 4), after verifying that the LUCiD environment runs in the batch image (smoke cluster 759831, A100, `jax.devices() = [CudaDevice(id=0)]`).
+
+## portal1 CPU policy (author, 21 Nov 2026 02:47 CET; seen 06:35 UTC)
+- portal1: 2 × AMD EPYC 7452 (64 cores, 128 threads), 1007 GiB RAM. Allowance: up to half of the threads (64) at `nice -n 10`, ≥ 8 free, halving when other users' 1-minute load exceeds 32.
+- At 06:41 UTC other users' load was 11.8, below the backoff threshold. By then all LUCiD generation had finished on GPUs (deepthought2 L40S lanes: WCTE ≈ 12 events/s; TOpAS A100 batch: SK/JUNO/HK ≈ 7–8 events/s per job), far faster than the measured CPU rate (3.5–6 × 10⁴ photons/s on 8 Deepthought cores ≈ 0.3 events/s), so portal1 CPU was used only for evaluation offload. Backoff events are logged in the notes.
