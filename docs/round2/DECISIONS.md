@@ -215,3 +215,11 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - 2026-11-17 repair Stage 5 complete. All fourteen seed-9000 production models reached step 10000, both final probe suites ran on 3400 held-out photons per model, and all 106 requested training snapshots were present. The independent collector recomputed hashes and matched 1000 distinct train and 1000 distinct test event IDs across all 90 WCTE/SK snapshot readouts. Both HK arms kept their requested four key steps. Condor and native receipts charge 66.072986111 GPU-h total on the repair line, including engineering smokes and the guarded plotting slot.
 
 - 2026-11-17 repair Stage 6. The report uses NOT_READY_FOR_ACCEPTANCE because the historical K5 exact comparisons still exceed the 5 mm S4 tolerance and the gain/time grid has 54 restricted split violations. The zero full-design violations and complete execution are reported independently. The manifest pins the pushed report/evidence commit as its HEAD reference and the driver records the later manifest commit. Corrected the evolution curve titles to count photon events.
+
+## r2-ablate (runbook `RUNBOOK_2026-11-17_R2_ABLATION_GRADFLOW.md`, addendum v2)
+
+- **Author, 17 Nov 2026, 10:08 CET:** "现在按照你的建议写addendum"
+- **Author, 20 Nov 2026, 22:45 CET:** "修订我们的计划，junjie的问题很尖锐很有技术性" (Translation: "Revise our plan; Junjie's questions are sharp and technical.")
+- **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
+- 2026-11-21 r2-ablate A0: addendum copied unchanged; SHA256 `0d1c658c64d7d38ab5d5cf4dbddf317fe7aa10cfc28ed102e4c8327429da4644`. Start gate: `r2-repair` status `done` (17 Nov 20:36 UTC).
+- 2026-11-21 r2-ablate A0: the worktree carries uncommitted leftovers of the unfinished `r2-diag` phase (`abs_render.py` additions, `ext_r2_diag*.py`, `test_r2_diag.py`, a DECISIONS block). They are left uncommitted and untouched (backed up off-repo); every r2-ablate commit stages explicit paths only and commits DECISIONS.md without the r2-diag block.
