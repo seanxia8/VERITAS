@@ -67,6 +67,16 @@ def run_id(detector, arm, seed=SEED):
     return f"{detector}__{arm}__s{seed}"
 
 
+def ts_suffix(args):
+    """Run-name suffix of the r2-lucid time-scale sweep (empty for the unchanged 50 ns recipe)."""
+    ts = getattr(args, "time_loss_scale_ns", None)
+    if ts is None or float(ts) == 50.0:
+        return ""
+    if args.arm != "mae_repaired":
+        raise ValueError("--time-loss-scale-ns applies to mae_repaired only")
+    return f"__ts{float(ts):g}".replace(".", "p")
+
+
 def geometry_and_scaling(detector, kind=None):
     geometry = dr.geometry(detector, kind)
     rule = gen.ROUND1_TIME_RULE if detector == "wcte" else gen.time_rule_for(geometry)
@@ -95,7 +105,7 @@ def train(args):
         raise ValueError("detector/arm or effective batch is outside the training matrix")
     if args.device == "cpu" and not args.smoke:
         raise ValueError("Stage 5 training requires a GPU")
-    tag = run_id(args.detector, args.arm, args.seed)
+    tag = run_id(args.detector, args.arm, args.seed) + ts_suffix(args)
     if args.smoke:
         tag += f"__mb{args.micro_batch}__w{args.window or 'default'}"
     run_dir = backend_root / ("smokes" if args.smoke else "runs") / tag
@@ -133,8 +143,9 @@ def train_locked(args, run_dir):
                                   "state_sha256": cohort.state_sha256})
         mask_seed = lb.DEFAULT_SEED
         source = str(h5)
+    time_loss_scale = float(getattr(args, "time_loss_scale_ns", None) or 50.0)
     arm = r2.build_r2_arm(args.arm, geometry, seed, scaling=scaling, run_cfg=cfg,
-                          encoder_config=encoder).to(args.device)
+                          encoder_config=encoder, time_loss_scale_ns=time_loss_scale).to(args.device)
     optimizers, optimiser, scheduler = lr.build_optimizers(arm, cfg)
     shuffle = args.arm in ("jepa_repaired", "mae_repaired")
     split = "spatial_patch" if args.arm == "mae_repaired" else "within"
@@ -144,7 +155,8 @@ def train_locked(args, run_dir):
     snapshots = ((0, args.smoke) if args.smoke else
                  SNAPSHOTS if args.detector in ("wcte", "sk") else (0, 500, 2000, 10000))
     steps = args.smoke or r2.STEPS
-    identity = {"run_id": run_id(args.detector, args.arm, seed), "cell_id": f"r2_{args.detector}_within",
+    identity = {"run_id": run_id(args.detector, args.arm, seed) + ts_suffix(args),
+                "cell_id": f"r2_{args.detector}_within",
                 "arm": args.arm, "seed": seed, "beta": None, "steps_scheduled": steps,
                 "gradient_clip": optimiser.get("gradient_clip")}
     training = dict(cfg["training"], micro_batch=args.micro_batch,
@@ -155,6 +167,8 @@ def train_locked(args, run_dir):
               "micro_batch": args.micro_batch, "shuffle": shuffle,
               "full_batch_sigreg": args.arm == "jepa_repaired", "snapshot_steps": snapshots,
               "data_kind": args.data_kind}
+    if time_loss_scale != 50.0:  # sweep runs only; the unchanged recipe keeps its hash
+        recipe["time_loss_scale_ns"] = time_loss_scale
     config_sha = sha_json(recipe)
     checkpoint = run_dir / "checkpoint.pt"
     record = {"extension": EXTENSION if args.data_kind == dr.ANALYTIC_TOY else LUCID_EXTENSION,
@@ -190,6 +204,8 @@ def main():
     parser.add_argument("arm", choices=sorted(set().union(*MATRIX.values(), *LUCID_MATRIX.values())))
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--data-kind", choices=dr.DATA_KINDS, default=dr.DEFAULT_DATA_KIND)
+    parser.add_argument("--time-loss-scale-ns", type=float, default=None,
+                        help="mae_repaired time-loss unit (default 50 ns, the unchanged recipe)")
     parser.add_argument("--data", type=Path)
     parser.add_argument("--micro-batch", type=int, choices=(1, 2, 4, 8, 16, 32), required=True)
     parser.add_argument("--window", type=int, choices=(128, 256))

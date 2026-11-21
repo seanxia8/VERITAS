@@ -106,7 +106,8 @@ def evaluate(args):
     kind = dr.check(getattr(args, "data_kind", None))
     seed = int(getattr(args, "seed", SEED) or SEED)
     root = campaign_root(kind)
-    tag = run_id(args.detector, args.arm, seed)
+    from .ext_r2_repair_train import ts_suffix
+    tag = run_id(args.detector, args.arm, seed) + ts_suffix(args)
     directory = args.run_dir or root / "runs" / tag
     output = root / "retrain" / "by_run" / tag
     output.mkdir(parents=True, exist_ok=True)
@@ -302,6 +303,7 @@ def main():
     one.add_argument("--seed", type=int, default=SEED)
     one.add_argument("--data-kind", choices=dr.DATA_KINDS, default=dr.DEFAULT_DATA_KIND)
     one.add_argument("--data", type=Path)
+    one.add_argument("--time-loss-scale-ns", type=float, default=None)
     one.add_argument("--run-dir", type=Path)
     one.add_argument("--device", default="cuda")
     one.add_argument("--chunk", type=int, default=8)

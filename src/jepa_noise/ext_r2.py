@@ -149,7 +149,7 @@ def base_arm_name(arm: str) -> str:
 
 
 def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, run_cfg=None,
-                 encoder_config=None):
+                 encoder_config=None, time_loss_scale_ns: float = 50.0):
     """Build one §5.1 arm on a round-2 geometry with the round-1 builders."""
     import torch
     from . import lucid_arms as la
@@ -166,7 +166,9 @@ def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, 
     if scaling is None and arm == "mae_repaired":
         from . import r2_generator, r2_store
         scaling = r2_store.scaling_for(geometry, r2_generator.time_rule_for(geometry).time_scale_ns)
-    time_weight = (scaling.time_scale_ns / 50.0) ** 2 if arm == "mae_repaired" else 1.0
+    # repaired MAE: time residuals in units of time_loss_scale_ns (50 ns by default; r2-lucid sweep)
+    time_weight = ((scaling.time_scale_ns / float(time_loss_scale_ns)) ** 2
+                   if arm == "mae_repaired" else 1.0)
     made = la.build_arm(base_arm_name(arm), geometry, settings=settings, seed=int(seed),
                         encoder_config=encoder_config or encoder_config_for(arm, geometry), scaling=scaling,
                         time_loss_weight=time_weight)
