@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "hk__target_posfree__s9000",
+  "det": "hk",
+  "arm": "target_posfree",
+  "seed": 9000,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__target_posfree__s9000/checkpoint.pt",
+  "sha256": "4289b28088866f8f070506be8e814e820ca0eb32e409ab6c37a5da53f145b6cd",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 766.6666666666667,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 1571.838853597641
+}

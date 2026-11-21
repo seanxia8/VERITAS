@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "sk__init__s9000",
+  "det": "sk",
+  "arm": "init",
+  "seed": 9000,
+  "ckpt": null,
+  "sha256": null,
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 450.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 1046.7808248996735
+}

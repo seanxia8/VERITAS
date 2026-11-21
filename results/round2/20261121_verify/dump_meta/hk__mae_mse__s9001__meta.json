@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "hk__mae_mse__s9001",
+  "det": "hk",
+  "arm": "mae_mse",
+  "seed": 9001,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__mae_mse__s9001/checkpoint.pt",
+  "sha256": "cdaa9a16ba6ff511ef3f219a3b1485ae368143d57a99965ecf9b4269b973501b",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 766.6666666666667,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 1593.448447227478
+}

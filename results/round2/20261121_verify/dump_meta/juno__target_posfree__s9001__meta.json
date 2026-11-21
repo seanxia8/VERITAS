@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "juno__target_posfree__s9001",
+  "det": "juno",
+  "arm": "target_posfree",
+  "seed": 9001,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__target_posfree__s9001/checkpoint.pt",
+  "sha256": "8e9ac25187c0fbe9bd1c26ebb9ecc994117db9b6ca9244a6df2a602ab1bb4081",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 333.33333333333337,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 804.1324110031128
+}

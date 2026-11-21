@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "wcte__target_posfree__s9001",
+  "det": "wcte",
+  "arm": "target_posfree",
+  "seed": 9001,
+  "ckpt": "/ceph/dwong/jepa/returns/ext_shortcut_20261107/train/runs/dev_s005_within__sigreg_jepa__s9001/final.pt",
+  "sha256": "e36a437d77714985e59009528b6e73ba092e213b7b209c630b970f275ddc71a2",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 100.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 168.67857360839844
+}

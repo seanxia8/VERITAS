@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "wcte__jepa_repaired__s9000",
+  "det": "wcte",
+  "arm": "jepa_repaired",
+  "seed": 9000,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_repair_2026-11-17/runs/wcte__jepa_repaired__s9000/snapshot_step_10000.pt",
+  "sha256": "db20c41743df0e927caeea876fc6f7da6dfae4308c3c3f17afacb3d7ace2ec79",
+  "window": 64,
+  "shift": 32,
+  "readout": "layernorm"
+ },
+ "time_scale_ns": 100.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 176.84272503852844
+}

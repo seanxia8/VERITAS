@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "juno__sigreg_jepa__s9000",
+  "det": "juno",
+  "arm": "sigreg_jepa",
+  "seed": 9000,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__sigreg_jepa__s9000/checkpoint.pt",
+  "sha256": "76a5ed013ee35e098ebe8b30aeaba60095434363e2c4676d6a703da26b9af075",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 333.33333333333337,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 821.6589348316193
+}

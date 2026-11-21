@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "wcte__mae_mse__s9000",
+  "det": "wcte",
+  "arm": "mae_mse",
+  "seed": 9000,
+  "ckpt": "/ceph/dwong/jepa/returns/ext_mae_dejitter_20261031/train/runs/ext_dev_s005_within_trigger__mae_mse__s9000/final.pt",
+  "sha256": "a2b5384f68266caf08a2563e3dc5d7d2a037ab90da0bfa5e42f659f64bef1c49",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 100.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 160.8907492160797
+}

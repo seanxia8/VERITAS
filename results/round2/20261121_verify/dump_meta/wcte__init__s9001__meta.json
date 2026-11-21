@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "wcte__init__s9001",
+  "det": "wcte",
+  "arm": "init",
+  "seed": 9001,
+  "ckpt": null,
+  "sha256": null,
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 100.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 164.54665207862854
+}

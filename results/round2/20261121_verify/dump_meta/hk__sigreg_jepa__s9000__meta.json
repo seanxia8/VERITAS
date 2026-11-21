@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "hk__sigreg_jepa__s9000",
+  "det": "hk",
+  "arm": "sigreg_jepa",
+  "seed": 9000,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/hk__sigreg_jepa__s9000/checkpoint.pt",
+  "sha256": "04cac5d70058709f0422e374f898f94ddab12411b72255885fecde1910586031",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 766.6666666666667,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 2152.9108538627625
+}

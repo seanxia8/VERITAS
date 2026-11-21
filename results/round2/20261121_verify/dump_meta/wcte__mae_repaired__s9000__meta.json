@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "wcte__mae_repaired__s9000",
+  "det": "wcte",
+  "arm": "mae_repaired",
+  "seed": 9000,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_repair_2026-11-17/runs/wcte__mae_repaired__s9000/snapshot_step_10000.pt",
+  "sha256": "44c0fad302a6bdc10090849e9dc9d06c933481b6c183e7d9494dee44ce2bed71",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 100.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 172.58698892593384
+}

@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "juno__mae_mse__s9001",
+  "det": "juno",
+  "arm": "mae_mse",
+  "seed": 9001,
+  "ckpt": "/ceph/dwong/jepa/returns/r2_multidetector_2026-11-11/batch/runs/juno__mae_mse__s9001/checkpoint.pt",
+  "sha256": "34147573e7be31b7b95ca74f24be700682a6730bc851ef7c231a3738c1e905e2",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 333.33333333333337,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 826.0414230823517
+}

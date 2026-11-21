@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "juno__init__s9000",
+  "det": "juno",
+  "arm": "init",
+  "seed": 9000,
+  "ckpt": null,
+  "sha256": null,
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 333.33333333333337,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 819.1087443828583
+}

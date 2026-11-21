@@ -1,0 +1,23 @@
+{
+ "case": {
+  "case": "wcte__sigreg_jepa__s9000",
+  "det": "wcte",
+  "arm": "sigreg_jepa",
+  "seed": 9000,
+  "ckpt": "/work/dwong/jepa_a10_work/fixed_s9000/runs/dev_s005_within__sigreg_jepa__s9000/final.pt",
+  "sha256": "2d912a2deef7eb74137405062c0bb55d82ad3d1cf97d4b37e02ba381088ef714",
+  "window": 64,
+  "shift": 32,
+  "readout": "raw"
+ },
+ "time_scale_ns": 100.0,
+ "train": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "test": {
+  "n_events": 3400,
+  "n_runs": 200
+ },
+ "seconds": 163.02664923667908
+}
