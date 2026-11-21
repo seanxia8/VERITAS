@@ -215,3 +215,13 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - 2026-11-17 repair Stage 5 complete. All fourteen seed-9000 production models reached step 10000, both final probe suites ran on 3400 held-out photons per model, and all 106 requested training snapshots were present. The independent collector recomputed hashes and matched 1000 distinct train and 1000 distinct test event IDs across all 90 WCTE/SK snapshot readouts. Both HK arms kept their requested four key steps. Condor and native receipts charge 66.072986111 GPU-h total on the repair line, including engineering smokes and the guarded plotting slot.
 
 - 2026-11-17 repair Stage 6. The report uses NOT_READY_FOR_ACCEPTANCE because the historical K5 exact comparisons still exceed the 5 mm S4 tolerance and the gain/time grid has 54 restricted split violations. The zero full-design violations and complete execution are reported independently. The manifest pins the pushed report/evidence commit as its HEAD reference and the driver records the later manifest commit. Corrected the evolution curve titles to count photon events.
+
+## r2-verify (extension `r2_verify_2026-11-21`, registered: false)
+
+Runbook: `docs/round2/RUNBOOK_2026-11-21_R2_VERIFY.md`, SHA256 `a7c9a48acc894c69c403f29a2d56c991431b06208d0920393dcd01a58a1dfa07`.
+
+Authority (verbatim):
+1. **Author, 21 Nov 2026, 00:04 CET:** "写一份关键数字独立复算的 runbook。它可以和 r2-ablate 并行，只用 CPU。" (Translation: "Write a runbook for independent recomputation of the key numbers. It can run in parallel with r2-ablate, CPU only.")
+2. **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决".
+
+- 2026-11-21 r2-verify V0: Branch `r2-verify` created from `origin/dev` at `cc75cff`. Pushed to the new remote branch `origin/r2-verify`; it never merges into `dev`.
