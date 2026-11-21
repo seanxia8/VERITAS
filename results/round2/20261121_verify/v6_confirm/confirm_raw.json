@@ -1,0 +1,22 @@
+{
+ "wcte": {
+  "d_prime_committed_style_raw_m": 0.055869632670021464,
+  "alpha": 0.03162277660168379,
+  "n_features": 33
+ },
+ "sk": {
+  "d_prime_committed_style_raw_m": 0.42921231576718094,
+  "alpha": 0.03162277660168379,
+  "n_features": 33
+ },
+ "juno": {
+  "d_prime_committed_style_raw_m": 0.21633961560693565,
+  "alpha": 0.03162277660168379,
+  "n_features": 33
+ },
+ "hk": {
+  "d_prime_committed_style_raw_m": 0.8406519758131449,
+  "alpha": 0.01,
+  "n_features": 33
+ }
+}

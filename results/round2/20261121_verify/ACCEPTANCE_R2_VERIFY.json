@@ -1,0 +1,121 @@
+{
+ "extension": "r2_verify_2026-11-21",
+ "registered": false,
+ "runbook": "docs/round2/RUNBOOK_2026-11-21_R2_VERIFY.md",
+ "runbook_sha256": "a7c9a48acc894c69c403f29a2d56c991431b06208d0920393dcd01a58a1dfa07",
+ "blind_seal_commit": "b755b23",
+ "created_utc": "2026-11-21T10:10:23Z",
+ "deliverables": [
+  {
+   "path": "results/round2/20261121_verify/INPUTS.txt",
+   "sha256": "e044d189a40e334ed9e0c9e47b95808bd8c409f49d0524d574dff9c0e33cda4a",
+   "check": "V0 metric-free inputs",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/ckpt_sha256_check.log",
+   "sha256": "c3eb7bb3d1a96a731b5bbd3c1f1bdaad95dc1252da4a14c62a3c1e813ca0f889",
+   "check": "V0: 41/41 checkpoint SHA256 OK",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/ckpt_configs.json",
+   "sha256": "866140e9edd8734bd58eba44a8ea32e2b199072566d338fa448d1e345719d3be",
+   "check": "V0 encoder configs",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/k0_features.json",
+   "sha256": "28fd9fbba90693d7be35bb6ad2010bf540edd3d2d2e9bd7e17223690a9406395",
+   "check": "K0 feature rebuild <= 1e-5 rel",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/k1_readout.json",
+   "sha256": "b13ddf8aa882e666232a72a5be0044c8099cde7d0065ce632d45b50fbe904f3a",
+   "check": "K1 readout table complete (30 cases)",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/k2_collapse.json",
+   "sha256": "91894eabbfd29f704fdf7187e583e45cc1a1dc1a07adbf47a61c6b779a63bffc",
+   "check": "K2 decomposition complete (30 cases, closure)",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/k3_sigreg.json",
+   "sha256": "f761a9ce99fb3140ca37d3e0a4cfcc8489d0810311e9bc7d48788344133efc0d",
+   "check": "K3 independent statistic matches official (I11)",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/k4_tof.json",
+   "sha256": "d7e7a367dd710ea297bfac2199d847f0c38275f6255f2b5896acdd3dd076eb29",
+   "check": "K4 ToF + CRLB complete",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/k5_regime.json",
+   "sha256": "0ea536760d3733656326c2e2f15d4db7c771e730870501fb7fb5bfbe75e4d191",
+   "check": "K5 regime complete",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/v6_comparison.json",
+   "sha256": "ce6c4aed8388bd8d695707a70c83f21f4b9c7d8d2e3767902f3dca020468f380",
+   "check": "V6 blind comparison complete",
+   "result": "PASS"
+  },
+  {
+   "path": "results/round2/20261121_verify/VERIFY_REPORT.md",
+   "sha256": "adce7ef5ce900d10867851ebc5f02d9288029b4af57b70f1b6a326b0b08d4991",
+   "check": "V7 report",
+   "result": "PASS"
+  },
+  {
+   "path": "verify/README.md",
+   "sha256": "5bc2905bdaadbc73e0f1bfe27b750b0016446a235dab6a0d7ef1bd3f97c289c8",
+   "check": "V7 rerun README",
+   "result": "PASS"
+  }
+ ],
+ "invariants": {
+  "I1": "FAIL",
+  "I2": "PASS",
+  "I3": "PASS",
+  "I4": "FAIL",
+  "I5": "PASS",
+  "I6": "PASS",
+  "I7": "FAIL",
+  "I8": "PASS",
+  "I9": "PASS",
+  "I10": "FAIL",
+  "I11": "PASS",
+  "I12": "PASS",
+  "I13": "PASS"
+ },
+ "tolerances": {
+  "K1_a_allpmt_mean": "30/30",
+  "K1_b_hit_mean": "30/30",
+  "K1_c_hit_moments": "0/30",
+  "K1_d_raw": "0/4",
+  "K1_c_prime_committed_style": "11/11",
+  "K1_d_prime_committed_style": "4/4",
+  "K2": "16/16",
+  "K3_N_ratios": "PASS",
+  "K4_tof": "4/4",
+  "K4_crlb": "3/4"
+ },
+ "verdicts": {
+  "C1": "downgrade_flag (I1; definitional, report 4.1)",
+  "C2": "downgrade_flag (I4; seed 9001, report 4.2)",
+  "C3": "R_unchanged",
+  "C19": "R_unchanged",
+  "C4": "downgrade_flag (I7; metric choice, report 4.3)",
+  "C6": "downgrade_flag (I10; gradient direction, report 4.4)",
+  "C8": "R_unchanged",
+  "C9": "R_unchanged",
+  "C21": "V_descriptive"
+ },
+ "phase_result": "COMPLETE: all stages V0-V7 executed; 9 of 13 invariants pass; downgrade flags diagnosed"
+}

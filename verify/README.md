@@ -32,6 +32,7 @@ D=/work/dwong/r2_verify; R=../results/round2/20261121_verify
 | K3 SIGReg + I9–I11 | `git clone https://github.com/rbalestr-lab/lejepa.git $D/ext/lejepa_src` (commit c293d29), then `nice -n 15 python3 k3_sigreg.py $R/k3_sigreg.json $D/ext/lejepa_src` | `k3_sigreg.json` | 15 min |
 | K4 ToF + CRLB | `nice -n 15 python3 k4_tof.py $R/k4_tof.json 100` | `k4_tof.json` | 10 min |
 | K5 regime | `nice -n 15 python3 k5_regime.py $R/k5_regime.json` | `k5_regime.json` | 3 min |
+| V6 investigation | `bash run_v6_confirm.sh $D/dump $D/confirm`, then copy `$D/confirm/*.json` to `$R/v6_confirm/` | `v6_confirm/*.json` | ≈ 1.5 h |
 | V6 blind comparison | `python3 v6_compare.py $R` (reads committed values only at this step) | `v6_comparison.json` | < 1 min |
 
 ## Files
@@ -44,3 +45,4 @@ D=/work/dwong/r2_verify; R=../results/round2/20261121_verify
 - `k3_sigreg.py`: Epps–Pulley SIGReg, the analytic expectation, N-scaling, 8×4 vs 1×32 accumulation and the comparison with the official implementation.
 - `k4_tof.py`: Huber ToF vertex fit, timing CRLB and the simplified charge-only CRLB.
 - `k5_regime.py`: occupancy quantiles.
+- `v6_compare.py`: the comparison against committed values with the pre-registered tolerances. `v6_confirm.py` + `ridge_core.py`: my own re-implementation of the committed spatial-moment construction, written after the seal for the §4.1 diagnosis.
