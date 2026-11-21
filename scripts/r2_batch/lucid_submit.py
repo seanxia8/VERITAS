@@ -11,7 +11,9 @@ JOBS = Path("/work/dwong/r2_lucid/batch_jobs")
 REPO = Path("/ceph/dwong/jepa/r2_lucid_repo")
 IMAGE = "pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime"
 GPU_REQ = {"a100": '(TARGET.GPUs_DeviceName =?= "NVIDIA A100-PCIE-40GB")',
-           "l40s": '(TARGET.CloudSite =?= "BwForCluster-Nemo2") && (TARGET.GPUs_DeviceName =?= "NVIDIA L40S")'}
+           "l40s": '(TARGET.CloudSite =?= "BwForCluster-Nemo2") && (TARGET.GPUs_DeviceName =?= "NVIDIA L40S")',
+           "h200": '(TARGET.CloudSite =?= "BwForCluster-Nemo2") && (TARGET.GPUs_DeviceName =?= "NVIDIA H200")',
+           "container": '((TARGET.GPUs_DeviceName =?= "NVIDIA L40S") || (TARGET.GPUs_DeviceName =?= "NVIDIA H200"))'}
 
 
 def main():
