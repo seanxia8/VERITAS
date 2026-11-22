@@ -313,3 +313,33 @@ def test_tier1_eval_log_only_writes_canonical_line(tmp_path, monkeypatch, capsys
     with pytest.raises(SystemExit):
         ev.main(["--legacy-init", "--detector", "sk", "--seed", "9000", "--cohorts", "validation",
                  "--log-only", "--access-log", str(log)])
+
+
+def _fake_eval(root, rid, scale, rng, n=400, step=10000):
+    d = root / rid / f"step_{step:05d}"
+    d.mkdir(parents=True, exist_ok=True)
+    base = np.abs(rng.normal(1.0, 0.3, n))
+    err = base * scale
+    np.savez(d / "sealed.npz", err_ridge_spatial_moment_latent=err, event_ids=np.arange(n))
+    (d / "sealed.json").write_text(json.dumps({"key": rid}))
+
+
+def test_gate_contrasts_and_statistics(tmp_path):
+    gate = _load_script("tier1_gate")
+    rng = np.random.default_rng(0)
+    for seed, s450, s50 in ((9000, 1.0, 0.8), (9001, 1.0, 0.82)):
+        _fake_eval(tmp_path, gate.run_id("sk", "patch", 450, seed), s450, np.random.default_rng(1))
+        _fake_eval(tmp_path, gate.run_id("sk", "patch", 50, seed), s50, np.random.default_rng(1))
+    store = gate.Store(tmp_path, "sealed")
+    reg = gate.registered()
+    c = gate.contrast(store, reg["CT-p50"][1], "vertex", "sealed_test")
+    assert c["per_seed"]["A"] == pytest.approx(-0.2) and c["per_seed"]["B"] == pytest.approx(-0.18)
+    assert c["T_bar"] == pytest.approx(-0.19) and c["same_sign"]
+    c.update(detector="sk", registered=True)
+    contrasts = {"CT-p50": c}
+    pooled = gate.finish(contrasts)
+    assert pooled["sk"] == pytest.approx(np.std([-0.2, -0.18], ddof=1))
+    assert c["N_sigma"] == pytest.approx(0.19 / max(c["SE_boot"], c["SE_seed"]))
+    assert c["clear"]
+    assert gate.run_id("wcte", "random", 1.5, 9002) == "wcte__mae_repaired__s9002__mrandom__ts1p5"
+    assert gate.run_id("sk", "patch", 50, 9000, cw=100) == "sk__mae_repaired__s9000__cw100"
