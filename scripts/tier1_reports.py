@@ -133,6 +133,8 @@ def budget(args):
         data[label] = {"run_id": rid, "steps": {}}
         for s in steps:
             js = load(args.eval_root, rid, s, "validation")
+            if not js and args.sealed_root:  # steps scored in full (0, 10,000) live in eval/
+                js = load(args.sealed_root, rid, s, "validation")
             if js:
                 data[label]["steps"][s] = js["metrics"]["vertex"]["ridge_spatial_moment_latent"]["mean_m"]
     sealed = {}
