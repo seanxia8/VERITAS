@@ -1,0 +1,1716 @@
+{
+ "rows": [
+  {
+   "case": "wcte__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.06562284389600476,
+   "theirs": 0.06562284533228269,
+   "rel_diff": -2.1886858547759402e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.19621272423321376,
+   "theirs": 0.19621237395314886,
+   "rel_diff": 1.7852088420866608e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07515551095778447,
+   "rel_diff": 0.0008485801685389482,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.10150144360197279,
+   "theirs": 0.12554760523896263,
+   "rel_diff": -0.19153022943943276,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.1255476231215169,
+   "rel_diff_perdim_definition": 1.4243644264055888e-07,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 1.4e-07"
+  },
+  {
+   "case": "wcte__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.05747198602279666,
+   "theirs": 0.05747197201261617,
+   "rel_diff": 2.437741390970416e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.15205982301807414,
+   "theirs": 0.15205985987625714,
+   "rel_diff": -2.423925882233391e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.0887392017449253,
+   "theirs": 0.10340942856823182,
+   "rel_diff": -0.14186546649009646,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.1034095348191277,
+   "rel_diff_perdim_definition": 1.0274778359242731e-06,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.05208915062054582,
+   "theirs": 0.05208914646623615,
+   "rel_diff": 7.97538441954515e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.1410202240806629,
+   "theirs": 0.14102025082731992,
+   "rel_diff": -1.8966536274866996e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.16036043186942028,
+   "theirs": 0.18521764503962596,
+   "rel_diff": -0.13420542716050432,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.18521777084992494,
+   "rel_diff_perdim_definition": 6.792565523383587e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.06289138935533246,
+   "theirs": 0.06289138065470275,
+   "rel_diff": 1.3834375445220815e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.19256679594649287,
+   "theirs": 0.19256679938628757,
+   "rel_diff": -1.7862864742923534e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.20833569812980718,
+   "theirs": 0.17059269531348054,
+   "rel_diff": 0.2212463010035115,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.17059287526211378,
+   "rel_diff_perdim_definition": 1.0548437194835003e-06,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 1.1e-06"
+  },
+  {
+   "case": "wcte__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.15252153344704772,
+   "theirs": 0.15252158780600256,
+   "rel_diff": -3.564017108104167e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.26357772259402096,
+   "theirs": 0.26357799043411373,
+   "rel_diff": -1.0161701754496377e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.00020336377966601274,
+   "theirs": 0.00022036557736706668,
+   "rel_diff": -0.07715269283066728,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.00022036585588756713,
+   "rel_diff_perdim_definition": 1.263902029480235e-06,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.06616817892396144,
+   "theirs": 0.0661681903885738,
+   "rel_diff": -1.7326471057899084e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.1914747033217951,
+   "theirs": 0.19147533779803735,
+   "rel_diff": -3.3136186078364105e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07515551095778447,
+   "rel_diff": 0.0008485801685389482,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.12125758194334574,
+   "theirs": 0.13804402226035892,
+   "rel_diff": -0.12160208056929112,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.1380440423259682,
+   "rel_diff_perdim_definition": 1.4535659675907198e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__mae_mse__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.056368362860691294,
+   "theirs": 0.05636835624619256,
+   "rel_diff": 1.1734418348119391e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_mse__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.1574189288117221,
+   "theirs": 0.157418772925232,
+   "rel_diff": 9.902662001515239e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_mse__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_mse__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.09025158862004705,
+   "theirs": 0.11799295549846517,
+   "rel_diff": -0.23511036537074426,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.11799307989589604,
+   "rel_diff_perdim_definition": 1.0542784554257167e-06,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 1.1e-06"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.05194166127681165,
+   "theirs": 0.05194165358867625,
+   "rel_diff": 1.4801483727566733e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.13725828492739747,
+   "theirs": 0.13725828880529012,
+   "rel_diff": -2.8252520656302238e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.1851519457556101,
+   "theirs": 0.1979925475005015,
+   "rel_diff": -0.0648539649951162,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.1979926773857488,
+   "rel_diff_perdim_definition": 6.560107890241085e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__jepa_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.06115416365312225,
+   "theirs": 0.06115415398729533,
+   "rel_diff": 1.580567514647413e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__jepa_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.14421621947027863,
+   "theirs": 0.14421600781416388,
+   "rel_diff": 1.4676326016704877e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__jepa_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "wcte__jepa_repaired__s9001__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.15893380507252328,
+   "theirs": 0.15313318266421466,
+   "rel_diff": 0.037879591525424194,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.15313328385612865,
+   "rel_diff_perdim_definition": 6.608098404026208e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "sk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.5274252436468422,
+   "theirs": 0.5274253029756429,
+   "rel_diff": -1.1248758913229295e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 3.6945784063145286,
+   "theirs": 3.694577953486389,
+   "rel_diff": 1.225655934522507e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.667285974448005,
+   "theirs": 0.6670664419964677,
+   "rel_diff": 0.0003291013274182575,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.021988446697859956,
+   "theirs": 0.0369323875047928,
+   "rel_diff": -0.40462969812047855,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.03693239087224899,
+   "rel_diff_perdim_definition": 9.11789466151447e-08,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 9.1e-08"
+  },
+  {
+   "case": "sk__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.4265667159619704,
+   "theirs": 0.42656671141491714,
+   "rel_diff": 1.0659653160161042e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 2.056243028175674,
+   "theirs": 2.056253351391613,
+   "rel_diff": -5.020400784760959e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.667285974448005,
+   "theirs": 0.6670664419964677,
+   "rel_diff": 0.0003291013274182575,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__mae_mse__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.02925048612474282,
+   "theirs": 0.05737978340498934,
+   "rel_diff": -0.49023010564031855,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.05737983970618418,
+   "rel_diff_perdim_definition": 9.812026380284777e-07,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 9.8e-07"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.3563668058733193,
+   "theirs": 0.3563667294486409,
+   "rel_diff": 2.1445514430951107e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.8388632432658438,
+   "theirs": 0.8388632663890961,
+   "rel_diff": -2.7564983740013815e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.667285974448005,
+   "theirs": 0.6670664419964677,
+   "rel_diff": 0.0003291013274182575,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.14135593231787097,
+   "theirs": 0.15887436001974087,
+   "rel_diff": -0.1102659214469418,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.15887444921079866,
+   "rel_diff_perdim_definition": 5.613936557846699e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "sk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.4491299945371377,
+   "theirs": 0.4491299734270039,
+   "rel_diff": 4.700228228848857e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 2.4496069184005393,
+   "theirs": 2.449602769144367,
+   "rel_diff": 1.6938485800643832e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.667285974448005,
+   "theirs": 0.6670664419964677,
+   "rel_diff": 0.0003291013274182575,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.12807351911440745,
+   "theirs": 0.12492513343777777,
+   "rel_diff": 0.025202179817545023,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.12492527483221666,
+   "rel_diff_perdim_definition": 1.131833403000826e-06,
+   "diagnosis": null
+  },
+  {
+   "case": "sk__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 1.1511538665273449,
+   "theirs": 1.151154122141287,
+   "rel_diff": -2.2205014715837024e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 4.822628895821942,
+   "theirs": 4.82261571257865,
+   "rel_diff": 2.7336292329760425e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.667285974448005,
+   "theirs": 0.6670664419964677,
+   "rel_diff": 0.0003291013274182575,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__sigreg_jepa__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 8.217651790571583e-05,
+   "theirs": 9.166081207034443e-05,
+   "rel_diff": -0.10347163581040442,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 9.166089739072256e-05,
+   "rel_diff_perdim_definition": 9.308272117536376e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "sk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.5257974463408458,
+   "theirs": 0.5257973119700687,
+   "rel_diff": 2.5555622662487565e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 3.520904135853424,
+   "theirs": 3.520951140207634,
+   "rel_diff": -1.3349902437842509e-05,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.667285974448005,
+   "theirs": 0.6670664419964677,
+   "rel_diff": 0.0003291013274182575,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "sk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.024659935984370787,
+   "theirs": 0.03812385189692265,
+   "rel_diff": -0.35316252798785697,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.03812385261243071,
+   "rel_diff_perdim_definition": 1.8767989828916143e-08,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 1.9e-08"
+  },
+  {
+   "case": "juno__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.42315543263557176,
+   "theirs": 0.4231556078550528,
+   "rel_diff": -4.140781257877535e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 2.6564504484895726,
+   "theirs": 2.6564779400134557,
+   "rel_diff": -1.0348862103826129e-05,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.5393396271362727,
+   "theirs": 0.5383004954731092,
+   "rel_diff": 0.001930393287582266,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.03128653681667457,
+   "theirs": 0.057100690267465365,
+   "rel_diff": -0.45208128535530323,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.05710069205431452,
+   "rel_diff_perdim_definition": 3.129295200743343e-08,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 3.1e-08"
+  },
+  {
+   "case": "juno__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.2876233529468627,
+   "theirs": 0.2876233593980681,
+   "rel_diff": -2.2429351376196394e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.7322513187956963,
+   "theirs": 0.7322516381076328,
+   "rel_diff": -4.360685861293234e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.5393396271362727,
+   "theirs": 0.5383004954731092,
+   "rel_diff": 0.001930393287582266,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.1767673903918557,
+   "theirs": 0.18893668215879145,
+   "rel_diff": -0.06440936523225316,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.1889367597959104,
+   "rel_diff_perdim_definition": 4.1091607028143073e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "juno__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.3786419488377842,
+   "theirs": 0.37864192209206227,
+   "rel_diff": 7.063592377676287e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 1.9808953016236268,
+   "theirs": 1.9808978081304887,
+   "rel_diff": -1.2653388031802493e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.5393396271362727,
+   "theirs": 0.5383004954731092,
+   "rel_diff": 0.001930393287582266,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.12144193487896765,
+   "theirs": 0.12933677985285041,
+   "rel_diff": -0.06104098913599765,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.12933693925357992,
+   "rel_diff_perdim_definition": 1.2324470246571906e-06,
+   "diagnosis": null
+  },
+  {
+   "case": "juno__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.42276435586103644,
+   "theirs": 0.42276438974771297,
+   "rel_diff": -8.015499253222202e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 2.594575334381175,
+   "theirs": 2.5945451732505758,
+   "rel_diff": 1.1624823845979293e-05,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.5393396271362727,
+   "theirs": 0.5383004954731092,
+   "rel_diff": 0.001930393287582266,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "juno__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.03320632703098507,
+   "theirs": 0.05360036666484993,
+   "rel_diff": -0.3804832112695018,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.05360036544409716,
+   "rel_diff_perdim_definition": -2.2775082486603537e-08,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 2.3e-08"
+  },
+  {
+   "case": "hk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.9071649907347038,
+   "theirs": 0.9071651793383482,
+   "rel_diff": -2.0790441324081144e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 7.380329725134952,
+   "theirs": 7.3804320456426025,
+   "rel_diff": -1.3863755809695455e-05,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 1.1870355829437083,
+   "theirs": 1.1884452167921529,
+   "rel_diff": -0.0011861159677595268,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__legacy_init__s9000",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.013419034540533408,
+   "theirs": 0.022878757264386533,
+   "rel_diff": -0.4134718776259011,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.02287875905175729,
+   "rel_diff_perdim_definition": 7.812359470449337e-08,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 7.8e-08"
+  },
+  {
+   "case": "hk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.6247054344301999,
+   "theirs": 0.624705107957622,
+   "rel_diff": 5.226027028903957e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 1.5775247150804508,
+   "theirs": 1.577522990335325,
+   "rel_diff": 1.0933248748568047e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 1.1870355829437083,
+   "theirs": 1.1884452167921529,
+   "rel_diff": -0.0011861159677595268,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__mae_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.11799232637006761,
+   "theirs": 0.13523445149473287,
+   "rel_diff": -0.12749802239066876,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.1352345136022607,
+   "rel_diff_perdim_definition": 4.5925817815373193e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "hk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.8119157966878586,
+   "theirs": 0.8119157030058125,
+   "rel_diff": 1.1538395638943655e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 5.5204436925874685,
+   "theirs": 5.520754210183026,
+   "rel_diff": -5.6245502649709955e-05,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 1.1870355829437083,
+   "theirs": 1.1884452167921529,
+   "rel_diff": -0.0011861159677595268,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__jepa_repaired__s9000__final",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.06273522461143088,
+   "theirs": 0.06560427135552008,
+   "rel_diff": -0.043732621135922245,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": false,
+   "mine_perdim_definition": 0.06560435479352092,
+   "rel_diff_perdim_definition": 1.2718379325260543e-06,
+   "diagnosis": null
+  },
+  {
+   "case": "hk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.8966759772326935,
+   "theirs": 0.8966762980320558,
+   "rel_diff": -3.5776496265516045e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 7.167840595937514,
+   "theirs": 7.167808139252125,
+   "rel_diff": 4.528118604518738e-06,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 1.1870355829437083,
+   "theirs": 1.1884452167921529,
+   "rel_diff": -0.0011861159677595268,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": false
+  },
+  {
+   "case": "hk__legacy_init__s9001",
+   "source": "TOY_VS_LUCID.rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.013609657299670817,
+   "theirs": 0.022565966295091583,
+   "rel_diff": -0.39689454811287606,
+   "tol": 0.15,
+   "pass": false,
+   "exploratory": false,
+   "mine_perdim_definition": 0.02256596649979322,
+   "rel_diff_perdim_definition": 9.071255080428386e-09,
+   "diagnosis": "definitional: r2-tier1 uses the per-dimension mean of Var_e/Var_pe over all test photon bombs (ext_readout.layout_fractions); runbook \u00a71 / k2_collapse.py use the trace ratio over the first 200; recomputed under their definition from the same dumps it agrees to 9.1e-09"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.05123248610801508,
+   "theirs": 0.05123248807237041,
+   "rel_diff": -3.83419858085432e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.1343748522057291,
+   "theirs": 0.13437481003087653,
+   "rel_diff": 3.138598114738045e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.1569676800696303,
+   "theirs": 0.1770539669329148,
+   "rel_diff": -0.1134472568518905,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": true,
+   "mine_perdim_definition": 0.17705408698102415,
+   "rel_diff_perdim_definition": 6.780311756493518e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.048493330798994434,
+   "theirs": 0.048493331451613345,
+   "rel_diff": -1.3457910452707722e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.11796963492747407,
+   "theirs": 0.11796961677836927,
+   "rel_diff": 1.538455858263177e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.11679295068245288,
+   "theirs": 0.13419668752941993,
+   "rel_diff": -0.1296882744825697,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": true,
+   "mine_perdim_definition": 0.1341967701588253,
+   "rel_diff_perdim_definition": 6.157335690204491e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.05411680466803044,
+   "theirs": 0.05411679944006561,
+   "rel_diff": 9.660521116394705e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.14278575083586972,
+   "theirs": 0.14278574897456286,
+   "rel_diff": 1.3035662771443413e-08,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.19117608438897626,
+   "theirs": 0.19771905653437322,
+   "rel_diff": -0.03309226869722326,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": true,
+   "mine_perdim_definition": 0.19771919553283007,
+   "rel_diff_perdim_definition": 7.030099136162704e-07,
+   "diagnosis": null
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "c",
+   "mine": 0.05011143122902722,
+   "theirs": 0.05011142158057131,
+   "rel_diff": 1.9254005589885992e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "a",
+   "mine": 0.12175313817009273,
+   "theirs": 0.12175316216633446,
+   "rel_diff": -1.9708926901618185e-07,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "d",
+   "mine": 0.07521928643393966,
+   "theirs": 0.07516855786016506,
+   "rel_diff": 0.0006748642679692551,
+   "tol": 0.05,
+   "pass": true,
+   "exploratory": true
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__final",
+   "source": "TOY_VS_LUCID.sweep_rows",
+   "test": "dev_probe_test",
+   "quantity": "f_event",
+   "mine": 0.14017894229696032,
+   "theirs": 0.15944239773727437,
+   "rel_diff": -0.12081764771284953,
+   "tol": 0.15,
+   "pass": true,
+   "exploratory": true,
+   "mine_perdim_definition": 0.1594425059039909,
+   "rel_diff_perdim_definition": 6.784062336340213e-07,
+   "diagnosis": null
+  }
+ ],
+ "ordering": {
+  "c:wcte:s9000": {
+   "same": true,
+   "mine": [
+    "wcte__mae_repaired__s9000__final",
+    "wcte__mae_mse__s9000__final",
+    "wcte__jepa_repaired__s9000__final",
+    "wcte__legacy_init__s9000",
+    "wcte__sigreg_jepa__s9000__final"
+   ],
+   "theirs": [
+    "wcte__mae_repaired__s9000__final",
+    "wcte__mae_mse__s9000__final",
+    "wcte__jepa_repaired__s9000__final",
+    "wcte__legacy_init__s9000",
+    "wcte__sigreg_jepa__s9000__final"
+   ]
+  },
+  "c:wcte:s9001": {
+   "same": true,
+   "mine": [
+    "wcte__mae_repaired__s9001__final",
+    "wcte__mae_mse__s9001__final",
+    "wcte__jepa_repaired__s9001__final",
+    "wcte__legacy_init__s9001"
+   ],
+   "theirs": [
+    "wcte__mae_repaired__s9001__final",
+    "wcte__mae_mse__s9001__final",
+    "wcte__jepa_repaired__s9001__final",
+    "wcte__legacy_init__s9001"
+   ]
+  },
+  "c:sk:s9000": {
+   "same": true,
+   "mine": [
+    "sk__mae_repaired__s9000__final",
+    "sk__mae_mse__s9000__final",
+    "sk__jepa_repaired__s9000__final",
+    "sk__legacy_init__s9000",
+    "sk__sigreg_jepa__s9000__final"
+   ],
+   "theirs": [
+    "sk__mae_repaired__s9000__final",
+    "sk__mae_mse__s9000__final",
+    "sk__jepa_repaired__s9000__final",
+    "sk__legacy_init__s9000",
+    "sk__sigreg_jepa__s9000__final"
+   ]
+  },
+  "c:sk:s9001": {
+   "same": true,
+   "mine": [
+    "sk__legacy_init__s9001"
+   ],
+   "theirs": [
+    "sk__legacy_init__s9001"
+   ]
+  },
+  "c:juno:s9000": {
+   "same": true,
+   "mine": [
+    "juno__mae_repaired__s9000__final",
+    "juno__jepa_repaired__s9000__final",
+    "juno__legacy_init__s9000"
+   ],
+   "theirs": [
+    "juno__mae_repaired__s9000__final",
+    "juno__jepa_repaired__s9000__final",
+    "juno__legacy_init__s9000"
+   ]
+  },
+  "c:juno:s9001": {
+   "same": true,
+   "mine": [
+    "juno__legacy_init__s9001"
+   ],
+   "theirs": [
+    "juno__legacy_init__s9001"
+   ]
+  },
+  "c:hk:s9000": {
+   "same": true,
+   "mine": [
+    "hk__mae_repaired__s9000__final",
+    "hk__jepa_repaired__s9000__final",
+    "hk__legacy_init__s9000"
+   ],
+   "theirs": [
+    "hk__mae_repaired__s9000__final",
+    "hk__jepa_repaired__s9000__final",
+    "hk__legacy_init__s9000"
+   ]
+  },
+  "c:hk:s9001": {
+   "same": true,
+   "mine": [
+    "hk__legacy_init__s9001"
+   ],
+   "theirs": [
+    "hk__legacy_init__s9001"
+   ]
+  },
+  "a:wcte:s9000": {
+   "same": true,
+   "mine": [
+    "wcte__mae_repaired__s9000__final",
+    "wcte__mae_mse__s9000__final",
+    "wcte__jepa_repaired__s9000__final",
+    "wcte__legacy_init__s9000",
+    "wcte__sigreg_jepa__s9000__final"
+   ],
+   "theirs": [
+    "wcte__mae_repaired__s9000__final",
+    "wcte__mae_mse__s9000__final",
+    "wcte__jepa_repaired__s9000__final",
+    "wcte__legacy_init__s9000",
+    "wcte__sigreg_jepa__s9000__final"
+   ]
+  },
+  "a:wcte:s9001": {
+   "same": true,
+   "mine": [
+    "wcte__mae_repaired__s9001__final",
+    "wcte__jepa_repaired__s9001__final",
+    "wcte__mae_mse__s9001__final",
+    "wcte__legacy_init__s9001"
+   ],
+   "theirs": [
+    "wcte__mae_repaired__s9001__final",
+    "wcte__jepa_repaired__s9001__final",
+    "wcte__mae_mse__s9001__final",
+    "wcte__legacy_init__s9001"
+   ]
+  },
+  "a:sk:s9000": {
+   "same": true,
+   "mine": [
+    "sk__mae_repaired__s9000__final",
+    "sk__mae_mse__s9000__final",
+    "sk__jepa_repaired__s9000__final",
+    "sk__legacy_init__s9000",
+    "sk__sigreg_jepa__s9000__final"
+   ],
+   "theirs": [
+    "sk__mae_repaired__s9000__final",
+    "sk__mae_mse__s9000__final",
+    "sk__jepa_repaired__s9000__final",
+    "sk__legacy_init__s9000",
+    "sk__sigreg_jepa__s9000__final"
+   ]
+  },
+  "a:sk:s9001": {
+   "same": true,
+   "mine": [
+    "sk__legacy_init__s9001"
+   ],
+   "theirs": [
+    "sk__legacy_init__s9001"
+   ]
+  },
+  "a:juno:s9000": {
+   "same": true,
+   "mine": [
+    "juno__mae_repaired__s9000__final",
+    "juno__jepa_repaired__s9000__final",
+    "juno__legacy_init__s9000"
+   ],
+   "theirs": [
+    "juno__mae_repaired__s9000__final",
+    "juno__jepa_repaired__s9000__final",
+    "juno__legacy_init__s9000"
+   ]
+  },
+  "a:juno:s9001": {
+   "same": true,
+   "mine": [
+    "juno__legacy_init__s9001"
+   ],
+   "theirs": [
+    "juno__legacy_init__s9001"
+   ]
+  },
+  "a:hk:s9000": {
+   "same": true,
+   "mine": [
+    "hk__mae_repaired__s9000__final",
+    "hk__jepa_repaired__s9000__final",
+    "hk__legacy_init__s9000"
+   ],
+   "theirs": [
+    "hk__mae_repaired__s9000__final",
+    "hk__jepa_repaired__s9000__final",
+    "hk__legacy_init__s9000"
+   ]
+  },
+  "a:hk:s9001": {
+   "same": true,
+   "mine": [
+    "hk__legacy_init__s9001"
+   ],
+   "theirs": [
+    "hk__legacy_init__s9001"
+   ]
+  },
+  "f_event:wcte:s9000": {
+   "same": false,
+   "mine": [
+    "wcte__sigreg_jepa__s9000__final",
+    "wcte__mae_mse__s9000__final",
+    "wcte__legacy_init__s9000",
+    "wcte__mae_repaired__s9000__final",
+    "wcte__jepa_repaired__s9000__final"
+   ],
+   "theirs": [
+    "wcte__sigreg_jepa__s9000__final",
+    "wcte__mae_mse__s9000__final",
+    "wcte__legacy_init__s9000",
+    "wcte__jepa_repaired__s9000__final",
+    "wcte__mae_repaired__s9000__final"
+   ]
+  },
+  "f_event:wcte:s9001": {
+   "same": true,
+   "mine": [
+    "wcte__mae_mse__s9001__final",
+    "wcte__legacy_init__s9001",
+    "wcte__jepa_repaired__s9001__final",
+    "wcte__mae_repaired__s9001__final"
+   ],
+   "theirs": [
+    "wcte__mae_mse__s9001__final",
+    "wcte__legacy_init__s9001",
+    "wcte__jepa_repaired__s9001__final",
+    "wcte__mae_repaired__s9001__final"
+   ]
+  },
+  "f_event:sk:s9000": {
+   "same": true,
+   "mine": [
+    "sk__sigreg_jepa__s9000__final",
+    "sk__legacy_init__s9000",
+    "sk__mae_mse__s9000__final",
+    "sk__jepa_repaired__s9000__final",
+    "sk__mae_repaired__s9000__final"
+   ],
+   "theirs": [
+    "sk__sigreg_jepa__s9000__final",
+    "sk__legacy_init__s9000",
+    "sk__mae_mse__s9000__final",
+    "sk__jepa_repaired__s9000__final",
+    "sk__mae_repaired__s9000__final"
+   ]
+  },
+  "f_event:sk:s9001": {
+   "same": true,
+   "mine": [
+    "sk__legacy_init__s9001"
+   ],
+   "theirs": [
+    "sk__legacy_init__s9001"
+   ]
+  },
+  "f_event:juno:s9000": {
+   "same": true,
+   "mine": [
+    "juno__legacy_init__s9000",
+    "juno__jepa_repaired__s9000__final",
+    "juno__mae_repaired__s9000__final"
+   ],
+   "theirs": [
+    "juno__legacy_init__s9000",
+    "juno__jepa_repaired__s9000__final",
+    "juno__mae_repaired__s9000__final"
+   ]
+  },
+  "f_event:juno:s9001": {
+   "same": true,
+   "mine": [
+    "juno__legacy_init__s9001"
+   ],
+   "theirs": [
+    "juno__legacy_init__s9001"
+   ]
+  },
+  "f_event:hk:s9000": {
+   "same": true,
+   "mine": [
+    "hk__legacy_init__s9000",
+    "hk__jepa_repaired__s9000__final",
+    "hk__mae_repaired__s9000__final"
+   ],
+   "theirs": [
+    "hk__legacy_init__s9000",
+    "hk__jepa_repaired__s9000__final",
+    "hk__mae_repaired__s9000__final"
+   ]
+  },
+  "f_event:hk:s9001": {
+   "same": true,
+   "mine": [
+    "hk__legacy_init__s9001"
+   ],
+   "theirs": [
+    "hk__legacy_init__s9001"
+   ]
+  }
+ },
+ "summary": {
+  "a": {
+   "n": 27,
+   "n_pass": 27,
+   "max_abs_rel": 5.6245502649709955e-05
+  },
+  "c": {
+   "n": 27,
+   "n_pass": 27,
+   "max_abs_rel": 5.226027028903957e-07
+  },
+  "d": {
+   "n": 27,
+   "n_pass": 27,
+   "max_abs_rel": 0.001930393287582266
+  },
+  "f_event": {
+   "n": 27,
+   "n_pass": 17,
+   "max_abs_rel": 0.49023010564031855
+  }
+ },
+ "ordering_all_same": {
+  "c": true,
+  "a": true,
+  "f_event": false
+ }
+}

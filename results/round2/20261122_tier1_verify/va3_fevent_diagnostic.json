@@ -1,0 +1,232 @@
+{
+ "hk__jepa_repaired__s9000__final": {
+  "perdim_mean_all": 0.06560435479352092,
+  "trace_all": 0.06830218028386649,
+  "n": 3400
+ },
+ "hk__jepa_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.023372711095485603,
+  "trace_all": 0.015113325732056425,
+  "n": 3400
+ },
+ "hk__legacy_init__s9000": {
+  "perdim_mean_all": 0.02287875905175729,
+  "trace_all": 0.01497548230424915,
+  "n": 3400
+ },
+ "hk__legacy_init__s9001": {
+  "perdim_mean_all": 0.02256596649979322,
+  "trace_all": 0.015232730721816629,
+  "n": 3400
+ },
+ "hk__mae_repaired__s9000__final": {
+  "perdim_mean_all": 0.1352345136022607,
+  "trace_all": 0.12386657136041293,
+  "n": 3400
+ },
+ "hk__mae_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.026381691502878463,
+  "trace_all": 0.01829300659953241,
+  "n": 3400
+ },
+ "juno__jepa_repaired__s9000__final": {
+  "perdim_mean_all": 0.12933693925357992,
+  "trace_all": 0.1306387212150638,
+  "n": 3400
+ },
+ "juno__jepa_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.056895450034741606,
+  "trace_all": 0.03684496162695756,
+  "n": 3400
+ },
+ "juno__legacy_init__s9000": {
+  "perdim_mean_all": 0.05710069205431452,
+  "trace_all": 0.03529072631029003,
+  "n": 3400
+ },
+ "juno__legacy_init__s9001": {
+  "perdim_mean_all": 0.05360036544409716,
+  "trace_all": 0.03737857715207638,
+  "n": 3400
+ },
+ "juno__mae_repaired__s9000__final": {
+  "perdim_mean_all": 0.1889367597959104,
+  "trace_all": 0.1879108060046658,
+  "n": 3400
+ },
+ "juno__mae_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.05767086614949034,
+  "trace_all": 0.03861727660208504,
+  "n": 3400
+ },
+ "sk__jepa_repaired__s9000__final": {
+  "perdim_mean_all": 0.12492527483221666,
+  "trace_all": 0.13881280474911945,
+  "n": 3400
+ },
+ "sk__jepa_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.038301151797688435,
+  "trace_all": 0.026776384945129038,
+  "n": 3400
+ },
+ "sk__legacy_init__s9000": {
+  "perdim_mean_all": 0.03693239087224899,
+  "trace_all": 0.024518749218904227,
+  "n": 3400
+ },
+ "sk__legacy_init__s9001": {
+  "perdim_mean_all": 0.03812385261243071,
+  "trace_all": 0.027506449311577086,
+  "n": 3400
+ },
+ "sk__mae_mse__s9000__final": {
+  "perdim_mean_all": 0.05737983970618418,
+  "trace_all": 0.03167862203746095,
+  "n": 3400
+ },
+ "sk__mae_mse__s9000__matched_init": {
+  "perdim_mean_all": 0.03693239087224899,
+  "trace_all": 0.024518749218904227,
+  "n": 3400
+ },
+ "sk__mae_repaired__s9000__final": {
+  "perdim_mean_all": 0.15887444921079866,
+  "trace_all": 0.14910192604689096,
+  "n": 3400
+ },
+ "sk__mae_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.039575319445367,
+  "trace_all": 0.02806994423956611,
+  "n": 3400
+ },
+ "sk__sigreg_jepa__s9000__final": {
+  "perdim_mean_all": 9.166089739072256e-05,
+  "trace_all": 8.840947057013719e-05,
+  "n": 3400
+ },
+ "sk__sigreg_jepa__s9000__matched_init": {
+  "perdim_mean_all": 0.03693239087224899,
+  "trace_all": 0.024518749218904227,
+  "n": 3400
+ },
+ "wcte__jepa_repaired__s9000__final": {
+  "perdim_mean_all": 0.17059287526211378,
+  "trace_all": 0.20765918151793733,
+  "n": 3400
+ },
+ "wcte__jepa_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.11829767722350885,
+  "trace_all": 0.10147796033311152,
+  "n": 3400
+ },
+ "wcte__jepa_repaired__s9001__final": {
+  "perdim_mean_all": 0.15313328385612865,
+  "trace_all": 0.16043006454757883,
+  "n": 3400
+ },
+ "wcte__jepa_repaired__s9001__matched_init": {
+  "perdim_mean_all": 0.12662314356190957,
+  "trace_all": 0.1148184925404063,
+  "n": 3400
+ },
+ "wcte__legacy_init__s9000": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__legacy_init__s9001": {
+  "perdim_mean_all": 0.1380440423259682,
+  "trace_all": 0.1300040230269934,
+  "n": 3400
+ },
+ "wcte__mae_mse__s9000__final": {
+  "perdim_mean_all": 0.1034095348191277,
+  "trace_all": 0.09141997770075076,
+  "n": 3400
+ },
+ "wcte__mae_mse__s9000__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__mae_mse__s9001__final": {
+  "perdim_mean_all": 0.11799307989589604,
+  "trace_all": 0.09176949881807452,
+  "n": 3400
+ },
+ "wcte__mae_mse__s9001__matched_init": {
+  "perdim_mean_all": 0.1380440423259682,
+  "trace_all": 0.1300040230269934,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__final": {
+  "perdim_mean_all": 0.18521777084992494,
+  "trace_all": 0.16730793566033494,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts15__final": {
+  "perdim_mean_all": 0.17705408698102415,
+  "trace_all": 0.16188785213763593,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts15__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts1p5__final": {
+  "perdim_mean_all": 0.1341967701588253,
+  "trace_all": 0.1191364405633165,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts1p5__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts450__final": {
+  "perdim_mean_all": 0.19771919553283007,
+  "trace_all": 0.20002565789680565,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts450__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts5__final": {
+  "perdim_mean_all": 0.1594425059039909,
+  "trace_all": 0.14442042930342647,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9000__ts5__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9001__final": {
+  "perdim_mean_all": 0.1979926773857488,
+  "trace_all": 0.1913929311748359,
+  "n": 3400
+ },
+ "wcte__mae_repaired__s9001__matched_init": {
+  "perdim_mean_all": 0.1380440423259682,
+  "trace_all": 0.1300040230269934,
+  "n": 3400
+ },
+ "wcte__sigreg_jepa__s9000__final": {
+  "perdim_mean_all": 0.00022036585588756713,
+  "trace_all": 0.00021644715812016497,
+  "n": 3400
+ },
+ "wcte__sigreg_jepa__s9000__matched_init": {
+  "perdim_mean_all": 0.1255476231215169,
+  "trace_all": 0.10918386556887104,
+  "n": 3400
+ }
+}
