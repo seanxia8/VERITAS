@@ -230,6 +230,8 @@ def main():
     y.add_argument("--n-rep", type=int, default=32)
     y.add_argument("--maxiter", type=int, default=40)
     y.add_argument("--n-centroid", type=int, default=50)
+    y.add_argument("--sigma-tts-ns", type=float, default=None,
+                   help="diagnostic: time-term resolution (default: LUCiD working point 2.1 ns)")
     y.add_argument("--shards")  # appended by lucid_job.sh; unused
     y.add_argument("--cache")
     args = p.parse_args()

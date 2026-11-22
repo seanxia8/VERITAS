@@ -33,7 +33,7 @@ C_WATER_M_PER_NS = 0.299792458 / 1.33
 
 class Model:
     def __init__(self, detector, n_rays=65536, n_keys=4, temperature=0.1, K=12, window_ns=(-20, 270),
-                 dark_rate_khz=4.2):
+                 dark_rate_khz=4.2, sigma_tts_ns=SIGMA_TTS_NS):
         import jax
         jax.config.update("jax_enable_x64", False)
         from . import lucid_mc_generator as mg
@@ -63,7 +63,7 @@ class Model:
         self.dark = float(dark_rate_khz) * 1e3 * (window_ns[1] - window_ns[0]) * 1e-9
         self.keys = [jax.random.PRNGKey(7000 + i) for i in range(n_keys)]
         self.config = {"n_rays": n_rays, "n_keys": n_keys, "temperature": temperature, "K": K,
-                       "sigma_tts_ns": SIGMA_TTS_NS, "delta_ns": DELTA_NS, "dark_pe_per_pmt": self.dark}
+                       "sigma_tts_ns": float(sigma_tts_ns), "delta_ns": DELTA_NS, "dark_pe_per_pmt": self.dark}
         jnp = jax.numpy
 
         def forward(theta, key):
@@ -81,7 +81,7 @@ class Model:
             for k in self.keys:
                 lw, tt, idx, ch = forward(theta, k)
                 total = total + self.time_nll(lw, tt, idx, t_obs, ch + self.dark, n_obs, self.n_det,
-                                              sigma=SIGMA_TTS_NS, delta=DELTA_NS).sum()
+                                              sigma=float(sigma_tts_ns), delta=DELTA_NS).sum()
             return total / len(self.keys)
 
         self.mu = jax.jit(mu)
@@ -187,7 +187,8 @@ def run(args):
     data = np.load(args.input, allow_pickle=False)
     meta = json.loads(str(data["meta"]))
     det = meta["detector"]
-    model = Model(det, n_rays=args.n_rays, n_keys=args.n_keys, window_ns=tuple(meta["prompt_window_ns"]))
+    model = Model(det, n_rays=args.n_rays, n_keys=args.n_keys, window_ns=tuple(meta["prompt_window_ns"]),
+                  sigma_tts_ns=getattr(args, "sigma_tts_ns", None) or SIGMA_TTS_NS)
     off = data["offsets"]
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
