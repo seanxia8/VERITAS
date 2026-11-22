@@ -69,3 +69,17 @@ Everything else (JUNO / HK, the budget axis beyond F5, yardsticks, the parity br
 
 ## Amendments (dated, append-only)
 
+### Amendment 1 — 2026-11-22, u₅₀ values for P4 (§T5.2), appended before any E-cell is evaluated
+
+Computed from `train_log.jsonl` of the default (50 ns) `mae_repaired` run of each detector (r2-lucid returns, read-only), averaging `time_raw`, `charge` and `hit` over steps 9901–10000; u₅₀ = T_scale × √(time_raw / (charge + hit)).
+
+| Detector | Run | T_scale (ns) | time_raw | charge | hit | **u₅₀ (ns)** |
+|---|---|---:|---:|---:|---:|---:|
+| WCTE | `wcte__mae_repaired__s9000` | 100 | 0.001122 | 0.1463 | 0.1188 | **6.50** |
+| SK | `sk__mae_repaired__s9000` | 450 | 0.004146 | 0.1131 | 0.1008 | **62.64** |
+| JUNO | `juno__mae_repaired__s9000` | 333.3 | 0.005510 | 0.0748 | 0.0973 | **59.65** |
+| HK | `hk__mae_repaired__s9000` | 766.7 | 0.005231 | 0.0540 | 0.0843 | **149.13** |
+
+For comparison only (not registered): `wcte__mae_repaired__s9001` 6.54 ns; plain MAE (`time` term, weight 1): `wcte__mae_mse__s9000` 6.73 ns, `sk__mae_mse__s9000` 64.32 ns.
+
+P4 therefore predicts u_half(SK) ∈ [20.9, 187.9] ns and u_half(WCTE) ∈ [2.17, 19.5] ns, and u_half(SK) > u_half(WCTE).
