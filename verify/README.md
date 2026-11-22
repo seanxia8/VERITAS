@@ -46,3 +46,12 @@ D=/work/dwong/r2_verify; R=../results/round2/20261121_verify
 - `k4_tof.py`: Huber ToF vertex fit, timing CRLB and the simplified charge-only CRLB.
 - `k5_regime.py`: occupancy quantiles.
 - `v6_compare.py`: the comparison against committed values with the pre-registered tolerances. `v6_confirm.py` + `ridge_core.py`: my own re-implementation of the committed spatial-moment construction, written after the seal for the §4.1 diagnosis.
+
+## r2-tier1v additions (22 Nov 2026)
+
+- `k0_lucid.py` — K0 on LUCiD packs (independent feature rebuild vs repository tokeniser, 200 events/detector).
+- `lucid_common.py`, `readout_spec.py` — LUCiD pack reader, encoder loader, runbook §1 readouts (a), (c), (d), Ridge protocol.
+- `va1_cases.py` — part-A case discovery from the returns tree (checkpoints + recipe identity/encoder/scaling keys only).
+- `va_dump.py`, `va_raw.py`, `run_va_dump.sh` — per-case feature dumps (a, mean-square, c) and raw (d) features.
+- `va2_readouts.py` — part-A quantities, controls and invariants J1–J9; `va3_table.py` — `table_a_blind.json`.
+- `vb_stats.py`, `vb_eval.py` — part-B contrasts (PREREG §2.2–2.5), K1, K2, F1, F5, P3 sign check.

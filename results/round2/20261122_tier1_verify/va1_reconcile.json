@@ -1,0 +1,391 @@
+{
+ "manifest": "VERIFY_INPUTS_A (origin/tier1, read by git show 2026-11-22T19:47Z)",
+ "n_manifest_cases": 38,
+ "n_own_cases": 46,
+ "pairs": [
+  {
+   "run": "wcte__init__s9000",
+   "step": 0,
+   "mine": "wcte__legacy_init__s9000",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "wcte__init__s9001",
+   "step": 0,
+   "mine": "wcte__legacy_init__s9001",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "wcte__jepa_repaired__s9000",
+   "step": 10000,
+   "mine": "wcte__jepa_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9000/checkpoint.pt",
+   "mine_sha": "91a92df6effa7b9ea55005b5eb71a96512868cfaecc539982506e3bb135ccad8",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "e4c4f1ff18b609140d38a59ec900c936ca6f15351d131aaf13d2f8d0d3fb7a2b",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__jepa_repaired__s9000",
+   "step": 0,
+   "mine": "wcte__jepa_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "7e6d31ef457b98e410ec370d9691ddfadcd28e08e3bd544a0b7466919528fa02",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "7e6d31ef457b98e410ec370d9691ddfadcd28e08e3bd544a0b7466919528fa02",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__jepa_repaired__s9001",
+   "step": 10000,
+   "mine": "wcte__jepa_repaired__s9001__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9001/checkpoint.pt",
+   "mine_sha": "8d15678c305474f6ca329235e1e22999a3f52c299e9bb06bbdb9627aedeec9cd",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9001/snapshot_step_10000.pt",
+   "man_sha": "5d1914b945caed45c2856b1723918cb00fb2f6926ea7bcaea4116eb142dc9aba",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__jepa_repaired__s9001",
+   "step": 0,
+   "mine": "wcte__jepa_repaired__s9001__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9001/snapshot_step_00000.pt",
+   "mine_sha": "cbbfa45061984dc2021b00187061c889366c1e56ab6c7dfee47fe18b837a0a09",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9001/snapshot_step_00000.pt",
+   "man_sha": "cbbfa45061984dc2021b00187061c889366c1e56ab6c7dfee47fe18b837a0a09",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_mse__s9000",
+   "step": 10000,
+   "mine": "wcte__mae_mse__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9000/checkpoint.pt",
+   "mine_sha": "74f13f784e3f16caf435aa75a474e5e27fb9c1f5731deafd17f5470190bcb5fc",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9000/snapshot_step_10000.pt",
+   "man_sha": "d38bb4942d21569ae28ed36291639988c5bbaf6556a8f7231cdd98569339b40b",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_mse__s9000",
+   "step": 0,
+   "mine": "wcte__mae_mse__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9000/snapshot_step_00000.pt",
+   "mine_sha": "9d3392fa5969319ca85416daae9b20f9350f9da29a85e22550b1e7e8113dbccf",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9000/snapshot_step_00000.pt",
+   "man_sha": "9d3392fa5969319ca85416daae9b20f9350f9da29a85e22550b1e7e8113dbccf",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_mse__s9001",
+   "step": 10000,
+   "mine": "wcte__mae_mse__s9001__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9001/checkpoint.pt",
+   "mine_sha": "392deb6c100637266db7138ffee619f1bdf13cd9ddacc0d7feb551e71fe37fc1",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9001/snapshot_step_10000.pt",
+   "man_sha": "8abff16f3721662dba946e3e332ef888a814adbb0677af0b10f072d23c6045f3",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_mse__s9001",
+   "step": 0,
+   "mine": "wcte__mae_mse__s9001__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9001/snapshot_step_00000.pt",
+   "mine_sha": "8cf8532e6d090eea349e4a4928903b5289eb3302ccf2ba6af1c84799b9a86574",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9001/snapshot_step_00000.pt",
+   "man_sha": "8cf8532e6d090eea349e4a4928903b5289eb3302ccf2ba6af1c84799b9a86574",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_repaired__s9000",
+   "step": 10000,
+   "mine": "wcte__mae_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/checkpoint.pt",
+   "mine_sha": "49769fd2689df83ae901649c25e8ce3d6712dfbfde876d07088dd110d2cceaa4",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "acff021b54401d48686dfdaca396ca61c5f93454fdd3970610f241f6ab9b8077",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_repaired__s9000",
+   "step": 0,
+   "mine": "wcte__mae_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "e8f3e3ad34279fd965bed52fae5e2e035779dabd8cf9be7ea439d8cd828d8015",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "e8f3e3ad34279fd965bed52fae5e2e035779dabd8cf9be7ea439d8cd828d8015",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_repaired__s9001",
+   "step": 10000,
+   "mine": "wcte__mae_repaired__s9001__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/checkpoint.pt",
+   "mine_sha": "c124e3adb0ec72ed9b07d4fade8f57ddc9991e92e35df22421741dc8b12ab5ab",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_10000.pt",
+   "man_sha": "8d06954b776039ea3e0ced93798b847c92e7458eb567dccdf66ab87c3d3bf943",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__mae_repaired__s9001",
+   "step": 0,
+   "mine": "wcte__mae_repaired__s9001__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_00000.pt",
+   "mine_sha": "03db37dcd606093a24f2caaa845c89e35331400210d6070461c78550411d1ded",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_00000.pt",
+   "man_sha": "03db37dcd606093a24f2caaa845c89e35331400210d6070461c78550411d1ded",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__sigreg_jepa__s9000",
+   "step": 10000,
+   "mine": "wcte__sigreg_jepa__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__sigreg_jepa__s9000/checkpoint.pt",
+   "mine_sha": "ca893479b3e413fb9b00faffb1aacb15fe766f7b05b6811a055a924c56d0b467",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__sigreg_jepa__s9000/snapshot_step_10000.pt",
+   "man_sha": "fb60d7f39af733f35289d558bd4c89b07515ef7d42bbbe633015d8fe53f593f0",
+   "scal_eq": true
+  },
+  {
+   "run": "wcte__sigreg_jepa__s9000",
+   "step": 0,
+   "mine": "wcte__sigreg_jepa__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__sigreg_jepa__s9000/snapshot_step_00000.pt",
+   "mine_sha": "25be2991e0590cba0e760760f8a2979ee06c0bf30c09e5573c4e0d07a56947eb",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__sigreg_jepa__s9000/snapshot_step_00000.pt",
+   "man_sha": "25be2991e0590cba0e760760f8a2979ee06c0bf30c09e5573c4e0d07a56947eb",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__init__s9000",
+   "step": 0,
+   "mine": "sk__legacy_init__s9000",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "sk__init__s9001",
+   "step": 0,
+   "mine": "sk__legacy_init__s9001",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "sk__jepa_repaired__s9000",
+   "step": 10000,
+   "mine": "sk__jepa_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__jepa_repaired__s9000/checkpoint.pt",
+   "mine_sha": "19a665e1a3aca6a1b78c15cb165243dc9ea35ae254b98973b2a8a47494793dba",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "c9f40cc8e89b72b9aa33edce3b86eb2b3d4d1b63f5e7566c7953ca9f7c4aea97",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__jepa_repaired__s9000",
+   "step": 0,
+   "mine": "sk__jepa_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "9c8209941317d0660cee9e2871367c84ebff563faccdf29bf52f3b4bc89a032c",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "9c8209941317d0660cee9e2871367c84ebff563faccdf29bf52f3b4bc89a032c",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__mae_mse__s9000",
+   "step": 10000,
+   "mine": "sk__mae_mse__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_mse__s9000/checkpoint.pt",
+   "mine_sha": "cb6583f9fb8cb4ad05fe40bdc972ff9ec8f8be49aac5e3304f31294edfddaa24",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_mse__s9000/snapshot_step_10000.pt",
+   "man_sha": "ddc962ba09fb4df001dbbd950a81af9a65190f3b737cf95a6c301c0bddcb9f5a",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__mae_mse__s9000",
+   "step": 0,
+   "mine": "sk__mae_mse__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_mse__s9000/snapshot_step_00000.pt",
+   "mine_sha": "ce5331160aa8ef1d19cb9f1d689a55b70c669cc9cb5160cf3c3631e58206fa3d",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_mse__s9000/snapshot_step_00000.pt",
+   "man_sha": "ce5331160aa8ef1d19cb9f1d689a55b70c669cc9cb5160cf3c3631e58206fa3d",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__mae_repaired__s9000",
+   "step": 10000,
+   "mine": "sk__mae_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/checkpoint.pt",
+   "mine_sha": "b0c80a7757c58e7cfa6fad578c4d08068c540f1c6ec184cc9551944934ebd332",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "5b72be57c60676925cd0c62f1d89964340ed209125d6fc7eb4765576e59696ae",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__mae_repaired__s9000",
+   "step": 0,
+   "mine": "sk__mae_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "050490e6d1e9aa265270bc6dc4505d2408e32453387ddfe075021eb4c71215a6",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "050490e6d1e9aa265270bc6dc4505d2408e32453387ddfe075021eb4c71215a6",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__sigreg_jepa__s9000",
+   "step": 10000,
+   "mine": "sk__sigreg_jepa__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__sigreg_jepa__s9000/checkpoint.pt",
+   "mine_sha": "183ee6e40c5334f899301b48369fdc2c1570895747990096eef3a0b5b15e4b07",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__sigreg_jepa__s9000/snapshot_step_10000.pt",
+   "man_sha": "37fe2c63fc52ccdb10c52cbf995ada8c639ae81027eb6af2b5ea56b173229bc1",
+   "scal_eq": true
+  },
+  {
+   "run": "sk__sigreg_jepa__s9000",
+   "step": 0,
+   "mine": "sk__sigreg_jepa__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__sigreg_jepa__s9000/snapshot_step_00000.pt",
+   "mine_sha": "cdd9cecd85c847760dd85fc60dbe27df807d6b236ff7e93213612c535f5054bb",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__sigreg_jepa__s9000/snapshot_step_00000.pt",
+   "man_sha": "cdd9cecd85c847760dd85fc60dbe27df807d6b236ff7e93213612c535f5054bb",
+   "scal_eq": true
+  },
+  {
+   "run": "juno__init__s9000",
+   "step": 0,
+   "mine": "juno__legacy_init__s9000",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "juno__init__s9001",
+   "step": 0,
+   "mine": "juno__legacy_init__s9001",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "juno__jepa_repaired__s9000",
+   "step": 10000,
+   "mine": "juno__jepa_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__jepa_repaired__s9000/checkpoint.pt",
+   "mine_sha": "c3591721ef36c8fb6694f64b5d44833917ed58b9b75fd0d201a5028d30a81235",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "e9cc11f2baf0300bb7ae1cc6f7e64056d6be8fb3222235cb11c22c7f33ee29c4",
+   "scal_eq": true
+  },
+  {
+   "run": "juno__jepa_repaired__s9000",
+   "step": 0,
+   "mine": "juno__jepa_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "fb4834e07a2156329fe3e63b9f24310969d1f47b570a8e2bacd4979998d5c922",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "fb4834e07a2156329fe3e63b9f24310969d1f47b570a8e2bacd4979998d5c922",
+   "scal_eq": true
+  },
+  {
+   "run": "juno__mae_repaired__s9000",
+   "step": 10000,
+   "mine": "juno__mae_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__mae_repaired__s9000/checkpoint.pt",
+   "mine_sha": "cae96369cd7faffd1fc578c189800a019b23f25b57a144102141f2f93b355910",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__mae_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "49b05d3189b813f2b5c446cf1ef09bf6faed56a32bdea3bbdf2408a19a73dbd5",
+   "scal_eq": true
+  },
+  {
+   "run": "juno__mae_repaired__s9000",
+   "step": 0,
+   "mine": "juno__mae_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__mae_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "9ed86372f33ac62dc18f10135f8f0a8a9ef782b16d3d003f618a4522d561a615",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__mae_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "9ed86372f33ac62dc18f10135f8f0a8a9ef782b16d3d003f618a4522d561a615",
+   "scal_eq": true
+  },
+  {
+   "run": "hk__init__s9000",
+   "step": 0,
+   "mine": "hk__legacy_init__s9000",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "hk__init__s9001",
+   "step": 0,
+   "mine": "hk__legacy_init__s9001",
+   "mine_ckpt": null,
+   "man_ckpt": null,
+   "match": true
+  },
+  {
+   "run": "hk__jepa_repaired__s9000",
+   "step": 10000,
+   "mine": "hk__jepa_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__jepa_repaired__s9000/checkpoint.pt",
+   "mine_sha": "09cc350e70798d73da08f3d9a18125795b46836c5f2cc5a6fc5bc49d812b6998",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "28ef59cd2c960d0d83f4b092f9def908d5a8e161e4df86a3b8d5df63c3943ace",
+   "scal_eq": true
+  },
+  {
+   "run": "hk__jepa_repaired__s9000",
+   "step": 0,
+   "mine": "hk__jepa_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "7292d7809a76526e6479db88cfbf95c81aff6eeeb5edee87240599d15ca90bb7",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "7292d7809a76526e6479db88cfbf95c81aff6eeeb5edee87240599d15ca90bb7",
+   "scal_eq": true
+  },
+  {
+   "run": "hk__mae_repaired__s9000",
+   "step": 10000,
+   "mine": "hk__mae_repaired__s9000__final",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__mae_repaired__s9000/checkpoint.pt",
+   "mine_sha": "34071eebdabac70ec7f809dc6d66e5d1bb4d9a377adf26b2f37eeee352574d10",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__mae_repaired__s9000/snapshot_step_10000.pt",
+   "man_sha": "9cf67a7de7175a7fcaefd5feaa1df7400b61f2bda2eb043aa9c64cf911d9fc5f",
+   "scal_eq": true
+  },
+  {
+   "run": "hk__mae_repaired__s9000",
+   "step": 0,
+   "mine": "hk__mae_repaired__s9000__matched_init",
+   "mine_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "mine_sha": "92dd75e91638b9a27ccc7406fac1c76b71795c40c540dae19a39250a5505deec",
+   "man_ckpt": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "man_sha": "92dd75e91638b9a27ccc7406fac1c76b71795c40c540dae19a39250a5505deec",
+   "scal_eq": true
+  }
+ ],
+ "own_only": [
+  "wcte__mae_repaired__s9000__ts15__final",
+  "wcte__mae_repaired__s9000__ts15__matched_init",
+  "wcte__mae_repaired__s9000__ts1p5__final",
+  "wcte__mae_repaired__s9000__ts1p5__matched_init",
+  "wcte__mae_repaired__s9000__ts450__final",
+  "wcte__mae_repaired__s9000__ts450__matched_init",
+  "wcte__mae_repaired__s9000__ts5__final",
+  "wcte__mae_repaired__s9000__ts5__matched_init"
+ ],
+ "manifest_only": [],
+ "final_checkpoint_file": "manifest uses snapshot_step_10000.pt, own list checkpoint.pt; all tensors equal for all 15 runs (torch.equal, out/ckeq.json)",
+ "matched_init_sha256": "identical for all 15 runs",
+ "scaling": "identical for all cases",
+ "sealed_packs": {
+  "sk": "451209ccab325b15f90e924655b3e05a7ea6bce9ca28daad74b6e96bda3512b1 (matches)",
+  "wcte": "31b43743804beb3ec2efadb9f8152f8d54d74cab41c64c8dfad2f99779ec9091 (matches)",
+  "hk": "null in manifest",
+  "juno": "null in manifest"
+ }
+}

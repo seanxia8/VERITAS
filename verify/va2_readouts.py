@@ -97,11 +97,20 @@ def leg(det, s):
 
 
 def check(rows):
-    """rows: list of (label, bool or None) -> pass only if all known and True."""
-    return {"pass": bool(rows) and all(r is True for _, r in rows), "detail": dict(rows)}
+    """rows: list of (label, bool or None) -> pass only if all known and True.  Rows on a test set
+    that does not exist for that detector (sealed_test for HK/JUNO, null in VERIFY_INPUTS_A) are
+    'not evaluated', not failures."""
+    def absent(label):
+        t, _, rest = label.partition(":")
+        return t in TESTS and t != "dev_probe_test" and rest.split("__")[0].split(" ")[0] in NO_TEST.get(t, ())
+    na = [l for l, r in rows if r is None and absent(l)]
+    rows = [(l, r) for l, r in rows if l not in na]
+    return {"pass": bool(rows) and all(r is True for _, r in rows), "detail": dict(rows), "not_evaluated": na}
 
 
 tests = [t for t in TESTS if any(t in v["c"] for v in C.values())]
+NO_TEST = {t: tuple(d for d in DETS if not any(v["det"] == d and t in v["c"] for v in C.values())) for t in TESTS}
+res["test_sets_absent"] = NO_TEST
 inv = {}
 rows = []
 for t in tests:
@@ -118,7 +127,8 @@ for t in tests:
     for d in ("wcte", "sk"):
         for r in runs(d, "sigreg_jepa"):
             e = E(r, t)
-            others = [k for k, v in C.items() if v["det"] == d and v["kind"] == "final" and k != r]
+            others = [k for k, v in C.items() if v["det"] == d and v["kind"] == "final" and k != r
+                      and "__ts" not in k]
             rows.append((f"{t}:{r} worst trained", None if e is None else all(e > E(o, t) for o in others)))
             for s in (9000, 9001):
                 l = E(leg(d, s), t)

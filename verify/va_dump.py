@@ -28,7 +28,8 @@ det = case["det"]
 if case["ckpt"] and not a.no_sha:
     assert sha256(case["ckpt"]) == case["sha256"], "checkpoint sha256 changed"
 geo = LGeometry(det, a.pack)
-truth = ("vertex_m",) if a.domain == "photon" else ("vertex_m", "energy_MeV", "direction_m")
+truth = ("vertex_m",) if a.domain == "photon" else ("vertex_m", "energy_MeV", "direction_m", "contained",
+                                                    "deposited_MeV")
 coh = LCohort(a.pack, a.group, domain=a.domain.encode(), truth=truth)
 model, _ = load_encoder(det, case["ckpt"], window=case["window"], shift=case["shift"], seed=case["seed"],
                         device=a.device)
