@@ -266,3 +266,4 @@ Authority (verbatim, runbook §0.1):
 - 2026-11-22 r2-tier1v encoder: `LucidPointJepa` is built on `data_roots.geometry(det)` (the LUCiD data geometry; the Hilbert token order depends on positions) with the recipe's window/shift; jepa_repaired tokens are layer-normed (encode_tokens convention); matched inits use their arm's convention, legacy inits are raw.
 - 2026-11-22 r2-tier1v f_event: tr Cov_e(per-event all-PMT mean token) / total token variance over the first 200 photon bombs of the test split (as `k2_collapse.py`); the value over all test photon bombs is reported alongside.
 - 2026-11-22 r2-tier1v GPU: forward passes on one free Deepthought Titan X (GPU 0, all four idle at launch), booked under R2_tier1v_gpu (cap 6 GPU-h).
+- 2026-11-22 r2-tier1v waiting: the harness refuses foreground sleep, so polls run as single background until-loops of ≤ 25 min that exit on the awaited condition (no persistent background process).

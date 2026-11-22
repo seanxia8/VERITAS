@@ -4444,10 +4444,11 @@
    "entries": [
     {
      "gpu": "GTX TITAN X (deepthought, GPU 0)",
-     "job": "part A dev dumps (run_va_dump.sh, PID 3529971)",
-     "start_utc": "2026-11-22T14:44:30Z",
-     "gpu_h": null,
-     "note": "open; closed when the job ends"
+     "job": "part A dev dumps (run_va_dump.sh), 46 cases x 2 splits",
+     "start_utc": "2026-11-22T14:46:48Z",
+     "gpu_h": 1.5,
+     "note": "closed; first launch at 14:44 died at once (scripts not synced)",
+     "end_utc": "2026-11-22T16:17:00Z"
     }
    ]
   }
@@ -4470,7 +4471,7 @@
    "cap_gpu_h": 160.0
   },
   "R2_tier1v_gpu": {
-   "booked_gpu_h": 0.0,
+   "booked_gpu_h": 1.5,
    "cap_gpu_h": 6.0
   }
  }
