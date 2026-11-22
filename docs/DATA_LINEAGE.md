@@ -68,3 +68,16 @@ before electronics (MC data have no expectation) and `expected_pe_pmt` is not ap
 
 Geometry: HK and JUNO reuse the round-2 geometry (LUCiD positions agree within 0.002 mm); WCTE and SK
 use frozen geometries with LUCiD's wall-snapped positions (`src/jepa_noise/configs/lucid_v1/`).
+
+### 2.1 Sealed test cohort (`sealed_test`, r2-tier1, 22 Nov 2026)
+
+Cohort `sealed_test`: 30,000 events per detector (600 runs × 50; photon / μ / e 1:1:1), same LUCiD
+commit, tier A1, configuration and detector-state law as `dev_probe_test` (s = 0.05), no `_s030` twin.
+The cohort name enters the keyed-RNG derivation (`lucid_mc_generator.COHORTS`), so event IDs and run
+keys are disjoint from every other cohort (checked). Generated on HTCondor A100 (code `b1f500c`),
+packed to `/ceph/dwong/jepa/data/lucid_v1/<det>/<det>_lucid_v1_sealed.h5` (read-only; never rewritten).
+Manifests: `results/round2/20261122_tier1/DATA_MANIFEST_<det>_sealed.json`; validation against
+`dev_probe_test` (G2, G4 within 10 %, disjointness, completeness): `SEALED_VALIDATION_<det>.json`;
+G6 is the generator's static/run-time test in the native suite. **Only `scripts/tier1_eval.py` reads
+these packs**; every read is logged in `results/round2/20261122_tier1/SEALED_ACCESS_LOG.md`.
+SK and WCTE validated 22 Nov; JUNO and HK follow.

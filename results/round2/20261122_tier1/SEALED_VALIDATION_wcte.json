@@ -1,0 +1,207 @@
+{
+ "detector": "wcte",
+ "reference": "dev_probe_test",
+ "n_runs_reference": 60,
+ "n_runs_sealed_sampled": 180,
+ "n_sealed_cache_files": 600,
+ "n_sealed_event_ids": 30000,
+ "G2": {
+  "reference": {
+   "n_photon_events": 1020,
+   "slope_through_origin": 0.05950298793483816,
+   "slope_free": 0.05940734083569725,
+   "intercept_pe": 30.47142648543549,
+   "slope_ratio": 0.9983925664498453,
+   "r2": 0.9975289086220506,
+   "residual_peak_ns": 0.09999999999992859,
+   "residual_core_sigma_ns": 1.104127739086118,
+   "lucid_tts_response_ns": 0.0,
+   "lucid_digitizer_jitter_sigma_1pe_ns": 0.9536786362852708,
+   "late_hit_fraction_gt10ns_first_hits": 0.015444427829876317,
+   "late_deposit_fraction_gt10ns_mean": 0.018752851472489437,
+   "residual_quantiles_5_50_95": [
+    -1.0627284955086431,
+    0.8179542075251778,
+    5.9891034991464505
+   ],
+   "pass": true
+  },
+  "sealed": {
+   "n_photon_events": 3060,
+   "slope_through_origin": 0.05985597876724818,
+   "slope_free": 0.05983612542248827,
+   "intercept_pe": 6.178941480833749,
+   "slope_ratio": 0.9996683147587127,
+   "r2": 0.9975134463452956,
+   "residual_peak_ns": 0.09999999999992859,
+   "residual_core_sigma_ns": 1.104127739086118,
+   "lucid_tts_response_ns": 0.0,
+   "lucid_digitizer_jitter_sigma_1pe_ns": 0.9536786362852708,
+   "late_hit_fraction_gt10ns_first_hits": 0.015168978108630942,
+   "late_deposit_fraction_gt10ns_mean": 0.019108522977327073,
+   "residual_quantiles_5_50_95": [
+    -1.0678317552461467,
+    0.8120977992892477,
+    5.939000359370266
+   ],
+   "pass": true
+  }
+ },
+ "G4": {
+  "reference": {
+   "true_pe_q_all": [
+    335.95000000000005,
+    3139.0,
+    16309.699999999979
+   ],
+   "true_pe_q_photon": [
+    186.0,
+    2623.5,
+    29114.5
+   ],
+   "target": [
+    200.0,
+    3000.0,
+    30000.0
+   ],
+   "within_x2_photon": true,
+   "within_x2_all": true,
+   "hit_occupancy_q_photon": [
+    158.0,
+    1111.0,
+    1990.05
+   ],
+   "nhits_eff_above_y5": 1.0,
+   "lucid_trigger_eff_above_y5": 1.0,
+   "trigger_eff_vs_yield": [
+    {
+     "yield_lo": 2412.0363941757278,
+     "yield_hi": 7675.146087879616,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 204
+    },
+    {
+     "yield_lo": 7675.146087879616,
+     "yield_hi": 23650.958218626834,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 204
+    },
+    {
+     "yield_lo": 23650.958218626834,
+     "yield_hi": 64686.68120602818,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 204
+    },
+    {
+     "yield_lo": 64686.68120602818,
+     "yield_hi": 197094.96155265922,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 204
+    },
+    {
+     "yield_lo": 197094.96155265922,
+     "yield_hi": 620553.3220671084,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 204
+    }
+   ],
+   "pass": true
+  },
+  "sealed": {
+   "true_pe_q_all": [
+    322.95000000000005,
+    3198.5,
+    16173.149999999983
+   ],
+   "true_pe_q_photon": [
+    192.0,
+    2380.0,
+    28137.499999999996
+   ],
+   "target": [
+    200.0,
+    3000.0,
+    30000.0
+   ],
+   "within_x2_photon": true,
+   "within_x2_all": true,
+   "hit_occupancy_q_photon": [
+    163.0,
+    1083.5,
+    1990.0499999999997
+   ],
+   "nhits_eff_above_y5": 1.0,
+   "lucid_trigger_eff_above_y5": 1.0,
+   "trigger_eff_vs_yield": [
+    {
+     "yield_lo": 2371.516423396327,
+     "yield_hi": 7150.434209582949,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 612
+    },
+    {
+     "yield_lo": 7150.434209582949,
+     "yield_hi": 22874.996674776154,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 612
+    },
+    {
+     "yield_lo": 22874.996674776154,
+     "yield_hi": 67426.43400509673,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 612
+    },
+    {
+     "yield_lo": 67426.43400509673,
+     "yield_hi": 202439.974569621,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 612
+    },
+    {
+     "yield_lo": 202439.974569621,
+     "yield_hi": 619708.4031550979,
+     "nhits_eff": 1.0,
+     "lucid_trigger_eff": 1.0,
+     "n": 612
+    }
+   ],
+   "pass": true
+  }
+ },
+ "G6": {
+  "test": "src/jepa_noise/tests/test_lucid_mc_generator.py::test_generation_path_imports_no_toy_physics",
+  "forbidden": [
+   "expected_charge",
+   "expected_charge_particle",
+   "solid_angle",
+   "propagation_time_ns",
+   "sample_qe",
+   "poisson_counts_from_uniform",
+   "dark_photoelectrons",
+   "leading_edge_time",
+   "count_capacity",
+   "readout_synthetic_unrepaired",
+   "transmission"
+  ]
+ },
+ "checks": {
+  "G2_residual_peak": true,
+  "G2_late_hit_fraction": true,
+  "G2_late_deposit_fraction": true,
+  "G4_true_pe_q_photon": true,
+  "G4_true_pe_q_all": true,
+  "disjoint_event_ids": true,
+  "disjoint_run_keys": true,
+  "complete_600_runs": true
+ },
+ "pass": true
+}

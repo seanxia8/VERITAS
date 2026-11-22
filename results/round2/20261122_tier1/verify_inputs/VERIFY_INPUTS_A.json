@@ -1,0 +1,1395 @@
+{
+ "cases": [
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "wcte",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "wcte__init__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 0
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "wcte",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "wcte__init__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 0
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "e4c4f1ff18b609140d38a59ec900c936ca6f15351d131aaf13d2f8d0d3fb7a2b",
+   "config_sha256": "742fb739a19023004aebfe54af1e6785652fd3da2dd7ca6e61dbfda9cc7622ce",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "7e6d31ef457b98e410ec370d9691ddfadcd28e08e3bd544a0b7466919528fa02",
+   "config_sha256": "742fb739a19023004aebfe54af1e6785652fd3da2dd7ca6e61dbfda9cc7622ce",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9001/snapshot_step_10000.pt",
+   "checkpoint_sha256": "5d1914b945caed45c2856b1723918cb00fb2f6926ea7bcaea4116eb142dc9aba",
+   "config_sha256": "ca35dc31ce599c7bcf4d541a65f5614731f189edbe915d2cf8820e6dcc3e3fe4",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__jepa_repaired__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__jepa_repaired__s9001/snapshot_step_00000.pt",
+   "checkpoint_sha256": "cbbfa45061984dc2021b00187061c889366c1e56ab6c7dfee47fe18b837a0a09",
+   "config_sha256": "ca35dc31ce599c7bcf4d541a65f5614731f189edbe915d2cf8820e6dcc3e3fe4",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__jepa_repaired__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_mse",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "d38bb4942d21569ae28ed36291639988c5bbaf6556a8f7231cdd98569339b40b",
+   "config_sha256": "89dec54f05995536f6da031ee77ab1c52a37d41cec3b4d5273858f79764534e5",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__mae_mse__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_mse",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "9d3392fa5969319ca85416daae9b20f9350f9da29a85e22550b1e7e8113dbccf",
+   "config_sha256": "89dec54f05995536f6da031ee77ab1c52a37d41cec3b4d5273858f79764534e5",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__mae_mse__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_mse",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9001/snapshot_step_10000.pt",
+   "checkpoint_sha256": "8abff16f3721662dba946e3e332ef888a814adbb0677af0b10f072d23c6045f3",
+   "config_sha256": "691c10a5d3737a07e42ef1a4de003aa4b98e992fc6951ebb3b8d7771aa675292",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__mae_mse__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_mse",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_mse__s9001/snapshot_step_00000.pt",
+   "checkpoint_sha256": "8cf8532e6d090eea349e4a4928903b5289eb3302ccf2ba6af1c84799b9a86574",
+   "config_sha256": "691c10a5d3737a07e42ef1a4de003aa4b98e992fc6951ebb3b8d7771aa675292",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__mae_mse__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "acff021b54401d48686dfdaca396ca61c5f93454fdd3970610f241f6ab9b8077",
+   "config_sha256": "52799c33704d3afd2c4638aa23f7cee5862ac30de006f9c7146846bf000f0e2f",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "wcte__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "e8f3e3ad34279fd965bed52fae5e2e035779dabd8cf9be7ea439d8cd828d8015",
+   "config_sha256": "52799c33704d3afd2c4638aa23f7cee5862ac30de006f9c7146846bf000f0e2f",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "wcte__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_10000.pt",
+   "checkpoint_sha256": "8d06954b776039ea3e0ced93798b847c92e7458eb567dccdf66ab87c3d3bf943",
+   "config_sha256": "7718f083c76ead47544e52033dbf8aee2f908161b9c3de7bc2fdbec198cc48b3",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "wcte__mae_repaired__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_00000.pt",
+   "checkpoint_sha256": "03db37dcd606093a24f2caaa845c89e35331400210d6070461c78550411d1ded",
+   "config_sha256": "7718f083c76ead47544e52033dbf8aee2f908161b9c3de7bc2fdbec198cc48b3",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "wcte__mae_repaired__s9001",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9001,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "sigreg_jepa",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__sigreg_jepa__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "fb60d7f39af733f35289d558bd4c89b07515ef7d42bbbe633015d8fe53f593f0",
+   "config_sha256": "a63a87ee21e9838c79d655aef73bea548492d7184f4159b2c5db0f779f43305c",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__sigreg_jepa__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "sigreg_jepa",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__sigreg_jepa__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "25be2991e0590cba0e760760f8a2979ee06c0bf30c09e5573c4e0d07a56947eb",
+   "config_sha256": "a63a87ee21e9838c79d655aef73bea548492d7184f4159b2c5db0f779f43305c",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "wcte",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "wcte__sigreg_jepa__s9000",
+   "scaling": {
+    "axial_scale_m": 1.38848549692,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 1.5771308488246254,
+    "time_scale_ns": 100.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "sk",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "sk__init__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 0
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "sk",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "sk__init__s9001",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9001,
+   "step": 0
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "c9f40cc8e89b72b9aa33edce3b86eb2b3d4d1b63f5e7566c7953ca9f7c4aea97",
+   "config_sha256": "7c79d8421305118db996d717831a294768bee38684854f24d7fbf672430dc056",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 192,
+    "window": 384
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "sk__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "9c8209941317d0660cee9e2871367c84ebff563faccdf29bf52f3b4bc89a032c",
+   "config_sha256": "7c79d8421305118db996d717831a294768bee38684854f24d7fbf672430dc056",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 192,
+    "window": 384
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "sk__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_mse",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_mse__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "ddc962ba09fb4df001dbbd950a81af9a65190f3b737cf95a6c301c0bddcb9f5a",
+   "config_sha256": "11e5612ca7e2faec4ffa113230d268662ff645c58048f78b39ee4de604e2398c",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "sk__mae_mse__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_mse",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_mse__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "ce5331160aa8ef1d19cb9f1d689a55b70c669cc9cb5160cf3c3631e58206fa3d",
+   "config_sha256": "11e5612ca7e2faec4ffa113230d268662ff645c58048f78b39ee4de604e2398c",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "sk__mae_mse__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "5b72be57c60676925cd0c62f1d89964340ed209125d6fc7eb4765576e59696ae",
+   "config_sha256": "fc4918ec31dee88b85da5831befc6119b0bfad06c1bba19a30b8bbe00f1cf66f",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 192,
+    "window": 384
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "sk__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "050490e6d1e9aa265270bc6dc4505d2408e32453387ddfe075021eb4c71215a6",
+   "config_sha256": "fc4918ec31dee88b85da5831befc6119b0bfad06c1bba19a30b8bbe00f1cf66f",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 192,
+    "window": 384
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "sk__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "sigreg_jepa",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__sigreg_jepa__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "37fe2c63fc52ccdb10c52cbf995ada8c639ae81027eb6af2b5ea56b173229bc1",
+   "config_sha256": "241d89f6bdcdf9a1732c94c6004e213afbdfe475e96f6e8f1ab75a3fc897e3e9",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "sk__sigreg_jepa__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "sigreg_jepa",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__sigreg_jepa__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "cdd9cecd85c847760dd85fc60dbe27df807d6b236ff7e93213612c535f5054bb",
+   "config_sha256": "241d89f6bdcdf9a1732c94c6004e213afbdfe475e96f6e8f1ab75a3fc897e3e9",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "sk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 32,
+    "window": 64
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "sk__sigreg_jepa__s9000",
+   "scaling": {
+    "axial_scale_m": 18.18921111111,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 16.96228024518598,
+    "time_scale_ns": 450.0
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "juno",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "juno__init__s9000",
+   "scaling": {
+    "axial_scale_m": 17.5,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 17.5,
+    "time_scale_ns": 333.33333333333337
+   },
+   "seed": 9000,
+   "step": 0
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "juno",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "juno__init__s9001",
+   "scaling": {
+    "axial_scale_m": 17.5,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 17.5,
+    "time_scale_ns": 333.33333333333337
+   },
+   "seed": 9001,
+   "step": 0
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "e9cc11f2baf0300bb7ae1cc6f7e64056d6be8fb3222235cb11c22c7f33ee29c4",
+   "config_sha256": "c5a79f4a5b8327c501b230b4ec5f02817eb18912395aa108f71b67ee620af333",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "juno",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 160,
+    "window": 320
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "juno__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 17.5,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 17.5,
+    "time_scale_ns": 333.33333333333337
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "fb4834e07a2156329fe3e63b9f24310969d1f47b570a8e2bacd4979998d5c922",
+   "config_sha256": "c5a79f4a5b8327c501b230b4ec5f02817eb18912395aa108f71b67ee620af333",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "juno",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 160,
+    "window": 320
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "juno__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 17.5,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 17.5,
+    "time_scale_ns": 333.33333333333337
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__mae_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "49b05d3189b813f2b5c446cf1ef09bf6faed56a32bdea3bbdf2408a19a73dbd5",
+   "config_sha256": "424440c3fb8e6235e0d9e55ad3743c258ae8e6ff112d5123258b4772063e7ccb",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "juno",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 160,
+    "window": 320
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "juno__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 17.5,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 17.5,
+    "time_scale_ns": 333.33333333333337
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/juno__mae_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "9ed86372f33ac62dc18f10135f8f0a8a9ef782b16d3d003f618a4522d561a615",
+   "config_sha256": "424440c3fb8e6235e0d9e55ad3743c258ae8e6ff112d5123258b4772063e7ccb",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "juno",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 160,
+    "window": 320
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "juno__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 17.5,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 17.5,
+    "time_scale_ns": 333.33333333333337
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "hk",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "hk__init__s9000",
+   "scaling": {
+    "axial_scale_m": 32.964711111110006,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 32.42959111111606,
+    "time_scale_ns": 766.6666666666667
+   },
+   "seed": 9000,
+   "step": 0
+  },
+  {
+   "arm": "init",
+   "checkpoint": null,
+   "checkpoint_sha256": null,
+   "construction": "jepa_noise.ext_r2.build_r2_arm('init', geometry, seed, scaling=scaling) (legacy init: sigreg_jepa at the seed, no training, default encoder window 64)",
+   "detector": "hk",
+   "encoder": "EncoderConfig() defaults (window 64)",
+   "run_id": "hk__init__s9001",
+   "scaling": {
+    "axial_scale_m": 32.964711111110006,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 32.42959111111606,
+    "time_scale_ns": 766.6666666666667
+   },
+   "seed": 9001,
+   "step": 0
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__jepa_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "28ef59cd2c960d0d83f4b092f9def908d5a8e161e4df86a3b8d5df63c3943ace",
+   "config_sha256": "cdddf797d53463e89b1cfebb6d2f5b4111026980ba7e613535211a9a42ca49fb",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "hk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 64,
+    "window": 128
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "hk__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 32.964711111110006,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 32.42959111111606,
+    "time_scale_ns": 766.6666666666667
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "jepa_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__jepa_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "7292d7809a76526e6479db88cfbf95c81aff6eeeb5edee87240599d15ca90bb7",
+   "config_sha256": "cdddf797d53463e89b1cfebb6d2f5b4111026980ba7e613535211a9a42ca49fb",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "hk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 64,
+    "window": 128
+   },
+   "recipe_variant": {
+    "view_mode": "within"
+   },
+   "run_id": "hk__jepa_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 32.964711111110006,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 32.42959111111606,
+    "time_scale_ns": 766.6666666666667
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__mae_repaired__s9000/snapshot_step_10000.pt",
+   "checkpoint_sha256": "9cf67a7de7175a7fcaefd5feaa1df7400b61f2bda2eb043aa9c64cf911d9fc5f",
+   "config_sha256": "d958d78b46a1b2d482e53e6fca169142f80ad28e723edf43c3959bd7745f2789",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "hk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 320,
+    "window": 640
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "hk__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 32.964711111110006,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 32.42959111111606,
+    "time_scale_ns": 766.6666666666667
+   },
+   "seed": 9000,
+   "step": 10000,
+   "time_reference_for_encoder_input": "trigger"
+  },
+  {
+   "arm": "mae_repaired",
+   "checkpoint": "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/hk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "checkpoint_sha256": "92dd75e91638b9a27ccc7406fac1c76b71795c40c540dae19a39250a5505deec",
+   "config_sha256": "d958d78b46a1b2d482e53e6fca169142f80ad28e723edf43c3959bd7745f2789",
+   "construction": "jepa_noise.ext_r2.build_r2_arm(arm, geometry, seed, scaling=scaling, encoder_config=EncoderConfig(**encoder)); load_state_dict(torch.load(checkpoint)['model']); token embeddings = arm.encode_tokens(features) of the full unmasked event",
+   "detector": "hk",
+   "encoder": {
+    "d_ff": null,
+    "d_model": 128,
+    "d_pred": 64,
+    "d_pred_ff": null,
+    "mask_embed_init": 0.02,
+    "n_blocks": 4,
+    "n_features": 9,
+    "n_heads": 4,
+    "n_pred_blocks": 2,
+    "n_pred_heads": 4,
+    "norm_eps": 1e-06,
+    "predictor_window": null,
+    "shift": 320,
+    "window": 640
+   },
+   "recipe_variant": {
+    "view_mode": "spatial_patch"
+   },
+   "run_id": "hk__mae_repaired__s9000",
+   "scaling": {
+    "axial_scale_m": 32.964711111110006,
+    "charge_floor_pe": 1e-06,
+    "charge_reference_pe": 1.0,
+    "direction_scale": 1.0,
+    "radial_scale_m": 32.42959111111606,
+    "time_scale_ns": 766.6666666666667
+   },
+   "seed": 9000,
+   "step": 0,
+   "time_reference_for_encoder_input": "trigger"
+  }
+ ],
+ "manifest": "VERIFY_INPUTS_A",
+ "metric_free": true,
+ "note": "no metric values and no result paths by design",
+ "packs": {
+  "hk": {
+   "dev_probe_test": {
+    "cohort": "dev_probe_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/hk/hk_lucid_v1.h5",
+    "sha256": "1b33020d80c5c306335de700646d8aedeb9020d747500a6c54d45d5373609fdc"
+   },
+   "dev_probe_train": {
+    "cohort": "dev_probe_train",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/hk/hk_lucid_v1.h5",
+    "sha256": "1b33020d80c5c306335de700646d8aedeb9020d747500a6c54d45d5373609fdc"
+   },
+   "sealed_test": null
+  },
+  "juno": {
+   "dev_probe_test": {
+    "cohort": "dev_probe_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/juno/juno_lucid_v1.h5",
+    "sha256": "0429e0f50835d6b57961cfa19f15d830926f72cd201dd25ad1bbdeabb2e6e088"
+   },
+   "dev_probe_train": {
+    "cohort": "dev_probe_train",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/juno/juno_lucid_v1.h5",
+    "sha256": "0429e0f50835d6b57961cfa19f15d830926f72cd201dd25ad1bbdeabb2e6e088"
+   },
+   "sealed_test": null
+  },
+  "sk": {
+   "dev_probe_test": {
+    "cohort": "dev_probe_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/sk/sk_lucid_v1.h5",
+    "sha256": "0ffd0ff668502d991d49fcee43559456fbabcd73857a826a2b60dfb6c3b5f15b"
+   },
+   "dev_probe_train": {
+    "cohort": "dev_probe_train",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/sk/sk_lucid_v1.h5",
+    "sha256": "0ffd0ff668502d991d49fcee43559456fbabcd73857a826a2b60dfb6c3b5f15b"
+   },
+   "sealed_test": {
+    "cohort": "sealed_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/sk/sk_lucid_v1_sealed.h5",
+    "sha256": "451209ccab325b15f90e924655b3e05a7ea6bce9ca28daad74b6e96bda3512b1"
+   }
+  },
+  "wcte": {
+   "dev_probe_test": {
+    "cohort": "dev_probe_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/wcte/wcte_lucid_v1.h5",
+    "sha256": "f3a3cf68e2539d3261c2562db51d7f8a03de760d5d52432137fd7aeec8028a5d"
+   },
+   "dev_probe_train": {
+    "cohort": "dev_probe_train",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/wcte/wcte_lucid_v1.h5",
+    "sha256": "f3a3cf68e2539d3261c2562db51d7f8a03de760d5d52432137fd7aeec8028a5d"
+   },
+   "sealed_test": {
+    "cohort": "sealed_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/wcte/wcte_lucid_v1_sealed.h5",
+    "sha256": "31b43743804beb3ec2efadb9f8152f8d54d74cab41c64c8dfad2f99779ec9091"
+   }
+  }
+ },
+ "phase": "r2-tier1",
+ "probe_protocol": "fit on dev_probe_train, select on dev_probe_test, apply to sealed_test",
+ "readout_spec": "docs/round2/READOUT_SPEC_v1.md",
+ "runbook": "docs/round2/RUNBOOK_2026-11-22_R2_TIER1_GATE.md"
+}
