@@ -80,4 +80,4 @@ Manifests: `results/round2/20261122_tier1/DATA_MANIFEST_<det>_sealed.json`; vali
 `dev_probe_test` (G2, G4 within 10 %, disjointness, completeness): `SEALED_VALIDATION_<det>.json`;
 G6 is the generator's static/run-time test in the native suite. **Only `scripts/tier1_eval.py` reads
 these packs**; every read is logged in `results/round2/20261122_tier1/SEALED_ACCESS_LOG.md`.
-SK and WCTE validated 22 Nov; JUNO and HK follow.
+SK, WCTE and HK validated 22 Nov on the default sample (60 reference runs); JUNO passed with the full reference cohort (200 runs): its photon-bomb median PE differs by −9.95 % (−10.3 % on 60 runs, a 1.5σ sampling fluctuation); see `SEALED_VALIDATION_juno_n200.json`.

@@ -1338,7 +1338,11 @@
     "path": "/ceph/dwong/jepa/data/lucid_v1/hk/hk_lucid_v1.h5",
     "sha256": "1b33020d80c5c306335de700646d8aedeb9020d747500a6c54d45d5373609fdc"
    },
-   "sealed_test": null
+   "sealed_test": {
+    "cohort": "sealed_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/hk/hk_lucid_v1_sealed.h5",
+    "sha256": "4351b454b45d4741a65e87758ae66a4cfb5aac9d5d5886143a7427f768d982dd"
+   }
   },
   "juno": {
    "dev_probe_test": {
@@ -1351,7 +1355,11 @@
     "path": "/ceph/dwong/jepa/data/lucid_v1/juno/juno_lucid_v1.h5",
     "sha256": "0429e0f50835d6b57961cfa19f15d830926f72cd201dd25ad1bbdeabb2e6e088"
    },
-   "sealed_test": null
+   "sealed_test": {
+    "cohort": "sealed_test",
+    "path": "/ceph/dwong/jepa/data/lucid_v1/juno/juno_lucid_v1_sealed.h5",
+    "sha256": "ff52a33af4013366b00cfbd9c5d2e4d6c7e13dbe0c849698f1f77c14c37b1b00"
+   }
   },
   "sk": {
    "dev_probe_test": {
