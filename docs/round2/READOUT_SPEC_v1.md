@@ -5,7 +5,7 @@
 | Pinned file | SHA256 at freeze |
 |---|---|
 | `src/jepa_noise/r2_probe_repair.py` (feature construction, committed MLP) | `a29c65c7de5708acaf34e1dcdc5286146a7e9f388c84048316783bd598865d4a` |
-| `scripts/tier1_eval.py` (entry point, attentive probe, metrics) | `021b71d655c33496bcd1075fdae3a2b8412eeca0dc59bf8633e701c4e78f5739` |
+| `scripts/tier1_eval.py` (entry point, attentive probe, metrics) | `39860c09eaafaf98b1846421f9b7a78cb60583fe8302f54a1fba0ce1ce1478ca` |
 | Runbook (Appendix A text below) | `43c8635c18a1067182e5bbf642dc2d3ab27a964fa815e0cc8da4c2a8d77236f3` |
 
 Splits: probes are fitted on `dev_probe_train`, selected (early stopping) on `dev_probe_test` (the validation split) and applied to `sealed_test`.
@@ -58,3 +58,5 @@ Token features x_p ∈ ℝ⁹ per PMT: scaled position r_p (indices 0–2), dire
 ## Validation of the implementation (before freeze)
 
 `tier1_eval.py` on `wcte__mae_repaired__s9000` step 10000, `dev_probe_test`, Deepthought CPU: spatial-moment Ridge 0.0521 m, all-mean 0.1410 m, raw baseline 0.0752 m, f_event 0.1852, f_layout 0.548, committed MLP direction e 8.34° / μ 10.19° — identical to the committed r2-lucid `final.json` values (μ direction 10.20°, MLP run-to-run noise). New metrics: spatial MLP (latent) 0.0482 m, attentive 0.0624 m (3-seed means), μ energy 68 % half-width 0.033 (310 contained), μ mis-ID at 99 % e efficiency 0.055.
+
+**Pin update, 2026-11-22, still before the first sealed read:** `tier1_eval.py` gained `--log-only` (batch route), staged-pack paths and a multi-step loop; no readout, feature or probe code changed. The pinned SHA256 above is the updated file (39860c09eaafaf98b1846421f9b7a78cb60583fe8302f54a1fba0ce1ce1478ca).
