@@ -4436,6 +4436,20 @@
      "stop": "T-S1"
     }
    }
+  },
+  "R2_tier1v_gpu": {
+   "authority": "RUNBOOK_2026-11-22_R2_TIER1_VERIFY.md \u00a70.3",
+   "cap_h": 6.0,
+   "cpu_entries": [],
+   "entries": [
+    {
+     "gpu": "GTX TITAN X (deepthought, GPU 0)",
+     "job": "part A dev dumps (run_va_dump.sh, PID 3529971)",
+     "start_utc": "2026-11-22T14:44:30Z",
+     "gpu_h": null,
+     "note": "open; closed when the job ends"
+    }
+   ]
   }
  },
  "totals": {
@@ -4454,6 +4468,10 @@
   "R2_titan_deepthought": {
    "booked_gpu_h": 0.8056,
    "cap_gpu_h": 160.0
+  },
+  "R2_tier1v_gpu": {
+   "booked_gpu_h": 0.0,
+   "cap_gpu_h": 6.0
   }
  }
 }

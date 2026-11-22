@@ -1,0 +1,414 @@
+{
+ "wcte": {
+  "time_scale_ns_pack": 100.0,
+  "time_scale_ns_repo": 100.0,
+  "geometry_positions_max_abs_diff_m": 0.0,
+  "geometry_directions_max_abs_diff": 0.0,
+  "scale_repo": [
+   1.5771308488246254,
+   1.5771308488246254,
+   1.38848549692
+  ],
+  "scale_mine": [
+   1.5771308488246254,
+   1.5771308488246254,
+   1.38848549692
+  ],
+  "all_domains": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "photon": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "pass": true
+ },
+ "sk": {
+  "time_scale_ns_pack": 450.0,
+  "time_scale_ns_repo": 450.0,
+  "geometry_positions_max_abs_diff_m": 0.0,
+  "geometry_directions_max_abs_diff": 0.0,
+  "scale_repo": [
+   16.96228024518598,
+   16.96228024518598,
+   18.18921111111
+  ],
+  "scale_mine": [
+   16.96228024518598,
+   16.96228024518598,
+   18.18921111111
+  ],
+  "all_domains": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "photon": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "pass": true
+ },
+ "juno": {
+  "time_scale_ns_pack": 333.3333333333333,
+  "time_scale_ns_repo": 333.3333333333333,
+  "geometry_positions_max_abs_diff_m": 0.0,
+  "geometry_directions_max_abs_diff": 0.0,
+  "scale_repo": [
+   17.5,
+   17.5,
+   17.5
+  ],
+  "scale_mine": [
+   17.5,
+   17.5,
+   17.5
+  ],
+  "all_domains": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "photon": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "pass": true
+ },
+ "hk": {
+  "time_scale_ns_pack": 766.6666666666667,
+  "time_scale_ns_repo": 766.6666666666667,
+  "geometry_positions_max_abs_diff_m": 0.0,
+  "geometry_directions_max_abs_diff": 0.0,
+  "scale_repo": [
+   32.42959111111606,
+   32.42959111111606,
+   32.964711111110006
+  ],
+  "scale_mine": [
+   32.42959111111606,
+   32.42959111111606,
+   32.964711111110006
+  ],
+  "all_domains": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "photon": {
+   "n_events": 200,
+   "n_missing_in_repo": 0,
+   "columns": {
+    "pos_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "pos_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_x": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_y": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "dir_z": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "ln_q": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "time": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    },
+    "hit": {
+     "max_abs_diff": 0.0,
+     "bitwise_equal": true
+    }
+   },
+   "bitwise_equal_all": true
+  },
+  "pass": true
+ }
+}

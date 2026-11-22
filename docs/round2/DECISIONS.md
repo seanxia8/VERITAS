@@ -251,3 +251,18 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - 2026-11-21 r2-lucid L7: HK repaired JEPA W640 20-step A100 smoke: 112.8 s (5.6 s/step) → 15.6 h projected > 14 h, so the runbook's W128 fallback applies; HK repaired JEPA runs at W128, micro-batch 8 (the repair campaign's HK setting). SK repaired JEPA was resubmitted at micro-batch 8 (the repair campaign's SK setting) instead of 4. The two replaced jobs are booked as overhead.
 - 2026-11-21 r2-lucid L7/L8 complete: 22 trainings (WCTE 7 + 4-run time-scale sweep, SK 4, JUNO 2, HK 2) and 8 init evaluations, all through the unchanged repair trainer/evaluator (`ext_r2_repair_train`, `ext_r2_repair_evolution`) on LUCiD packs. Plain MAE and SIGReg JEPA were not trained on JUNO/HK (not in the §L7 priority list). Final native suite: 1556 passed, 1 pre-existing failure (also on `origin/dev`). R2_lucid_gpu booked 93.1 of 120 GPU-h.
 - 2026-11-21 r2-lucid L9: LUCID_REGEN_REPORT.md written; the claims-ledger mapping is a proposal only (the ledger in the author's checkout was read, not edited).
+
+## r2-tier1v (RUNBOOK_2026-11-22_R2_TIER1_VERIFY.md), from 22 Nov 2026
+
+Authority (verbatim, runbook §0.1):
+1. Author, 22 Nov 2026, 11:32 CET: "写runbook，把没修的，以及这个方案写进去，不要问junjie，他是共同作者但是没时间。我们继续推进，按照spotlight去进行"
+   (Translation: "Write the runbook. Put the unfixed items and this plan into it. Do not ask Junjie; he is a co-author but has no time. We keep moving, aiming at the Spotlight track.")
+2. Standing rule (Author, 30 Oct 2026): "别大事小事都问我，自己找解决方案，按最好的解决方案解决"
+
+- 2026-11-22 r2-tier1v VA0: K0 on LUCiD packs uses 200 dev_probe_test events of all domains plus 200 photon bombs per detector; the independent rebuild (`verify/lucid_common.py`) equals `r2_store.tokenise_sparse` bit for bit on all 9 columns for all four detectors (`k0_lucid.json`).
+- 2026-11-22 r2-tier1v §1 check of `verify/v6_confirm.py`: two deviations from §1 (empty-H case gives zeros instead of all tokens; alpha grid logspace(-6,4,21) instead of {1e-6,1e-4,1e-2,1,100}) → new module `verify/readout_spec.py` written from the text of §1; v6_confirm.py is not used.
+- 2026-11-22 r2-tier1v Ridge: "one Ridge per target coordinate" is read as one alpha per coordinate, each chosen by its own 5-fold run-grouped CV (folds = sorted run ids dealt round-robin); features standardised once on the full training split.
+- 2026-11-22 r2-tier1v VA1 cases: the 19 production runs under `train/runs/` (smokes and g1 dry runs excluded), each with its final `checkpoint.pt` (all step 10000) and matched init `snapshot_step_00000.pt`, plus the legacy init at seeds 9000/9001 per detector = 46 cases. The four WCTE time-loss-scale sweep runs (ts1p5/5/15/450) are included as extra cases.
+- 2026-11-22 r2-tier1v encoder: `LucidPointJepa` is built on `data_roots.geometry(det)` (the LUCiD data geometry; the Hilbert token order depends on positions) with the recipe's window/shift; jepa_repaired tokens are layer-normed (encode_tokens convention); matched inits use their arm's convention, legacy inits are raw.
+- 2026-11-22 r2-tier1v f_event: tr Cov_e(per-event all-PMT mean token) / total token variance over the first 200 photon bombs of the test split (as `k2_collapse.py`); the value over all test photon bombs is reported alongside.
+- 2026-11-22 r2-tier1v GPU: forward passes on one free Deepthought Titan X (GPU 0, all four idle at launch), booked under R2_tier1v_gpu (cap 6 GPU-h).
