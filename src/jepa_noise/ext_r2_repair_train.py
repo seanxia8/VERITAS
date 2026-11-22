@@ -105,9 +105,20 @@ def cw_suffix(args):
     return f"__cw{float(cw):g}".replace(".", "p")
 
 
+def tr_suffix(args):
+    """``__trmedian`` for the conditional T5.1 time-reference cell (empty at ``trigger``)."""
+    ref = getattr(args, "time_reference", None)
+    if ref is None or ref == "trigger":
+        return ""
+    if args.arm != "mae_repaired":
+        raise ValueError("--time-reference applies to mae_repaired only")
+    return f"__tr{ref}"
+
+
 def run_suffix(args):
-    """Run-name suffixes in the registered order ``__m<mask>``, ``__ts<unit>``, ``__cw<weight>``."""
-    return mask_suffix(args) + ts_suffix(args) + cw_suffix(args)
+    """Run-name suffixes in the registered order ``__m<mask>``, ``__ts<unit>``, ``__cw<weight>``
+    (plus ``__tr<reference>`` for the conditional T5.1 cell)."""
+    return mask_suffix(args) + ts_suffix(args) + cw_suffix(args) + tr_suffix(args)
 
 
 def refuse_lucid_returns(path):
@@ -206,7 +217,8 @@ def prepare(args):
     split = (getattr(args, "mask", None) or DEFAULT_MASK) if args.arm == "mae_repaired" else "within"
     loader = rs.R2TrainingLoader(cohort, geometry, seed=seed, scaling=scaling, batch=r2.BATCH,
                                  mask_seed=mask_seed, split=split, n_min=int(cfg["views"]["n_min"]),
-                                 shuffle_events_within_batch=shuffle)
+                                 shuffle_events_within_batch=shuffle,
+                                 time_reference=getattr(args, "time_reference", None) or "trigger")
     snapshots = ((0, args.smoke) if args.smoke else
                  SNAPSHOTS if args.detector in ("wcte", "sk") else (0, 500, 2000, 10000))
     steps = args.smoke or r2.STEPS
@@ -228,6 +240,8 @@ def prepare(args):
         recipe["mask"] = split
     if charge_weight != 1.0:  # r2-tier1 P5 cell only; defaults keep the recipe hash
         recipe["charge_loss_weight"] = charge_weight
+    if (getattr(args, "time_reference", None) or "trigger") != "trigger":  # T5.1 cell only
+        recipe["time_reference"] = args.time_reference
     config_sha = sha_json(recipe)
     return {"arm": arm, "loader": loader, "optimizers": optimizers, "scheduler": scheduler,
             "recipe": recipe, "config_sha": config_sha, "identity": identity, "steps": steps,
@@ -276,6 +290,8 @@ def main():
                         help="mae_repaired mask (default spatial_patch, the unchanged recipe)")
     parser.add_argument("--charge-loss-weight", type=float, default=None,
                         help="mae_repaired log-charge loss weight (default 1, the unchanged recipe)")
+    parser.add_argument("--time-reference", choices=("trigger", "median"), default=None,
+                        help="mae_repaired token-time reference (default trigger, the unchanged recipe)")
     parser.add_argument("--data", type=Path)
     parser.add_argument("--micro-batch", type=int, choices=(1, 2, 4, 8, 16, 32), required=True)
     parser.add_argument("--window", type=int, choices=(128, 256))

@@ -84,7 +84,7 @@ def test_within_and_spatial_patch_unchanged_against_base_golden():
 # ------------------------------------------------------------------ T1.2-T1.4 flags, names
 def _ns(**kw):
     base = dict(detector="sk", arm="mae_repaired", seed=9000, time_loss_scale_ns=None, mask=None,
-                charge_loss_weight=None)
+                charge_loss_weight=None, time_reference=None)
     base.update(kw)
     return argparse.Namespace(**base)
 
@@ -134,6 +134,7 @@ def test_charge_loss_weight_multiplies_only_the_charge_term():
 def _prepare(detector, **kw):
     args = argparse.Namespace(detector=detector, arm="mae_repaired", seed=9000, data_kind="lucid_v1",
                               time_loss_scale_ns=None, mask=None, charge_loss_weight=None, data=None,
+                              time_reference=None,
                               micro_batch=8, window=None, smoke=None, device="cpu",
                               memory_fraction=None)
     for k, v in kw.items():
@@ -262,3 +263,38 @@ def test_attentive_probe_learns_a_simple_target():
     err = np.linalg.norm(predict(val) - val["y"], axis=1).mean()
     base = np.linalg.norm(val["y"] - train["y"].mean(0), axis=1).mean()
     assert err < base
+
+
+# ------------------------------------------------------------------ T5.1 time reference
+def test_median_time_reference_centres_hit_times_only():
+    from jepa_noise import point_encoder as pe
+    from jepa_noise import r2_store as rs
+    _, _, _, batch = _synthetic("spatial_patch", n_events=5)
+    x = batch.features
+    assert rs.apply_time_reference(x, "trigger") is x
+    y = rs.apply_time_reference(x, "median")
+    hit = x[..., pe.HIT_INDEX] > 0.5
+    for row in range(x.shape[0]):
+        assert float(y[row, hit[row], pe.TIME_INDEX].median()) == pytest.approx(0.0, abs=1e-6)
+        torch.testing.assert_close(y[row, ~hit[row]], x[row, ~hit[row]])
+        diff = (x[row, hit[row], pe.TIME_INDEX] - y[row, hit[row], pe.TIME_INDEX]).unique()
+        assert float(diff.max() - diff.min()) < 1e-5
+    other = [i for i in range(pe.N_FEATURES) if i != pe.TIME_INDEX]
+    torch.testing.assert_close(y[..., other], x[..., other])
+    with pytest.raises(ValueError):
+        rs.apply_time_reference(x, "first")
+
+
+def test_time_reference_suffix_and_recipe():
+    assert rt.run_suffix(_ns(time_reference="median")) == "__trmedian"
+    assert rt.run_suffix(_ns(time_reference="trigger")) == ""
+    with pytest.raises(ValueError):
+        rt.run_suffix(_ns(arm="jepa_repaired", time_reference="median"))
+    if not (LUCID_RUNS / "wcte__mae_repaired__s9000" / "run_record.json").is_file():
+        pytest.skip("LUCiD data unavailable on this host")
+    base = _prepare("wcte", time_reference=None)
+    var = _prepare("wcte", time_reference="median")
+    changed = {k for k in set(base["recipe"]) | set(var["recipe"])
+               if base["recipe"].get(k) != var["recipe"].get(k)}
+    assert changed == {"time_reference", "identity"}
+    assert var["loader"].time_reference == "median" and base["loader"].time_reference == "trigger"

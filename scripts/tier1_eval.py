@@ -137,7 +137,8 @@ def load_model(args):
             "construction": "ext_r2.build_r2_arm(arm, geometry, seed, encoder_config=recipe encoder) "
                             "+ load_state_dict(snapshot)",
             "recipe_extra": {k: recipe[k] for k in ("time_loss_scale_ns", "mask", "charge_loss_weight",
-                                                     "view_mode") if k in recipe}}
+                                                     "time_reference", "view_mode") if k in recipe},
+            "time_reference": recipe.get("time_reference", "trigger")}
     return arm, geometry, scaling, meta
 
 
@@ -150,7 +151,8 @@ def attentive_pick(event_id, hit_positions):
     return np.sort(rng.choice(hit_positions, ATTENTIVE_TOKENS, replace=False))
 
 
-def stream_cohort(arm, geometry, scaling, cohort, *, device, chunk, photons_only, attentive, layout):
+def stream_cohort(arm, geometry, scaling, cohort, *, device, chunk, photons_only, attentive, layout,
+                  time_reference="trigger"):
     """Encode every event of a cohort (photon bombs, and mu/e unless ``photons_only``)."""
     import torch
     from jepa_noise import ext_readout as er
@@ -180,8 +182,9 @@ def stream_cohort(arm, geometry, scaling, cohort, *, device, chunk, photons_only
             batch = rs.tokenise_sparse(store, geometry, event_ids=ids, scaling=scaling, masker=masker)
             if not np.array_equal(batch.event_ids, ids):
                 raise RuntimeError(f"stream lost alignment in {run}")
-            with torch.no_grad():
-                z = arm.encode_tokens(batch.features.to(device)).float().cpu().numpy()
+            with torch.no_grad():  # encoder input in the run's own time reference (T5.1 cell)
+                x_in = rs.apply_time_reference(batch.features, time_reference)
+                z = arm.encode_tokens(x_in.to(device)).float().cpu().numpy()
             raw = batch.features.numpy()
             latent, full = moment_features(z, raw)
             _, raw_full = moment_features(raw[..., 6:9], raw)
@@ -382,7 +385,8 @@ def evaluate(args):
         cohort = rs.open_cohort(packs[which], names[which])
         data[which] = stream_cohort(arm, geometry, scaling, cohort, device=device, chunk=args.chunk,
                                     photons_only=args.photons_only, attentive=attentive,
-                                    layout=which != "train")
+                                    layout=which != "train",
+                                    time_reference=meta.get("time_reference", "trigger"))
         print(run_key, which, len(data[which]["event_ids"]), "events streamed",
               f"{time.monotonic() - started:.0f}s", flush=True)
     tr = data["train"]

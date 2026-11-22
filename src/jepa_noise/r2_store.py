@@ -316,6 +316,31 @@ def tokenise_sparse(store: lb.SparseHitStore, geometry, *, event_ids=None, limit
         occupancy=masker.occupancy)
 
 
+TIME_REFERENCES = ("trigger", "median")
+
+
+def apply_time_reference(features, mode: str = "trigger"):
+    """r2-tier1 T5.1: ``median`` subtracts each event's median hit time from its hit tokens.
+
+    ``features`` is a ``(B, N, F)`` tensor of tokens with trigger-relative ``tau = t / T``. The
+    median over the event's hit tokens is subtracted from the time feature of hit tokens only
+    (unhit tokens keep 0), which equals subtracting the median prompt-hit time before scaling.
+    MAE targets are gathered from the same features, so inputs and targets move together.
+    ``trigger`` (the default) returns the features unchanged.
+    """
+    if mode == "trigger":
+        return features
+    if mode != "median":
+        raise ValueError(f"unknown time reference {mode!r}")
+    out = features.clone()
+    hit = out[..., pe.HIT_INDEX] > 0.5
+    for row in range(out.shape[0]):
+        if bool(hit[row].any()):
+            med = out[row, hit[row], pe.TIME_INDEX].median()
+            out[row, hit[row], pe.TIME_INDEX] -= med
+    return out
+
+
 class R2TrainingLoader:
     """Round-1 ``TrainingLoader.batch_at`` on the sparse cache: 4 events from each of 8 runs.
 
@@ -327,7 +352,11 @@ class R2TrainingLoader:
 
     def __init__(self, cohort: R2Cohort, geometry, *, seed: int, scaling, split: str = "within",
                  n_min: int = lb.N_MIN, batch: int = 32, mask_seed: int = lb.DEFAULT_SEED,
-                 occupancy: str = "natural", shuffle_events_within_batch: bool = False):
+                 occupancy: str = "natural", shuffle_events_within_batch: bool = False,
+                 time_reference: str = "trigger"):
+        if time_reference not in TIME_REFERENCES:
+            raise ValueError(f"unknown time reference {time_reference!r}")
+        self.time_reference = time_reference
         self.shuffle_events_within_batch = bool(shuffle_events_within_batch)
         self.cohort, self.geometry, self.seed = cohort, geometry, int(seed)
         self.scaling, self.split, self.n_min, self.batch = scaling, split, int(n_min), int(batch)
@@ -377,4 +406,6 @@ class R2TrainingLoader:
                           for i in range(0, len(permutation) - 3, 4)):
                     permutation = rng.permutation(len(batch.event_ids))
             batch = lr._select_batch(batch, permutation)
+        if self.time_reference != "trigger":
+            batch = replace(batch, features=apply_time_reference(batch.features, self.time_reference))
         return batch, None
