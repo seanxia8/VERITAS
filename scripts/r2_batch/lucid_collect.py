@@ -41,9 +41,11 @@ def collect_torch(job_dir: Path, sub: dict):
             os.rename(d, dest)
             moved.append(str(dest))
     # r2-tier1: tier1_eval outputs eval/<run_id>/step_<NNNNN>/<files> -> EVAL/...; never overwritten
-    if EVAL is not None and (ret / "eval").exists():
-        for f in sorted(p for p in (ret / "eval").rglob("*") if p.is_file()):
-            dest = EVAL / f.relative_to(ret / "eval")
+    for sub_dir, root in (("eval", EVAL), ("eval_budget", EVAL.parent / "eval_budget" if EVAL else None)):
+        if root is None or not (ret / sub_dir).exists():
+            continue
+        for f in sorted(p for p in (ret / sub_dir).rglob("*") if p.is_file()):
+            dest = root / f.relative_to(ret / sub_dir)
             dest.parent.mkdir(parents=True, exist_ok=True)
             if dest.exists():
                 os.rename(dest, dest.with_name(f"{dest.name}.prev_{sub['cluster']}"))

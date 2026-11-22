@@ -31,11 +31,17 @@ def main():
     ap.add_argument("--cohorts", nargs="+", default=["validation", "sealed"])
     ap.add_argument("--probes", nargs="+", default=["ridge", "mlp", "attentive"])
     ap.add_argument("--photons-only", action="store_true")
+    ap.add_argument("--budget", action="store_true",
+                    help="T4 budget axis: validation, photons only, written to eval_budget/ (never mixed with eval/)")
     ap.add_argument("--purpose", required=True)
     ap.add_argument("--code", required=True, help="staged code tarball, e.g. code/tier1_<sha8>.tar.gz")
     ap.add_argument("--walltime-h", type=float, default=3.0)
     ap.add_argument("--job-id")
     a = ap.parse_args()
+    if a.budget:
+        if "sealed" in a.cohorts:
+            ap.error("--budget is validation-only")
+        a.photons_only = True
     if a.legacy_init:
         det, rid = a.detector, f"{a.detector}__init__s{a.seed}"
         src_args = ["--legacy-init", "--detector", det, "--seed", str(a.seed)]
@@ -57,7 +63,7 @@ def main():
                 else ["--run-dir", str(a.run_dir), "--step", *map(str, a.steps)])
         subprocess.run(log, check=True, env=dict(os.environ, PYTHONPATH=str(REPO / "src")))
     job_args = [*src_args, "--cohorts", *a.cohorts, "--probes", *a.probes, *pack_args,
-                "--out-root", "returns/eval", "--access-log", "returns/SEALED_ACCESS_LOG_batch.md",
+                "--out-root", "returns/eval_budget" if a.budget else "returns/eval", "--access-log", "returns/SEALED_ACCESS_LOG_batch.md",
                 "--device", "cuda", "--memory-fraction", "0.9", "--purpose", a.purpose.replace(" ", "_")]
     if a.photons_only:
         job_args.append("--photons-only")
