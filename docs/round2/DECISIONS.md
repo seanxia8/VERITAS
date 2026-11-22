@@ -251,3 +251,13 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - 2026-11-21 r2-lucid L7: HK repaired JEPA W640 20-step A100 smoke: 112.8 s (5.6 s/step) → 15.6 h projected > 14 h, so the runbook's W128 fallback applies; HK repaired JEPA runs at W128, micro-batch 8 (the repair campaign's HK setting). SK repaired JEPA was resubmitted at micro-batch 8 (the repair campaign's SK setting) instead of 4. The two replaced jobs are booked as overhead.
 - 2026-11-21 r2-lucid L7/L8 complete: 22 trainings (WCTE 7 + 4-run time-scale sweep, SK 4, JUNO 2, HK 2) and 8 init evaluations, all through the unchanged repair trainer/evaluator (`ext_r2_repair_train`, `ext_r2_repair_evolution`) on LUCiD packs. Plain MAE and SIGReg JEPA were not trained on JUNO/HK (not in the §L7 priority list). Final native suite: 1556 passed, 1 pre-existing failure (also on `origin/dev`). R2_lucid_gpu booked 93.1 of 120 GPU-h.
 - 2026-11-21 r2-lucid L9: LUCID_REGEN_REPORT.md written; the claims-ledger mapping is a proposal only (the ledger in the author's checkout was read, not edited).
+
+## r2-tier1 (runbook `RUNBOOK_2026-11-22_R2_TIER1_GATE.md`)
+
+1. **Author, 22 Nov 2026, 11:32 CET:**
+   > "写runbook，把没修的，以及这个方案写进去，不要问junjie，他是共同作者但是没时间。我们继续推进，按照spotlight去进行"
+
+   (Translation: "Write the runbook. Put the unfixed items and this plan into it. Do not ask Junjie; he is a co-author but has no time. We keep moving, aiming at the Spotlight track.")
+2. **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决". Never stop to ask. At every decision point take the recommended option, record one line in `DECISIONS.md` and `$CC_STATE/notes/r2-tier1.md`, and continue.
+
+- 2026-11-22 r2-tier1 T0: runbook copied unchanged, SHA256 `43c8635c18a1067182e5bbf642dc2d3ab27a964fa815e0cc8da4c2a8d77236f3`; claims ledger copy `CLAIMS_LEDGER_2026-11-22.md` SHA256 `78c57139a6715506daca0249127abc37a18a483f0b3ae2d10a727403527f33b3`. Branch `tier1` created from `origin/lucid-mc` 5a1c0b0.
