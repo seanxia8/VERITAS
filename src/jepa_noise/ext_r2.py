@@ -149,7 +149,8 @@ def base_arm_name(arm: str) -> str:
 
 
 def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, run_cfg=None,
-                 encoder_config=None, time_loss_scale_ns: float = 50.0):
+                 encoder_config=None, time_loss_scale_ns: float = 50.0,
+                 charge_loss_weight: float = 1.0):
     """Build one §5.1 arm on a round-2 geometry with the round-1 builders."""
     import torch
     from . import lucid_arms as la
@@ -169,9 +170,13 @@ def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, 
     # repaired MAE: time residuals in units of time_loss_scale_ns (50 ns by default; r2-lucid sweep)
     time_weight = ((scaling.time_scale_ns / float(time_loss_scale_ns)) ** 2
                    if arm == "mae_repaired" else 1.0)
+    if float(charge_loss_weight) != 1.0 and arm != "mae_repaired":
+        raise ValueError("charge_loss_weight applies to mae_repaired only (r2-tier1 T1.3)")
+    extra = ({"charge_loss_weight": float(charge_loss_weight)}
+             if float(charge_loss_weight) != 1.0 else {})
     made = la.build_arm(base_arm_name(arm), geometry, settings=settings, seed=int(seed),
                         encoder_config=encoder_config or encoder_config_for(arm, geometry), scaling=scaling,
-                        time_loss_weight=time_weight)
+                        time_loss_weight=time_weight, **extra)
     if arm == "target_posfree":
         attach_posfree_target(made)
     return made

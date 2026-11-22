@@ -77,6 +77,47 @@ def ts_suffix(args):
     return f"__ts{float(ts):g}".replace(".", "p")
 
 
+#: r2-tier1 (runbook 2026-11-22 T1.2-T1.4): mask and charge-loss weight of mae_repaired.
+TIER1_EXTENSION = "r2_tier1_2026-11-22"
+MASKS = ("spatial_patch", "random", "within")
+DEFAULT_MASK = "spatial_patch"
+
+
+def mask_suffix(args):
+    """``__m<mask>`` for a non-default mae_repaired mask (empty at ``spatial_patch``)."""
+    mask = getattr(args, "mask", None)
+    if mask is None or mask == DEFAULT_MASK:
+        return ""
+    if args.arm != "mae_repaired":
+        raise ValueError("--mask applies to mae_repaired only")
+    if mask not in MASKS:
+        raise ValueError(f"unknown mask {mask!r}")
+    return f"__m{mask}"
+
+
+def cw_suffix(args):
+    """``__cw<weight>`` for a non-default mae_repaired charge-loss weight (empty at 1)."""
+    cw = getattr(args, "charge_loss_weight", None)
+    if cw is None or float(cw) == 1.0:
+        return ""
+    if args.arm != "mae_repaired":
+        raise ValueError("--charge-loss-weight applies to mae_repaired only")
+    return f"__cw{float(cw):g}".replace(".", "p")
+
+
+def run_suffix(args):
+    """Run-name suffixes in the registered order ``__m<mask>``, ``__ts<unit>``, ``__cw<weight>``."""
+    return mask_suffix(args) + ts_suffix(args) + cw_suffix(args)
+
+
+def refuse_lucid_returns(path):
+    """New trainings never write under the read-only r2-lucid returns (r2-tier1 T1.4)."""
+    resolved = Path(path).resolve()
+    if resolved.is_relative_to((RETURNS / LUCID_EXTENSION).resolve()):
+        raise PermissionError(f"{resolved}: the {LUCID_EXTENSION} returns are read-only")
+    return resolved
+
+
 def geometry_and_scaling(detector, kind=None):
     geometry = dr.geometry(detector, kind)
     rule = gen.ROUND1_TIME_RULE if detector == "wcte" else gen.time_rule_for(geometry)
@@ -98,14 +139,14 @@ def train(args):
     kind = dr.check(getattr(args, "data_kind", None))
     args.data_kind = kind
     args.seed = int(getattr(args, "seed", SEED) or SEED)
-    default_root = ROOT if kind == dr.ANALYTIC_TOY else RETURNS / LUCID_EXTENSION / "train"
-    backend_root = Path(os.environ.get("R2_REPAIR_OUTPUT_ROOT", default_root)).resolve()
+    default_root = ROOT if kind == dr.ANALYTIC_TOY else RETURNS / TIER1_EXTENSION / "train"
+    backend_root = refuse_lucid_returns(os.environ.get("R2_REPAIR_OUTPUT_ROOT", default_root))
     matrix = MATRIX if kind == dr.ANALYTIC_TOY else LUCID_MATRIX
     if args.arm not in matrix[args.detector] or r2.BATCH % args.micro_batch:
         raise ValueError("detector/arm or effective batch is outside the training matrix")
     if args.device == "cpu" and not args.smoke:
         raise ValueError("Stage 5 training requires a GPU")
-    tag = run_id(args.detector, args.arm, args.seed) + ts_suffix(args)
+    tag = run_id(args.detector, args.arm, args.seed) + run_suffix(args)
     if args.smoke:
         tag += f"__mb{args.micro_batch}__w{args.window or 'default'}"
     run_dir = backend_root / ("smokes" if args.smoke else "runs") / tag
@@ -123,6 +164,16 @@ def train_locked(args, run_dir):
         if args.memory_fraction is not None:
             torch.cuda.set_per_process_memory_fraction(args.memory_fraction, 0)
         torch.cuda.reset_peak_memory_stats(0)
+    p = prepare(args)
+    arm, loader, optimizers, scheduler = p["arm"], p["loader"], p["optimizers"], p["scheduler"]
+    recipe, config_sha, identity, steps = p["recipe"], p["config_sha"], p["identity"], p["steps"]
+    snapshots, source, cfg = p["snapshots"], p["source"], p["cfg"]
+    return _run(args, run_dir, started, arm, loader, optimizers, scheduler, recipe, config_sha,
+                identity, steps, snapshots, source, cfg)
+
+
+def prepare(args):
+    """Build arm, loader, optimisers and the recipe (and its hash) without training."""
     seed = args.seed
     geometry, scaling = geometry_and_scaling(args.detector, args.data_kind)
     encoder = r2.encoder_config_for(args.arm, geometry)
@@ -144,18 +195,22 @@ def train_locked(args, run_dir):
         mask_seed = lb.DEFAULT_SEED
         source = str(h5)
     time_loss_scale = float(getattr(args, "time_loss_scale_ns", None) or 50.0)
+    charge_weight = float(getattr(args, "charge_loss_weight", None) or 1.0)
+    run_suffix(args)  # validates the mae_repaired-only flags before anything is built
     arm = r2.build_r2_arm(args.arm, geometry, seed, scaling=scaling, run_cfg=cfg,
-                          encoder_config=encoder, time_loss_scale_ns=time_loss_scale).to(args.device)
+                          encoder_config=encoder, time_loss_scale_ns=time_loss_scale,
+                          charge_loss_weight=charge_weight).to(args.device)
     optimizers, optimiser, scheduler = lr.build_optimizers(arm, cfg)
     shuffle = args.arm in ("jepa_repaired", "mae_repaired")
-    split = "spatial_patch" if args.arm == "mae_repaired" else "within"
+    # r2-tier1: the mask is the only thing --mask changes (encoder, loader shuffle unchanged)
+    split = (getattr(args, "mask", None) or DEFAULT_MASK) if args.arm == "mae_repaired" else "within"
     loader = rs.R2TrainingLoader(cohort, geometry, seed=seed, scaling=scaling, batch=r2.BATCH,
                                  mask_seed=mask_seed, split=split, n_min=int(cfg["views"]["n_min"]),
                                  shuffle_events_within_batch=shuffle)
     snapshots = ((0, args.smoke) if args.smoke else
                  SNAPSHOTS if args.detector in ("wcte", "sk") else (0, 500, 2000, 10000))
     steps = args.smoke or r2.STEPS
-    identity = {"run_id": run_id(args.detector, args.arm, seed) + ts_suffix(args),
+    identity = {"run_id": run_id(args.detector, args.arm, seed) + run_suffix(args),
                 "cell_id": f"r2_{args.detector}_within",
                 "arm": args.arm, "seed": seed, "beta": None, "steps_scheduled": steps,
                 "gradient_clip": optimiser.get("gradient_clip")}
@@ -169,9 +224,20 @@ def train_locked(args, run_dir):
               "data_kind": args.data_kind}
     if time_loss_scale != 50.0:  # sweep runs only; the unchanged recipe keeps its hash
         recipe["time_loss_scale_ns"] = time_loss_scale
+    if split != DEFAULT_MASK and args.arm == "mae_repaired":  # r2-tier1 mask cells only
+        recipe["mask"] = split
+    if charge_weight != 1.0:  # r2-tier1 P5 cell only; defaults keep the recipe hash
+        recipe["charge_loss_weight"] = charge_weight
     config_sha = sha_json(recipe)
+    return {"arm": arm, "loader": loader, "optimizers": optimizers, "scheduler": scheduler,
+            "recipe": recipe, "config_sha": config_sha, "identity": identity, "steps": steps,
+            "snapshots": snapshots, "source": source, "cfg": cfg}
+
+
+def _run(args, run_dir, started, arm, loader, optimizers, scheduler, recipe, config_sha,
+         identity, steps, snapshots, source, cfg):
     checkpoint = run_dir / "checkpoint.pt"
-    record = {"extension": EXTENSION if args.data_kind == dr.ANALYTIC_TOY else LUCID_EXTENSION,
+    record = {"extension": EXTENSION if args.data_kind == dr.ANALYTIC_TOY else TIER1_EXTENSION,
               "recipe": recipe, "config_sha256": config_sha,
               "source": source, "code_sha": os.environ.get("JEPA_CODE_SHA") or lb.current_code_sha(),
               "host": socket.gethostname(), "device": args.device,
@@ -206,6 +272,10 @@ def main():
     parser.add_argument("--data-kind", choices=dr.DATA_KINDS, default=dr.DEFAULT_DATA_KIND)
     parser.add_argument("--time-loss-scale-ns", type=float, default=None,
                         help="mae_repaired time-loss unit (default 50 ns, the unchanged recipe)")
+    parser.add_argument("--mask", choices=MASKS, default=None,
+                        help="mae_repaired mask (default spatial_patch, the unchanged recipe)")
+    parser.add_argument("--charge-loss-weight", type=float, default=None,
+                        help="mae_repaired log-charge loss weight (default 1, the unchanged recipe)")
     parser.add_argument("--data", type=Path)
     parser.add_argument("--micro-batch", type=int, choices=(1, 2, 4, 8, 16, 32), required=True)
     parser.add_argument("--window", type=int, choices=(128, 256))
@@ -215,6 +285,9 @@ def main():
     args = parser.parse_args()
     if args.memory_fraction is not None and not 0 < args.memory_fraction <= 0.9:
         parser.error("--memory-fraction must be in (0, 0.9]")
+    if args.charge_loss_weight is not None and not (args.charge_loss_weight > 0
+                                                    and args.charge_loss_weight < float("inf")):
+        parser.error("--charge-loss-weight must be positive and finite")
     return train(args)
 
 

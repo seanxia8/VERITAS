@@ -4276,6 +4276,13 @@
     }
    ]
   },
+  "R2_tier1_gpu": {
+   "authority": "RUNBOOK_2026-11-22_R2_TIER1_GATE.md (43c8635c...) \u00a70.6",
+   "cap_h": 110.0,
+   "cpu_entries": [],
+   "entries": [],
+   "note": "r2-tier1: every job booked with its full run id; batch receipts in /ceph/dwong/jepa/returns/r2_tier1_2026-11-22/ledger/receipts.jsonl, guarded dt2 jobs from run_status.json wall time"
+  },
   "R2_titan_deepthought": {
    "addendum_sha256": "f381955d64b1a8923f77d236e1074edc4a457acb1a9bf160a3a98cb24935d229",
    "cap_h": 160.0,
@@ -4450,6 +4457,10 @@
   "R2_repair_gpu": {
    "booked_gpu_h": 66.0729861111111,
    "cap_gpu_h": 100.0
+  },
+  "R2_tier1_gpu": {
+   "booked_gpu_h": 0.0,
+   "cap_gpu_h": 110.0
   },
   "R2_titan_deepthought": {
    "booked_gpu_h": 0.8056,

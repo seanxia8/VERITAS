@@ -6,8 +6,9 @@ s9000 runs in ``retrain/retrain_readings.json``; frozen checkpoints and init, bo
 ``probes/probe_repair_results.json``). LUCiD values: ``final.json`` records written by
 ``ext_r2_repair_evolution evaluate`` under ``/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train``.
 The primary vertex metric is the latent spatial-moment Ridge readout; every arm is also shown as
-its gain over ``init`` of the same seed. The approximate ToF-only ceiling is the same simple Huber
-fit on both datasets (no CRLB claim for LUCiD data).
+its gain over ``init`` of the same seed. The optional ToF line is a crude Huber fit on both datasets,
+labelled "crude fit, not a bound" (r2-tier1 D7). r2-tier1 D1: runs are keyed by full run id; the main
+tables take default-recipe runs only and suffixed sweep runs go to a separate table.
 """
 from __future__ import annotations
 
@@ -41,13 +42,40 @@ def toy_rows():
     return out
 
 
-def lucid_rows():
+def default_run_id(detector, arm, seed):
+    """Run id of the default recipe (no suffix); sweep runs carry ``__m``/``__ts``/``__cw`` suffixes."""
+    return f"{detector}__{arm}__s{int(seed)}"
+
+
+def lucid_runs(root=None):
+    """Every LUCiD ``final.json`` keyed by its full run id (r2-tier1 D1: never by detector/arm/seed)."""
     out = {}
-    for f in sorted(LUCID.glob("*/final.json")):
+    for f in sorted(Path(root or LUCID).glob("*/final.json")):
         x = json.loads(f.read_text())
-        out[(x["detector"], x["arm"], int(x["seed"]))] = {"source": "LUCiD", "standard": x["standard"],
-                                                            "repaired": x["repaired"], "path": str(f)}
+        rid = x.get("run_id") or f.parent.name
+        if rid != f.parent.name:
+            raise ValueError(f"run id {rid!r} differs from its directory {f.parent.name!r}")
+        if rid in out:
+            raise ValueError(f"duplicate run id {rid}")
+        out[rid] = {"source": "LUCiD", "standard": x["standard"], "repaired": x["repaired"],
+                    "path": str(f), "run_id": rid, "detector": x["detector"], "arm": x["arm"],
+                    "seed": int(x["seed"])}
     return out
+
+
+def lucid_rows(root=None):
+    """Default-recipe runs only, keyed by (detector, arm, seed) for the main tables."""
+    out = {}
+    for rid, row in lucid_runs(root).items():
+        if rid == default_run_id(row["detector"], row["arm"], row["seed"]):
+            out[(row["detector"], row["arm"], row["seed"])] = row
+    return out
+
+
+def lucid_sweep_rows(root=None):
+    """Non-default (suffixed) runs, keyed by run id, for the separate sweep table."""
+    return {rid: row for rid, row in lucid_runs(root).items()
+            if rid != default_run_id(row["detector"], row["arm"], row["seed"])}
 
 
 def metrics(row):
@@ -81,7 +109,7 @@ def fmt(x, nd=4):
 
 
 def tof(det, kind, n_max=1000):
-    """Approximate ToF-only ceiling: Huber least squares on token first-hit times (probe-test bombs)."""
+    """Crude ToF fit, not a bound: Huber least squares on token first-hit times (probe-test bombs)."""
     from jepa_noise import data_roots as dr
     from jepa_noise import r2_store as rs
     from scipy.optimize import least_squares
@@ -112,11 +140,12 @@ def tof(det, kind, n_max=1000):
             "failure_fraction": float(1.0 - ok.mean()), "mean_all_m": float(e.mean())}
 
 
-def build(dets, out_md, title, with_tof):
-    toy, luc = toy_rows(), lucid_rows()
+def build(dets, out_md, title, with_tof, lucid_root=None):
+    toy, luc = toy_rows(), lucid_rows(lucid_root)
+    sweep = lucid_sweep_rows(lucid_root)
     rec = {"toy_sources": ["results/round2/20261117_repair/retrain/retrain_readings.json",
                            "results/round2/20261117_repair/probes/probe_repair_results.json"],
-           "lucid_source": str(LUCID), "rows": [], "tof": {}}
+           "lucid_source": str(lucid_root or LUCID), "rows": [], "sweep_rows": [], "tof": {}}
     L = [f"# {title}", "",
          "Mean 3-D vertex error (m) on photon-bomb probe-test events (run-grouped probes, 3,400 train / 3,400 test "
          "in the toy; LUCiD counts in the JSON). **Primary metric: latent spatial-moment Ridge.** Toy = analytic-toy "
@@ -161,11 +190,24 @@ def build(dets, out_md, title, with_tof):
         if with_tof:
             rec["tof"][det] = {"toy": tof(det, "analytic_toy"), "lucid": tof(det, "lucid_v1")}
             tt, tl = rec["tof"][det]["toy"], rec["tof"][det]["lucid"]
-            L += ["", f"Approximate ToF-only ceiling (simple Huber fit on token first-hit times, {tl['n']} probe-test bombs, "
-                  f"straight-line n = 1.33; approximate, not a likelihood ceiling, no CRLB claim): "
+            L += ["", f"Crude ToF fit, not a bound (simple Huber fit on token first-hit times, {tl['n']} probe-test bombs, "
+                  f"straight-line n = 1.33; not a likelihood fit, no ceiling or CRLB claim): "
                   f"toy median {tt['median_m']:.3f} m, p68 {tt['p68_m']:.3f} m, failures {100 * tt['failure_fraction']:.1f} %; "
                   f"LUCiD median {tl['median_m']:.3f} m, p68 {tl['p68_m']:.3f} m, failures {100 * tl['failure_fraction']:.1f} % "
                   f"(failure = fit outside 2 R_fid)."]
+        L.append("")
+    srows = [r for r in sweep.values() if r["detector"] in dets]
+    if srows:
+        L += ["## Sweep and variant runs (LUCiD; not part of the main tables)", "",
+              "Keyed by full run id (suffixes `__m<mask>`, `__ts<unit>`, `__cw<weight>`).", "",
+              "| Run id | Spatial Ridge LUCiD | Spatial MLP LUCiD | All-mean LUCiD | Raw spatial LUCiD | Token time R² |",
+              "|---|---:|---:|---:|---:|---:|"]
+        for r in sorted(srows, key=lambda r: r["run_id"]):
+            m = metrics(r)
+            L.append(f"| {r['run_id']} | {fmt(m.get('spatial_latent_m'))} | {fmt(m.get('spatial_mlp_m'))} | "
+                     f"{fmt(m.get('all_mean_m'))} | {fmt(m.get('raw_spatial_m'))} | {fmt(m.get('token_time_r2'), 3)} |")
+            rec["sweep_rows"].append({"run_id": r["run_id"], "detector": r["detector"], "arm": r["arm"],
+                                      "seed": r["seed"], "lucid": m, "lucid_path": r["path"]})
         L.append("")
     Path(out_md).write_text("\n".join(L) + "\n")
     Path(out_md).with_suffix(".json").write_text(json.dumps(rec, indent=1, default=float) + "\n")
@@ -177,9 +219,10 @@ def main():
     ap.add_argument("--detectors", nargs="+", default=list(DETS))
     ap.add_argument("--out", required=True)
     ap.add_argument("--title", default="Toy versus LUCiD (r2-lucid L8)")
-    ap.add_argument("--tof", action="store_true")
+    ap.add_argument("--tof", action="store_true", help="add the crude ToF fit line (not a bound)")
+    ap.add_argument("--lucid-root", type=Path, default=None)
     a = ap.parse_args()
-    build(a.detectors, a.out, a.title, a.tof)
+    build(a.detectors, a.out, a.title, a.tof, a.lucid_root)
 
 
 if __name__ == "__main__":

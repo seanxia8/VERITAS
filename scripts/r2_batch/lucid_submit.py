@@ -7,8 +7,10 @@ The returns tarball is unpacked by lucid_collect.py into the lucid_v1 shard tree
 import argparse, json, shutil, subprocess, sys, time
 from pathlib import Path
 
-JOBS = Path("/work/dwong/r2_lucid/batch_jobs")
-REPO = Path("/ceph/dwong/jepa/r2_lucid_repo")
+import os
+# r2-tier1: R2_BATCH_JOBS / R2_BATCH_REPO select another phase's job tree and clone (defaults: r2-lucid)
+JOBS = Path(os.environ.get("R2_BATCH_JOBS", "/work/dwong/r2_lucid/batch_jobs"))
+REPO = Path(os.environ.get("R2_BATCH_REPO", "/ceph/dwong/jepa/r2_lucid_repo"))
 IMAGE = "pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime"
 GPU_REQ = {"a100": '(TARGET.GPUs_DeviceName =?= "NVIDIA A100-PCIE-40GB")',
            "l40s": '(TARGET.CloudSite =?= "BwForCluster-Nemo2") && (TARGET.GPUs_DeviceName =?= "NVIDIA L40S")',

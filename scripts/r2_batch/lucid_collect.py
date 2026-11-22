@@ -10,10 +10,14 @@ receipt (HTCondor RemoteWallClockTime of the whole job) to ``receipts.jsonl``.
 import json, os, subprocess, sys, tarfile, time
 from pathlib import Path
 
-JOBS = Path("/work/dwong/r2_lucid/batch_jobs")
+# r2-tier1: R2_BATCH_JOBS / R2_BATCH_RECEIPTS / R2_BATCH_TRAIN / R2_BATCH_LINE select another phase's
+# job tree, receipts, training returns and ledger line (defaults: r2-lucid, unchanged).
+JOBS = Path(os.environ.get("R2_BATCH_JOBS", "/work/dwong/r2_lucid/batch_jobs"))
 DATA = Path("/ceph/dwong/jepa/data/lucid_v1")
-RECEIPTS = Path("/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/ledger/receipts.jsonl")
-TRAIN = Path("/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train")
+RECEIPTS = Path(os.environ.get("R2_BATCH_RECEIPTS",
+                               "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/ledger/receipts.jsonl"))
+TRAIN = Path(os.environ.get("R2_BATCH_TRAIN", "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train"))
+LINE = os.environ.get("R2_BATCH_LINE", "R2_lucid_gpu")
 
 
 def collect_torch(job_dir: Path, sub: dict):
@@ -55,7 +59,7 @@ def collect(job_dir: Path):
         moved, code = collect_torch(job_dir, sub)
         wc = wallclock(sub["cluster"])
         wall = float(wc[0]) if wc else None
-        receipt = {"line": "R2_lucid_gpu", "job_id": sub["job_id"], "cluster": sub["cluster"],
+        receipt = {"line": LINE, "job_id": sub["job_id"], "cluster": sub["cluster"],
                    "kind": "train" if "train" in sub["torch_module"] else "eval",
                    "module": sub["torch_module"], "args": args, "wall_s": wall,
                    "gpu_h": (wall / 3600.0) if wall else None,
@@ -96,7 +100,7 @@ def collect(job_dir: Path):
             os.rename(extra, dest)
     wc = wallclock(sub["cluster"])
     wall = float(wc[0]) if wc else None
-    receipt = {"line": "R2_lucid_gpu", "job_id": sub["job_id"], "cluster": sub["cluster"],
+    receipt = {"line": LINE, "job_id": sub["job_id"], "cluster": sub["cluster"],
                "kind": "generation" if args[0] == "run" else args[0], "detector": det,
                "gpu": " ".join(wc[1:-2]) if len(wc) > 3 else sub["gpu"],
                "host": wc[-2] if len(wc) > 2 else None, "wall_s": wall,

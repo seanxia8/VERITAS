@@ -323,7 +323,8 @@ class LucidArm(nn.Module):
                  encoder_config: EncoderConfig | None = None,
                  scaling: FeatureScaling | None = None, beta: float | None = None,
                  seed: int = 0, dark_bank: DarkBank | None = None,
-                 sigreg_mode: str | None = None, time_loss_weight: float = 1.0):
+                 sigreg_mode: str | None = None, time_loss_weight: float = 1.0,
+                 charge_loss_weight: float = 1.0):
         super().__init__()
         if arm not in ALL_ARMS + REPAIR_ARMS:
             raise ValueError(f"unknown LUCiD arm {arm!r}; expected {ALL_ARMS + REPAIR_ARMS}")
@@ -345,6 +346,10 @@ class LucidArm(nn.Module):
         if not math.isfinite(time_loss_weight) or time_loss_weight <= 0:
             raise ValueError("time_loss_weight must be positive and finite")
         self.time_loss_weight = float(time_loss_weight)
+        # r2-tier1 T1.3: multiplies the MAE log-charge loss (1.0 = the unchanged recipe)
+        if not math.isfinite(charge_loss_weight) or charge_loss_weight <= 0:
+            raise ValueError("charge_loss_weight must be positive and finite")
+        self.charge_loss_weight = float(charge_loss_weight)
         self.beta = float(beta) if beta is not None else None
         self.dark_only = arm == DARK_VARIANT
         self.n_modules = int(geometry.n_modules)
@@ -619,7 +624,9 @@ class LucidArm(nn.Module):
         loss_time = (((out[..., 1] - label[..., 1])[hit] ** 2).mean() if bool(hit.any())
                      else out.sum() * 0.0)
         weighted_time = loss_time * self.time_loss_weight
-        loss = loss_charge + loss_hit + weighted_time
+        weighted_charge = (loss_charge if self.charge_loss_weight == 1.0
+                           else loss_charge * self.charge_loss_weight)
+        loss = weighted_charge + loss_hit + weighted_time
         metrics = {"loss": float(loss.detach()), "charge": float(loss_charge.detach()),
                    "hit": float(loss_hit.detach()), "time": float(weighted_time.detach()),
                    "hidden_hits": int(hit.sum())}
@@ -627,6 +634,9 @@ class LucidArm(nn.Module):
             metrics.update(time_raw=float(loss_time.detach()),
                            time_loss_weight=self.time_loss_weight,
                            time_fraction=float(weighted_time.detach() / loss.detach().clamp_min(_TINY)))
+            if self.charge_loss_weight != 1.0:  # "charge", "hit" and "time_raw" stay raw
+                metrics.update(charge_loss_weight=self.charge_loss_weight,
+                               charge_weighted=float(weighted_charge.detach()))
         return {"loss": loss, "metrics": metrics, "prediction": out}
 
     def _forward_mae_chi2(self, batch: LucidBatch) -> dict:
@@ -760,14 +770,15 @@ def build_arm(arm: str, geometry, *, config: dict | None = None,
               seed: int = 0, dark_bank: DarkBank | None = None,
               encoder_config: EncoderConfig | None = None,
               scaling: FeatureScaling | None = None, sigreg_mode: str | None = None,
-              time_loss_weight: float = 1.0) -> LucidArm:
+              time_loss_weight: float = 1.0, charge_loss_weight: float = 1.0) -> LucidArm:
     """Build one arm; ``seed`` fixes the init (the floor hook uses the first seed)."""
     settings = settings or ArmSettings.from_config(config, cell=cell, beta=beta)
     if arm == "jepa_repaired":
         settings = replace(settings, tau_start=0.992, tau_end=0.9995)
     return LucidArm(arm, geometry, settings=settings, encoder_config=encoder_config,
                     scaling=scaling, beta=beta, seed=seed, dark_bank=dark_bank,
-                    sigreg_mode=sigreg_mode, time_loss_weight=time_loss_weight)
+                    sigreg_mode=sigreg_mode, time_loss_weight=time_loss_weight,
+                    charge_loss_weight=charge_loss_weight)
 
 
 # ---------------------------------------------------------------------- probes

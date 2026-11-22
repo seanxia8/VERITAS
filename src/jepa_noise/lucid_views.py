@@ -34,13 +34,14 @@ from .lucid_bombs import (MAX_REDRAWS, N_MIN, DetectorGeometry, ViewExclusionCou
 
 __all__ = ["NS_VIEWS", "TOKEN_HILBERT_BITS", "MODULE_HILBERT_BITS", "OCCUPANCY_MODES",
            "SPLITS", "hilbert_index_3d", "module_hilbert_order", "token_hilbert_order",
-           "ViewMask", "across_mask", "within_mask", "spatial_patch_mask", "mask_from_key", "ViewMasker"]
+           "ViewMask", "across_mask", "within_mask", "spatial_patch_mask", "random_mask",
+           "mask_from_key", "ViewMasker"]
 
 NS_VIEWS = "lucid/views"
 TOKEN_HILBERT_BITS = 12
 MODULE_HILBERT_BITS = 10
 OCCUPANCY_MODES = ("natural", "balanced")
-SPLITS = ("across", "within", "spatial_patch")
+SPLITS = ("across", "within", "spatial_patch", "random")
 
 _ORDER_CACHE: dict = {}
 
@@ -242,6 +243,32 @@ def spatial_patch_mask(geometry, event_id, hit_pmt, *, seed=0, replicate=0, n_mi
                     0, context_hits, target_hits, attempt_hits=(target_hits,), key=key)
 
 
+def random_mask(geometry, event_id, hit_pmt, *, seed=0, replicate=0, n_min=N_MIN):
+    """Per-event uniform random half (r2-tier1 T1.1): hide ``n_pmt // 2`` PMTs.
+
+    The hidden set is the first ``n_pmt // 2`` entries of
+    ``keyed_rng(seed, NS_VIEWS, "random", replicate, event_id).permutation(n_pmt)``; it depends
+    on the geometry size, the seed/replicate and the event id only.  The view is accepted when
+    the hidden hits reach ``n_min``, as for ``spatial_patch``.
+    """
+    hit = _hit_array(geometry, hit_pmt)
+    n_hidden = geometry.n_pmt // 2
+    if n_hidden <= 0:
+        raise ValueError("random views require at least two PMTs")
+    rng = keyed_rng(seed, NS_VIEWS, "random", replicate, int(event_id))
+    target = np.sort(rng.permutation(geometry.n_pmt)[:n_hidden]).astype(np.int64)
+    is_target = np.zeros(geometry.n_pmt, dtype=bool)
+    is_target[target] = True
+    context = np.flatnonzero(~is_target).astype(np.int64)
+    context_hits, target_hits = int(hit[context].sum()), int(hit[target].sum())
+    key = {"split": "random", "geometry_sha256": geometry.digest,
+           "event_id": int(event_id), "seed": int(seed), "replicate": int(replicate),
+           "n_min": int(n_min), "n_hidden": int(n_hidden), "occupancy": "natural",
+           "context_hits": context_hits, "target_hits": target_hits}
+    return ViewMask("random", int(event_id), context, target, target_hits >= n_min,
+                    0, context_hits, target_hits, attempt_hits=(target_hits,), key=key)
+
+
 def mask_from_key(geometry: DetectorGeometry, key: dict, hit_pmt=None) -> ViewMask:
     """Recompute a mask from its recorded key (and check counts if hits are given)."""
     split = key.get("split")
@@ -259,6 +286,13 @@ def mask_from_key(geometry: DetectorGeometry, key: dict, hit_pmt=None) -> ViewMa
                                   n_min=int(key.get("n_min", N_MIN)))
         if mask.key["patch_size"] != key["patch_size"]:
             raise ValueError("mask_from_key: patch size does not round-trip")
+    elif split == "random":
+        mask = random_mask(geometry, int(key["event_id"]),
+                           np.zeros(0, dtype=np.int64) if hit is None else hit,
+                           seed=int(key["seed"]), replicate=int(key["replicate"]),
+                           n_min=int(key.get("n_min", N_MIN)))
+        if mask.key["n_hidden"] != key["n_hidden"]:
+            raise ValueError("mask_from_key: hidden count does not round-trip")
     elif split == "across":
         order = module_hilbert_order(geometry, int(key.get("module_hilbert_bits", MODULE_HILBERT_BITS)))
         target, context, _ = _across_partition(geometry, int(key["offset"]),
@@ -315,6 +349,10 @@ class ViewMasker:
         elif self.split == "spatial_patch":
             mask = spatial_patch_mask(self.geometry, event_id, hit, seed=self.seed,
                                       replicate=self.replicate, n_min=self.n_min)
+            self.counter.record_within(mask.target_hits)
+        elif self.split == "random":
+            mask = random_mask(self.geometry, event_id, hit, seed=self.seed,
+                               replicate=self.replicate, n_min=self.n_min)
             self.counter.record_within(mask.target_hits)
         else:
             mask = within_mask(self.geometry, event_id, hit, n_min=self.n_min)
