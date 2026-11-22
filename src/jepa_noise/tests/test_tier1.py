@@ -51,7 +51,7 @@ def test_random_mask_differs_across_events_and_round_trips():
     m = masker.mask(42, hit)
     again = lv.mask_from_key(g, m.key, hit)
     np.testing.assert_array_equal(again.target, m.target)
-    assert m.accepted == (int(hit[m.target].sum()) >= 0)
+    assert m.accepted and m.target_hits == int(hit[m.target].sum())
     strict = lv.random_mask(g, 42, hit, seed=11, n_min=10_000)
     assert not strict.accepted
 

@@ -501,6 +501,8 @@ def evaluate(args):
             arrays[c]["pid_is_mu"] = y
     # --- collapse, bootstrap, write
     for c, d in tests.items():
+        if c not in todo:  # e.g. validation streamed only for early stopping; keep the existing file
+            continue
         res[c]["collapse"] = {k: (d["layout"] or {}).get(k) for k in ("f_event", "f_layout")}
         boots = {}
         idx = boot_indices(int(ph[c].sum()), COHORTS[c] + "/photon")
@@ -559,7 +561,7 @@ def main(argv=None):
     if "ridge" not in args.probes:
         ap.error("the Ridge readouts are always computed; include 'ridge'")
     out = Path(args.out_root).resolve()
-    if out.is_relative_to(LUCID_RETURNS):
+    if out.is_relative_to(LUCID_RETURNS) or out.is_relative_to(LUCID_RETURNS.resolve()):
         ap.error(f"{out}: the r2-lucid returns are read-only")
     if args.legacy_init:
         args.step = 0

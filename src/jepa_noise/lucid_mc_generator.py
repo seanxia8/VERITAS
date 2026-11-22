@@ -81,7 +81,13 @@ COHORTS = {
     "dev_probe_test": ("dev_probe_test", F1_TRAIN, True),
     "dev_probe_train_s030": ("dev_probe_train", F1_DRIFT, True),
     "dev_probe_test_s030": ("dev_probe_test", F1_DRIFT, True),
+    # r2-tier1 T2.1: sealed test cohort, 600 runs x 50, law/setting as dev_probe_test (s = 0.05),
+    # no _s030 copy. Its own namespace ("lucid/sealed_test") enters every keyed draw, and its
+    # event-ID range (1,300,000-1,329,999) is disjoint from every lucid_bombs.COHORTS range.
+    "sealed_test": ("sealed_test", F1_TRAIN, True),
 }
+#: Cohort specs that are not part of the round-1 registry ``lucid_bombs.COHORTS`` (r2-tier1).
+EXTRA_SPECS = {"sealed_test": lb.CohortSpec("lucid/sealed_test", 1_300_000, 30_000, 50)}
 
 #: Every VERITAS-side step (DATA_LINEAGE.md mirrors this list).
 VERITAS_STEPS = (
@@ -176,7 +182,8 @@ def time_rule(detector: str, cfg: dict) -> dict:
 # ======================================================================= runs and draws
 def cohort_runs(cohort: str, seed: int = DATASET_SEED):
     base, setting, _ = COHORTS[cohort]
-    return lb.make_runs(lb.COHORTS[base], "F1", setting=setting, seed=int(seed))
+    spec = EXTRA_SPECS[base] if base in EXTRA_SPECS else lb.COHORTS[base]
+    return lb.make_runs(spec, "F1", setting=setting, seed=int(seed))
 
 
 def cohort_has_twin(cohort: str) -> bool:
