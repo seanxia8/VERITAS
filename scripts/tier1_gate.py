@@ -128,7 +128,7 @@ def boot(v, idx):
 
 def contrast(store, pairs, metric, cohort_tag, step=None):
     """pairs = [(rid_1, rid_2)] per seed; T = e2/e1 - 1. Returns per-seed values and bootstrap rows."""
-    per_seed, boots, missing = {}, [], []
+    per_seed, boots, missing, undefined = {}, [], [], {}
     for label, r1, r2 in pairs:
         v1, v2 = values(store, r1, metric, step), values(store, r2, metric, step)
         if v1 is None or v2 is None:
@@ -139,14 +139,23 @@ def contrast(store, pairs, metric, cohort_tag, step=None):
         if n != n2:
             raise ValueError(f"unaligned events {r1} vs {r2}")
         idx = boot_idx(n, f"{cohort_tag}/{v1['tag']}")
-        per_seed[label] = point(v2) / point(v1) - 1.0
-        boots.append(boot(v2, idx) / boot(v1, idx) - 1.0)
+        p1, p2 = point(v1), point(v2)
+        if p1 == 0.0:  # ratio undefined (e.g. no mis-identified muon in the baseline cell)
+            undefined[label] = {"value_1": p1, "value_2": p2}
+            continue
+        per_seed[label] = p2 / p1 - 1.0
+        with np.errstate(divide="ignore", invalid="ignore"):
+            b1 = np.asarray(boot(v1, idx), float)
+            b = np.asarray(boot(v2, idx), float) / np.where(b1 == 0, np.nan, b1) - 1.0
+        boots.append(b)
     out = {"per_seed": per_seed, "missing": sorted(set(missing))}
+    if undefined:
+        out["undefined_zero_baseline"] = undefined
     if per_seed:
         vals = np.array(list(per_seed.values()))
         out["T_bar"] = float(vals.mean())
         out["seed_sd"] = float(vals.std(ddof=1)) if vals.size > 1 else None
-        out["SE_boot"] = float(np.mean(boots, axis=0).std(ddof=1))
+        out["SE_boot"] = float(np.nanstd(np.nanmean(boots, axis=0), ddof=1))
         out["same_sign"] = bool(np.all(vals < 0) or np.all(vals > 0))
         out["n_seeds"] = int(vals.size)
     return out
