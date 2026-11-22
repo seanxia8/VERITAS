@@ -79,14 +79,60 @@ def regime(det, cohorts):
             "photons_simulated": int(phot), "kernel_calls": int(calls)}
 
 
+def pack_sealed(det, out_dir):
+    """r2-tier1 T2.2: the sealed cohort in its own pack (+ manifest with per-run SHA256SUMS)."""
+    cfg = mg.load_config()
+    geometry, _ = mg.lucid_geometry(det, cfg)
+    cohorts = {"sealed_test": list(mg.cohort_runs("sealed_test"))}
+    if not complete(det, "sealed_test"):
+        raise SystemExit(f"{det}: sealed_test incomplete")
+    h5 = DATA / det / f"{det}_lucid_v1_sealed.h5"
+    if h5.exists():
+        raise SystemExit(f"{h5} exists; never rewritten")
+    attrs = {"detector": det, "extension": "r2_tier1_2026-11-22", "dataset_kind": mg.DATASET_KIND,
+             "sampling_tier": mg.SAMPLING_TIER, "lucid_sha": mg.LUCID_SHA, "cohort": "sealed_test",
+             "lucid_v1_config_sha256": cfg["_sha256"], "geometry_sha256": geometry.digest,
+             "time_rule": mg.time_rule(det, cfg), "veritas_steps": list(mg.VERITAS_STEPS),
+             "registered": False, "sealed": True}
+    t0 = time.time()
+    tmp = h5.with_name(h5.name + ".tmp")
+    if tmp.exists():
+        tmp.unlink()
+    rs.pack_detector(tmp, DATA / det / "shards", cohorts, attrs=attrs)
+    verified = rs.verify_pack(tmp, DATA / det / "shards", cohorts)
+    os.rename(tmp, h5)
+    os.chmod(h5, 0o444)
+    runs = {"sealed_test": [{"run_id": r.run_id, "sha256sums": (DATA / det / "shards" / "sealed_test" /
+                                                                 r.run_id.replace("/", "__") / "SHA256SUMS").read_text()}
+                            for r in cohorts["sealed_test"]]}
+    first = json.loads((DATA / det / "shards" / "sealed_test" / "lucid__sealed_test__0000" / "manifest.json").read_text())
+    manifest = {"extension": "r2_tier1_2026-11-22", "registered": False, "detector": det, "sealed": True,
+                "dataset_kind": mg.DATASET_KIND, "sampling_tier": mg.SAMPLING_TIER, "lucid": first["lucid"],
+                "time_rule": mg.time_rule(det, cfg), "yield_range_photons": cfg["yield_range_photons"][det],
+                "geometry": cfg["geometry"][det],
+                "files": {"pack": {"path": str(h5), "sha256": rs.sha256_file(h5), "bytes": h5.stat().st_size}},
+                "cohorts": {"sealed_test": {"n_runs": len(cohorts["sealed_test"]),
+                                            "n_events": int(sum(x.n_events for x in cohorts["sealed_test"]))}},
+                "verify": verified if isinstance(verified, dict) else str(verified),
+                "per_run_sha256sums": runs, "pack_wall_s": time.time() - t0}
+    out = out_dir / f"DATA_MANIFEST_{det}_sealed.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(manifest, indent=1, sort_keys=True, default=str) + "\n")
+    print(json.dumps({k: manifest[k] for k in ("detector", "cohorts")}, default=str))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--detector", required=True, choices=sorted(mg.SPECS))
     ap.add_argument("--out-manifest", default=str(REPO / "results/round2/20261121_lucid"))
+    ap.add_argument("--sealed", action="store_true",
+                    help="r2-tier1: pack only sealed_test into <det>_lucid_v1_sealed.h5 (never rewrites a pack)")
     ap.add_argument("--train-only", action="store_true",
                     help="WCTE: write only the training directory (dev_train complete)")
     a = ap.parse_args()
     det = a.detector
+    if a.sealed:
+        return pack_sealed(det, Path(a.out_manifest))
     if a.train_only:
         if det != "wcte" or not complete(det, "dev_train"):
             raise SystemExit("--train-only needs WCTE with a complete dev_train cohort")

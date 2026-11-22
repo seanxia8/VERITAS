@@ -547,7 +547,8 @@ def main(argv=None):
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--run-dir", type=Path)
     src.add_argument("--legacy-init", action="store_true")
-    ap.add_argument("--step", type=int, default=10000)
+    ap.add_argument("--step", type=int, nargs="+", default=[10000],
+                    help="one or more snapshot steps, evaluated one after another")
     ap.add_argument("--detector", choices=("wcte", "sk", "juno", "hk"))
     ap.add_argument("--seed", type=int)
     ap.add_argument("--cohorts", nargs="+", choices=tuple(COHORTS), default=["validation"])
@@ -572,6 +573,19 @@ def main(argv=None):
     out = Path(args.out_root).resolve()
     if out.is_relative_to(LUCID_RETURNS) or out.is_relative_to(LUCID_RETURNS.resolve()):
         ap.error(f"{out}: the r2-lucid returns are read-only")
+    steps = [0] if args.legacy_init else list(dict.fromkeys(int(x) for x in args.step))
+    if len(steps) > 1:
+        rc = 0
+        for st in steps:
+            sub = argparse.Namespace(**vars(args))
+            sub.step = st
+            rc |= _single(sub, ap)
+        return rc
+    args.step = steps[0]
+    return _single(args, ap)
+
+
+def _single(args, ap):
     if args.legacy_init:
         args.step = 0
     if args.log_only:  # batch route: the canonical log line is written here, before the job reads the pack
