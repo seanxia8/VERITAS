@@ -423,7 +423,8 @@ def test_invalid_detectability_inputs_raise():
 #: r2-lucid (RUNBOOK_2026-11-21_R2_LUCID_REGEN.md P1): the LUCiD generator adapter is the one module
 #: that must call LUCiD; every other module keeps the round-1 rule. Its own tests check that it never
 #: uses lucid_bombs physics (gate G6).
-LUCID_ADAPTERS = {"lucid_mc_generator.py", "test_lucid_mc_generator.py"}
+LUCID_ADAPTERS = {"lucid_mc_generator.py", "test_lucid_mc_generator.py",
+                  "tier1_yardstick.py"}  # r2-tier1 T6: runs LUCiD's own expectation model and time term
 
 
 def test_nothing_imports_lucid():
