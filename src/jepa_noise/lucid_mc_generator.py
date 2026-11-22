@@ -117,6 +117,7 @@ ALLOWED_LB_NAMES = frozenset({
     "write_sha256sums", "read_sparse_hits", "HitReadout", "DOMAIN_PHOTON", "DOMAIN_MUON", "DOMAIN_ELECTRON",
     "PARTICLE_DOMAINS", "current_code_sha", "_sha", "fiducial_vertex",
     "_distance_to_boundary", "_event_ids_sha", "ReadoutRecord", "state_for_run",
+    "CohortSpec",  # r2-tier1: ID-range container for the sealed_test cohort (no physics)
 })
 #: lucid_bombs / r2_generator physics that must never run in the generation path (G6).
 FORBIDDEN_LB_NAMES = ("expected_charge", "expected_charge_particle", "solid_angle",
