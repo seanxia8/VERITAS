@@ -18,6 +18,7 @@ RECEIPTS = Path(os.environ.get("R2_BATCH_RECEIPTS",
                                "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/ledger/receipts.jsonl"))
 TRAIN = Path(os.environ.get("R2_BATCH_TRAIN", "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train"))
 LINE = os.environ.get("R2_BATCH_LINE", "R2_lucid_gpu")
+EVAL = Path(os.environ["R2_BATCH_EVAL"]) if os.environ.get("R2_BATCH_EVAL") else None
 
 
 def collect_torch(job_dir: Path, sub: dict):
@@ -37,6 +38,20 @@ def collect_torch(job_dir: Path, sub: dict):
                 os.rename(dest, dest.with_name(f"{d.name}.prev_{sub['cluster']}"))
             os.rename(d, dest)
             moved.append(str(dest))
+    # r2-tier1: tier1_eval outputs eval/<run_id>/step_<NNNNN>/<files> -> EVAL/...; never overwritten
+    if EVAL is not None and (ret / "eval").exists():
+        for f in sorted(p for p in (ret / "eval").rglob("*") if p.is_file()):
+            dest = EVAL / f.relative_to(ret / "eval")
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if dest.exists():
+                os.rename(dest, dest.with_name(f"{dest.name}.prev_{sub['cluster']}"))
+            os.rename(f, dest)
+            moved.append(str(dest))
+    for log in sorted(ret.glob("SEALED_ACCESS_LOG*.md")):
+        dest = (EVAL.parent if EVAL is not None else TRAIN) / "batch_access_logs" / f"{sub['job_id']}_{sub['cluster']}.md"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.rename(log, dest)
+        moved.append(str(dest))
     code = (ret / "JOB_EXIT_CODE").read_text().strip() if (ret / "JOB_EXIT_CODE").exists() else None
     return moved, code
 
@@ -61,6 +76,7 @@ def collect(job_dir: Path):
         wall = float(wc[0]) if wc else None
         receipt = {"line": LINE, "job_id": sub["job_id"], "cluster": sub["cluster"],
                    "kind": "train" if "train" in sub["torch_module"] else "eval",
+                   "run_id": next((a for a in args if "__" in a), None),
                    "module": sub["torch_module"], "args": args, "wall_s": wall,
                    "gpu_h": (wall / 3600.0) if wall else None,
                    "gpu": " ".join(wc[1:-2]) if len(wc) > 3 else sub["gpu"],

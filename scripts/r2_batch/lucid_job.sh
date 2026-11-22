@@ -38,6 +38,7 @@ fetch "$R2_CODE" code.tar.gz; mkdir -p code && tar xzf code.tar.gz -C code
 fetch lucid/wheels_lucid_cp311.tar wheels.tar; tar xf wheels.tar
 fetch lucid/LUCiD_e651e836.tar lucidsrc.tar; mkdir -p lucidsrc && tar xf lucidsrc.tar -C lucidsrc
 fetch lucid/lucid_config.tar lucidpin.tar; mkdir -p lucidpin && tar xf lucidpin.tar -C lucidpin
+for f in ${R2_FILES:-}; do fetch "$f" "staged/$f"; done  # r2-tier1: optional staged inputs
 python3 -m pip install -q --no-index --find-links wheels --target pylib -r code/scripts/r2_batch/requirements_lucid_cp311.txt \
   || { log "pip failed"; exit 5; }
 PIN=$(dirname "$(find lucidpin -name WCTE_geom_config.json | head -1)")

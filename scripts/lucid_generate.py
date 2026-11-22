@@ -218,7 +218,24 @@ def main():
             s.add_argument("--limit", type=int)
             s.add_argument("--stride", type=int)
             s.add_argument("--no-s030", action="store_true")
+    # r2-tier1 T6: yardsticks with LUCiD's expectation model and time term (tier1_yardstick.py)
+    y = sub.add_parser("yardstick")
+    y.add_argument("--input", required=True)
+    y.add_argument("--out", default="returns/yardstick")
+    y.add_argument("--start", type=int, default=0)
+    y.add_argument("--stop", type=int, default=10**9)
+    y.add_argument("--parts", nargs="+", choices=("y1", "y2"), default=["y1", "y2"])
+    y.add_argument("--n-rays", type=int, default=65536)
+    y.add_argument("--n-keys", type=int, default=4)
+    y.add_argument("--n-rep", type=int, default=32)
+    y.add_argument("--maxiter", type=int, default=40)
+    y.add_argument("--n-centroid", type=int, default=50)
+    y.add_argument("--shards")  # appended by lucid_job.sh; unused
+    y.add_argument("--cache")
     args = p.parse_args()
+    if args.cmd == "yardstick":
+        from jepa_noise import tier1_yardstick
+        return tier1_yardstick.run(args)
     {"calibrate": calibrate, "run": run, "wcte-manifest": wcte_manifest,
      "selfcheck": selfcheck}[args.cmd](args)
 

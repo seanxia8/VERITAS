@@ -377,8 +377,10 @@ def evaluate(args):
     streams_needed = ["validation"] + [c for c in todo if c == "sealed"]
     if "sealed" in todo:
         log_sealed_access(run_key, args.purpose, args.access_log)
-    packs = {"train": cohort_pack(detector, "validation")}
-    packs.update({c: cohort_pack(detector, c) for c in streams_needed})
+    main_pack = args.validation_pack or cohort_pack(detector, "validation")
+    packs = {"train": main_pack}
+    packs.update({c: (args.sealed_pack or cohort_pack(detector, c)) if c == "sealed" else main_pack
+                  for c in streams_needed})
     names = {"train": TRAIN_COHORT, **{c: COHORTS[c] for c in streams_needed}}
     data = {}
     for which in ["train"] + streams_needed:
@@ -559,6 +561,9 @@ def main(argv=None):
     ap.add_argument("--chunk", type=int, default=8)
     ap.add_argument("--hash-packs", action="store_true")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--log-only", action="store_true", help="append the sealed-access line and exit")
+    ap.add_argument("--sealed-pack", type=Path, default=None, help="batch: staged copy of the sealed pack")
+    ap.add_argument("--validation-pack", type=Path, default=None, help="batch: staged copy of the main pack")
     args = ap.parse_args(argv)
     if args.legacy_init and (args.detector is None or args.seed is None):
         ap.error("--legacy-init needs --detector and --seed")
@@ -569,6 +574,16 @@ def main(argv=None):
         ap.error(f"{out}: the r2-lucid returns are read-only")
     if args.legacy_init:
         args.step = 0
+    if args.log_only:  # batch route: the canonical log line is written here, before the job reads the pack
+        if "sealed" not in args.cohorts:
+            ap.error("--log-only is for sealed reads")
+        if args.legacy_init:
+            key = f"{args.detector}__init__s{args.seed}@00000"
+        else:
+            rid = json.loads((Path(args.run_dir) / "run_record.json").read_text())["recipe"]["identity"]["run_id"]
+            key = f"{rid}@{int(args.step):05d}"
+        print(log_sealed_access(key, args.purpose + " [batch job; read happens in the job]", args.access_log), end="")
+        return 0
     return evaluate(args)
 
 

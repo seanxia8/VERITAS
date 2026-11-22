@@ -35,7 +35,8 @@ def main():
     torch_job = a.torch_module is not None
     sums = Path("/ceph/srv/dwong/r2/SHA256SUMS").read_text()
     needed = ((a.code, "env/wheels_cp311.tar", "lucid/lucid_config.tar", *a.files) if torch_job else
-              (a.code, "lucid/wheels_lucid_cp311.tar", "lucid/LUCiD_e651e836.tar", "lucid/lucid_config.tar"))
+              (a.code, "lucid/wheels_lucid_cp311.tar", "lucid/LUCiD_e651e836.tar", "lucid/lucid_config.tar",
+               *a.files))
     for f in needed:
         if f" {f}\n" not in sums + "\n":
             raise SystemExit(f"{f} is not staged")
@@ -64,6 +65,8 @@ def main():
            f"JEPA_CODE_SHA={sha}"]
     if torch_job:
         env += [f"R2_MODULE={a.torch_module}", f"R2_FILES='{' '.join(a.files)}'"]
+    elif a.files:  # r2-tier1: staged inputs for a LUCiD-env job (yardsticks)
+        env += [f"R2_FILES='{' '.join(a.files)}'"]
     universe = ("Universe = docker\ndocker_image = " + IMAGE) if a.gpu == "a100" else \
                ("Universe = container\ncontainer_image = docker://" + IMAGE)
     jdl = f"""Executable = {script}

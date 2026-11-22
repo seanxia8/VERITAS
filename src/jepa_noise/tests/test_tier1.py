@@ -298,3 +298,18 @@ def test_time_reference_suffix_and_recipe():
                if base["recipe"].get(k) != var["recipe"].get(k)}
     assert changed == {"time_reference", "identity"}
     assert var["loader"].time_reference == "median" and base["loader"].time_reference == "trigger"
+
+
+def test_tier1_eval_log_only_writes_canonical_line(tmp_path, monkeypatch, capsys):
+    ev = _load_script("tier1_eval")
+    spec = tmp_path / "spec.md"
+    spec.write_text("frozen")
+    monkeypatch.setattr(ev, "READOUT_SPEC", spec)
+    log = tmp_path / "log.md"
+    assert ev.main(["--legacy-init", "--detector", "sk", "--seed", "9000", "--cohorts", "sealed",
+                    "--log-only", "--purpose", "rescore", "--access-log", str(log)]) == 0
+    text = log.read_text()
+    assert "sk__init__s9000@00000" in text and "batch job" in text
+    with pytest.raises(SystemExit):
+        ev.main(["--legacy-init", "--detector", "sk", "--seed", "9000", "--cohorts", "validation",
+                 "--log-only", "--access-log", str(log)])

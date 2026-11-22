@@ -1,0 +1,122 @@
+{
+ "wcte": {
+  "dev_probe_train": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 294,
+    "track_end_inside": 462,
+    "both": 294
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 0,
+    "track_end_inside": 204,
+    "both": 0
+   }
+  },
+  "dev_probe_test": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 310,
+    "track_end_inside": 475,
+    "both": 310
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 0,
+    "track_end_inside": 224,
+    "both": 0
+   }
+  }
+ },
+ "sk": {
+  "dev_probe_train": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 3333,
+    "track_end_inside": 3335,
+    "both": 3333
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 3011,
+    "track_end_inside": 3015,
+    "both": 3011
+   }
+  },
+  "dev_probe_test": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 3353,
+    "track_end_inside": 3353,
+    "both": 3353
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 2971,
+    "track_end_inside": 2974,
+    "both": 2971
+   }
+  }
+ },
+ "juno": {
+  "dev_probe_train": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 3332,
+    "track_end_inside": 3400,
+    "both": 3332
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 2999,
+    "track_end_inside": 3200,
+    "both": 2999
+   }
+  },
+  "dev_probe_test": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 3349,
+    "track_end_inside": 3400,
+    "both": 3349
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 2982,
+    "track_end_inside": 3200,
+    "both": 2982
+   }
+  }
+ },
+ "hk": {
+  "dev_probe_train": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 3400,
+    "track_end_inside": 3400,
+    "both": 3400
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 3200,
+    "track_end_inside": 3200,
+    "both": 3200
+   }
+  },
+  "dev_probe_test": {
+   "muon": {
+    "n": 3400,
+    "lucid_flag": 3399,
+    "track_end_inside": 3399,
+    "both": 3399
+   },
+   "electron": {
+    "n": 3200,
+    "lucid_flag": 3200,
+    "track_end_inside": 3200,
+    "both": 3200
+   }
+  }
+ }
+}
