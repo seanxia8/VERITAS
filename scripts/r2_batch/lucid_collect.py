@@ -11,7 +11,8 @@ import json, os, subprocess, sys, tarfile, time
 from pathlib import Path
 
 # r2-tier1: R2_BATCH_JOBS / R2_BATCH_RECEIPTS / R2_BATCH_TRAIN / R2_BATCH_LINE select another phase's
-# job tree, receipts, training returns and ledger line (defaults: r2-lucid, unchanged).
+# job tree, receipts, training returns and ledger line (defaults: r2-lucid, unchanged);
+# R2_BATCH_EVAL / R2_BATCH_YARD: where tier1_eval and yardstick outputs go (unset: not collected).
 JOBS = Path(os.environ.get("R2_BATCH_JOBS", "/work/dwong/r2_lucid/batch_jobs"))
 DATA = Path("/ceph/dwong/jepa/data/lucid_v1")
 RECEIPTS = Path(os.environ.get("R2_BATCH_RECEIPTS",
@@ -19,6 +20,7 @@ RECEIPTS = Path(os.environ.get("R2_BATCH_RECEIPTS",
 TRAIN = Path(os.environ.get("R2_BATCH_TRAIN", "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train"))
 LINE = os.environ.get("R2_BATCH_LINE", "R2_lucid_gpu")
 EVAL = Path(os.environ["R2_BATCH_EVAL"]) if os.environ.get("R2_BATCH_EVAL") else None
+YARD = Path(os.environ["R2_BATCH_YARD"]) if os.environ.get("R2_BATCH_YARD") else None
 
 
 def collect_torch(job_dir: Path, sub: dict):
@@ -87,6 +89,27 @@ def collect(job_dir: Path):
             f.write(json.dumps(receipt) + "\n")
         done.write_text(json.dumps({"receipt": receipt}, indent=1))
         return dict(receipt, shards_moved=len(moved), shards_skipped=0)
+    if args and args[0] == "yardstick":  # r2-tier1 T6: outputs -> YARD/<job>_<cluster>/
+        if YARD is None:
+            return None
+        dest = YARD / f"{sub['job_id']}_{sub['cluster']}"
+        dest.mkdir(parents=True, exist_ok=True)
+        with tarfile.open(tar) as t:
+            t.extractall(dest, filter="data")
+        wc = wallclock(sub["cluster"])
+        wall = float(wc[0]) if wc else None
+        code_file = dest / "returns" / "JOB_EXIT_CODE"
+        receipt = {"line": LINE, "job_id": sub["job_id"], "cluster": sub["cluster"], "kind": "yardstick",
+                   "args": args, "wall_s": wall, "gpu_h": (wall / 3600.0) if wall else None,
+                   "gpu": " ".join(wc[1:-2]) if len(wc) > 3 else sub["gpu"],
+                   "host": wc[-2] if len(wc) > 2 else None, "moved": [str(dest)],
+                   "exit_code": code_file.read_text().strip() if code_file.exists() else None,
+                   "collected_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+        RECEIPTS.parent.mkdir(parents=True, exist_ok=True)
+        with open(RECEIPTS, "a") as f:
+            f.write(json.dumps(receipt) + "\n")
+        done.write_text(json.dumps({"receipt": receipt}, indent=1))
+        return dict(receipt, shards_moved=0, shards_skipped=0)
     det = args[args.index("--detector") + 1] if "--detector" in args else "misc"
     inc = DATA / det / ".incoming" / f"{sub['job_id']}_{sub['cluster']}"
     inc.mkdir(parents=True, exist_ok=True)
