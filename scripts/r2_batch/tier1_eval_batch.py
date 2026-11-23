@@ -17,7 +17,10 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-ENV = {"R2_BATCH_JOBS": "/work/dwong/r2_tier1/batch_jobs", "R2_BATCH_REPO": str(REPO)}
+# r2-mask: an existing R2_BATCH_JOBS / R2_BATCH_REPO in the environment wins (defaults: r2-tier1)
+ENV = {"R2_BATCH_JOBS": os.environ.get("R2_BATCH_JOBS", "/work/dwong/r2_tier1/batch_jobs"),
+       "R2_BATCH_REPO": os.environ.get("R2_BATCH_REPO", str(REPO))}
+TIER1_ACCESS_LOG = "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/SEALED_ACCESS_LOG.md"
 
 
 def main():
@@ -37,6 +40,8 @@ def main():
     ap.add_argument("--code", required=True, help="staged code tarball, e.g. code/tier1_<sha8>.tar.gz")
     ap.add_argument("--walltime-h", type=float, default=3.0)
     ap.add_argument("--job-id")
+    ap.add_argument("--access-log", default=TIER1_ACCESS_LOG,
+                    help="canonical sealed-access log written on Deepthought (r2-mask: its own log)")
     a = ap.parse_args()
     if a.budget:
         if "sealed" in a.cohorts:
@@ -58,7 +63,7 @@ def main():
         files.append(f"data/lucid_v1/{det}_lucid_v1_sealed.h5")
         pack_args += ["--sealed-pack", f"staged/data/lucid_v1/{det}_lucid_v1_sealed.h5"]
         log = [sys.executable, str(REPO / "scripts/tier1_eval.py"), "--cohorts", "sealed", "--log-only",
-               "--purpose", a.purpose]
+               "--purpose", a.purpose, "--access-log", a.access_log]
         log += (["--legacy-init", "--detector", det, "--seed", str(a.seed)] if a.legacy_init
                 else ["--run-dir", str(a.run_dir), "--step", *map(str, a.steps)])
         subprocess.run(log, check=True, env=dict(os.environ, PYTHONPATH=str(REPO / "src")))
