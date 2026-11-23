@@ -178,3 +178,18 @@ def test_patch_size_recipe_is_one_factor():
     assert var["recipe"]["identity"]["run_id"] == "wcte__mae_repaired__s9000__ps128"
     assert var["loader"].patch_size == 128 and base["loader"].patch_size is None
     assert var["recipe"]["view_mode"] == "spatial_patch"
+
+
+@pytest.mark.parametrize("det,sizes", [("wcte", (8, 32, 128, 256)), ("sk", (43, 173, 692))])
+def test_registered_sizes_on_the_lucid_geometries(det, sizes):
+    """Review finding 7: every registered size masks real events with fixed whole-patch counts."""
+    g = _lucid_geometry(det)
+    default = lv.default_patch_size(g.n_pmt)
+    for s in sizes:
+        count = g.n_pmt // s
+        n_hide = count // 2 if s == default else -(-count // 2)
+        m = lv.ViewMasker(g, "spatial_patch", seed=20261017, n_min=0,
+                          **({} if s == default else {"patch_size": s}))
+        got = {m.mask(e, np.zeros(g.n_pmt, bool)).target.size for e in range(1000, 1020)}
+        assert got == {n_hide * s}, (det, s)
+        assert 0.4 < n_hide * s / g.n_pmt < 0.6
