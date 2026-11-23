@@ -151,10 +151,11 @@ def main():
             common = sorted(set(mc) & set(rows))
             mcd = {"config": mc[common[0]]["config"], "n": len(common), "channels": {}}
             for ch in ("counts", "time", "joint"):
-                a = np.array([rows[i]["y2"][ch]["vertex_error_m"] for i in common])
-                b = np.array([mc[i]["y2"][ch]["vertex_error_m"] for i in common])
-                mcd["channels"][ch] = {"default_mean_m": float(a.mean()), "more_rays_mean_m": float(b.mean()),
-                                       "default_median_m": float(np.median(a)), "more_rays_median_m": float(np.median(b))}
+                e_def = np.array([rows[i]["y2"][ch]["vertex_error_m"] for i in common])
+                e_mc = np.array([mc[i]["y2"][ch]["vertex_error_m"] for i in common])
+                mcd["channels"][ch] = {"default_mean_m": float(e_def.mean()), "more_rays_mean_m": float(e_mc.mean()),
+                                       "default_median_m": float(np.median(e_def)),
+                                       "more_rays_median_m": float(np.median(e_mc))}
         y2_rows = {i: rows[i] for i in idx if rows[i].get("y2")}
         y2_ids = np.asarray(ev["event_id"])[sorted(y2_rows)]
         diag = load_rows(det, f"ystick_diag_{det}_*")
