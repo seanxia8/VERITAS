@@ -287,3 +287,11 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - 2026-11-22 r2-tier1 T2.2 (JUNO/HK): HK `sealed_test` passes every check. JUNO failed one G4 check on the default 60-run reference sample (photon-bomb median true PE −10.3 %, tolerance 10 %); the median of a log-uniform yield law from ≈1,000 events has ≈6 % sampling error, so the comparison was repeated with the full reference cohort (200 runs vs 600): −9.95 %, PASS (difference SE ≈ 7 %). Both results are committed (`SEALED_VALIDATION_juno.json`, `_n200.json`); JUNO is exploratory and outside the gate. Packs staged byte-identical; manifest A updated with all four sealed packs.
 - 2026-11-22 r2-tier1 budget (22:15 UTC): SK-1…13 trained (13 × ≈5.1 GPU-h); booked 81.1 GPU-h batch + 9.7 GPU-h on deepthought2; projection with the running scoring jobs and the remaining WCTE lane runs ≈105 of the 110 GPU-h cap. SK-14/15 (priority 6, ≈10.5 GPU-h) and SK-16 (priority 7) are dropped from the bottom of the list. Borderline seed-C cells (§2.2) are trained only if they fit inside the cap after all scoring is booked.
 - 2026-11-23 r2-tier1 T7.3: manifest B pushed metric-free (60 E-cell runs incl. existing default and sweep runs, steps 0 / 5,000 / 10,000, 180 cases, every checkpoint hashed; 13 registered contrasts by run id). All SK and WCTE trainings are complete; GPU use 108.9 of 110 GPU-h, so no borderline seed-C cell can be trained (the borderline rule is reported, not executed, if it triggers).
+
+## r2-mask (runbook `RUNBOOK_2026-11-23_R2_MASK_SCALE.md`, branch `mask-scale`)
+
+Authority (verbatim, runbook §0.1):
+1. **Author, 23 Nov 2026, 19:54 CET:** "我同意，我把这三件事写成一份短 runbook。" (Translation: "I agree; write these three things up as a short runbook." The three things: the CPU interpolation diagnostic, the patch-size sweep, and the 200-event seed trial; the SK part of the sweep was offered at about 30 GPU-h.)
+2. **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决". Never stop to ask; record decisions in `DECISIONS.md` and `$CC_STATE/notes/r2-mask.md`.
+3. **Author, 22 Nov 2026:** do not depend on the collaborator.
+
