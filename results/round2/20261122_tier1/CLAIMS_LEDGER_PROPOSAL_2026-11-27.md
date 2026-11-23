@@ -26,7 +26,7 @@ Proposal only; the ledger itself (`docs/round2/CLAIMS_LEDGER_2026-11-22.md`) is 
 ## Moves towards V (§H)
 
 - H1 (blind recomputation): part A done by r2-tier1v (27/27 vertex readouts within 0.2 %); part B (E-cells) pending → C12-attribution, C25, C29 can move to **V** when it reports within tolerance.
-- H2 (sealed split): done (`sealed_test`, 30,000 events per detector, all four detectors, access-logged).
+- H2 (sealed split): done (`sealed_test`, 30,000 events per detector, all four detectors). Evaluation reads are logged; generation/QA/manifest accesses by other code were not logged at the time and are disclosed in the addendum of `SEALED_ACCESS_LOG.md` (none touched a readout).
 - H3 (≥ 2 SK seeds): done for the registered SK cells (seeds 9000, 9001); seed C was not trained (GPU cap; no registered SK contrast fell in the borderline band 1.5 ≤ N_σ < 2.5 — CT-p50 is at 1.49).
 - H4 (un-bundling): done for mask × time unit at fixed loader and window.
 - H5 (likelihood yardstick): surrogate only (LUCiD's expectation model, not a likelihood of the sampled data); stays open for Tier 2.
