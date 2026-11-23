@@ -193,3 +193,22 @@ def test_registered_sizes_on_the_lucid_geometries(det, sizes):
         got = {m.mask(e, np.zeros(g.n_pmt, bool)).target.size for e in range(1000, 1020)}
         assert got == {n_hide * s}, (det, s)
         assert 0.4 < n_hide * s / g.n_pmt < 0.6
+
+
+# ------------------------------------------------------------------ M3 seed starts (no LUCiD)
+def test_seed_start_truth_clip_and_t0_median():
+    from jepa_noise import tier1_yardstick as ty
+    pos = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-1.0, 0.0, 0.5], [0.0, 0.0, -1.0]])
+    data = {"vertex": np.array([[0.1, 0.0, 0.0]]), "t0": np.array([5.0]), "yield": np.array([1e4]),
+            "pmt_lucid": np.array([0, 1, 2, 3]), "t_abs": np.array([10.0, 11.0, 12.0, 13.0])}
+    starts = {"start_readout": np.array([[0.0, 0.0, 0.0]]), "start_raw": np.array([[3.0, 4.0, 9.0]]),
+              "lnN_start": np.array([9.0])}
+    sl = slice(0, 4)
+    th, clipped = ty.seed_start(data, starts, 0, "truth", pos, sl, 1.2, 1.0)
+    assert np.allclose(th, [0.1, 0.0, 0.0, 5.0, np.log(1e4)]) and not clipped
+    th, clipped = ty.seed_start(data, starts, 0, "readout", pos, sl, 1.2, 1.0)
+    d = np.linalg.norm(pos, axis=1)
+    assert np.allclose(th[:3], 0.0) and not clipped and th[4] == 9.0
+    assert th[3] == pytest.approx(np.median(data["t_abs"] - d / ty.C_WATER_M_PER_NS))
+    th, clipped = ty.seed_start(data, starts, 0, "raw", pos, sl, 1.2, 1.0)
+    assert clipped and np.hypot(th[0], th[1]) == pytest.approx(1.15) and th[2] == pytest.approx(0.95)

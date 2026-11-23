@@ -91,7 +91,7 @@ def collect(job_dir: Path):
             f.write(json.dumps(receipt) + "\n")
         done.write_text(json.dumps({"receipt": receipt}, indent=1))
         return dict(receipt, shards_moved=len(moved), shards_skipped=0)
-    if args and args[0] == "yardstick":  # r2-tier1 T6: outputs -> YARD/<job>_<cluster>/
+    if args and args[0] in ("yardstick", "seedtest"):  # r2-tier1 T6 / r2-mask M3: -> YARD/<job>_<cluster>/
         if YARD is None:
             return None
         dest = YARD / f"{sub['job_id']}_{sub['cluster']}"
