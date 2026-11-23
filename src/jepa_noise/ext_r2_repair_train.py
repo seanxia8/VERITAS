@@ -95,6 +95,32 @@ def mask_suffix(args):
     return f"__m{mask}"
 
 
+def patch_size_of(args):
+    """r2-mask: the non-default ``--patch-size`` of ``spatial_patch`` (``None`` = unchanged recipe).
+
+    A value equal to the detector's default size is the default recipe (no suffix, no recipe
+    field, same hash).  Only ``mae_repaired`` with ``--mask spatial_patch`` accepts the flag.
+    """
+    size = getattr(args, "patch_size", None)
+    if size is None:
+        return None
+    if args.arm != "mae_repaired":
+        raise ValueError("--patch-size applies to mae_repaired only")
+    if (getattr(args, "mask", None) or DEFAULT_MASK) != "spatial_patch":
+        raise ValueError("--patch-size applies to --mask spatial_patch only")
+    from .lucid_views import default_patch_size
+    n_pmt = dr.geometry(args.detector, getattr(args, "data_kind", None)).n_pmt
+    if not 1 <= int(size) <= n_pmt // 2:
+        raise ValueError(f"--patch-size must lie in [1, {n_pmt // 2}]")
+    return None if int(size) == default_patch_size(n_pmt) else int(size)
+
+
+def ps_suffix(args):
+    """``__ps<size>`` for a non-default spatial-patch size (r2-mask; empty at the default)."""
+    size = patch_size_of(args)
+    return "" if size is None else f"__ps{size}"
+
+
 def cw_suffix(args):
     """``__cw<weight>`` for a non-default mae_repaired charge-loss weight (empty at 1)."""
     cw = getattr(args, "charge_loss_weight", None)
@@ -116,9 +142,10 @@ def tr_suffix(args):
 
 
 def run_suffix(args):
-    """Run-name suffixes in the registered order ``__m<mask>``, ``__ts<unit>``, ``__cw<weight>``
-    (plus ``__tr<reference>`` for the conditional T5.1 cell)."""
-    return mask_suffix(args) + ts_suffix(args) + cw_suffix(args) + tr_suffix(args)
+    """Run-name suffixes in the registered order ``__m<mask>``, ``__ps<size>`` (r2-mask),
+    ``__ts<unit>``, ``__cw<weight>`` (plus ``__tr<reference>`` for the conditional T5.1 cell)."""
+    return (mask_suffix(args) + ps_suffix(args) + ts_suffix(args) + cw_suffix(args)
+            + tr_suffix(args))
 
 
 def refuse_lucid_returns(path):
@@ -215,10 +242,13 @@ def prepare(args):
     shuffle = args.arm in ("jepa_repaired", "mae_repaired")
     # r2-tier1: the mask is the only thing --mask changes (encoder, loader shuffle unchanged)
     split = (getattr(args, "mask", None) or DEFAULT_MASK) if args.arm == "mae_repaired" else "within"
+    patch_size = patch_size_of(args)  # r2-mask: None keeps the unchanged default masker
+    loader_extra = {} if patch_size is None else {"patch_size": patch_size}
     loader = rs.R2TrainingLoader(cohort, geometry, seed=seed, scaling=scaling, batch=r2.BATCH,
                                  mask_seed=mask_seed, split=split, n_min=int(cfg["views"]["n_min"]),
                                  shuffle_events_within_batch=shuffle,
-                                 time_reference=getattr(args, "time_reference", None) or "trigger")
+                                 time_reference=getattr(args, "time_reference", None) or "trigger",
+                                 **loader_extra)
     snapshots = ((0, args.smoke) if args.smoke else
                  SNAPSHOTS if args.detector in ("wcte", "sk") else (0, 500, 2000, 10000))
     steps = args.smoke or r2.STEPS
@@ -238,6 +268,8 @@ def prepare(args):
         recipe["time_loss_scale_ns"] = time_loss_scale
     if split != DEFAULT_MASK and args.arm == "mae_repaired":  # r2-tier1 mask cells only
         recipe["mask"] = split
+    if patch_size is not None:  # r2-mask patch-size cells only; the default keeps its hash
+        recipe["patch_size"] = patch_size
     if charge_weight != 1.0:  # r2-tier1 P5 cell only; defaults keep the recipe hash
         recipe["charge_loss_weight"] = charge_weight
     if (getattr(args, "time_reference", None) or "trigger") != "trigger":  # T5.1 cell only
@@ -288,6 +320,8 @@ def main():
                         help="mae_repaired time-loss unit (default 50 ns, the unchanged recipe)")
     parser.add_argument("--mask", choices=MASKS, default=None,
                         help="mae_repaired mask (default spatial_patch, the unchanged recipe)")
+    parser.add_argument("--patch-size", type=int, default=None,
+                        help="r2-mask: spatial_patch size in PMTs (default: the unchanged size)")
     parser.add_argument("--charge-loss-weight", type=float, default=None,
                         help="mae_repaired log-charge loss weight (default 1, the unchanged recipe)")
     parser.add_argument("--time-reference", choices=("trigger", "median"), default=None,

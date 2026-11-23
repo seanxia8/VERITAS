@@ -35,6 +35,7 @@ from .lucid_bombs import (MAX_REDRAWS, N_MIN, DetectorGeometry, ViewExclusionCou
 __all__ = ["NS_VIEWS", "TOKEN_HILBERT_BITS", "MODULE_HILBERT_BITS", "OCCUPANCY_MODES",
            "SPLITS", "hilbert_index_3d", "module_hilbert_order", "token_hilbert_order",
            "ViewMask", "across_mask", "within_mask", "spatial_patch_mask", "random_mask",
+           "default_patch_size",
            "mask_from_key", "ViewMasker"]
 
 NS_VIEWS = "lucid/views"
@@ -220,17 +221,31 @@ def within_mask(geometry: DetectorGeometry, event_id: int, hit_pmt, *, n_min: in
                     np.empty(0, dtype=np.int64), key)
 
 
-def spatial_patch_mask(geometry, event_id, hit_pmt, *, seed=0, replicate=0, n_min=N_MIN):
-    """Hide half of the complete contiguous Hilbert patches with fixed token counts."""
+def default_patch_size(n_pmt: int) -> int:
+    """The unchanged ``spatial_patch`` size: ``min(max(32, n_pmt // 64), n_pmt // 2)``."""
+    return min(max(32, int(n_pmt) // 64), int(n_pmt) // 2)
+
+
+def spatial_patch_mask(geometry, event_id, hit_pmt, *, seed=0, replicate=0, n_min=N_MIN,
+                       patch_size=None):
+    """Hide half of the complete contiguous Hilbert patches with fixed token counts.
+
+    ``patch_size=None`` (or the default size) is the unchanged recipe: ``count // 2`` of the
+    ``count = n_pmt // size`` patches are hidden.  r2-mask (runbook 2026-11-23 §1.1): a
+    non-default ``patch_size`` hides ``ceil(count / 2)`` patches; the tail of the Hilbert order
+    beyond ``count * size`` tokens is never hidden, as for the default.
+    """
     hit = _hit_array(geometry, hit_pmt)
     order = token_hilbert_order(geometry)
-    size = min(max(32, geometry.n_pmt // 64), geometry.n_pmt // 2)
-    if size <= 0:
-        raise ValueError("spatial patch views require at least two PMTs")
+    default = default_patch_size(geometry.n_pmt)
+    size = default if patch_size is None else int(patch_size)
+    if size <= 0 or size > geometry.n_pmt // 2:
+        raise ValueError("spatial patch views require 1 <= patch size <= n_pmt // 2")
     count = len(order) // size
+    n_hide = count // 2 if size == default else -(-count // 2)
     patches = order[:count * size].reshape(count, size)
     rng = keyed_rng(seed, NS_VIEWS, "spatial_patch", replicate, int(event_id))
-    target = np.sort(patches[rng.permutation(count)[:count // 2]].reshape(-1))
+    target = np.sort(patches[rng.permutation(count)[:n_hide]].reshape(-1))
     is_target = np.zeros(geometry.n_pmt, dtype=bool)
     is_target[target] = True
     context = np.flatnonzero(~is_target)
@@ -239,6 +254,8 @@ def spatial_patch_mask(geometry, event_id, hit_pmt, *, seed=0, replicate=0, n_mi
            "event_id": int(event_id), "seed": int(seed), "replicate": int(replicate),
            "n_min": int(n_min), "patch_size": int(size), "occupancy": "natural",
            "context_hits": context_hits, "target_hits": target_hits}
+    if size != default:  # r2-mask non-default sizes only; the default key is unchanged
+        key["hidden_patches"] = int(n_hide)
     return ViewMask("spatial_patch", int(event_id), context, target, target_hits >= n_min,
                     0, context_hits, target_hits, attempt_hits=(target_hits,), key=key)
 
@@ -283,7 +300,8 @@ def mask_from_key(geometry: DetectorGeometry, key: dict, hit_pmt=None) -> ViewMa
         mask = spatial_patch_mask(geometry, int(key["event_id"]),
                                   np.zeros(0, dtype=np.int64) if hit is None else hit,
                                   seed=int(key["seed"]), replicate=int(key["replicate"]),
-                                  n_min=int(key.get("n_min", N_MIN)))
+                                  n_min=int(key.get("n_min", N_MIN)),
+                                  patch_size=int(key["patch_size"]))
         if mask.key["patch_size"] != key["patch_size"]:
             raise ValueError("mask_from_key: patch size does not round-trip")
     elif split == "random":
@@ -320,9 +338,13 @@ class ViewMasker:
     def __init__(self, geometry: DetectorGeometry, split: str, *, seed: int = 0,
                  replicate: int = 0, cell: str = "", n_min: int = N_MIN,
                  max_redraws: int = MAX_REDRAWS, occupancy: str = "natural",
-                 n_target_modules: int | None = None, module_bits: int = MODULE_HILBERT_BITS):
+                 n_target_modules: int | None = None, module_bits: int = MODULE_HILBERT_BITS,
+                 patch_size: int | None = None):
         if split not in SPLITS:
             raise ValueError(f"unregistered split {split!r}")
+        if patch_size is not None and split != "spatial_patch":
+            raise ValueError("patch_size applies to the spatial_patch split only")
+        self.patch_size = None if patch_size is None else int(patch_size)
         if occupancy not in OCCUPANCY_MODES:
             raise ValueError(f"unregistered occupancy mode {occupancy!r}")
         self.geometry, self.split, self.seed = geometry, split, int(seed)
@@ -348,7 +370,8 @@ class ViewMasker:
             self.counter.record_across(mask.attempt_hits)
         elif self.split == "spatial_patch":
             mask = spatial_patch_mask(self.geometry, event_id, hit, seed=self.seed,
-                                      replicate=self.replicate, n_min=self.n_min)
+                                      replicate=self.replicate, n_min=self.n_min,
+                                      patch_size=self.patch_size)
             self.counter.record_within(mask.target_hits)
         elif self.split == "random":
             mask = random_mask(self.geometry, event_id, hit, seed=self.seed,
