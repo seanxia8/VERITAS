@@ -1,0 +1,11 @@
+{
+ "a": {"fired": false,
+       "evidence": "origin/tier1-verify 2fd8d43 (r2-tier1v VA3): blind recomputation of the 27 TOY_VS_LUCID cases agrees within 0.2 % for readouts (a), (c), (d) (max |rel| 1.9e-3); f_event fails 15 % in 10/27 cases, diagnosed definitional (per-dimension mean ratio vs trace ratio; agrees < 1e-4 under one definition). E-cell (part B) recomputation: pending at the time of this table.",
+       "headline_failures_without_definitional_cause": 0},
+ "b": {"fired": false, "reading": "vertex coordinates (x, y, z)",
+       "evidence": "YARDSTICKS.json: joint Y2 fit started at truth, 200 events per detector; max |bias|/SE over x, y, z = 1.3 (SK), 0.7 (WCTE)",
+       "strict_reading_all_theta": {"fired": true,
+                                    "why": "nuisance t0 biased (SK +0.66 ns, 14.8 SE; WCTE +2.7 ns, 58 SE) and ln N (WCTE 13 SE, SK 4.2 SE); the t0 bias moves with the surrogate's time resolution (diagnostic), i.e. a property of the surrogate time term"}},
+ "fired": false,
+ "note": "K4 = (a) or (b) on the readings recorded in docs/round2/DECISIONS.md; GATE_G1 states the outcome under the strict K4(b) reading too."
+}

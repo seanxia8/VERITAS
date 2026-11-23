@@ -364,7 +364,7 @@ def verdicts(store, out):
         outcome = "A′ strong"
     elif V["A_prime_weak_condition"] and not (V["K2"] or V["K3"] or k4):
         outcome = "A′ weak"
-    elif (V["K1"] or V["K2"]) and mask_clear and not k4:
+    elif (V["K1"] or V["K2"]) and mask_clear:  # PREREG §2.5 table: A-alt has no K4 condition
         outcome = "A-alt"
     else:
         outcome = "P2"
