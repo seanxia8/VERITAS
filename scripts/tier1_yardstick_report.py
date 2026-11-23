@@ -118,6 +118,43 @@ def main():
                            "median_time_m": float(np.nanmedian(y1[m, 1])),
                            "median_time_share": float(np.nanmedian(y1[m, 3]))})
             y1d[f"by_{name}_tertile"] = tb
+        # author addendum (22 Nov): LUCiD lucid/fitting/fisher.py "honesty factor" sqrt(12) on the counts Fisher
+        hon = []
+        for i in idx:
+            y = rows[i]["y1"]
+            Fc, Ft = np.array(y["F_counts"], float), np.array(y["F_time"], float)
+            row = [np.nan, np.nan]
+            if y.get("sigma_vertex_counts_m"):
+                row[0] = y["sigma_vertex_counts_m"] * np.sqrt(12.0)
+            try:
+                cov = np.linalg.inv(Fc / 12.0 + Ft)
+                row[1] = float(np.sqrt(np.trace(cov[:3, :3])))
+            except np.linalg.LinAlgError:
+                pass
+            hon.append(row)
+        hon = np.array(hon, float)
+        st = y1[:, 1]
+        share_h = hon[:, 0] ** 2 / (hon[:, 0] ** 2 + st ** 2)
+        y1d["honesty_sqrt12"] = {"counts_median": float(np.nanmedian(hon[:, 0])),
+                                 "joint_median": float(np.nanmedian(hon[:, 1])),
+                                 "time_share_median": float(np.nanmedian(share_h))}
+        eff = {}
+        for ch, j in (("counts", 0), ("time", 1), ("joint", 2)):
+            r = [rows[i]["y2"][ch]["vertex_error_m"] / y1[k, j] for k, i in enumerate(idx)
+                 if rows[i].get("y2") and y1[k, j] and np.isfinite(y1[k, j])]
+            eff[ch] = {"n": len(r), "median_err_over_sigma": float(np.median(r)),
+                       "q16": float(np.quantile(r, 0.16)), "q84": float(np.quantile(r, 0.84))}
+        y1d["achieved_over_surrogate"] = eff
+        mc = load_rows(det, f"ystick_mcnoise_{det}_*")
+        mcd = None
+        if mc:
+            common = sorted(set(mc) & set(rows))
+            mcd = {"config": mc[common[0]]["config"], "n": len(common), "channels": {}}
+            for ch in ("counts", "time", "joint"):
+                a = np.array([rows[i]["y2"][ch]["vertex_error_m"] for i in common])
+                b = np.array([mc[i]["y2"][ch]["vertex_error_m"] for i in common])
+                mcd["channels"][ch] = {"default_mean_m": float(a.mean()), "more_rays_mean_m": float(b.mean()),
+                                       "default_median_m": float(np.median(a)), "more_rays_median_m": float(np.median(b))}
         y2_rows = {i: rows[i] for i in idx if rows[i].get("y2")}
         y2_ids = np.asarray(ev["event_id"])[sorted(y2_rows)]
         diag = load_rows(det, f"ystick_diag_{det}_*")
@@ -125,6 +162,7 @@ def main():
              "Y2_truth_start": y2_summary(y2_rows, "y2"),
              "Y2_centroid_start": y2_summary({i: rows[i] for i in idx if rows[i].get("y2_centroid")}, "y2_centroid"),
              "ridge_same_events": ridge_on_events(det, y2_ids),
+             "mc_noise_check": mcd,
              "diagnostic_sigma_refit": ({"config": diag[min(diag)]["config"],
                                          "Y2_truth_start": y2_summary(diag, "y2")} if diag else None)}
         d["K4b"] = {"joint_truth_start_max_abs_vertex_bias_over_se":
@@ -156,6 +194,14 @@ def main():
             L.append(f"| {t + 1} | {a_['range'][0]:.2f}–{a_['range'][1]:.2f} | {f(a_['median_joint_m'])} | "
                      f"{f(a_['median_counts_m'])} | {f(a_['median_time_m'])} | {f(a_['median_time_share'], 3)} | "
                      f"{b_['range'][0]:.0f}–{b_['range'][1]:.0f} | {f(b_['median_joint_m'])} | {f(b_['median_time_share'], 3)} |")
+        h = y1["honesty_sqrt12"]
+        L += ["", "With LUCiD's honesty factor √12 on the counts Fisher (`lucid/fitting/fisher.py`; joint = (F_counts/12 + F_time)⁻¹): "
+              f"median σ_vertex counts {f(h['counts_median'])} m, joint {f(h['joint_median'])} m, time share {f(h['time_share_median'], 3)}.", "",
+              "Achieved Y2 error (truth start) over the raw surrogate σ_vertex of the same event (an efficient unbiased fit gives a median ≈ 0.89; "
+              "with the √12 factor applied it would be ≈ 3.1):", "",
+              "| Channel | n | median err/σ | 16–84 % |", "|---|---:|---:|---|"]
+        for ch, e in y1["achieved_over_surrogate"].items():
+            L.append(f"| {ch} | {e['n']} | {e['median_err_over_sigma']:.2f} | {e['q16']:.2f}–{e['q84']:.2f} |")
         L += ["", "### Y2 — achieved resolution (minimise LUCiD's loss on the sampled events)", "",
               "| Start | Channel | n | mean 3-D (m) | median 3-D (m) | converged | bias x / y / z (mm) ± SE | z-scores x / y / z / t₀ / ln N |",
               "|---|---|---:|---:|---:|---:|---|---|"]
@@ -177,6 +223,14 @@ def main():
             L.append(f"| `{rid}` | {row['n_matched']} | {f(rs.get('mean_m'))} / {f(rs.get('median_m'))} | "
                      f"{f(row.get('ridge_raw_spatial_moment', {}).get('mean_m'))} | "
                      f"{f(row.get('attentive_mean3', {}).get('mean_m'))} |")
+        mcd = d.get("mc_noise_check")
+        if mcd:
+            L += ["", f"Monte-Carlo-noise check (author addendum): Y2 truth start on the first {mcd['n']} events with "
+                      f"n_rays = {mcd['config']['n_rays']:,} (default 65,536), everything else unchanged:", "",
+                  "| Channel | mean 3-D default (m) | mean 3-D more rays (m) | median default | median more rays |",
+                  "|---|---:|---:|---:|---:|"]
+            for ch, c in mcd["channels"].items():
+                L.append(f"| {ch} | {f(c['default_mean_m'])} | {f(c['more_rays_mean_m'])} | {f(c['default_median_m'])} | {f(c['more_rays_median_m'])} |")
         dg = d["diagnostic_sigma_refit"]
         if dg:
             L += ["", f"Diagnostic (not a gate input): Y2 truth start re-fitted with the time-term σ = "
@@ -187,6 +241,22 @@ def main():
                 L.append(f"| {m} | {s['n']} | {f(s['mean_3d_m'])} | {s['bias']['t0']:+.3f}±{s['bias_se']['t0']:.3f} | " +
                          " / ".join("–" if zz[p] is None else f"{zz[p]:+.1f}" for p in PAR) + " |")
         L.append("")
+    L += ["## Settings against LUCiD's published recipe (`docs/guides/reconstruction.md`)", "",
+          "| Setting | LUCiD MODEL_RECIPE / FIT_RECIPE | This yardstick |", "|---|---|---|",
+          "| rays per evaluation | 250,000 | 65,536 (250,000 in the MC-noise check) |",
+          "| reflection/scatter iterations K | 8 | 12 (the `lucid-run-job` kernel setting used to generate the data) |",
+          "| temperature | 0.1 | 0.1 |",
+          "| first-arrival time σ (TTS) | 2.1 ns | 2.1 ns (diagnostic: detector 1-PE jitter) |",
+          "| first-arrival window δ | 1.0 ns | 1.0 ns |",
+          "| time weight | 1.0 | 1.0 (counts + time NLL summed) |",
+          "| random keys averaged | 8, fixed through the fit | 4, fixed |",
+          "| source model | `ReconModel` track (vec9: E, vertex, direction, t₀) | isotropic point source (x, y, z, t₀, ln N_γ) — photon bombs |",
+          "| energy/intensity scale | `energy_scale='nphot'` | ln N_γ free (counts, joint); fixed at truth in time-only |",
+          "| optimiser | Fisher–Gauss–Newton, 150 steps, lr 4.0→1.5, λ 0.01, μ 0.1, refresh 8, Polyak mean of last 40 | L-BFGS-B, ≤ 40 iterations, steps scaled by (0.2 m, 0.5 ns, 0.05) |",
+          "| starts | data-built seeds (energy scan, first-light grid, multilateration, fused) | truth (primary); charge-weighted centroid (first 50) |",
+          "| t₀ in counts-only fit | — | fixed at truth (counts carry no t₀ information) |",
+          "| dark expectation | in the data model | 4.2 kHz × prompt window added to μ |", "",
+          "The label stays **surrogate** throughout; none of these numbers is a Cramér–Rao bound of the data.", ""]
     out.with_suffix(".md").write_text("\n".join(L) + "\n")
     print("wrote", out.with_suffix(".md"))
 
