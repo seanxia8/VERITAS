@@ -99,7 +99,7 @@
   {
    "item": "Training matrix E",
    "status": "PASS",
-   "evidence": "SK-1…13 (26 cells incl. existing), WCTE priority 1–3 complete (24 new runs + existing + median-reference cell); SK-14/15/16 not trained (GPU cap)"
+   "evidence": "SK-1…13 trained (14 SK cells incl. the existing (patch, 50, A) run), WCTE priority 1–3 complete (24 new runs + existing + median-reference cell); SK-14/15/16 not trained (GPU cap)"
   },
   {
    "item": "T1 code changes, tests, independent review",
