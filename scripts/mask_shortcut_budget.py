@@ -33,7 +33,9 @@ from jepa_noise.lucid_views import ViewMasker, default_patch_size  # noqa: E402
 
 #: §1.1 sizes; the default size of each detector is reused as ``patch_default``.
 SIZES = {"wcte": (8, 32, 128, 256), "sk": (43, 173, 692)}
-DOMAIN_COUNTS = {"photon": (2000, 2000), "muon": (1000, 1000), "electron": (1000, 1000)}
+#: photon bombs: all 3,400 of dev_probe_train (1,700 + 1,700); §M1.1 asks 2,000 + 2,000, which the
+#: cohort cannot supply (DECISIONS 2026-11-23). Muons and electrons: 1,000 + 1,000 as registered.
+DOMAIN_COUNTS = {"photon": (1700, 1700), "muon": (1000, 1000), "electron": (1000, 1000)}
 
 
 def configs_for(detector, names=None):
@@ -71,21 +73,25 @@ def load_events(detector, counts):
     n_pmt = dr.geometry(detector, dr.LUCID_V1).n_pmt
     want = {(d, part): counts[d][j] for d in counts for j, part in enumerate(("fit", "score"))}
     got = {key: ([], []) for key in want}
+    seen = {d: 0 for d in counts}  # runs containing domain d so far: alternate fit / score
     for i in range(len(cohort.run_ids)):
-        part = "fit" if i % 2 == 0 else "score"
-        if all(sum(len(x) for x in got[(d, part)][1]) >= want[(d, part)] for d in counts):
-            continue
         truth = cohort.run_truth(i)
-        store = cohort.run_store(i)
-        if not np.array_equal(np.asarray(store.event_ids), np.asarray(truth["event_ids"])):
-            raise RuntimeError(f"store/truth event order differs in run {cohort.run_ids[i]}")
         dom = truth["domain"].astype(str)
+        store = None
         for d in counts:
+            if not (dom == d).any():
+                continue
+            part = "fit" if seen[d] % 2 == 0 else "score"
+            seen[d] += 1
             have = sum(len(x) for x in got[(d, part)][1])
             need = want[(d, part)] - have
             if need <= 0:
                 continue
             idx = np.flatnonzero(dom == d)[:need]
+            if store is None:
+                store = cohort.run_store(i)
+                if not np.array_equal(np.asarray(store.event_ids), np.asarray(truth["event_ids"])):
+                    raise RuntimeError(f"store/truth event order differs in run {cohort.run_ids[i]}")
             if idx.size:
                 got[(d, part)][0].append(sb.targets_from_store(store, idx, n_pmt))
                 got[(d, part)][1].append(np.asarray(store.event_ids)[idx])
