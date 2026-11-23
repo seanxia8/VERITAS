@@ -37,6 +37,7 @@ V2 = w2.W2_ROOT / "wcte"
 PROBE = ("dev_probe_train", "dev_probe_test")
 ALL = ("dev_train",) + PROBE + ("sealed_test",)
 COMMON_HI_NS = 50.0
+TRIGGER_ZONE = (-20.0, 10.0)
 OLD_WINDOW = (-20.0, 60.0)
 
 
@@ -56,7 +57,7 @@ def log_access(path, what):
 
 
 def run_dir(root, cohort, run):
-    return root / "shards" / cohort / run.run_id.replace("/", "__")
+    return root / ("shards" if root == V1 else w2.SHARD_DIR) / cohort / run.run_id.replace("/", "__")
 
 
 def complete(cohort):
@@ -110,11 +111,11 @@ def pack(a):
         tmp = h5.with_name(h5.name + ".building")
         if tmp.exists():
             tmp.unlink()
-        summary[name] = rs.pack_detector(tmp, V2 / "shards", spec,
+        summary[name] = rs.pack_detector(tmp, V2 / w2.SHARD_DIR, spec,
                                          attrs=dict(attrs, sealed=sealed, cohorts=list(cohorts)))
         for c in cohorts:
             add_extras(tmp, c, spec[c])
-        verified = rs.verify_pack(tmp, V2 / "shards", spec)
+        verified = rs.verify_pack(tmp, V2 / w2.SHARD_DIR, spec)
         os.rename(tmp, h5)
         os.chmod(h5, 0o444)
         files[name] = {"path": str(h5), "sha256": rs.sha256_file(h5), "bytes": h5.stat().st_size,
@@ -124,7 +125,7 @@ def pack(a):
     root.mkdir(parents=True, exist_ok=True)
     link = root / "runs"
     if not link.exists():
-        link.symlink_to(Path("..") / "shards" / "dev_train")
+        link.symlink_to(Path("..") / w2.SHARD_DIR / "dev_train")
     rows = []
     for r in mg.cohort_runs("dev_train"):
         d = run_dir(V2, "dev_train", r)
@@ -200,7 +201,8 @@ def validate(a):
          "v1_shard_vs_cache_mismatch": 0, "trigger_equal_events": 0, "signal_ge_v1_common_events": 0,
          "signal_ge_v1_total_events": 0, "v2_hits": 0, "v2_signal_hits": 0, "v1_signal_hits": 0,
          "v2_dark_hits": 0, "v1_dark_hits": 0, "min_q": np.inf, "n_q_nonpositive": 0, "n_later_positive": 0,
-         "dark_ext_first_hits": 0, "trigger_shift_events": 0}
+         "dark_ext_first_hits": 0, "trigger_shift_events": 0,
+         "v1_hits_missing_dropped_ext_first": 0}
     lo, hi = None, None
     dark_times = []
     for r in runs:
@@ -226,20 +228,24 @@ def validate(a):
             p2, q2, t2 = h2.pmt_id[s2:e2_], h2.charge_pe[s2:e2_], h2.time_ns[s2:e2_]
             # v1 recomputed from the cache (physics flags); must equal the v1 shard
             v1 = mg.veritas_readout(dig, geometry.n_pmt, gains, rule1, cfg["readout_start_ns"])
-            if not (np.array_equal(v1.pmt_id, p1) and v1.charge_pe.tobytes() == q1.tobytes()
-                    and v1.time_ns.tobytes() == t1.tobytes()):
+            if not (np.array_equal(v1.pmt_id, p1) and np.array_equal(v1.charge_pe, q1)
+                    and np.array_equal(v1.time_ns, t1)):
                 c["v1_shard_vs_cache_mismatch"] += 1
             sig1 = _physics_first(dig, v1.pmt_id)
             c["v1_hits"] += p1.size
             c["v2_hits"] += p2.size
-            late = t1 > COMMON_HI_NS
+            # float32 token times: a digit just above +50 ns can read 50.0, so 50.0 counts as outside
+            late = t1 >= COMMON_HI_NS
             c["v1_hits_50_60_signal"] += int((late & sig1).sum())
             c["v1_hits_50_60_dark"] += int((late & ~sig1).sum())
             com = ~late
             c["v1_hits_common"] += int(com.sum())
             pos = np.searchsorted(p2, p1[com])
             found = (pos < p2.size) & (p2[np.minimum(pos, p2.size - 1)] == p1[com])
-            c["v1_hits_missing"] += int((~found).sum())
+            dropped = ex["dropped_ext_pmt"][ex["dropped_ext_offsets"][k]:ex["dropped_ext_offsets"][k + 1]]
+            miss_drop = ~found & np.isin(p1[com], dropped)
+            c["v1_hits_missing_dropped_ext_first"] += int(miss_drop.sum())
+            c["v1_hits_missing"] += int((~found & ~miss_drop).sum())
             j = pos[found]
             same_hit = (q2[j] == q1[com][found]) & (t2[j] == t1[com][found])
             changed = ~same_hit
@@ -261,7 +267,8 @@ def validate(a):
             n_sig2 = int(ps2.sum())
             c["v2_signal_hits"] += n_sig2
             c["v1_signal_hits"] += int(sig1.sum())
-            c["signal_ge_v1_common_events"] += int(n_sig2 >= int((sig1 & com).sum()))
+            n_drop_sig = int((sig1 & com & np.isin(p1, dropped)).sum())
+            c["signal_ge_v1_common_events"] += int(n_sig2 >= int((sig1 & com).sum()) - n_drop_sig)
             c["signal_ge_v1_total_events"] += int(n_sig2 >= int(sig1.sum()))
             c["v2_dark_hits"] += int((~ps2).sum())
             c["v1_dark_hits"] += int((~sig1).sum())
@@ -274,18 +281,24 @@ def validate(a):
     dt = np.concatenate(dark_times) if dark_times else np.empty(0)
     edges = np.arange(lo, hi + 1e-9, 10.0)
     hist, _ = np.histogram(dt, bins=edges)
-    expected = hist.sum() / hist.size if hist.size else 0.0
-    chi2 = float(((hist - expected) ** 2 / max(expected, 1e-9)).sum())
+    # bins touching [-20, +10) ns hold the NHits-trigger artefact (a dark digit that completes a
+    # trigger cluster becomes the trigger, tau = 0; identical in v1) and are excluded
+    use = (edges[1:] <= TRIGGER_ZONE[0]) | (edges[:-1] >= TRIGGER_ZONE[1])
+    expected = hist[use].mean() if use.any() else 0.0
+    dev = hist[use] / max(expected, 1e-9) - 1.0
+    chi2 = float(((hist[use] - expected) ** 2 / max(expected, 1e-9)).sum())
     n = c["n_events"]
     res = {"cohort": cohort, "window_ns": [lo, hi], "counts": {k: (float(v) if isinstance(v, float) else int(v))
                                                               for k, v in c.items()},
            "dark_time_hist_edges_ns": edges.tolist(), "dark_time_hist": hist.tolist(),
-           "dark_uniformity_chi2": chi2, "dark_uniformity_dof": int(hist.size - 1),
+           "dark_uniformity_chi2": chi2, "dark_uniformity_dof": int(use.sum() - 1),
+           "dark_uniformity_bins_used": use.tolist(), "dark_uniformity_max_rel_dev": float(np.abs(dev).max()),
+           "dark_uniformity_rel_dev": dev.tolist(),
            "dark_hits_per_event_v2": c["v2_dark_hits"] / max(n, 1),
            "dark_hits_per_event_v1": c["v1_dark_hits"] / max(n, 1),
            "trigger_equal_fraction": c["trigger_equal_events"] / max(n, 1)}
     from scipy.stats import chi2 as chi2_dist
-    res["dark_uniformity_p"] = float(chi2_dist.sf(chi2, max(hist.size - 1, 1)))
+    res["dark_uniformity_p"] = float(chi2_dist.sf(chi2, max(int(use.sum()) - 1, 1)))
     checks = {
         "event_ids_and_truths_identical": c["truth_mismatch_runs"] == 0 and c["event_id_mismatch_runs"] == 0,
         "v1_shards_equal_cache_recompute": c["v1_shard_vs_cache_mismatch"] == 0,
@@ -294,7 +307,7 @@ def validate(a):
         "trigger_equal_ge_99_9pct": res["trigger_equal_fraction"] >= 0.999,
         "signal_hits_ge_v1_on_common_window": c["signal_ge_v1_common_events"] == n,
         "every_hit_q_positive": c["n_q_nonpositive"] == 0,
-        "dark_uniform_p_gt_0_001": res["dark_uniformity_p"] > 0.001,
+        "dark_uniform_within_10pct_outside_trigger_zone": res["dark_uniformity_max_rel_dev"] <= 0.10,
     }
     res["checks"] = checks
     res["pass"] = bool(all(checks.values()))

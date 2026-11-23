@@ -58,7 +58,7 @@ def main():
     ap.add_argument("--runs", default="0:100000")
     ap.add_argument("--pre-ns", type=float, required=True)
     ap.add_argument("--post-ns", type=float, required=True)
-    ap.add_argument("--out", type=Path, default=w2.W2_ROOT / "wcte" / "shards")
+    ap.add_argument("--out", type=Path, default=w2.W2_ROOT / "wcte" / w2.SHARD_DIR)
     ap.add_argument("--access-log", type=Path, default=None,
                     help="sealed_test: append one line (packing only, no metrics) before reading")
     a = ap.parse_args()

@@ -38,6 +38,12 @@ __all__ = ["DATASET_KIND_W2", "W2_ROOT", "window_rule", "uncovered_intervals", "
 DATASET_KIND_W2 = "lucid_v1_w2"
 W2_ROOT = Path("/ceph/dwong/jepa/data/lucid_v1_w2")
 EXTRA_FIELDS = ("n_later", "q_total_window", "physics_first", "dark_ext_first")
+#: Dark-extension photoelectrons start this far before the window start. A digit's time is its
+#: first photoelectron plus LUCiD's jitter, so photoelectrons generated only from the window start
+#: would leave a jitter-wide deficit of dark digits at the window edge (W2 validation, 24 Nov).
+EXT_MARGIN_NS = 20.0
+#: Final shard root (``shards/`` holds a superseded first pass without the margin; never read).
+SHARD_DIR = "shards_final"
 
 
 def window_rule(base_rule: dict, pre_ns: float, post_ns: float) -> dict:
@@ -59,8 +65,13 @@ def _first_digit_times(dig: dict) -> np.ndarray:
     return t[first]
 
 
-def uncovered_intervals(dig: dict, rule: dict, pad_ns: float) -> tuple[list, dict]:
-    """Parts of ``[trigger - P, trigger + A]`` outside the cached dark span (trigger on cached digits)."""
+def uncovered_intervals(dig: dict, rule: dict, pad_ns: float,
+                        margin_ns: float = EXT_MARGIN_NS) -> tuple[list, dict]:
+    """Parts of ``[trigger - P, trigger + A]`` outside the cached dark span (trigger on cached digits).
+
+    The returned generation intervals extend ``margin_ns`` beyond the window edges (see
+    ``EXT_MARGIN_NS``); the reported uncovered lengths are inside the window only.
+    """
     n, w = int(rule["n"]), float(rule["trigger_window_ns"])
     lo, hi = (float(v) for v in rule["prompt_window_ns"])
     phys = np.asarray(dig["physics"], bool)
@@ -73,10 +84,10 @@ def uncovered_intervals(dig: dict, rule: dict, pad_ns: float) -> tuple[list, dic
     win_lo, win_hi = trig + lo, trig + hi
     out = []
     if win_lo < cov_lo:
-        out.append((win_lo, min(cov_lo, win_hi)))
+        out.append((win_lo - margin_ns, min(cov_lo, win_hi)))
         info["pre_uncovered_ns"] = float(min(cov_lo, win_hi) - win_lo)
     if win_hi > cov_hi:
-        out.append((max(cov_hi, win_lo), win_hi))
+        out.append((max(cov_hi, win_lo), win_hi + margin_ns))
         info["post_uncovered_ns"] = float(win_hi - max(cov_hi, win_lo))
     return out, info
 
@@ -207,7 +218,9 @@ def veritas_readout_w2(dig: dict, n_pmt: int, gains: np.ndarray, rule: dict, rea
                          trigger_ns=None if trigger is None else float(trigger),
                          source_trigger_ns=None if source_trigger is None else float(source_trigger))
     extra = {"n_later": (n_in[keep] - 1).astype(np.int16), "q_total_window": q_in[keep].astype(np.float32),
-             "physics_first": phys[keep].astype(bool), "dark_ext_first": ext[keep].astype(bool)}
+             "physics_first": phys[keep].astype(bool), "dark_ext_first": ext[keep].astype(bool),
+             # PMTs dropped because an added dark digit now opens their first window outside the window
+             "dropped_ext_pmt": s[~keep & ext].astype(np.int32)}
     return ReadoutW2(hits, extra)
 
 
@@ -215,7 +228,10 @@ def _extra_store(readouts) -> dict:
     out = {k: np.concatenate([r.extra[k] for r in readouts]) if readouts else np.empty(0)
            for k in EXTRA_FIELDS}
     offsets = np.concatenate([[0], np.cumsum([len(r.hits) for r in readouts])]).astype(np.int64)
-    return dict(out, offsets=offsets)
+    drop = [r.extra["dropped_ext_pmt"] for r in readouts]
+    drop_offsets = np.concatenate([[0], np.cumsum([d.size for d in drop])]).astype(np.int64)
+    return dict(out, offsets=offsets, dropped_ext_offsets=drop_offsets,
+                dropped_ext_pmt=np.concatenate(drop).astype(np.int32) if drop else np.empty(0, np.int32))
 
 
 def write_run_w2(directory, run, event_ids, truths, stats, readouts, twin_readouts, state_sha256,
@@ -266,7 +282,8 @@ def write_run_w2(directory, run, event_ids, truths, stats, readouts, twin_readou
         "repack_code_sha": provenance.get("repack_code_sha"),
         "twin_present": twin_readouts is not None, "expected_pe_pmt_present": False,
         "n_hits": int(sum(len(r.hits) for r in readouts)), "extra_fields": list(EXTRA_FIELDS),
-        "dark_extension": ext, **record,
+        "dark_extension": ext, "dark_extension_margin_ns": EXT_MARGIN_NS,
+        "n_dropped_ext_first": int(sum(r.extra["dropped_ext_pmt"].size for r in readouts)), **record,
         "regime": {"true_pe_quantiles_5_50_95": [float(np.quantile([s["true_pe"] for s in stats], q))
                                                   for q in (0.05, 0.5, 0.95)],
                    "n_lucid_untriggered": int(sum(not s["lucid_triggered"] for s in stats)),
