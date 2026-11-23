@@ -81,6 +81,7 @@ def study(det, pad_ns):
     uncovered = {f"{p}_{a}": {"pre_frac": 0, "pre_len": [], "post_frac": 0, "post_len": []}
                  for p in P_GRID for a in A_GRID}
     n_no_trigger, n_no_signal = 0, 0
+    cov_rows = []
     first_sig_rel_by_domain = {d: [] for d in QUOTA}
     for domain, dig in events(det):
         s, t, phys = (np.asarray(dig[k]) for k in ("sensor", "t", "physics"))
@@ -127,6 +128,7 @@ def study(det, pad_ns):
         d_rel = rel[~phys]
         dark_rel.append(d_rel)
         cov_lo, cov_hi = tpmin - pad_ns - trig, tpmax + pad_ns - trig
+        cov_rows.append((cov_lo, cov_hi))
         for p in P_GRID:
             for a in A_GRID:
                 key = f"{p}_{a}"
@@ -189,6 +191,18 @@ def study(det, pad_ns):
                                       "they fall off where the cached span [t_phys,min - pad, t_phys,max + pad] ends")
     if det == "wcte":
         out["w1"] = w1_rule(tme, fsr, out)
+        p, a = out["w1"]["P_ns"], out["w1"]["A_ns"]
+        cov = np.asarray(cov_rows)
+        pre = np.maximum(0.0, cov[:, 0] + p)
+        post = np.maximum(0.0, a - cov[:, 1])
+        n_dark = np.asarray([int(((d >= -p) & (d <= a)).sum()) for d in dark_rel])
+        out["w1"]["coverage"] = {
+            "pre_uncovered_event_fraction": float((pre > 0).mean()), "pre_uncovered_mean_ns": float(pre.mean()),
+            "post_uncovered_event_fraction": float((post > 0).mean()), "post_uncovered_mean_ns": float(post.mean()),
+            "cached_dark_digits_per_event_in_window": float(n_dark.mean()),
+            "events_covered_without_extension_fraction": float(((pre == 0) & (post == 0)).mean()),
+            "largest_P_covered_by_99pct_events_ns": float(np.floor(np.quantile(-cov[:, 0], 0.01)))}
+        out["w1"]["old_window_signal_first_per_pmt_in_50_60_fraction"] = float(((fsr > 50) & (fsr <= 60)).mean())
     out["first_per_pmt_by_domain"] = {d: quant(np.concatenate(v)) if v else None
                                       for d, v in first_sig_rel_by_domain.items()}
     return out
@@ -262,15 +276,19 @@ def merge(src, out_dir):
               f"({100*w['first_per_pmt_fraction_in_window']:.2f} % inside).",
               f"- WCTE window: **[−{w['P_ns']:.0f} ns, +{w['A_ns']:.0f} ns]** around the NHits trigger (old: [−20, +60] ns).", ""]
     rw = res["wcte"]
-    key = f"{int(w['P_ns'])}_{int(w['A_ns'])}" if f"{int(w['P_ns'])}_{int(w['A_ns'])}" in rw["dark"]["coverage"] else None
-    if key:
-        c = rw["dark"]["coverage"][key]
+    c = w.get("coverage")
+    if c:
         lines.append(f"- Coverage by the cached dark-noise span at this window: pre-trigger side uncovered in "
                      f"{100*c['pre_uncovered_event_fraction']:.1f} % of events (mean {c['pre_uncovered_mean_ns']:.1f} ns), "
                      f"post-trigger side in {100*c['post_uncovered_event_fraction']:.1f} % (mean {c['post_uncovered_mean_ns']:.1f} ns). "
                      "W2 fills the uncovered parts with LUCiD dark noise.")
         lines.append(f"- Dark digits per event inside the window from the cache (before extension): "
-                     f"{rw['dark']['per_event_in_window_mean'][key]:.2f}.")
+                     f"{c['cached_dark_digits_per_event_in_window']:.2f}; events fully covered without extension: "
+                     f"{100*c['events_covered_without_extension_fraction']:.1f} %; largest P covered in >= 99 % of events "
+                     f"without extension: {c['largest_P_covered_by_99pct_events_ns']:.0f} ns.")
+        lines.append(f"- A = {w['A_ns']:.0f} ns is shorter than the old end (+60 ns): first-per-PMT signal digits in (50, 60] ns "
+                     f"are {100*w['old_window_signal_first_per_pmt_in_50_60_fraction']:.4f} % of all; no WCTE PMT has a "
+                     "second digit (the 200 ns integration window spans the whole event), so there is no separate late light.")
     lines += ["", "## Dark noise uniformity (WCTE, digits per 100 ns rel. trigger, all events)", "",
               "| bin start [ns] | " + " | ".join(f"{e:g}" for e in rw["dark"]["uniformity_hist_edges_ns"][:-1]) + " |",
               "|---|" + "---|" * len(rw["dark"]["uniformity_hist"]),
