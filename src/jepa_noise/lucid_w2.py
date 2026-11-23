@@ -9,7 +9,8 @@ simulates physics.
 
 **Dark-noise extension.** The cache holds LUCiD dark noise only over
 ``[first deposit - 100 ns, last deposit + 100 ns]``; deposit times are not cached, so the earliest
-and latest physics digit are their proxies. Every part of ``[trigger - P, trigger + A]`` outside
+physics digit with a physics neighbour within 20 ns (:func:`first_light_proxy`) and the latest
+physics digit are their proxies. Every part of ``[trigger - P, trigger + A]`` outside
 that span gets dark photoelectrons from LUCiD's ``generate_dark_noise`` (the digitizer's rate, all
 PMTs), passed through the same LUCiD chain as :func:`lucid_mc_generator.electronics`
 (``digitize_event``, ``apply_readout_resolution`` without TDC, the per-PMT width factor, TDC
@@ -32,7 +33,7 @@ from . import lucid_bombs as lb
 from . import lucid_mc_generator as mg
 from noise_module_lucid.readout import nhits_trigger_time, prompt_window_mask
 
-__all__ = ["DATASET_KIND_W2", "W2_ROOT", "window_rule", "uncovered_intervals", "dark_extension",
+__all__ = ["first_light_proxy", "DATASET_KIND_W2", "W2_ROOT", "window_rule", "uncovered_intervals", "dark_extension",
            "merge_digits", "veritas_readout_w2", "write_run_w2", "EXTRA_FIELDS"]
 
 DATASET_KIND_W2 = "lucid_v1_w2"
@@ -42,8 +43,23 @@ EXTRA_FIELDS = ("n_later", "q_total_window", "physics_first", "dark_ext_first")
 #: first photoelectron plus LUCiD's jitter, so photoelectrons generated only from the window start
 #: would leave a jitter-wide deficit of dark digits at the window edge (W2 validation, 24 Nov).
 EXT_MARGIN_NS = 20.0
-#: Final shard root (``shards/`` holds a superseded first pass without the margin; never read).
-SHARD_DIR = "shards_final"
+#: Final shard root (``shards/`` and ``shards_final/`` hold superseded passes; never read).
+SHARD_DIR = "shards_w2"
+#: First-light proxy: the earliest physics digit with at least one more physics digit within this
+#: many ns. LUCiD flags a digit as physics when its integration window holds any physics
+#: photoelectron, so a dark photoelectron that opens a window on a PMT later hit by light makes an
+#: early "physics" digit (uniform over the 100 ns dark pad, ~0.3 per event). The plain earliest
+#: physics digit is then far earlier than the first deposit; requiring a neighbour removes it.
+FIRST_LIGHT_WINDOW_NS = 20.0
+
+
+def first_light_proxy(t_phys) -> float:
+    """Earliest physics digit followed by another physics digit within ``FIRST_LIGHT_WINDOW_NS``."""
+    tp = np.sort(np.asarray(t_phys, float))
+    if tp.size < 2:
+        return float(tp[0])
+    ok = np.flatnonzero(tp[1:] - tp[:-1] <= FIRST_LIGHT_WINDOW_NS)
+    return float(tp[ok[0]] if ok.size else tp[0])
 
 
 def window_rule(base_rule: dict, pre_ns: float, post_ns: float) -> dict:
@@ -80,7 +96,7 @@ def uncovered_intervals(dig: dict, rule: dict, pad_ns: float,
     info = {"trigger_cached": trig, "pre_uncovered_ns": 0.0, "post_uncovered_ns": 0.0}
     if trig is None or not phys.any():
         return [], info
-    cov_lo, cov_hi = float(t[phys].min()) - pad_ns, float(t[phys].max()) + pad_ns
+    cov_lo, cov_hi = first_light_proxy(t[phys]) - pad_ns, float(t[phys].max()) + pad_ns
     win_lo, win_hi = trig + lo, trig + hi
     out = []
     if win_lo < cov_lo:
@@ -283,6 +299,7 @@ def write_run_w2(directory, run, event_ids, truths, stats, readouts, twin_readou
         "twin_present": twin_readouts is not None, "expected_pe_pmt_present": False,
         "n_hits": int(sum(len(r.hits) for r in readouts)), "extra_fields": list(EXTRA_FIELDS),
         "dark_extension": ext, "dark_extension_margin_ns": EXT_MARGIN_NS,
+        "first_light_proxy": f"earliest physics digit with a physics neighbour within {FIRST_LIGHT_WINDOW_NS:g} ns",
         "n_dropped_ext_first": int(sum(r.extra["dropped_ext_pmt"].size for r in readouts)), **record,
         "regime": {"true_pe_quantiles_5_50_95": [float(np.quantile([s["true_pe"] for s in stats], q))
                                                   for q in (0.05, 0.5, 0.95)],
