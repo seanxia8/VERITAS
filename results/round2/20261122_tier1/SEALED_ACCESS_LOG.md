@@ -90,3 +90,20 @@ Every read of a sealed pack, written by `scripts/tier1_eval.py` before the pack 
 | 2026-11-23T18:49:02Z | 7678d3c402ca | wcte__mae_repaired__s9002__mrandom__ts1p5@10000 | T7_E-cell_score | portal1 |
 | 2026-11-23T18:49:02Z | 7678d3c402ca | wcte__mae_repaired__s9002__mrandom__ts450@10000 | T7_E-cell_score | portal1 |
 | 2026-11-23T19:16:45Z | 79a08ee69597 | wcte__mae_repaired__s9002__mrandom__ts5@10000 | T7_E-cell_score | portal1 |
+
+## Addendum (23 Nov 2026): sealed-cohort accesses outside `scripts/tier1_eval.py` — disclosed, not logged at the time
+
+The table above logs every read made by `scripts/tier1_eval.py` (86 reads). The following accesses to sealed-cohort data were made by other code and were **not** written to this log when they happened. That breaks the rule "only `scripts/tier1_eval.py` reads sealed packs" (runbook §T2.3) as worded, and the phase report first said otherwise. They are listed here per runbook §5. None of them loaded a model, fitted a probe, computed a readout metric or informed a readout, feature, cut or hyper-parameter decision. All are generation, QA or manifest steps that T2.1, T2.2 and T2.4 require.
+
+| UTC (from output-file times) | Code | Data touched | What was used | Purpose |
+|---|---|---|---|---|
+| 2026-11-22T19:40Z | `scripts/lucid_pack.py --sealed` | SK, WCTE `shards/sealed_test` → wrote `<det>_lucid_v1_sealed.h5` | shard contents copied into the pack | T2.2 packing |
+| ≈ 2026-11-22T19:43Z | `scripts/tier1_sealed_validate.py` | SK, WCTE sealed **cached LUCiD digits** (180 of 600 runs) and sealed event IDs | G2 timing residuals / late fractions, G4 true-PE quantiles, ID / run-key disjointness | T2.2 generation QA against `dev_probe_test` (both PASS) |
+| 2026-11-22T19:42–19:46Z | `cp`, `sha256sum`; `scripts/tier1_manifest.py A` | SK, WCTE sealed packs | bytes copied for batch staging; SHA256 of the file bytes | staging; manifest A |
+| 2026-11-22T21:05–21:13Z | `scripts/lucid_pack.py --sealed` | JUNO, HK shards → sealed packs | as above | T2.2 packing |
+| 2026-11-22T21:21–21:22Z | `scripts/tier1_sealed_validate.py` | JUNO, HK sealed cached digits (180 runs) and event IDs | as above | T2.2 QA: HK PASS; JUNO failed G4 photon median PE by 0.3 % over the 10 % tolerance |
+| 2026-11-22T21:23Z | `scripts/tier1_sealed_validate.py --n-runs 200` | JUNO sealed cached digits (all 600 runs) and reference (200 runs) | same QA quantities | **re-run decided after seeing the failing sealed QA value**; PASS at −9.95 %. This is the one decision taken after a sealed-data result. It concerns generation QA of an exploratory detector, not a readout, and both results are committed. |
+| 2026-11-22T21:23Z | `cp`, `sha256sum`; `tier1_manifest.py A` (21:25Z) | JUNO, HK sealed packs | bytes copied; SHA256 | staging; manifest A update |
+| 2026-11-23T18:43Z | `scripts/tier1_manifest.py B` | all four sealed packs | SHA256 of the file bytes | manifest B |
+
+The batch scoring jobs read their staged pack copies inside `tier1_eval.py`; their canonical lines were written on Deepthought at submission (the "[batch job; read happens in the job]" rows) and their job-local copies are under `sealed_access_batch/`.

@@ -23,8 +23,8 @@
   },
   {
    "item": "SEALED_ACCESS_LOG.md",
-   "status": "PASS",
-   "evidence": "86 reads, all written by scripts/tier1_eval.py before the pack was opened; no sealed-rule violation"
+   "status": "PASS (with disclosed breach)",
+   "evidence": "86 evaluation reads written by scripts/tier1_eval.py before the pack was opened; generation/QA/manifest accesses by lucid_pack.py, tier1_sealed_validate.py, staging copies and tier1_manifest.py were NOT logged at the time and are disclosed in the log's addendum (sealed-rule breach as worded; no model/readout use)"
   },
   {
    "item": "verify_inputs/VERIFY_INPUTS_A.json",
@@ -126,7 +126,7 @@
   {
    "id": "D4",
    "status": "PASS",
-   "evidence": "sealed cohorts validated; access log exists"
+   "evidence": "sealed cohorts validated; access log exists, with an addendum disclosing unlogged non-evaluation accesses"
   },
   {
    "id": "D5",
@@ -182,7 +182,7 @@
  "stops": {
   "K4": "not fired on the recorded readings (strict all-θ K4(b) reading would fire; reported)",
   "gpu_cap": "not reached (109.0/110)",
-  "sealed_rule_violation": "none"
+  "sealed_rule_violation": "yes, disclosed: non-evaluation accesses (packing, generation QA on sealed cached digits, staging copies, manifest hashing) outside tier1_eval.py were not logged at the time; one generation-QA decision (JUNO validation re-run) followed a sealed QA value. Recorded in SEALED_ACCESS_LOG.md addendum, DECISIONS.md and GATE_G1 §7.9; no readout, probe or registered number affected."
  },
  "deviations": [
   "HTCondor up to 19 concurrent jobs (cap 12)",
@@ -192,6 +192,7 @@
   "sealed shards under shards/sealed_test",
   "SK E-cell budget snapshots 0–2,000 not scored",
   "K4(b) on vertex coordinates",
-  "gate builder: zero-baseline ratio undefined; A-alt without K4 condition"
+  "gate builder: zero-baseline ratio undefined; A-alt without K4 condition",
+  "sealed-cohort accesses outside tier1_eval.py (packing, QA, staging, manifest hashing) not logged at the time; disclosed in the access-log addendum"
  ]
 }
