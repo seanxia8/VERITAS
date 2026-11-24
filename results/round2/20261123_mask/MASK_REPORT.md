@@ -1,6 +1,6 @@
 # MASK_REPORT — r2-mask: shortcut budget, mask scale, readout-seeded LUCiD fit (23–24 Nov 2026)
 
-Runbook `docs/round2/RUNBOOK_2026-11-23_R2_MASK_SCALE.md`; pre-registration `docs/round2/PREREG_2026-11-23_R2_MASK.md` (§1 verbatim, M1 numbers and the M3 expectation), pushed at 19:50 UTC on 23 Nov (2c0204b), before any M2 checkpoint was scored. The first sealed read came after the push. Details: `SHORTCUT_BUDGET.md`, `MASK_SCALE.md` (+ `.png`), `SEED_TEST.md`, `SEALED_ACCESS_LOG.md` (47 reads, all through `scripts/tier1_eval.py`). GPU: 34.0 of 40 GPU-h (`R2_mask_gpu`).
+Runbook `docs/round2/RUNBOOK_2026-11-23_R2_MASK_SCALE.md`; pre-registration `docs/round2/PREREG_2026-11-23_R2_MASK.md` (§1 verbatim, M1 numbers and the M3 expectation), pushed at 19:50 UTC on 23 Nov (2c0204b), before any M2 checkpoint was scored. The first sealed read came after the push. Details: `SHORTCUT_BUDGET.md`, `MASK_SCALE.md` (+ `.png`), `SEED_TEST.md`, `SEALED_ACCESS_LOG.md` (51 reads, all through `scripts/tier1_eval.py`). GPU: 36.0 of 40 GPU-h (`R2_mask_gpu`).
 
 ## 1. Shortcut budget (M1, no network; photon bombs, scoring events)
 
@@ -58,7 +58,7 @@ Good-basin fraction is the share of events whose final error is ≤ 2 × the med
 - **M1 photon-bomb counts:** 1,700 + 1,700 events (the whole `dev_probe_train` cohort) instead of 2,000 + 2,000.
 - **M1 targets and masks:** targets follow the code's `mae_repaired` loss (ln q unscaled, not /3). Masks use n_min = 0, so every configuration sees the same events.
 - **Reused runs:** the r2-tier1 and r2-lucid runs were re-scored from their checkpoints, read-only, into the r2-mask tree.
-- **Step 5,000:** scored on SK only for the Q4 cells; on WCTE it was scored for every run.
+- **Step 5,000:** scored for every cell on both detectors (the four new SK cells were added after a first pass that covered only the Q4 cells; verdicts unchanged).
 - **Matched init:** one step-0 score per seed. The weights are identical across masks (hash-verified).
 - **M3 truth start:** re-fitted in the same job rather than read from the r2-tier1 Y2 output.
 - **Batch tooling:** `tier1_eval_batch.py` now honours an r2-mask job tree and access log. The collector's `.prev_` copies are confined to the r2-mask returns.

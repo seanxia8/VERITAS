@@ -4630,6 +4630,39 @@
      "kind": "train",
      "gpu_h": 0.436,
      "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "meval5k_sk_ps43_B",
+     "cluster": "760026",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__ps43 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v1",
+     "gpu_h": 0.482
+    },
+    {
+     "job": "meval5k_sk_ps692_A",
+     "cluster": "760025",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__ps692 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v",
+     "gpu_h": 0.493,
+     "note": "receipt had no wall time; condor_history RemoteWallClockTime 1775 s"
+    },
+    {
+     "job": "meval5k_sk_ps43_A",
+     "cluster": "760024",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__ps43 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v1",
+     "gpu_h": 0.499
+    },
+    {
+     "job": "meval5k_sk_ps692_B",
+     "cluster": "760027",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__ps692 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v",
+     "gpu_h": 0.477
     }
    ],
    "cpu_entries": [
@@ -4649,7 +4682,7 @@
      "core_h": 140.0
     }
    ],
-   "total_gpu_h": 34.0,
+   "total_gpu_h": 35.95,
    "note": "r2-mask: batch receipts in /ceph/dwong/jepa/returns/r2_mask_2026-11-23/ledger/receipts.jsonl; deepthought2 from run_status.json wall time; CPU core-hours approximate"
   }
  },

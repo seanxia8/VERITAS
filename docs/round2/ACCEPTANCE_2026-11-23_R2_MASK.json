@@ -40,7 +40,8 @@
     "e280fb7",
     "e993435",
     "03b8b25",
-    "31661cb"
+    "31661cb",
+    "step-5000 completion (this commit)"
    ],
    "review": {
     "type": "fresh-context subagent",
@@ -113,7 +114,8 @@
     "KM": {
      "fires": false
     }
-   }
+   },
+   "scoring": "validation and sealed; matched init (step 0 per seed) and steps 5,000 and 10,000 for every cell on WCTE and SK"
   },
   "M3": {
    "done": true,
@@ -140,14 +142,14 @@
  },
  "sealed_access": {
   "log": "results/round2/20261123_mask/SEALED_ACCESS_LOG.md",
-  "reads": 47,
+  "reads": 51,
   "only_through": "scripts/tier1_eval.py (SHA256 39860c09... pinned by READOUT_SPEC_v1)"
  },
  "gpu": {
   "line": "R2_mask_gpu",
   "cap_h": 40.0,
-  "used_h": 34.0,
-  "batch_h": 28.4,
+  "used_h": 35.95,
+  "batch_h": 30.35,
   "deepthought2_h": 5.6
  },
  "tests": {

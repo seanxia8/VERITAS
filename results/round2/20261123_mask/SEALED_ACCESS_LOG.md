@@ -51,5 +51,9 @@ Copy of the canonical log `/ceph/dwong/jepa/returns/r2_mask_2026-11-23/SEALED_AC
 | 2026-11-24T02:06:16Z | 87628ef6eca3 | sk__mae_repaired__s9000__ps692@10000 | r2-mask_M2_SK_ps692_A [batch job; read happens in the job] | deepthought |
 | 2026-11-24T02:16:37Z | 87628ef6eca3 | sk__mae_repaired__s9001__ps43@10000 | r2-mask_M2_SK_ps43_B [batch job; read happens in the job] | deepthought |
 | 2026-11-24T02:36:59Z | 87628ef6eca3 | sk__mae_repaired__s9001__ps692@10000 | r2-mask_M2_SK_ps692_B [batch job; read happens in the job] | deepthought |
+| 2026-11-24T04:26:44Z | f1de6d11e209 | sk__mae_repaired__s9000__ps43@05000 | r2-mask_M2_SK_ps43_A_step5000 [batch job; read happens in the job] | deepthought |
+| 2026-11-24T04:26:45Z | f1de6d11e209 | sk__mae_repaired__s9000__ps692@05000 | r2-mask_M2_SK_ps692_A_step5000 [batch job; read happens in the job] | deepthought |
+| 2026-11-24T04:26:47Z | f1de6d11e209 | sk__mae_repaired__s9001__ps43@05000 | r2-mask_M2_SK_ps43_B_step5000 [batch job; read happens in the job] | deepthought |
+| 2026-11-24T04:26:48Z | f1de6d11e209 | sk__mae_repaired__s9001__ps692@05000 | r2-mask_M2_SK_ps692_B_step5000 [batch job; read happens in the job] | deepthought |
 
-47 reads. Batch-job local logs: `meval_sk_def_A_759995.md`, `meval_sk_def_B_760001.md`, `meval_sk_ps43_A_759999.md`, `meval_sk_ps43_B_760008.md`, `meval_sk_ps692_A_760007.md`, `meval_sk_ps692_B_760011.md`, `meval_sk_rnd_A_759998.md`, `meval_sk_rnd_B_760004.md`.
+51 reads. Batch-job local logs: `meval5k_sk_ps43_A_760024.md`, `meval5k_sk_ps43_B_760026.md`, `meval5k_sk_ps692_A_760025.md`, `meval5k_sk_ps692_B_760027.md`, `meval_sk_def_A_759995.md`, `meval_sk_def_B_760001.md`, `meval_sk_ps43_A_759999.md`, `meval_sk_ps43_B_760008.md`, `meval_sk_ps692_A_760007.md`, `meval_sk_ps692_B_760011.md`, `meval_sk_rnd_A_759998.md`, `meval_sk_rnd_B_760004.md`.
