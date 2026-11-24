@@ -1,0 +1,49 @@
+{
+ "cohort": "dev_probe_test (lucid_v1_w2, validation only)",
+ "count_calibration": {
+  "C3": {
+   "mean_abs_rel_error": 0.081735392455861,
+   "median_pred_over_true": 1.024901819448711,
+   "n_events": 1000,
+   "pearson": 0.995540957740829,
+   "slope_pred_on_true": 1.019157132146114
+  },
+  "S1": {
+   "mean_abs_rel_error": 0.06750990419130079,
+   "median_pred_over_true": 1.001803391023253,
+   "n_events": 1000,
+   "pearson": 0.9970061300192541,
+   "slope_pred_on_true": 0.9929011692956072
+  },
+  "S1n": {
+   "mean_abs_rel_error": 0.06785172677041051,
+   "median_pred_over_true": 1.0045457399392634,
+   "n_events": 1000,
+   "pearson": 0.9969383580383687,
+   "slope_pred_on_true": 0.9939721046925856
+  },
+  "S1p": {
+   "mean_abs_rel_error": 0.06794913818082375,
+   "median_pred_over_true": 1.0006158711188449,
+   "n_events": 1000,
+   "pearson": 0.9969260489010637,
+   "slope_pred_on_true": 0.9876496042110572
+  }
+ },
+ "map_events": [
+  1210000,
+  1210001,
+  1210002,
+  1210003,
+  1210004,
+  1210005
+ ],
+ "s2_mass": {
+  "direct_indirect_split": "not available: the LUCiD cache keeps only a physics flag per digit",
+  "fraction_mass_on_other_block_hidden_hits": 0.6589355122365328,
+  "fraction_mass_on_own_block_hidden_hits": 0.07799836240924402,
+  "fraction_mass_on_unhit": 0.263066134494245,
+  "n_queries": 565152
+ },
+ "seed": 9000
+}

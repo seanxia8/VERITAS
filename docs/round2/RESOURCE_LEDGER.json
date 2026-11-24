@@ -5468,6 +5468,355 @@
      "stop": "T-S1"
     }
    }
+  },
+  "R2_sparse_gpu": {
+   "authority": "RUNBOOK_2026-11-24_R2_SPARSE_WCTE.md \u00a70.3",
+   "cap_h": 28.0,
+   "cpu_entries": [],
+   "entries": [
+    {
+     "job": "sparse_train_C2_s9001 (759989)",
+     "kind": "train",
+     "gpu_h": 0.5083333333333333,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_C3_s9001 (759990)",
+     "kind": "train",
+     "gpu_h": 0.5561111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S1_s9001 (759991)",
+     "kind": "train",
+     "gpu_h": 0.4775,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S2_s9001 (759992)",
+     "kind": "train",
+     "gpu_h": 0.4875,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_C2_s9002 (760002)",
+     "kind": "train",
+     "gpu_h": 0.5002777777777778,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_C3_s9002 (760003)",
+     "kind": "train",
+     "gpu_h": 0.5386111111111112,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S1_s9002 (760005)",
+     "kind": "train",
+     "gpu_h": 0.4875,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S2_s9002 (760006)",
+     "kind": "train",
+     "gpu_h": 0.5044444444444445,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_C1_s9001 (760009)",
+     "kind": "train",
+     "gpu_h": 0.5991666666666666,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S1p_s9001 (760010)",
+     "kind": "train",
+     "gpu_h": 0.5288888888888889,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_C1_s9002 (760013)",
+     "kind": "train",
+     "gpu_h": 0.5666666666666667,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S1p_s9002 (760014)",
+     "kind": "train",
+     "gpu_h": 0.6261111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9001__dw2_0 (760019)",
+     "kind": "eval",
+     "gpu_h": 0.16361111111111112,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9001__dw2_10000 (760018)",
+     "kind": "eval",
+     "gpu_h": 0.16194444444444445,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S1n_s9001 (760016)",
+     "kind": "train",
+     "gpu_h": 0.7036111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_train_S1n_s9002 (760017)",
+     "kind": "train",
+     "gpu_h": 0.6580555555555555,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__mae_repaired__s9002__dw2__lfixed__psent__efourier__disol__cnt_0 (760020)",
+     "kind": "eval",
+     "gpu_h": 0.16416666666666666,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9000__dw2__qall_0 (760022)",
+     "kind": "eval",
+     "gpu_h": 0.1763888888888889,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9000__dw2__qall_10000 (760021)",
+     "kind": "eval",
+     "gpu_h": 0.17305555555555555,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9002__dw2__qall_10000 (760023)",
+     "kind": "eval",
+     "gpu_h": 0.16083333333333333,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__mae_repaired__s9001__dw2_0 (760031)",
+     "kind": "eval",
+     "gpu_h": 0.1502777777777778,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__mae_repaired__s9001__dw2_10000 (760030)",
+     "kind": "eval",
+     "gpu_h": 0.1686111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9002__dw2_0 (760029)",
+     "kind": "eval",
+     "gpu_h": 0.1736111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9002__dw2_10000 (760028)",
+     "kind": "eval",
+     "gpu_h": 0.1686111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__mae_repaired__s9000__dw2_10000 (760035)",
+     "kind": "eval",
+     "gpu_h": 0.16305555555555556,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__mae_repaired__s9002__dw2_0 (760032)",
+     "kind": "eval",
+     "gpu_h": 0.145,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9002__dw2__qpos_0 (760034)",
+     "kind": "eval",
+     "gpu_h": 0.1411111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9002__dw2__qpos_10000 (760033)",
+     "kind": "eval",
+     "gpu_h": 0.14916666666666667,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9000__dw2__qpos_0 (760037)",
+     "kind": "eval",
+     "gpu_h": 0.1525,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9000__dw2__qpos_10000 (760036)",
+     "kind": "eval",
+     "gpu_h": 0.16444444444444445,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9000__dw2__qneg_0 (760039)",
+     "kind": "eval",
+     "gpu_h": 0.15666666666666668,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9000__dw2__qneg_10000 (760038)",
+     "kind": "eval",
+     "gpu_h": 0.15583333333333332,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse_smoke_C1",
+     "kind": "smoke",
+     "gpu_h": 0.005830555555555555,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:15:44Z"
+    },
+    {
+     "job": "sparse_smoke_C2",
+     "kind": "smoke",
+     "gpu_h": 0.003522222222222222,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:15:58Z"
+    },
+    {
+     "job": "sparse_smoke_C3",
+     "kind": "smoke",
+     "gpu_h": 0.002736111111111111,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:16:08Z"
+    },
+    {
+     "job": "sparse_smoke_S1n",
+     "kind": "smoke",
+     "gpu_h": 0.002713888888888889,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:16:29Z"
+    },
+    {
+     "job": "sparse_smoke_S1p",
+     "kind": "smoke",
+     "gpu_h": 0.002736111111111111,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:16:39Z"
+    },
+    {
+     "job": "sparse_smoke_S1",
+     "kind": "smoke",
+     "gpu_h": 0.0026499999999999996,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:16:18Z"
+    },
+    {
+     "job": "sparse_smoke_S2",
+     "kind": "smoke",
+     "gpu_h": 0.0027333333333333333,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T00:16:50Z"
+    },
+    {
+     "job": "sparse_train_C1_s9000",
+     "kind": "train",
+     "gpu_h": 0.8831277777777778,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T03:54:36Z"
+    },
+    {
+     "job": "sparse_train_C2_s9000",
+     "kind": "train",
+     "gpu_h": 0.8829388888888888,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T01:20:25Z"
+    },
+    {
+     "job": "sparse_train_C3_s9000",
+     "kind": "train",
+     "gpu_h": 0.4915583333333333,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T01:49:56Z"
+    },
+    {
+     "job": "sparse_train_S1n_s9000",
+     "kind": "train",
+     "gpu_h": 1.8694555555555556,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T06:07:59Z"
+    },
+    {
+     "job": "sparse_train_S1p_s9000",
+     "kind": "train",
+     "gpu_h": 0.3529777777777778,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T04:15:48Z"
+    },
+    {
+     "job": "sparse_train_S1_s9000",
+     "kind": "train",
+     "gpu_h": 0.7937111111111111,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T02:37:35Z"
+    },
+    {
+     "job": "sparse_train_S2_s9000",
+     "kind": "train",
+     "gpu_h": 0.40011944444444447,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T03:01:36Z"
+    }
+   ],
+   "booked_gpu_h": 16.328477777777778,
+   "by_kind": {
+    "train": 13.416666666666666,
+    "eval": 2.888888888888889,
+    "smoke": 0.022922222222222222
+   }
   }
  },
  "totals": {
@@ -5490,6 +5839,10 @@
   "R2_titan_deepthought": {
    "booked_gpu_h": 0.8056,
    "cap_gpu_h": 160.0
+  },
+  "R2_sparse_gpu": {
+   "booked_gpu_h": 16.3285,
+   "cap_gpu_h": 28.0
   }
  }
 }

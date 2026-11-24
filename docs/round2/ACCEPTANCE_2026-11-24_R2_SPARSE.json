@@ -1,0 +1,157 @@
+{
+ "phase": "r2-sparse",
+ "runbook": "docs/round2/RUNBOOK_2026-11-24_R2_SPARSE_WCTE.md",
+ "prereg": "docs/round2/PREREG_2026-11-24_R2_SPARSE.md",
+ "prereg_commit": "0083758",
+ "date": "2026-11-24",
+ "stages": {
+  "T0": "done (runbook f1bf214; F1-F6 confirmed with two additions; all WCTE caches present)",
+  "W0": "done (WINDOW_STUDY.md/.json, four detectors)",
+  "W1": {
+   "window_ns": [
+    -110,
+    50
+   ],
+   "P_ns": 110,
+   "A_ns": 50
+  },
+  "W2": {
+   "dataset_kind": "lucid_v1_w2",
+   "cohorts": [
+    "dev_train",
+    "dev_probe_train",
+    "dev_probe_test",
+    "sealed_test"
+   ],
+   "validation": "PASS all four (w2_validation/)",
+   "s1n_ratio_r": 1.0,
+   "lucid_regeneration": "not needed",
+   "manifest": "DATA_MANIFEST_wcte_w2.json"
+  },
+  "T1": {
+   "focused_tests": "26/26 pass (dt1)",
+   "leakage_tests_a_d": "pass",
+   "golden_adapter_test": "pass (200 lucid_v1 events)",
+   "native_suite": "1603 passed, 7 failed (pre-existing/environmental, DECISIONS)",
+   "review": {
+    "verdict": "PASS",
+    "base": "ee4f32f",
+    "head": "ba67056",
+    "blocking": [],
+    "non_blocking_handled_in": "9bfc364"
+   }
+  },
+  "smokes": "7/7 finite, peak <= 1.44 GiB",
+  "E": {
+   "runs_complete": 21,
+   "runs_failed": 0,
+   "seeds": [
+    9000,
+    9001,
+    9002
+   ]
+  },
+  "T7": {
+   "scorings": 48,
+   "table": "SPARSE_TABLE.md/.json",
+   "diagnostics": "DIAGNOSTICS.json, DIAG_MAPS.png"
+  },
+  "T8": "SPARSE_REPORT.md"
+ },
+ "registered_contrasts_primary_sealed": {
+  "R1": {
+   "T_bar": 0.013536420594718305,
+   "N_sigma": 1.1999121600453888,
+   "clear": false,
+   "per_seed": {
+    "A": 0.018106026255308327,
+    "B": 0.0017343391405455488,
+    "C": 0.02076889638830104
+   },
+   "prediction_verdict": "no prediction (reported)"
+  },
+  "R2": {
+   "T_bar": 0.023413030857075762,
+   "N_sigma": 2.07540687970975,
+   "clear": true,
+   "per_seed": {
+    "A": 0.014568784525864853,
+    "B": 0.03785683409166829,
+    "C": 0.017813473953694148
+   },
+   "prediction_verdict": "fails"
+  },
+  "R2b": {
+   "T_bar": 0.3232003744650373,
+   "N_sigma": 28.649527896845896,
+   "clear": true,
+   "per_seed": {
+    "A": 0.35003237153516475,
+    "B": 0.34423246355069126,
+    "C": 0.2753362883092558
+   },
+   "prediction_verdict": "fails"
+  },
+  "R3": {
+   "T_bar": 0.16477612087169868,
+   "N_sigma": 14.606288991656037,
+   "clear": true,
+   "per_seed": {
+    "A": 0.15302485975024505,
+    "B": 0.1553502628611645,
+    "C": 0.18595324000368652
+   },
+   "prediction_verdict": "fails"
+  },
+  "R4": {
+   "T_bar": -0.0019317693678105503,
+   "N_sigma": 0.171238292916482,
+   "clear": false,
+   "per_seed": {
+    "A": -0.0024829000652011324,
+    "B": -0.0026076065759368383,
+    "C": -0.0007048014622936805
+   },
+   "prediction_verdict": "holds"
+  },
+  "R5": {
+   "T_bar": 0.024565432731446252,
+   "N_sigma": 2.177559513978206,
+   "clear": true,
+   "per_seed": {
+    "A": 0.021029060770622054,
+    "B": 0.02129304606737814,
+    "C": 0.031374191356338565
+   },
+   "prediction_verdict": "holds"
+  },
+  "R6": {
+   "T_bar": -0.133596709467962,
+   "N_sigma": 11.84244498838982,
+   "clear": true,
+   "per_seed": {
+    "A": -0.15379961378834917,
+    "B": -0.12441411497006216,
+    "C": -0.12257639964547473
+   },
+   "prediction_verdict": "no prediction (reported)"
+  }
+ },
+ "decision": "report and stop: the sparse family is a negative result on WCTE (no S arm passes the rule)",
+ "keep_fixed_loss_default": false,
+ "keep_new_embedding": false,
+ "gpu": {
+  "line": "R2_sparse_gpu",
+  "cap_h": 28.0,
+  "booked_h": 16.328
+ },
+ "sealed_access": "metrics only via scripts/tier1_eval.py; re-pack/pack/validation/staging logged in results/round2/20261124_sparse/SEALED_ACCESS_LOG.md",
+ "real_lucid_only": true,
+ "deviations": [
+  "W2 deposit proxy refined (first-light proxy + 1.5 ns calibrated offset) and 20 ns generation margin",
+  "validation criteria adapted to A = 50 ns and the NHits trigger zone (stated before validating the data of record)",
+  "superseded W2 passes kept on disk",
+  "collector .prev_ copies of run dirs (byte-identical) kept",
+  "tier1_eval_batch.py patched for this phase's job tree, access log and data kind"
+ ]
+}
