@@ -189,6 +189,8 @@ def study(det, pad_ns):
     out["dark"]["uniformity_hist"] = hist.tolist()
     out["dark"]["uniformity_note"] = ("dark digit counts per 100 ns relative to the trigger, all events; "
                                       "they fall off where the cached span [t_phys,min - pad, t_phys,max + pad] ends")
+    if det in ("wcte", "juno"):
+        out["early_signal_interpretation"] = interpret_early(det, 4.2)
     if det == "wcte":
         out["w1"] = w1_rule(tme, fsr, out)
         p, a = out["w1"]["P_ns"], out["w1"]["A_ns"]
@@ -206,6 +208,49 @@ def study(det, pad_ns):
     out["first_per_pmt_by_domain"] = {d: quant(np.concatenate(v)) if v else None
                                       for d, v in first_sig_rel_by_domain.items()}
     return out
+
+
+def interpret_early(det, rate_khz):
+    """Are the early "signal" digits early light or dark-opened windows? LUCiD flags a digit as
+    physics when its integration window holds any physics photoelectron, so a dark photoelectron
+    that arrives on a PMT before its light opens the window and sets the digit time. Expected count
+    per event of such digits earlier than trigger - 20 ns: rate x n_hit_PMT x the cached dark span
+    before trigger - 20 ns (from first-light proxy - 100 ns). Compared with the observed count."""
+    from jepa_noise.lucid_w2 import first_light_proxy
+    cfg = mg.load_config()
+    rule = mg.time_rule(det, cfg)
+    n, w = int(rule["n"]), float(rule["trigger_window_ns"])
+    obs, exp_, frac_obs, frac_exp, rel_early, q_ratio = [], [], [], [], [], []
+    for domain, dig in events(det):
+        s, t, phys, pe = (np.asarray(dig[k]) for k in ("sensor", "t", "physics", "pe"))
+        order = np.lexsort((t, s))
+        s, t, phys, pe = s[order], t[order], phys[order].astype(bool), pe[order]
+        first = np.ones(s.size, bool)
+        first[1:] = s[1:] != s[:-1]
+        trig = nhits_trigger_time(t[first], n=n, window_ns=w)
+        if trig is None or not phys.any():
+            continue
+        fl = first_light_proxy(t[phys])
+        early = first & phys & (t < trig - EARLY_CUT_NS)
+        span = max(0.0, (trig - EARLY_CUT_NS) - (fl - 100.0))
+        lam = rate_khz * 1e-6 * span * int((first & phys).sum())
+        obs.append(int(early.sum()))
+        exp_.append(lam)
+        frac_obs.append(bool(early.any()))
+        frac_exp.append(1.0 - math.exp(-lam))
+        rel_early.append(trig - t[early])
+        if early.any():
+            q_ratio.append(float(np.median(pe[early]) / np.median(pe[first & phys])))
+    rel = np.concatenate(rel_early) if rel_early else np.empty(0)
+    hist, edges = np.histogram(rel, bins=np.arange(20.0, 121.0, 10.0))
+    return {"observed_early_signal_digits_per_event": float(np.mean(obs)),
+            "expected_dark_opened_per_event": float(np.mean(exp_)),
+            "observed_event_fraction": float(np.mean(frac_obs)),
+            "expected_event_fraction_dark_opened": float(np.mean(frac_exp)),
+            "trigger_minus_early_digit_hist_edges_ns": edges.tolist(),
+            "trigger_minus_early_digit_hist": hist.tolist(),
+            "median_charge_early_over_all_first_digits": float(np.median(q_ratio)) if q_ratio else None,
+            "note": "dark-opened windows: uniform in time over the cached dark pad, charge of a normal hit"}
 
 
 def TRUTNC(det):
@@ -289,6 +334,27 @@ def merge(src, out_dir):
         lines.append(f"- A = {w['A_ns']:.0f} ns is shorter than the old end (+60 ns): first-per-PMT signal digits in (50, 60] ns "
                      f"are {100*w['old_window_signal_first_per_pmt_in_50_60_fraction']:.4f} % of all; no WCTE PMT has a "
                      "second digit (the 200 ns integration window spans the whole event), so there is no separate late light.")
+    ei = rw.get("early_signal_interpretation")
+    if ei:
+        lines += ["", "## What the early \"signal\" digits are (WCTE)", "",
+                  "LUCiD flags a digit as physics when its 200 ns integration window holds any physics photoelectron. "
+                  "A dark photoelectron that reaches a PMT before that PMT's light therefore opens the window and sets "
+                  "the digit time, and the digit is still flagged as signal. Expected number of such digits earlier "
+                  "than trigger − 20 ns, from the dark rate (4.2 kHz), the number of hit PMTs and the cached dark span:",
+                  "",
+                  f"- observed early signal digits per event: {ei['observed_early_signal_digits_per_event']:.3f}; "
+                  f"expected from dark-opened windows: {ei['expected_dark_opened_per_event']:.3f};",
+                  f"- events with at least one: observed {100*ei['observed_event_fraction']:.1f} %, expected "
+                  f"{100*ei['expected_event_fraction_dark_opened']:.1f} %;",
+                  f"- (trigger − early digit) per 10 ns from 20 ns: {ei['trigger_minus_early_digit_hist']} "
+                  "(flat up to the 100 ns dark pad, as for dark noise);",
+                  f"- median charge of the early digits / median of all first digits: "
+                  f"{ei['median_charge_early_over_all_first_digits']:.2f} (normal hits, not single-PE).", "",
+                  "So on WCTE the early digits are almost entirely dark-opened windows on PMTs that are hit later: no "
+                  "early direct light is lost. What the old window does lose is the whole PMT (its charge and later "
+                  "light), because the readout keeps each PMT's earliest digit and then applies the window (F3). "
+                  "P = 110 ns keeps these PMTs; their time is the dark photoelectron's time. The registered W1 rule is "
+                  "applied unchanged; this reading is recorded as a W0 finding."]
     lines += ["", "## Dark noise uniformity (WCTE, digits per 100 ns rel. trigger, all events)", "",
               "| bin start [ns] | " + " | ".join(f"{e:g}" for e in rw["dark"]["uniformity_hist_edges_ns"][:-1]) + " |",
               "|---|" + "---|" * len(rw["dark"]["uniformity_hist"]),
