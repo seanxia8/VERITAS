@@ -1,0 +1,266 @@
+{
+ "code_tree": "/ceph/dwong/jepa/r2_follow_code_760c3d5",
+ "cohort": "dev_probe_test",
+ "pack": "/ceph/dwong/jepa/data/lucid_v1_w2/wcte/wcte_lucid_v1_w2.h5",
+ "phase": "r2-follow",
+ "results": {
+  "C2": {
+   "0": {
+    "block4_variance_explained": {
+     "content_all": 0.15798942552626227,
+     "content_hit": 0.08332639297735112,
+     "geometry_all": 0.6624957315701637,
+     "geometry_hit": 0.7194702819350152,
+     "joint_all": 0.8225405069436846,
+     "joint_hit": 0.8052250728681875
+    },
+    "checkpoint_sha256": "8a2e4b11d3fb6eee0c5a6ec73266df2feda02644c915ce10e2357b1e0c6b2620",
+    "embedding": "linear",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent/step_00000",
+     "mean_err_m": 0.06654184373340535,
+     "n_events": 3400,
+     "r2": 0.9947275863187246
+    },
+    "input_rms": {
+     "content_rms": 0.4903167188167572,
+     "content_rms_hit": 0.5654414892196655,
+     "pos_over_content": 1.0773712537074607,
+     "pos_over_content_hit": 0.932266305059361,
+     "pos_rms": 0.5282531380653381,
+     "pos_rms_hit": 0.5271420478820801
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.9966777189984378,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent",
+    "step": 0
+   },
+   "10000": {
+    "block4_variance_explained": {
+     "content_all": 0.18281956740087957,
+     "content_hit": 0.12812419648731488,
+     "geometry_all": 0.5397751411924658,
+     "geometry_hit": 0.5922099327447559,
+     "joint_all": 0.7259682983470068,
+     "joint_hit": 0.7245936316637493
+    },
+    "checkpoint_sha256": "8bc9bbbdd4c2583618ab63cce0ae297aa0fe022dfff7006eca96bc0ba707ea7a",
+    "embedding": "linear",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent/step_10000",
+     "mean_err_m": 0.055221561654147606,
+     "n_events": 3400,
+     "r2": 0.9963337791091206
+    },
+    "input_rms": {
+     "content_rms": 0.5404675006866455,
+     "content_rms_hit": 0.5492509603500366,
+     "pos_over_content": 1.0528618566888042,
+     "pos_over_content_hit": 1.0328680652273894,
+     "pos_rms": 0.5690376162528992,
+     "pos_rms_hit": 0.5673037767410278
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.9968573752865948,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent",
+    "step": 10000
+   }
+  },
+  "C2dc": {
+   "0": {
+    "block4_variance_explained": {
+     "content_all": 0.15798942552626227,
+     "content_hit": 0.08332639297735112,
+     "geometry_all": 0.6624957315701637,
+     "geometry_hit": 0.7194702819350152,
+     "joint_all": 0.8225405069436846,
+     "joint_hit": 0.8052250728681875
+    },
+    "checkpoint_sha256": "213e2b61a3c97858a93a417e107049fe9e527db537ac97e4da4d9e7717e807f7",
+    "embedding": "linear",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_follow_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent__disol__cnt/step_00000",
+     "mean_err_m": 0.06654184373340137,
+     "n_events": 3400,
+     "r2": 0.9947275863187249
+    },
+    "input_rms": {
+     "content_rms": 0.4903167188167572,
+     "content_rms_hit": 0.5654414892196655,
+     "pos_over_content": 1.0773712537074607,
+     "pos_over_content_hit": 0.932266305059361,
+     "pos_rms": 0.5282531380653381,
+     "pos_rms_hit": 0.5271420478820801
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.9966777189984378,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent__disol__cnt",
+    "step": 0
+   },
+   "10000": {
+    "block4_variance_explained": {
+     "content_all": 0.20410368356518893,
+     "content_hit": 0.09517326558017414,
+     "geometry_all": 0.492909388658467,
+     "geometry_hit": 0.626987814233266,
+     "joint_all": 0.6990430681996713,
+     "joint_hit": 0.7240659521856576
+    },
+    "checkpoint_sha256": "792fbffdea04bc11bda5feb5dfc55231100da856035b621d7e577930c144b4dd",
+    "embedding": "linear",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_follow_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent__disol__cnt/step_10000",
+     "mean_err_m": 0.06270954998722926,
+     "n_events": 3400,
+     "r2": 0.995279385130855
+    },
+    "input_rms": {
+     "content_rms": 0.5281453728675842,
+     "content_rms_hit": 0.5588465929031372,
+     "pos_over_content": 0.949566794634666,
+     "pos_over_content_hit": 0.8947905745481229,
+     "pos_rms": 0.5015093088150024,
+     "pos_rms_hit": 0.5000506639480591
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.9941207894372173,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent__disol__cnt",
+    "step": 10000
+   }
+  },
+  "C3": {
+   "0": {
+    "block4_variance_explained": {
+     "content_all": 0.21078713350324252,
+     "content_hit": 0.1654532841416887,
+     "geometry_all": 0.5800000189656058,
+     "geometry_hit": 0.62059626292051,
+     "joint_all": 0.7936957434290213,
+     "joint_hit": 0.7895156998796524
+    },
+    "checkpoint_sha256": "1073496b54d8b266079400b31c82425c2b5696f8af5c47affd838e19394c5d18",
+    "embedding": "fourier",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier__disol__cnt/step_00000",
+     "mean_err_m": 0.08727760445820985,
+     "n_events": 3400,
+     "r2": 0.9912385509959718
+    },
+    "input_rms": {
+     "content_rms": 0.6480184197425842,
+     "content_rms_hit": 0.8194587230682373,
+     "pos_over_content": 1.0826246821520895,
+     "pos_over_content_hit": 0.8561270696837034,
+     "pos_rms": 0.7015607357025146,
+     "pos_rms_hit": 0.7015607953071594
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.975629826783178,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier__disol__cnt",
+    "step": 0
+   },
+   "10000": {
+    "block4_variance_explained": {
+     "content_all": 0.1677866365034113,
+     "content_hit": 0.10078810749161593,
+     "geometry_all": 0.5382950003228969,
+     "geometry_hit": 0.6498273060485849,
+     "joint_all": 0.708159856814645,
+     "joint_hit": 0.7514998868301639
+    },
+    "checkpoint_sha256": "61825da9cc87707c3bb2c9fca20a7680aa78e0d5592a5a3083886e6bfef9bc82",
+    "embedding": "fourier",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier__disol__cnt/step_10000",
+     "mean_err_m": 0.07457451166425931,
+     "n_events": 3400,
+     "r2": 0.9937318908792709
+    },
+    "input_rms": {
+     "content_rms": 0.9226599335670471,
+     "content_rms_hit": 1.0401142835617065,
+     "pos_over_content": 0.7603676177746741,
+     "pos_over_content_hit": 0.6745035679202247,
+     "pos_rms": 0.7015607357025146,
+     "pos_rms_hit": 0.7015607953071594
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.9703453045932057,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier__disol__cnt",
+    "step": 10000
+   }
+  },
+  "C3e": {
+   "0": {
+    "block4_variance_explained": {
+     "content_all": 0.21078713350324252,
+     "content_hit": 0.1654532841416887,
+     "geometry_all": 0.5800000189656058,
+     "geometry_hit": 0.62059626292051,
+     "joint_all": 0.7936957434290213,
+     "joint_hit": 0.7895156998796524
+    },
+    "checkpoint_sha256": "88f3a8adb1598764c25c3b4fbddf4ef3e489ac4ab3eb65a9d900492f4f9d3a02",
+    "embedding": "fourier",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_follow_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier/step_00000",
+     "mean_err_m": 0.0872776044582118,
+     "n_events": 3400,
+     "r2": 0.9912385509959718
+    },
+    "input_rms": {
+     "content_rms": 0.6480184197425842,
+     "content_rms_hit": 0.8194587230682373,
+     "pos_over_content": 1.0826246821520895,
+     "pos_over_content_hit": 0.8561270696837034,
+     "pos_rms": 0.7015607357025146,
+     "pos_rms_hit": 0.7015607953071594
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.975629826783178,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier",
+    "step": 0
+   },
+   "10000": {
+    "block4_variance_explained": {
+     "content_all": 0.19605389127612471,
+     "content_hit": 0.1432820711572097,
+     "geometry_all": 0.5432296675439685,
+     "geometry_hit": 0.6055671722937044,
+     "joint_all": 0.7419194474806918,
+     "joint_hit": 0.7523300236374443
+    },
+    "checkpoint_sha256": "896b7fea7005fbf43a6fda71e94fdb6c6f303154a0844f7ed481796613fb6842",
+    "embedding": "fourier",
+    "frozen_readout_vertex": {
+     "eval_dir": "/ceph/dwong/jepa/returns/r2_follow_2026-11-24/eval/wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier/step_10000",
+     "mean_err_m": 0.058844995680637675,
+     "n_events": 3400,
+     "r2": 0.9958140530816919
+    },
+    "input_rms": {
+     "content_rms": 0.66704922914505,
+     "content_rms_hit": 0.7606024146080017,
+     "pos_over_content": 1.0517375705563705,
+     "pos_over_content_hit": 0.9223751881838673,
+     "pos_rms": 0.7015607357025146,
+     "pos_rms_hit": 0.7015607953071594
+    },
+    "n_fit_events": 128,
+    "n_test_events": 128,
+    "probe_pmt_position_r2": 0.9889493634393796,
+    "run_id": "wcte__mae_repaired__s9000__dw2__lfixed__psent__efourier",
+    "step": 10000
+   }
+  }
+ },
+ "seed": 9000,
+ "stage": "\u00a72.4 Part A diagnostics (exploratory)"
+}
