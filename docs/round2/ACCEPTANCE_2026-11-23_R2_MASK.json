@@ -1,0 +1,165 @@
+{
+ "phase": "r2-mask",
+ "runbook": "docs/round2/RUNBOOK_2026-11-23_R2_MASK_SCALE.md",
+ "branch": "mask-scale",
+ "base": "origin/tier1 79a08ee",
+ "status": "done",
+ "prereg": {
+  "file": "docs/round2/PREREG_2026-11-23_R2_MASK.md",
+  "commit": "2c0204b",
+  "pushed_utc": "2026-11-23T19:50Z",
+  "before_any_M2_evaluation": true,
+  "first_sealed_read_utc": "2026-11-23T19:54Z",
+  "m3_expectation_appended_before_m3": true
+ },
+ "stages": {
+  "T0": {
+   "done": true,
+   "commit": "b8cc8aa"
+  },
+  "M1": {
+   "done": true,
+   "commits": [
+    "aab9877",
+    "1a2a0ab",
+    "2c0204b"
+   ],
+   "unit_tests": "src/jepa_noise/tests/test_shortcut_budget.py (4 pass)",
+   "artifacts": [
+    "results/round2/20261123_mask/SHORTCUT_BUDGET.md",
+    "results/round2/20261123_mask/SHORTCUT_BUDGET.json"
+   ]
+  },
+  "M2": {
+   "done": true,
+   "code_commits": [
+    "bfd43ed",
+    "ed3a047"
+   ],
+   "analysis_commits": [
+    "e280fb7",
+    "e993435",
+    "03b8b25",
+    "31661cb"
+   ],
+   "review": {
+    "type": "fresh-context subagent",
+    "base": "b8cc8aa",
+    "head": "bfd43ed",
+    "verdict": "PASS",
+    "findings": [
+     "7 (minor): registered sizes not tested on the real geometries -> closed by test_registered_sizes_on_the_lucid_geometries (ed3a047)",
+     "notes 1-6, 8-9: default unchanged (ext_r2_repair_train.py:98-121, lucid_views.py:245-258), ceil rule non-default only, suffix order (ext_r2_repair_train.py:144-148), golden 200 ids (test_mask_scale.py:29-46), one factor, plumbing complete (r2_store.py:381-383, lucid_views.py:304); odd counts hide slightly more than half by design; refusal order stricter than needed"
+    ]
+   },
+   "runs_new": {
+    "wcte": [
+     "ps8",
+     "ps128",
+     "ps256"
+    ],
+    "wcte_seeds": [
+     "9000",
+     "9001",
+     "9002"
+    ],
+    "sk": [
+     "ps43",
+     "ps692"
+    ],
+    "sk_seeds": [
+     "9000",
+     "9001"
+    ]
+   },
+   "runs_reused_read_only": [
+    "sk/wcte random and default patch at 50 ns (r2-lucid, r2-tier1)"
+   ],
+   "artifacts": [
+    "results/round2/20261123_mask/MASK_SCALE.md",
+    "results/round2/20261123_mask/MASK_SCALE.json",
+    "results/round2/20261123_mask/MASK_SCALE.png"
+   ],
+   "verdicts": {
+    "Q1": {
+     "wcte": true,
+     "sk": false
+    },
+    "Q2": {
+     "wcte": {
+      "holds": false,
+      "spearman": 0.09999999999999999
+     },
+     "sk": {
+      "holds": true,
+      "spearman": 1.0
+     }
+    },
+    "Q3": {
+     "wcte": {
+      "holds": false,
+      "ratio": 0.060780713354291194
+     },
+     "sk": {
+      "holds": false,
+      "ratio": 0.09897968095862134
+     }
+    },
+    "Q4": {
+     "holds": false,
+     "T_10000": -0.13903662824936114,
+     "T_5000": -0.14509800121870708
+    },
+    "KM": {
+     "fires": false
+    }
+   }
+  },
+  "M3": {
+   "done": true,
+   "commits": [
+    "30ce5d2",
+    "87628ef",
+    "5c82cea",
+    "f1de6d1"
+   ],
+   "gpu_h": 2.08,
+   "artifacts": [
+    "results/round2/20261123_mask/SEED_TEST.md",
+    "results/round2/20261123_mask/SEED_TEST.json"
+   ],
+   "expectation_met": false,
+   "sk_counts_readout_good_basin": 0.475,
+   "sk_counts_centroid_good_basin": 0.0,
+   "dropped": true
+  },
+  "T9": {
+   "done": true,
+   "report": "results/round2/20261123_mask/MASK_REPORT.md"
+  }
+ },
+ "sealed_access": {
+  "log": "results/round2/20261123_mask/SEALED_ACCESS_LOG.md",
+  "reads": 47,
+  "only_through": "scripts/tier1_eval.py (SHA256 39860c09... pinned by READOUT_SPEC_v1)"
+ },
+ "gpu": {
+  "line": "R2_mask_gpu",
+  "cap_h": 40.0,
+  "used_h": 34.0,
+  "batch_h": 28.4,
+  "deepthought2_h": 5.6
+ },
+ "tests": {
+  "focused_on_clone_f1de6d1": "60 passed (test_mask_scale, test_shortcut_budget, test_tier1, test_r2_repair)"
+ },
+ "safety": {
+  "main_checkout_untouched": true,
+  "tier1_worktrees_branches_clones_returns_untouched": true,
+  "writes_only_under": "/ceph/dwong/jepa/returns/r2_mask_2026-11-23/ (+ /work/dwong/r2_mask scratch, /ceph/srv/dwong/r2 staging: code/mask_*.tar.gz, data/mask/starts_*.npz)",
+  "no_analytic_generator_physics": true,
+  "force_push": false
+ },
+ "deviations": "docs/round2/DECISIONS.md (r2-mask section) and MASK_REPORT.md \u00a74",
+ "stops_fired": []
+}
