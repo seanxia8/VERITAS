@@ -48,7 +48,8 @@ PROBE_SEEDS = (0, 1, 2)
 N_BOOT = 2000
 BOOT_SEED = 20261122
 ATTENTIVE_TOKENS = 512
-VERTEX_RIDGE_FORMS = ("all_mean", "spatial_moment_latent", "raw_spatial_moment", "spatial_moment_full")
+VERTEX_RIDGE_FORMS = ("all_mean", "spatial_moment_latent", "raw_spatial_moment", "spatial_moment_full",
+                      "spatial_moment_latent_allhits")  # last: r2-sparse exploratory P = all hits
 MLP_FORMS = ("spatial_moment_full", "spatial_moment_latent")
 PRIMARY = "spatial_moment_latent"
 
@@ -57,14 +58,15 @@ def utc():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def sealed_pack(detector):
+def sealed_pack(detector, kind="lucid_v1"):
     from jepa_noise import data_roots as dr
-    return dr.LUCID_ROOT / detector / f"{detector}_lucid_v1_sealed.h5"
+    return dr.sealed_pack(detector, kind)
 
 
-def cohort_pack(detector, cohort):
+def cohort_pack(detector, cohort, kind="lucid_v1"):
+    """r2-sparse T1.6: the pack of the model's own data kind (lucid_v1 or lucid_v1_w2)."""
     from jepa_noise import data_roots as dr
-    return sealed_pack(detector) if cohort == "sealed" else dr.pack(detector, dr.LUCID_V1)
+    return sealed_pack(detector, kind) if cohort == "sealed" else dr.pack(detector, kind)
 
 
 def code_sha():
@@ -121,9 +123,11 @@ def load_model(args):
     if run_id != directory.name:
         raise ValueError(f"run id {run_id!r} differs from its directory {directory.name!r}")
     detector, arm_name, seed = run_id.split("__")[0], recipe["identity"]["arm"], int(recipe["identity"]["seed"])
-    geometry, scaling = geometry_and_scaling(detector, recipe.get("data_kind", "lucid_v1"))
+    data_kind = recipe.get("data_kind", "lucid_v1")
+    geometry, scaling = geometry_and_scaling(detector, data_kind)
     encoder = EncoderConfig(**recipe["encoder"])
-    arm = r2.build_r2_arm(arm_name, geometry, seed, scaling=scaling, encoder_config=encoder)
+    arm = r2.build_r2_arm(arm_name, geometry, seed, scaling=scaling, encoder_config=encoder,
+                          sparse_flags=recipe.get("r2_sparse_flags"))
     step = int(args.step)
     path = directory / f"snapshot_step_{step:05d}.pt"
     payload = torch.load(path, map_location="cpu", weights_only=True)
@@ -137,8 +141,10 @@ def load_model(args):
             "construction": "ext_r2.build_r2_arm(arm, geometry, seed, encoder_config=recipe encoder) "
                             "+ load_state_dict(snapshot)",
             "recipe_extra": {k: recipe[k] for k in ("time_loss_scale_ns", "mask", "charge_loss_weight",
-                                                     "time_reference", "view_mode") if k in recipe},
-            "time_reference": recipe.get("time_reference", "trigger")}
+                                                     "time_reference", "view_mode", "r2_sparse_flags",
+                                                     "window_ns") if k in recipe},
+            "time_reference": recipe.get("time_reference", "trigger"),
+            "data_kind": data_kind, "sparse": arm_name in ("sparse_mae", "sparse_time")}
     return arm, geometry, scaling, meta
 
 
@@ -152,7 +158,7 @@ def attentive_pick(event_id, hit_positions):
 
 
 def stream_cohort(arm, geometry, scaling, cohort, *, device, chunk, photons_only, attentive, layout,
-                  time_reference="trigger"):
+                  time_reference="trigger", sparse=False):
     """Encode every event of a cohort (photon bombs, and mu/e unless ``photons_only``)."""
     import torch
     from jepa_noise import ext_readout as er
@@ -161,9 +167,11 @@ def stream_cohort(arm, geometry, scaling, cohort, *, device, chunk, photons_only
     from jepa_noise import r2_store as rs
     from jepa_noise.lucid_views import ViewMasker
     from jepa_noise.r2_probe_repair import moment_features
+    from jepa_noise.sparse_readout import all_token_mean, moment_latent_all_hits
     masker = ViewMasker(geometry, "within", seed=0, n_min=0)
     cols = ("event_ids", "run_ids", "domain", "all_mean", "spatial_moment_latent", "spatial_moment_full",
-            "raw_spatial_moment", "vertex", "log_yield", "direction", "deposited_MeV", "contained")
+            "raw_spatial_moment", "vertex", "log_yield", "direction", "deposited_MeV", "contained",
+            "spatial_moment_latent_allhits")
     rows = {c: [] for c in cols}
     att_z, att_r, att_n = [], [], []
     state = None
@@ -206,7 +214,10 @@ def stream_cohort(arm, geometry, scaling, cohort, *, device, chunk, photons_only
             rows["event_ids"].append(ids)
             rows["run_ids"].append(np.repeat(str(run), ids.size))
             rows["domain"].append(dom)
-            rows["all_mean"].append(la._mean_tokens(z, None).astype(np.float32))
+            # r2-sparse: sparse encoders return hit tokens scattered onto the PMT grid (zeros at unhit
+            # PMTs; sparse_readout adapter), so all-token pooling uses their hit tokens
+            rows["all_mean"].append(all_token_mean(z, raw, sparse).astype(np.float32))
+            rows["spatial_moment_latent_allhits"].append(moment_latent_all_hits(z, raw).astype(np.float32))
             rows["spatial_moment_latent"].append(latent.astype(np.float32))
             rows["spatial_moment_full"].append(full.astype(np.float32))
             rows["raw_spatial_moment"].append(raw_full.astype(np.float32))
@@ -377,10 +388,14 @@ def evaluate(args):
     streams_needed = ["validation"] + [c for c in todo if c == "sealed"]
     if "sealed" in todo:
         log_sealed_access(run_key, args.purpose, args.access_log)
-    main_pack = args.validation_pack or cohort_pack(detector, "validation")
+    kind = meta.get("data_kind", "lucid_v1")
+    main_pack = args.validation_pack or cohort_pack(detector, "validation", kind)
     packs = {"train": main_pack}
-    packs.update({c: (args.sealed_pack or cohort_pack(detector, c)) if c == "sealed" else main_pack
+    packs.update({c: (args.sealed_pack or cohort_pack(detector, c, kind)) if c == "sealed" else main_pack
                   for c in streams_needed})
+    from jepa_noise import data_roots as dr
+    for p in set(packs.values()):  # r2-sparse T1.1: a lucid_v1 / lucid_v1_w2 mix-up raises
+        dr.check_pack_kind(p, kind)
     names = {"train": TRAIN_COHORT, **{c: COHORTS[c] for c in streams_needed}}
     data = {}
     for which in ["train"] + streams_needed:
@@ -388,7 +403,8 @@ def evaluate(args):
         data[which] = stream_cohort(arm, geometry, scaling, cohort, device=device, chunk=args.chunk,
                                     photons_only=args.photons_only, attentive=attentive,
                                     layout=which != "train",
-                                    time_reference=meta.get("time_reference", "trigger"))
+                                    time_reference=meta.get("time_reference", "trigger"),
+                                    sparse=bool(meta.get("sparse")))
         print(run_key, which, len(data[which]["event_ids"]), "events streamed",
               f"{time.monotonic() - started:.0f}s", flush=True)
     tr = data["train"]

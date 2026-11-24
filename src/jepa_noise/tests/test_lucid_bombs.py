@@ -424,7 +424,8 @@ def test_invalid_detectability_inputs_raise():
 #: that must call LUCiD; every other module keeps the round-1 rule. Its own tests check that it never
 #: uses lucid_bombs physics (gate G6).
 LUCID_ADAPTERS = {"lucid_mc_generator.py", "test_lucid_mc_generator.py",
-                  "tier1_yardstick.py"}  # r2-tier1 T6: runs LUCiD's own expectation model and time term
+                  "tier1_yardstick.py",  # r2-tier1 T6: runs LUCiD's own expectation model and time term
+                  "lucid_w2.py"}  # r2-sparse W2: LUCiD's dark noise + digitizer chain (lazy import, no toy physics)
 
 
 def test_nothing_imports_lucid():

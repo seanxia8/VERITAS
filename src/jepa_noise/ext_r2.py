@@ -150,12 +150,25 @@ def base_arm_name(arm: str) -> str:
 
 def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, run_cfg=None,
                  encoder_config=None, time_loss_scale_ns: float = 50.0,
-                 charge_loss_weight: float = 1.0):
-    """Build one §5.1 arm on a round-2 geometry with the round-1 builders."""
+                 charge_loss_weight: float = 1.0, sparse_flags: dict | None = None):
+    """Build one §5.1 arm on a round-2 geometry with the round-1 builders.
+
+    r2-sparse: ``sparse_flags`` carries the T1.2 ``mae_repaired`` flags (loss_mode, placeholder,
+    embed, decoder, count_head, sentinel_time) or the sparse arms' options (queries, neg_ratio,
+    mask_seed); ``None`` keeps every existing arm unchanged.
+    """
     import torch
     from . import lucid_arms as la
     from . import lucid_run as lr
     from .ext_shortcut import attach_posfree_target
+    from . import sparse_arms as sa
+    if arm in sa.SPARSE_ARMS:
+        if scaling is None:
+            raise ValueError("sparse arms need the data's feature scaling")
+        flags = dict(sparse_flags or {})
+        return sa.build_sparse_arm(arm, geometry, int(seed), scaling=scaling,
+                                   encoder_config=encoder_config or encoder_config_for("mae_repaired", geometry),
+                                   **flags)
     if arm not in ALL_ARMS + la.REPAIR_ARMS:
         raise ValueError(f"unknown round-2 arm {arm!r}")
     run_cfg = run_config() if run_cfg is None else run_cfg
@@ -174,6 +187,10 @@ def build_r2_arm(arm: str, geometry, seed: int, *, scaling=None, arms_cfg=None, 
         raise ValueError("charge_loss_weight applies to mae_repaired only (r2-tier1 T1.3)")
     extra = ({"charge_loss_weight": float(charge_loss_weight)}
              if float(charge_loss_weight) != 1.0 else {})
+    if sparse_flags:
+        if arm != "mae_repaired":
+            raise ValueError("r2-sparse flags apply to mae_repaired only")
+        extra.update(sparse_flags)
     made = la.build_arm(base_arm_name(arm), geometry, settings=settings, seed=int(seed),
                         encoder_config=encoder_config or encoder_config_for(arm, geometry), scaling=scaling,
                         time_loss_weight=time_weight, **extra)

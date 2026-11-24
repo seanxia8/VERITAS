@@ -11,10 +11,17 @@ from pathlib import Path
 
 LUCID_V1 = "lucid_v1"
 ANALYTIC_TOY = "analytic_toy"
-DATA_KINDS = (LUCID_V1, ANALYTIC_TOY)
+#: r2-sparse W2: WCTE re-packed from the cached lucid_v1 LUCiD digits with the W1 window.
+LUCID_V1_W2 = "lucid_v1_w2"
+DATA_KINDS = (LUCID_V1, ANALYTIC_TOY, LUCID_V1_W2)
+#: The manifest / pack ``dataset_kind`` each data kind must carry (T1.1: a mismatch raises).
+PACK_KIND = {LUCID_V1: "lucid_mc_native", LUCID_V1_W2: "lucid_v1_w2"}
+#: Readout window [ns] around the NHits trigger of each LUCiD data kind (WCTE).
+WINDOW_NS = {LUCID_V1: (-20.0, 60.0), LUCID_V1_W2: (-110.0, 50.0)}
 DEFAULT_DATA_KIND = os.environ.get("JEPA_DATA_KIND", LUCID_V1)
 
 LUCID_ROOT = Path("/ceph/dwong/jepa/data/lucid_v1")
+W2_ROOT = Path("/ceph/dwong/jepa/data/lucid_v1_w2")
 TOY_R2_ROOT = Path("/ceph/dwong/jepa/data/round2")
 TOY_WCTE_TRAIN = Path("/ceph/dwong/jepa/data/ext_pregrid_dev_20261025/lucid/"
                       "dev_train__F1__0.05__s20261017__n100000x1000")
@@ -32,6 +39,8 @@ def check(kind: str | None) -> str:
 def pack(detector: str, kind: str | None = None) -> Path:
     """The detector pack holding dev_train (SK/JUNO/HK) and the probe cohorts."""
     kind = check(kind)
+    if kind == LUCID_V1_W2 and detector != "wcte":
+        raise ValueError("lucid_v1_w2 exists for WCTE only")
     if detector == "wcte":
         return wcte_probe_pack(kind)
     if kind == ANALYTIC_TOY:
@@ -40,12 +49,48 @@ def pack(detector: str, kind: str | None = None) -> Path:
 
 
 def wcte_probe_pack(kind: str | None = None) -> Path:
-    return TOY_WCTE_PROBE if check(kind) == ANALYTIC_TOY else LUCID_ROOT / "wcte" / "wcte_lucid_v1.h5"
+    kind = check(kind)
+    if kind == LUCID_V1_W2:
+        return W2_ROOT / "wcte" / "wcte_lucid_v1_w2.h5"
+    return TOY_WCTE_PROBE if kind == ANALYTIC_TOY else LUCID_ROOT / "wcte" / "wcte_lucid_v1.h5"
+
+
+def sealed_pack(detector: str, kind: str | None = None) -> Path:
+    kind = check(kind)
+    if kind == LUCID_V1_W2:
+        if detector != "wcte":
+            raise ValueError("lucid_v1_w2 exists for WCTE only")
+        return W2_ROOT / "wcte" / "wcte_lucid_v1_w2_sealed.h5"
+    if kind != LUCID_V1:
+        raise ValueError(f"no sealed pack for {kind}")
+    return LUCID_ROOT / detector / f"{detector}_lucid_v1_sealed.h5"
+
+
+def check_pack_kind(path, kind: str) -> str:
+    """Raise unless the HDF5 pack at ``path`` holds data of ``kind`` (its ``dataset_kind`` attr)."""
+    import h5py
+    kind = check(kind)
+    with h5py.File(path, "r") as f:
+        found = f.attrs.get("dataset_kind")
+    found = found.decode() if isinstance(found, bytes) else found
+    if kind in PACK_KIND and found != PACK_KIND[kind]:
+        raise ValueError(f"{path}: pack dataset_kind {found!r} is not {kind!r} ({PACK_KIND[kind]!r})")
+    return found
+
+
+def check_manifest_kind(manifest: dict, kind: str) -> None:
+    """Raise unless a shard-directory manifest holds data of ``kind``."""
+    kind = check(kind)
+    if kind in PACK_KIND and manifest.get("dataset_kind") != PACK_KIND[kind]:
+        raise ValueError(f"manifest dataset_kind {manifest.get('dataset_kind')!r} is not {kind!r}")
 
 
 def wcte_train_shards(kind: str | None = None) -> Path:
     """Round-1 shard-directory layout (manifest.json + runs/<run_dir>/hits.npz)."""
-    return TOY_WCTE_TRAIN if check(kind) == ANALYTIC_TOY else LUCID_ROOT / "wcte" / "wcte_train"
+    kind = check(kind)
+    if kind == LUCID_V1_W2:
+        return W2_ROOT / "wcte" / "wcte_train"
+    return TOY_WCTE_TRAIN if kind == ANALYTIC_TOY else LUCID_ROOT / "wcte" / "wcte_train"
 
 
 def geometry(detector: str, kind: str | None = None):

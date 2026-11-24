@@ -324,8 +324,24 @@ class LucidArm(nn.Module):
                  scaling: FeatureScaling | None = None, beta: float | None = None,
                  seed: int = 0, dark_bank: DarkBank | None = None,
                  sigreg_mode: str | None = None, time_loss_weight: float = 1.0,
-                 charge_loss_weight: float = 1.0):
+                 charge_loss_weight: float = 1.0, loss_mode: str = "legacy",
+                 placeholder: str = "legacy", embed: str = "linear", decoder: str = "legacy",
+                 count_head: bool = False, sentinel_time: float | None = None):
         super().__init__()
+        # r2-sparse T1.2 flags (defaults = the unchanged recipe; mae_repaired only otherwise)
+        if (loss_mode, placeholder, embed, decoder, bool(count_head)) != ("legacy", "legacy", "linear",
+                                                                          "legacy", False):
+            if arm != "mae_repaired":
+                raise ValueError("--loss/--placeholder/--embed/--decoder/--count-head apply to mae_repaired only")
+        if loss_mode not in ("legacy", "fixed") or placeholder not in ("legacy", "sentinel") \
+                or embed not in ("linear", "fourier") or decoder not in ("legacy", "isolated"):
+            raise ValueError("unknown r2-sparse flag value")
+        if (embed == "fourier") != (decoder == "isolated"):
+            raise ValueError("the Fourier embedding is implemented with the isolated decoder only (C3)")
+        if placeholder == "sentinel" and sentinel_time is None:
+            raise ValueError("the sentinel placeholder needs sentinel_time = (A + 50 ns) / T")
+        self.loss_mode, self.placeholder, self.embed, self.decoder = loss_mode, placeholder, embed, decoder
+        self.sentinel_time = None if sentinel_time is None else float(sentinel_time)
         if arm not in ALL_ARMS + REPAIR_ARMS:
             raise ValueError(f"unknown LUCiD arm {arm!r}; expected {ALL_ARMS + REPAIR_ARMS}")
         if arm in BETA_ARMS:
@@ -356,7 +372,12 @@ class LucidArm(nn.Module):
         self.pmts_per_module = int(geometry.pmts_per_module)
         self.n_pmt = int(geometry.n_pmt)
         torch.manual_seed(self.seed)
-        self.jepa = LucidPointJepa(encoder_config or EncoderConfig(), geometry, scaling)
+        if embed == "fourier":
+            from .sparse_arms import DenseFourierJepa
+            self.jepa = DenseFourierJepa(encoder_config or EncoderConfig(), geometry,
+                                         scaling or FeatureScaling.from_geometry(geometry))
+        else:
+            self.jepa = LucidPointJepa(encoder_config or EncoderConfig(), geometry, scaling)
         self.d_model = int(self.jepa.config.d_model)
         self.register_buffer("module_of_pmt",
                              torch.as_tensor(geometry.module_index, dtype=torch.long),
@@ -384,6 +405,12 @@ class LucidArm(nn.Module):
         self.register_buffer("dark_charge", torch.as_tensor(bank.charge_pe), persistent=False)
         self.register_buffer("dark_time", torch.as_tensor(bank.time_100ns), persistent=False)
         self.register_buffer("dark_hit", torch.as_tensor(bank.hit), persistent=False)
+        self.count_head = None
+        if count_head:  # r2-sparse §2.2: number of masked hits from mean-pooled context tokens
+            from .sparse_arms import init_mup_linears as _init
+            self.count_head = nn.Linear(self.d_model, 1)
+            _init(self.count_head)
+            nn.init.constant_(self.count_head.bias, math.log(max(self.n_pmt / 4.0, 1.0)))
 
     @property
     def coefficient_lambda(self) -> float:
@@ -488,6 +515,9 @@ class LucidArm(nn.Module):
     def _encoder_features(self, features):
         if self.arm == "sigreg_jepa_all_posfree":
             return self._position_free(features)
+        if getattr(self, "placeholder", "legacy") == "sentinel":
+            from .sparse_arms import sentinel_features
+            return sentinel_features(features, self.sentinel_time)
         return features
 
     @staticmethod
@@ -610,7 +640,32 @@ class LucidArm(nn.Module):
         return {"loss": prediction_loss, "metrics": metrics, "prediction": prediction,
                 "context_tokens": context, "target_tokens": labels}
 
+    def _forward_mae_fixed(self, batch: LucidBatch) -> dict:
+        """r2-sparse §2.2 fixed loss (+ count head) for C2/C3; labels in the standard encoding."""
+        from .sparse_arms import COUNT_WEIGHT, fixed_loss, poisson_count_loss
+        context, prediction, _, hidden_index, _ = self._encode_views(batch, need_full=False)
+        gather = hidden_index.unsqueeze(-1).expand(-1, -1, N_FEATURES)
+        label = batch.features.gather(1, gather)
+        out = self.head(prediction)
+        hit = label[..., HIT_INDEX] > 0.5
+        valid = torch.ones_like(hit)
+        terms = fixed_loss(out, label[..., LOG_CHARGE_INDEX], label[..., TIME_INDEX], hit, valid,
+                           time_scale_ns=self.jepa.scaling.time_scale_ns)
+        loss = terms["loss"]
+        metrics = {"charge": float(terms["charge"].detach()), "hit": float(terms["hit"].detach()),
+                   "time": float(terms["time"].detach()), "pos_weight": float(terms["pos_weight"]),
+                   "hidden_hits": int(hit.sum())}
+        if self.count_head is not None:
+            pooled = self._context_pooled(context, batch.context_index)
+            count = poisson_count_loss(self.count_head(pooled)[:, 0], hit.sum(1))
+            loss = loss + COUNT_WEIGHT * count
+            metrics["count"] = float(count.detach())
+        metrics["loss"] = float(loss.detach())
+        return {"loss": loss, "metrics": metrics, "prediction": out}
+
     def _forward_mae_mse(self, batch: LucidBatch) -> dict:
+        if getattr(self, "loss_mode", "legacy") == "fixed":
+            return self._forward_mae_fixed(batch)
         _, prediction, _, hidden_index, _ = self._encode_views(
             batch, need_full=self.arm != "mae_repaired")
         columns = torch.tensor([LOG_CHARGE_INDEX, TIME_INDEX, HIT_INDEX],
@@ -770,7 +825,8 @@ def build_arm(arm: str, geometry, *, config: dict | None = None,
               seed: int = 0, dark_bank: DarkBank | None = None,
               encoder_config: EncoderConfig | None = None,
               scaling: FeatureScaling | None = None, sigreg_mode: str | None = None,
-              time_loss_weight: float = 1.0, charge_loss_weight: float = 1.0) -> LucidArm:
+              time_loss_weight: float = 1.0, charge_loss_weight: float = 1.0,
+              **sparse_flags) -> LucidArm:
     """Build one arm; ``seed`` fixes the init (the floor hook uses the first seed)."""
     settings = settings or ArmSettings.from_config(config, cell=cell, beta=beta)
     if arm == "jepa_repaired":
@@ -778,7 +834,7 @@ def build_arm(arm: str, geometry, *, config: dict | None = None,
     return LucidArm(arm, geometry, settings=settings, encoder_config=encoder_config,
                     scaling=scaling, beta=beta, seed=seed, dark_bank=dark_bank,
                     sigreg_mode=sigreg_mode, time_loss_weight=time_loss_weight,
-                    charge_loss_weight=charge_loss_weight)
+                    charge_loss_weight=charge_loss_weight, **sparse_flags)
 
 
 # ---------------------------------------------------------------------- probes

@@ -36,7 +36,7 @@ WCTE_SHARDS = r2.ROUND1_LUCID_ROOT / "dev_train__F1__0.05__s20261017__n100000x10
 #: r2-lucid: LUCiD data are the default (data_roots); the training matrix adds SK mae_mse (L7).
 LUCID_EXTENSION = "r2_lucid_2026-11-21"
 LUCID_MATRIX = {
-    "wcte": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa"),
+    "wcte": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa", "sparse_mae", "sparse_time"),
     "sk": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa"),
     "juno": ("mae_repaired", "jepa_repaired"),
     "hk": ("mae_repaired", "jepa_repaired"),
@@ -48,9 +48,11 @@ class WcteTrainingShards:
 
     truth = {}
 
-    def __init__(self, directory):
+    def __init__(self, directory, data_kind=None):
         self.directory = Path(directory)
         self.manifest = json.loads((self.directory / "manifest.json").read_text())
+        if data_kind is not None:  # r2-sparse T1.1: a lucid_v1 / lucid_v1_w2 mix-up raises
+            dr.check_manifest_kind(self.manifest, data_kind)
         self.rows = self.manifest["runs"]
         if (self.manifest["cohort"], self.manifest["law"], self.manifest["setting"],
                 self.manifest["n_events"]) != ("dev_train", "F1", 0.05, 100_000):
@@ -115,10 +117,60 @@ def tr_suffix(args):
     return f"__tr{ref}"
 
 
+SPARSE_DEFAULTS = {"loss": "legacy", "placeholder": "legacy", "embed": "linear", "decoder": "legacy",
+                   "count_head": False}
+
+
+def sparse_suffix(args):
+    """r2-sparse: ``__dw2`` for lucid_v1_w2 data, then the T1.2 flags of mae_repaired
+    (``__lfixed``, ``__psent``, ``__efourier``, ``__disol``, ``__cnt``) or ``__q<queries>`` of
+    sparse_mae. Empty for every existing run."""
+    out = "__dw2" if getattr(args, "data_kind", None) == dr.LUCID_V1_W2 else ""
+    flags = {k: getattr(args, k, None) for k in SPARSE_DEFAULTS}
+    changed = {k: v for k, v in flags.items() if v is not None and v != SPARSE_DEFAULTS[k]}
+    if changed and args.arm != "mae_repaired":
+        raise ValueError("--loss/--placeholder/--embed/--decoder/--count-head apply to mae_repaired only")
+    for key, tag in (("loss", "l"), ("placeholder", "p"), ("embed", "e"), ("decoder", "d")):
+        if key in changed:
+            out += f"__{tag}{ {'fixed': 'fixed', 'sentinel': 'sent', 'fourier': 'fourier', 'isolated': 'isol'}[changed[key]] }"
+    if changed.get("count_head"):
+        out += "__cnt"
+    queries = getattr(args, "queries", None)
+    if args.arm == "sparse_mae":
+        out += f"__q{queries or 'all'}"
+    elif queries is not None:
+        raise ValueError("--queries applies to sparse_mae only")
+    return out
+
+
 def run_suffix(args):
     """Run-name suffixes in the registered order ``__m<mask>``, ``__ts<unit>``, ``__cw<weight>``
-    (plus ``__tr<reference>`` for the conditional T5.1 cell)."""
-    return mask_suffix(args) + ts_suffix(args) + cw_suffix(args) + tr_suffix(args)
+    (plus ``__tr<reference>`` for the conditional T5.1 cell, and the r2-sparse suffixes)."""
+    return mask_suffix(args) + ts_suffix(args) + cw_suffix(args) + tr_suffix(args) + sparse_suffix(args)
+
+
+def sparse_build_flags(args, scaling):
+    """Keyword flags for ``ext_r2.build_r2_arm(sparse_flags=...)``; ``None`` for existing recipes."""
+    if args.arm in ("sparse_mae", "sparse_time"):
+        flags = {"mask_seed": None} if args.arm == "sparse_time" else {}
+        if args.arm == "sparse_mae":
+            flags["queries"] = getattr(args, "queries", None) or "all"
+            if flags["queries"] == "neg":
+                if not getattr(args, "neg_ratio", None):
+                    raise ValueError("--queries neg needs --neg-ratio (fixed in W2)")
+                flags["neg_ratio"] = float(args.neg_ratio)
+        return flags
+    flags = {k: getattr(args, k, None) for k in SPARSE_DEFAULTS}
+    changed = {k: v for k, v in flags.items() if v is not None and v != SPARSE_DEFAULTS[k]}
+    if not changed:
+        return None
+    out = {"loss_mode": flags["loss"] or "legacy", "placeholder": flags["placeholder"] or "legacy",
+           "embed": flags["embed"] or "linear", "decoder": flags["decoder"] or "legacy",
+           "count_head": bool(flags["count_head"])}
+    if out["placeholder"] == "sentinel":
+        window = dr.WINDOW_NS[getattr(args, "data_kind", dr.LUCID_V1)]
+        out["sentinel_time"] = (window[1] + 50.0) / float(scaling.time_scale_ns)
+    return out
 
 
 def refuse_lucid_returns(path):
@@ -195,7 +247,8 @@ def prepare(args):
     cfg = r2.run_config()
     h5 = Path(args.data) if args.data else dr.pack(args.detector, args.data_kind)
     if args.detector == "wcte":
-        cohort = WcteTrainingShards(args.data or dr.wcte_train_shards(args.data_kind))
+        cohort = WcteTrainingShards(args.data or dr.wcte_train_shards(args.data_kind),
+                                    data_kind=None if args.data_kind == dr.ANALYTIC_TOY else args.data_kind)
         data_identity = rs.sha256_file(cohort.directory / "manifest.json")
         mask_seed = cohort.manifest["dataset_seed"]
         source = str(cohort.directory)
@@ -208,13 +261,19 @@ def prepare(args):
     time_loss_scale = float(getattr(args, "time_loss_scale_ns", None) or 50.0)
     charge_weight = float(getattr(args, "charge_loss_weight", None) or 1.0)
     run_suffix(args)  # validates the mae_repaired-only flags before anything is built
+    flags = sparse_build_flags(args, scaling)
+    if flags is not None and "mask_seed" in flags:
+        flags["mask_seed"] = int(mask_seed)
     arm = r2.build_r2_arm(args.arm, geometry, seed, scaling=scaling, run_cfg=cfg,
                           encoder_config=encoder, time_loss_scale_ns=time_loss_scale,
-                          charge_loss_weight=charge_weight).to(args.device)
+                          charge_loss_weight=charge_weight, sparse_flags=flags).to(args.device)
     optimizers, optimiser, scheduler = lr.build_optimizers(arm, cfg)
-    shuffle = args.arm in ("jepa_repaired", "mae_repaired")
-    # r2-tier1: the mask is the only thing --mask changes (encoder, loader shuffle unchanged)
-    split = (getattr(args, "mask", None) or DEFAULT_MASK) if args.arm == "mae_repaired" else "within"
+    sparse = args.arm in ("sparse_mae", "sparse_time")
+    shuffle = args.arm in ("jepa_repaired", "mae_repaired") or sparse
+    # r2-tier1: the mask is the only thing --mask changes (encoder, loader shuffle unchanged);
+    # r2-sparse: the sparse arms read the same loader batches (same patch mask) as mae_repaired
+    split = ((getattr(args, "mask", None) or DEFAULT_MASK) if args.arm == "mae_repaired"
+             else DEFAULT_MASK if sparse else "within")
     loader = rs.R2TrainingLoader(cohort, geometry, seed=seed, scaling=scaling, batch=r2.BATCH,
                                  mask_seed=mask_seed, split=split, n_min=int(cfg["views"]["n_min"]),
                                  shuffle_events_within_batch=shuffle,
@@ -242,6 +301,12 @@ def prepare(args):
         recipe["charge_loss_weight"] = charge_weight
     if (getattr(args, "time_reference", None) or "trigger") != "trigger":  # T5.1 cell only
         recipe["time_reference"] = args.time_reference
+    if flags is not None:  # r2-sparse cells only; existing recipes keep their hash
+        recipe["r2_sparse_flags"] = flags
+    if args.data_kind == dr.LUCID_V1_W2:
+        recipe["window_ns"] = list(dr.WINDOW_NS[dr.LUCID_V1_W2])
+        recipe["dataset_kind_manifest"] = cohort.manifest.get("dataset_kind")
+        recipe["lucid_sha"] = (cohort.manifest.get("lucid") or {}).get("lucid_sha")
     config_sha = sha_json(recipe)
     return {"arm": arm, "loader": loader, "optimizers": optimizers, "scheduler": scheduler,
             "recipe": recipe, "config_sha": config_sha, "identity": identity, "steps": steps,
@@ -292,6 +357,13 @@ def main():
                         help="mae_repaired log-charge loss weight (default 1, the unchanged recipe)")
     parser.add_argument("--time-reference", choices=("trigger", "median"), default=None,
                         help="mae_repaired token-time reference (default trigger, the unchanged recipe)")
+    parser.add_argument("--loss", choices=("legacy", "fixed"), default=None, help="r2-sparse §2.2 (mae_repaired)")
+    parser.add_argument("--placeholder", choices=("legacy", "sentinel"), default=None)
+    parser.add_argument("--embed", choices=("linear", "fourier"), default=None)
+    parser.add_argument("--decoder", choices=("legacy", "isolated"), default=None)
+    parser.add_argument("--count-head", action="store_true", default=None)
+    parser.add_argument("--queries", choices=("all", "neg", "pos"), default=None, help="sparse_mae query set")
+    parser.add_argument("--neg-ratio", type=float, default=None, help="S1n ratio r (fixed in W2)")
     parser.add_argument("--data", type=Path)
     parser.add_argument("--micro-batch", type=int, choices=(1, 2, 4, 8, 16, 32), required=True)
     parser.add_argument("--window", type=int, choices=(128, 256))
