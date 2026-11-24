@@ -43,8 +43,14 @@ EXTRA_FIELDS = ("n_later", "q_total_window", "physics_first", "dark_ext_first")
 #: first photoelectron plus LUCiD's jitter, so photoelectrons generated only from the window start
 #: would leave a jitter-wide deficit of dark digits at the window edge (W2 validation, 24 Nov).
 EXT_MARGIN_NS = 20.0
-#: Final shard root (``shards/`` and ``shards_final/`` hold superseded passes; never read).
-SHARD_DIR = "shards_w2"
+#: Final shard root (``shards/``, ``shards_final/`` and ``shards_w2/`` hold superseded passes;
+#: never read).
+SHARD_DIR = "shards_w2b"
+#: The cached dark digits start on average 3.36 ns after (first-light proxy - 100 ns) and the
+#: extension's digits spill 1.87 ns past their photoelectron boundary (LUCiD's late jitter tail);
+#: the net 1.5 ns gap is closed by ending the extension photoelectrons this much later. Calibrated
+#: once on dev_probe_train (W2 validation, 24 Nov 2026), never on sealed data.
+PROXY_OFFSET_NS = 1.5
 #: First-light proxy: the earliest physics digit with at least one more physics digit within this
 #: many ns. LUCiD flags a digit as physics when its integration window holds any physics
 #: photoelectron, so a dark photoelectron that opens a window on a PMT later hit by light makes an
@@ -96,7 +102,8 @@ def uncovered_intervals(dig: dict, rule: dict, pad_ns: float,
     info = {"trigger_cached": trig, "pre_uncovered_ns": 0.0, "post_uncovered_ns": 0.0}
     if trig is None or not phys.any():
         return [], info
-    cov_lo, cov_hi = first_light_proxy(t[phys]) - pad_ns, float(t[phys].max()) + pad_ns
+    cov_lo = first_light_proxy(t[phys]) - pad_ns + PROXY_OFFSET_NS
+    cov_hi = float(t[phys].max()) + pad_ns
     win_lo, win_hi = trig + lo, trig + hi
     out = []
     if win_lo < cov_lo:
@@ -300,6 +307,7 @@ def write_run_w2(directory, run, event_ids, truths, stats, readouts, twin_readou
         "n_hits": int(sum(len(r.hits) for r in readouts)), "extra_fields": list(EXTRA_FIELDS),
         "dark_extension": ext, "dark_extension_margin_ns": EXT_MARGIN_NS,
         "first_light_proxy": f"earliest physics digit with a physics neighbour within {FIRST_LIGHT_WINDOW_NS:g} ns",
+        "proxy_offset_ns": PROXY_OFFSET_NS,
         "n_dropped_ext_first": int(sum(r.extra["dropped_ext_pmt"].size for r in readouts)), **record,
         "regime": {"true_pe_quantiles_5_50_95": [float(np.quantile([s["true_pe"] for s in stats], q))
                                                   for q in (0.05, 0.5, 0.95)],
