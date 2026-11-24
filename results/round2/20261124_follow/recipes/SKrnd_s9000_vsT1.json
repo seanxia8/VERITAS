@@ -1,0 +1,178 @@
+{
+ "cli": "sk mae_repaired --micro-batch 8 --seed 9000 --mask random --data-kind lucid_v1 --memory-fraction 0.9",
+ "code_tree": "/work/dwong/r2_follow/code_mask",
+ "config_sha256": "027314f1a5e52ed60a692e70ba7019989420137e6b9c252d4635aa2d493b794f",
+ "diff": {
+  "snapshot_steps": {
+   "new": [
+    0,
+    50,
+    100,
+    200,
+    500,
+    1000,
+    2000,
+    5000,
+    10000
+   ],
+   "ref": [
+    0,
+    50,
+    100,
+    200,
+    500,
+    1000,
+    2000,
+    5000,
+    10000
+   ]
+  }
+ },
+ "init_state_sha256": "a11d74bbb539742790891a5aa4aab2881056f9fc7f8041bf565d9709987ff2e3",
+ "recipe": {
+  "data_identity_sha256": "9582748faaaa7b9e98d604aaf613e7620b1f056092b33431302a8b06e71473ee",
+  "data_kind": "lucid_v1",
+  "encoder": {
+   "d_ff": null,
+   "d_model": 128,
+   "d_pred": 64,
+   "d_pred_ff": null,
+   "mask_embed_init": 0.02,
+   "n_blocks": 4,
+   "n_features": 9,
+   "n_heads": 4,
+   "n_pred_blocks": 2,
+   "n_pred_heads": 4,
+   "norm_eps": 1e-06,
+   "predictor_window": null,
+   "shift": 192,
+   "window": 384
+  },
+  "full_batch_sigreg": false,
+  "geometry_sha256": "709eba149b3a0f782b89fdba1c8b3615217f5b4d29bb5d84d1fd0f39f56a9706",
+  "identity": {
+   "arm": "mae_repaired",
+   "beta": null,
+   "cell_id": "r2_sk_within",
+   "gradient_clip": null,
+   "run_id": "sk__mae_repaired__s9000__mrandom",
+   "seed": 9000,
+   "steps_scheduled": 10000
+  },
+  "mask": "random",
+  "mask_seed": 20261017,
+  "micro_batch": 8,
+  "scaling": {
+   "axial_scale_m": 18.18921111111,
+   "charge_floor_pe": 1e-06,
+   "charge_reference_pe": 1.0,
+   "direction_scale": 1.0,
+   "radial_scale_m": 16.96228024518598,
+   "time_scale_ns": 450.0
+  },
+  "shuffle": true,
+  "snapshot_steps": [
+   0,
+   50,
+   100,
+   200,
+   500,
+   1000,
+   2000,
+   5000,
+   10000
+  ],
+  "training": {
+   "batch": 32,
+   "best_checkpoint": false,
+   "checkpoint_every_steps": 500,
+   "checkpoint_minutes": 30.0,
+   "fallbacks": {
+    "recorded_in": "docs/jepa/DECISIONS.md (each fallback step must be recorded there when activated)",
+    "rung1": {
+     "authority": "author G2 amendment 2026-10-20",
+     "fallback_rung": 1,
+     "main_seeds": 3,
+     "manifest_effect": "fallback_rung 1 and fallback_active true in every manifest; registered=false (weaker, non-primary protocol)",
+     "reason": "the registered ladder first rung is 3 seeds alone; measured 3-seed 10k projection ~110-120 GPU-h => ledger+grid ~143-153 h, inside the cap with a 10 h contention reserve",
+     "secondary": "registered (retained)",
+     "status": "active",
+     "steps": 10000
+    },
+    "seeds_3": {
+     "active": true,
+     "note": "\u00a73.5.6 budget fallback step 1: 3 seeds for every main arm; accepted by load_run_config and recorded as a non-primary run (registered=false).",
+     "registered": false
+    },
+    "status": "active",
+    "steps_5000": {
+     "active": false,
+     "note": "\u00a73.5.6 budget fallback step 3: 5 000 steps instead of 10 000; accepted by load_run_config and recorded as a non-primary run (registered=false), never a silent replacement.",
+     "registered": false
+    }
+   },
+   "final_step_freeze": true,
+   "fp32": true,
+   "gradient_accumulation": 4,
+   "gradient_accumulation_note": "Titan 12 GiB profile (2026-10-18 smoke): batch 32 over 1995 PMTs allocated 9.19 GiB and then requested 2.18 GiB, exceeding the 0.8 x 11.92 = 9.54 GiB per-process cap before completing step 0. micro_batch 8 x accum 4 keeps the registered effective batch of 32 (loss divided by 4, one optimizer step per 4 micro-batches); the manifest records micro_batch and the accumulation factor. No registered numeric changes: the effective batch, steps, optimizer and schedule are unchanged.",
+   "micro_batch": 8,
+   "optimizer": "muon_adamw",
+   "optimizer_detail": {
+    "betas": [
+     0.9,
+     0.999
+    ],
+    "decay": "none",
+    "eps": 1e-08,
+    "family": "muon_adamw",
+    "frozen_by": "docs/jepa/DECISIONS.md 2026-10-18; src/jepa_noise/configs/bridge_v1.json:281-322",
+    "fused_note": "repository convention is fused=True; the CPU-only local environment uses the documented fallback fused=False. The run manifest records the device and the fused flag actually used.",
+    "fused_on_cpu": false,
+    "fused_on_cuda": true,
+    "gradient_clip": null,
+    "learning_rate": 0.001,
+    "muon_learning_rate": 0.001,
+    "muon_momentum": 0.95,
+    "muon_nesterov": true,
+    "muon_ns_steps": 5,
+    "numerics_frozen": "AdamW(lr, betas, eps, weight_decay, fused policy) and Muon(lr, momentum, nesterov, ns_steps) are frozen; no outcome-dependent tuning is allowed; the schedule is an implemented no-op (constant, no warmup, no decay).",
+    "schedule": "constant",
+    "warmup_steps": 0,
+    "weight_decay": 0.0
+   },
+   "optimizer_frozen_by": "docs/jepa/DECISIONS.md 2026-10-18 'frozen LUCiD training numerics (Lead decision)': mirror the already-frozen WP4 convention in src/jepa_noise/configs/bridge_v1.json:281-322 (AdamW lr 1e-3, betas (0.9, 0.999), weight decay 0, eps 1e-8, fused on CUDA with the documented CPU fallback; Muon lr 1e-3, momentum 0.95, nesterov, ns_steps 5), constant learning rate, no warmup, no decay, grad clip null, batch 32, 10 000 steps, fp32/TF32 off. The runner applies these and refuses any other schedule.",
+   "smoke_optimizer": {
+    "betas": [
+     0.9,
+     0.999
+    ],
+    "eps": 1e-08,
+    "family": "adamw",
+    "gradient_clip": null,
+    "label": "engineering_smoke_only_not_registered",
+    "learning_rate": 0.0003,
+    "note": "Fallback spec used only when a deliberately pending_review config is passed with allow_pending=True (tests/diagnostics). After the 2026-10-18 freeze, smoke uses the frozen numerics like every other run; it remains non-registered because of its synthetic geometry and reduced steps.",
+    "schedule": "constant",
+    "warmup_steps": 0,
+    "weight_decay": 0.0
+   },
+   "steps": 10000,
+   "tf32": false
+  },
+  "view_mode": "random"
+ },
+ "ref": "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom",
+ "ref_code_sha": "c26288f3",
+ "ref_config_sha256": "027314f1a5e52ed60a692e70ba7019989420137e6b9c252d4635aa2d493b794f",
+ "run_id": "sk__mae_repaired__s9000__mrandom",
+ "weights_vs_ref_step0": {
+  "jepa.": {
+   "all_equal": true,
+   "n_equal": 81,
+   "n_new": 81,
+   "n_ref": 81,
+   "only_new": [],
+   "only_ref": []
+  }
+ }
+}

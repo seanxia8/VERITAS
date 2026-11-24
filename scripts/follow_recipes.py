@@ -64,7 +64,8 @@ def main():
     p = t.prepare(args)
     recipe, state = p["recipe"], p["arm"].state_dict()
     ref = json.loads((a.ref / "recipe.json").read_text())
-    new_f, ref_f = flatten(recipe), flatten(ref["recipe"])
+    # JSON round trip: tuples in the in-memory recipe are lists in recipe.json (same hash)
+    new_f, ref_f = flatten(json.loads(json.dumps(recipe))), flatten(ref["recipe"])
     diff = {k: {"new": new_f.get(k, "<absent>"), "ref": ref_f.get(k, "<absent>")}
             for k in sorted(set(new_f) | set(ref_f)) if new_f.get(k, "<absent>") != ref_f.get(k, "<absent>")}
     out = {"cli": a.cli, "run_id": run_id, "code_tree": str(Path(t.__file__).resolve().parents[2]),
