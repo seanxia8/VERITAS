@@ -153,8 +153,7 @@ def test_fixed_loss_terms():
     t4 = sa.fixed_loss(out, ln_q, tau, hit, valid, time_scale_ns=100.0, hit_term=False)
     assert "hit" not in t4 and torch.allclose(t4["loss"], t4["charge"] + t4["time"])
     # weight clip
-    hit2 = torch.ones_like(hit)
-    hit2[0, 0] = False
+    hit2 = torch.ones_like(hit)  # no negatives -> w clipped at 0.05
     t5 = sa.fixed_loss(out, ln_q, tau, hit2, valid, time_scale_ns=100.0)
     assert float(t5["pos_weight"]) == pytest.approx(0.05)
 

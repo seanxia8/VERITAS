@@ -292,3 +292,21 @@ f1255984787a1932067494809b6bf36d25397d6bc02ce79451805fe2a927d1e8  docs/round2/RU
 - 2026-11-23 r2-tier1 DEVIATION (reported): §0.5 asks idle polls at most every 25 min; the harness refuses foreground sleep, so waiting used bounded Monitor loops that ran a light `condor_q` / queue-file check every 90–120 s (no compute, no Mac background shells left running).
 - 2026-11-23 r2-tier1 final native suite (frozen snapshot 79a08ee, dt1): 1,578 passed, 6 failed = five al2o3 tests whose untracked data files are absent from a `git archive` snapshot (pass in the clone) and D14 (stale golden hash, triaged in T9). No new failure.
 - 2026-11-23 r2-tier1 SEALED-RULE BREACH (disclosed per runbook §5): the rule "only scripts/tier1_eval.py reads sealed packs" was not kept as worded. lucid_pack.py (packing), tier1_sealed_validate.py (G2/G4 QA on the sealed cohorts' cached LUCiD digits and event IDs, all four detectors), the staging copies and tier1_manifest.py (SHA256 of pack bytes) accessed sealed data without a log line, and the first phase report wrongly stated that all sealed reads went through tier1_eval.py. The accesses are now listed with times in the addendum of SEALED_ACCESS_LOG.md (canonical and results copies). None loaded a model, fitted a probe or produced a readout metric; the one decision taken after a sealed value is the JUNO validation re-run with the full reference cohort (generation QA, exploratory detector). No registered contrast or E-cell number depends on these accesses. Future phases should route generation QA through a logged entry point as well.
+
+## r2-sparse (runbook `RUNBOOK_2026-11-24_R2_SPARSE_WCTE.md`)
+
+Authority (quoted verbatim, runbook §0.1):
+
+1. **Author, 23 Nov 2026, 23:40 CET:**
+   > "根据我们的对话，写一个runbook，按照你上一条建议的顺序，在WCTE上3个seed试，记住要用真实LUCID数据，不要用玩具数据，那窗口又该怎么定呢？需要改吗？"
+
+   (Translation: "Based on our discussion, write a runbook. Follow the order you proposed last, try it on WCTE with 3 seeds. Remember to use real LUCiD data, not toy data. How should the window be set? Does it need to change?")
+2. **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决". Never stop to ask; record decisions in `DECISIONS.md` and `$CC_STATE/notes/r2-sparse.md`.
+3. **Author, 22 Nov 2026:** do not depend on the collaborator. The design ideas above are his; nothing in this runbook waits for him.
+
+Decisions:
+
+- 2026-11-24 r2-sparse T0: F1–F6 confirmed against `origin/tier1` code. Additions: (F2) the current MAE hit term is an MSE on the 0/1 flag, not a BCE; (F6) JUNO, like WCTE, has no LUCiD trigger, so its cache is untruncated too (reported in W0, not used here). All four WCTE caches are present (dev_train 100 runs, dev_probe_train 200, dev_probe_test 200, sealed_test 600); no LUCiD regeneration is needed.
+- 2026-11-24 r2-sparse W0: in WCTE no PMT has more than one cached digit (LUCiD's 200 ns integration window spans the whole event), and no signal digit lies beyond +60 ns (3 × 10⁻⁶); the window problem on WCTE is purely pre-trigger (25 % of events have signal earlier than trigger − 20 ns; q99.5 of trigger − earliest signal = 97 ns).
+- 2026-11-24 r2-sparse W1: the registered rule gives P = 110 ns and A = 50 ns, i.e. the WCTE window [−110, +50] ns. A = 50 ns is 10 ns shorter than the old end (+60 ns); the rule is applied as registered (not raised to cover +60), because the pre-registered rule is binding and the (50, 60] ns slice holds 0.004 % of first-per-PMT signal digits. Consequence for W2 validation: v1 hits with token time in (50, 60] ns are expected to be absent in v2; they are counted separately (signal and dark), and the "every v1 hit present" and "signal-hit counts ≥ v1" checks are evaluated on the common window [−20, +50] ns, with the (50, 60] losses reported.
+- 2026-11-24 r2-sparse W0/W1: the rule pools photon bombs, muons and electrons (2,000/500/500, the W0 sample); "first-per-PMT signal digits" = each PMT's earliest digit carrying a physics photoelectron.
