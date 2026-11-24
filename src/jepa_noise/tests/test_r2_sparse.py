@@ -254,7 +254,6 @@ def test_leakage_b_s2_hidden_positions(wcte):
     for key in ("tokens", "queries", "v_valid", "q_valid", "q_block", "q_tau", "v_idx"):
         assert torch.equal(p[key], p2[key]), key
     torch.testing.assert_close(out, out2)
-    assert not torch.equal(p["q_pmt"], p2["q_pmt"]) or True  # targets may move; inputs may not
 
 
 def test_leakage_c_count_head_independent_of_queries(wcte):

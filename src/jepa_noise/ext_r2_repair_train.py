@@ -262,6 +262,8 @@ def prepare(args):
     charge_weight = float(getattr(args, "charge_loss_weight", None) or 1.0)
     run_suffix(args)  # validates the mae_repaired-only flags before anything is built
     flags = sparse_build_flags(args, scaling)
+    if flags and flags.get("loss_mode") == "fixed" and time_loss_scale != 50.0:
+        raise ValueError("--loss fixed has its own 50 ns time unit; --time-loss-scale-ns does not apply")
     if flags is not None and "mask_seed" in flags:
         flags["mask_seed"] = int(mask_seed)
     arm = r2.build_r2_arm(args.arm, geometry, seed, scaling=scaling, run_cfg=cfg,
@@ -307,6 +309,9 @@ def prepare(args):
         recipe["window_ns"] = list(dr.WINDOW_NS[dr.LUCID_V1_W2])
         recipe["dataset_kind_manifest"] = cohort.manifest.get("dataset_kind")
         recipe["lucid_sha"] = (cohort.manifest.get("lucid") or {}).get("lucid_sha")
+        from . import lucid_mc_generator as mg
+        if recipe["lucid_sha"] != mg.LUCID_SHA or recipe["dataset_kind_manifest"] != dr.PACK_KIND[dr.LUCID_V1_W2]:
+            raise ValueError("lucid_v1_w2 training data must carry LUCiD e651e836 and dataset_kind lucid_v1_w2")
     config_sha = sha_json(recipe)
     return {"arm": arm, "loader": loader, "optimizers": optimizers, "scheduler": scheduler,
             "recipe": recipe, "config_sha": config_sha, "identity": identity, "steps": steps,
