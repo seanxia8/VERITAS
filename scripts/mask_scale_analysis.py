@@ -331,7 +331,7 @@ def render(out):
     return "\n".join(md)
 
 
-def figures(out, out_dir):
+def figures(out, out_dir, stem="MASK_SCALE"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -362,7 +362,7 @@ def figures(out, out_dir):
         ax.set_title(f"{det.upper()}: error vs patch size")
         ax.legend(fontsize=8)
     fig.tight_layout()
-    fig.savefig(out_dir / "MASK_SCALE.png", dpi=130)
+    fig.savefig(out_dir / f"{stem}.png", dpi=130)
 
 
 def main():
@@ -370,13 +370,19 @@ def main():
     ap.add_argument("--eval-root", type=Path, default=EVAL)
     ap.add_argument("--budget", type=Path, required=True)
     ap.add_argument("--out-dir", type=Path, required=True)
+    # r2-follow T3: SK seeds (default A, B = the r2-mask outputs) and the output stem (3-seed outputs are
+    # written next to the unchanged 2-seed ones, e.g. --sk-seeds A B C --out-stem MASK_SCALE_3seed)
+    ap.add_argument("--sk-seeds", nargs="+", choices=tuple(SEEDS), default=["A", "B"])
+    ap.add_argument("--out-stem", default="MASK_SCALE")
     a = ap.parse_args()
+    SEED_LABELS["sk"] = tuple(a.sk_seeds)
+    stem = a.out_stem
     out = analyse(a)
     a.out_dir.mkdir(parents=True, exist_ok=True)
-    (a.out_dir / "MASK_SCALE.json").write_text(json.dumps(out, indent=1, default=float))
-    (a.out_dir / "MASK_SCALE.md").write_text(render(out) + "\nFigure: `MASK_SCALE.png` (top: vertex gain vs U; "
+    (a.out_dir / f"{stem}.json").write_text(json.dumps(out, indent=1, default=float))
+    (a.out_dir / f"{stem}.md").write_text(render(out) + f"\nFigure: `{stem}.png` (top: vertex gain vs U; "
                                              "bottom: sealed vertex error vs patch size, per seed).\n")
-    figures(out, a.out_dir)
+    figures(out, a.out_dir, stem)
     print(render(out))
     return 0
 
