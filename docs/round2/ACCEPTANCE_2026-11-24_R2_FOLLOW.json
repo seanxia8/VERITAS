@@ -1,0 +1,235 @@
+{
+ "phase": "r2-follow",
+ "runbook": "docs/round2/RUNBOOK_2026-11-24_R2_FOLLOWUP.md",
+ "prereg": "docs/round2/PREREG_2026-11-24_R2_FOLLOW.md",
+ "prereg_commit": "ca1dfd0",
+ "prereg_amendments": {
+  "A1": "e5b6d8d (C3e/C2dc code 760c3d5 = 9bfc364 + FactorJepa)",
+  "A2": "timestamp correction of A1"
+ },
+ "prereg_pushed_utc": "2026-11-24T15:24:13Z",
+ "first_new_run_evaluated_utc": "2026-11-24T15:57:11Z",
+ "date": "2026-11-24/25",
+ "stages": {
+  "T0": {
+   "runbook_commit": "done",
+   "merge_mask_scale": "43aa678 (focused tests 112 passed)",
+   "code_patch": "760c3d5 (tests 30 passed), staged code/follow_760c3d5d.tar.gz",
+   "recipe_diffs": "results/round2/20261124_follow/RECIPE_DIFFS.md: C2/C3 rebuilt with identical hashes and step-0 weights; C3e differs from C2 only in embed, C2dc only in decoder+count_head; SK seed C differs from seed A only in seed (mask_87628ef6 reproduces all six SK seed-A/B references tested)"
+  },
+  "T1_SK": {
+   "runs": [
+    "sk__mae_repaired__s9002__mrandom",
+    "sk__mae_repaired__s9002__ps43",
+    "sk__mae_repaired__s9002",
+    "sk__mae_repaired__s9002__ps692"
+   ],
+   "clusters": [
+    "760047",
+    "760048",
+    "760049",
+    "760050"
+   ],
+   "complete": 4,
+   "failed": 0,
+   "code": "code/mask_87628ef6.tar.gz",
+   "seedC_step0_identical": "full-state SHA cb40efee... for all four",
+   "scored": "steps 10000, 5000 (all), 0 (default patch = matched init); validation + sealed; clusters 760054-760057"
+  },
+  "T2_WCTE": {
+   "runs_complete": 6,
+   "runs_failed": 0,
+   "cells": [
+    "C3e",
+    "C2dc"
+   ],
+   "seeds": [
+    9000,
+    9001,
+    9002
+   ],
+   "host": "deepthought2 lane (guarded)",
+   "code": "760c3d5",
+   "scorings": 12,
+   "diagnostics": "results/round2/20261124_follow/DIAGNOSTICS_A.json"
+  },
+  "T3": "results/round2/20261124_follow/FOLLOW_TABLE.md/.json; results/round2/20261123_mask/MASK_SCALE_3seed.{md,json,png}",
+  "T4": "results/round2/20261124_follow/FOLLOW_REPORT.md"
+ },
+ "part_a": {
+  "seed_mean_vertex_m": {
+   "C2": 0.054878011032771984,
+   "C3e": 0.05913914799551919,
+   "C2dc": 0.06327802437209175,
+   "C3": 0.07261189909781436
+  },
+  "contrasts_primary_sealed": {
+   "A1": {
+    "T_bar": 0.07763256417428988,
+    "per_seed": {
+     "A": 0.09569159017406537,
+     "B": 0.07411750869476963,
+     "C": 0.06308859365403463
+    },
+    "SE_boot": 0.003642654529275377,
+    "SE_seed": 0.012284559630512367,
+    "N_sigma": 6.31952357343492,
+    "clear": true,
+    "n_seeds": 3
+   },
+   "A2": {
+    "T_bar": 0.1530999651162029,
+    "per_seed": {
+     "A": 0.1452214114881456,
+     "B": 0.16436322481091592,
+     "C": 0.1497152590495472
+    },
+    "SE_boot": 0.0042728931181528354,
+    "SE_seed": 0.012284559630512367,
+    "N_sigma": 12.462796365604632,
+    "clear": true,
+    "n_seeds": 3
+   },
+   "A3": {
+    "T_bar": 0.227752059751649,
+    "per_seed": {
+     "A": 0.23212807658831625,
+     "B": 0.25147616780230675,
+     "C": 0.19965193486432398
+    },
+    "SE_boot": 0.00467530064094936,
+    "SE_seed": 0.012284559630512367,
+    "N_sigma": 18.53970077901359,
+    "clear": true,
+    "n_seeds": 3
+   },
+   "A4": {
+    "T_bar": 0.147526993982067,
+    "per_seed": {
+     "A": 0.1788396182541503,
+     "B": 0.15447863253237393,
+     "C": 0.10926273115967677
+    },
+    "SE_boot": 0.003896556577855466,
+    "SE_seed": 0.012284559630512367,
+    "N_sigma": 12.009139799821536,
+    "clear": true,
+    "n_seeds": 3
+   }
+  },
+  "R2b_recomputed": {
+   "T_bar": 0.3232003744650373,
+   "per_seed": {
+    "A": 0.35003237153516475,
+    "B": 0.34423246355069126,
+    "C": 0.2753362883092558
+   },
+   "SE_boot": 0.005508884458908114,
+   "SE_seed": 0.012284559630512367,
+   "N_sigma": 26.309479882557028,
+   "clear": true,
+   "n_seeds": 3
+  },
+  "SD_pooled_vertex_sealed": 0.021277481428656972,
+  "attribution_verdict": "interaction: neither single change accounts for the C3 loss, but A3 does",
+  "interaction_exploratory": {
+   "I_bar": 0.06471208191375506,
+   "per_seed": {
+    "A": 0.07588634322444299,
+    "B": 0.07481595187407031,
+    "C": 0.043433950642751906
+   },
+   "SE_boot": 0.0048200536995045284,
+   "SE_seed": 0.010643551838245698,
+   "N_sigma": 6.079932986394991,
+   "same_sign": true
+  }
+ },
+ "part_b": {
+  "B1": {
+   "holds": true,
+   "per_config": {
+    "sk:patch173-vs-random": {
+     "N_sigma": 8.764001051995853,
+     "T_bar": -0.13053085967443415,
+     "clear": true,
+     "holds": true,
+     "n_seeds": 3,
+     "per_seed": {
+      "A": -0.1397599897292754,
+      "B": -0.13831326676944689,
+      "C": -0.11351932252458019
+     }
+    },
+    "sk:patch43-vs-random": {
+     "N_sigma": 5.570125386485263,
+     "T_bar": -0.08296133819230116,
+     "clear": true,
+     "holds": true,
+     "n_seeds": 3,
+     "per_seed": {
+      "A": -0.12172834539158717,
+      "B": -0.053748050244124546,
+      "C": -0.07340761894119174
+     }
+    },
+    "sk:patch692-vs-random": {
+     "N_sigma": 9.473631607286858,
+     "T_bar": -0.14110008323840054,
+     "clear": true,
+     "holds": true,
+     "n_seeds": 3,
+     "per_seed": {
+      "A": -0.1682960266302218,
+      "B": -0.1268629595706411,
+      "C": -0.12814126351433874
+     }
+    }
+   }
+  },
+  "B2": {
+   "holds": true,
+   "spearman_U_direction_gain": {
+    "dir_e": 0.7999999999999999,
+    "dir_mu": 0.7999999999999999
+   },
+   "spearman_U_vertex_gain": 1.0
+  },
+  "B3": {
+   "spearman_U_seedC_gain": 1.0,
+   "holds": true
+  },
+  "kill_fires": false,
+  "verdict": "SK mask claim holds with three seeds (B1 and B2 hold)"
+ },
+ "gpu": {
+  "line": "R2_follow_gpu",
+  "booked_gpu_h": 27.451,
+  "cap_h": 34.0,
+  "by_kind": {
+   "train": 23.871,
+   "eval": 3.572,
+   "smoke": 0.008
+  },
+  "C2dc_dropped": false
+ },
+ "sealed_access": {
+  "reads": 21,
+  "log": "results/round2/20261124_follow/SEALED_ACCESS_LOG.md",
+  "only_through": "scripts/tier1_eval.py"
+ },
+ "real_lucid_only": {
+  "wcte": "lucid_v1_w2 (recipes assert LUCiD e651e836 and dataset_kind)",
+  "sk": "lucid_v1",
+  "analytic_generator_used": false
+ },
+ "returns": "/ceph/dwong/jepa/returns/r2_follow_2026-11-24/ (train, eval, ledger); collector .prev_ copies verified byte-identical",
+ "deviations": [
+  "C3e/C2dc on 760c3d5 (PREREG A1)",
+  "SK step 0 scored once (bitwise identical seed-C init)",
+  "exploratory interaction contrast and diagnostic definitions (FOLLOW_REPORT Deviations 3)",
+  "a second Deepthought CPU worker for ~1 h (both pinned to cores 0-5)",
+  "feeder polled every 2.5 min for ~30 min",
+  "access log keeps the default '(r2-tier1)' header"
+ ]
+}

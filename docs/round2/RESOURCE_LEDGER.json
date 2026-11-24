@@ -6058,6 +6058,155 @@
    ],
    "total_gpu_h": 35.95,
    "note": "r2-mask: batch receipts in /ceph/dwong/jepa/returns/r2_mask_2026-11-23/ledger/receipts.jsonl; deepthought2 from run_status.json wall time; CPU core-hours approximate"
+  },
+  "R2_follow_gpu": {
+   "authority": "RUNBOOK_2026-11-24_R2_FOLLOWUP.md \u00a70.3",
+   "cap_h": 34.0,
+   "cpu_entries": [
+    {
+     "what": "WCTE scoring (12 tier1_eval jobs, validation + sealed, steps 0 and 10,000)",
+     "host": "portal1 (4 workers x 5 threads) + deepthought (cores 0-5, nice 15)",
+     "core_h": 62.0
+    },
+    {
+     "what": "Part A diagnostics (8 model snapshots, dev_probe_test)",
+     "host": "deepthought (cores 0-5, nice 15)",
+     "core_h": 3.0
+    },
+    {
+     "what": "recipe rebuilds (22) and analysis scripts",
+     "host": "deepthought (cores 0-5, nice 15)",
+     "core_h": 2.0
+    }
+   ],
+   "entries": [
+    {
+     "job": "follow_sk_rnd_s9002 (760047)",
+     "kind": "train",
+     "gpu_h": 4.823333333333333,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "follow_sk_p173_s9002 (760049)",
+     "kind": "train",
+     "gpu_h": 5.354166666666667,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "follow_sk_p43_s9002 (760048)",
+     "kind": "train",
+     "gpu_h": 5.406944444444444,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "follow_sk_p692_s9002 (760050)",
+     "kind": "train",
+     "gpu_h": 5.4225,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "feval_sk_rnd (760054)",
+     "kind": "eval",
+     "gpu_h": 0.8052777777777778,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "feval_sk_p43 (760055)",
+     "kind": "eval",
+     "gpu_h": 0.7427777777777778,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "feval_sk_p173 (760056)",
+     "kind": "eval",
+     "gpu_h": 1.1572222222222222,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "feval_sk_p692 (760057)",
+     "kind": "eval",
+     "gpu_h": 0.8672222222222222,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "follow_smoke_C2dc",
+     "kind": "smoke",
+     "gpu_h": 0.0029194444444444446,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T15:26:56Z"
+    },
+    {
+     "job": "follow_smoke_C3e",
+     "kind": "smoke",
+     "gpu_h": 0.004588888888888889,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T15:26:45Z"
+    },
+    {
+     "job": "follow_train_C2dc_s9000",
+     "kind": "train",
+     "gpu_h": 0.4870861111111111,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T17:20:40Z"
+    },
+    {
+     "job": "follow_train_C2dc_s9001",
+     "kind": "train",
+     "gpu_h": 0.4858444444444444,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T17:49:50Z"
+    },
+    {
+     "job": "follow_train_C2dc_s9002",
+     "kind": "train",
+     "gpu_h": 0.4877916666666667,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T18:19:07Z"
+    },
+    {
+     "job": "follow_train_C3e_s9000",
+     "kind": "train",
+     "gpu_h": 0.44803333333333334,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T15:54:06Z"
+    },
+    {
+     "job": "follow_train_C3e_s9001",
+     "kind": "train",
+     "gpu_h": 0.5076972222222222,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T16:24:35Z"
+    },
+    {
+     "job": "follow_train_C3e_s9002",
+     "kind": "train",
+     "gpu_h": 0.4472027777777778,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-24T16:51:25Z"
+    }
+   ],
+   "booked_gpu_h": 27.450608333333335,
+   "by_kind": {
+    "train": 23.8706,
+    "eval": 3.5725,
+    "smoke": 0.007508333333333334
+   }
   }
  },
  "totals": {
@@ -6084,6 +6233,10 @@
   "R2_sparse_gpu": {
    "booked_gpu_h": 16.3285,
    "cap_gpu_h": 28.0
+  },
+  "R2_follow_gpu": {
+   "booked_gpu_h": 27.4506,
+   "cap_gpu_h": 34.0
   }
  }
 }
