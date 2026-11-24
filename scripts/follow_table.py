@@ -117,8 +117,37 @@ def part_a(diag):
                                   "is clear, R2b is reported as not reproduced in parts.",
                           "threshold": HALF_R2B, "single_change_accounts": comp, "conditional_accounts": inter,
                           "clear": clear, "verdict": verdict}
+    out["interaction_exploratory"] = interaction(store)
     out["diagnostics"] = diag
     return out
+
+
+def interaction(store, metric="vertex", cohort="sealed"):
+    """Exploratory: I = (e_C3 e_C2) / (e_C3e e_C2dc) - 1 per seed (0 if the two changes combine multiplicatively,
+    i.e. A3 = A2 and A4 = A1); SE_boot over the same 2,000 resamples of sealed events as the contrasts, SE_seed
+    from the across-seed SD of I, N_sigma = |I| / max(SE_boot, SE_seed)."""
+    per, boots = {}, []
+    for lab, s in st.SEEDS.items():
+        v = {c: store.values(st.CELLS[c].format(s=s), 10000, cohort, metric) for c in A_CELLS}
+        if any(x is None for x in v.values()):
+            continue
+        ids = v["C2"]["ids"]
+        if not all(np.array_equal(ids, x["ids"]) for x in v.values()):
+            raise ValueError("events not aligned")
+        idx = st.boot_idx(len(v["C2"]["x"]), f"{st.COHORT_TAG[cohort]}/{v['C2']['tag']}")
+        p = {c: st.point(x) for c, x in v.items()}
+        b = {c: np.asarray(st.boot(x, idx), float) for c, x in v.items()}
+        per[lab] = p["C3"] * p["C2"] / (p["C3e"] * p["C2dc"]) - 1.0
+        boots.append(b["C3"] * b["C2"] / (b["C3e"] * b["C2dc"]) - 1.0)
+    if not per:
+        return None
+    arr = np.array(list(per.values()))
+    se_b = float(np.std(np.mean(boots, axis=0), ddof=1))
+    se_s = float(arr.std(ddof=1) / np.sqrt(arr.size)) if arr.size > 1 else None
+    return {"definition": "(e_C3 e_C2)/(e_C3e e_C2dc) - 1; > 0 = the two changes hurt more together than "
+                          "multiplicatively", "per_seed": per, "I_bar": float(arr.mean()), "SE_boot": se_b,
+            "SE_seed": se_s, "N_sigma": float(abs(arr.mean()) / max(se_b, se_s or 0.0)),
+            "same_sign": bool(np.all(arr > 0) or np.all(arr < 0)), "metric": metric, "cohort": cohort}
 
 
 def part_b(mask3, sk_root):
@@ -214,8 +243,15 @@ def render(out):
     L += ["", f"R2b (C3 vs C2) recomputed with the new SD_pooled: T̄ {pct(r2b.get('T_bar'))}, N_σ "
           f"{num(r2b.get('N_sigma'), 2)}, clear {r2b.get('clear')} (registered +32.3 %). SD_pooled (vertex, sealed) = "
           f"{num(A['SD_pooled'].get('vertex/sealed'))} over {', '.join(A['SD_pooled_over'])}.", "",
-          f"**Attribution verdict (§2.3): {A['attribution']['verdict']}.**", "",
-          "Secondary contrasts (sealed; T̄, N_σ, clear):", "",
+          f"**Attribution verdict (§2.3): {A['attribution']['verdict']}.**", ""]
+    ix = A.get("interaction_exploratory")
+    if ix:
+        L += [f"Interaction (exploratory): I = (e_C3·e_C2)/(e_C3e·e_C2dc) − 1 = {pct(ix['I_bar'])} (A / B / C " +
+              " / ".join(pct(ix["per_seed"].get(k)) for k in st.SEEDS) + f"; SE_boot {pct(ix['SE_boot'], 2)}, "
+              f"SE_seed {pct(ix['SE_seed'], 2)}, N_σ {num(ix['N_sigma'], 1)}). I = 0 means the two changes combine "
+              "multiplicatively (A3 = A2, A4 = A1).", ""]
+    L += [
+"Secondary contrasts (sealed; T̄, N_σ, clear):", "",
           "| ID | MLP vertex | attentive vertex | μ dir | e dir | vertex (validation) |", "|---|---|---|---|---|---|"]
     for cid in PART_A:
         cs = A["contrasts"][cid]
