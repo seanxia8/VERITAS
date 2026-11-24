@@ -321,7 +321,7 @@ def fixed_loss(out: Tensor, ln_q: Tensor, tau: Tensor, hit: Tensor, valid: Tenso
 
 
 def poisson_count_loss(log_rate: Tensor, count: Tensor) -> Tensor:
-    return F.poisson_nll_loss(log_rate, count.float(), log_input=True, full=False)
+    return F.poisson_nll_loss(log_rate, count.float(), log_input=True, full=True)  # Stirling term: constant, readable logs
 
 
 # ============================================================================ tokens
