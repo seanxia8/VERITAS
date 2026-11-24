@@ -1,0 +1,1942 @@
+{
+ "cells": [
+  {
+   "case": "sk__mae_repaired__s9000__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__cw100__step00000",
+   "det": "sk",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__cw100"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__cw100__step05000",
+   "det": "sk",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__cw100"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__cw100__step10000",
+   "det": "sk",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__cw100"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__mrandom"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__mrandom"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__mrandom"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__ts450__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__mrandom__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__ts450__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__mrandom__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__ts450__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__mrandom__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mwithin__ts450__step00000",
+   "det": "sk",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__mwithin__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mwithin__ts450__step05000",
+   "det": "sk",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__mwithin__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mwithin__ts450__step10000",
+   "det": "sk",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__mwithin__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts15__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts15"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts15__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts15"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts15__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts15"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts150__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 150.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts150"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts150__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 150.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts150"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts150__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 150.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts150"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts450__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts450__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts450__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts5__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts5"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts5__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts5"
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts5__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts5"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__mrandom"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__mrandom"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__mrandom"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__ts450__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__mrandom__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__ts450__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__mrandom__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__ts450__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__mrandom__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts450__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts450__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts450__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__ts450"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts5__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__ts5"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts5__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__ts5"
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts5__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__cw100__step00000",
+   "det": "wcte",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__cw100"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__cw100__step05000",
+   "det": "wcte",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__cw100"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__cw100__step10000",
+   "det": "wcte",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__cw100"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts450__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts450__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts450__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts450__step00000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts450__step05000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts450__step10000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts5__step00000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts5__step05000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts5__step10000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__trmedian__step00000",
+   "det": "wcte",
+   "mask": "patch_trmedian",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__trmedian"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__trmedian__step05000",
+   "det": "wcte",
+   "mask": "patch_trmedian",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__trmedian"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__trmedian__step10000",
+   "det": "wcte",
+   "mask": "patch_trmedian",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__trmedian"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts450__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts450__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts450__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts15__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts15__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts15__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts450__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts450__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts450__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts450__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts450__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts450__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts15__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts15__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts15__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts15"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts1p5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts450__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts450__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts450__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts450"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts5"
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts5"
+  }
+ ],
+ "copies": {
+  "sk__mae_repaired__s9000__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000.prev_759948/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000.prev_759955/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000.prev_759948/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000.prev_759955/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/sk__mae_repaired__s9000/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000.prev_759948/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000.prev_759955/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts15__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts15/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts15__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts15/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts15__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts15/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts1p5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts1p5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts1p5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts1p5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts1p5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts1p5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9000__ts5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__step00000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__step05000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__step10000": [
+   "/ceph/dwong/jepa/returns/r2_lucid_2026-11-21/train/runs/wcte__mae_repaired__s9001/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__cw100__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__cw100/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__cw100.prev_759981/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__cw100__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__cw100/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__cw100.prev_759981/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__cw100__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__cw100/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__cw100.prev_759981/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__mrandom__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom.prev_759958/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__mrandom__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom.prev_759958/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__mrandom__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom.prev_759958/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__mrandom__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom__ts450/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom__ts450.prev_759953/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__mrandom__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom__ts450/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom__ts450.prev_759953/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__mrandom__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom__ts450/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mrandom__ts450.prev_759953/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__mwithin__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mwithin__ts450/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mwithin__ts450.prev_759977/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__mwithin__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mwithin__ts450/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mwithin__ts450.prev_759977/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__mwithin__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mwithin__ts450/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__mwithin__ts450.prev_759977/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts15__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts15/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts15.prev_759979/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts15__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts15/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts15.prev_759979/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts15__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts15/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts15.prev_759979/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts150__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts150/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts150.prev_759980/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts150__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts150/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts150.prev_759980/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts150__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts150/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts150.prev_759980/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts450/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts450.prev_759954/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts450/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts450.prev_759954/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts450/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts450.prev_759954/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts5/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts5.prev_759976/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts5/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts5.prev_759976/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9000__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts5/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9000__ts5.prev_759976/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9001__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001.prev_759962/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9001__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001.prev_759962/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9001__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001.prev_759962/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9001__mrandom__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom.prev_759961/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9001__mrandom__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom.prev_759961/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9001__mrandom__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom.prev_759961/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9001__mrandom__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom__ts450/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom__ts450.prev_759959/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9001__mrandom__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom__ts450/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom__ts450.prev_759959/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9001__mrandom__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom__ts450/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__mrandom__ts450.prev_759959/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9001__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts450/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts450.prev_759960/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9001__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts450/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts450.prev_759960/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9001__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts450/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts450.prev_759960/snapshot_step_10000.pt"
+  ],
+  "sk__mae_repaired__s9001__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts5/snapshot_step_00000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts5.prev_759978/snapshot_step_00000.pt"
+  ],
+  "sk__mae_repaired__s9001__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts5/snapshot_step_05000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts5.prev_759978/snapshot_step_05000.pt"
+  ],
+  "sk__mae_repaired__s9001__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts5/snapshot_step_10000.pt",
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/sk__mae_repaired__s9001__ts5.prev_759978/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__cw100__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__cw100/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__cw100__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__cw100/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__cw100__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__cw100/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts1p5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts1p5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts1p5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts1p5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts1p5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts1p5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mrandom__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mrandom__ts5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mwithin__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mwithin__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mwithin__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mwithin__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mwithin__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mwithin__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mwithin__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mwithin__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mwithin__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mwithin__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__mwithin__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__mwithin__ts5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9000__trmedian__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__trmedian/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9000__trmedian__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__trmedian/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9000__trmedian__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9000__trmedian/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts1p5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts1p5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts1p5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts1p5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts1p5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts1p5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__mrandom__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__mrandom__ts5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts15__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts15/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts15__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts15/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts15__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts15/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts1p5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts1p5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts1p5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts1p5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts1p5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts1p5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9001__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9001__ts5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts1p5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts1p5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts1p5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts1p5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts1p5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts1p5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__mrandom__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__mrandom__ts5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts15__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts15/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts15__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts15/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts15__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts15/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts1p5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts1p5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts1p5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts1p5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts1p5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts1p5/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts450__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts450/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts450__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts450/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts450__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts450/snapshot_step_10000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts5__step00000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts5/snapshot_step_00000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts5__step05000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts5/snapshot_step_05000.pt"
+  ],
+  "wcte__mae_repaired__s9002__ts5__step10000": [
+   "/ceph/dwong/jepa/returns/r2_tier1_2026-11-22/train/runs/wcte__mae_repaired__s9002__ts5/snapshot_step_10000.pt"
+  ]
+ },
+ "registered": {
+  "CM-450": {
+   "detector": "sk",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9000__mrandom__ts450",
+     "run_2": "sk__mae_repaired__s9000__ts450",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9001__mrandom__ts450",
+     "run_2": "sk__mae_repaired__s9001__ts450",
+     "seed": "B"
+    }
+   ]
+  },
+  "CM-50": {
+   "detector": "sk",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9000__mrandom",
+     "run_2": "sk__mae_repaired__s9000",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9001__mrandom",
+     "run_2": "sk__mae_repaired__s9001",
+     "seed": "B"
+    }
+   ]
+  },
+  "CT-p5": {
+   "detector": "sk",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9000__ts450",
+     "run_2": "sk__mae_repaired__s9000__ts5",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9001__ts450",
+     "run_2": "sk__mae_repaired__s9001__ts5",
+     "seed": "B"
+    }
+   ]
+  },
+  "CT-p50": {
+   "detector": "sk",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9000__ts450",
+     "run_2": "sk__mae_repaired__s9000",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9001__ts450",
+     "run_2": "sk__mae_repaired__s9001",
+     "seed": "B"
+    }
+   ]
+  },
+  "CT-r50": {
+   "detector": "sk",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9000__mrandom__ts450",
+     "run_2": "sk__mae_repaired__s9000__mrandom",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "sk__mae_repaired__s9001__mrandom__ts450",
+     "run_2": "sk__mae_repaired__s9001__mrandom",
+     "seed": "B"
+    }
+   ]
+  },
+  "WM:450": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9000__ts450",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9001__ts450",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9002__ts450",
+     "seed": "C"
+    }
+   ]
+  },
+  "WM:5": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__mrandom__ts5",
+     "run_2": "wcte__mae_repaired__s9000__ts5",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__mrandom__ts5",
+     "run_2": "wcte__mae_repaired__s9001__ts5",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__mrandom__ts5",
+     "run_2": "wcte__mae_repaired__s9002__ts5",
+     "seed": "C"
+    }
+   ]
+  },
+  "WT-p:450->1.5": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__ts450",
+     "run_2": "wcte__mae_repaired__s9000__ts1p5",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__ts450",
+     "run_2": "wcte__mae_repaired__s9001__ts1p5",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__ts450",
+     "run_2": "wcte__mae_repaired__s9002__ts1p5",
+     "seed": "C"
+    }
+   ]
+  },
+  "WT-p:450->5": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__ts450",
+     "run_2": "wcte__mae_repaired__s9000__ts5",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__ts450",
+     "run_2": "wcte__mae_repaired__s9001__ts5",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__ts450",
+     "run_2": "wcte__mae_repaired__s9002__ts5",
+     "seed": "C"
+    }
+   ]
+  },
+  "WT-p:450->50": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__ts450",
+     "run_2": "wcte__mae_repaired__s9000",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__ts450",
+     "run_2": "wcte__mae_repaired__s9001",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__ts450",
+     "run_2": "wcte__mae_repaired__s9002",
+     "seed": "C"
+    }
+   ]
+  },
+  "WT-r:450->1.5": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9000__mrandom__ts1p5",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9001__mrandom__ts1p5",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9002__mrandom__ts1p5",
+     "seed": "C"
+    }
+   ]
+  },
+  "WT-r:450->5": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9000__mrandom__ts5",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9001__mrandom__ts5",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9002__mrandom__ts5",
+     "seed": "C"
+    }
+   ]
+  },
+  "WT-r:450->50": {
+   "detector": "wcte",
+   "per_seed": [
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9000__mrandom",
+     "seed": "A"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9001__mrandom",
+     "seed": "B"
+    },
+    {
+     "definition": "T = e(run_2)/e(run_1) - 1",
+     "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+     "run_2": "wcte__mae_repaired__s9002__mrandom",
+     "seed": "C"
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,3845 @@
+{
+ "phase": "r2-tier1v",
+ "part": "B",
+ "blind": true,
+ "note": "computed before opening GATE_TABLE.json or any other r2-tier1 part-B result; statistics PREREG_2026-11-22_R2_TIER1 \u00a72.2-\u00a72.5 (verify/vb_stats.py)",
+ "manifest": {
+  "path": "results/round2/20261122_tier1/verify_inputs/VERIFY_INPUTS_B.json (origin/tier1)",
+  "sha256": "e0aa3369e0b87a95c7dfbaa93469e3ecdabfc1ddac7cb6bd6f943761342fc6ba",
+  "n_entries": 180,
+  "n_unique_run_step": 135
+ },
+ "coverage": {
+  "evaluated": 132,
+  "listed": 135,
+  "not_evaluated": [
+   "wcte__mae_repaired__s9000__trmedian__step00000",
+   "wcte__mae_repaired__s9000__trmedian__step05000",
+   "wcte__mae_repaired__s9000__trmedian__step10000"
+  ]
+ },
+ "readout": "Ridge on (c) spatial-moment latent and (a) all-mean, fitted on dev_probe_train photon bombs, tested on sealed_test photon bombs; e = mean 3-D error (m)",
+ "cells": [
+  {
+   "case": "sk__mae_repaired__s9000__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000",
+   "c_err_m": 0.38704110100369277,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.8915565342043302,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000",
+   "c_err_m": 0.36808167839694456,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.8668715289687509,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__cw100__step00000",
+   "det": "sk",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__cw100",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__cw100__step05000",
+   "det": "sk",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__cw100",
+   "c_err_m": 0.4191732384033306,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.0604401472119356,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__cw100__step10000",
+   "det": "sk",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__cw100",
+   "c_err_m": 0.3774112676327508,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.0555155900025484,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__mrandom",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__mrandom",
+   "c_err_m": 0.45246066842621824,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.5053346543080157,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__mrandom",
+   "c_err_m": 0.4278825357421769,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.1486936491319097,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__ts450__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__mrandom__ts450",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__ts450__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__mrandom__ts450",
+   "c_err_m": 0.4585602185236352,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 2.496601808899815,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mrandom__ts450__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__mrandom__ts450",
+   "c_err_m": 0.41994950770525313,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.4980769042515012,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mwithin__ts450__step00000",
+   "det": "sk",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__mwithin__ts450",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mwithin__ts450__step05000",
+   "det": "sk",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__mwithin__ts450",
+   "c_err_m": 0.4641119601174255,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 2.62743252806104,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__mwithin__ts450__step10000",
+   "det": "sk",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__mwithin__ts450",
+   "c_err_m": 0.42439246977449613,
+   "c_alpha": [
+    1.0,
+    1.0,
+    0.01
+   ],
+   "a_err_m": 1.5716864617306308,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts15__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts15",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts15__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts15",
+   "c_err_m": 0.38578761107375725,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9502683780736946,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts15__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts15",
+   "c_err_m": 0.3611755131942806,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.8936241199036282,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts150__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 150.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts150",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts150__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 150.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts150",
+   "c_err_m": 0.3940153149545945,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9754742980243896,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts150__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 150.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts150",
+   "c_err_m": 0.3702669173559211,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9017381079543321,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts450__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts450",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts450__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts450",
+   "c_err_m": 0.4210754754665465,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.1244111505782108,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts450__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts450",
+   "c_err_m": 0.3709198018605317,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.978962213388537,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts5__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9000__ts5",
+   "c_err_m": 0.5476643231311475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.7734744481366693,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts5__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9000__ts5",
+   "c_err_m": 0.3887418594635018,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.0040671694290948,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9000__ts5__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9000__ts5",
+   "c_err_m": 0.36777065331873593,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9413386056312759,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001",
+   "c_err_m": 0.5438440488711197,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.63293589859765,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001",
+   "c_err_m": 0.38350753765305334,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9469682215345672,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001",
+   "c_err_m": 0.35339338518671487,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9118603696621167,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__mrandom",
+   "c_err_m": 0.5438440488711197,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.63293589859765,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__mrandom",
+   "c_err_m": 0.44886690612487923,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.8302649494078074,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__mrandom",
+   "c_err_m": 0.4101182788493566,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.240817676635262,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__ts450__step00000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__mrandom__ts450",
+   "c_err_m": 0.5438440488711197,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.63293589859765,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__ts450__step05000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__mrandom__ts450",
+   "c_err_m": 0.482924247884162,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 2.007900674049192,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__mrandom__ts450__step10000",
+   "det": "sk",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__mrandom__ts450",
+   "c_err_m": 0.4353666342719531,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.4423629393746702,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts450__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__ts450",
+   "c_err_m": 0.5438440488711197,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.63293589859765,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts450__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__ts450",
+   "c_err_m": 0.41310059780139347,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.0199755218713193,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts450__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__ts450",
+   "c_err_m": 0.37549477427805,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9523327812846215,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts5__step00000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "sk__mae_repaired__s9001__ts5",
+   "c_err_m": 0.5438440488711197,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 3.63293589859765,
+   "a_alpha": [
+    0.0001,
+    0.0001,
+    0.0001
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts5__step05000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "sk__mae_repaired__s9001__ts5",
+   "c_err_m": 0.396067960813752,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 1.0238814112697407,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "sk__mae_repaired__s9001__ts5__step10000",
+   "det": "sk",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "sk__mae_repaired__s9001__ts5",
+   "c_err_m": 0.3607206827211275,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.9581355684707168,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000",
+   "c_err_m": 0.06643448065143513,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659083672706,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000",
+   "c_err_m": 0.054685810277769475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1242095414366376,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000",
+   "c_err_m": 0.05330380663815548,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1414484119562369,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__cw100__step00000",
+   "det": "wcte",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__cw100",
+   "c_err_m": 0.06643448000635832,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659177333335,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__cw100__step05000",
+   "det": "wcte",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__cw100",
+   "c_err_m": 0.05689354287919418,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13605410615193514,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__cw100__step10000",
+   "det": "wcte",
+   "mask": "patch_cw100",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__cw100",
+   "c_err_m": 0.05575216678226428,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.14664629486954237,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom",
+   "c_err_m": 0.06643448065143513,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659083672706,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom",
+   "c_err_m": 0.05795054781050365,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1544136424382498,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom",
+   "c_err_m": 0.056092579375780216,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1394099911262901,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts1p5",
+   "c_err_m": 0.0664344798430237,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659823963554,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts1p5",
+   "c_err_m": 0.05548712797550215,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13443024571636097,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts1p5",
+   "c_err_m": 0.05281682170659149,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13171872845770177,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts450__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts450",
+   "c_err_m": 0.06643448000635832,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659177333335,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts450__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts450",
+   "c_err_m": 0.05840976039836757,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.14033638512489238,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts450__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts450",
+   "c_err_m": 0.05698303457851396,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1305256925569133,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts5",
+   "c_err_m": 0.06643448065143513,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659083672706,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts5",
+   "c_err_m": 0.05499270063053591,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13131096834139405,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mrandom__ts5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mrandom__ts5",
+   "c_err_m": 0.05238937557217562,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12505725976088283,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts450__step00000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts450",
+   "c_err_m": 0.0664344798430237,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659823963554,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts450__step05000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts450",
+   "c_err_m": 0.059573097039146955,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.16261235299852395,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts450__step10000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts450",
+   "c_err_m": 0.05843528686134339,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.15998290182631175,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts5__step00000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts5",
+   "c_err_m": 0.06643448000635832,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659177333335,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts5__step05000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts5",
+   "c_err_m": 0.055789897760502916,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13779754198272956,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__mwithin__ts5__step10000",
+   "det": "wcte",
+   "mask": "within",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__mwithin__ts5",
+   "c_err_m": 0.053606401275577205,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13919630220504847,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts15",
+   "c_err_m": 0.0664344798430237,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659823963554,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts15",
+   "c_err_m": 0.05291682752519355,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12267228681753199,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts15__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts15",
+   "c_err_m": 0.05206929586663973,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13452302711560027,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts1p5",
+   "c_err_m": 0.06643448000635832,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659177333335,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts1p5",
+   "c_err_m": 0.050390230772605266,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11637374442741992,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts1p5",
+   "c_err_m": 0.04971895053599468,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11860317051612039,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts450",
+   "c_err_m": 0.06643448000635832,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659177333335,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts450",
+   "c_err_m": 0.056593753510682375,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13525048909581291,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts450__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts450",
+   "c_err_m": 0.05476355081971133,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1447449248273076,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9000__ts5",
+   "c_err_m": 0.06643448065143513,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19850659083672706,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9000__ts5",
+   "c_err_m": 0.051239371577487855,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11930592491443137,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9000__ts5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9000,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9000__ts5",
+   "c_err_m": 0.05104114131037811,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12264220777944239,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001",
+   "c_err_m": 0.0672591636497648,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1926804348656427,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001",
+   "c_err_m": 0.056127539686503004,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12630899125030995,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001",
+   "c_err_m": 0.05248209765746736,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1369996614787742,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom",
+   "c_err_m": 0.06725916135398428,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043618299435,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom",
+   "c_err_m": 0.05851394658885777,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.14910211828239484,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom",
+   "c_err_m": 0.05553959113894529,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13530910629005385,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts1p5",
+   "c_err_m": 0.0672591636497648,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1926804348656427,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts1p5",
+   "c_err_m": 0.056983873175297683,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.15739266846508204,
+   "a_alpha": [
+    0.0001,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts1p5",
+   "c_err_m": 0.053750475327295225,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13495121677838146,
+   "a_alpha": [
+    0.0001,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts450__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts450",
+   "c_err_m": 0.0672591638492488,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043337972085,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts450__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts450",
+   "c_err_m": 0.05884948729661102,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1507619855127223,
+   "a_alpha": [
+    0.0001,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts450__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts450",
+   "c_err_m": 0.056664121937272924,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13899726417781874,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts5",
+   "c_err_m": 0.06725916135398428,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043618299435,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts5",
+   "c_err_m": 0.05579019957406177,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1426116359645703,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__mrandom__ts5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__mrandom__ts5",
+   "c_err_m": 0.05328577280780475,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.125376429178561,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts15__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts15",
+   "c_err_m": 0.0672591638492488,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043337972085,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts15__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts15",
+   "c_err_m": 0.05349914439567876,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11826444783402532,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts15__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts15",
+   "c_err_m": 0.05189157453326964,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12428351037787982,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts1p5",
+   "c_err_m": 0.06725916155346041,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043469712925,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts1p5",
+   "c_err_m": 0.05240218806455397,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1228242179668337,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts1p5",
+   "c_err_m": 0.04924480297822581,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12416457662404676,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts450__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts450",
+   "c_err_m": 0.0672591638492488,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043337972085,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts450__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts450",
+   "c_err_m": 0.05696136083636948,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12680690036493153,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts450__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts450",
+   "c_err_m": 0.054282094238473355,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13636031891190858,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9001__ts5",
+   "c_err_m": 0.06725916135398428,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.19268043618299435,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9001__ts5",
+   "c_err_m": 0.05203217941633433,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1163947478852459,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9001__ts5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9001,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9001__ts5",
+   "c_err_m": 0.04975429952750659,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1263806614009273,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002",
+   "c_err_m": 0.06871547944954523,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201017747443,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002",
+   "c_err_m": 0.0550990760985753,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.12704991985742636,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002",
+   "c_err_m": 0.05294863909919058,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1440489489012102,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom",
+   "c_err_m": 0.06871548195260872,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201097192557,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom",
+   "c_err_m": 0.05806242269523964,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.15661271018448114,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 50.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom",
+   "c_err_m": 0.05549014273879976,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1379019106250755,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts1p5",
+   "c_err_m": 0.06871547944954523,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201017747443,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts1p5",
+   "c_err_m": 0.05742417998286753,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.16033514218843048,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts1p5",
+   "c_err_m": 0.05404337355931141,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1435590349361399,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts450__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts450",
+   "c_err_m": 0.06871548011077112,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201075356967,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts450__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts450",
+   "c_err_m": 0.05929448625165033,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1611337900712158,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts450__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts450",
+   "c_err_m": 0.055689185645771036,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13991220246593503,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts5__step00000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts5",
+   "c_err_m": 0.06871548195260872,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201097192557,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts5__step05000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts5",
+   "c_err_m": 0.05715233244106756,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.15277112267435614,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__mrandom__ts5__step10000",
+   "det": "wcte",
+   "mask": "random",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__mrandom__ts5",
+   "c_err_m": 0.05400411042616071,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13689743478401642,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts15__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts15",
+   "c_err_m": 0.06871548011077112,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201075356967,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts15__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts15",
+   "c_err_m": 0.054074620902587085,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1255547704905958,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts15__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 15.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts15",
+   "c_err_m": 0.05191687509541083,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13110612730528712,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts1p5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts1p5",
+   "c_err_m": 0.06871548195260872,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201097192557,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts1p5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts1p5",
+   "c_err_m": 0.05206870865065193,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11167169845214282,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts1p5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 1.5,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts1p5",
+   "c_err_m": 0.05030558417375288,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11401215396069503,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts450__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts450",
+   "c_err_m": 0.06871548195260872,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201097192557,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts450__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts450",
+   "c_err_m": 0.05680479593040987,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.13176201933801238,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts450__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 450.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts450",
+   "c_err_m": 0.054508416788959436,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.14644694666677535,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts5__step00000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 0,
+   "run_id": "wcte__mae_repaired__s9002__ts5",
+   "c_err_m": 0.06871547944954523,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1973201017747443,
+   "a_alpha": [
+    0.01,
+    0.0001,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts5__step05000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 5000,
+   "run_id": "wcte__mae_repaired__s9002__ts5",
+   "c_err_m": 0.05293239647014415,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.11403283251199818,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  },
+  {
+   "case": "wcte__mae_repaired__s9002__ts5__step10000",
+   "det": "wcte",
+   "mask": "patch",
+   "unit": 5.0,
+   "seed": 9002,
+   "step": 10000,
+   "run_id": "wcte__mae_repaired__s9002__ts5",
+   "c_err_m": 0.051347072912775245,
+   "c_alpha": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "a_err_m": 0.1205910757922932,
+   "a_alpha": [
+    0.01,
+    0.01,
+    0.01
+   ],
+   "n_test": 10200
+  }
+ ],
+ "contrasts": {
+  "sk": {
+   "SD_pooled": 0.031494227570357046,
+   "contrasts": {
+    "CM-450": {
+     "seeds": [
+      9000,
+      9001
+     ],
+     "T_per_seed": {
+      "9000": -0.11675143069612448,
+      "9001": -0.13752055229042648
+     },
+     "T_bar": -0.12713599149327548,
+     "SE_boot": 0.003761008852095232,
+     "e1": {
+      "9000": 0.41994950770525313,
+      "9001": 0.4353666342719531
+     },
+     "e2": {
+      "9000": 0.3709198018605317,
+      "9001": 0.37549477427805
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9000__mrandom__ts450",
+       "run_2": "sk__mae_repaired__s9000__ts450",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9001__mrandom__ts450",
+       "run_2": "sk__mae_repaired__s9001__ts450",
+       "seed": "B"
+      }
+     ],
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.022269781883231792,
+     "N_sigma": 5.708901513265539,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "CM-50": {
+     "seeds": [
+      9000,
+      9001
+     ],
+     "T_per_seed": {
+      "9000": -0.13975998632780307,
+      "9001": -0.13831349780797686
+     },
+     "T_bar": -0.13903674206788996,
+     "SE_boot": 0.0036693512748576943,
+     "e1": {
+      "9000": 0.4278825357421769,
+      "9001": 0.4101182788493566
+     },
+     "e2": {
+      "9000": 0.36808167839694456,
+      "9001": 0.35339338518671487
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9000__mrandom",
+       "run_2": "sk__mae_repaired__s9000",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9001__mrandom",
+       "run_2": "sk__mae_repaired__s9001",
+       "seed": "B"
+      }
+     ],
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.022269781883231792,
+     "N_sigma": 6.243291595620825,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "CT-p5": {
+     "seeds": [
+      9000,
+      9001
+     ],
+     "T_per_seed": {
+      "9000": -0.00849010628712632,
+      "9001": -0.039345664890618304
+     },
+     "T_bar": -0.023917885588872312,
+     "SE_boot": 0.0035866288449173532,
+     "e1": {
+      "9000": 0.3709198018605317,
+      "9001": 0.37549477427805
+     },
+     "e2": {
+      "9000": 0.36777065331873593,
+      "9001": 0.3607206827211275
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9000__ts450",
+       "run_2": "sk__mae_repaired__s9000__ts5",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9001__ts450",
+       "run_2": "sk__mae_repaired__s9001__ts5",
+       "seed": "B"
+      }
+     ],
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.022269781883231792,
+     "N_sigma": 1.0740062796430652,
+     "same_sign_all_seeds": true,
+     "clear": false
+    },
+    "CT-p50": {
+     "seeds": [
+      9000,
+      9001
+     ],
+     "T_per_seed": {
+      "9000": -0.0076515824966775225,
+      "9001": -0.05885937862605051
+     },
+     "T_bar": -0.033255480561364015,
+     "SE_boot": 0.003325559266184646,
+     "e1": {
+      "9000": 0.3709198018605317,
+      "9001": 0.37549477427805
+     },
+     "e2": {
+      "9000": 0.36808167839694456,
+      "9001": 0.35339338518671487
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9000__ts450",
+       "run_2": "sk__mae_repaired__s9000",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9001__ts450",
+       "run_2": "sk__mae_repaired__s9001",
+       "seed": "B"
+      }
+     ],
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.022269781883231792,
+     "N_sigma": 1.4933006859130484,
+     "same_sign_all_seeds": true,
+     "clear": false
+    },
+    "CT-r50": {
+     "seeds": [
+      9000,
+      9001
+     ],
+     "T_per_seed": {
+      "9000": 0.018890432995796402,
+      "9001": -0.05799331743650582
+     },
+     "T_bar": -0.01955144222035471,
+     "SE_boot": 0.002744888055406881,
+     "e1": {
+      "9000": 0.41994950770525313,
+      "9001": 0.4353666342719531
+     },
+     "e2": {
+      "9000": 0.4278825357421769,
+      "9001": 0.4101182788493566
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9000__mrandom__ts450",
+       "run_2": "sk__mae_repaired__s9000__mrandom",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "sk__mae_repaired__s9001__mrandom__ts450",
+       "run_2": "sk__mae_repaired__s9001__mrandom",
+       "seed": "B"
+      }
+     ],
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.022269781883231792,
+     "N_sigma": 0.8779359547780807,
+     "same_sign_all_seeds": false,
+     "clear": false
+    },
+    "P2-450-150": {
+     "seeds": [
+      9000
+     ],
+     "T_per_seed": {
+      "9000": -0.0017601770014319396
+     },
+     "T_bar": -0.0017601770014319396,
+     "SE_boot": 0.004449201947105937,
+     "e1": {
+      "9000": 0.3709198018605317
+     },
+     "e2": {
+      "9000": 0.3702669173559211
+     },
+     "registered": false,
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.031494227570357046,
+     "N_sigma": 0.0558888766996988,
+     "same_sign_all_seeds": true,
+     "clear": false
+    },
+    "P2-150-50": {
+     "seeds": [
+      9000
+     ],
+     "T_per_seed": {
+      "9000": -0.005901793696777902
+     },
+     "T_bar": -0.005901793696777902,
+     "SE_boot": 0.004581466543094265,
+     "e1": {
+      "9000": 0.3702669173559211
+     },
+     "e2": {
+      "9000": 0.36808167839694456
+     },
+     "registered": false,
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.031494227570357046,
+     "N_sigma": 0.18739287012496156,
+     "same_sign_all_seeds": true,
+     "clear": false
+    },
+    "P2-50-15": {
+     "seeds": [
+      9000
+     ],
+     "T_per_seed": {
+      "9000": -0.01876258887087623
+     },
+     "T_bar": -0.01876258887087623,
+     "SE_boot": 0.004514388455959241,
+     "e1": {
+      "9000": 0.36808167839694456
+     },
+     "e2": {
+      "9000": 0.3611755131942806
+     },
+     "registered": false,
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.031494227570357046,
+     "N_sigma": 0.5957469135879341,
+     "same_sign_all_seeds": true,
+     "clear": false
+    },
+    "P2-15-5": {
+     "seeds": [
+      9000
+     ],
+     "T_per_seed": {
+      "9000": 0.018260208357225194
+     },
+     "T_bar": 0.018260208357225194,
+     "SE_boot": 0.0036111500639182605,
+     "e1": {
+      "9000": 0.3611755131942806
+     },
+     "e2": {
+      "9000": 0.36777065331873593
+     },
+     "registered": false,
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.031494227570357046,
+     "N_sigma": 0.5797954027109413,
+     "same_sign_all_seeds": true,
+     "clear": false
+    },
+    "CT-p5@5000": {
+     "seeds": [
+      9000,
+      9001
+     ],
+     "T_per_seed": {
+      "9000": -0.07678817192385623,
+      "9001": -0.04123120876196418
+     },
+     "T_bar": -0.059009690342910204,
+     "SE_boot": 0.0031264667710840513,
+     "e1": {
+      "9000": 0.4210754754665465,
+      "9001": 0.41310059780139347
+     },
+     "e2": {
+      "9000": 0.3887418594635018,
+      "9001": 0.396067960813752
+     },
+     "registered": false,
+     "SD_pooled": 0.031494227570357046,
+     "SE_seed": 0.022269781883231792,
+     "N_sigma": 2.6497650786306988,
+     "same_sign_all_seeds": true,
+     "clear": true
+    }
+   }
+  },
+  "wcte": {
+   "SD_pooled": 0.015731806744276575,
+   "contrasts": {
+    "WM:450": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.038949904567551985,
+      "9001": -0.04203767070522102,
+      "9002": -0.02120283935057443
+     },
+     "T_bar": -0.03406347154111581,
+     "SE_boot": 0.0032303292148565354,
+     "e1": {
+      "9000": 0.05698303457851396,
+      "9001": 0.056664121937272924,
+      "9002": 0.055689185645771036
+     },
+     "e2": {
+      "9000": 0.05476355081971133,
+      "9001": 0.054282094238473355,
+      "9002": 0.054508416788959436
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9000__ts450",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9001__ts450",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9002__ts450",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 3.7503424972375727,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WM:5": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.025734879392484422,
+      "9001": -0.06627422469850919,
+      "9002": -0.049200653291352814
+     },
+     "T_bar": -0.04706991912744881,
+     "SE_boot": 0.0029588269926275677,
+     "e1": {
+      "9000": 0.05238937557217562,
+      "9001": 0.05328577280780475,
+      "9002": 0.05400411042616071
+     },
+     "e2": {
+      "9000": 0.05104114131037811,
+      "9001": 0.04975429952750659,
+      "9002": 0.051347072912775245
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__mrandom__ts5",
+       "run_2": "wcte__mae_repaired__s9000__ts5",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__mrandom__ts5",
+       "run_2": "wcte__mae_repaired__s9001__ts5",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__mrandom__ts5",
+       "run_2": "wcte__mae_repaired__s9002__ts5",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 5.182334919449741,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WT-p:450->1.5": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.09211601892514465,
+      "9001": -0.0927983956941234,
+      "9002": -0.07710428705861494
+     },
+     "T_bar": -0.08733956722596099,
+     "SE_boot": 0.0027315082509821696,
+     "e1": {
+      "9000": 0.05476355081971133,
+      "9001": 0.054282094238473355,
+      "9002": 0.054508416788959436
+     },
+     "e2": {
+      "9000": 0.04971895053599468,
+      "9001": 0.04924480297822581,
+      "9002": 0.05030558417375288
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__ts450",
+       "run_2": "wcte__mae_repaired__s9000__ts1p5",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__ts450",
+       "run_2": "wcte__mae_repaired__s9001__ts1p5",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__ts450",
+       "run_2": "wcte__mae_repaired__s9002__ts1p5",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 9.615969125827093,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WT-p:450->5": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.06797239137374178,
+      "9001": -0.08341230703213387,
+      "9002": -0.057997352746897546
+     },
+     "T_bar": -0.0697940170509244,
+     "SE_boot": 0.002647015765261551,
+     "e1": {
+      "9000": 0.05476355081971133,
+      "9001": 0.054282094238473355,
+      "9002": 0.054508416788959436
+     },
+     "e2": {
+      "9000": 0.05104114131037811,
+      "9001": 0.04975429952750659,
+      "9002": 0.051347072912775245
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__ts450",
+       "run_2": "wcte__mae_repaired__s9000__ts5",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__ts450",
+       "run_2": "wcte__mae_repaired__s9001__ts5",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__ts450",
+       "run_2": "wcte__mae_repaired__s9002__ts5",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 7.684227600908566,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WT-p:450->50": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.026655396878144555,
+      "9001": -0.033160043035521336,
+      "9002": -0.028615354869099607
+     },
+     "T_bar": -0.029476931594255167,
+     "SE_boot": 0.0024661547676682475,
+     "e1": {
+      "9000": 0.05476355081971133,
+      "9001": 0.054282094238473355,
+      "9002": 0.054508416788959436
+     },
+     "e2": {
+      "9000": 0.05330380663815548,
+      "9001": 0.05248209765746736,
+      "9002": 0.05294863909919058
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__ts450",
+       "run_2": "wcte__mae_repaired__s9000",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__ts450",
+       "run_2": "wcte__mae_repaired__s9001",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__ts450",
+       "run_2": "wcte__mae_repaired__s9002",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 3.2453706050677775,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WT-r:450->1.5": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.07311321523570435,
+      "9001": -0.0514196022167801,
+      "9002": -0.02955353121750326
+     },
+     "T_bar": -0.051362116223329236,
+     "SE_boot": 0.0027705556068444927,
+     "e1": {
+      "9000": 0.05698303457851396,
+      "9001": 0.056664121937272924,
+      "9002": 0.055689185645771036
+     },
+     "e2": {
+      "9000": 0.05281682170659149,
+      "9001": 0.053750475327295225,
+      "9002": 0.05404337355931141
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9000__mrandom__ts1p5",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9001__mrandom__ts1p5",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9002__mrandom__ts1p5",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 5.654900058788818,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WT-r:450->5": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.08061450290101657,
+      "9001": -0.059620603195934097,
+      "9002": -0.03025857175087432
+     },
+     "T_bar": -0.056831225949275,
+     "SE_boot": 0.0026214026463622043,
+     "e1": {
+      "9000": 0.05698303457851396,
+      "9001": 0.056664121937272924,
+      "9002": 0.055689185645771036
+     },
+     "e2": {
+      "9000": 0.05238937557217562,
+      "9001": 0.05328577280780475,
+      "9002": 0.05400411042616071
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9000__mrandom__ts5",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9001__mrandom__ts5",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9002__mrandom__ts5",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 6.257041699065035,
+     "same_sign_all_seeds": true,
+     "clear": true
+    },
+    "WT-r:450->50": {
+     "seeds": [
+      9000,
+      9001,
+      9002
+     ],
+     "T_per_seed": {
+      "9000": -0.0156266722072661,
+      "9001": -0.0198455523509653,
+      "9002": -0.0035741752130720172
+     },
+     "T_bar": -0.013015466590434474,
+     "SE_boot": 0.0020952600503528133,
+     "e1": {
+      "9000": 0.05698303457851396,
+      "9001": 0.056664121937272924,
+      "9002": 0.055689185645771036
+     },
+     "e2": {
+      "9000": 0.056092579375780216,
+      "9001": 0.05553959113894529,
+      "9002": 0.05549014273879976
+     },
+     "registered": true,
+     "runs": [
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9000__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9000__mrandom",
+       "seed": "A"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9001__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9001__mrandom",
+       "seed": "B"
+      },
+      {
+       "definition": "T = e(run_2)/e(run_1) - 1",
+       "run_1": "wcte__mae_repaired__s9002__mrandom__ts450",
+       "run_2": "wcte__mae_repaired__s9002__mrandom",
+       "seed": "C"
+      }
+     ],
+     "SD_pooled": 0.015731806744276575,
+     "SE_seed": 0.009082762858647252,
+     "N_sigma": 1.43298540245858,
+     "same_sign_all_seeds": true,
+     "clear": false
+    }
+   }
+  }
+ },
+ "P3": {
+  "n": {
+   "sk__mae_repaired__s9000__ts450__step10000": {
+    "train": 3011,
+    "test": 9059
+   },
+   "sk__mae_repaired__s9001__ts450__step10000": {
+    "train": 3011,
+    "test": 9059
+   },
+   "sk__mae_repaired__s9000__ts5__step10000": {
+    "train": 3011,
+    "test": 9059
+   },
+   "sk__mae_repaired__s9001__ts5__step10000": {
+    "train": 3011,
+    "test": 9059
+   }
+  },
+  "deposited_MeV": {
+   "seeds": [
+    9000,
+    9001
+   ],
+   "T_per_seed": {
+    "9000": 0.0021268790125099635,
+    "9001": 0.009664184169000611
+   },
+   "T_bar": 0.005895531590755287,
+   "SE_boot": 0.009724209774511513,
+   "res1": {
+    "9000": 0.03745076501627001,
+    "9001": 0.0358751228445629
+   },
+   "res2": {
+    "9000": 0.03753041826238556,
+    "9001": 0.036221826638818275
+   },
+   "SE_seed": 0.0037686525782453235,
+   "N_sigma": 0.6062735921440408,
+   "same_sign_all_seeds": true,
+   "clear": false
+  },
+  "energy_MeV": {
+   "seeds": [
+    9000,
+    9001
+   ],
+   "T_per_seed": {
+    "9000": 0.0021268790125099635,
+    "9001": 0.009664184169000611
+   },
+   "T_bar": 0.005895531590755287,
+   "SE_boot": 0.009724209774511513,
+   "res1": {
+    "9000": 0.03745076501627001,
+    "9001": 0.0358751228445629
+   },
+   "res2": {
+    "9000": 0.03753041826238556,
+    "9001": 0.036221826638818275
+   },
+   "SE_seed": 0.0037686525782453235,
+   "N_sigma": 0.6062735921440408,
+   "same_sign_all_seeds": true,
+   "clear": false
+  }
+ },
+ "criteria": {
+  "K1": true,
+  "P2_chain_complete": true,
+  "P2_clear_reversals": [],
+  "P2_holds": true,
+  "K2": true,
+  "F1": false,
+  "P3_confirmed": false,
+  "A_weak": false,
+  "outcome_from_K1_K2_F1_F5": "A-alt",
+  "outcome_caveat": "assumes K3 (probe robustness), F4 and K4(b) not fired; not recomputed here",
+  "F5": "the loss scale sets the order and rate of learning",
+  "F5_values": {
+   "abs_T_5000": 0.059009690342910204,
+   "abs_T_10000": 0.023917885588872312
+  },
+  "P1_signs": {
+   "CT-p5": true,
+   "CT-p50": true,
+   "CT-r50": true,
+   "WT-p:450->1.5": true,
+   "WT-p:450->5": true,
+   "WT-p:450->50": true,
+   "WT-r:450->1.5": true,
+   "WT-r:450->5": true,
+   "WT-r:450->50": true
+  }
+ },
+ "mapping_check": {
+  "CT-p50": {
+   "9000": -0.0076515824966775225,
+   "9001": -0.05885937862605051
+  },
+  "CT-p5": {
+   "9000": -0.00849010628712632,
+   "9001": -0.039345664890618304
+  },
+  "CT-r50": {
+   "9000": 0.018890432995796402,
+   "9001": -0.05799331743650582
+  },
+  "CM-450": {
+   "9000": -0.11675143069612448,
+   "9001": -0.13752055229042648
+  },
+  "CM-50": {
+   "9000": -0.13975998632780307,
+   "9001": -0.13831349780797686
+  },
+  "WT-p-50": {
+   "9000": -0.026655396878144555,
+   "9001": -0.033160043035521336,
+   "9002": -0.028615354869099607
+  },
+  "WT-p-5": {
+   "9000": -0.06797239137374178,
+   "9001": -0.08341230703213387,
+   "9002": -0.057997352746897546
+  },
+  "WT-p-1.5": {
+   "9000": -0.09211601892514465,
+   "9001": -0.0927983956941234,
+   "9002": -0.07710428705861494
+  },
+  "WT-r-50": {
+   "9000": -0.0156266722072661,
+   "9001": -0.0198455523509653,
+   "9002": -0.0035741752130720172
+  },
+  "WT-r-5": {
+   "9000": -0.08061450290101657,
+   "9001": -0.059620603195934097,
+   "9002": -0.03025857175087432
+  },
+  "WT-r-1.5": {
+   "9000": -0.07311321523570435,
+   "9001": -0.0514196022167801,
+   "9002": -0.02955353121750326
+  },
+  "WM-450": {
+   "9000": -0.038949904567551985,
+   "9001": -0.04203767070522102,
+   "9002": -0.02120283935057443
+  },
+  "WM-5": {
+   "9000": -0.025734879392484422,
+   "9001": -0.06627422469850919,
+   "9002": -0.049200653291352814
+  }
+ },
+ "step0_alias": {
+  "sk__mae_repaired__s9000__cw100__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__cw100__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__mrandom__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__mrandom__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__mrandom__ts450__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__mrandom__ts450__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__mwithin__ts450__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__mwithin__ts450__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts15__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts15__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts150__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts150__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts450__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts450__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts5__step00000__dev_probe_train": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9000__ts5__step00000__sealed_test": "sk__mae_repaired__s9000__step00000",
+  "sk__mae_repaired__s9001__step00000__dev_probe_train": "sk__mae_repaired__s9001__ts450__step00000",
+  "sk__mae_repaired__s9001__step00000__sealed_test": "sk__mae_repaired__s9001__ts450__step00000",
+  "sk__mae_repaired__s9001__mrandom__step00000__dev_probe_train": "sk__mae_repaired__s9001__ts450__step00000",
+  "sk__mae_repaired__s9001__mrandom__step00000__sealed_test": "sk__mae_repaired__s9001__ts450__step00000",
+  "sk__mae_repaired__s9001__mrandom__ts450__step00000__dev_probe_train": "sk__mae_repaired__s9001__ts450__step00000",
+  "sk__mae_repaired__s9001__mrandom__ts450__step00000__sealed_test": "sk__mae_repaired__s9001__ts450__step00000"
+ },
+ "not_recomputed": [
+  "F4",
+  "K3",
+  "K4(b)",
+  "P4",
+  "P5",
+  "P6",
+  "secondary outcomes other than P3 sign"
+ ]
+}

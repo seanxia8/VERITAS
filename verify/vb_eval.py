@@ -53,6 +53,8 @@ per_case = {}
 ref = {}
 res = {"cells": [], "missing": []}
 for c in cells:
+    if "_tr" in c["mask"]:      # non-trigger time reference: encoder input differs, not recomputed blind
+        res["missing"].append(c["case"]); continue
     tr, te = ld(c["case"], TRAIN), ld(c["case"], TEST)
     if tr is None or te is None:
         res["missing"].append(c["case"]); continue
