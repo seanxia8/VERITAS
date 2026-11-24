@@ -69,4 +69,4 @@ These answer whether the positional code dominates the token (a scale problem) o
 
 ## Amendments
 
-(none)
+**A1 (24 Nov 2026, 15:30 UTC, before any r2-follow run was submitted).** Code `9bfc364` refuses `--embed fourier` without `--decoder isolated` and vice versa, so C3e and C2dc cannot run on it unchanged. They run on `760c3d5` = `9bfc364` plus a minimal patch (`sparse_arms.FactorJepa`, staged `code/follow_760c3d5d.tar.gz`) that combines the exact C2 and C3 modules: C3e = C3 encoder (content MLP + fixed positional code) + C2 predictor (scaled-position queries, full attention), no count head; C2dc = C2 encoder (linear input projection) + C3 predictor (queries from the fixed positional code, query-isolated attention) + count head. The patch leaves C2 and C3 unchanged: `760c3d5` rebuilds their recipes with identical hashes and their step-0 weights bit for bit (`results/round2/20261124_follow/RECIPE_DIFFS.md`). C2 and C3 are not retrained. Everything else in §2 is unchanged.
