@@ -134,12 +134,17 @@ def analyse(args):
             m: contrasts(g, sealed, det, m, 10000, "sealed_test", pairs) for m in SECONDARY}
         out["detectors"][det] = d
     pooled = g.finish(all_contrasts)
+    # secondary metrics: SD_pooled per (detector, metric) over that metric's config-vs-random contrasts
+    out["SD_pooled_secondary"] = {}
     for det in ("wcte", "sk"):
         for m, cs in out["detectors"][det]["contrasts_secondary"].items():
+            sds = [c["seed_sd"] for c in cs.values() if c.get("seed_sd") is not None]
+            sd = float(np.sqrt(np.mean(np.square(sds)))) if sds else None
+            out["SD_pooled_secondary"][f"{det}:{m}"] = sd
             for c in cs.values():
                 c["registered"] = False
+                c["SD_pooled"] = sd
                 if "T_bar" in c:
-                    sd = pooled.get(det)
                     c["SE_seed"] = sd / np.sqrt(c["n_seeds"]) if sd is not None else None
                     den = max(c["SE_boot"], c["SE_seed"] or 0.0)
                     c["N_sigma"] = float(abs(c["T_bar"]) / den) if den > 0 else None
@@ -201,6 +206,25 @@ def analyse(args):
           "per_seed_5000": c05.get("per_seed"), "contrast_10000": c10, "contrast_5000": c05}
     if c10.get("T_bar") is not None and c05.get("T_bar") is not None:
         q4["holds"] = bool(-c10["T_bar"] >= -c05["T_bar"])
+        # exploratory: paired step difference D = T(10k) - T(5k) per seed; SE_boot over the same
+        # resampled sealed events for both steps; SE_seed from the across-seed SD of D
+        dd, bt = {}, []
+        for lab, r1, r2 in p:
+            vals = [g.values(sealed, r, "vertex", st) for r, st in ((r1, 10000), (r2, 10000), (r1, 5000), (r2, 5000))]
+            if any(x is None for x in vals):
+                continue
+            idx = g.boot_idx(len(vals[0]["x"]), f"sealed_test/{vals[0]['tag']}")
+            b = [np.asarray(g.boot(x, idx), float) for x in vals]
+            dd[lab] = (g.point(vals[1]) / g.point(vals[0])) - (g.point(vals[3]) / g.point(vals[2]))
+            bt.append(b[1] / b[0] - b[3] / b[2])
+        if dd:
+            arr = np.array(list(dd.values()))
+            se_b = float(np.std(np.mean(bt, axis=0), ddof=1))
+            se_s = float(arr.std(ddof=1) / np.sqrt(arr.size)) if arr.size > 1 else None
+            q4["exploratory_step_difference"] = {
+                "D_per_seed": dd, "D_bar": float(arr.mean()), "SE_boot": se_b, "SE_seed": se_s,
+                "N_sigma": float(abs(arr.mean()) / max(se_b, se_s or 0.0)),
+                "note": "D = T(10k) - T(5k); D > 0 means the patch-vs-random contrast shrank (exploratory)"}
     v["Q4"] = q4
     # ---------------- KM
     sk = out["detectors"]["sk"]
@@ -289,9 +313,13 @@ def render(out):
                   f"half-gain AvgDist {'–' if q['avg_dist_half_gain_m'] is None else f'{q['avg_dist_half_gain_m']:.3f} m'}"
                   f" vs ℓ_c {q['l_c_photon_m']:.2f} m (ratio {'–' if q['ratio'] is None else f'{q['ratio']:.2f}'}).")
     q = v["Q4"]
+    ps10 = ", ".join(f"{k} {pct(x)}" for k, x in (q["per_seed_10000"] or {}).items())
+    ps05 = ", ".join(f"{k} {pct(x)}" for k, x in (q["per_seed_5000"] or {}).items())
+    ex = q.get("exploratory_step_difference")
+    exs = (f" Exploratory: D = T(10k) − T(5k) = {100 * ex['D_bar']:+.2f} points (SE_boot {100 * ex['SE_boot']:.2f}, "
+           f"SE_seed {100 * (ex['SE_seed'] or 0):.2f}, N_σ {ex['N_sigma']:.1f}).") if ex else ""
     md.append(f"- **Q4 SK**: {'holds' if q.get('holds') else 'does not hold'} — T(patch default vs random) "
-              f"{pct(q['T_10000'])} at 10k vs {pct(q['T_5000'])} at 5k (per seed 10k {q['per_seed_10000']}, "
-              f"5k {q['per_seed_5000']}).")
+              f"{pct(q['T_10000'])} at 10k ({ps10}) vs {pct(q['T_5000'])} at 5k ({ps05}).{exs}")
     k = v.get("KM", {})
     if k:
         c = k["contrast_best_vs_worst"]
