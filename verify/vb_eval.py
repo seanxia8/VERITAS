@@ -19,16 +19,37 @@ import vb_stats as S
 from readout_spec import ridge_fit_predict
 
 CELLS, DUMP, OUT = sys.argv[1:4]
-cells = json.load(open(CELLS))["cells"]
+CJ = json.load(open(CELLS))
+cells = CJ["cells"]
+REGM = CJ.get("registered")
 TRAIN, TEST = "dev_probe_train", "sealed_test"
+
+
+EQ0 = {}   # step-0 checkpoints with bitwise-identical encoder weights (step0_equality.json beside CELLS)
+_eq = os.path.join(os.path.dirname(os.path.abspath(CELLS)), "step0_equality.json")
+if os.path.exists(_eq):
+    for k, v in json.load(open(_eq)).items():
+        if v["equal"]:
+            EQ0.setdefault(v["ref"], []).append(k)
+ALIAS = {}
 
 
 def ld(case, group, dom="photon"):
     p = f"{DUMP}/{case}__{group}__{dom}.npz"
-    return np.load(p) if os.path.exists(p) else None
+    if os.path.exists(p):
+        return np.load(p)
+    for grp in EQ0.values():          # same encoder weights -> same features on the same events
+        if case in grp:
+            for alt in grp:
+                q = f"{DUMP}/{alt}__{group}__{dom}.npz"
+                if os.path.exists(q):
+                    ALIAS[f"{case}__{group}"] = alt
+                    return np.load(q)
+    return None
 
 
 per = {}            # key -> {"c": per-event err, "a": per-event err}
+per_case = {}
 ref = {}
 res = {"cells": [], "missing": []}
 for c in cells:
@@ -48,6 +69,7 @@ for c in cells:
         row[f"{form}_err_m"] = float(errs[form].mean()); row[f"{form}_alpha"] = al
     row["n_test"] = int(len(errs["c"]))
     per[(c["det"], c["mask"], float(c["unit"]), int(c["seed"]), int(c["step"]))] = errs
+    per_case[c["case"]] = errs
     res["cells"].append(row)
     print(c["case"], round(row["c_err_m"], 5), round(row["a_err_m"], 5), flush=True)
 
@@ -78,7 +100,23 @@ for det, lst in REG.items():
         e1, e2 = E(det, m1, u1), E(det, m2, u2)
         if not need(e1, e2):
             res.setdefault("contrasts_missing", []).append(cid); continue
-        cd[cid] = S.contrast(e1, e2, idx); cd[cid]["registered"] = True; registered.append(cid)
+        own = S.contrast(e1, e2, idx)
+        if REGM is None:
+            cd[cid] = own; cd[cid]["registered"] = True; registered.append(cid)
+        else:
+            res.setdefault("mapping_check", {})[cid] = own["T_per_seed"]
+    if REGM is not None:      # registered contrasts exactly as listed by run id in VERIFY_INPUTS_B
+        SEED = {"A": 9000, "B": 9001, "C": 9002}
+        for cid, v in REGM.items():
+            if v["detector"] != det:
+                continue
+            ps = v["per_seed"]
+            if not all(f"{p['run_1']}__step10000" in per_case and f"{p['run_2']}__step10000" in per_case for p in ps):
+                res.setdefault("contrasts_missing", []).append(cid); continue
+            e1 = {SEED[p["seed"]]: per_case[f"{p['run_1']}__step10000"]["c"] for p in ps}
+            e2 = {SEED[p["seed"]]: per_case[f"{p['run_2']}__step10000"]["c"] for p in ps}
+            cd[cid] = S.contrast(e1, e2, idx); cd[cid]["registered"] = True; registered.append(cid)
+            cd[cid]["runs"] = ps
     if det == "sk":     # P2 chain and F5 (5,000-step snapshots); not registered, SE_seed from SK pool
         chain = [450, 150, 50, 15, 5]
         for u1, u2 in zip(chain, chain[1:]):
@@ -169,8 +207,9 @@ if g("CT-p50") and g("CT-p5"):
     else:
         crit["F5"] = None
     crit["P1_signs"] = {k: c["T_bar"] < 0 for d in con for k, c in con[d]["contrasts"].items()
-                        if k.startswith(("CT-p", "CT-r", "WT-")) and "@" not in k}
+                        if k.startswith(("CT-p", "CT-r", "WT")) and "@" not in k}
 res["criteria"] = crit
+res["step0_alias"] = ALIAS
 
 
 def clean(o):

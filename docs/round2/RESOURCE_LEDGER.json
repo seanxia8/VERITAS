@@ -4449,6 +4449,29 @@
      "gpu_h": 1.5,
      "note": "closed; first launch at 14:44 died at once (scripts not synced)",
      "end_utc": "2026-11-22T16:17:00Z"
+    },
+    {
+     "gpu": "GTX TITAN X (deepthought, GPU 0)",
+     "job": "part A sealed_test dumps (SK, WCTE), 34 cases",
+     "start_utc": "2026-11-22T19:48:00Z",
+     "end_utc": "2026-11-22T20:44:00Z",
+     "gpu_h": 0.87,
+     "note": "closed"
+    },
+    {
+     "gpu": "GTX TITAN X (deepthought, GPU 0)",
+     "job": "part B essential block (vb_run.sh): 45 step-10000 checkpoints x 2 splits, P3 electrons (4 x 2), SK step-5000 F5 cells (4 x 2), plus 2 other step-5000",
+     "start_utc": "2026-11-24T01:45:00Z",
+     "end_utc": "2026-11-24T04:19:30Z",
+     "gpu_h": 2.57,
+     "note": "closed"
+    },
+    {
+     "gpu": "GTX TITAN X (deepthought, GPU 0)",
+     "job": "part A2 HK sealed_test dumps (6 cases); JUNO moved to CPU to stay under the cap",
+     "start_utc": "2026-11-24T04:19:30Z",
+     "gpu_h": 0.85,
+     "note": "open, estimate; closed with actual end time"
     }
    ]
   }
@@ -4471,7 +4494,7 @@
    "cap_gpu_h": 160.0
   },
   "R2_tier1v_gpu": {
-   "booked_gpu_h": 1.5,
+   "booked_gpu_h": 5.79,
    "cap_gpu_h": 6.0
   }
  }

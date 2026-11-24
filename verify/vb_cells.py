@@ -38,7 +38,7 @@ for (rid, step), (c, _) in sorted(by.items()):
     cells.append({"case": name, "det": c["detector"], "mask": mask, "unit": unit, "seed": int(c["seed"]),
                   "step": step, "run_id": rid})
 json.dump({"cases": cases}, open(f"{outdir}/cases_b.json", "w"), indent=1)
-json.dump({"cells": cells, "copies": copies}, open(f"{outdir}/cells_b.json", "w"), indent=1)
+json.dump({"cells": cells, "copies": copies, "registered": M["registered_contrasts"]}, open(f"{outdir}/cells_b.json", "w"), indent=1)
 
 
 def prio(x):
