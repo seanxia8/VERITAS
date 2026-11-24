@@ -43,6 +43,7 @@ HALF_R2B = 0.162                # §2.3: "at least half of the registered R2b (+
 A_CELLS = ("C2", "C3e", "C2dc", "C3")
 SK_CFG = ("random", "patch43", "patch173", "patch692")
 SECONDARY_A = ("vertex_mlp", "vertex_attentive", "dir_mu", "dir_e")
+RHO_MIN = 0.8 - 1e-9          # Spearman on 4 points takes multiples of 0.2; 0.8 may be 0.7999... in floating point
 
 
 class MultiStore(st.Store):
@@ -152,7 +153,7 @@ def part_b(mask3, sk_root):
     rho_d = {m: spearman([U[c] for c in SK_CFG], [sk["gain_secondary"][m][c]["mean"] for c in SK_CFG])
              for m in ("dir_mu", "dir_e")}
     b2 = {"spearman_U_vertex_gain": rho_v, "spearman_U_direction_gain": rho_d,
-          "holds": bool(rho_v is not None and rho_v >= 0.8 and all(r is not None and r >= 0.8 for r in rho_d.values()))}
+          "holds": bool(rho_v is not None and rho_v >= RHO_MIN and all(r is not None and r >= RHO_MIN for r in rho_d.values()))}
     gc = {c: gv[c]["per_seed"].get("C") for c in SK_CFG}
     rho_c = spearman([U[c] for c in SK_CFG], [gc[c] for c in SK_CFG]) if all(x is not None for x in gc.values()) else None
     rho_c5 = None
@@ -162,7 +163,7 @@ def part_b(mask3, sk_root):
         if all(x is not None for x in gc5.values()):
             rho_c5 = spearman([U[c] for c in SK_CFG], [gc5[c] for c in SK_CFG])
     b3 = {"seed_C_gain_vertex": gc, "spearman_U_seedC_gain": rho_c, "spearman_U_seedC_gain_5000_exploratory": rho_c5,
-          "holds": bool(rho_c is not None and rho_c >= 0.8)}
+          "holds": bool(rho_c is not None and rho_c >= RHO_MIN)}
     b1_all = all(v["holds"] for v in b1.values()) and len(b1) == 3
     kill = (not b1_all) or (not b2["holds"])
     return {"seeds": labels, "U": U, "gain_vertex_10000": gv, "gain_vertex_5000": sk.get("gain_vertex_5000"),
