@@ -409,3 +409,57 @@ def test_w2_path_imports_no_toy_physics():
             if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "lb":
                 assert node.attr in mg.ALLOWED_LB_NAMES, f"{rel}: lb.{node.attr}"
                 assert node.attr not in mg.FORBIDDEN_LB_NAMES
+
+
+# ----------------------------------------------------------------------------- r2-follow §2.1 cells
+_FOLLOW = {"C2": {}, "C3": {"embed": "fourier", "decoder": "isolated", "count_head": True},
+           "C3e": {"embed": "fourier"}, "C2dc": {"decoder": "isolated", "count_head": True}}
+
+
+def _follow_arm(geometry, scaling, cell, seed=9000):
+    flags = {"loss_mode": "fixed", "placeholder": "sentinel", "embed": "linear", "decoder": "legacy",
+             "count_head": False, "sentinel_time": 1.0}
+    flags.update(_FOLLOW[cell])
+    return r2.build_r2_arm("mae_repaired", geometry, seed, scaling=scaling, sparse_flags=flags)
+
+
+def test_follow_cells_modules(wcte):
+    from jepa_noise.point_encoder import LucidPointJepa, PointEncoder, TargetQueryPredictor
+    geometry, scaling = wcte
+    a = {c: _follow_arm(geometry, scaling, c) for c in _FOLLOW}
+    assert type(a["C2"].jepa) is LucidPointJepa and type(a["C3"].jepa) is sa.DenseFourierJepa
+    assert isinstance(a["C3e"].jepa.encoder, sa.DenseFourierEncoder)
+    assert isinstance(a["C3e"].jepa.predictor, TargetQueryPredictor) and a["C3e"].count_head is None
+    assert isinstance(a["C2dc"].jepa.encoder, PointEncoder)
+    assert isinstance(a["C2dc"].jepa.predictor, sa.IsolatedPredictor) and a["C2dc"].count_head is not None
+    # the shared component starts from the parent cell's weights (same construction order)
+    for child, parent in (("C3e", "C3"), ("C2dc", "C2")):
+        pe, ce = a[parent].jepa.encoder.state_dict(), a[child].jepa.encoder.state_dict()
+        assert pe.keys() == ce.keys() and all(torch.equal(pe[k], ce[k]) for k in pe)
+    torch.testing.assert_close(a["C2dc"].jepa.token_order, a["C2"].jepa.token_order, rtol=0, atol=0)
+    torch.testing.assert_close(a["C3e"].jepa.query_features, a["C2"].jepa.query_features, rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("cell", ["C3e", "C2dc"])
+def test_follow_cells_forward_backward(wcte, cell):
+    geometry, scaling = wcte
+    b = _batch(geometry, scaling, 2)
+    arm = _follow_arm(geometry, scaling, cell, seed=9)
+    out = arm(b, step=0)
+    assert torch.isfinite(out["loss"])
+    out["loss"].backward()
+    arm.check_parameter_coverage()
+    z = arm.encode_tokens(b.features)
+    assert z.shape == (2, geometry.n_pmt, 128) and torch.isfinite(z).all()
+
+
+def test_leakage_a_query_isolation_c2dc(wcte):
+    geometry, scaling = wcte
+    b = _batch(geometry, scaling, 2)
+    arm = _follow_arm(geometry, scaling, "C2dc", seed=4).eval()
+    with torch.no_grad():
+        ctx = arm.jepa.encode(arm._encoder_features(b.features), hidden_mask=b.hidden)
+        hidden_index = arm._hidden_index(b)
+        full = arm.jepa.predict(ctx, b.context_index, hidden_index)
+        part = arm.jepa.predict(ctx, b.context_index, hidden_index[:, 10:20])
+        torch.testing.assert_close(part, full[:, 10:20], rtol=1e-5, atol=1e-6)

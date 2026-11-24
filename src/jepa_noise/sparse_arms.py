@@ -37,7 +37,7 @@ from .point_encoder import (HIT_INDEX, LOG_CHARGE_INDEX, TIME_INDEX, EncoderConf
 
 __all__ = ["N_FREQ", "PE_DIM", "fourier_code", "median_nn_spacing", "ContentMLP", "SparseBlock",
            "SparseEncoder", "IsolatedPredictor", "DenseFourierJepa", "fixed_loss", "gather_tokens",
-           "SparseMaeArm", "SparseTimeArm", "SPARSE_ARMS", "QUERY_MODES", "COUNT_WEIGHT",
+           "FactorJepa", "SparseMaeArm", "SparseTimeArm", "SPARSE_ARMS", "QUERY_MODES", "COUNT_WEIGHT",
            "sentinel_features", "scatter_tokens"]
 
 N_FREQ = 21
@@ -285,6 +285,56 @@ class DenseFourierJepa(nn.Module):
         context = readout.gather(1, context_index.unsqueeze(-1).expand(-1, -1, width))
         valid = torch.ones(context.shape[:2], dtype=torch.bool, device=readout.device)
         return self.predictor(context, valid, self.query(self.pe[target_index]))
+
+    def n_parameters(self) -> int:
+        return int(sum(p.numel() for p in self.parameters() if p.requires_grad))
+
+
+class FactorJepa(nn.Module):
+    """r2-follow §2.1: one C3 component on the C2 model, the other kept as in C2.
+
+    ``embed="fourier", decoder="legacy"`` (C3e): the C3 encoder (content MLP + fixed positional
+    code, mask embedding + code) with the C2 predictor (``TargetQueryPredictor`` on the scaled
+    PMT positions, full attention). ``embed="linear", decoder="isolated"`` (C2dc): the C2 encoder
+    (``PointEncoder``, linear input projection) with the C3 predictor (``QueryEmbedding`` of the
+    fixed positional code, query-isolated attention). Each part is the exact module class of the
+    cell it comes from and is built first in the same order, so at a given seed the encoder's
+    initial weights equal those of the parent cell (C3 for C3e, C2 for C2dc).
+    """
+
+    def __init__(self, config: EncoderConfig, geometry, scaling: FeatureScaling, *, embed: str,
+                 decoder: str):
+        super().__init__()
+        from .point_encoder import QUERY_FEATURES, PointEncoder, TargetQueryPredictor, geometry_features
+        if (embed, decoder) not in (("fourier", "legacy"), ("linear", "isolated")):
+            raise ValueError("FactorJepa builds only C3e (fourier, legacy) and C2dc (linear, isolated)")
+        self.config, self.scaling, self.geometry_digest = config, scaling, geometry.digest
+        self.embed, self.decoder = embed, decoder
+        code, self.pe_meta = fourier_code(geometry, scaling)
+        pe = torch.as_tensor(code)
+        self.encoder = DenseFourierEncoder(config, pe) if embed == "fourier" else PointEncoder(config)
+        if decoder == "isolated":
+            self.query = QueryEmbedding(config.d_pred)
+            self.predictor = IsolatedPredictor(config, config.d_model)
+        else:
+            self.predictor = TargetQueryPredictor(config)
+            queries = geometry_features(geometry, scaling)[:, :QUERY_FEATURES]
+            self.register_buffer("query_features", torch.as_tensor(queries, dtype=torch.float32),
+                                 persistent=False)
+        self.register_buffer("token_order", torch.as_tensor(token_hilbert_order(geometry), dtype=torch.long),
+                             persistent=False)
+        self.register_buffer("pe", pe, persistent=False)
+
+    def encode(self, features: Tensor, hidden_mask: Tensor | None = None) -> Tensor:
+        return self.encoder(features, hidden_mask=hidden_mask, order=self.token_order)
+
+    def predict(self, readout: Tensor, context_index: Tensor, target_index: Tensor) -> Tensor:
+        width = readout.size(-1)
+        context = readout.gather(1, context_index.unsqueeze(-1).expand(-1, -1, width))
+        if self.decoder == "isolated":
+            valid = torch.ones(context.shape[:2], dtype=torch.bool, device=readout.device)
+            return self.predictor(context, valid, self.query(self.pe[target_index]))
+        return self.predictor(context, self.query_features[target_index])
 
     def n_parameters(self) -> int:
         return int(sum(p.numel() for p in self.parameters() if p.requires_grad))

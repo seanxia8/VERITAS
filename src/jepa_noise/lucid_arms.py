@@ -336,8 +336,6 @@ class LucidArm(nn.Module):
         if loss_mode not in ("legacy", "fixed") or placeholder not in ("legacy", "sentinel") \
                 or embed not in ("linear", "fourier") or decoder not in ("legacy", "isolated"):
             raise ValueError("unknown r2-sparse flag value")
-        if (embed == "fourier") != (decoder == "isolated"):
-            raise ValueError("the Fourier embedding is implemented with the isolated decoder only (C3)")
         if placeholder == "sentinel" and sentinel_time is None:
             raise ValueError("the sentinel placeholder needs sentinel_time = (A + 50 ns) / T")
         self.loss_mode, self.placeholder, self.embed, self.decoder = loss_mode, placeholder, embed, decoder
@@ -372,10 +370,17 @@ class LucidArm(nn.Module):
         self.pmts_per_module = int(geometry.pmts_per_module)
         self.n_pmt = int(geometry.n_pmt)
         torch.manual_seed(self.seed)
-        if embed == "fourier":
+        if embed == "fourier" and decoder == "isolated":
             from .sparse_arms import DenseFourierJepa
             self.jepa = DenseFourierJepa(encoder_config or EncoderConfig(), geometry,
                                          scaling or FeatureScaling.from_geometry(geometry))
+        elif (embed, decoder) != ("linear", "legacy"):
+            # r2-follow §2.1 single-change cells: C3e (Fourier embedding, legacy predictor) and
+            # C2dc (linear embedding, query-isolated predictor); C2 and C3 take the unchanged paths
+            from .sparse_arms import FactorJepa
+            self.jepa = FactorJepa(encoder_config or EncoderConfig(), geometry,
+                                   scaling or FeatureScaling.from_geometry(geometry),
+                                   embed=embed, decoder=decoder)
         else:
             self.jepa = LucidPointJepa(encoder_config or EncoderConfig(), geometry, scaling)
         self.d_model = int(self.jepa.config.d_model)
