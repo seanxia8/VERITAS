@@ -17,7 +17,9 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-ENV = {"R2_BATCH_JOBS": "/work/dwong/r2_tier1/batch_jobs", "R2_BATCH_REPO": str(REPO)}
+# r2-sparse: the caller's R2_BATCH_JOBS / R2_BATCH_REPO win (defaults: r2-tier1)
+ENV = {"R2_BATCH_JOBS": os.environ.get("R2_BATCH_JOBS", "/work/dwong/r2_tier1/batch_jobs"),
+       "R2_BATCH_REPO": os.environ.get("R2_BATCH_REPO", str(REPO))}
 
 
 def main():
@@ -37,6 +39,8 @@ def main():
     ap.add_argument("--code", required=True, help="staged code tarball, e.g. code/tier1_<sha8>.tar.gz")
     ap.add_argument("--walltime-h", type=float, default=3.0)
     ap.add_argument("--job-id")
+    ap.add_argument("--access-log", default=None, help="canonical sealed-access log for the --log-only line "
+                    "(default: tier1_eval.py's default)")
     a = ap.parse_args()
     if a.budget:
         if "sealed" in a.cohorts:
@@ -52,13 +56,17 @@ def main():
         det = rid.split("__")[0]
         src_args = ["--run-dir", f"returns/runs/{rid}", "--step", *map(str, a.steps)]
         ship = [str(a.run_dir)]
-    files = [f"data/lucid_v1/{det}_lucid_v1.h5"]
-    pack_args = ["--validation-pack", f"staged/data/lucid_v1/{det}_lucid_v1.h5"]
+    kind = "lucid_v1" if a.legacy_init else rec["recipe"].get("data_kind", "lucid_v1")
+    stem = f"{det}_{kind}"  # r2-sparse: the packs of the run's own data kind
+    files = [f"data/{kind}/{stem}.h5"]
+    pack_args = ["--validation-pack", f"staged/data/{kind}/{stem}.h5"]
     if "sealed" in a.cohorts:
-        files.append(f"data/lucid_v1/{det}_lucid_v1_sealed.h5")
-        pack_args += ["--sealed-pack", f"staged/data/lucid_v1/{det}_lucid_v1_sealed.h5"]
+        files.append(f"data/{kind}/{stem}_sealed.h5")
+        pack_args += ["--sealed-pack", f"staged/data/{kind}/{stem}_sealed.h5"]
         log = [sys.executable, str(REPO / "scripts/tier1_eval.py"), "--cohorts", "sealed", "--log-only",
                "--purpose", a.purpose]
+        if a.access_log:
+            log += ["--access-log", a.access_log]
         log += (["--legacy-init", "--detector", det, "--seed", str(a.seed)] if a.legacy_init
                 else ["--run-dir", str(a.run_dir), "--step", *map(str, a.steps)])
         subprocess.run(log, check=True, env=dict(os.environ, PYTHONPATH=str(REPO / "src")))
