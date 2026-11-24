@@ -16,9 +16,9 @@ inv_ok = all(v is True for v in inv.values())
 
 L = []
 L.append("# VERIFY_A_REPORT — blind recomputation of the LUCiD headline numbers (r2-tier1v, part A)\n")
-L.append(f"Seal A: `{a.seal}` (\"BLIND SEAL A\"), pushed before any r2-tier1 result was opened. "
-         "Definitions: runbook §1. Ridge fitted on `dev_probe_train` photon bombs; tests `dev_probe_test` "
-         "(all detectors) and `sealed_test` (SK, WCTE; HK/JUNO sealed packs are null in VERIFY_INPUTS_A).\n")
+L.append(f"Seals: `{a.seal}` (\"BLIND SEAL A\" / \"BLIND SEAL A2\"), each pushed before the matching r2-tier1 "
+         "results were opened. Definitions: runbook §1. Ridge fitted on `dev_probe_train` photon bombs; tests "
+         "`dev_probe_test` and `sealed_test` on all four detectors (HK/JUNO sealed in A2).\n")
 L.append("## Invariants (registered, runbook VA2)\n")
 L.append("| ID | Result |\n|---|---|")
 for k, v in inv.items():
@@ -52,6 +52,23 @@ for r in C["rows"]:
     L.append(f"| {case} | {r['quantity']} | {r['mine']:.4f} | {r['theirs']:.4f} | {r['rel_diff']:+.2%} | "
              f"{'pass' if r['pass'] else 'FAIL'} | {v} |")
 L.append("")
+if R:
+    L.append("## Per case and test set against RESCORE_LUCID.json (relative differences; f_event under my "
+             "definition / under theirs)\n")
+    L.append("| Case | Test | (c) m | Δ(c) | Δ(a) | Δ(d) | Δf_event | Δf_event (their def.) | Verdict |")
+    L.append("|---|---|---|---|---|---|---|---|---|")
+    grp = {}
+    for r in R["rows"]:
+        if "quantity" in r:
+            grp.setdefault((r["case"], r["test"]), {})[r["quantity"]] = r
+    for (case, t), q in grp.items():
+        ok = all(q[k]["pass"] for k in ("a", "c", "d") if k in q)
+        fe = q.get("f_event", {})
+        v = ("V" if fe.get("pass", True) else "R") if (ok and inv_ok) else "flag"
+        L.append(f"| {case} | {t.replace('_probe_test', '').replace('_test', '')} | {q['c']['mine']:.4f} | "
+                 f"{q['c']['rel_diff']:+.1e} | {q['a']['rel_diff']:+.1e} | {q['d']['rel_diff']:+.1e} | "
+                 f"{fe.get('rel_diff', float('nan')):+.1%} | {fe.get('rel_diff_perdim_definition', float('nan')):+.1e} | {v} |")
+    L.append("")
 sealed = [r for r in A["rows"] if r["test"] == "sealed_test" and not r["exploratory"] and r["kind"] == "final"]
 if sealed:
     L.append("## Sealed test (recomputed; trained finals)\n")

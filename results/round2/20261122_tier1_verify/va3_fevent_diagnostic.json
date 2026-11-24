@@ -432,5 +432,77 @@
   "trace_all": 0.10753120371022248,
   "trace_first200": 0.11270643697962028,
   "n": 10200
+ },
+ "hk__jepa_repaired__s9000__final@sealed_test": {
+  "perdim_mean_all": 0.06437621917219453,
+  "trace_all": 0.06688586249900381,
+  "trace_first200": 0.06995275208621934,
+  "n": 10200
+ },
+ "hk__jepa_repaired__s9000__matched_init@sealed_test": {
+  "perdim_mean_all": 0.02285528525936925,
+  "trace_all": 0.014746066301600733,
+  "trace_first200": 0.015395135043911152,
+  "n": 10200
+ },
+ "hk__legacy_init__s9000@sealed_test": {
+  "perdim_mean_all": 0.022361971687021403,
+  "trace_all": 0.014610765055903781,
+  "trace_first200": 0.015201610669275249,
+  "n": 10200
+ },
+ "hk__legacy_init__s9001@sealed_test": {
+  "perdim_mean_all": 0.02190490269505688,
+  "trace_all": 0.014724384574576277,
+  "trace_first200": 0.015128509065613638,
+  "n": 10200
+ },
+ "hk__mae_repaired__s9000__final@sealed_test": {
+  "perdim_mean_all": 0.13662699853233287,
+  "trace_all": 0.12506883180361247,
+  "trace_first200": 0.12803336430003903,
+  "n": 10200
+ },
+ "hk__mae_repaired__s9000__matched_init@sealed_test": {
+  "perdim_mean_all": 0.025791360822014456,
+  "trace_all": 0.01784776400043009,
+  "trace_first200": 0.018521091449750844,
+  "n": 10200
+ },
+ "juno__jepa_repaired__s9000__final@sealed_test": {
+  "perdim_mean_all": 0.12768888873976425,
+  "trace_all": 0.1285798198891436,
+  "trace_first200": 0.13381920120003996,
+  "n": 10200
+ },
+ "juno__jepa_repaired__s9000__matched_init@sealed_test": {
+  "perdim_mean_all": 0.05575261976188245,
+  "trace_all": 0.03597506639361999,
+  "trace_first200": 0.03777257693007814,
+  "n": 10200
+ },
+ "juno__legacy_init__s9000@sealed_test": {
+  "perdim_mean_all": 0.05597838796688934,
+  "trace_all": 0.03448275236388165,
+  "trace_first200": 0.03606172258309258,
+  "n": 10200
+ },
+ "juno__legacy_init__s9001@sealed_test": {
+  "perdim_mean_all": 0.05230858978679972,
+  "trace_all": 0.036247988313855846,
+  "trace_first200": 0.03737956828906734,
+  "n": 10200
+ },
+ "juno__mae_repaired__s9000__final@sealed_test": {
+  "perdim_mean_all": 0.1908156254388306,
+  "trace_all": 0.1899524576198505,
+  "trace_first200": 0.19234291489564326,
+  "n": 10200
+ },
+ "juno__mae_repaired__s9000__matched_init@sealed_test": {
+  "perdim_mean_all": 0.056493572020054506,
+  "trace_all": 0.03771898361730564,
+  "trace_first200": 0.039447224924320165,
+  "n": 10200
  }
 }
