@@ -81,3 +81,22 @@ Manifests: `results/round2/20261122_tier1/DATA_MANIFEST_<det>_sealed.json`; vali
 G6 is the generator's static/run-time test in the native suite. **Only `scripts/tier1_eval.py` reads
 these packs**; every read is logged in `results/round2/20261122_tier1/SEALED_ACCESS_LOG.md`.
 SK, WCTE and HK validated 22 Nov on the default sample (60 reference runs); JUNO passed with the full reference cohort (200 runs): its photon-bomb median PE differs by −9.95 % (−10.3 % on 60 runs, a 1.5σ sampling fluctuation); see `SEALED_VALIDATION_juno_n200.json`.
+
+### 2.2 WCTE wide-window re-pack (`lucid_v1_w2`, r2-sparse, 24 Nov 2026)
+
+Dataset kind `lucid_v1_w2` (pack attr / manifest `dataset_kind = "lucid_v1_w2"`; `data_roots.LUCID_V1_W2`).
+WCTE only. A re-readout of the cached `lucid_v1` LUCiD digits (`/ceph/dwong/jepa/data/lucid_v1/wcte/cache`,
+LUCiD e651e836, tier A1, read-only) for `dev_train`, `dev_probe_train`, `dev_probe_test` and `sealed_test`,
+with the readout window [−110, +50] ns around the unchanged NHits trigger (N = 6, 20 ns; r2-sparse W1 rule).
+Same runs, events, truths, detector states and pack layout as `lucid_v1`; no LUCiD regeneration.
+LUCiD dark noise (`generate_dark_noise`, 4.2 kHz, through LUCiD's digitizer chain, keyed
+`event_seed(seed, run_id, event_id, "dark_ext")`) fills the parts of the window outside the cached dark span
+(first-light proxy − 100 ns + 1.5 ns calibrated offset, 20 ns generation margin; `src/jepa_noise/lucid_w2.py`);
+extension digits within one integration window of a cached digit are merged (earlier time, summed charge).
+Per hit the pack also stores `extra_n_later`, `extra_q_total_window`, `extra_physics_first`, `extra_dark_ext_first`
+(unused in r2-sparse). Data of record: `/ceph/dwong/jepa/data/lucid_v1_w2/wcte/` (`shards_w2b/`,
+`wcte_lucid_v1_w2.h5`, `wcte_lucid_v1_w2_sealed.h5`, `wcte_train/`, `SHA256SUMS`); `shards/`, `shards_final/`,
+`shards_w2/` are superseded validation passes (`SUPERSEDED.md`, never read). Manifest
+`results/round2/20261124_sparse/DATA_MANIFEST_wcte_w2.json`; validation `results/round2/20261124_sparse/w2_validation/`.
+Sealed packs are read only through `scripts/tier1_eval.py`; the re-pack, packing and structural validation of the
+sealed cohort are logged in `results/round2/20261124_sparse/SEALED_ACCESS_LOG.md`.

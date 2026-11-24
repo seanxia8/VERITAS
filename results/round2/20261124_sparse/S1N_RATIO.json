@@ -1,0 +1,39 @@
+{
+ "acceptance": "training acceptance (spatial_patch, >= 20 masked hits)",
+ "chosen_r": 1.0,
+ "rule": "r in {0.25, 0.5, 1, 2} whose median kept fraction of masked unhit PMTs on WCTE lucid_v1_w2 dev_train is closest to SK's median kept fraction at r = 2 (SK lucid_v1 dev_probe_train)",
+ "sk_reference": {
+  "kept_fraction": {
+   "mean": 0.4659692665383827,
+   "median": 0.3856927386339151
+  },
+  "median_occupancy": 0.16195025234318675,
+  "n_accepted": 10000,
+  "n_events": 10000,
+  "r": 2.0
+ },
+ "wcte_dev_train": {
+  "kept_fraction": {
+   "0.25": {
+    "mean": 0.24358059995184828,
+    "median": 0.11651917404129794
+   },
+   "0.5": {
+    "mean": 0.3612340324601887,
+    "median": 0.23156342182890854
+   },
+   "1.0": {
+    "mean": 0.5385500458367626,
+    "median": 0.4631268436578171
+   },
+   "2.0": {
+    "mean": 0.7430149955980686,
+    "median": 0.9262536873156342
+   }
+  },
+  "median_occupancy": 0.31528822055137845,
+  "n_accepted": 20000,
+  "n_events": 20000,
+  "n_runs_used": 20
+ }
+}
