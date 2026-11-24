@@ -4470,8 +4470,9 @@
      "gpu": "GTX TITAN X (deepthought, GPU 0)",
      "job": "part A2 HK sealed_test dumps (6 cases); JUNO moved to CPU to stay under the cap",
      "start_utc": "2026-11-24T04:19:30Z",
-     "gpu_h": 0.85,
-     "note": "open, estimate; closed with actual end time"
+     "gpu_h": 0.59,
+     "note": "closed; 4 HK trained cases; HK legacy inits and JUNO on CPU",
+     "end_utc": "2026-11-24T04:55:10Z"
     }
    ]
   }
@@ -4494,7 +4495,7 @@
    "cap_gpu_h": 160.0
   },
   "R2_tier1v_gpu": {
-   "booked_gpu_h": 5.79,
+   "booked_gpu_h": 5.53,
    "cap_gpu_h": 6.0
   }
  }
