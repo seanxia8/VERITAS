@@ -322,3 +322,14 @@ Decisions:
 - 2026-11-24 r2-sparse T1.7 native suite (frozen `git archive` snapshot of ba67056, dt1): 1,603 passed, 9 skipped, 1 xfailed, 7 failed = the five al2o3 tests whose untracked data files are absent from a snapshot, D14 (stale golden hash, triaged in r2-tier1 T9), and `test_bridge::test_marginal_is_materialised_once_then_loaded`, which asserts a git `code_sha` and therefore fails in any non-git snapshot (passes in the clone). No failure involves this phase's code; the 26 focused tests pass (ba67056 and 9bfc364).
 - 2026-11-24 r2-sparse T7 scoring: CPU scoring takes ≈ 56 min per (run, step) with 4 threads, so once the trainings had freed the batch slots, scoring jobs also ran on HTCondor A100 (≈ 0.16 GPU-h each) through `tier1_eval_batch.py`, patched to honour the caller's job tree, this phase's canonical access log and the run's data kind; the `lucid_v1_w2` sealed pack was staged byte-identically to `/ceph/srv/dwong/r2/data/lucid_v1_w2/` (SHA256 checked; logged). The batch collector renames an existing run directory to `<run>.prev_<cluster>` when a scoring job returns its shipped copy; all six such copies were verified byte-identical (snapshot, checkpoint and record hashes) and are kept; the feeder ignores them.
 - 2026-11-24 r2-sparse T7/T8: all 21 trainings and 48 scorings complete. Decision by §2.6: report and stop (S2 passes every part of the scale-to-SK rule against C3 except "no worse than the best dense control": 0.0629 vs 0.0536 m). R2 fails narrowly (+2.3 %, N_σ 2.1), R2b and R3 fail clearly, R4 and R5 hold. GPU booked 16.3 of 28 GPU-h (`R2_sparse_gpu` in RESOURCE_LEDGER.json).
+
+## r2-follow (runbook `RUNBOOK_2026-11-24_R2_FOLLOWUP.md`, branch `r2-follow`)
+
+Authority (quoted verbatim from runbook §0.1):
+1. **Author, 24 Nov 2026, 15:59 CET:**
+   > "开始，去写runbook，顺便帮我写一个简洁的report给俊杰"
+
+   (Translation: "Go ahead, write the runbook, and also write a concise report for Junjie.") This approves the two follow-ups proposed at 15:58 CET: the C3e attribution runs and a third SK seed for the mask result.
+2. **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决". Never stop to ask; record decisions in `DECISIONS.md` and `$CC_STATE/notes/r2-follow.md`.
+3. **Author, 22 Nov 2026:** do not depend on the collaborator.
+
