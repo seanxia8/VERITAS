@@ -5817,6 +5817,247 @@
     "eval": 2.888888888888889,
     "smoke": 0.022922222222222222
    }
+  },
+  "R2_mask_gpu": {
+   "authority": "RUNBOOK_2026-11-23_R2_MASK_SCALE.md \u00a70.3",
+   "cap_h": 40.0,
+   "entries": [
+    {
+     "job": "mask_sk_ps43_s9000",
+     "cluster": "759985",
+     "kind": "train",
+     "gpu_h": 5.325,
+     "host": "HTCondor A100",
+     "args": "sk mae_repaired --micro-batch 8 --seed 9000 --patch-size 43 --data-kind lucid_v1 --data staged/data/lucid_v1/sk_lucid_v1.h5 --memory-fraction 0.9"
+    },
+    {
+     "job": "mask_sk_ps692_s9000",
+     "cluster": "759986",
+     "kind": "train",
+     "gpu_h": 5.219,
+     "host": "HTCondor A100",
+     "args": "sk mae_repaired --micro-batch 8 --seed 9000 --patch-size 692 --data-kind lucid_v1 --data staged/data/lucid_v1/sk_lucid_v1.h5 --memory-fraction 0.9"
+    },
+    {
+     "job": "mask_sk_ps43_s9001",
+     "cluster": "759987",
+     "kind": "train",
+     "gpu_h": 5.196,
+     "host": "HTCondor A100",
+     "args": "sk mae_repaired --micro-batch 8 --seed 9001 --patch-size 43 --data-kind lucid_v1 --data staged/data/lucid_v1/sk_lucid_v1.h5 --memory-fraction 0.9"
+    },
+    {
+     "job": "mask_sk_ps692_s9001",
+     "cluster": "759988",
+     "kind": "train",
+     "gpu_h": 5.236,
+     "host": "HTCondor A100",
+     "args": "sk mae_repaired --micro-batch 8 --seed 9001 --patch-size 692 --data-kind lucid_v1 --data staged/data/lucid_v1/sk_lucid_v1.h5 --memory-fraction 0.9"
+    },
+    {
+     "job": "mseed_smoke_sk",
+     "cluster": "759996",
+     "kind": "seedtest",
+     "gpu_h": 0.072,
+     "host": "HTCondor A100",
+     "args": "seedtest --input staged/data/tier1/yardstick_events_sk.npz --starts staged/data/mask/starts_sk.npz --out returns/seedtest --start 0 --stop 3"
+    },
+    {
+     "job": "meval_sk_ps43_A",
+     "cluster": "759999",
+     "kind": "eval",
+     "gpu_h": 0.386,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__ps43 --step 10000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v"
+    },
+    {
+     "job": "meval_sk_rnd_A",
+     "cluster": "759998",
+     "kind": "eval",
+     "gpu_h": 0.706,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__mrandom --step 10000 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data"
+    },
+    {
+     "job": "meval_sk_def_A",
+     "cluster": "759995",
+     "kind": "eval",
+     "gpu_h": 1.031,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000 --step 10000 5000 0 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_"
+    },
+    {
+     "job": "meval_sk_def_B",
+     "cluster": "760001",
+     "kind": "eval",
+     "gpu_h": 1.131,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001 --step 10000 5000 0 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_"
+    },
+    {
+     "job": "meval_sk_ps692_A",
+     "cluster": "760007",
+     "kind": "eval",
+     "gpu_h": 0.401,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__ps692 --step 10000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_"
+    },
+    {
+     "job": "meval_sk_ps43_B",
+     "cluster": "760008",
+     "kind": "eval",
+     "gpu_h": 0.423,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__ps43 --step 10000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v"
+    },
+    {
+     "job": "meval_sk_rnd_B",
+     "cluster": "760004",
+     "kind": "eval",
+     "gpu_h": 0.838,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__mrandom --step 10000 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data"
+    },
+    {
+     "job": "meval_sk_ps692_B",
+     "cluster": "760011",
+     "kind": "eval",
+     "gpu_h": 0.431,
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__ps692 --step 10000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_"
+    },
+    {
+     "job": "mseed_full_sk",
+     "cluster": "760012",
+     "kind": "seedtest",
+     "gpu_h": 0.815,
+     "host": "HTCondor A100",
+     "args": "seedtest --input staged/data/tier1/yardstick_events_sk.npz --starts staged/data/mask/starts_sk.npz --out returns/seedtest --start 0 --stop 200"
+    },
+    {
+     "job": "mseed_full_wcte",
+     "cluster": "760015",
+     "kind": "seedtest",
+     "gpu_h": 1.195,
+     "host": "HTCondor A100",
+     "args": "seedtest --input staged/data/tier1/yardstick_events_wcte.npz --starts staged/data/mask/starts_wcte.npz --out returns/seedtest --start 0 --stop 200"
+    },
+    {
+     "job": "mask_train_wcte_ps128_s9000",
+     "run_id": "wcte__mae_repaired__s9000__ps128",
+     "kind": "train",
+     "gpu_h": 0.842,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps128_s9001",
+     "run_id": "wcte__mae_repaired__s9001__ps128",
+     "kind": "train",
+     "gpu_h": 0.436,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps128_s9002",
+     "run_id": "wcte__mae_repaired__s9002__ps128",
+     "kind": "train",
+     "gpu_h": 0.887,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps256_s9000",
+     "run_id": "wcte__mae_repaired__s9000__ps256",
+     "kind": "train",
+     "gpu_h": 0.841,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps256_s9001",
+     "run_id": "wcte__mae_repaired__s9001__ps256",
+     "kind": "train",
+     "gpu_h": 0.436,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps256_s9002",
+     "run_id": "wcte__mae_repaired__s9002__ps256",
+     "kind": "train",
+     "gpu_h": 0.435,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps8_s9000",
+     "run_id": "wcte__mae_repaired__s9000__ps8",
+     "kind": "train",
+     "gpu_h": 0.843,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps8_s9001",
+     "run_id": "wcte__mae_repaired__s9001__ps8",
+     "kind": "train",
+     "gpu_h": 0.442,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "mask_train_wcte_ps8_s9002",
+     "run_id": "wcte__mae_repaired__s9002__ps8",
+     "kind": "train",
+     "gpu_h": 0.436,
+     "host": "deepthought2 (guarded, jepa_run.sh)"
+    },
+    {
+     "job": "meval5k_sk_ps43_B",
+     "cluster": "760026",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__ps43 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v1",
+     "gpu_h": 0.482
+    },
+    {
+     "job": "meval5k_sk_ps692_A",
+     "cluster": "760025",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__ps692 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v",
+     "gpu_h": 0.493,
+     "note": "receipt had no wall time; condor_history RemoteWallClockTime 1775 s"
+    },
+    {
+     "job": "meval5k_sk_ps43_A",
+     "cluster": "760024",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9000__ps43 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v1",
+     "gpu_h": 0.499
+    },
+    {
+     "job": "meval5k_sk_ps692_B",
+     "cluster": "760027",
+     "kind": "eval",
+     "host": "HTCondor A100",
+     "args": "--run-dir returns/runs/sk__mae_repaired__s9001__ps692 --step 5000 --cohorts validation sealed --probes ridge mlp attentive --validation-pack staged/data/lucid_v",
+     "gpu_h": 0.477
+    }
+   ],
+   "cpu_entries": [
+    {
+     "what": "M1 diagnostic (4 detectors)",
+     "host": "deepthought",
+     "core_h": 0.8
+    },
+    {
+     "what": "M3 start prep (WCTE, SK)",
+     "host": "portal1",
+     "core_h": 12.0
+    },
+    {
+     "what": "WCTE scoring (15 tier1_eval jobs)",
+     "host": "portal1 + deepthought",
+     "core_h": 140.0
+    }
+   ],
+   "total_gpu_h": 35.95,
+   "note": "r2-mask: batch receipts in /ceph/dwong/jepa/returns/r2_mask_2026-11-23/ledger/receipts.jsonl; deepthought2 from run_status.json wall time; CPU core-hours approximate"
   }
  },
  "totals": {

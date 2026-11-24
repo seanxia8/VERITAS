@@ -219,3 +219,71 @@ def run(args):
         print(json.dumps({"event": i, "wall_s": round(row["wall_s"], 1),
                           "y1_joint": row.get("y1", {}).get("sigma_vertex_joint_m"),
                           "y2_joint": row.get("y2", {}).get("joint", {}).get("vertex_error_m")}), flush=True)
+
+
+# ---------------------------------------------------------------------- r2-mask M3 seed test
+SEED_STARTS = ("truth", "centroid", "readout", "init", "raw")
+
+
+def seed_start(data, starts, i, name, pos_lucid, sl, radius_m, half_height_m, margin_m=0.05):
+    """theta_start of start ``name`` for event i (runbook 2026-11-23 §M3.2).
+
+    ``truth``: the full true theta (as Y2). Otherwise (x, y, z) from the starts file, projected into
+    the tank (``margin_m`` inside the wall) if it lies outside; ln N from the starts file (linear fit
+    to total charge on dev_probe_train); t0 = median over hit PMTs of (t_abs - |r_p - x| / c_water).
+    """
+    theta_true = np.r_[data["vertex"][i], data["t0"][i], np.log(data["yield"][i])]
+    if name == "truth":
+        return theta_true, False
+    xyz = np.asarray(starts[f"start_{name}"][i], np.float64).copy()
+    clipped = False
+    r = float(np.hypot(xyz[0], xyz[1]))
+    if r > radius_m - margin_m:
+        xyz[:2] *= (radius_m - margin_m) / r
+        clipped = True
+    if abs(xyz[2]) > half_height_m - margin_m:
+        xyz[2] = np.sign(xyz[2]) * (half_height_m - margin_m)
+        clipped = True
+    d = np.linalg.norm(pos_lucid[data["pmt_lucid"][sl]] - xyz, axis=1)
+    t0 = float(np.median(data["t_abs"][sl] - d / C_WATER_M_PER_NS))
+    return np.r_[xyz, t0, float(starts["lnN_start"][i])], clipped
+
+
+def run_seedtest(args):
+    """lucid_generate.py seedtest entry: Y2-style fits of the first n events from every start."""
+    data = np.load(args.input, allow_pickle=False)
+    starts = np.load(args.starts, allow_pickle=False)
+    meta = json.loads(str(data["meta"]))
+    det = meta["detector"]
+    n = len(starts["event_id"])
+    if not np.array_equal(np.asarray(starts["event_id"]), np.asarray(data["event_id"][:n])):
+        raise ValueError("starts file and yardstick input disagree on the events")
+    radius = float(meta.get("radius_m") or np.hypot(data["positions_lucid_order"][:, 0],
+                                                     data["positions_lucid_order"][:, 1]).max())
+    half = float(meta.get("half_height_m") or np.abs(data["positions_lucid_order"][:, 2]).max())
+    model = Model(det, n_rays=args.n_rays, n_keys=args.n_keys, window_ns=tuple(meta["prompt_window_ns"]))
+    off = data["offsets"]
+    pos = data["positions_lucid_order"]
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(args.start, min(args.stop, n)):
+        path = out_dir / f"{det}_seed_{i:04d}.json"
+        if path.exists():
+            continue
+        sl = slice(off[i], off[i + 1])
+        theta_true = np.r_[data["vertex"][i], data["t0"][i], np.log(data["yield"][i])]
+        obs = model.observed(data["pmt_lucid"][sl], data["q"][sl], data["t_abs"][sl])
+        row = {"index": i, "event_id": int(data["event_id"][i]), "theta_true": theta_true.tolist(),
+               "config": dict(model.config, maxiter=args.maxiter), "starts": {}}
+        t0 = time.time()
+        for name in args.start_names:
+            th0, clipped = seed_start(data, starts, i, name, pos, sl, radius, half)
+            row["starts"][name] = {
+                "theta_start": th0.tolist(), "clipped": clipped,
+                "start_error_m": float(np.linalg.norm(th0[:3] - theta_true[:3])),
+                "fits": {m: model.fit(m, th0, theta_true, obs, args.maxiter) for m in args.modes}}
+        row["wall_s"] = time.time() - t0
+        path.write_text(json.dumps(row) + "\n")
+        print(json.dumps({"event": i, "wall_s": round(row["wall_s"], 1),
+                          **{f"{s}_{m}": round(row["starts"][s]["fits"][m]["vertex_error_m"], 3)
+                             for s in args.start_names for m in args.modes}}), flush=True)

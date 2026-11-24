@@ -353,7 +353,7 @@ class R2TrainingLoader:
     def __init__(self, cohort: R2Cohort, geometry, *, seed: int, scaling, split: str = "within",
                  n_min: int = lb.N_MIN, batch: int = 32, mask_seed: int = lb.DEFAULT_SEED,
                  occupancy: str = "natural", shuffle_events_within_batch: bool = False,
-                 time_reference: str = "trigger"):
+                 time_reference: str = "trigger", patch_size: int | None = None):
         if time_reference not in TIME_REFERENCES:
             raise ValueError(f"unknown time reference {time_reference!r}")
         self.time_reference = time_reference
@@ -361,6 +361,7 @@ class R2TrainingLoader:
         self.cohort, self.geometry, self.seed = cohort, geometry, int(seed)
         self.scaling, self.split, self.n_min, self.batch = scaling, split, int(n_min), int(batch)
         self.mask_seed, self.occupancy = int(mask_seed), occupancy
+        self.patch_size = None if patch_size is None else int(patch_size)  # r2-mask; None = default
         self.rows = cohort.run_rows()
         self._stores = {}
 
@@ -377,8 +378,9 @@ class R2TrainingLoader:
         for index in chosen:
             row = self.rows[int(index)]
             take = np.sort(int(row["event_id_start"]) + rng.permutation(int(row["n_events"]))[:per])
+            extra = {} if self.patch_size is None else {"patch_size": self.patch_size}
             masker = ViewMasker(self.geometry, self.split, seed=self.mask_seed,
-                                occupancy=self.occupancy, n_min=self.n_min)
+                                occupancy=self.occupancy, n_min=self.n_min, **extra)
             try:
                 b = tokenise_sparse(self._store(int(index)), self.geometry, event_ids=take,
                                     scaling=self.scaling, masker=masker)

@@ -234,7 +234,24 @@ def main():
                    help="diagnostic: time-term resolution (default: LUCiD working point 2.1 ns)")
     y.add_argument("--shards")  # appended by lucid_job.sh; unused
     y.add_argument("--cache")
+    # r2-mask M3: readout-seeded fits with the yardstick model (tier1_yardstick.run_seedtest)
+    st = sub.add_parser("seedtest")
+    st.add_argument("--input", required=True)
+    st.add_argument("--starts", required=True)
+    st.add_argument("--out", default="returns/seedtest")
+    st.add_argument("--start", type=int, default=0)
+    st.add_argument("--stop", type=int, default=10**9)
+    st.add_argument("--start-names", nargs="+", default=["truth", "centroid", "readout", "init", "raw"])
+    st.add_argument("--modes", nargs="+", choices=("counts", "time", "joint"), default=["counts", "joint"])
+    st.add_argument("--n-rays", type=int, default=65536)
+    st.add_argument("--n-keys", type=int, default=4)
+    st.add_argument("--maxiter", type=int, default=40)
+    st.add_argument("--shards")  # appended by lucid_job.sh; unused
+    st.add_argument("--cache")
     args = p.parse_args()
+    if args.cmd == "seedtest":
+        from jepa_noise import tier1_yardstick
+        return tier1_yardstick.run_seedtest(args)
     if args.cmd == "yardstick":
         from jepa_noise import tier1_yardstick
         return tier1_yardstick.run(args)
