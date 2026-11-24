@@ -55,3 +55,5 @@ D=/work/dwong/r2_verify; R=../results/round2/20261121_verify
 - `va_dump.py`, `va_raw.py`, `run_va_dump.sh` — per-case feature dumps (a, mean-square, c) and raw (d) features.
 - `va2_readouts.py` — part-A quantities, controls and invariants J1–J9; `va3_table.py` — `table_a_blind.json`.
 - `vb_stats.py`, `vb_eval.py` — part-B contrasts (PREREG §2.2–2.5), K1, K2, F1, F5, P3 sign check.
+- `va3_compare.py`, `va3_rescore.py`, `va3_report.py` — part-A comparison with TOY_VS_LUCID / RESCORE_LUCID (after seal) and VERIFY_A_REPORT.md.
+- `vb_cells.py` (VERIFY_INPUTS_B → cases, cells, job lists), `vb_run.sh` (lock-shared dump worker, GPU or CPU), `vb_step0_equality.py` (step-0 weight identity), `vb_table.py` (table_b_blind.json), `vb_compare.py` (GATE_TABLE comparison after seal B).

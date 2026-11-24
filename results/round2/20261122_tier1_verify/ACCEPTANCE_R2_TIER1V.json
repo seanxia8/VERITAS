@@ -1,0 +1,68 @@
+{
+ "phase": "r2-tier1v",
+ "runbook": "docs/round2/RUNBOOK_2026-11-22_R2_TIER1_VERIFY.md",
+ "date_utc": "2026-11-24T10:36:29Z",
+ "seals": {
+  "A": "8b5d2aa",
+  "A2": "3ecf960",
+  "B": "a8b6f3c"
+ },
+ "deliverables": {
+  "VA0_setup_and_K0": {
+   "result": "PASS",
+   "evidence": "k0_lucid.json: feature rebuild bit-identical to the repository tokeniser, 200 events x 4 detectors"
+  },
+  "VA1_reconcile_A": {
+   "result": "PASS",
+   "evidence": "va1_reconcile.json, va1_ckpt_equality.json: 38/38 manifest cases matched, checkpoints/scalings/sealed SHA256 identical; 8 extra exploratory cases"
+  },
+  "VA2_table_a_blind": {
+   "result": "PASS",
+   "evidence": "table_a_blind.json (seal A) + table_a2_blind.json (seal A2, HK/JUNO sealed); J1-J9 all pass"
+  },
+  "VA3_VERIFY_A_REPORT": {
+   "result": "PASS",
+   "verdict": "V for (a), (c), (d) on all cases and test sets; R for f_event (definitional); no flag",
+   "evidence": "VERIFY_A_REPORT.md, va3_compare_toy_vs_lucid.json, va3_compare_rescore.json, va3_fevent_diagnostic.json"
+  },
+  "VB1_table_b_blind": {
+   "result": "PASS",
+   "evidence": "table_b_blind.json: 132/135 checkpoints (trmedian x3 not recomputed), 13/13 registered contrasts, K1, K2, F1, F5, P1, P3 sign"
+  },
+  "VB2_compare_GATE_TABLE": {
+   "result": "PASS",
+   "evidence": "vb_compare_gate.json: 13/13 contrasts within 2 pp (max 3.4e-5 pp), 13/13 same clear classification, 30/30 cells within 5 % (max 4.5e-7), K1/K2/F1/F5/outcome identical (A-alt)"
+  },
+  "VB3_VERIFY_B_REPORT": {
+   "result": "PASS",
+   "evidence": "VERIFY_B_REPORT.md with contrast table, criteria, diagnoses and independence statement"
+  },
+  "F4_K3_K4b": {
+   "result": "SKIPPED",
+   "reason": "depend on MLP/attentive probes and yardstick fits not recomputed by this phase (runbook VB1.4)"
+  },
+  "trmedian_cells": {
+   "result": "SKIPPED",
+   "reason": "median time reference implemented only in closed origin/tier1 code before seal B; exploratory, not registered"
+  },
+  "code_and_README": {
+   "result": "PASS",
+   "evidence": "verify/ (README updated)"
+  },
+  "DECISIONS_and_LEDGER": {
+   "result": "PASS",
+   "evidence": "docs/round2/DECISIONS.md, RESOURCE_LEDGER.json R2_tier1v_gpu 5.53 of 6.0 GPU-h"
+  }
+ },
+ "independence": {
+  "slips": 0,
+  "disclosures": [
+   "READOUT_SPEC_v1.md (allowed) contains other-phase validation values for one dev case; read after own dev numbers were computed",
+   "ps showed an r2-tier1 tier1_eval.py command line (no values)"
+  ]
+ },
+ "outcome_recomputed": "A-alt",
+ "outcome_r2_tier1": "A-alt",
+ "K4a_from_recomputation": "not fired",
+ "overall": "PASS"
+}
