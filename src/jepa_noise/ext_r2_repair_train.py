@@ -145,6 +145,46 @@ def tr_suffix(args):
 
 SPARSE_DEFAULTS = {"loss": "legacy", "placeholder": "legacy", "embed": "linear", "decoder": "legacy",
                    "count_head": False}
+#: r2-sparse2 T1: sparse-arm flags and their defaults (= the unchanged S1 / S2 cells)
+SPARSE_ARM_DEFAULTS = {"embed": "fourier", "decoder": "isolated"}
+SPARSE_ARM_DECODERS = {"sparse_mae": ("isolated", "legacy"), "sparse_time": ("isolated", "full")}
+
+
+def sparse_arm_flags(args):
+    """r2-sparse2: the non-default sparse-arm flags (embed, decoder, blocks, block_width_ns) of a
+    sparse_mae / sparse_time run, validated; ``{}`` for the unchanged S1 / S2 recipes."""
+    out = {}
+    if getattr(args, "loss", None) is not None or getattr(args, "placeholder", None) is not None \
+            or getattr(args, "count_head", None):
+        raise ValueError("--loss/--placeholder/--count-head apply to mae_repaired only")
+    embed = getattr(args, "embed", None) or SPARSE_ARM_DEFAULTS["embed"]
+    decoder = getattr(args, "decoder", None) or SPARSE_ARM_DEFAULTS["decoder"]
+    if embed not in ("fourier", "linear"):
+        raise ValueError(f"unknown sparse embedding {embed!r}")
+    if decoder not in SPARSE_ARM_DECODERS[args.arm]:
+        raise ValueError(f"--decoder {decoder} does not apply to {args.arm}")
+    if embed != SPARSE_ARM_DEFAULTS["embed"]:
+        out["embed"] = embed
+    if decoder != SPARSE_ARM_DEFAULTS["decoder"]:
+        out["decoder"] = decoder
+    blocks = getattr(args, "blocks", None)
+    width = getattr(args, "block_width_ns", None)
+    if args.arm != "sparse_time" and (blocks is not None or width is not None):
+        raise ValueError("--blocks / --block-width-ns apply to sparse_time only")
+    if (blocks == "time") != (width is not None):
+        raise ValueError("--block-width-ns goes with --blocks time (and only with it)")
+    if blocks == "time":
+        out["blocks"], out["block_width_ns"] = "time", float(width)
+    return out
+
+
+def sparse_arm_suffix(flags):
+    """``__elin``, ``__dleg`` / ``__dfull``, ``__bt<width>`` (r2-sparse2); empty for S1 / S2."""
+    out = "__elin" if flags.get("embed") == "linear" else ""
+    out += {"legacy": "__dleg", "full": "__dfull"}.get(flags.get("decoder"), "")
+    if flags.get("blocks") == "time":
+        out += f"__bt{flags['block_width_ns']:g}".replace(".", "p")
+    return out
 
 
 def sparse_suffix(args):
@@ -152,10 +192,19 @@ def sparse_suffix(args):
     (``__lfixed``, ``__psent``, ``__efourier``, ``__disol``, ``__cnt``) or ``__q<queries>`` of
     sparse_mae. Empty for every existing run."""
     out = "__dw2" if getattr(args, "data_kind", None) == dr.LUCID_V1_W2 else ""
+    if args.arm in ("sparse_mae", "sparse_time"):  # r2-sparse2: the sparse arms' own flags
+        out += sparse_arm_suffix(sparse_arm_flags(args))
+        if args.arm == "sparse_mae":
+            out += f"__q{getattr(args, 'queries', None) or 'all'}"
+        elif getattr(args, "queries", None) is not None:
+            raise ValueError("--queries applies to sparse_mae only")
+        return out
     flags = {k: getattr(args, k, None) for k in SPARSE_DEFAULTS}
     changed = {k: v for k, v in flags.items() if v is not None and v != SPARSE_DEFAULTS[k]}
     if changed and args.arm != "mae_repaired":
         raise ValueError("--loss/--placeholder/--embed/--decoder/--count-head apply to mae_repaired only")
+    if changed.get("decoder") not in (None, "legacy", "isolated"):  # r2-sparse2: "full" is sparse_time only
+        raise ValueError(f"--decoder {changed['decoder']} does not apply to {args.arm}")
     for key, tag in (("loss", "l"), ("placeholder", "p"), ("embed", "e"), ("decoder", "d")):
         if key in changed:
             out += f"__{tag}{ {'fixed': 'fixed', 'sentinel': 'sent', 'fourier': 'fourier', 'isolated': 'isol'}[changed[key]] }"
@@ -187,6 +236,7 @@ def sparse_build_flags(args, scaling):
                 if not getattr(args, "neg_ratio", None):
                     raise ValueError("--queries neg needs --neg-ratio (fixed in W2)")
                 flags["neg_ratio"] = float(args.neg_ratio)
+        flags.update(sparse_arm_flags(args))  # r2-sparse2; empty (recipe unchanged) for S1 / S2
         return flags
     flags = {k: getattr(args, k, None) for k in SPARSE_DEFAULTS}
     changed = {k: v for k, v in flags.items() if v is not None and v != SPARSE_DEFAULTS[k]}
@@ -400,7 +450,12 @@ def main():
     parser.add_argument("--loss", choices=("legacy", "fixed"), default=None, help="r2-sparse §2.2 (mae_repaired)")
     parser.add_argument("--placeholder", choices=("legacy", "sentinel"), default=None)
     parser.add_argument("--embed", choices=("linear", "fourier"), default=None)
-    parser.add_argument("--decoder", choices=("legacy", "isolated"), default=None)
+    parser.add_argument("--decoder", choices=("legacy", "isolated", "full"), default=None,
+                        help="mae_repaired: legacy/isolated; sparse_mae: isolated/legacy; sparse_time: isolated/full")
+    parser.add_argument("--blocks", choices=("count32", "time"), default=None,
+                        help="r2-sparse2: sparse_time hidden blocks (default count32 = S2)")
+    parser.add_argument("--block-width-ns", type=float, default=None,
+                        help="r2-sparse2: S2Lt time-bin width (with --blocks time)")
     parser.add_argument("--count-head", action="store_true", default=None)
     parser.add_argument("--queries", choices=("all", "neg", "pos"), default=None, help="sparse_mae query set")
     parser.add_argument("--neg-ratio", type=float, default=None, help="S1n ratio r (fixed in W2)")
