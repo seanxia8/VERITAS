@@ -1,0 +1,92 @@
+{
+  "w1": {
+    "cohort": "dev_train",
+    "data_kind": "lucid_v1_w2",
+    "dataset_kind_manifest": "lucid_v1_w2",
+    "lucid_sha": "e651e836b420f541b02672d9866e6219f2c6d66d",
+    "n_runs": 100,
+    "n_events": 100000,
+    "duplicate_pmt_entries": 0,
+    "time_range_ns": [
+      -110.0,
+      50.0
+    ],
+    "hits_per_event": {
+      "median": 633.0,
+      "q10": 233.0,
+      "q90": 1702.0,
+      "mean": 767.39114,
+      "n": 100000
+    },
+    "span_ns_32_hit_blocks": {
+      "median": 0.40000009536743164,
+      "q10": 0.0,
+      "q90": 2.3999996185302734,
+      "mean": 2.5125714852951946,
+      "n": 2350144
+    },
+    "bins": {
+      "2": {
+        "nonempty_bins_per_event": {
+          "median": 17.0,
+          "q10": 14.0,
+          "q90": 20.0,
+          "mean": 16.63639,
+          "n": 100000
+        },
+        "hits_per_nonempty_bin": {
+          "median": 19.0,
+          "q10": 1.0,
+          "q90": 125.0,
+          "mean": 46.12726318630424,
+          "n": 1663639
+        }
+      },
+      "5": {
+        "nonempty_bins_per_event": {
+          "median": 8.0,
+          "q10": 6.0,
+          "q90": 10.0,
+          "mean": 7.93427,
+          "n": 100000
+        },
+        "hits_per_nonempty_bin": {
+          "median": 30.0,
+          "q10": 1.0,
+          "q90": 272.0,
+          "mean": 96.71855633851634,
+          "n": 793427
+        }
+      },
+      "10": {
+        "nonempty_bins_per_event": {
+          "median": 5.0,
+          "q10": 3.0,
+          "q90": 6.0,
+          "mean": 4.72319,
+          "n": 100000
+        },
+        "hits_per_nonempty_bin": {
+          "median": 30.0,
+          "q10": 1.0,
+          "q90": 479.0,
+          "mean": 162.47306163842657,
+          "n": 472319
+        }
+      }
+    },
+    "rule": {
+      "delta_ns": 5.0,
+      "reason": "median event has 8 >= 6 non-empty 5 ns bins"
+    }
+  },
+  "s2_chance": {
+    "run": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/train/runs/wcte__sparse_time__s9000__dw2",
+    "cohort": "dev_probe_test",
+    "n_events": 1000,
+    "mask_seed": 20261017,
+    "chance_mean_over_hidden_blocks": 0.05662193533774983,
+    "chance_mean_over_queries": 0.05662193533774985,
+    "n_hidden_blocks": 17661
+  }
+}

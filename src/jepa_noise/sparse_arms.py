@@ -233,8 +233,9 @@ class IsolatedPredictor(nn.Module):
         x = torch.cat([self.in_proj(context), queries], dim=1)
         n = lc + lq
         if self.attention == "full":
-            q_ok = (torch.ones(b, lq, dtype=torch.bool, device=x.device) if query_valid is None
-                    else query_valid.to(torch.bool))
+            if query_valid is None:  # padding queries must never become attention keys
+                raise ValueError("full attention needs query_valid")
+            q_ok = query_valid.to(torch.bool)
             key_ok = torch.cat([context_valid, q_ok], 1)
         else:
             key_ok = torch.cat([context_valid, torch.zeros(b, lq, dtype=torch.bool, device=x.device)], 1)
