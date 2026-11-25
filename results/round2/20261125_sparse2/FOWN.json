@@ -1,0 +1,242 @@
+{
+ "cells": {
+  "S2": {
+   "A": {
+    "chance": 0.05662193460876489,
+    "chance_mean_over_blocks": 0.056621935634743714,
+    "checkpoint_sha256": "75a2a4984d2df1521cd5e6a518019f0f77df314ba556daf577be60634b66c874",
+    "f_own": 0.11551204499096247,
+    "mass_on_hidden_hits": 0.7369338678386229,
+    "mass_on_unhit": 0.2630661334303509,
+    "n_events": 1000,
+    "n_queries": 565152,
+    "own_over_total": 0.07799836113879367,
+    "ratio": 2.040058252850329,
+    "ratio_total_mass_vs_block_chance": 1.3775290488468077,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/train/runs/wcte__sparse_time__s9000__dw2",
+    "sums": {
+     "chance_block_sum": 1000.0000052452087,
+     "chance_query_sum": 31999.999588012695,
+     "n_blocks": 17661.0,
+     "other": 372398.7194824219,
+     "own": 44080.92979431152,
+     "own_over_hidden_sum": 65281.86325073242,
+     "queries": 565152.0,
+     "unhit": 148672.3514404297
+    }
+   },
+   "B": {
+    "chance": 0.05662193460876489,
+    "chance_mean_over_blocks": 0.056621935634743714,
+    "checkpoint_sha256": "4efb609c33a974efd9aceba046364cbbb944cfe55099a524f047cb4e5ee5ce61",
+    "f_own": 0.11597043553589897,
+    "mass_on_hidden_hits": 0.737355439054501,
+    "mass_on_unhit": 0.262644569963313,
+    "n_events": 1000,
+    "n_queries": 565152,
+    "own_over_total": 0.07860342294347292,
+    "ratio": 2.0481538883686805,
+    "ratio_total_mass_vs_block_chance": 1.3882150453231974,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/train/runs/wcte__sparse_time__s9001__dw2",
+    "sums": {
+     "chance_block_sum": 1000.0000052452087,
+     "chance_query_sum": 31999.999588012695,
+     "n_blocks": 17661.0,
+     "other": 372295.0194091797,
+     "own": 44422.88168334961,
+     "own_over_hidden_sum": 65540.92358398438,
+     "queries": 565152.0,
+     "unhit": 148434.10400390625
+    }
+   },
+   "C": {
+    "chance": 0.05662193460876489,
+    "chance_mean_over_blocks": 0.056621935634743714,
+    "checkpoint_sha256": "2e7a827cefb8b8f074b48a6889df162d598ab58e9b70cc11ee5b01a8bd63b560",
+    "f_own": 0.11592366764117634,
+    "mass_on_hidden_hits": 0.7369607282882301,
+    "mass_on_unhit": 0.26303928421251194,
+    "n_events": 1000,
+    "n_queries": 565152,
+    "own_over_total": 0.07834365398803766,
+    "ratio": 2.04732792056935,
+    "ratio_total_mass_vs_block_chance": 1.3836272658253195,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse_2026-11-24/train/runs/wcte__sparse_time__s9002__dw2",
+    "sums": {
+     "chance_block_sum": 1000.0000052452087,
+     "chance_query_sum": 31999.999588012695,
+     "n_blocks": 17661.0,
+     "other": 372218.75677490234,
+     "own": 44276.07273864746,
+     "own_over_hidden_sum": 65514.492614746094,
+     "queries": 565152.0,
+     "unhit": 148657.17755126953
+    }
+   }
+  },
+  "S2L": {
+   "A": {
+    "chance": 0.05662193460876489,
+    "chance_mean_over_blocks": 0.056621935634743714,
+    "checkpoint_sha256": "f7f2823c738c321c275627d392328db323d30c1d47cf0f921be551b741d3de0c",
+    "f_own": 0.14108844111469404,
+    "mass_on_hidden_hits": 0.7356643435922783,
+    "mass_on_unhit": 0.2643356707714252,
+    "n_events": 1000,
+    "n_queries": 565152,
+    "own_over_total": 0.10038484856642411,
+    "ratio": 2.4917629906070715,
+    "ratio_total_mass_vs_block_chance": 1.7728968012324025,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/train/runs/wcte__sparse_time__s9000__dw2__elin__dfull",
+    "sums": {
+     "chance_block_sum": 1000.0000052452087,
+     "chance_query_sum": 31999.999588012695,
+     "n_blocks": 17661.0,
+     "other": 359029.47717285156,
+     "own": 56732.69793701172,
+     "own_over_hidden_sum": 79736.41467285156,
+     "queries": 565152.0,
+     "unhit": 149389.8330078125
+    }
+   },
+   "B": {
+    "chance": 0.05662193460876489,
+    "chance_mean_over_blocks": 0.056621935634743714,
+    "checkpoint_sha256": "80cbc0dce33f7d02a3d528b1e85461e1001bc17940ab0f173d4930aea0dbe851",
+    "f_own": 0.143671514142728,
+    "mass_on_hidden_hits": 0.735270997350844,
+    "mass_on_unhit": 0.26472902349272576,
+    "n_events": 1000,
+    "n_queries": 565152,
+    "own_over_total": 0.10245357254449079,
+    "ratio": 2.537382643942514,
+    "ratio_total_mass_vs_block_chance": 1.8094325352174006,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/train/runs/wcte__sparse_time__s9001__dw2__elin__dfull",
+    "sums": {
+     "chance_block_sum": 1000.0000052452087,
+     "chance_query_sum": 31999.999588012695,
+     "n_blocks": 17661.0,
+     "other": 357638.03326416016,
+     "own": 57901.84143066406,
+     "own_over_hidden_sum": 81196.24356079102,
+     "queries": 565152.0,
+     "unhit": 149612.13708496094
+    }
+   },
+   "C": {
+    "chance": 0.05662193460876489,
+    "chance_mean_over_blocks": 0.056621935634743714,
+    "checkpoint_sha256": "1a2739715905e72df4f1622dd5a30d0df6dcf49fd649ec18a8699864ba0de852",
+    "f_own": 0.1403689855600725,
+    "mass_on_hidden_hits": 0.7408505138120527,
+    "mass_on_unhit": 0.2591494937207919,
+    "n_events": 1000,
+    "n_queries": 565152,
+    "own_over_total": 0.10120877422580943,
+    "ratio": 2.4790566858933114,
+    "ratio_total_mass_vs_block_chance": 1.7874481522264816,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/train/runs/wcte__sparse_time__s9002__dw2__elin__dfull",
+    "sums": {
+     "chance_block_sum": 1000.0000052452087,
+     "chance_query_sum": 31999.999588012695,
+     "n_blocks": 17661.0,
+     "other": 361494.80841064453,
+     "own": 57198.34117126465,
+     "own_over_hidden_sum": 79329.8129272461,
+     "queries": 565152.0,
+     "unhit": 146458.85467529297
+    }
+   }
+  },
+  "S2Lt": {
+   "A": {
+    "chance": 0.599188650638287,
+    "chance_mean_over_blocks": 0.2592688600788903,
+    "checkpoint_sha256": "2d2bad22f10239ed5980527414a088079f491006d25678e2874ff656a5c44232",
+    "f_own": 0.7419244675019994,
+    "mass_on_hidden_hits": 0.7588216363062626,
+    "mass_on_unhit": 0.24117836449835334,
+    "n_events": 1000,
+    "n_queries": 597368,
+    "own_over_total": 0.583405921481261,
+    "ratio": 1.238215154295167,
+    "ratio_total_mass_vs_block_chance": 2.250196654174907,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/train/runs/wcte__sparse_time__s9000__dw2__elin__dfull__bt5",
+    "sums": {
+     "chance_block_sum": 999.9999933242798,
+     "chance_query_sum": 357936.1258544922,
+     "n_blocks": 3857.0,
+     "other": 104787.73473358154,
+     "own": 348508.02850341797,
+     "own_over_hidden_sum": 443201.9353027344,
+     "queries": 597368.0,
+     "unhit": 144072.23724365234
+    }
+   },
+   "B": {
+    "chance": 0.599188650638287,
+    "chance_mean_over_blocks": 0.2592688600788903,
+    "checkpoint_sha256": "924b20da5c87620ddcaf911fd5865eb3f822a3b35526e745b9f5a655dc43728c",
+    "f_own": 0.7370842439658871,
+    "mass_on_hidden_hits": 0.7560734131201758,
+    "mass_on_unhit": 0.24392659346362658,
+    "n_events": 1000,
+    "n_queries": 597368,
+    "own_over_total": 0.5768787935616634,
+    "ratio": 1.2301371916519224,
+    "ratio_total_mass_vs_block_chance": 2.225021521620957,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/train/runs/wcte__sparse_time__s9001__dw2__elin__dfull__bt5",
+    "sums": {
+     "chance_block_sum": 999.9999933242798,
+     "chance_query_sum": 357936.1258544922,
+     "n_blocks": 3857.0,
+     "other": 107045.13149642944,
+     "own": 344608.93115234375,
+     "own_over_hidden_sum": 440310.54064941406,
+     "queries": 597368.0,
+     "unhit": 145713.9412841797
+    }
+   },
+   "C": {
+    "chance": 0.599188650638287,
+    "chance_mean_over_blocks": 0.2592688600788903,
+    "checkpoint_sha256": "2218347af0073ec82df9c522e2fc5d938f42caee076f7c254ac28dde5f15eb90",
+    "f_own": 0.7394677848891016,
+    "mass_on_hidden_hits": 0.7584506428844713,
+    "mass_on_unhit": 0.24154935322016552,
+    "n_events": 1000,
+    "n_queries": 597368,
+    "own_over_total": 0.5806715119875006,
+    "ratio": 1.2341151390323932,
+    "ratio_total_mass_vs_block_chance": 2.239650036687067,
+    "run": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/train/runs/wcte__sparse_time__s9002__dw2__elin__dfull__bt5",
+    "sums": {
+     "chance_block_sum": 999.9999933242798,
+     "chance_query_sum": 357936.1258544922,
+     "n_blocks": 3857.0,
+     "other": 106199.56386566162,
+     "own": 346874.5797729492,
+     "own_over_hidden_sum": 441734.3917236328,
+     "queries": 597368.0,
+     "unhit": 144293.85403442383
+    }
+   }
+  }
+ },
+ "cohort": "dev_probe_test (lucid_v1_w2, validation only)",
+ "definition": "PREREG_2026-11-25_R2_SPARSE2.md appendix B",
+ "direct_indirect_split": "not available: the LUCiD cache keeps only a physics flag per digit (r2-sparse T7.4)",
+ "figure": {
+  "events": [
+   1210000,
+   1210001,
+   1210002,
+   1210003,
+   1210004,
+   1210005
+  ],
+  "path": "FOWN_MAPS.png"
+ },
+ "missing": [],
+ "step": 10000
+}

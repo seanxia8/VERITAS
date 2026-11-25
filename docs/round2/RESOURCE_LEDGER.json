@@ -6207,6 +6207,158 @@
     "eval": 3.5725,
     "smoke": 0.007508333333333334
    }
+  },
+  "R2_sparse2_gpu": {
+   "authority": "RUNBOOK_2026-11-25_R2_SPARSE2.md \u00a70.3",
+   "cap_h": 15.0,
+   "cpu_entries": [],
+   "entries": [
+    {
+     "job": "sparse2_S1L_s9001 (760067)",
+     "kind": "train",
+     "gpu_h": 0.5783333333333334,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse2_S1L_s9002 (760070)",
+     "kind": "train",
+     "gpu_h": 0.5975,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse2_S2L_s9001 (760068)",
+     "kind": "train",
+     "gpu_h": 0.6505555555555556,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse2_S2Lt_s9001 (760069)",
+     "kind": "train",
+     "gpu_h": 0.7636111111111111,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9001__dw2__elin__dleg__qall_0 (760075)",
+     "kind": "eval",
+     "gpu_h": 0.16111111111111112,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_mae__s9001__dw2__elin__dleg__qall_10000 (760074)",
+     "kind": "eval",
+     "gpu_h": 0.16305555555555556,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse2_S2L_s9002 (760072)",
+     "kind": "train",
+     "gpu_h": 0.5666666666666667,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9001__dw2__elin__dfull_10000 (760076)",
+     "kind": "eval",
+     "gpu_h": 0.18611111111111112,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse2_S2Lt_s9002 (760073)",
+     "kind": "train",
+     "gpu_h": 0.7833333333333333,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9001__dw2__elin__dfull_0 (760077)",
+     "kind": "eval",
+     "gpu_h": 0.2288888888888889,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9001__dw2__elin__dfull__bt5_10000 (760078)",
+     "kind": "eval",
+     "gpu_h": 0.21055555555555555,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9002__dw2__elin__dfull__bt5_0 (760080)",
+     "kind": "eval",
+     "gpu_h": 0.23583333333333334,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "E_wcte__sparse_time__s9002__dw2__elin__dfull__bt5_10000 (760079)",
+     "kind": "eval",
+     "gpu_h": 0.22027777777777777,
+     "exit_code": "0",
+     "where": "HTCondor A100 batch"
+    },
+    {
+     "job": "sparse2_smoke_S1L",
+     "kind": "smoke",
+     "gpu_h": 0.00495,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-25T12:14:23Z"
+    },
+    {
+     "job": "sparse2_smoke_S2L",
+     "kind": "smoke",
+     "gpu_h": 0.002855555555555555,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-25T12:14:34Z"
+    },
+    {
+     "job": "sparse2_smoke_S2Lt",
+     "kind": "smoke",
+     "gpu_h": 0.0029583333333333336,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-25T12:14:46Z"
+    },
+    {
+     "job": "sparse2_train_S1L_s9000",
+     "kind": "train",
+     "gpu_h": 0.6900777777777778,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-25T12:56:51Z"
+    },
+    {
+     "job": "sparse2_train_S2L_s9000",
+     "kind": "train",
+     "gpu_h": 0.453025,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-25T13:24:03Z"
+    },
+    {
+     "job": "sparse2_train_S2Lt_s9000",
+     "kind": "train",
+     "gpu_h": 0.552425,
+     "exit_code": "0",
+     "where": "deepthought2 L40S (guarded lane)",
+     "utc": "2026-11-25T13:57:13Z"
+    }
+   ],
+   "booked_gpu_h": 7.052125,
+   "by_kind": {
+    "train": 5.635527777777778,
+    "eval": 1.4058333333333333,
+    "smoke": 0.010763888888888889
+   }
   }
  },
  "totals": {
@@ -6237,6 +6389,10 @@
   "R2_follow_gpu": {
    "booked_gpu_h": 27.4506,
    "cap_gpu_h": 34.0
+  },
+  "R2_sparse2_gpu": {
+   "booked_gpu_h": 7.0521,
+   "cap_gpu_h": 15.0
   }
  }
 }

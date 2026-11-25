@@ -1,0 +1,188 @@
+{
+ "phase": "r2-sparse2",
+ "runbook": "docs/round2/RUNBOOK_2026-11-25_R2_SPARSE2.md",
+ "runbook_commit": "af69bb2",
+ "prereg": "docs/round2/PREREG_2026-11-25_R2_SPARSE2.md",
+ "prereg_commit": "166e388",
+ "prereg_pushed_utc": "2026-11-25T12:12:18Z",
+ "prereg_appendices": {
+  "A": "W1 measurement, delta 5 ns",
+  "B": "f_own definition (own / hidden-hit mass vs query-weighted chance)",
+  "C": "decision-rule and verdict readings"
+ },
+ "prereg_amendments": {},
+ "first_new_run_evaluated_utc": "2026-11-25T13:35:07Z",
+ "date": "2026-11-25",
+ "stages": {
+  "T0": {
+   "runbook_commit": "af69bb2",
+   "clone": "/ceph/dwong/jepa/r2_sparse2_repo",
+   "reused_runs": "results/round2/20261125_sparse2/RECIPE_CHECK.md (C2, S1, S2 x 3 seeds, read-only)"
+  },
+  "W1": {
+   "script": "scripts/sparse2_w1.py",
+   "result": "results/round2/20261125_sparse2/W1_BLOCK_WIDTH.json",
+   "span_32hit_block_median_ns": 0.4,
+   "nonempty_5ns_bins_median": 8,
+   "delta_ns": 5.0,
+   "s2_chance": 0.0566
+  },
+  "T1": {
+   "code_commit": "11bbaf2 (+ review fix 166e388)",
+   "focused_tests": "test_r2_sparse2 22/22; test_r2_sparse 29/30 (c2dc tolerance miss, pre-existing, fails identically on r2-follow code)",
+   "leakage_tests_a_to_e": "pass",
+   "recipe_check": "14 existing recipes: equal config hash, 0 field diffs, bitwise equal step-0 weights",
+   "native_suite": "1654 passed, 7 pre-existing failures (snapshot 11bbaf2)",
+   "review": {
+    "verdict": "PASS",
+    "blocking": 0,
+    "non_blocking": 7,
+    "fixed": "finding 1 (full attention requires query_valid)"
+   }
+  },
+  "smokes": {
+   "S1L_GiB": 0.89,
+   "S2L_GiB": 1.29,
+   "S2Lt_GiB": 4.79,
+   "finite_losses": true,
+   "code": "166e388"
+  },
+  "E": {
+   "runs_complete": 9,
+   "failed": 0,
+   "dt2_lane": [
+    "S1L_s9000",
+    "S2L_s9000",
+    "S2Lt_s9000"
+   ],
+   "htcondor_clusters": [
+    "760067",
+    "760068",
+    "760069",
+    "760070",
+    "760072",
+    "760073"
+   ],
+   "code": "code/sparse2_166e388e.tar.gz"
+  },
+  "T7": {
+   "scorings": 18,
+   "failed": 0,
+   "table": "results/round2/20261125_sparse2/SPARSE2_TABLE.{md,json}",
+   "fown": "results/round2/20261125_sparse2/FOWN.json",
+   "figure": "results/round2/20261125_sparse2/FOWN_MAPS.png"
+  },
+  "T8": {
+   "report": "results/round2/20261125_sparse2/SPARSE2_REPORT.md"
+  }
+ },
+ "results": {
+  "P1": {
+   "T_bar": -0.0292,
+   "per_seed": {
+    "A": -0.0248,
+    "B": -0.0221,
+    "C": -0.0405
+   },
+   "N_sigma": 2.34,
+   "clear": true,
+   "verdict": "holds"
+  },
+  "P2": {
+   "T_bar": -0.3698,
+   "per_seed": {
+    "A": -0.3735,
+    "B": -0.3703,
+    "C": -0.3656
+   },
+   "N_sigma": 29.7,
+   "clear": true,
+   "verdict": "holds"
+  },
+  "P3": {
+   "T_bar": -0.1251,
+   "per_seed": {
+    "A": -0.1263,
+    "B": -0.1412,
+    "C": -0.1078
+   },
+   "N_sigma": 10.04,
+   "clear": true,
+   "verdict": "holds"
+  },
+  "P4": {
+   "T_bar": 0.0025,
+   "per_seed": {
+    "A": -0.0018,
+    "B": 0.0108,
+    "C": -0.0016
+   },
+   "N_sigma": 0.2,
+   "clear": false,
+   "verdict": "no sign registered (reported)"
+  },
+  "P5": {
+   "T_bar": 0.1525,
+   "per_seed": {
+    "A": 0.204,
+    "B": 0.1318,
+    "C": 0.1217
+   },
+   "N_sigma": 12.25,
+   "clear": true,
+   "verdict": "no sign registered (reported)"
+  },
+  "P6": {
+   "per_seed": {
+    "A": {
+     "S2L_ratio": 2.4917629906070715,
+     "S2Lt_higher": false,
+     "S2Lt_ratio": 1.238215154295167
+    },
+    "B": {
+     "S2L_ratio": 2.537382643942514,
+     "S2Lt_higher": false,
+     "S2Lt_ratio": 1.2301371916519224
+    },
+    "C": {
+     "S2L_ratio": 2.4790566858933114,
+     "S2Lt_higher": false,
+     "S2Lt_ratio": 1.2341151390323932
+    }
+   },
+   "verdict": "fails"
+  },
+  "seed_mean_vertex_m": {
+   "C2": 0.0549,
+   "S1": 0.0846,
+   "S1L": 0.0533,
+   "S2": 0.0629,
+   "S2L": 0.055,
+   "S2Lt": 0.0634
+  },
+  "SD_pooled_vertex_sealed": 0.0216,
+  "decision": "scale the sparse family to SK (follow-up runbook) with S1L",
+  "decision_fires_for": [
+   "S1L"
+  ]
+ },
+ "gpu": {
+  "line": "R2_sparse2_gpu",
+  "booked_gpu_h": 7.052,
+  "cap_gpu_h": 15.0,
+  "dropped_cells": []
+ },
+ "sealed_access": {
+  "log": "results/round2/20261125_sparse2/SEALED_ACCESS_LOG.md",
+  "reads": 18,
+  "only_through": "scripts/tier1_eval.py"
+ },
+ "real_lucid_only": true,
+ "returns": "/ceph/dwong/jepa/returns/r2_sparse2_2026-11-25/",
+ "deviations": [
+  "f_own operational definition fixed in PREREG appendix B before evaluation (query-weighted chance; literal mean-over-blocks reported)",
+  "decision-rule probe-sign reading fixed in PREREG appendix C before evaluation; S2L would fire under the looser reading, decision unchanged",
+  "count-32 block ties broken by PMT index (S2/S2L, known limit; S2Lt immune)",
+  "S2L vertex parity with C2 is already present at step 0 (gain +0.7 %); S1L's is learned"
+ ]
+}
