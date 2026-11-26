@@ -120,3 +120,16 @@ These readings implement §2 where its text leaves a choice; none changes a cell
 - **Cells (runbook §5.2, 3 seeds, 10,000 steps, JUNO default encoder, window 320, patch 156):** J-C2v1 (`lucid_v1`, dense C2 recipe: `--loss fixed --placeholder sentinel`, sentinel (200 + 50)/333.3 = 0.75), J-C2v2 (`lucid_v1_w2`, dense C2 recipe, sentinel (350 + 50)/333.3 = 1.2, the same "window end + 50 ns" rule), J-Tv2 (`lucid_v1_w2`, tokenisation T\* of the Stage S decision, recorded in appendix H; dropped if T\* is dense).
 - **Predictions (runbook §5.3):** J1 J-C2v2 vs J-C2v1: no sign registered (window effect where late light is largest); J2 J-Tv2 vs J-C2v2: not worse by more than 5 % (appendix A7 margin reading).
 - **Reading of J1 (operational):** J1 compares models trained and scored on different data (v1 and v2 packs of the same events); T per seed = e(J-C2v2 on v2 sealed) / e(J-C2v1 on v1 sealed) − 1 on the same sealed event ids (the bootstrap pairs events by id). Statistics as appendix A6; SD_pooled for JUNO = RMS of the across-seed SDs of J1 and J2 (no earlier 3-seed JUNO contrast exists).
+
+---
+
+## Amendments
+
+### Amendment 1 — 26 Nov 2026, 07:10 UTC (before any new SK run is evaluated)
+
+While preparing the exploratory μ mis-ID-versus-brightness diagnostic on the reused SK-D0 evaluator outputs (earlier phases), μ mis-ID at 99 % e efficiency on SK is **0** in SK-D0's sealed and validation outputs (seeds 9000 and 9001; PID AUC ≈ 0.999999), unlike WCTE (≈ 5 %). No run of this phase had been scored on SK at that time. The ratio T = misid_test / misid_base − 1 is undefined when misid_base = 0. Reading fixed now:
+
+- A seed whose base cell has μ mis-ID = 0 gives no defined μ mis-ID T (the unchanged statistics code skips it). With fewer than 3 defined seeds a μ mis-ID contrast is **not evaluable**.
+- K5 then **does not hold** (its registered μ mis-ID part has no evidence); its verdict is "not evaluable", and §2.7 / A8 proceed with K5 not holding: T\* = SK-S1L if K2 holds. "SK-S1L's μ mis-ID is not clearly worse than SK-C2's" is true when that contrast is not evaluable.
+- Reported beside it (exploratory): μ mis-ID counts per cell and seed, the PID AUC deficit 1 − AUC, and e mis-ID at 99 % μ efficiency, for SK-C2, SK-S1L, SK-S1A (and SK-D0).
+- K6 (WCTE) is unaffected (μ mis-ID ≈ 5 % there).
