@@ -10,6 +10,9 @@ shards are skipped, never rewritten. Toy physics is booby-trapped for the whole 
 time) and ``r2_generator`` must never be imported.
 
     sparse_w2_repack.py --cohort dev_train --runs 0:17 --pre-ns 110 --post-ns 50
+
+r2-sparse-sk J0: ``--detector juno`` applies the same procedure unchanged to the JUNO cache (shards under
+``/ceph/dwong/jepa/data/lucid_v1_w2/juno/shards_w2b/<cohort>/``); the default stays WCTE.
 """
 from __future__ import annotations
 
@@ -30,7 +33,8 @@ from jepa_noise import lucid_mc_generator as mg  # noqa: E402
 from jepa_noise import lucid_w2 as w2  # noqa: E402
 
 COHORTS = ("dev_train", "dev_probe_train", "dev_probe_test", "sealed_test")
-SRC = Path("/ceph/dwong/jepa/data/lucid_v1/wcte/cache")
+SRC_ROOT = Path("/ceph/dwong/jepa/data/lucid_v1")
+W2_DETECTORS = ("wcte", "juno")   # untruncated caches only (SK / HK caches end at LUCiD's trigger gate)
 
 
 class ToyPhysicsCalled(RuntimeError):
@@ -58,12 +62,16 @@ def main():
     ap.add_argument("--runs", default="0:100000")
     ap.add_argument("--pre-ns", type=float, required=True)
     ap.add_argument("--post-ns", type=float, required=True)
-    ap.add_argument("--out", type=Path, default=w2.W2_ROOT / "wcte" / w2.SHARD_DIR)
+    ap.add_argument("--detector", choices=W2_DETECTORS, default="wcte")
+    ap.add_argument("--out", type=Path, default=None, help="default: lucid_v1_w2/<detector>/shards_w2b")
     ap.add_argument("--access-log", type=Path, default=None,
                     help="sealed_test: append one line (packing only, no metrics) before reading")
     a = ap.parse_args()
     trapped = arm_g6_trap()
-    det = "wcte"
+    det = a.detector
+    SRC = SRC_ROOT / det / "cache"
+    if a.out is None:
+        a.out = w2.W2_ROOT / det / w2.SHARD_DIR
     cfg = mg.load_config()
     geometry, _ = mg.lucid_geometry(det, cfg)
     rule = w2.window_rule(mg.time_rule(det, cfg), a.pre_ns, a.post_ns)
@@ -83,7 +91,7 @@ def main():
         a.access_log.parent.mkdir(parents=True, exist_ok=True)
         with a.access_log.open("a") as h:
             fcntl.flock(h, fcntl.LOCK_EX)
-            h.write(f"- {datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ} | {code_sha[:12]} | wcte sealed_test "
+            h.write(f"- {datetime.now(timezone.utc):%Y-%m-%dT%H:%M:%SZ} | {code_sha[:12]} | {det} sealed_test "
                     f"runs {lo}:{min(hi, len(runs))} | W2 re-pack from the lucid_v1 LUCiD cache, window "
                     f"[-{a.pre_ns:g}, +{a.post_ns:g}] ns (packing only, no metrics) | scripts/sparse_w2_repack.py\n")
     digitizer_checked = False

@@ -12,6 +12,11 @@ Each pack also carries the extra per-hit fields (``extra_*``) next to the standa
 
     sparse_w2_pack.py pack --out-manifest results/round2/20261124_sparse --access-log <log>
     sparse_w2_pack.py validate --cohort dev_probe_train --out <json> [--access-log <log>]
+
+r2-sparse-sk J0: ``--detector juno`` (before the subcommand) packs and validates the JUNO re-pack the same
+way. JUNO keeps its ``lucid_v1`` layout: ``juno_lucid_v1_w2.h5`` holds dev_train, dev_probe_train and
+dev_probe_test (training reads dev_train from the pack), ``juno_lucid_v1_w2_sealed.h5`` the sealed_test;
+no training-shard directory. v1 hits beyond a narrower v2 window end are counted apart (WCTE only).
 """
 from __future__ import annotations
 
@@ -32,8 +37,19 @@ from jepa_noise import lucid_bombs as lb  # noqa: E402
 from jepa_noise import lucid_mc_generator as mg  # noqa: E402
 from jepa_noise import lucid_w2 as w2  # noqa: E402
 
+DET = "wcte"
 V1 = Path("/ceph/dwong/jepa/data/lucid_v1/wcte")
 V2 = w2.W2_ROOT / "wcte"
+
+
+def set_detector(det):
+    """r2-sparse-sk J0: point the module at one detector (default WCTE, unchanged)."""
+    global DET, V1, V2, COMMON_HI_NS
+    DET = det
+    V1 = Path("/ceph/dwong/jepa/data/lucid_v1") / det
+    V2 = w2.W2_ROOT / det
+    if det != "wcte":
+        COMMON_HI_NS = None   # set from the v1 / v2 windows in validate()
 PROBE = ("dev_probe_train", "dev_probe_test")
 ALL = ("dev_train",) + PROBE + ("sealed_test",)
 COMMON_HI_NS = 50.0
@@ -53,7 +69,7 @@ def log_access(path, what):
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a") as h:
         fcntl.flock(h, fcntl.LOCK_EX)
-        h.write(f"- {utc()} | {sha[:12]} | wcte sealed_test | {what} | scripts/sparse_w2_pack.py\n")
+        h.write(f"- {utc()} | {sha[:12]} | {DET} sealed_test | {what} | scripts/sparse_w2_pack.py\n")
 
 
 def run_dir(root, cohort, run):
@@ -86,26 +102,28 @@ def add_extras(h5, cohort, runs):
 def pack(a):
     from jepa_noise import r2_store as rs
     cfg = mg.load_config()
-    geometry, _ = mg.lucid_geometry("wcte", cfg)
+    geometry, _ = mg.lucid_geometry(DET, cfg)
     rule = json.loads((run_dir(V2, "dev_probe_train", mg.cohort_runs("dev_probe_train")[0]) / "manifest.json")
                       .read_text())["time_rule"]
     missing = [c for c in ALL if not complete(c)]
     if missing:
         raise SystemExit(f"incomplete cohorts {missing}")
-    attrs = {"detector": "wcte", "extension": "r2_sparse_2026-11-24", "dataset_kind": w2.DATASET_KIND_W2,
+    ext = "r2_sparse_2026-11-24" if DET == "wcte" else "r2_sparse_sk_2026-11-26"
+    attrs = {"detector": DET, "extension": ext, "dataset_kind": w2.DATASET_KIND_W2,
              "source_dataset_kind": mg.DATASET_KIND, "sampling_tier": mg.SAMPLING_TIER,
              "lucid_sha": mg.LUCID_SHA, "lucid_v1_config_sha256": cfg["_sha256"],
              "geometry_sha256": geometry.digest, "time_rule": rule, "veritas_steps": list(mg.VERITAS_STEPS),
              "registered": False, "extra_fields": list(w2.EXTRA_FIELDS)}
     files, summary = {}, {}
     t0 = time.time()
-    for name, cohorts, sealed in (("wcte_lucid_v1_w2.h5", PROBE, False),
-                                  ("wcte_lucid_v1_w2_sealed.h5", ("sealed_test",), True)):
+    main_cohorts = PROBE if DET == "wcte" else ("dev_train",) + PROBE
+    for name, cohorts, sealed in ((f"{DET}_lucid_v1_w2.h5", main_cohorts, False),
+                                  (f"{DET}_lucid_v1_w2_sealed.h5", ("sealed_test",), True)):
         h5 = V2 / name
         if h5.exists():
             raise SystemExit(f"{h5} exists; never rewritten")
         if sealed:
-            log_access(a.access_log, "pack lucid_v1_w2 sealed shards into wcte_lucid_v1_w2_sealed.h5 "
+            log_access(a.access_log, f"pack lucid_v1_w2 sealed shards into {DET}_lucid_v1_w2_sealed.h5 "
                                      "(packing + byte verification only, no metrics)")
         spec = {c: list(mg.cohort_runs(c)) for c in cohorts}
         tmp = h5.with_name(h5.name + ".building")
@@ -120,6 +138,8 @@ def pack(a):
         os.chmod(h5, 0o444)
         files[name] = {"path": str(h5), "sha256": rs.sha256_file(h5), "bytes": h5.stat().st_size,
                        "verify": verified["verified_runs"]}
+    if DET != "wcte":
+        return _finish_manifest(a, cfg, rule, files, summary, t0)
     # training directory (round-1 layout read by ext_r2_repair_train.WcteTrainingShards)
     root = V2 / "wcte_train"
     root.mkdir(parents=True, exist_ok=True)
@@ -167,6 +187,32 @@ def pack(a):
     print(json.dumps({k: manifest[k] for k in ("window_ns", "cohorts", "dark_extension")}, default=str))
 
 
+def _finish_manifest(a, cfg, rule, files, summary, t0):
+    """r2-sparse-sk J0: SHA256SUMS and DATA_MANIFEST for a non-WCTE detector (no training directory)."""
+    first = json.loads((run_dir(V2, "dev_train", mg.cohort_runs("dev_train")[0]) / "manifest.json").read_text())
+    sums = "".join(f"{v['sha256']}  {Path(v['path']).relative_to(V2)}\n" for v in files.values())
+    target = V2 / "SHA256SUMS"
+    if target.exists():
+        raise SystemExit(f"{target} exists; never rewritten")
+    target.write_text(sums)
+    manifest = {"extension": "r2_sparse_sk_2026-11-26", "registered": False, "detector": DET,
+                "dataset_kind": w2.DATASET_KIND_W2, "source": f"lucid_v1 cached LUCiD digits (/ceph/dwong/jepa/"
+                f"data/lucid_v1/{DET}/cache, read-only)", "lucid": first["lucid"], "lucid_sha": mg.LUCID_SHA,
+                "time_rule": rule, "window_ns": rule["prompt_window_ns"],
+                "yield_range_photons": cfg["yield_range_photons"][DET], "geometry": cfg["geometry"][DET],
+                "cohorts": {c: {"n_runs": len(mg.cohort_runs(c)),
+                                "n_events": int(sum(x.n_events for x in mg.cohort_runs(c)))} for c in ALL},
+                "files": files, "pack_summary": summary, "extra_fields": list(w2.EXTRA_FIELDS),
+                "dark_extension": dark_totals(), "pack_wall_s": time.time() - t0,
+                "per_run_sha256sums": {c: [{"run_id": r.run_id, "sha256sums": (run_dir(V2, c, r) / "SHA256SUMS")
+                                            .read_text()} for r in mg.cohort_runs(c)] for c in ALL}}
+    name = f"DATA_MANIFEST_{DET}_w2.json"
+    for out in (V2 / name, Path(a.out_manifest) / name):
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(manifest, indent=1, sort_keys=True, default=str) + "\n")
+    print(json.dumps({k: manifest[k] for k in ("window_ns", "cohorts", "dark_extension")}, default=str))
+
+
 def dark_totals():
     out = {}
     for c in ALL:
@@ -184,8 +230,8 @@ def dark_totals():
 def validate(a):
     """W2 step 5 against lucid_v1, per cohort (v1 readout recomputed from the cache for physics flags)."""
     cfg = mg.load_config()
-    geometry, _ = mg.lucid_geometry("wcte", cfg)
-    rule1 = mg.time_rule("wcte", cfg)
+    geometry, _ = mg.lucid_geometry(DET, cfg)
+    rule1 = mg.time_rule(DET, cfg)
     cohort = a.cohort
     if cohort == "sealed_test":
         log_access(a.access_log, "W2 structural validation v2 vs v1 shards and cache (event ids, truths, "
@@ -235,7 +281,9 @@ def validate(a):
             c["v1_hits"] += p1.size
             c["v2_hits"] += p2.size
             # float32 token times: a digit just above +50 ns can read 50.0, so 50.0 counts as outside
-            late = t1 >= COMMON_HI_NS
+            # r2-sparse-sk: a v2 window that ends later than v1's (JUNO) keeps every v1 hit in common
+            hi_c = COMMON_HI_NS if COMMON_HI_NS is not None else (hi if hi < rule1["prompt_window_ns"][1] else None)
+            late = (t1 >= hi_c) if hi_c is not None else np.zeros(t1.shape, bool)
             c["v1_hits_50_60_signal"] += int((late & sig1).sum())
             c["v1_hits_50_60_dark"] += int((late & ~sig1).sum())
             com = ~late
@@ -335,6 +383,7 @@ def _physics_first(dig, pmts):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--detector", choices=("wcte", "juno"), default="wcte")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("pack")
     p.add_argument("--out-manifest", required=True)
@@ -345,6 +394,7 @@ def main():
     v.add_argument("--access-log", type=Path)
     v.add_argument("--limit-runs", type=int)
     a = ap.parse_args()
+    set_detector(a.detector)
     return pack(a) if a.cmd == "pack" else validate(a)
 
 
