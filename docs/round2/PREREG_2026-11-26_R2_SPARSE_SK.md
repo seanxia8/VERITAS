@@ -125,7 +125,7 @@ These readings implement §2 where its text leaves a choice; none changes a cell
 
 ## Amendments
 
-### Amendment 1 — 26 Nov 2026, 07:10 UTC (before any new SK run is evaluated)
+### Amendment 1 — 26 Nov 2026, 06:58 UTC (before any new SK run is evaluated)
 
 While preparing the exploratory μ mis-ID-versus-brightness diagnostic on the reused SK-D0 evaluator outputs (earlier phases), μ mis-ID at 99 % e efficiency on SK is **0** in SK-D0's sealed and validation outputs (seeds 9000 and 9001; PID AUC ≈ 0.999999), unlike WCTE (≈ 5 %). No run of this phase had been scored on SK at that time. The ratio T = misid_test / misid_base − 1 is undefined when misid_base = 0. Reading fixed now:
 
