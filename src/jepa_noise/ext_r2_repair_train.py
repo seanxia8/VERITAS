@@ -285,19 +285,28 @@ def geometry_and_scaling(detector, kind=None):
     return geometry, rs.scaling_for(geometry, rule.time_scale_ns)
 
 
-def assert_lucid_pack(h5, kind):
-    """r2-sparse-sk §0.2: a lucid_v1 SK / HK / JUNO pack must be LUCiD e651e836 native data."""
-    if kind != dr.LUCID_V1:
+def assert_lucid_pack(h5, kind, detector=None):
+    """r2-sparse-sk §0.2: an SK / HK / JUNO pack must be LUCiD e651e836 data of its kind (lucid_v1:
+    native; lucid_v1_w2 JUNO re-pack: its pack time rule must carry the registered window)."""
+    if kind not in (dr.LUCID_V1, dr.LUCID_V1_W2):
         return None
     import h5py
     from . import lucid_mc_generator as mg
     found = dr.check_pack_kind(h5, kind)
     with h5py.File(h5, "r") as f:
         sha = f.attrs.get("lucid_sha")
+        rule = f.attrs.get("time_rule")
     sha = sha.decode() if isinstance(sha, bytes) else sha
     if not (sha and str(sha).startswith(mg.LUCID_SHA[:8])):
         raise ValueError(f"{h5}: LUCiD sha {sha!r} is not {mg.LUCID_SHA}")
-    return {"dataset_kind": found, "lucid_sha": str(sha)}
+    out = {"dataset_kind": found, "lucid_sha": str(sha)}
+    if kind == dr.LUCID_V1_W2:
+        rule = json.loads(rule.decode() if isinstance(rule, bytes) else rule) if isinstance(rule, (str, bytes)) else dict(rule)
+        window = tuple(float(v) for v in rule["prompt_window_ns"])
+        if detector is None or window != tuple(dr.window_ns(detector, kind)):
+            raise ValueError(f"{h5}: pack window {window} is not the registered {detector} lucid_v1_w2 window")
+        out["window_ns"] = list(window)
+    return out
 
 
 class StepEfficiency:
@@ -398,7 +407,7 @@ def prepare(args):
         mask_seed = cohort.manifest["dataset_seed"]
         source = str(cohort.directory)
     else:
-        assert_lucid_pack(h5, args.data_kind)   # r2-sparse-sk §0.2 (checked, not part of the recipe)
+        pack_check = assert_lucid_pack(h5, args.data_kind, args.detector)   # r2-sparse-sk §0.2
         cohort = rs.open_cohort(h5, "dev_train", truth_fields=())
         data_identity = sha_json({"manifests": cohort.manifests,
                                   "state_sha256": cohort.state_sha256})
@@ -457,7 +466,12 @@ def prepare(args):
         recipe["time_reference"] = args.time_reference
     if flags is not None:  # r2-sparse cells only; existing recipes keep their hash
         recipe["r2_sparse_flags"] = flags
-    if args.data_kind == dr.LUCID_V1_W2:
+    if args.data_kind == dr.LUCID_V1_W2 and args.detector != "wcte":
+        # r2-sparse-sk J0: JUNO lucid_v1_w2 pack (attributes checked by assert_lucid_pack)
+        recipe["window_ns"] = list(pack_check["window_ns"])
+        recipe["dataset_kind_manifest"] = pack_check["dataset_kind"]
+        recipe["lucid_sha"] = pack_check["lucid_sha"]
+    elif args.data_kind == dr.LUCID_V1_W2:
         recipe["window_ns"] = list(dr.WINDOW_NS[dr.LUCID_V1_W2])
         recipe["dataset_kind_manifest"] = cohort.manifest.get("dataset_kind")
         recipe["lucid_sha"] = (cohort.manifest.get("lucid") or {}).get("lucid_sha")
@@ -481,8 +495,8 @@ def _run(args, run_dir, started, arm, loader, optimizers, scheduler, recipe, con
               "registered": False}
     if checkpoint.exists() and args.smoke:
         raise FileExistsError(checkpoint)
-    if args.detector != "wcte" and args.data_kind == dr.LUCID_V1:
-        record["data_assertions"] = assert_lucid_pack(source, args.data_kind)
+    if args.detector != "wcte" and args.data_kind in (dr.LUCID_V1, dr.LUCID_V1_W2):
+        record["data_assertions"] = assert_lucid_pack(source, args.data_kind, args.detector)
     efficiency = StepEfficiency(args.device)
     write_json(run_dir / "recipe.json", record)
     result = lr.train_loop(arm=arm, loader=loader, steps=steps, optimizers=optimizers,

@@ -18,6 +18,8 @@ DATA_KINDS = (LUCID_V1, ANALYTIC_TOY, LUCID_V1_W2)
 PACK_KIND = {LUCID_V1: "lucid_mc_native", LUCID_V1_W2: "lucid_v1_w2"}
 #: Readout window [ns] around the NHits trigger of each LUCiD data kind (WCTE).
 WINDOW_NS = {LUCID_V1: (-20.0, 60.0), LUCID_V1_W2: (-110.0, 50.0)}
+#: r2-sparse-sk J0: detectors with a lucid_v1_w2 re-pack and their windows (WCTE = WINDOW_NS, unchanged)
+W2_WINDOW_NS = {"wcte": WINDOW_NS[LUCID_V1_W2], "juno": (-110.0, 350.0)}
 DEFAULT_DATA_KIND = os.environ.get("JEPA_DATA_KIND", LUCID_V1)
 
 LUCID_ROOT = Path("/ceph/dwong/jepa/data/lucid_v1")
@@ -39,8 +41,10 @@ def check(kind: str | None) -> str:
 def pack(detector: str, kind: str | None = None) -> Path:
     """The detector pack holding dev_train (SK/JUNO/HK) and the probe cohorts."""
     kind = check(kind)
-    if kind == LUCID_V1_W2 and detector != "wcte":
-        raise ValueError("lucid_v1_w2 exists for WCTE only")
+    if kind == LUCID_V1_W2 and detector not in W2_WINDOW_NS:
+        raise ValueError("lucid_v1_w2 exists for WCTE and JUNO only")
+    if kind == LUCID_V1_W2 and detector != "wcte":   # r2-sparse-sk J0: JUNO keeps the lucid_v1 layout
+        return W2_ROOT / detector / f"{detector}_lucid_v1_w2.h5"
     if detector == "wcte":
         return wcte_probe_pack(kind)
     if kind == ANALYTIC_TOY:
@@ -56,6 +60,8 @@ def window_ns(detector: str, kind: str | None = None) -> tuple:
     kind = check(kind)
     if detector == "wcte":
         return WINDOW_NS[kind]
+    if kind == LUCID_V1_W2 and detector in W2_WINDOW_NS:
+        return W2_WINDOW_NS[detector]
     if kind != LUCID_V1:
         raise ValueError(f"no {kind} window for {detector}")
     from . import r2_generator as gen
@@ -72,9 +78,9 @@ def wcte_probe_pack(kind: str | None = None) -> Path:
 def sealed_pack(detector: str, kind: str | None = None) -> Path:
     kind = check(kind)
     if kind == LUCID_V1_W2:
-        if detector != "wcte":
-            raise ValueError("lucid_v1_w2 exists for WCTE only")
-        return W2_ROOT / "wcte" / "wcte_lucid_v1_w2_sealed.h5"
+        if detector not in W2_WINDOW_NS:
+            raise ValueError("lucid_v1_w2 exists for WCTE and JUNO only")
+        return W2_ROOT / detector / f"{detector}_lucid_v1_w2_sealed.h5"
     if kind != LUCID_V1:
         raise ValueError(f"no sealed pack for {kind}")
     return LUCID_ROOT / detector / f"{detector}_lucid_v1_sealed.h5"

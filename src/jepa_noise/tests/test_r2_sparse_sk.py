@@ -505,3 +505,19 @@ def test_golden_adapter_sk_50_events():
         lat_d, full_d = moment_features(z, raw)
         np.testing.assert_allclose(lat_a, lat_d, rtol=1e-6, atol=1e-7)
         np.testing.assert_allclose(full_a, full_d, rtol=1e-6, atol=1e-7)
+
+
+# ----------------------------------------------------------------------------- Stage J data roots
+def test_juno_w2_roots_and_window():
+    assert dr.window_ns("juno", dr.LUCID_V1_W2) == (-110.0, 350.0)
+    assert str(dr.pack("juno", dr.LUCID_V1_W2)).endswith("lucid_v1_w2/juno/juno_lucid_v1_w2.h5")
+    assert str(dr.sealed_pack("juno", dr.LUCID_V1_W2)).endswith("lucid_v1_w2/juno/juno_lucid_v1_w2_sealed.h5")
+    assert str(dr.pack("wcte", dr.LUCID_V1_W2)).endswith("lucid_v1_w2/wcte/wcte_lucid_v1_w2.h5")   # unchanged
+    for det in ("sk", "hk"):
+        with pytest.raises(ValueError):
+            dr.pack(det, dr.LUCID_V1_W2)
+    args = _args("mae_repaired", detector="juno", data_kind=dr.LUCID_V1_W2, loss="fixed", placeholder="sentinel")
+    _, scaling = tr.geometry_and_scaling("juno", dr.LUCID_V1_W2)
+    flags = tr.sparse_build_flags(args, scaling)
+    assert abs(flags["sentinel_time"] - (350.0 + 50.0) / scaling.time_scale_ns) < 1e-12
+    assert tr.run_suffix(args) == "__dw2__lfixed__psent"
