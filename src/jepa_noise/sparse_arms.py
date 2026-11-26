@@ -665,7 +665,8 @@ class SparseMaeArm(_SparseBase):
                else ~hidden.to(torch.bool))
         hit = (features[..., HIT_INDEX] > 0.5) & vis
         visf, hitf = vis.to(features.dtype), hit.to(features.dtype)
-        q = torch.where(hit, torch.exp(features[..., LOG_CHARGE_INDEX]), torch.zeros_like(visf))
+        q = torch.where(hit, torch.exp(torch.where(hit, features[..., LOG_CHARGE_INDEX],
+                                                   torch.zeros_like(visf))), torch.zeros_like(visf))
         p = self.n_absence
         idx = self.absence_patch_of[None, :].expand(b, n)
         zeros = features.new_zeros((b, p))

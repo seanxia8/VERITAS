@@ -38,8 +38,9 @@ SEED = 9000
 
 @pytest.fixture(scope="module")
 def sk():
-    geometry = dr.geometry("sk", dr.LUCID_V1)
-    return geometry, rs.scaling_for(geometry, 450.0)
+    geometry, scaling = tr.geometry_and_scaling("sk", dr.LUCID_V1)   # the production path
+    assert scaling.time_scale_ns == 450.0
+    return geometry, scaling
 
 
 @pytest.fixture(scope="module")

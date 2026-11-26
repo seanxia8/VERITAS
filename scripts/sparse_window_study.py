@@ -42,6 +42,8 @@ QUOTA = {"photon": 2000, "muon": 500, "electron": 500}
 EARLY_CUT_NS = 20.0
 P_GRID = (20, 50, 100, 150, 200, 250, 300, 400, 500)
 A_GRID = (60, 100, 150, 200, 250, 270, 300, 400, 460, 500, 600, 750, 1000)
+#: r2-sparse-sk J0: detectors to which the W1 rule is also applied (``--w1``); WCTE always
+W1_DETECTORS = {"wcte"}
 QS = (0.5, 0.9, 0.95, 0.99, 0.995, 0.999)
 TRUNCATED = {"sk": "LUCiD trigger gate (200 ns window + 300 ns each side) applied before caching",
              "hk": "LUCiD trigger gate (200 ns window + 300 ns each side) applied before caching",
@@ -191,7 +193,7 @@ def study(det, pad_ns):
                                       "they fall off where the cached span [t_phys,min - pad, t_phys,max + pad] ends")
     if det in ("wcte", "juno"):
         out["early_signal_interpretation"] = interpret_early(det, 4.2)
-    if det == "wcte":
+    if det in W1_DETECTORS:
         out["w1"] = w1_rule(tme, fsr, out)
         p, a = out["w1"]["P_ns"], out["w1"]["A_ns"]
         cov = np.asarray(cov_rows)
@@ -385,7 +387,10 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--merge")
     ap.add_argument("--out-dir")
+    ap.add_argument("--w1", action="store_true", help="r2-sparse-sk J0: apply the W1 rule to --detector too")
     a = ap.parse_args()
+    if a.w1:
+        W1_DETECTORS.add(a.detector)
     if a.merge:
         return merge(a.merge, a.out_dir)
     cfg = mg.load_config()
