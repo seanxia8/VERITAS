@@ -385,3 +385,17 @@ Authority (quoted verbatim from runbook §0.1):
 - 2026-11-25 r2-sparse2 smokes (dt2 L40S, 20 steps, code 166e388): S1L 0.89 GiB, S2L 1.29 GiB, S2Lt 4.79 GiB peak; losses finite; ≈ 0.3 s/step → ≈ 0.6–0.8 GPU-h per training, 9 trainings ≈ 6 GPU-h, inside the 15 GPU-h cap (no cell dropped). Production: dt2 lane seed 9000 (S1L, S2L, S2Lt), HTCondor A100 seeds 9001/9002 (≤ 4 concurrent), code `code/sparse2_166e388e.tar.gz`.
 - 2026-11-25 r2-sparse2 E/T7: 9/9 trainings complete (dt2 lane s9000: 41/27/33 min; HTCondor A100 760067-760073: 0.57-0.78 GPU-h each), 18/18 scorings (steps 0 and 10,000, validation + sealed; CPU workers portal1 4 × 5 threads + Deepthought 1 × 6 threads at nice 15, plus 7 HTCondor A100 scorings), all by `tier1_eval.py` of 166e388 (batch scoring access-log lines show the submitting clone commit f6f48f6, which adds only T7 scripts). Consistency: S2L and S2Lt step-0 scores are identical (same encoder init), as expected. f_own on p1 (1 thread).
 - 2026-11-25 r2-sparse2 results: P1 holds (S1L vs C2 −2.9 %, clear), P2 holds (−37.0 %), P3 holds (−12.5 %), P4 +0.2 % (level), P5 +15.3 % (S2Lt worse, clear), P6 fails (f_own/chance S2Lt 1.23 vs S2L 2.49-2.54). Decision §2.6: fires for S1L → scale the sparse family to SK (follow-up runbook). GPU booked 7.05 of 15 GPU-h (`R2_sparse2_gpu`).
+
+## r2-sparse-sk (runbook `RUNBOOK_2026-11-26_R2_SPARSE_SK.md`, branch `sparse-sk`)
+
+Authority (quoted verbatim from runbook §0.1):
+1. **Author, 26 Nov 2026, 02:32 CET:**
+   > "现在写这份 SK 的 runbook，后面都还有哪些步骤，只有sk吗，hk和juno呢？"
+
+   (Translation: "Write this SK runbook now. What steps follow; only SK, what about HK and JUNO?") This approves the SK follow-up proposed at 02:31 CET, including absence context for μ/e.
+2. **Standing rule (Author, 30 Oct 2026):** "别大事小事都问我，自己找解决方案，按最好的解决方案解决". Never stop to ask; record decisions in `DECISIONS.md` and `$CC_STATE/notes/r2-sparse-sk.md`.
+3. **Author, 22 Nov 2026:** do not depend on the collaborator.
+4. **Author, 26 Nov 2026, 02:37 CET:**
+   > "改runbook，把hk和juno append到sk后面"
+
+   (Translation: "Revise the runbook: append HK and JUNO after SK.") This authorises Stages H and J (§4, §5).
