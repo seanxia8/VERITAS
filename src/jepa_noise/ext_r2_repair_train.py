@@ -37,10 +37,12 @@ WCTE_SHARDS = r2.ROUND1_LUCID_ROOT / "dev_train__F1__0.05__s20261017__n100000x10
 LUCID_EXTENSION = "r2_lucid_2026-11-21"
 LUCID_MATRIX = {
     "wcte": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa", "sparse_mae", "sparse_time"),
-    "sk": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa"),
-    "juno": ("mae_repaired", "jepa_repaired"),
-    "hk": ("mae_repaired", "jepa_repaired"),
+    "sk": ("mae_mse", "mae_repaired", "jepa_repaired", "sigreg_jepa", "sparse_mae", "sparse_time"),
+    "juno": ("mae_repaired", "jepa_repaired", "sparse_mae", "sparse_time"),
+    "hk": ("mae_repaired", "jepa_repaired", "sparse_mae", "sparse_time"),
 }
+#: r2-sparse-sk: arms that take ``--mask`` / ``--patch-size`` (sparse_mae reads the same patch masks)
+MASK_ARMS = ("mae_repaired", "sparse_mae")
 
 
 class WcteTrainingShards:
@@ -90,8 +92,8 @@ def mask_suffix(args):
     mask = getattr(args, "mask", None)
     if mask is None or mask == DEFAULT_MASK:
         return ""
-    if args.arm != "mae_repaired":
-        raise ValueError("--mask applies to mae_repaired only")
+    if args.arm not in MASK_ARMS:
+        raise ValueError("--mask applies to mae_repaired and sparse_mae only")
     if mask not in MASKS:
         raise ValueError(f"unknown mask {mask!r}")
     return f"__m{mask}"
@@ -106,8 +108,8 @@ def patch_size_of(args):
     size = getattr(args, "patch_size", None)
     if size is None:
         return None
-    if args.arm != "mae_repaired":
-        raise ValueError("--patch-size applies to mae_repaired only")
+    if args.arm not in MASK_ARMS:
+        raise ValueError("--patch-size applies to mae_repaired and sparse_mae only")
     if (getattr(args, "mask", None) or DEFAULT_MASK) != "spatial_patch":
         raise ValueError("--patch-size applies to --mask spatial_patch only")
     from .lucid_views import default_patch_size
@@ -175,6 +177,12 @@ def sparse_arm_flags(args):
         raise ValueError("--block-width-ns goes with --blocks time (and only with it)")
     if blocks == "time":
         out["blocks"], out["block_width_ns"] = "time", float(width)
+    if getattr(args, "absence_tokens", None):  # r2-sparse-sk §2.3: S1A = S1L + absence tokens
+        if args.arm != "sparse_mae" or (embed, decoder) != ("linear", "legacy"):
+            raise ValueError("--absence-tokens applies to sparse_mae with --embed linear --decoder legacy only")
+        if (getattr(args, "queries", None) or "all") != "all":
+            raise ValueError("--absence-tokens needs --queries all")
+        out["absence_tokens"] = True
     return out
 
 
@@ -184,6 +192,8 @@ def sparse_arm_suffix(flags):
     out += {"legacy": "__dleg", "full": "__dfull"}.get(flags.get("decoder"), "")
     if flags.get("blocks") == "time":
         out += f"__bt{flags['block_width_ns']:g}".replace(".", "p")
+    if flags.get("absence_tokens"):
+        out += "__abs"
     return out
 
 
@@ -199,6 +209,8 @@ def sparse_suffix(args):
         elif getattr(args, "queries", None) is not None:
             raise ValueError("--queries applies to sparse_mae only")
         return out
+    if getattr(args, "absence_tokens", None):
+        raise ValueError("--absence-tokens applies to sparse_mae only")
     flags = {k: getattr(args, k, None) for k in SPARSE_DEFAULTS}
     changed = {k: v for k, v in flags.items() if v is not None and v != SPARSE_DEFAULTS[k]}
     if changed and args.arm != "mae_repaired":
@@ -237,6 +249,13 @@ def sparse_build_flags(args, scaling):
                     raise ValueError("--queries neg needs --neg-ratio (fixed in W2)")
                 flags["neg_ratio"] = float(args.neg_ratio)
         flags.update(sparse_arm_flags(args))  # r2-sparse2; empty (recipe unchanged) for S1 / S2
+        if flags.get("absence_tokens"):
+            # r2-sparse-sk: absence patches = the mask's patches (the default size for --mask random)
+            from .lucid_views import default_patch_size
+            size = patch_size_of(args)
+            if size is None:
+                size = default_patch_size(dr.geometry(args.detector, getattr(args, "data_kind", None)).n_pmt)
+            flags["absence_patch_size"] = int(size)
         return flags
     flags = {k: getattr(args, k, None) for k in SPARSE_DEFAULTS}
     changed = {k: v for k, v in flags.items() if v is not None and v != SPARSE_DEFAULTS[k]}
@@ -246,7 +265,8 @@ def sparse_build_flags(args, scaling):
            "embed": flags["embed"] or "linear", "decoder": flags["decoder"] or "legacy",
            "count_head": bool(flags["count_head"])}
     if out["placeholder"] == "sentinel":
-        window = dr.WINDOW_NS[getattr(args, "data_kind", dr.LUCID_V1)]
+        # r2-sparse-sk: the detector's own window (WCTE unchanged: WINDOW_NS of its data kind)
+        window = dr.window_ns(getattr(args, "detector", "wcte"), getattr(args, "data_kind", dr.LUCID_V1))
         out["sentinel_time"] = (window[1] + 50.0) / float(scaling.time_scale_ns)
     return out
 
@@ -263,6 +283,50 @@ def geometry_and_scaling(detector, kind=None):
     geometry = dr.geometry(detector, kind)
     rule = gen.ROUND1_TIME_RULE if detector == "wcte" else gen.time_rule_for(geometry)
     return geometry, rs.scaling_for(geometry, rule.time_scale_ns)
+
+
+def assert_lucid_pack(h5, kind):
+    """r2-sparse-sk §0.2: a lucid_v1 SK / HK / JUNO pack must be LUCiD e651e836 native data."""
+    if kind != dr.LUCID_V1:
+        return None
+    import h5py
+    from . import lucid_mc_generator as mg
+    found = dr.check_pack_kind(h5, kind)
+    with h5py.File(h5, "r") as f:
+        sha = f.attrs.get("lucid_sha")
+    sha = sha.decode() if isinstance(sha, bytes) else sha
+    if not (sha and str(sha).startswith(mg.LUCID_SHA[:8])):
+        raise ValueError(f"{h5}: LUCiD sha {sha!r} is not {mg.LUCID_SHA}")
+    return {"dataset_kind": found, "lucid_sha": str(sha)}
+
+
+class StepEfficiency:
+    """r2-sparse-sk §T1.3: wall time per optimiser step and peak GPU memory, steps 1,000-2,000.
+
+    Called after every step by ``train_loop``; the median step time is over the 1,000 intervals
+    (step k-1 -> k, k = 1,001 ... 2,000); peak memory is ``max_memory_allocated`` / ``reserved``
+    of the run up to step 2,000 (steady state is reached at step 1). Not part of the recipe."""
+
+    def __init__(self, device, first=1000, last=2000):
+        self.device, self.first, self.last = device, int(first), int(last)
+        self.times, self.result = {}, None
+
+    def __call__(self, step):
+        if self.first <= step <= self.last:
+            if self.device == "cuda":
+                torch.cuda.synchronize()
+            self.times[int(step)] = time.perf_counter()
+            if step == self.last:
+                import statistics
+                dt = [self.times[k] - self.times[k - 1] for k in range(self.first + 1, self.last + 1)
+                      if k in self.times and k - 1 in self.times]
+                self.result = {"steps": [self.first, self.last], "n_intervals": len(dt),
+                               "median_step_seconds": statistics.median(dt) if dt else None,
+                               "mean_step_seconds": (sum(dt) / len(dt)) if dt else None}
+                if self.device == "cuda":
+                    self.result.update(peak_allocated_gib=torch.cuda.max_memory_allocated(0) / 2**30,
+                                       peak_reserved_gib=torch.cuda.max_memory_reserved(0) / 2**30,
+                                       gpu_model=torch.cuda.get_device_name(0))
 
 
 def write_json(path, data):
@@ -317,7 +381,10 @@ def prepare(args):
     """Build arm, loader, optimisers and the recipe (and its hash) without training."""
     seed = args.seed
     geometry, scaling = geometry_and_scaling(args.detector, args.data_kind)
-    encoder = r2.encoder_config_for(args.arm, geometry)
+    # r2-sparse-sk: sparse arms use the detector's mae_repaired encoder (window); for WCTE this is
+    # EncoderConfig(window=64, shift=32) == EncoderConfig(), so the WCTE sparse recipes are unchanged
+    encoder = r2.encoder_config_for("mae_repaired" if args.arm in ("sparse_mae", "sparse_time") else args.arm,
+                                    geometry)
     if args.window is not None:
         if args.detector not in ("sk", "hk") or args.arm != "jepa_repaired":
             raise ValueError("a window override is only specified for repaired SK/HK JEPA")
@@ -331,6 +398,7 @@ def prepare(args):
         mask_seed = cohort.manifest["dataset_seed"]
         source = str(cohort.directory)
     else:
+        assert_lucid_pack(h5, args.data_kind)   # r2-sparse-sk §0.2 (checked, not part of the recipe)
         cohort = rs.open_cohort(h5, "dev_train", truth_fields=())
         data_identity = sha_json({"manifests": cohort.manifests,
                                   "state_sha256": cohort.state_sha256})
@@ -351,8 +419,9 @@ def prepare(args):
     sparse = args.arm in ("sparse_mae", "sparse_time")
     shuffle = args.arm in ("jepa_repaired", "mae_repaired") or sparse
     # r2-tier1: the mask is the only thing --mask changes (encoder, loader shuffle unchanged);
-    # r2-sparse: the sparse arms read the same loader batches (same patch mask) as mae_repaired
-    split = ((getattr(args, "mask", None) or DEFAULT_MASK) if args.arm == "mae_repaired"
+    # r2-sparse: the sparse arms read the same loader batches (same patch mask) as mae_repaired;
+    # r2-sparse-sk: sparse_mae also takes --mask / --patch-size (Stage H)
+    split = ((getattr(args, "mask", None) or DEFAULT_MASK) if args.arm in MASK_ARMS
              else DEFAULT_MASK if sparse else "within")
     patch_size = patch_size_of(args)  # r2-mask: None keeps the unchanged default masker
     loader_extra = {} if patch_size is None else {"patch_size": patch_size}
@@ -378,7 +447,7 @@ def prepare(args):
               "data_kind": args.data_kind}
     if time_loss_scale != 50.0:  # sweep runs only; the unchanged recipe keeps its hash
         recipe["time_loss_scale_ns"] = time_loss_scale
-    if split != DEFAULT_MASK and args.arm == "mae_repaired":  # r2-tier1 mask cells only
+    if split != DEFAULT_MASK and args.arm in MASK_ARMS:  # r2-tier1 / r2-sparse-sk mask cells only
         recipe["mask"] = split
     if patch_size is not None:  # r2-mask patch-size cells only; the default keeps its hash
         recipe["patch_size"] = patch_size
@@ -412,6 +481,9 @@ def _run(args, run_dir, started, arm, loader, optimizers, scheduler, recipe, con
               "registered": False}
     if checkpoint.exists() and args.smoke:
         raise FileExistsError(checkpoint)
+    if args.detector != "wcte" and args.data_kind == dr.LUCID_V1:
+        record["data_assertions"] = assert_lucid_pack(source, args.data_kind)
+    efficiency = StepEfficiency(args.device)
     write_json(run_dir / "recipe.json", record)
     result = lr.train_loop(arm=arm, loader=loader, steps=steps, optimizers=optimizers,
                            checkpoint_path=checkpoint, identity=identity, config_sha=config_sha,
@@ -420,7 +492,11 @@ def _run(args, run_dir, started, arm, loader, optimizers, scheduler, recipe, con
                            resume=checkpoint if checkpoint.exists() else None,
                            log_path=run_dir / "train_log.jsonl", log_every=1,
                            accum_steps=r2.BATCH // args.micro_batch, scheduler=scheduler,
-                           snapshot_steps=snapshots, full_batch_sigreg=recipe["full_batch_sigreg"])
+                           snapshot_steps=snapshots, full_batch_sigreg=recipe["full_batch_sigreg"],
+                           step_callback=efficiency)
+    if efficiency.result is not None:
+        record["efficiency"] = efficiency.result
+        write_json(run_dir / "efficiency.json", efficiency.result)
     record.update(result, wall_seconds=time.monotonic() - started,
                   peak_memory_gib=(torch.cuda.max_memory_reserved(0) / 2**30
                                    if args.device == "cuda" else None),
@@ -457,6 +533,8 @@ def main():
     parser.add_argument("--block-width-ns", type=float, default=None,
                         help="r2-sparse2: S2Lt time-bin width (with --blocks time)")
     parser.add_argument("--count-head", action="store_true", default=None)
+    parser.add_argument("--absence-tokens", action="store_true", default=None,
+                        help="r2-sparse-sk §2.3: S1A absence tokens (sparse_mae with the S1L components)")
     parser.add_argument("--queries", choices=("all", "neg", "pos"), default=None, help="sparse_mae query set")
     parser.add_argument("--neg-ratio", type=float, default=None, help="S1n ratio r (fixed in W2)")
     parser.add_argument("--data", type=Path)

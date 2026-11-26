@@ -34,6 +34,19 @@ keep every existing cell unchanged:
 * ``blocks="time"`` with ``block_width_ns`` for ``sparse_time`` (S2Lt): Delta-wide time bins from
   -110 ns, a keyed half of the non-empty bins hidden, loss averaged per bin then over bins;
 * :meth:`SparseTimeArm.block_mass_stats`: the own-block mass fraction f_own and its chance level.
+
+r2-sparse-sk (runbook ``RUNBOOK_2026-11-26_R2_SPARSE_SK.md`` §2.3, §T1) adds, behind
+``absence_tokens=True`` for ``sparse_mae`` with the S1L components only (S1A):
+
+* one absence token per Hilbert patch with at least one visible PMT (with a patch mask: one per
+  visible patch; masked patches get none). Patches are the contiguous blocks of
+  ``absence_patch_size`` PMTs of the full Hilbert order (the mask's patches), plus the never-hidden
+  tail as one more patch. Features, over the patch's visible PMTs: scaled xyz centroid (3), hit
+  fraction, ln(1 + hits), ln(1 + sum q / 1 PE); embedding ``Linear(6, d_model)`` plus a learned type
+  embedding, built after every S1L module so the shared weights equal S1L's at the same seed;
+* placement in the Hilbert serialisation just before its patch's first PMT (key = start rank - 0.5),
+  so windowed attention sees it with that patch's hits. Absence tokens are context for the
+  encoder and the decoder; the readout scatters hit tokens only.
 """
 from __future__ import annotations
 
@@ -46,7 +59,7 @@ import torch.nn.functional as F
 from torch import Tensor
 
 from . import lucid_bombs as lb
-from .lucid_views import token_hilbert_order
+from .lucid_views import default_patch_size, token_hilbert_order
 from .point_encoder import (HIT_INDEX, LOG_CHARGE_INDEX, TIME_INDEX, EncoderConfig, FeatureScaling,
                             PointBlock, init_mup_linears)
 
@@ -575,7 +588,13 @@ class SparseMaeArm(_SparseBase):
     token_order = "hilbert"
 
     def __init__(self, geometry, *, encoder_config, scaling, seed, queries: str = "all",
-                 neg_ratio: float | None = None, embed: str = "fourier", decoder: str = "isolated"):
+                 neg_ratio: float | None = None, embed: str = "fourier", decoder: str = "isolated",
+                 absence_tokens: bool = False, absence_patch_size: int | None = None):
+        if absence_tokens and (embed, decoder, queries) != ("linear", "legacy", "all"):
+            # r2-sparse-sk §2.3: S1A = S1L plus absence tokens; no other sparse cell takes them
+            raise ValueError("--absence-tokens needs the S1L components (--embed linear --decoder legacy)")
+        if absence_patch_size is not None and not absence_tokens:
+            raise ValueError("absence_patch_size goes with absence_tokens")
         if decoder not in ("isolated", "legacy"):
             raise ValueError("sparse_mae decoder must be 'isolated' or 'legacy'")
         if decoder == "legacy" and queries != "all":
@@ -599,7 +618,11 @@ class SparseMaeArm(_SparseBase):
             self.head = parts["head"]
             self.count_head = None
             self.register_buffer("query_features", parts["query_features"], persistent=False)
+            self.absence_tokens = bool(absence_tokens)
+            if self.absence_tokens:   # built last: every S1L weight keeps S1L's initial value
+                self._build_absence(geometry, absence_patch_size)
             return
+        self.absence_tokens = False
         self._c2_parts = None
         self.query = QueryEmbedding(encoder_config.d_pred)
         self.predictor = IsolatedPredictor(encoder_config, self.d_model)
@@ -613,6 +636,83 @@ class SparseMaeArm(_SparseBase):
         near = np.sqrt(((p[:, None] - p[None]) ** 2).sum(-1)) <= 2.0 * spacing
         self.register_buffer("near", torch.as_tensor(near), persistent=False)
         self.hard_radius_m = 2.0 * spacing
+
+    # ------------------------------------------------------------------ r2-sparse-sk absence tokens
+    def _build_absence(self, geometry, patch_size: int | None) -> None:
+        n = self.n_pmt
+        size = default_patch_size(n) if patch_size is None else int(patch_size)
+        if not 1 <= size <= n:
+            raise ValueError("absence_patch_size must lie in [1, n_pmt]")
+        order = token_hilbert_order(geometry)
+        count = n // size
+        patch_of = np.full(n, count, dtype=np.int64)          # tail beyond count * size: patch ``count``
+        patch_of[order[:count * size]] = np.repeat(np.arange(count), size)
+        n_patch = count + (1 if n > count * size else 0)
+        start = np.arange(n_patch, dtype=np.float64) * size  # Hilbert rank of each patch's first PMT
+        self.absence_patch_size, self.n_absence = size, int(n_patch)
+        self.register_buffer("absence_patch_of", torch.as_tensor(patch_of), persistent=False)
+        self.register_buffer("absence_key", torch.as_tensor(start - 0.5, dtype=torch.float32), persistent=False)
+        self.absence_proj = nn.Linear(6, self.d_model)
+        self.absence_type = nn.Parameter(torch.zeros(self.d_model))
+        init_mup_linears(self.absence_proj)
+        nn.init.normal_(self.absence_type, std=0.02)
+
+    def absence_features(self, features: Tensor, hidden: Tensor | None) -> tuple[Tensor, Tensor]:
+        """(B, P, 6) absence features over each patch's visible PMTs and the (B, P) presence mask
+        (a patch with no visible PMT has no token). Masked PMTs enter with weight exactly zero."""
+        b, n, _ = features.shape
+        vis = (torch.ones((b, n), dtype=torch.bool, device=features.device) if hidden is None
+               else ~hidden.to(torch.bool))
+        hit = (features[..., HIT_INDEX] > 0.5) & vis
+        visf, hitf = vis.to(features.dtype), hit.to(features.dtype)
+        q = torch.where(hit, torch.exp(features[..., LOG_CHARGE_INDEX]), torch.zeros_like(visf))
+        p = self.n_absence
+        idx = self.absence_patch_of[None, :].expand(b, n)
+        zeros = features.new_zeros((b, p))
+        n_vis = zeros.scatter_add(1, idx, visf)
+        n_hit = zeros.scatter_add(1, idx, hitf)
+        q_sum = zeros.scatter_add(1, idx, q)
+        pos = torch.where(vis[..., None], features[..., 0:3], torch.zeros_like(features[..., 0:3]))
+        cen = features.new_zeros((b, p, 3)).scatter_add(1, idx[..., None].expand(-1, -1, 3), pos)
+        denom = n_vis.clamp_min(1.0)
+        feat = torch.cat([cen / denom[..., None], (n_hit / denom)[..., None], torch.log1p(n_hit)[..., None],
+                          torch.log1p(q_sum)[..., None]], dim=-1)
+        return feat, n_vis > 0
+
+    def encode_hits(self, features: Tensor, select: Tensor, order: str,
+                    hidden: Tensor | None = None) -> tuple[Tensor, Tensor, Tensor]:
+        """Without absence tokens: the unchanged hit-token encoder. With them (S1A): hit tokens and
+        absence tokens in one Hilbert serialisation; returned indices >= n_pmt mark absence tokens
+        (patch index + n_pmt)."""
+        if not self.absence_tokens:
+            return super().encode_hits(features, select, order)
+        if order != "hilbert":
+            raise ValueError("absence tokens use the Hilbert order")
+        n = self.n_pmt
+        feat, present = self.absence_features(features, hidden)
+        sel = torch.cat([select, present], 1)
+        key = torch.cat([self.hilbert_rank.to(torch.float32), self.absence_key])[None, :]
+        idx, valid = gather_tokens(sel, key)
+        is_abs = idx >= n
+        h_idx = torch.where(is_abs, torch.zeros_like(idx), idx)
+        a_idx = torch.where(is_abs, idx - n, torch.zeros_like(idx))
+        tok_h = self.token_inputs(features, h_idx)
+        tok_a = self.absence_proj(_gather(feat, a_idx)) + self.absence_type
+        tokens = torch.where(is_abs[..., None], tok_a, tok_h)
+        z = self.encoder(tokens * valid[..., None], valid)
+        return z, idx, valid
+
+    def encode_tokens(self, features: Tensor, hidden_mask: Tensor | None = None) -> Tensor:
+        """Readout: hit tokens scattered to (B, N_pmt, d) (zeros at unhit PMTs); absence tokens are
+        encoder context only and never part of the readout."""
+        if not self.absence_tokens:
+            return super().encode_tokens(features, hidden_mask)
+        hit = features[..., HIT_INDEX] > 0.5
+        if hidden_mask is not None:
+            hit = hit & ~hidden_mask
+        z, idx, valid = self.encode_hits(features, hit, "hilbert", hidden=hidden_mask)
+        is_hit = valid & (idx < self.n_pmt)
+        return scatter_tokens(z, torch.where(is_hit, idx, torch.zeros_like(idx)), is_hit, self.n_pmt)
 
     def sample_negatives(self, hidden: Tensor, hit: Tensor) -> Tensor:
         """S1n query set: every masked hit + k = min(n_unhit_masked, ceil(r n_hit_masked)) masked
@@ -667,7 +767,10 @@ class SparseMaeArm(_SparseBase):
         x = batch.features
         hit = x[..., HIT_INDEX] > 0.5
         hidden = batch.hidden
-        z, idx, valid = self.encode_hits(x, hit & ~hidden, "hilbert")
+        if self.absence_tokens:
+            z, idx, valid = self.encode_hits(x, hit & ~hidden, "hilbert", hidden=hidden)
+        else:
+            z, idx, valid = self.encode_hits(x, hit & ~hidden, "hilbert")
         qsel = self.query_set(hidden, hit)
         q_idx, q_valid = gather_tokens(qsel, self.hilbert_rank[None, :])
         out = self.predict_queries(z, valid, q_idx, q_valid)
@@ -678,6 +781,8 @@ class SparseMaeArm(_SparseBase):
         metrics = {"charge": float(terms["charge"].detach()), "time": float(terms["time"].detach()),
                    "hidden_hits": int(n_masked_hits.sum()), "n_queries": int(q_valid.sum()),
                    "n_context_tokens": int(valid.sum())}
+        if self.absence_tokens:
+            metrics["n_absence_tokens"] = int((valid & (idx >= self.n_pmt)).sum())
         if self.count_head is not None:
             count = poisson_count_loss(self.count_rate(z, valid), n_masked_hits)
             loss = terms["loss"] + COUNT_WEIGHT * count
@@ -886,13 +991,18 @@ class SparseTimeArm(_SparseBase):
 def build_sparse_arm(arm: str, geometry, seed: int, *, encoder_config: EncoderConfig, scaling: FeatureScaling,
                      queries: str = "all", neg_ratio: float | None = None, mask_seed: int = lb.DEFAULT_SEED,
                      embed: str = "fourier", decoder: str = "isolated", blocks: str | None = None,
-                     block_width_ns: float | None = None):
-    """r2-sparse2 flags (embed, decoder, blocks, block_width_ns) default to the unchanged S1 / S2."""
+                     block_width_ns: float | None = None, absence_tokens: bool = False,
+                     absence_patch_size: int | None = None):
+    """r2-sparse2 flags (embed, decoder, blocks, block_width_ns) default to the unchanged S1 / S2;
+    r2-sparse-sk ``absence_tokens`` (S1A) applies to sparse_mae only."""
     if arm == "sparse_mae":
         if blocks is not None or block_width_ns is not None:
             raise ValueError("--blocks / --block-width-ns apply to sparse_time only")
         return SparseMaeArm(geometry, encoder_config=encoder_config, scaling=scaling, seed=seed,
-                            queries=queries, neg_ratio=neg_ratio, embed=embed, decoder=decoder)
+                            queries=queries, neg_ratio=neg_ratio, embed=embed, decoder=decoder,
+                            absence_tokens=absence_tokens, absence_patch_size=absence_patch_size)
+    if absence_tokens or absence_patch_size is not None:
+        raise ValueError("--absence-tokens applies to sparse_mae only")
     if arm == "sparse_time":
         return SparseTimeArm(geometry, encoder_config=encoder_config, scaling=scaling, seed=seed,
                              mask_seed=mask_seed, embed=embed, decoder=decoder,

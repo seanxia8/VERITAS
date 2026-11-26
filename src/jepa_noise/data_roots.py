@@ -48,6 +48,20 @@ def pack(detector: str, kind: str | None = None) -> Path:
     return LUCID_ROOT / detector / f"{detector}_lucid_v1.h5"
 
 
+def window_ns(detector: str, kind: str | None = None) -> tuple:
+    """r2-sparse-sk: the readout window [ns] around the NHits trigger of a detector's LUCiD data.
+
+    WCTE keeps ``WINDOW_NS`` of its data kind (unchanged); SK / HK / JUNO ``lucid_v1`` use their
+    generator time rule's prompt window (SK [-20, +270], HK [-20, +460], JUNO [-20, +200] ns)."""
+    kind = check(kind)
+    if detector == "wcte":
+        return WINDOW_NS[kind]
+    if kind != LUCID_V1:
+        raise ValueError(f"no {kind} window for {detector}")
+    from . import r2_generator as gen
+    return tuple(float(v) for v in gen.time_rule_for(geometry(detector, kind)).prompt_window_ns)
+
+
 def wcte_probe_pack(kind: str | None = None) -> Path:
     kind = check(kind)
     if kind == LUCID_V1_W2:

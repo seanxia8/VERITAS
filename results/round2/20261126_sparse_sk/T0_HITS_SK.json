@@ -1,0 +1,53 @@
+{
+  "detector": "sk",
+  "data_kind": "lucid_v1",
+  "pack": "/ceph/dwong/jepa/data/lucid_v1/sk/sk_lucid_v1.h5",
+  "pack_dataset_kind": "lucid_mc_native",
+  "cohort": "dev_train",
+  "domain": "photon",
+  "n_photon_bombs_in_cohort": 33400,
+  "n_events_measured": 20000,
+  "n_pmt": 11096,
+  "duplicate_pmt_entries": 0,
+  "hits_per_event": {
+    "median": 1560.5,
+    "q10": 212.0,
+    "q90": 7107.200000000004,
+    "mean": 2668.4432,
+    "n": 20000
+  },
+  "occupancy": {
+    "median": 0.14063626532083634,
+    "q10": 0.01910598413842826,
+    "q90": 0.6405191059841389,
+    "mean": 0.2404869502523432,
+    "n": 20000
+  },
+  "unhit_fraction_median_event": 0.8593637346791636,
+  "span_ns_32_consecutive_hits": {
+    "median": 0.8000001907348633,
+    "q10": 0.3999977111816406,
+    "q90": 5.599998474121094,
+    "mean": 2.5869523075134913,
+    "n": 1658117
+  },
+  "patches": {
+    "patch_size": 173,
+    "full_patches": 64,
+    "tail_pmts": 24,
+    "hit_patches_per_event": {
+      "median": 64.0,
+      "q10": 56.0,
+      "q90": 64.0,
+      "mean": 62.00325,
+      "n": 20000
+    },
+    "hit_fraction_per_patch": {
+      "median": 0.11560693641618497,
+      "q10": 0.011560693641618497,
+      "q90": 0.6994219653179191,
+      "mean": 0.24057197434971103,
+      "n": 1280000
+    }
+  }
+}
