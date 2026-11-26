@@ -88,14 +88,15 @@ class Store(MultiStore):
 
 
 def better_clear(c):
-    if c is None or "T_bar" not in c:
+    # PREREG amendment 1: fewer than 3 defined seeds (e.g. a zero base mu mis-ID) -> not evaluable
+    if c is None or "T_bar" not in c or c.get("n_seeds", 0) < 3:
         return "not evaluable"
     return "holds" if (c["T_bar"] < 0 and c["clear"]) else ("fails" if (c["T_bar"] > 0 and c["clear"]) else
                                                             "inconclusive")
 
 
 def not_worse(c, x):
-    if c is None or "T_bar" not in c:
+    if c is None or "T_bar" not in c or c.get("n_seeds", 0) < 3:
         return "not evaluable"
     return "holds" if c["T_bar"] <= x else ("fails" if c["clear"] else "inconclusive")
 
