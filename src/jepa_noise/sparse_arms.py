@@ -274,7 +274,43 @@ class QueryEmbedding(nn.Module):
 
 def legacy_predict(predictor, context: Tensor, context_valid: Tensor, queries: Tensor,
                    query_valid: Tensor | None = None) -> Tensor:
-    """r2-sparse2 S1L: C2's ``TargetQueryPredictor`` (its own weights, statement for statement) on a
+    """S1L decoder, r2-sparse-sk Stage H implementation (same mathematics as
+    :func:`legacy_predict_masked`, the r2-sparse2 / Stage S implementation).
+
+    Per event, the valid context tokens and the valid queries are concatenated and run through C2's
+    ``TargetQueryPredictor`` blocks with full, unmasked attention, so PyTorch can use its
+    memory-efficient kernel (the key-masked call materialises a (B, H, L, L) attention matrix, which
+    does not fit an A100 on HK, where ≈ 9,900 PMTs are queried). Valid query rows equal the masked
+    implementation's (focused test); padding query rows return ``out_proj(0)`` and are excluded by
+    the loss through ``query_valid``."""
+    if predictor.config.predictor_window is not None:
+        raise ValueError("the legacy decoder of S1L is the full-attention TargetQueryPredictor")
+    b, lc, _ = context.shape
+    lq = queries.size(1)
+    q_ok = (torch.ones(b, lq, dtype=torch.bool, device=context.device) if query_valid is None
+            else query_valid.to(torch.bool))
+    c_ok = context_valid.to(torch.bool)
+    d = predictor.in_proj.out_features
+    hidden = context.new_zeros((b, lq, d))
+    for row in range(b):
+        c = predictor.in_proj(context[row][c_ok[row]])
+        qq = predictor.query_proj(queries[row][q_ok[row]])
+        x = torch.cat([c, qq], dim=0)[None]
+        n = x.size(1)
+        for block in predictor.blocks:
+            a = block.attn
+            q, k, v = a.qkv(a.norm(x)).view(1, n, 3, a.n_heads, a.head_dim).permute(2, 0, 3, 1, 4)
+            att = F.scaled_dot_product_attention(q, k, v)
+            x = x + a.proj(att.transpose(1, 2).reshape(1, n, x.size(-1)))
+            x = x + block.ffn(block.norm(x))
+        hidden[row, torch.nonzero(q_ok[row])[:, 0]] = x[0, c.size(0):]
+    return predictor.out_proj(hidden)
+
+
+def legacy_predict_masked(predictor, context: Tensor, context_valid: Tensor, queries: Tensor,
+                          query_valid: Tensor | None = None) -> Tensor:
+    """r2-sparse2 S1L (the implementation every Stage S run trained with): C2's
+    ``TargetQueryPredictor`` (its own weights, statement for statement) on a
     padded context. Full attention over [context; queries] as in C2, except that padding keys are
     masked out (every row may attend to the valid context tokens, the valid queries and itself).
     With an all-valid context this equals ``predictor(context, queries)`` (focused test)."""

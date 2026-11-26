@@ -521,3 +521,41 @@ def test_juno_w2_roots_and_window():
     flags = tr.sparse_build_flags(args, scaling)
     assert abs(flags["sentinel_time"] - (350.0 + 50.0) / scaling.time_scale_ns) < 1e-12
     assert tr.run_suffix(args) == "__dw2__lfixed__psent"
+
+
+# ----------------------------------------------------------------------------- Stage H decoder memory fix
+def test_legacy_predict_per_event_equals_masked(sk):
+    """The Stage H S1L decoder (per-event, unmasked attention) gives the valid query rows of the masked
+    r2-sparse2 implementation, and the same gradients through valid rows."""
+    arm = _arm(sk, "S1L").train()
+    torch.manual_seed(1)
+    b, lc, lq = 3, 40, 30
+    ctx = torch.randn(b, lc, arm.d_model, requires_grad=True)
+    q = torch.randn(b, lq, 3)
+    cv = torch.ones(b, lc, dtype=torch.bool)
+    cv[1, 25:] = False
+    cv[2, 5:] = False
+    qv = torch.ones(b, lq, dtype=torch.bool)
+    qv[0, 20:] = False
+    qv[2, 1:] = False
+    new = sa.legacy_predict(arm.predictor, ctx, cv, q, qv)
+    old = sa.legacy_predict_masked(arm.predictor, ctx, cv, q, qv)
+    assert torch.allclose(new[qv], old[qv], atol=1e-5)
+    g_new = torch.autograd.grad(new[qv].sum(), ctx)[0]
+    g_old = torch.autograd.grad(old[qv].sum(), ctx)[0]
+    assert torch.allclose(g_new, g_old, atol=1e-5)
+    assert float(g_new[~cv].abs().max()) == 0.0   # padding context rows never reach a valid query
+
+
+def test_s1l_forward_loss_unchanged_by_decoder_implementation(sk):
+    arm = _arm(sk, "S1L").eval()
+    b = _batch(sk, n_events=2, seed=7)
+    with torch.no_grad():
+        new = arm(b)["loss"]
+        orig = sa.legacy_predict
+        try:
+            sa.legacy_predict = sa.legacy_predict_masked
+            old = arm(b)["loss"]
+        finally:
+            sa.legacy_predict = orig
+    assert abs(float(new) - float(old)) < 1e-5
