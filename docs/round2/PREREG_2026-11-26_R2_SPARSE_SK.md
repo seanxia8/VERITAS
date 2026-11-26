@@ -110,3 +110,13 @@ These readings implement §2 where its text leaves a choice; none changes a cell
 - **A9. SD_pooled.** SK: RMS of the across-seed SDs of the per-seed T of every registered SK contrast with 3 seeds (r2-mask / r2-follow 3-seed SK mask contrasts and K1–K5), per metric and cohort. WCTE: r2-sparse2's set (R1–R6, A1–A4, P1–P5) plus K6.
 - **A10. Efficiency.** Median wall time per optimiser step over the 1,000 step intervals 1,001–2,000 and peak GPU memory up to step 2,000 (`efficiency.json` of each new run), A100 only. SK-D0 (reused, trained before the logger existed): the same median from its `train_log.jsonl` elapsed times (A100), memory = its recorded whole-run peak.
 - **A11. SK scoring.** SK new runs are scored on HTCondor A100 (`tier1_eval_batch.py`); SK-D0's existing step-0 and step-10,000 evaluator outputs (r2-lucid / r2-tier1 / r2-mask / r2-follow eval trees) are reused read-only; WCTE C2 and S1L likewise from r2-sparse / r2-sparse2.
+
+---
+
+## Appendix J — Stage J (JUNO), runbook §5 (fixed 26 Nov 2026, before any JUNO run is evaluated)
+
+- **J0 window (registered rule, r2-sparse §W1 unchanged):** P = max(50, q99.5(trigger − earliest signal digit) + 10 ns) rounded up to 10 ns = max(50, 97.6 + 10) → **110 ns**; A = smallest multiple of 50 ns with ≥ 99.5 % of first-per-PMT signal digits in [−P, A] → **350 ns** (99.71 %). JUNO `lucid_v1_w2` window **[−110, +350] ns**, time scale unchanged (333.3 ns). Data: `/ceph/dwong/jepa/data/lucid_v1_w2/juno/juno_lucid_v1_w2.h5` (SHA-256 2e759db1…) and `…_sealed.h5` (fa42a9bf…).
+- **J0 validation (W2 §5):** passed for all four cohorts; one `dev_train` hit of 197 million changed by a dark-extension digit merged after its cached digit (registered merge rule; `DECISIONS.md`).
+- **Cells (runbook §5.2, 3 seeds, 10,000 steps, JUNO default encoder, window 320, patch 156):** J-C2v1 (`lucid_v1`, dense C2 recipe: `--loss fixed --placeholder sentinel`, sentinel (200 + 50)/333.3 = 0.75), J-C2v2 (`lucid_v1_w2`, dense C2 recipe, sentinel (350 + 50)/333.3 = 1.2, the same "window end + 50 ns" rule), J-Tv2 (`lucid_v1_w2`, tokenisation T\* of the Stage S decision, recorded in appendix H; dropped if T\* is dense).
+- **Predictions (runbook §5.3):** J1 J-C2v2 vs J-C2v1: no sign registered (window effect where late light is largest); J2 J-Tv2 vs J-C2v2: not worse by more than 5 % (appendix A7 margin reading).
+- **Reading of J1 (operational):** J1 compares models trained and scored on different data (v1 and v2 packs of the same events); T per seed = e(J-C2v2 on v2 sealed) / e(J-C2v1 on v1 sealed) − 1 on the same sealed event ids (the bootstrap pairs events by id). Statistics as appendix A6; SD_pooled for JUNO = RMS of the across-seed SDs of J1 and J2 (no earlier 3-seed JUNO contrast exists).

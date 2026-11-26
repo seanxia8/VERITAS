@@ -100,3 +100,15 @@ Per hit the pack also stores `extra_n_later`, `extra_q_total_window`, `extra_phy
 `results/round2/20261124_sparse/DATA_MANIFEST_wcte_w2.json`; validation `results/round2/20261124_sparse/w2_validation/`.
 Sealed packs are read only through `scripts/tier1_eval.py`; the re-pack, packing and structural validation of the
 sealed cohort are logged in `results/round2/20261124_sparse/SEALED_ACCESS_LOG.md`.
+
+### 2.3 JUNO wide-window re-pack (`lucid_v1_w2`, r2-sparse-sk J0, 26 Nov 2026)
+
+The same procedure as §2.2, unchanged, applied to the JUNO cache (`/ceph/dwong/jepa/data/lucid_v1/juno/cache`,
+read-only; JUNO here = a water sphere of JUNO's size, NHits trigger N = 10, 20 ns), with the window
+[−110, +350] ns given by the r2-sparse W1 rule (`results/round2/20261126_sparse_sk/j0/J0_WINDOW_JUNO.json`);
+time scaling unchanged (T = 333.3 ns). JUNO keeps its `lucid_v1` layout: `juno_lucid_v1_w2.h5` holds
+`dev_train`, `dev_probe_train`, `dev_probe_test`; `juno_lucid_v1_w2_sealed.h5` the `sealed_test` (no `_s030`
+cohorts, which have no cache). Data of record: `/ceph/dwong/jepa/data/lucid_v1_w2/juno/` (`shards_w2b/`, the two
+packs, `SHA256SUMS`); staged copies `/ceph/srv/dwong/r2/data/lucid_v1_w2/`. Manifest and validation:
+`results/round2/20261126_sparse_sk/j0/`. Sealed re-pack, validation, packing and staging are logged in
+`results/round2/20261126_sparse_sk/SEALED_ACCESS_LOG.md`.
